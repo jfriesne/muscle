@@ -41,7 +41,7 @@ static void CheckFile(const String & path, Queue<String> & codes)
                if ((commentIdx < 0)||(commentIdx > ltIdx))
                {
                   const String loc = SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(fileName(), lineNumber));
-                  (void) codes.AddTail(line->Prepend(String("[%1] %2:%3: ").Arg(loc).Arg(path).Arg(lineNumber)));
+                  (void) codes.AddTail(line->WithPrepend(String("[%1] %2:%3: ").Arg(loc).Arg(path).Arg(lineNumber)));
                }
             }
             lineNumber++;

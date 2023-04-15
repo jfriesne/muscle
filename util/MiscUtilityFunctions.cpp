@@ -36,7 +36,7 @@ extern bool _mainReflectServerCatchSignals;  // from SetupSystem.cpp
 static status_t ParseArgAux(const String & a, Message * optAddToMsg, Queue<String> * optAddToQueue, bool cs)
 {
    // Remove any initial dashes
-   String argName = a.Trim();
+   String argName = a.Trimmed();
    const char * s = argName();
    if (s > argName()) argName = argName.Substring(s-argName);
 
@@ -47,8 +47,8 @@ static status_t ParseArgAux(const String & a, Message * optAddToMsg, Queue<Strin
       String argValue;
       if (equalsAt >= 0)
       {
-         argValue = argName.Substring(equalsAt+1).Trim();  // this must be first!
-         argName  = argName.Substring(0, equalsAt).Trim();
+         argValue = argName.Substring(equalsAt+1).Trimmed();  // this must be first!
+         argName  = argName.Substring(0, equalsAt).Trimmed();
          if (cs == false) argName = argName.ToLowerCase();
       }
       if (argName.HasChars())
@@ -72,7 +72,7 @@ static String QuoteAndEscapeStringIfNecessary(const String & s)
 {
    String tmp = s;
    tmp.Replace("\"", "\\\"");
-   return ((tmp.IndexOf(' ') >= 0)||(tmp.IndexOf('\t') >= 0)||(tmp.IndexOf('\r') >= 0)||(tmp.IndexOf('\n') >= 0)) ? tmp.Prepend('\"').Append('\"') : tmp;
+   return ((tmp.IndexOf(' ') >= 0)||(tmp.IndexOf('\t') >= 0)||(tmp.IndexOf('\r') >= 0)||(tmp.IndexOf('\n') >= 0)) ? tmp.WithPrepend('\"').WithAppend('\"') : tmp;
 }
 
 String UnparseArgs(const Message & argsMsg)
@@ -112,7 +112,7 @@ String UnparseArgs(const Queue<String> & args, uint32 startIdx, uint32 endIdx)
    {
       String subRet = args[i];
       subRet.Replace("\"", "\\\"");
-      if (subRet.IndexOf(' ') >= 0) subRet = subRet.Append("\"").Prepend("\"");
+      if (subRet.IndexOf(' ') >= 0) subRet = subRet.WithAppend("\"").WithPrepend("\"");
       if (ret.HasChars()) ret += ' ';
       ret += subRet;
    }
@@ -123,7 +123,7 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
 {
    TCHECKPOINT;
 
-   const String trimmed = line.Trim();
+   const String trimmed = line.Trimmed();
    const uint32 len = trimmed.Length();
 
    // First, we'll pre-process the string into a StringTokenizer-friendly
@@ -228,13 +228,13 @@ static status_t ParseFileAux(StringTokenizer * optTok, FILE * fpIn, Message * op
       if (lineOfText == NULL) break;
 
       String checkForSection(lineOfText);
-      checkForSection = optAddToMsg ? checkForSection.Trim() : "";  // sections are only supported for Messages, not Queue<String>'s
+      checkForSection = optAddToMsg ? checkForSection.Trimmed() : "";  // sections are only supported for Messages, not Queue<String>'s
       if (cs == false) checkForSection = checkForSection.ToLowerCase();
       if (((checkForSection == "begin")||(checkForSection.StartsWith("begin ")))&&(optAddToMsg))  // the check for (optAddToMsg) isn't really necessary, but it makes clang++ happy
       {
-         checkForSection = checkForSection.Substring(6).Trim();
+         checkForSection = checkForSection.Substring(6).Trimmed();
          const int32 hashIdx = checkForSection.IndexOf('#');
-         if (hashIdx >= 0) checkForSection = checkForSection.Substring(0, hashIdx).Trim();
+         if (hashIdx >= 0) checkForSection = checkForSection.Substring(0, hashIdx).Trimmed();
 
          // Don't allow the parsing to fail just because the user specified a section name the same as a param name!
          uint32 tc;
@@ -297,7 +297,7 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
 {
    if ((optFile == NULL)&&(optString == NULL)) return B_BAD_ARGUMENT;
 
-   const String indentStr = String().Pad(indentLevel);
+   const String indentStr = String().PaddedBy(indentLevel);
    Message scratchMsg;
    for (MessageFieldNameIterator fnIter(readFrom); fnIter.HasData(); fnIter++)
    {
@@ -807,7 +807,7 @@ String CleanupDNSLabel(const String & s, const String & optAdditionalAllowedChar
       }
    }
    while(ret.EndsWith('-')) ret -= '-';  // remove any trailing dashes
-   return ret.Trim();
+   return ret.Trimmed();
 }
 
 String CleanupDNSPath(const String & orig, const String & optAdditionalAllowedChars)

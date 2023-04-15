@@ -48,8 +48,8 @@ static MessageRef ParseStdinCommand(const String & stdinCommand)
       if (theRest.HasChars())
       {
          const int eqIdx = theRest.IndexOf('=');
-         const String pathArg = (eqIdx >= 0) ? theRest.Substring(0, eqIdx).Trim() : theRest;
-         const String dataArg = (eqIdx >= 0) ? theRest.Substring(eqIdx+1).Trim()  : "default";
+         const String pathArg = (eqIdx >= 0) ? theRest.Substring(0, eqIdx).Trimmed() : theRest;
+         const String dataArg = (eqIdx >= 0) ? theRest.Substring(eqIdx+1).Trimmed()  : "default";
 
          if (pathArg.StartsWith("/"))
          {
@@ -214,7 +214,7 @@ int main(int argc, char ** argv)
          if (numBytesRead > 0)
          {
             String inputCmd((const char *) inputBuf, numBytesRead);
-            inputCmd = inputCmd.Trim();
+            inputCmd = inputCmd.Trimmed();
             if (inputCmd == "die") break;
 
             MessageRef msgToSend = ParseStdinCommand(inputCmd);

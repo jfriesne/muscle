@@ -17,7 +17,7 @@ public:
       if (interfaceNames.HasItems())
       {
          s = " on these interfaces: ";
-         for (HashtableIterator<String, Void> iter(interfaceNames); iter.HasData(); iter++) s += iter.GetKey().Prepend(' ');
+         for (HashtableIterator<String, Void> iter(interfaceNames); iter.HasData(); iter++) s += iter.GetKey().WithPrepend(' ');
       }
       LogTime(MUSCLE_LOG_INFO, "SomeOtherSession:  Network configuration change detected%s\n", s());
    }
@@ -44,7 +44,7 @@ public:
       if (interfaceNames.HasItems())
       {
          s = " on these interfaces: ";
-         for (HashtableIterator<String, Void> iter(interfaceNames); iter.HasData(); iter++) s += iter.GetKey().Prepend(' ');
+         for (HashtableIterator<String, Void> iter(interfaceNames); iter.HasData(); iter++) s += iter.GetKey().WithPrepend(' ');
       }
       LogTime(MUSCLE_LOG_INFO, "TestSession:  Network configuration change detected%s\n", s());
    }

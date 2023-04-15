@@ -79,7 +79,7 @@ int main(int argc, char ** argv)
          if (numBytesRead.IsOK())
          {
             inputBuf[numBytesRead.GetByteCount()] = '\0';  // ensure NUL termination
-            printf("Child Process sent this to me: [%s]\n", String(inputBuf).Trim()());
+            printf("Child Process sent this to me: [%s]\n", String(inputBuf).Trimmed()());
          }
          else
          {

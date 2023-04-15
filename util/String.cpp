@@ -555,7 +555,7 @@ String String :: ToUpperCase() const
    return ret;
 }
 
-String String :: Trim() const
+String String :: Trimmed() const
 {
    TCHECKPOINT;
 
@@ -613,11 +613,11 @@ uint32 String :: GetNumInstancesOf(const char * substring, uint32 fromIndex) con
    return ret;
 }
 
-String String :: Prepend(const String & str, uint32 count) const
+String String :: WithPrepend(const String & str, uint32 count) const
 {
    TCHECKPOINT;
 
-   if (&str == this) return Prepend(String(str), count);  // avoid self-entanglement
+   if (&str == this) return WithPrepend(String(str), count);  // avoid self-entanglement
 
    String ret;
    const uint32 newLen = (count*str.Length())+Length();
@@ -646,12 +646,12 @@ String String :: Prepend(const String & str, uint32 count) const
    return ret;
 }
 
-String String :: Prepend(const char * str, uint32 count) const
+String String :: WithPrepend(const char * str, uint32 count) const
 {
    TCHECKPOINT;
 
         if ((str == NULL)||(*str == '\0')) return *this;
-   else if (IsCharInLocalArray(str))       return Prepend(String(str), count);  // avoid self-entanglement!
+   else if (IsCharInLocalArray(str))       return WithPrepend(String(str), count);  // avoid self-entanglement!
    else
    {
       const uint32 sLen = (uint32) strlen(str);
@@ -682,11 +682,11 @@ String String :: Prepend(const char * str, uint32 count) const
    }
 }
 
-String String :: Append(const String & str, uint32 count) const
+String String :: WithAppend(const String & str, uint32 count) const
 {
    TCHECKPOINT;
 
-   if (&str == this) return Append(String(str), count);  // avoid self-entanglement
+   if (&str == this) return WithAppend(String(str), count);  // avoid self-entanglement
 
    String ret;
    const uint32 newLen = Length()+(count*str.Length());
@@ -713,12 +713,12 @@ String String :: Append(const String & str, uint32 count) const
    return ret;
 }
 
-String String :: Append(const char * str, uint32 count) const
+String String :: WithAppend(const char * str, uint32 count) const
 {
    TCHECKPOINT;
 
         if ((str == NULL)||(*str == '\0')) return *this;
-   else if (IsCharInLocalArray(str))       return Append(String(str), count);  // avoid self-entanglement!
+   else if (IsCharInLocalArray(str))       return WithAppend(String(str), count);  // avoid self-entanglement!
    else
    {
       const uint32 sLen = (uint32) strlen(str);
@@ -748,18 +748,18 @@ String String :: Append(const char * str, uint32 count) const
    }
 }
 
-String String :: AppendWord(const char * str, const char * sep) const
+String String :: WithAppendedWord(const char * str, const char * sep) const
 {
    if ((str == NULL)||(*str == '\0')) return *this;
-   if ((HasChars())&&(strncmp(str, sep, strlen(sep)) != 0)&&(EndsWith(sep) == false)) return String(*this).Append(sep).Append(str);
-                                                                                 else return String(*this).Append(str);
+   if ((HasChars())&&(strncmp(str, sep, strlen(sep)) != 0)&&(EndsWith(sep) == false)) return String(*this).WithAppend(sep).WithAppend(str);
+                                                                                 else return String(*this).WithAppend(str);
 }
 
-String String :: AppendWord(const String & str, const char * sep) const
+String String :: WithAppendedWord(const String & str, const char * sep) const
 {
    if (str.IsEmpty()) return *this;
-   if ((HasChars())&&(str.StartsWith(sep) == false)&&(EndsWith(sep) == false)) return String(*this).Append(sep).Append(str);
-                                                                          else return String(*this).Append(str);
+   if ((HasChars())&&(str.StartsWith(sep) == false)&&(EndsWith(sep) == false)) return String(*this).WithAppend(sep).WithAppend(str);
+                                                                          else return String(*this).WithAppend(str);
 }
 
 static uint32 NextPowerOfTwo(uint32 n)
@@ -886,22 +886,22 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
    return B_NO_ERROR;
 }
 
-String String :: Pad(uint32 minLength, bool padOnRight, char padChar) const
+String String :: PaddedBy(uint32 minLength, bool padOnRight, char padChar) const
 {
    if (Length() < minLength)
    {
       const uint32 padLen = minLength-Length();
       String temp; temp += padChar;
-      return (padOnRight) ? Append(temp, padLen) : Prepend(temp, padLen);
+      return (padOnRight) ? WithAppend(temp, padLen) : WithPrepend(temp, padLen);
    }
    else return *this;
 }
 
-String String :: Indent(uint32 numIndentChars, char indentChar) const
+String String :: IndentedBy(uint32 numIndentChars, char indentChar) const
 {
    if ((numIndentChars == 0)||(indentChar == '\0')) return *this;
 
-   const String pad = String().Pad(numIndentChars);
+   const String pad = String().PaddedBy(numIndentChars);
    String ret;
    if ((StartsWith('\r'))||(StartsWith('\n'))) ret = pad;
 
@@ -1347,15 +1347,15 @@ static int strnatcmp0(char const *a, char const *b, int fold_case)
       /* process run of digits */
       if ((nat_isdigit(ca))&&(nat_isdigit(cb)))
       {
-         int fractional = (ca == '0' || cb == '0');
+         const int fractional = (ca == '0' || cb == '0');
          if (fractional)
          {
-            int result = nat_compare_left(a+ai, b+bi);
+            const int result = nat_compare_left(a+ai, b+bi);
             if (result != 0) return result;
          }
          else
          {
-            int result = nat_compare_right(a+ai, b+bi);
+            const int result = nat_compare_right(a+ai, b+bi);
             if (result != 0) return result;
          }
       }

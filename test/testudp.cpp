@@ -122,7 +122,7 @@ int main(int argc, char ** argv)
                   bool send = true;
                   MessageRef ref = GetMessageFromPool(useTextGateway?PR_COMMAND_TEXT_STRINGS:(useRawGateway?PR_COMMAND_RAW_DATA:0));
 
-                       if (useTextGateway) (void) ref()->AddString(PR_NAME_TEXT_LINE, st->Trim());
+                       if (useTextGateway) (void) ref()->AddString(PR_NAME_TEXT_LINE, st->Trimmed());
                   else if (useRawGateway)  (void) ref()->AddFlat(PR_NAME_DATA_CHUNKS, ParseHexBytes(text));
                   else
                   {

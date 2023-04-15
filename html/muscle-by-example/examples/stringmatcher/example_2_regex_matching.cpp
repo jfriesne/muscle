@@ -33,7 +33,7 @@ int main(int argc, char ** argv)
       if (fgets(buf, sizeof(buf), stdin) == NULL) break;
 
       String s = buf;
-      s = s.Trim();  // get rid of newlines, etc
+      s = s.Trimmed();  // get rid of newlines, etc
 
       printf("You entered:  [%s]\n", s());
       printf("\n");

@@ -146,7 +146,7 @@ static status_t UnitTestString()
    (void) temp.SetCstr("1234567890");
    printf("%s\n", temp());
 
-   String scale("do"); scale = scale.AppendWord("re", ", ").AppendWord("mi").AppendWord(String("fa")).AppendWord("so").AppendWord("la").AppendWord("ti").AppendWord("do");
+   String scale("do"); scale = scale.WithAppendedWord("re", ", ").WithAppendedWord("mi").WithAppendedWord(String("fa")).WithAppendedWord("so").WithAppendedWord("la").WithAppendedWord("ti").WithAppendedWord("do");
    printf("scale = [%s]\n", scale());
 
    String rem("Hello sailor");
@@ -176,7 +176,7 @@ static status_t UnitTestString()
    String s1("one");
    String s2("two");
    String s3;
-   printf("[%s]\n", s1.AppendWord(s2, ", ").AppendWord(s3, ", ")());
+   printf("[%s]\n", s1.WithAppendedWord(s2, ", ").WithAppendedWord(s3, ", ")());
 
    return B_NO_ERROR;
 }

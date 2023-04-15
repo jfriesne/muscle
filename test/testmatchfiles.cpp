@@ -37,7 +37,7 @@ int main(int argc, char ** argv)
       char buf[1024];
       while(fgets(buf, sizeof(buf), stdin))
       {
-         String s(buf); s = s.Trim();
+         String s(buf); s = s.Trimmed();
          if (TextExpandFilePath(s).IsError()) ret = 10;
          printf("\n\n");
       }

@@ -516,8 +516,8 @@ int hextermmain(const char * argv0, const Message & args)
    {
       ChildProcessDataIO cpdio(false);
       const int32 spaceIdx       = arg.IndexOf(' ');
-      const String childProgName = arg.Substring(0, spaceIdx).Trim();
-      const String childArgs     = arg.Substring(spaceIdx).Trim()();
+      const String childProgName = arg.Substring(0, spaceIdx).Trimmed();
+      const String childArgs     = arg.Substring(spaceIdx).Trimmed()();
       if (cpdio.LaunchChildProcess(arg()).IsOK(ret))
       {
          LogTime(MUSCLE_LOG_INFO, "Communicating with child process (%s), childArgs=[%s]\n", childProgName(), childArgs());

@@ -650,58 +650,58 @@ public:
      * @param str The string to prepend
      * @param count How many instances of (str) to prepend.  Defaults to 1.
      */
-   MUSCLE_NODISCARD String Prepend(const String & str, uint32 count = 1) const;
+   MUSCLE_NODISCARD String WithPrepend(const String & str, uint32 count = 1) const;
 
    /** Returns a string that consists of (count) copies of (str), followed by this string.
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      * @param count How many instances of (str) should be prepended to this string.  Defaults to 1.
      */
-   MUSCLE_NODISCARD String Prepend(const char * str, uint32 count = 1) const;
+   MUSCLE_NODISCARD String WithPrepend(const char * str, uint32 count = 1) const;
 
    /** Returns a string that consists of (count) copies of (c), followed by this string.
      * @param c The character to prepend
      * @param count How many instances of (c) to prepend.  Defaults to 1.
      */
-   MUSCLE_NODISCARD String Prepend(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return Prepend(cc, count);}
+   MUSCLE_NODISCARD String WithPrepend(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return WithPrepend(cc, count);}
 
-   /** Similar to Prepend(), but this version will insert separator string between our current content and the prepended string, if necessary.
+   /** Similar to WithPrepend(), but this version will insert separator string between our current content and the prepended string, if necessary.
      * @param str A string to prepended to the end of this string.
      * @param sep Pointer to the string used to separate words.  Defaults to " "
      * @returns a reference to this object, which will have had the specified string prepended, with an inserted (sep) infix if necessary.
      */
-   MUSCLE_NODISCARD String PrependWord(const String & str, const char * sep = " ") const {return str.AppendWord(*this, sep);}
+   MUSCLE_NODISCARD String WithPrependedWord(const String & str, const char * sep = " ") const {return str.WithAppendedWord(*this, sep);}
 
    /** Returns a string that consists of this string followed by (count) copies of (str).
      * @param str A string to append to the end of this string.
      * @param count How many copies of (str) to append.  Defaults to 1.
      */
-   MUSCLE_NODISCARD String Append(const String & str, uint32 count = 1) const;
+   MUSCLE_NODISCARD String WithAppend(const String & str, uint32 count = 1) const;
 
    /** Returns a string that consists of this string followed by (count) copies of (str).
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      * @param count How many instances of (str) should be appended to this string.  Defaults to 1.
      */
-   MUSCLE_NODISCARD String Append(const char * str, uint32 count = 1) const;
+   MUSCLE_NODISCARD String WithAppend(const char * str, uint32 count = 1) const;
 
    /** Returns a string that consists of this string followed by (count) copies of (c).
      * @param c The character to append
      * @param count How many instances of (c) to append.  Defaults to 1.
      */
-   MUSCLE_NODISCARD String Append(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return Append(cc, count);}
+   MUSCLE_NODISCARD String WithAppend(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return WithAppend(cc, count);}
 
    /** Similar to the += operator, but this version will insert a separator between our current content and the appended string, if necessary.
      * @param str Pointer to a C string to return appended to this string.  NULL pointers are considered a synonym for "".
      * @param sep Pointer to the string used to separate words.  Defaults to " "
      * @returns a reference to this object, which will have had the specified string appended, with an inserted (sep) infix if necessary.
      */
-   MUSCLE_NODISCARD String AppendWord(const char * str, const char * sep = " ") const;
+   MUSCLE_NODISCARD String WithAppendedWord(const char * str, const char * sep = " ") const;
 
    /** Similar to the += operator, but this version will insert a separator between our current content and the appended string, if necessary.
      * @param str A string to append to the end of this string.
      * @param sep Pointer to the string used to separate words.  Defaults to " "
      * @returns a reference to this object, which will have had the specified string appended, with an inserted (sep) infix if necessary.
      */
-   MUSCLE_NODISCARD String AppendWord(const String & str, const char * sep = " ") const;
+   MUSCLE_NODISCARD String WithAppendedWord(const String & str, const char * sep = " ") const;
 
    /** Returns a string that is like this string, but padded out to the specified minimum length with (padChar).
     *  @param minLength Minimum length that the returned string should be.
@@ -709,7 +709,7 @@ public:
     *  @param padChar The character to pad out the string with.  Defaults to ' '.
     *  @returns the new, padded String.
     */
-   MUSCLE_NODISCARD String Pad(uint32 minLength, bool padOnRight = false, char padChar = ' ') const;
+   MUSCLE_NODISCARD String PaddedBy(uint32 minLength, bool padOnRight = false, char padChar = ' ') const;
 
    /** Returns a string that is the same as this one, except that the beginning of each line in the string has (numIndentChars)
      * instances of (indentChar) prepended to it.
@@ -717,7 +717,7 @@ public:
      * @param indentChar The character to use to make the indentations.  Defaults to ' '.
      * @returns the indented string.
      */
-   MUSCLE_NODISCARD String Indent(uint32 numIndentChars, char indentChar = ' ') const;
+   MUSCLE_NODISCARD String IndentedBy(uint32 numIndentChars, char indentChar = ' ') const;
 
    /** Returns a string that consists of only the last part of this string, starting with index (beginIndex).  Does not modify the string it is called on.
      * @param beginIndex the index of the first character to include in the returned substring
@@ -772,7 +772,7 @@ public:
    MUSCLE_NODISCARD String ToMixedCase() const;
 
    /** Returns an version of this string that has all leading and trailing whitespace removed.  Does not modify the string it is called on. */
-   MUSCLE_NODISCARD String Trim() const;
+   MUSCLE_NODISCARD String Trimmed() const;
 
    /** Swaps the state of this string with (swapWithMe).  Very efficient since little or no data copying is required.
      * @param swapWithMe the String to swap contents with
@@ -1222,25 +1222,25 @@ public:
      * Otherwise, returns a String equivalent to this one but with the specified character appended.
      * @param c The char we want to be sure is at the end of the returned String.
      */
-   MUSCLE_NODISCARD String WithSuffix(char c) const {return EndsWith(c) ? *this : Append(c);}
+   MUSCLE_NODISCARD String WithSuffix(char c) const {return EndsWith(c) ? *this : WithAppend(c);}
 
    /** If this string already ends with the specified string, returns this string verbatim.
      * Otherwise, returns a String equivalent to this one but with the specified string appended.
      * @param str The string we want to be sure is at the end of the returned String.
      */
-   MUSCLE_NODISCARD String WithSuffix(const String & str) const {return EndsWith(str) ? *this : Append(str);}
+   MUSCLE_NODISCARD String WithSuffix(const String & str) const {return EndsWith(str) ? *this : WithAppend(str);}
 
    /** If this string already begins with the specified character, returns this string verbatim.
      * Otherwise, returns a String equivalent to this one but with the specified character prepended.
      * @param c The character we want to be sure is at the beginning of the returned String.
      */
-   MUSCLE_NODISCARD String WithPrefix(char c) const {return StartsWith(c) ? *this : Prepend(c);}
+   MUSCLE_NODISCARD String WithPrefix(char c) const {return StartsWith(c) ? *this : WithPrepend(c);}
 
    /** If this string already begins with the specified string, returns this string verbatim.
      * Otherwise, returns a String equivalent to this one but with the specified string prepended.
      * @param str The string we want to be sure is at the beginning of the returned String.
      */
-   MUSCLE_NODISCARD String WithPrefix(const String & str) const {return StartsWith(str) ? *this : Prepend(str);}
+   MUSCLE_NODISCARD String WithPrefix(const String & str) const {return StartsWith(str) ? *this : WithPrepend(str);}
 
    /** Returns a String like this one, but with any characters (c) removed from the end.
      * @param c The char we want to be sure is not at the end of the returned String.
@@ -1395,7 +1395,7 @@ public:
 /** Convenience method:  returns a string with no characters in it (a.k.a. "") */
 inline const String & GetEmptyString() {return GetDefaultObjectForType<String>();}
 
-template<class T> inline String operator+(const String & lhs, const T & rhs) {return rhs.ToString().Prepend(lhs);}
+template<class T> inline String operator+(const String & lhs, const T & rhs) {return rhs.ToString().WithPrepend(lhs);}
 inline String operator+(const String & lhs, const String & rhs)  {String ret; (void) ret.Prealloc(lhs.Length()+rhs.Length());                ret = lhs; ret += rhs; return ret;}
 inline String operator+(const String & lhs, const char *rhs)     {String ret; (void) ret.Prealloc(lhs.Length()+(rhs?(uint32)strlen(rhs):0)); ret = lhs; ret += rhs; return ret;}
 inline String operator+(const String & lhs,       char *rhs)     {String ret; (void) ret.Prealloc(lhs.Length()+(rhs?(uint32)strlen(rhs):0)); ret = lhs; ret += rhs; return ret;}

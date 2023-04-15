@@ -42,7 +42,7 @@ int main(int, char **)
    char buf[1024];
    while(fgets(buf, sizeof(buf), stdin))
    {
-      String s = buf; s = s.Trim();
+      String s = buf; s = s.Trimmed();
       const int32 leftBracket  = s.LastIndexOf('[');
       const int32 rightBracket = s.LastIndexOf(']');
       if ((leftBracket >= 0)&&(rightBracket >= 0)&&(((uint32)(rightBracket+1)) == s.Length()))

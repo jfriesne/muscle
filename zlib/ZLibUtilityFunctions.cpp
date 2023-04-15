@@ -37,7 +37,7 @@ static void FreeZLibCodecs()
          delete _codecs[i];
          _codecs[i] = NULL;
       }
-      _zlibLock.Unlock();
+      (void) _zlibLock.Unlock();
    }
 }
 
@@ -57,7 +57,7 @@ static void EnsureCleanupCallbackInstalled()
                if (css->GetCleanupCallbacks().AddTail(DummyGenericCallbackRef(_freeCodecsCallback)).IsOK()) _cleanupCallbackInstalled = true;
             }
          }
-         m->Unlock();
+         (void) m->Unlock();
       }
    }
 }
@@ -109,7 +109,7 @@ ByteBufferRef InflateByteBuffer(const uint8 * buf, uint32 numBytes)
    {
       ZLibCodec * codec = GetZLibCodec(6);  // doesn't matter which compression-level/codec we use, any of them can inflate anything
       if (codec) ret = codec->Inflate(buf, numBytes);
-      _zlibLock.Unlock();
+      (void) _zlibLock.Unlock();
       if (codec) EnsureCleanupCallbackInstalled();  // do this outside of the ZLib lock!
    }
 #else

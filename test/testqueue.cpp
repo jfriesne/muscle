@@ -237,7 +237,7 @@ static status_t UnitTestQueue()
       {
          printf("STRING SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) qq[i] = String("FooBarBaz-%1").Arg(rand()).Pad(500);  // we want this to be repeatable, hence srand(0)
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) qq[i] = String("FooBarBaz-%1").Arg(rand()).PaddedBy(500);  // we want this to be repeatable, hence srand(0)
 
          const uint64 startTime = GetRunTime64();
          qq.Sort();

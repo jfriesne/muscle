@@ -72,7 +72,7 @@ int main(int argc, char ** argv)
       char buf[256];
       while(fgets(buf, sizeof(buf), stdin))
       {
-         String s(buf); s = s.Trim();
+         String s(buf); s = s.Trimmed();
          printf("You typed %s ... I interpreted that as %s\n", s(), IPAddressAndPort(s,666,true).ToString(true,true)()); fflush(stdout);
       }
    }

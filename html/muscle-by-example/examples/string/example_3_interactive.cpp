@@ -25,13 +25,13 @@ int main(int argc, char ** argv)
    if (fgets(buf, sizeof(buf), stdin) == NULL) return 10;
 
    String s1 = buf;
-   s1 = s1.Trim();   // Get rid of any newlines/whitespace at front/end of s1
+   s1 = s1.Trimmed();   // Get rid of any newlines/whitespace at front/end of s1
 
    printf("Please enter a second string: ");
    if (fgets(buf, sizeof(buf), stdin) == NULL) return 10;
 
    String s2 = buf;
-   s2 = s2.Trim();   // Get rid of any newlines/whitespace at front/end of s2
+   s2 = s2.Trimmed();   // Get rid of any newlines/whitespace at front/end of s2
 
    printf("\n");
    printf("You entered [%s] as your 1st string.\n", s1());
@@ -52,10 +52,10 @@ int main(int argc, char ** argv)
    printf("   s1.IndexOf(\"%s\") returned %i (s1.IndexOfIgnoreCase() returned %i)\n", s2(), s1.IndexOf(s2), s1.IndexOfIgnoreCase(s2));
    printf("   s1.LastIndexOf(\"%s\") returned %i (s1.LastIndexOfIgnoreCase() returned %i)\n", s2(), s1.LastIndexOf(s2), s1.LastIndexOfIgnoreCase(s2));
    printf("   s1.GetNumInstancesOf(\"%s\") returned " UINT32_FORMAT_SPEC "\n", s2(), s1.GetNumInstancesOf(s2));
-   printf("   s1.Prepend(\"%s\") returned \"%s\"\n", s2(), s1.Prepend(s2)());
-   printf("   s1.Append(\"%s\") returned \"%s\"\n", s2(), s1.Append(s2)());
-   printf("   s1.PrependWord(\"%s\") returned \"%s\"\n", s2(), s1.PrependWord(s2)());
-   printf("   s1.AppendWord(\"%s\") returned \"%s\"\n", s2(), s1.AppendWord(s2)());
+   printf("   s1.WithPrepend(\"%s\") returned \"%s\"\n", s2(), s1.WithPrepend(s2)());
+   printf("   s1.WithAppend(\"%s\") returned \"%s\"\n", s2(), s1.WithAppend(s2)());
+   printf("   s1.WithPrependedWord(\"%s\") returned \"%s\"\n", s2(), s1.WithPrependedWord(s2)());
+   printf("   s1.WithAppendedWord(\"%s\") returned \"%s\"\n", s2(), s1.WithAppendedWord(s2)());
    printf("   s1.Substring(\"%s\") returned \"%s\"\n", s2(), s1.Substring(s2)());
    printf("   s1.Substring(0, \"%s\") returned \"%s\"\n", s2(), s1.Substring(0, s2)());
    printf("   s1.WithPrefix(\"%s\") returned \"%s\"\n", s2(), s1.WithPrefix(s2)());

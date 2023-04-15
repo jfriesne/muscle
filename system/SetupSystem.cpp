@@ -2094,7 +2094,7 @@ bool ParseBool(const String & word, bool defaultValue)
    static const char * _onWords[]  = {"on",  "enable",  "enabled",  "true",  "t", "y", "yes", "1"};
    static const char * _offWords[] = {"off", "disable", "disabled", "false", "f", "n", "no",  "0"};
 
-   const String s = word.Trim().ToLowerCase();
+   const String s = word.Trimmed().ToLowerCase();
    for (uint32 i=0; i<ARRAYITEMS(_onWords);  i++) if (s == _onWords[i])  return true;
    for (uint32 i=0; i<ARRAYITEMS(_offWords); i++) if (s == _offWords[i]) return false;
    return defaultValue;

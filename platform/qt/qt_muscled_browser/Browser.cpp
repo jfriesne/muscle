@@ -175,7 +175,7 @@ void BrowserWindow :: SetNodeSubscribed(const String & nodePath, bool isSubscrib
       if (isSubscribe)
       {
          MessageRef subMsg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
-         (void) subMsg()->AddBool(subscribePath.Prepend("SUBSCRIBE:"), true);
+         (void) subMsg()->AddBool(subscribePath.WithPrepend("SUBSCRIBE:"), true);
          (void) _subscriptions.PutWithDefault(subscribePath);
          LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p subscribed to path [%s]\n", this, subscribePath());
          (void) _mtt.SendMessageToSessions(subMsg);
@@ -183,7 +183,7 @@ void BrowserWindow :: SetNodeSubscribed(const String & nodePath, bool isSubscrib
       else
       {
          MessageRef unsubMsg = GetMessageFromPool(PR_COMMAND_REMOVEPARAMETERS);
-         (void) unsubMsg()->AddString(PR_NAME_KEYS, EscapeRegexTokens(subscribePath).Prepend("SUBSCRIBE:"));
+         (void) unsubMsg()->AddString(PR_NAME_KEYS, EscapeRegexTokens(subscribePath).WithPrepend("SUBSCRIBE:"));
          LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p unsubscribed from path [%s]\n", this, subscribePath());
          (void) _subscriptions.Remove(subscribePath);
 

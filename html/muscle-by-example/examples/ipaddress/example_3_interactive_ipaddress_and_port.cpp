@@ -26,7 +26,7 @@ int main(int argc, char ** argv)
       if (fgets(buf, sizeof(buf), stdin) == NULL) break;
 
       String s = buf;
-      s = s.Trim();  // get rid of newline ugliness
+      s = s.Trimmed();  // get rid of newline ugliness
 
       IPAddressAndPort iap(s, 6666, true);
       printf("I parsed the string [%s] as IPAddressAndPort %s\n", s(), iap.ToString()());

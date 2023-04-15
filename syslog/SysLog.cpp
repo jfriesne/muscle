@@ -2175,7 +2175,7 @@ String SourceCodeLocationKeyToString(uint32 key)
 
 uint32 SourceCodeLocationKeyFromString(const String & ss)
 {
-   String s = ss.ToUpperCase().Trim();
+   String s = ss.ToUpperCase().Trimmed();
    if (s.Length() != 4) return 0;  // codes must always be exactly 4 characters long!
 
    s.Replace('0', 'O');
@@ -2574,7 +2574,7 @@ String GetHumanReadableTimeIntervalString(uint64 intervalUS, uint32 maxClauses, 
 
    if (leftover > 0)
    {
-      if (willAddMoreClauses) ret += GetHumanReadableTimeIntervalString(leftover, maxClauses-1, minPrecision, optRetIsAccurate).Prepend(", ");
+      if (willAddMoreClauses) ret += GetHumanReadableTimeIntervalString(leftover, maxClauses-1, minPrecision, optRetIsAccurate).WithPrepend(", ");
                          else if (optRetIsAccurate) *optRetIsAccurate = false;
    }
    else if (optRetIsAccurate) *optRetIsAccurate = true;

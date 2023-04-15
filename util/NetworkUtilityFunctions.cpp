@@ -2216,10 +2216,10 @@ String GetConnectString(const String & host, uint16 port)
 {
 #ifdef MUSCLE_AVOID_IPV6
    char buf[32]; muscleSprintf(buf, ":%u", port);
-   return host.Append(buf);
+   return host.WithAppend(buf);
 #else
    char buf[32]; muscleSprintf(buf, "]:%u", port);
-   return host.Prepend("[").Append(buf);
+   return host.WithPrepend("[").WithAppend(buf);
 #endif
 }
 

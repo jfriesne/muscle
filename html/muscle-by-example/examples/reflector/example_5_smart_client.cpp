@@ -99,8 +99,8 @@ private:
          if (theRest.HasChars())
          {
             const int eqIdx = theRest.IndexOf('=');
-            const String pathArg = (eqIdx >= 0) ? theRest.Substring(0, eqIdx).Trim() : theRest;
-            const String dataArg = (eqIdx >= 0) ? theRest.Substring(eqIdx+1).Trim()  : "default";
+            const String pathArg = (eqIdx >= 0) ? theRest.Substring(0, eqIdx).Trimmed() : theRest;
+            const String dataArg = (eqIdx >= 0) ? theRest.Substring(eqIdx+1).Trimmed()  : "default";
 
             if (pathArg.StartsWith("/"))
             {

@@ -41,7 +41,7 @@ static void TestQueryFilter(MultiQueryFilter & qf, const char * desc, const char
          {
             const bool isChildTrue = ((state & (1<<a)) != 0);
             (void) qf.GetChildren().AddTail(ConstQueryFilterRef(new DummyQueryFilter(isChildTrue)));
-            inputs = inputs.Prepend("%1 ").Arg((int)isChildTrue);
+            inputs = inputs.WithPrepend("%1 ").Arg((int)isChildTrue);
          }
          ConstMessageRef dummyMsg;
          printf(" %s--> %i\n", inputs(), qf.Matches(dummyMsg, NULL));

@@ -32,7 +32,7 @@ public:
       if (interfaceNames.HasItems())
       {
          s = " on these interfaces: ";
-         for (HashtableIterator<String, Void> iter(interfaceNames); iter.HasData(); iter++) s += iter.GetKey().Prepend(' ');
+         for (HashtableIterator<String, Void> iter(interfaceNames); iter.HasData(); iter++) s += iter.GetKey().WithPrepend(' ');
       }
       LogTime(MUSCLE_LOG_INFO, "MyDetectNetworkConfigChangesSession:  Network configuration change detected%s\n", s());
    }

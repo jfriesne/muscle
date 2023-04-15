@@ -100,7 +100,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
          char buf[MAX_PATH];
          if (GetTempPathA(sizeof(buf), buf) > 0)
          {
-            _fileName = _areaName.Prepend(buf)+"__file";
+            _fileName = _areaName.WithPrepend(buf)+"__file";
             _file = CreateFileA(_fileName(), GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_FLAG_WRITE_THROUGH|FILE_FLAG_RANDOM_ACCESS, NULL);
             if (_file != INVALID_HANDLE_VALUE)
             {

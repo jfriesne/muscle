@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
       if (fgets(buf, sizeof(buf), stdin) == NULL) break;
 
       String s = buf;
-      s = s.Trim();  // get rid of newline ugliness
+      s = s.Trimmed();  // get rid of newline ugliness
 
       IPAddress ip;
       if (ip.SetFromString(s).IsOK())

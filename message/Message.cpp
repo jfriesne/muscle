@@ -2552,7 +2552,7 @@ void MessageField :: SingleAddToString(String & s, uint32 maxRecurseLevel, int i
          case B_POINTER_TYPE: AddFormattedSingleItemToString(indent, "[%p]", GetInlineItemAsPointer(), s);        break;
          case B_POINT_TYPE:   AddSingleItemToString(indent, PointToString(GetInlineItemAsPoint()), s);            break;
          case B_RECT_TYPE:    AddSingleItemToString(indent, RectToString(GetInlineItemAsRect()), s);              break;
-         case B_STRING_TYPE:  AddSingleItemToString(indent, GetInlineItemAsString().Prepend("[").Append("]"), s); break;
+         case B_STRING_TYPE:  AddSingleItemToString(indent, GetInlineItemAsString().WithPrepend("[").WithAppend("]"), s); break;
 
          default:
          {

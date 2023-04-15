@@ -116,7 +116,7 @@ int main(int argc, char ** argv)
       char buf[1024];
       if (fgets(buf, sizeof(buf), stdin) == NULL) break;
 
-      String s = buf; s = s.Trim();
+      String s = buf; s = s.Trimmed();
       printf("You typed:  [%s]\n", s());
 
       if (s == "quit") break;

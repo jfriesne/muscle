@@ -135,7 +135,7 @@ int main(int argc, char ** argv)
          }
 
          String userText = buf;
-         userText = userText.Trim();  // get rid of any newline
+         userText = userText.Trimmed();  // get rid of any newline
          if (userText.HasChars())
          {
             printf("You typed:  [%s]\n", userText());

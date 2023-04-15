@@ -521,13 +521,13 @@ PrintSessionsInfo() const
       }
 
       String stateStr;
-      if (ars->IsConnectingAsync()) stateStr = stateStr.AppendWord("ConnectingAsync", ", ");
-      if (ars->IsConnected()) stateStr = stateStr.AppendWord("Connected", ", ");
-      if (ars->IsExpendable()) stateStr = stateStr.AppendWord("Expendable", ", ");
-      if (ars->IsReadyForInput()) stateStr = stateStr.AppendWord("IsReadyForInput", ", ");
-      if (ars->HasBytesToOutput()) stateStr = stateStr.AppendWord("HasBytesToOutput", ", ");
-      if (ars->WasConnected()) stateStr = stateStr.AppendWord("WasConnected", ", ");
-      if (stateStr.HasChars()) stateStr = stateStr.Prepend(", ");
+      if (ars->IsConnectingAsync()) stateStr = stateStr.WithAppendedWord("ConnectingAsync", ", ");
+      if (ars->IsConnected()) stateStr = stateStr.WithAppendedWord("Connected", ", ");
+      if (ars->IsExpendable()) stateStr = stateStr.WithAppendedWord("Expendable", ", ");
+      if (ars->IsReadyForInput()) stateStr = stateStr.WithAppendedWord("IsReadyForInput", ", ");
+      if (ars->HasBytesToOutput()) stateStr = stateStr.WithAppendedWord("HasBytesToOutput", ", ");
+      if (ars->WasConnected()) stateStr = stateStr.WithAppendedWord("WasConnected", ", ");
+      if (stateStr.HasChars()) stateStr = stateStr.WithPrepend(", ");
       printf("  Session [%s] (rfd=%i,wfd=%i) is [%s]:  (" UINT32_FORMAT_SPEC " outgoing Messages, " UINT32_FORMAT_SPEC " Message-bytes, " UINT32_FORMAT_SPEC " nodes, " UINT32_FORMAT_SPEC " node-bytes%s)\n", iter.GetKey()->Cstr(), ars->GetSessionReadSelectSocket().GetFileDescriptor(), ars->GetSessionWriteSelectSocket().GetFileDescriptor(), ars->GetSessionDescriptionString()(), numOutMessages, numOutBytes, numNodes, numNodeBytes, stateStr());
       totalNumOutMessages += numOutMessages;
       totalNumOutBytes    += numOutBytes;

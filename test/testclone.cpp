@@ -28,7 +28,7 @@ public:
    explicit SubclassOfTestCloneable(const String & title) : TestCloneable(title) {/* empty */}
    explicit SubclassOfTestCloneable(const TestCloneable & rhs) : TestCloneable(rhs) {/* empty */}
 
-   virtual String GetTitle() const {return TestCloneable::GetTitle().Prepend("SubclassOf");}
+   virtual String GetTitle() const {return TestCloneable::GetTitle().WithPrepend("SubclassOf");}
 
    DECLARE_STANDARD_CLONE_METHOD(SubclassOfTestCloneable);
 };
@@ -39,7 +39,7 @@ public:
    explicit BrokenSubclassOfTestCloneable(const String & title) : TestCloneable(title) {/* empty */}
    explicit BrokenSubclassOfTestCloneable(const TestCloneable & rhs) : TestCloneable(rhs) {/* empty */}
 
-   virtual String GetTitle() const {return TestCloneable::GetTitle().Prepend("BrokenSubclassOf");}
+   virtual String GetTitle() const {return TestCloneable::GetTitle().WithPrepend("BrokenSubclassOf");}
 
    //Deliberately commented out, since I want to test to make sure this error gets caught at runtime
    //DECLARE_STANDARD_CLONE_METHOD(SubclassOfTestCloneable);

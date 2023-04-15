@@ -183,13 +183,13 @@ int main(int argc, char ** argv)
                   {
                      (void) tok();
                      const char * targetSessionID = tok();
-                     const String sendText = String(tok.GetRemainderOfString()).Trim();
+                     const String sendText = String(tok.GetRemainderOfString()).Trimmed();
                      if (sendText.HasChars()) (void)gw.AddOutgoingMessage(GenerateChatMessage(targetSessionID, sendText()));
                   }
                   else if (text.StartsWith("/nick "))
                   {
                      (void) tok();
-                     const String name = String(tok.GetRemainderOfString()).Trim();
+                     const String name = String(tok.GetRemainderOfString()).Trimmed();
                      if (name.HasChars())
                      {
                         LogTime(MUSCLE_LOG_INFO, "Setting local user name to [%s]\n", name());
@@ -199,7 +199,7 @@ int main(int argc, char ** argv)
                   else if (text.StartsWith("/status "))
                   {
                      (void) tok();
-                     const String status = String(tok.GetRemainderOfString()).Trim();
+                     const String status = String(tok.GetRemainderOfString()).Trimmed();
                      if (status.HasChars())
                      {
                         LogTime(MUSCLE_LOG_INFO, "Setting local user status to [%s]\n", status());

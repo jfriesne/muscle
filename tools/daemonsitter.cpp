@@ -145,7 +145,7 @@ public:
          const String * nextCmd;
          for (int32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &nextCmd).IsOK(); i++)
          {
-            const String nc = nextCmd->Trim();
+            const String nc = nextCmd->Trimmed();
             if (nc.IsEmpty()) continue;  // no sense commenting about blank lines
 
             if (nc == "die")
@@ -160,11 +160,11 @@ public:
             }
             else if (nc.StartsWith("echo "))
             {
-               LogTime(MUSCLE_LOG_INFO, "Process [%s] echoing:  [%s]\n", _processLabel(), nc.Substring(5).Trim()());
+               LogTime(MUSCLE_LOG_INFO, "Process [%s] echoing:  [%s]\n", _processLabel(), nc.Substring(5).Trimmed()());
             }
             else if (nc.StartsWith("hey "))
             {
-               StringTokenizer tok(nc.Substring(4).Trim()());
+               StringTokenizer tok(nc.Substring(4).Trimmed()());
                const String targetProcessName = tok();
                const String commandForProcess = tok.GetRemainderOfString();
 
@@ -191,7 +191,7 @@ public:
             }
             else if (nc.StartsWith("kill "))
             {
-               const String targetProcessName = nc.Substring(5).Trim()();
+               const String targetProcessName = nc.Substring(5).Trimmed();
                StringTokenizer tok(targetProcessName());
                StringMatcher wildcardMatcher(tok());
 

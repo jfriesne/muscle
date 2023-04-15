@@ -5,11 +5,19 @@ key:  - new feature
       * bug fixed
       o other
 
+9.30 -
    - Tagged the constructor of the MutexGuard class (and friends) as
      MUSCLE_NODISCARD so the compiler will warm about anonymous guards.
    - Tagged ObjectPool::ObtainObject() with MUSCLE_NODISCARD.
    - Added MUSCLE_NODISCARD to all the functions and methods that it
      wouldn't make sense to call without examining their return value.
+   o Renamed String::Append() to String::WithAppend().
+   o Renamed String::Prepend() to String::WithPrepend().
+   o Renamed String::AppendWord() to String::WithAppendedWord().
+   o Renamed String::PrependWord() to String::WithPrependedWord().
+   o Renamed String::Trim() to String::Trimmed().
+   o Renamed String::Pad() to String::PaddedBy().
+   o Renamed String::Indent() to String::IndentedBy().
 
 9.25 - Release 4/7/2023
    - Rewrote String::WithReplacements(const Hashtable<String,String> &)

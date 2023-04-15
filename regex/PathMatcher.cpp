@@ -224,7 +224,7 @@ String StringMatcherQueue :: ToString() const
 String PathMatcherEntry :: ToString() const
 {
    String ret;
-   if (_parser()) ret += _parser()->ToString().Prepend("Parser=[").Append("]");
+   if (_parser()) ret += _parser()->ToString().WithPrepend("Parser=[").WithAppend("]");
    if (_filter())
    {
       char buf[128]; muscleSprintf(buf, "%sfilter=%p", ret.HasChars()?" ":"", _filter());

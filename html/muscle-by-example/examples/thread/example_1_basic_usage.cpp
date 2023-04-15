@@ -60,7 +60,7 @@ int main(int argc, char ** argv)
    while(fgets(buf, sizeof(buf), stdin))
    {
       String s = buf;
-      s = s.Trim();  // get rid of any newline
+      s = s.Trimmed();  // get rid of any newline
 
       if (s == "die")
       {

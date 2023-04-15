@@ -93,7 +93,7 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
                      if (beforeDash.HasChars()) min = atoi(beforeDash());
                      if (afterDash.HasChars())  max = atoi(afterDash());
                   }
-                  else if (clause[0] != '>') min = max = atoi(String(clause).Trim()());
+                  else if (clause[0] != '>') min = max = atoi(String(clause).Trimmed()());
 
                   MRETURN_ON_ERROR(_ranges.AddTail(IDRange(min,max)));
                }

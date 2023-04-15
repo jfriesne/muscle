@@ -123,7 +123,7 @@ AddIncomingText(const MessageRef & inMsg, const char * s)
 
    if (_incomingText.HasChars())
    {
-      MRETURN_ON_ERROR(ret()->AddString(PR_NAME_TEXT_LINE, _incomingText.Append(s)));
+      MRETURN_ON_ERROR(ret()->AddString(PR_NAME_TEXT_LINE, _incomingText.WithAppend(s)));
       _incomingText.Clear();
    }
    else MRETURN_ON_ERROR(ret()->AddString(PR_NAME_TEXT_LINE, s));

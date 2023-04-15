@@ -28,7 +28,7 @@ public:
          printf("---- AT BEGINNING OF BATCH OPERATION ----\n");
       }
 
-      const String padStr = String().Pad(leftPadLen);
+      const String padStr = String().PaddedBy(leftPadLen);
 
       printf("%sA RecursiveMethod() is currently at recursion depth " UINT32_FORMAT_SPEC "\n", padStr(), _inRecursiveMethod.GetCount());
 

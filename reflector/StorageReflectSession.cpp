@@ -120,7 +120,7 @@ AttachedToServer()
    if (hostDir() == NULL) {Cleanup(); MRETURN_OUT_OF_MEMORY;}
    if (hostDir()->HasChild(sessionid())) LogTime(MUSCLE_LOG_WARNING, "WARNING:  Non-unique session id [%s] being overwritten!\n", sessionid());
 
-   SetSessionRootPath(hostname.Prepend("/") + "/" + sessionid);
+   SetSessionRootPath(hostname.WithPrepend("/") + "/" + sessionid);
 
    DataNodeRef sessionNode = GetNewDataNode(sessionid, GetEmptyMessageRef());
    if (sessionNode())
@@ -421,7 +421,7 @@ StorageReflectSession ::
 UpdateSubscriptionIndexMessage(Message & subscriptionIndexMessage, const String & nodePath, char op, uint32 index, const String & key)
 {
    char temp[100]; muscleSprintf(temp, "%c" UINT32_FORMAT_SPEC ":", op, index);
-   return subscriptionIndexMessage.AddString(nodePath, key.Prepend(temp));
+   return subscriptionIndexMessage.AddString(nodePath, key.WithPrepend(temp));
 }
 
 void
@@ -967,7 +967,7 @@ status_t StorageReflectSession :: FindMatchingSessions(const String & nodePath, 
       if (nodePath.StartsWith('/')) s = nodePath()+1;
       else
       {
-         temp = nodePath.Prepend(DEFAULT_PATH_PREFIX "/");
+         temp = nodePath.WithPrepend(DEFAULT_PATH_PREFIX "/");
          s = temp();
       }
 
@@ -996,7 +996,7 @@ status_t StorageReflectSession :: SendMessageToMatchingSessions(const MessageRef
       if (nodePath.StartsWith("/")) s = nodePath()+1;
       else
       {
-         temp = nodePath.Prepend(DEFAULT_PATH_PREFIX "/");
+         temp = nodePath.WithPrepend(DEFAULT_PATH_PREFIX "/");
          s = temp();
       }
 
@@ -1342,7 +1342,7 @@ GetDataCallback(DataNode & node, void * userData)
             for (uint32 i=0; i<indexLen; i++)
             {
                char temp[100]; muscleSprintf(temp, "%c" UINT32_FORMAT_SPEC ":", INDEX_OP_ENTRYINSERTED, i);
-               (void) indexUpdateMsg()->AddString(np2, (*index)[i]()->GetNodeName().Prepend(temp));
+               (void) indexUpdateMsg()->AddString(np2, (*index)[i]()->GetNodeName().WithPrepend(temp));
             }
             if (indexUpdateMsg()->GetNumNames() >= _maxSubscriptionMessageItems) SendGetDataResults(messageArray[1]);
          }
