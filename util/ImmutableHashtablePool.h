@@ -51,14 +51,14 @@ public:
    }
 
    /** Returns a read-only reference to the immutable Hashtable. */
-   const Hashtable<KeyType, ValueType, KeyHashFunctorType> & GetTable() const {return _table;}
+   MUSCLE_NODISCARD const Hashtable<KeyType, ValueType, KeyHashFunctorType> & GetTable() const {return _table;}
 
 private:
    friend class ImmutableHashtablePool<KeyType, ValueType, MaxCacheableTableSize, KeyHashFunctorType, ValueHashFunctorType>;
 
-   static uint32 GetHashCodeForKey(const KeyType & key) {return GetDefaultObjectForType<KeyHashFunctorType>()(key);}
-   static uint32 GetHashCodeForValue(const ValueType & val) {return GetDefaultObjectForType<ValueHashFunctorType>()(val);}
-   static uint64 GetHashCodeForKeyValuePair(const KeyType & key, const ValueType & val)
+   MUSCLE_NODISCARD static uint32 GetHashCodeForKey(const KeyType & key) {return GetDefaultObjectForType<KeyHashFunctorType>()(key);}
+   MUSCLE_NODISCARD static uint32 GetHashCodeForValue(const ValueType & val) {return GetDefaultObjectForType<ValueHashFunctorType>()(val);}
+   MUSCLE_NODISCARD static uint64 GetHashCodeForKeyValuePair(const KeyType & key, const ValueType & val)
    {
       const uint64 keyHash64 = GetHashCodeForKey(key);    // deliberately storing this in a uint64
       const uint64 valHash64 = GetHashCodeForValue(val);  // deliberately storing this in a uint64
@@ -122,7 +122,7 @@ public:
    ConstImmutableHashtableTypeRef GetWithRemove(const ConstImmutableHashtableTypeRef & startWith, const KeyType & key, uint32 maxLRUCacheSize = MUSCLE_NO_LIMIT) {return GetWithAux(startWith, key, NULL, maxLRUCacheSize);}
 
    /** Returns the number of ConstImmutableHashtableTypeRef's that are currently being held in our cache. */
-   uint32 GetNumCachedItems() const {return _lruCache.GetNumItems();}
+   MUSCLE_NODISCARD uint32 GetNumCachedItems() const {return _lruCache.GetNumItems();}
 
    /** Clears all cached ImmutableHashtables from our cache */
    void ClearCache() {_lruCache.Clear();}
@@ -148,7 +148,7 @@ public:
    }
 
    /** Returns true iff the specified immutable Hashtable is part of our current immutable-tables-cache */
-   bool Contains(const ConstImmutableHashtableTypeRef & tableRef) const
+   MUSCLE_NODISCARD bool Contains(const ConstImmutableHashtableTypeRef & tableRef) const
    {
       if (tableRef() == NULL) return Contains(GetEmptyTable());
       const ConstImmutableHashtableTypeRef * r = _lruCache.Get(tableRef()->_hashCodeSum);
@@ -156,7 +156,7 @@ public:
    }
 
 private:
-   uint64 HashCodeAfterModification(const ConstImmutableHashtableTypeRef & startWith, const KeyType & key, const ValueType * optNewVal) const
+   MUSCLE_NODISCARD uint64 HashCodeAfterModification(const ConstImmutableHashtableTypeRef & startWith, const KeyType & key, const ValueType * optNewVal) const
    {
       uint64 newSum = startWith()->_hashCodeSum;
       const ValueType * oldVal = startWith()->GetTable().Get(key);
@@ -240,7 +240,7 @@ private:
    };
 
    // Returns a REF_STATUS_* value for the given reference
-   uint32 GetRefStatus(const ConstImmutableHashtableTypeRef & ref) const
+   MUSCLE_NODISCARD uint32 GetRefStatus(const ConstImmutableHashtableTypeRef & ref) const
    {
       if (ref.IsRefPrivate())           return REF_STATUS_PRIVATE;
       if (ref.IsRefCounting() == false) return REF_STATUS_PUBLIC;  // paranoia?

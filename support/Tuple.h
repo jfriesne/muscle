@@ -120,51 +120,51 @@ public:
    /** Read-write array operator (not bounds-checked)
      * @param i the index of the value to return.  Should be in the range [0, NumItems-1], inclusive.
      */
-   ItemType & operator [](uint32 i) {return _items[i];}
+   MUSCLE_NODISCARD ItemType & operator [](uint32 i) {return _items[i];}
 
    /** Read-only array operator (not bounds-checked)
      * @param i the index of the value to return.  Should be in the range [0, NumItems-1], inclusive.
      */
-   const ItemType & operator [](uint32 i) const {return _items[i];}
+   MUSCLE_NODISCARD const ItemType & operator [](uint32 i) const {return _items[i];}
 
    /** Returns the dot-product of (this) and (rhs)
      * @param rhs the other Tuple to calculate the dot-product of
      */
-   ItemType DotProduct(const Tuple & rhs) const {ItemType dp = ItemType(); for (int i=0; i<NumItems; i++) dp += (_items[i]*rhs._items[i]); return dp;}
+   MUSCLE_NODISCARD ItemType DotProduct(const Tuple & rhs) const {ItemType dp = ItemType(); for (int i=0; i<NumItems; i++) dp += (_items[i]*rhs._items[i]); return dp;}
 
    /** Returns true iff one of our member items is equal to (value).
      * @param value the item-value to check to see if we contain
      */
-   bool Contains(const ItemType & value) const {return (IndexOf(value) >= 0);}
+   MUSCLE_NODISCARD bool Contains(const ItemType & value) const {return (IndexOf(value) >= 0);}
 
    /** Returns the index of the first value equal to (value), or -1 if not found.
      * @param value the item-value to look for the first instance of
      */
-   int IndexOf(const ItemType & value) const {for (int i=0; i<NumItems; i++) if (_items[i] == value) return i; return -1;}
+   MUSCLE_NODISCARD int IndexOf(const ItemType & value) const {for (int i=0; i<NumItems; i++) if (_items[i] == value) return i; return -1;}
 
    /** Returns the index of the last value equal to (value), or -1 if not found.
      * @param value the item-value to look for the final instance of
      */
-   int LastIndexOf(const ItemType & value) const {for (int i=NumItems-1; i>=0; i--) if (_items[i] == value) return i; return -1;}
+   MUSCLE_NODISCARD int LastIndexOf(const ItemType & value) const {for (int i=NumItems-1; i>=0; i--) if (_items[i] == value) return i; return -1;}
 
    /** Works like strcmp(), only for a tuple.
      * @param rhs the Tuple to compare against
      */
-   int Compare(const Tuple & rhs) const {for (int i=0; i<NumItems; i++) {if (_items[i] < rhs[i]) return -1; if (_items[i] > rhs[i]) return 1;} return 0;}
+   MUSCLE_NODISCARD int Compare(const Tuple & rhs) const {for (int i=0; i<NumItems; i++) {if (_items[i] < rhs[i]) return -1; if (_items[i] > rhs[i]) return 1;} return 0;}
 
    /** Returns the minimum value from amongst all the items in the tuple */
-   ItemType GetMaximumValue() const {ItemType maxv = _items[0]; for (int i=1; i<NumItems; i++) if (_items[i] > maxv) maxv = _items[i]; return maxv;}
+   MUSCLE_NODISCARD ItemType GetMaximumValue() const {ItemType maxv = _items[0]; for (int i=1; i<NumItems; i++) if (_items[i] > maxv) maxv = _items[i]; return maxv;}
 
    /** Returns the maximum value from amongst all the items in the tuple */
-   ItemType GetMinimumValue() const {ItemType minv = _items[0]; for (int i=1; i<NumItems; i++) if (_items[i] < minv) minv = _items[i]; return minv;}
+   MUSCLE_NODISCARD ItemType GetMinimumValue() const {ItemType minv = _items[0]; for (int i=1; i<NumItems; i++) if (_items[i] < minv) minv = _items[i]; return minv;}
 
    /** Multiplies each value by itself, and returns the sum */
-   ItemType GetLengthSquared() const {ItemType sum = ItemType(); for (int i=0; i<NumItems; i++) sum += (_items[i]*_items[i]); return sum;}
+   MUSCLE_NODISCARD ItemType GetLengthSquared() const {ItemType sum = ItemType(); for (int i=0; i<NumItems; i++) sum += (_items[i]*_items[i]); return sum;}
 
    /** Returns the number of times (value) appears in this tuple
      * @param value the item-value to count the appearances of
      */
-   uint32 GetNumInstancesOf(const ItemType & value) const {uint32 count = 0; for (int i=0; i<NumItems; i++) if (_items[i] == value) count++; return count;}
+   MUSCLE_NODISCARD uint32 GetNumInstancesOf(const ItemType & value) const {uint32 count = 0; for (int i=0; i<NumItems; i++) if (_items[i] == value) count++; return count;}
 
    /** Returns true iff the all index values in the given range match those of the given Tuple
      * @param matchAgainst The Tuple to do a partial index value match against
@@ -173,7 +173,7 @@ public:
      *                 be capped to (the number of items in the tuple).  Defaults to MUSCLE_NO_LIMIT.
      * @return true iff all indices in the range are equal, else false.
      */
-   bool MatchSubrange(const Tuple & matchAgainst, uint32 startIndex = 0, uint32 endIndex = MUSCLE_NO_LIMIT) const
+   MUSCLE_NODISCARD bool MatchSubrange(const Tuple & matchAgainst, uint32 startIndex = 0, uint32 endIndex = MUSCLE_NO_LIMIT) const
    {
       if (endIndex > NumItems) endIndex = NumItems;
       for (uint32 i=startIndex; i<endIndex; i++) if (_items[i] != matchAgainst._items[i]) return false;
@@ -231,7 +231,7 @@ public:
    void Reset() {ItemType def = ItemType(); for (int i=0; i<NumItems; i++) _items[i] = def;}
 
    /** How many items in this tuple */
-   static uint32 GetNumItemsInTuple() {return NumItems;}
+   MUSCLE_NODISCARD static uint32 GetNumItemsInTuple() {return NumItems;}
 
    /** typedef for our item type; used by the binary operators below */
    typedef ItemType TupleItemType;
@@ -239,15 +239,15 @@ public:
    /** Convenience method -- returns a pointer to the nth item in our tuple.
      * @param which the index of the item-value to return a pointer to
      */
-   ItemType * GetItemPointer(uint32 which) {return &_items[which];}
+   MUSCLE_NODISCARD ItemType * GetItemPointer(uint32 which) {return &_items[which];}
 
    /** Convenience method -- returns a read-only pointer to the nth item in our tuple.
      * @param which the index of the item-value to return a pointer to
      */
-   const ItemType * GetItemPointer(uint32 which) const {return &_items[which];}
+   MUSCLE_NODISCARD const ItemType * GetItemPointer(uint32 which) const {return &_items[which];}
 
    /** Returns a hash code for this Tuple.  Implementing this allows Tuples to be used as keys in Hashtables. */
-   uint32 HashCode() const {return CalculateHashCode(_items);}
+   MUSCLE_NODISCARD uint32 HashCode() const {return CalculateHashCode(_items);}
 
 private:
    /** Shifts the values of the indices left (numPlaces) spaces.  Blanks are filled in on the right. */

@@ -34,7 +34,7 @@ public:
      * level, although the compression level cannot change from one Inflate() call to another, unless the data
      * was compressed with the (independent) argument set to true.
      */
-   int GetCompressionLevel() const;
+   MUSCLE_NODISCARD int GetCompressionLevel() const;
 
    /** Given a buffer of raw data, returns a reference to a Buffer containing the corresponding compressed data.
      * @param rawData The raw data to compress
@@ -169,7 +169,7 @@ public:
      *                            See Deflate()'s documentation for details.
      * @returns the number of bytes of raw data that would be produced by Inflating (compressedData).
      */
-   int32 GetInflatedSize(const uint8 * compressedData, uint32 numBytes, bool * optRetIsIndependent = NULL) const;
+   MUSCLE_NODISCARD int32 GetInflatedSize(const uint8 * compressedData, uint32 numBytes, bool * optRetIsIndependent = NULL) const;
 
    /** Given a ByteBuffer that was previously produced by Deflate(), returns the number of bytes
      * of raw data that the buffer represents, or -1 if the buffer isn't recognized as valid.
@@ -179,7 +179,7 @@ public:
      *                            See Deflate()'s documentation for details.
      * @returns the number of bytes of raw data that would be produced by Inflating (compressedData).
      */
-   int32 GetInflatedSize(const ByteBuffer & compressedData, bool * optRetIsIndependent = NULL) const {return GetInflatedSize(compressedData.GetBuffer(), compressedData.GetNumBytes(), optRetIsIndependent);}
+   MUSCLE_NODISCARD int32 GetInflatedSize(const ByteBuffer & compressedData, bool * optRetIsIndependent = NULL) const {return GetInflatedSize(compressedData.GetBuffer(), compressedData.GetNumBytes(), optRetIsIndependent);}
 
    /** Convenience method for deflating large amounts of data without having to hold all of it in RAM at once.
      * @note All DataIO objects should be set to blocking mode, as this is a synchronous operation.

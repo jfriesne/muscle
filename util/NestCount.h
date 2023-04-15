@@ -24,13 +24,13 @@ public:
    bool Decrement() {MASSERT(_count>0, "NestCount Decremented to below zero!"); return (--_count == 0);}
 
    /** Returns the current value */
-   uint32 GetCount() const {return _count;}
+   MUSCLE_NODISCARD uint32 GetCount() const {return _count;}
 
    /** Returns true iff nesting is currently active (ie if our counter is non-zero) */
-   bool IsInBatch() const {return (_count > 0);}
+   MUSCLE_NODISCARD bool IsInBatch() const {return (_count > 0);}
 
    /** Returns true iff we are in the outermost nesting level of the batch */
-   bool IsOutermost() const {return (_count == 1);}
+   MUSCLE_NODISCARD bool IsOutermost() const {return (_count == 1);}
 
    /** Sets the count to the specified value.  In general it should not be necessary to call
      * this method, so don't call it unless you know what you are doing!
@@ -59,13 +59,13 @@ public:
    ~NestCountGuard() {(void) _count.Decrement();}
 
    /** Returns our NestCount object's current count. */
-   uint32 GetNestCount() const {return _count.GetCount();}
+   MUSCLE_NODISCARD uint32 GetNestCount() const {return _count.GetCount();}
 
    /** Returns true iff nesting is currently active (ie if our counter is non-zero) */
-   bool IsInBatch() const {return _count.IsInBatch();}
+   MUSCLE_NODISCARD bool IsInBatch() const {return _count.IsInBatch();}
 
    /** Returns true iff we are the outermost of the nested calls to our NestCount */
-   bool IsOutermost() const {return _count.IsOutermost();}
+   MUSCLE_NODISCARD bool IsOutermost() const {return _count.IsOutermost();}
 
 private:
    NestCount & _count;

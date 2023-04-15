@@ -75,7 +75,7 @@ public:
     * doesn't want to read any bytes right now.  The default implementation
     * of this method always returns true.
     */
-   virtual bool IsReadyForInput() const;
+   MUSCLE_NODISCARD virtual bool IsReadyForInput() const;
 
    /**
     * Should return true if this gateway has bytes that are queued up
@@ -83,7 +83,7 @@ public:
     * there are no bytes ready to send, or if the connection has been
     * closed or hosed.
     */
-   virtual bool HasBytesToOutput() const = 0;
+   MUSCLE_NODISCARD virtual bool HasBytesToOutput() const = 0;
 
    /** Returns the number of microseconds that output to this gateway's
     *  client should be allowed to stall for.  If the output stalls for
@@ -91,7 +91,7 @@ public:
     *  Return MUSCLE_TIME_NEVER to disable stall limit checking.
     *  Default behaviour is to forward this call to the held DataIO object.
     */
-   virtual uint64 GetOutputStallLimit() const;
+   MUSCLE_NODISCARD virtual uint64 GetOutputStallLimit() const;
 
    /** Shuts down the gateway.  Default implementation calls Shutdown() on
      * the held DataIO object.
@@ -121,13 +121,13 @@ public:
    void SetFlushOnEmpty(bool flush);
 
    /** Accessor for the current state of the FlushOnEmpty flag.  Default value is true. */
-   bool GetFlushOnEmpty() const {return _flushOnEmpty;}
+   MUSCLE_NODISCARD bool GetFlushOnEmpty() const {return _flushOnEmpty;}
 
    /** Returns A reference to our outgoing messages queue.  */
-   Queue<MessageRef> & GetOutgoingMessageQueue() {return _outgoingMessages;}
+   MUSCLE_NODISCARD Queue<MessageRef> & GetOutgoingMessageQueue() {return _outgoingMessages;}
 
    /** Returns A const reference to our outgoing messages queue.  */
-   const Queue<MessageRef> & GetOutgoingMessageQueue() const {return _outgoingMessages;}
+   MUSCLE_NODISCARD const Queue<MessageRef> & GetOutgoingMessageQueue() const {return _outgoingMessages;}
 
    /** Installs (ref) as the DataIO object we will use for our I/O.
      * This method also calls GetMaximumPacketSize() on (ref()), if possible,
@@ -138,12 +138,12 @@ public:
    virtual void SetDataIO(const DataIORef & ref);
 
    /** As above, but returns a reference instead of the raw pointer. */
-   const DataIORef & GetDataIO() const {return _ioRef;}
+   MUSCLE_NODISCARD const DataIORef & GetDataIO() const {return _ioRef;}
 
    /** Returns our DataIORef's maximum packet size in bytes, or zero
      * if we have no DataIORef or our DataIORef isn't a PacketDataIO
      */
-   uint32 GetMaximumPacketSize() const {return _mtuSize;}
+   MUSCLE_NODISCARD uint32 GetMaximumPacketSize() const {return _mtuSize;}
 
    /** Set whether or not PR_NAME_PACKET_REMOTE_LOCATION IPAddressAndPort fields should be added
      * to incoming Messages that were received via UDP.  Default state is true.
@@ -154,10 +154,10 @@ public:
    /** Returns whether or not PR_NAME_PACKET_REMOTE_LOCATION IPAddressAndPort fields should be added
      * to incoming Messages that were received via UDP.  Default state is true.
      */
-   bool GetPacketRemoteLocationTaggingEnabled() const {return _packetRemoteLocationTaggingEnabled;}
+   MUSCLE_NODISCARD bool GetPacketRemoteLocationTaggingEnabled() const {return _packetRemoteLocationTaggingEnabled;}
 
    /** Returns true iff we are hosed--that is, we've experienced an unrecoverable error. */
-   bool IsHosed() const {return _hosed;}
+   MUSCLE_NODISCARD bool IsHosed() const {return _hosed;}
 
    /** This is a convenience method for when you want to do simple synchronous
      * (RPC-style) communications.  This method will run its own little event loop and not
@@ -215,7 +215,7 @@ protected:
    void SetHosed() {_hosed = true;}
 
    /** Called by ExecuteSynchronousMessaging() to see if we are still awaiting our reply Messages.  Default implementation calls HasBytesToOutput() and returns that value. */
-   virtual bool IsStillAwaitingSynchronousMessagingReply() const {return HasBytesToOutput();}
+   MUSCLE_NODISCARD virtual bool IsStillAwaitingSynchronousMessagingReply() const {return HasBytesToOutput();}
 
    /** Called by ExecuteSynchronousMessaging() when a Message is received.  Default implementation just passes the call on to the like-named method in (r)
      * @param msg the Message that was received
@@ -250,7 +250,7 @@ protected:
    /** Convenience method -- if our held DataIO object is a subclass of PacketDataIO,
      * returns a pointer to it.  Otherwise, returns NULL.
      */
-   PacketDataIO * GetPacketDataIO() const {return _packetDataIO;}
+   MUSCLE_NODISCARD PacketDataIO * GetPacketDataIO() const {return _packetDataIO;}
 
 private:
    friend class ScratchProxyReceiver;

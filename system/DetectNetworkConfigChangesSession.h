@@ -46,7 +46,7 @@ public:
    virtual void MessageReceivedFromGateway(const MessageRef & /*msg*/, void * /*userData*/) {/* empty */}
 
    virtual ConstSocketRef CreateDefaultSocket();
-   virtual uint64 GetPulseTime(const PulseArgs & args) {return muscleMin(_callbackTime, AbstractReflectSession::GetPulseTime(args));}
+   MUSCLE_NODISCARD virtual uint64 GetPulseTime(const PulseArgs & args) {return muscleMin(_callbackTime, AbstractReflectSession::GetPulseTime(args));}
    virtual void Pulse(const PulseArgs & args);
 
    virtual io_status_t DoInput(AbstractGatewayMessageReceiver & r, uint32 maxBytes);
@@ -60,7 +60,7 @@ public:
    void SetEnabled(bool e) {_enabled = e;}
 
    /** Returns true iff the calling of callback methods is enabled.  Default value is true. */
-   bool IsEnabled() const {return _enabled;}
+   MUSCLE_NODISCARD bool IsEnabled() const {return _enabled;}
 
    /** Specified the amount of time the session should delay after receiving an indication of
      * a network-config change from the OS, before calling NetworkInterfacesChanged().
@@ -75,7 +75,7 @@ public:
    void SetExplicitDelayMicros(uint64 micros) {_explicitDelayMicros = micros;}
 
    /** Returns the current delay time, or MUSCLE_TIME_NEVER if we are using the default behavior. */
-   uint64 GetExplicitDelayMicros() const {return _explicitDelayMicros;}
+   MUSCLE_NODISCARD uint64 GetExplicitDelayMicros() const {return _explicitDelayMicros;}
 
 protected:
    /** Called when a change in the local interfaces set is detected.

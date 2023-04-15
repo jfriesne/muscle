@@ -80,7 +80,7 @@ void SetAutomaticIPv4AddressMappingEnabled(bool enabled);
 /** Returns true iff automatic translation of IPv4-compatible IPv6 addresses to IPv4-mapped IPv6 address is enabled.
   * @see SetAutomaticIPv4AddressMappingEnabled() for details.
   */
-bool GetAutomaticIPv4AddressMappingEnabled();
+MUSCLE_NODISCARD bool GetAutomaticIPv4AddressMappingEnabled();
 
 #endif
 
@@ -101,7 +101,7 @@ bool GetAutomaticIPv4AddressMappingEnabled();
   * @note This function may invoke a synchronous DNS lookup, which means that it may take
   *       a long time to return (eg if the DNS server is not responding)
   */
-IPAddress GetHostByName(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
+MUSCLE_NODISCARD IPAddress GetHostByName(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
 
 /** This function is the same as GetHostByName(), except that only the built-in name-resolution
   * functionality will be used.  In particular, none of the registered IHostNameResolver callbacks
@@ -119,7 +119,7 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost = false, bool pr
   * @note This function may invoke a synchronous DNS lookup, which means that it may take
   *       a long time to return (eg if the DNS server is not responding)
   */
-IPAddress GetHostByNameNative(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
+MUSCLE_NODISCARD IPAddress GetHostByNameNative(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
 
 /** Sets the parameters for GetHostByName()'s internal DNS-results LRU cache.
   * Note that this cache is disabled by default, so by default every call to GetHostByName()
@@ -329,23 +329,23 @@ void Inet_NtoA(const IPAddress & address, char * outBuf, bool preferIPv4Style = 
   *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
   *                         Defaults to false.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
   */
-String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4Style = false);
+MUSCLE_NODISCARD String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4Style = false);
 
 /** Returns true iff (s) is a well-formed IP address (eg "192.168.0.1" or "ff12::888" or etc)
   * @param s An ASCII string to check the formatting of
   * @returns true iff the given string represents an IP address; false if it doesn't.
   */
-bool IsIPAddress(const char * s);
+MUSCLE_NODISCARD bool IsIPAddress(const char * s);
 
 /** Given an IP address in ASCII format (eg "192.168.0.1" or "ff12::888" or etc), returns
   * the equivalent IP address in IPAddress (packed binary) form.
   * @param buf numeric IP address in ASCII.
   * @returns IP address as a IPAddress, or invalidIP on failure.
   */
-IPAddress Inet_AtoN(const char * buf);
+MUSCLE_NODISCARD IPAddress Inet_AtoN(const char * buf);
 
 /** Returns a string that is the local host's primary host name. */
-String GetLocalHostName();
+MUSCLE_NODISCARD String GetLocalHostName();
 
 /** Reurns the IP address that the given socket is connected to.
  *  @param sock The socket to find out info about.
@@ -356,7 +356,7 @@ String GetLocalHostName();
  *  @param optRetPort if non-NULL, the port we are connected to on the remote peer will be written here.  Defaults to NULL.
  *  @return The IP address on success, or invalidIP on failure (such as if the socket isn't valid and connected).
  */
-IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort = NULL);
+MUSCLE_NODISCARD IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort = NULL);
 
 /** Creates and returns a pair of stream-oriented sockets that are connected to each other, so that any bytes
  *  you write into one socket come out as bytes to read from the other socket.
@@ -385,7 +385,7 @@ status_t SetSocketBlockingEnabled(const ConstSocketRef & sock, bool enabled);
  *        obtain this information from a socket).  Under Windows, this method will simply log an error message
  *        and return false.
  */
-bool GetSocketBlockingEnabled(const ConstSocketRef & sock);
+MUSCLE_NODISCARD bool GetSocketBlockingEnabled(const ConstSocketRef & sock);
 
 /**
   * Turns Nagle's algorithm (ie output-packet-buffering/coalescing, with a 200mS timeout) on or off.
@@ -401,7 +401,7 @@ status_t SetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock, bool enabl
  *  @param sock the socket to query.
  *  @returns true iff the socket is has Nagle's algorithm enabled, or false if it does not (or if it is an invalid socket)
  */
-bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock);
+MUSCLE_NODISCARD bool GetSocketNaglesAlgorithmEnabled(const ConstSocketRef & sock);
 
 /**
   * Enables or disables the TCP_CORK algorithm (TCP_NOPUSH under BSD-based OS's).
@@ -425,7 +425,7 @@ status_t SetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock, bool enabled
  *  @param sock the socket to query.
  *  @returns true iff the socket is corked, or false if it is not corked.
  */
-bool GetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock);
+MUSCLE_NODISCARD bool GetSocketCorkAlgorithmEnabled(const ConstSocketRef & sock);
 
 /**
   * Sets the size of the given socket's outgoing-data-buffer to the specified
@@ -441,7 +441,7 @@ status_t SetSocketSendBufferSize(const ConstSocketRef & sock, uint32 sendBufferS
   * @param sock The socket to query.
   * @return The current size of the socket's outgoing-data-buffer, in bytes, or a negative value on error (eg invalid socket)
   */
-int32 GetSocketSendBufferSize(const ConstSocketRef & sock);
+MUSCLE_NODISCARD int32 GetSocketSendBufferSize(const ConstSocketRef & sock);
 
 /**
   * Sets the size of the given socket's incoming-data-buffer to the specified
@@ -457,7 +457,7 @@ status_t SetSocketReceiveBufferSize(const ConstSocketRef & sock, uint32 receiveB
   * @param sock The socket to query.
   * @return The size of the socket's incoming-data-buffer, in bytes, or a negative value on error (eg invalid socket)
   */
-int32 GetSocketReceiveBufferSize(const ConstSocketRef & sock);
+MUSCLE_NODISCARD int32 GetSocketReceiveBufferSize(const ConstSocketRef & sock);
 
 /** This class is an interface to an object that can have its SocketCallback() method called
   * at the appropriate times when certain actions are performed on a socket.  By installing
@@ -502,7 +502,7 @@ private:
 void SetGlobalSocketCallback(GlobalSocketCallback * cb);
 
 /** Returns the currently installed GlobalSocketCallback object, or NULL if there is none installed. */
-GlobalSocketCallback * GetGlobalSocketCallback();
+MUSCLE_NODISCARD GlobalSocketCallback * GetGlobalSocketCallback();
 
 #ifndef MUSCLE_DISABLE_KEEPALIVE_API
 
@@ -553,7 +553,7 @@ void SetLocalHostIPOverride(const IPAddress & ip);
   * if none was set.  Note that this function <b>does not</b> report the local computer's IP address,
   * unless you previously called SetLocalHostIPOverride() with that address.
   */
-IPAddress GetLocalHostIPOverride();
+MUSCLE_NODISCARD IPAddress GetLocalHostIPOverride();
 
 /** Creates and returns a socket that can be used for UDP communications.
  *  Returns a non-NULL ConstSocketReference on success, or a NULL reference on failure.
@@ -623,7 +623,7 @@ status_t SetUDPSocketBroadcastEnabled(const ConstSocketRef & sock, bool broadcas
   * @returns true iff the socket is enabled for UDP broadcast; false otherwise.
  *  @note this function is specific to IPv4.  There is no such thing as "broadcast" in IPv6, only multicast!
   */
-bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock);
+MUSCLE_NODISCARD bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock);
 
 #ifndef MUSCLE_AVOID_MULTICAST_API
 
@@ -648,7 +648,7 @@ status_t SetSocketMulticastToSelf(const ConstSocketRef & sock, bool multicastToS
   * @param sock The socket to query
   * @returns true iff this socket has multicast-to-self (IP_MULTICAST_LOOP) enabled.
   */
-bool GetSocketMulticastToSelf(const ConstSocketRef & sock);
+MUSCLE_NODISCARD bool GetSocketMulticastToSelf(const ConstSocketRef & sock);
 
 /** Set the "time to live" flag for packets sent by this socket.
   * Default state is 1, ie "local LAN segment only".
@@ -663,14 +663,14 @@ status_t SetSocketMulticastTimeToLive(const ConstSocketRef & sock, uint8 ttl);
 /** Returns the "time to live" associated with multicast packets sent on this socket, or 0 on failure.
   * @param sock The socket to query the TTL value of.
   */
-uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock);
+MUSCLE_NODISCARD uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock);
 
 /** Returns the index of the local interface that the given socket will
   * try to send multicast packets on, or -1 on failure.
   * @param sock The socket to query the sending interface index of.
   * @returns the socket's interface index, or -1 on error.
   */
-int32 GetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock);
+MUSCLE_NODISCARD int32 GetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock);
 
 /** Attempts to add the specified socket to the specified multicast group.
   * @param sock The socket to add to the multicast group
@@ -711,7 +711,7 @@ status_t SetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock,
   * @param sock The socket to query the sending interface of.
   * @returns the interface's IP address, or invalidIP on error.
   */
-IPAddress GetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock);
+MUSCLE_NODISCARD IPAddress GetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock);
 
 #ifndef MUSCLE_AVOID_IPV6
 
@@ -742,13 +742,13 @@ typedef int muscle_socklen_t;
 typedef size_t muscle_socklen_t;
 #endif
 
-static inline int32 recv_ignore_eintr(    int s, void *b, uint32 numBytes, int flags) {int32 ret; do {ret = (int32)recv(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline int32 recvfrom_ignore_eintr(int s, void *b, uint32 numBytes, int flags, struct sockaddr *a, muscle_socklen_t * alen) {int32 ret; do {ret = (int32)recvfrom(s, (char *)b, numBytes, flags, a,  alen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline int32 send_ignore_eintr(    int s, const void *b, uint32 numBytes, int flags) {int32 ret; do {ret = (int32)send(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline int32 sendto_ignore_eintr(  int s, const void *b, uint32 numBytes, int flags, const struct sockaddr * d, int dlen) {int32 ret; do {ret = (int32)sendto(s, (char *)b, numBytes, flags,  d, dlen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+MUSCLE_NODISCARD static inline int32 recv_ignore_eintr(    int s, void *b, uint32 numBytes, int flags) {int32 ret; do {ret = (int32)recv(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+MUSCLE_NODISCARD static inline int32 recvfrom_ignore_eintr(int s, void *b, uint32 numBytes, int flags, struct sockaddr *a, muscle_socklen_t * alen) {int32 ret; do {ret = (int32)recvfrom(s, (char *)b, numBytes, flags, a,  alen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+MUSCLE_NODISCARD static inline int32 send_ignore_eintr(    int s, const void *b, uint32 numBytes, int flags) {int32 ret; do {ret = (int32)send(s, (char *)b, numBytes, flags);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+MUSCLE_NODISCARD static inline int32 sendto_ignore_eintr(  int s, const void *b, uint32 numBytes, int flags, const struct sockaddr * d, int dlen) {int32 ret; do {ret = (int32)sendto(s, (char *)b, numBytes, flags,  d, dlen);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
 #ifndef WIN32
-static inline int32 read_ignore_eintr(    int f, void *b, uint32 nbyte) {int32 ret; do {ret = (int32)read(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
-static inline int32 write_ignore_eintr(   int f, const void *b, uint32 nbyte) {int32 ret; do {ret = (int32)write(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+MUSCLE_NODISCARD static inline int32 read_ignore_eintr(    int f, void *b, uint32 nbyte) {int32 ret; do {ret = (int32)read(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
+MUSCLE_NODISCARD static inline int32 write_ignore_eintr(   int f, const void *b, uint32 nbyte) {int32 ret; do {ret = (int32)write(f, (char *)b, nbyte);} while((ret<0)&&(PreviousOperationWasInterrupted())); return ret;}
 #endif
 
 /// @endcond

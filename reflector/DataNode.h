@@ -73,7 +73,7 @@ public:
    /** Returns true iff we have a child with the given name
      * @param key node-name that we should check our child-nodes-table for (it's an O(1) lookup)
      */
-   bool HasChild(const String & key) const {return ((_children)&&(_children->ContainsKey(&key)));}
+   MUSCLE_NODISCARD bool HasChild(const String & key) const {return ((_children)&&(_children->ContainsKey(&key)));}
 
    /** Retrieves the child with the given name.
     *  @param key The name of the child we wish to retrieve
@@ -110,13 +110,13 @@ public:
    DataNodeRefIterator GetChildIterator(uint32 flags = 0) const {return _children ? _children->GetIterator(flags) : DataNodeRefIterator();}
 
    /** Returns the number of child nodes this node contains. */
-   uint32 GetNumChildren() const {return _children ? _children->GetNumItems() : 0;}
+   MUSCLE_NODISCARD uint32 GetNumChildren() const {return _children ? _children->GetNumItems() : 0;}
 
    /** Returns true iff this node contains any child nodes. */
-   bool HasChildren() const {return ((_children)&&(_children->HasItems()));}
+   MUSCLE_NODISCARD bool HasChildren() const {return ((_children)&&(_children->HasItems()));}
 
    /** Returns the ASCII name of this node (eg "joe") */
-   const String & GetNodeName() const {return _nodeName;}
+   MUSCLE_NODISCARD const String & GetNodeName() const {return _nodeName;}
 
    /** Sets this DataNode's node name to something different.
      * @param newNodeName the new name to use
@@ -148,7 +148,7 @@ public:
      *              root node, 1 would return the name of the IP address node, etc.  If this number
      *              is greater than (depth), this method will return NULL.
      */
-   const String * GetPathClause(uint32 depth) const;
+   MUSCLE_NODISCARD const String * GetPathClause(uint32 depth) const;
 
    /// Flags that may be passed to DataNode::SetData() to modify its behavior
    enum {
@@ -166,22 +166,22 @@ public:
    void SetData(const ConstMessageRef & data, StorageReflectSession * optNotifyWith, SetDataFlags setDataFlags = SetDataFlags());
 
    /** Returns a reference to this node's Message payload. */
-   const ConstMessageRef & GetData() const {return _data;}
+   MUSCLE_NODISCARD const ConstMessageRef & GetData() const {return _data;}
 
    /** Returns our node's parent, or NULL if this node doesn't have a parent node. */
-   DataNode * GetParent() const {return _parent;}
+   MUSCLE_NODISCARD DataNode * GetParent() const {return _parent;}
 
    /** Returns this node's depth in the tree (eg zero if we are the root node, 1 if we are its child, etc) */
-   uint32 GetDepth() const {return _depth;}
+   MUSCLE_NODISCARD uint32 GetDepth() const {return _depth;}
 
    /** Returns us to our virgin, pre-Init() state, by clearing all our children, subscribers, parent, etc.  */
    void Reset();
 
    /** Returns a read-only reference to this DataNode's current subscribers-table. */
-   inline const Hashtable<uint32, uint32> & GetSubscribers() const;
+   MUSCLE_NODISCARD inline const Hashtable<uint32, uint32> & GetSubscribers() const;
 
    /** Returns a pointer to our ordered-child index */
-   const Queue<DataNodeRef> * GetIndex() const {return _orderedIndex;}
+   MUSCLE_NODISCARD const Queue<DataNodeRef> * GetIndex() const {return _orderedIndex;}
 
    /** Insert a new entry into our ordered-child list at the (nth) entry position.
     *  Don't call this function unless you really know what you are doing!
@@ -207,7 +207,7 @@ public:
      * Child nodes whose names aren't in this format will be counted having ID zero.
      * This value can be useful as a hint for generating new IDs.
      */
-   uint32 GetMaxKnownChildIDHint() const {return _maxChildIDHint;}
+   MUSCLE_NODISCARD uint32 GetMaxKnownChildIDHint() const {return _maxChildIDHint;}
 
    /** You can manually set the max-known-child-ID hint here if you want to.
      * @param maxID maximum-current-used-child-ID hint, gives us some clue about where to start searching for an unused ID
@@ -219,14 +219,14 @@ public:
      * (note that a node is not considered a descendant of itself)
      * @param ancestor The node to check to see if we are a descendant of
      */
-   bool IsDescendantOf(const DataNode & ancestor) const {const DataNode * n = GetParent(); while(n) {if (n == &ancestor) return true; else n = n->GetParent();} return false;}
+   MUSCLE_NODISCARD bool IsDescendantOf(const DataNode & ancestor) const {const DataNode * n = GetParent(); while(n) {if (n == &ancestor) return true; else n = n->GetParent();} return false;}
 
    /** Convenience method:  Returns true iff (this) exists
      * anywhere along the path between (descendant) and the root node.
      * (note that a node is not considered an ancestor of itself)
      * @param descendant The node to check to see if we are a descendant of it
      */
-   bool IsAncestorOf(const DataNode & descendant) const {return descendant.IsDescendantOf(*this);}
+   MUSCLE_NODISCARD bool IsAncestorOf(const DataNode & descendant) const {return descendant.IsDescendantOf(*this);}
 
    /** Convenience method:  Parses (path) as a series of slash-separated
      * tokens (eg "some/node/names/here") which may contain regex chars
@@ -246,12 +246,12 @@ public:
      *                 or NULL.   Etc.
      * @returns The first DataNode whose path matches (path), or NULL if no match is found.
      */
-   DataNode * FindFirstMatchingNode(const char * path, uint32 maxDepth = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD DataNode * FindFirstMatchingNode(const char * path, uint32 maxDepth = MUSCLE_NO_LIMIT) const;
 
    /** Convenience function:  returns the root node of the node tree (by
      * traversing parent links up to the top of the tree)
      */
-   DataNode * GetRootNode() const {DataNode * r = const_cast<DataNode *>(this); while(r->GetParent()) r = r->GetParent(); return r;}
+   MUSCLE_NODISCARD DataNode * GetRootNode() const {DataNode * r = const_cast<DataNode *>(this); while(r->GetParent()) r = r->GetParent(); return r;}
 
    /** Convenience function:  Given a depth value less than or equal to our depth, returns a pointer to our ancestor node at that depth.
      * @param depth The depth of the node we want returned, relative to the root of the tree.  Zero would be the root node,
@@ -259,7 +259,7 @@ public:
      * @param defaultValue The value to return if an ancestor of the requested depth could not be found.  Defaults to NULL.
      * @returns an ancestor DataNode, or (defaultValue) if such a node could not be found (most likely because (depth) is greater than this node's depth)
      */
-   DataNode * GetAncestorNode(uint32 depth, DataNode * defaultValue = NULL) const
+   MUSCLE_NODISCARD DataNode * GetAncestorNode(uint32 depth, DataNode * defaultValue = NULL) const
    {
       DataNode * r = const_cast<DataNode *>(this);
       while((r)&&(r->GetDepth() >= depth))
@@ -281,7 +281,7 @@ public:
      * @returns a 32-bit checksum value based on the contents of this node and
      *          its descendants.
      */
-   uint32 CalculateChecksum(uint32 maxRecursionCount = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD uint32 CalculateChecksum(uint32 maxRecursionCount = MUSCLE_NO_LIMIT) const;
 
    /** For debugging purposes; prints the current state of this node (and
      * optionally its descendants) to stdout or to another file you specify.

@@ -138,7 +138,7 @@ public:
    virtual void Cleanup();
 
    /** Accessor to our central-state repository message */
-   Message & GetCentralState() {return _centralState;}
+   MUSCLE_NODISCARD Message & GetCentralState() {return _centralState;}
 
    /** Set whether or not we should log informational messages when sessions are added and removed, etc.
      * Default state is true.
@@ -147,19 +147,19 @@ public:
    void SetDoLogging(bool log) {_doLogging = log;}
 
    /** Returns whether or not we should be logging informational messages. */
-   bool GetDoLogging() const {return _doLogging;}
+   MUSCLE_NODISCARD bool GetDoLogging() const {return _doLogging;}
 
    /**
     * Returns a human-readable string that describes the type of server that is running.
     * @return Default implementation returns "MUSCLE".
     */
-   virtual const char * GetServerName() const;
+   MUSCLE_NODISCARD virtual const char * GetServerName() const;
 
    /** Returns a read-only reference to our table of sessions currently attached to this server (indexed by key-string-pointer). */
-   const Hashtable<const String *, AbstractReflectSessionRef> & GetSessions() const {return _sessions;}
+   MUSCLE_NODISCARD const Hashtable<const String *, AbstractReflectSessionRef> & GetSessions() const {return _sessions;}
 
    /** Returns a read-only reference to our table of sessions currently attached to this server (indexed by uint32 session-ID). */
-   const Hashtable<uint32, AbstractReflectSessionRef> & GetSessionsByIDNumber() const {return _sessionsByIDNumber;}
+   MUSCLE_NODISCARD const Hashtable<uint32, AbstractReflectSessionRef> & GetSessionsByIDNumber() const {return _sessionsByIDNumber;}
 
    /** Convenience method:  Given a session ID string, returns a reference to the session, or a NULL reference if no such session exists.
      * @param sessionName the session ID string of the session we are trying to look up (same as its numeric session ID, but in string form)
@@ -175,7 +175,7 @@ public:
      * @tparam SessionType the type of session object you want to find and return a pointer to.
      * @note this method iterates over the session list, so it's not as efficient as one might hope.
      */
-   template <class SessionType> SessionType * FindFirstSessionOfType() const
+   template <class SessionType> MUSCLE_NODISCARD SessionType * FindFirstSessionOfType() const
    {
       for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
       {
@@ -209,7 +209,7 @@ public:
    }
 
    /** Returns an iterator that allows one to iterate over all the session factories currently attached to this server. */
-   const Hashtable<IPAddressAndPort, ReflectSessionFactoryRef> & GetFactories() const {return _factories;}
+   MUSCLE_NODISCARD const Hashtable<IPAddressAndPort, ReflectSessionFactoryRef> & GetFactories() const {return _factories;}
 
    /** Convenience method: Given a port number, returns a reference to the factory of that port, or a
      *                     NULL reference if no such factory exists.
@@ -224,22 +224,22 @@ public:
    void EndServer();
 
    /** Returns the value GetRunTime64() was at, when the ServerProcessLoop() event loop started. */
-   uint64 GetServerStartTime() const {return _serverStartedAt;}
+   MUSCLE_NODISCARD uint64 GetServerStartTime() const {return _serverStartedAt;}
 
    /** Returns the number of bytes that are currently available to be allocated, or ((uint64)-1)
      * if no memory watcher was specified in the constructor.
      */
-   uint64 GetNumAvailableBytes() const;
+   MUSCLE_NODISCARD uint64 GetNumAvailableBytes() const;
 
    /** Returns the maximum number of bytes that may be allocated at any given time, or ((uint64)-1)
      * if no memory watcher was specified in the constructor.
      */
-   uint64 GetMaxNumBytes() const;
+   MUSCLE_NODISCARD uint64 GetMaxNumBytes() const;
 
    /** Returns the number of bytes that are currently allocated, or ((uint64)-1)
      * if no memory watcher was specified in the constructor.
      */
-   uint64 GetNumUsedBytes() const;
+   MUSCLE_NODISCARD uint64 GetNumUsedBytes() const;
 
    /** Returns a reference to a table mapping IP addresses to custom strings...
      * This table may be examined or altered.  When a new connection is accepted,
@@ -247,15 +247,15 @@ public:
      * name.  If an entry is found, it will be used verbatim; otherwise, a name will
      * be created based on the peer's IP address.  Useful for eg NAT remapping...
      */
-   Hashtable<IPAddress, String> & GetAddressRemappingTable() {return _remapIPs;}
+   MUSCLE_NODISCARD Hashtable<IPAddress, String> & GetAddressRemappingTable() {return _remapIPs;}
 
    /** Read-only implementation of the above */
-   const Hashtable<IPAddress, String> & GetAddressRemappingTable() const {return _remapIPs;}
+   MUSCLE_NODISCARD const Hashtable<IPAddress, String> & GetAddressRemappingTable() const {return _remapIPs;}
 
    /** Returns a number that is (hopefully) unique to each ReflectSession instance.
      * This number will be different each time the server is run, but will remain the same for the duration of the server's life.
      */
-   uint64 GetServerSessionID() const {return _serverSessionID;}
+   MUSCLE_NODISCARD uint64 GetServerSessionID() const {return _serverSessionID;}
 
    /** This method is called at the beginning of each iteration of the event loop.
      * Default implementation is a no-op.
@@ -279,7 +279,7 @@ public:
    void SetSSLPrivateKey(const ConstByteBufferRef & privateKey) {_privateKey = privateKey;}
 
    /** Returns the current SSL private key data, or a NULL ref if there isn't any. */
-   const ConstByteBufferRef & GetSSLPrivateKey() const {return _privateKey;}
+   MUSCLE_NODISCARD const ConstByteBufferRef & GetSSLPrivateKey() const {return _privateKey;}
 
    /** Sets the SSL public key data that should be used to authenticate and encrypt
      * outgoing TCP connections.  Default state is a NULL reference (ie no SSL
@@ -291,7 +291,7 @@ public:
    void SetSSLPublicKeyCertificate(const ConstByteBufferRef & publicKey) {_publicKey = publicKey;}
 
    /** Returns the current SSL public key data, or a NULL ref if there isn't any. */
-   const ConstByteBufferRef & GetSSLPublicKeyCertificate() const {return _publicKey;}
+   MUSCLE_NODISCARD const ConstByteBufferRef & GetSSLPublicKeyCertificate() const {return _publicKey;}
 
    /** Sets the SSL pre-shared-key data that should be used to authenticate and
      * encrypt either incoming or outgoing TCP connections.  Default state is empty strings.
@@ -301,10 +301,10 @@ public:
    void SetSSLPreSharedKeyLoginInfo(const String & userName, const String & password) {_pskUserName = userName; _pskPassword = password;}
 
    /** Returns the PSK user name, as previously set via SetSSLPreSharedKeyLoginInfo().  Default is an empty string */
-   const String & GetSSLPreSharedKeyUserName() const {return _pskUserName;}
+   MUSCLE_NODISCARD const String & GetSSLPreSharedKeyUserName() const {return _pskUserName;}
 
    /** Returns the PSK password, as previously set via SetPreSharedKeyLoginInfo().  Default is an empty string */
-   const String & GetSSLPreSharedKeyPassword() const {return _pskPassword;}
+   MUSCLE_NODISCARD const String & GetSSLPreSharedKeyPassword() const {return _pskPassword;}
 #endif
 
    /** Returns true iff our event loop is currently blocked inside the SocketMultiplexer::WaitForEvents() call.
@@ -314,7 +314,7 @@ public:
      * of the thread to call it.  This method is here to enable a separate watchdog thread to observe
      * the operations of the main thread; in general it is not necessary to call this method.
      */
-   bool IsWaitingForEvents() const {return (_inWaitForEvents.GetCount() == 1);}
+   MUSCLE_NODISCARD bool IsWaitingForEvents() const {return (_inWaitForEvents.GetCount() == 1);}
 
    /** Implemented to call DisconnectSession() on any attached TCP-based sessions, just before
      * the computer goes to sleep, so that other computers won't have to deal with moribund

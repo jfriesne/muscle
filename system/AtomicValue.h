@@ -36,13 +36,13 @@ public:
    AtomicValue(const T & val) : _readIndex(0), _writeIndex(0) {_buffer[_readIndex] = val;}
 
    /** Returns a copy of the current state of our held value */
-   T GetValue() const {return _buffer[_readIndex % ATOMIC_BUFFER_SIZE];}
+   MUSCLE_NODISCARD T GetValue() const {return _buffer[_readIndex % ATOMIC_BUFFER_SIZE];}
 
    /** Returns a read-only reference to the current state of our held value.
      * @note that this reference may not remain valid for long, so if you call this
      *       method, be sure to read any data you need from the reference quickly.
      */
-   const T & GetValueRef() const {return _buffer[_readIndex % ATOMIC_BUFFER_SIZE];}
+   MUSCLE_NODISCARD const T & GetValueRef() const {return _buffer[_readIndex % ATOMIC_BUFFER_SIZE];}
 
    /** Attempts to set our held value to a new value in a thread-safe fashion.
      * @param newValue the new value to set
@@ -81,13 +81,13 @@ public:
    }
 
    /** Returns the size of our internal values-array, as specified by our template argument */
-   uint32 GetNumValues() const {return ATOMIC_BUFFER_SIZE;}
+   MUSCLE_NODISCARD uint32 GetNumValues() const {return ATOMIC_BUFFER_SIZE;}
 
    /** Returns a pointer to our internal-values array.  Don't call this unless you know what you are doing! */
-   T * GetInternalValuesArray() {return _buffer;}
+   MUSCLE_NODISCARD T * GetInternalValuesArray() {return _buffer;}
 
    /** Returns a read-only pointer to our internal-values array.  Don't call this unless you know what you are doing! */
-   const T * GetInternalValuesArray() const {return _buffer;}
+   MUSCLE_NODISCARD const T * GetInternalValuesArray() const {return _buffer;}
 
 private:
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)

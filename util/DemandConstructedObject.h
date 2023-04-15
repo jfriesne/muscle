@@ -82,19 +82,19 @@ public:
    bool operator != (const T & rhs) const {return !(*this==rhs);}
 
    /** Returns a valid reference to our wrapped object.  EnsureObjectConstructed() will be called if necessary. */
-   T & GetObject() {(void) EnsureObjectConstructed(); return *_objPointer;}
+   MUSCLE_NODISCARD T & GetObject() {(void) EnsureObjectConstructed(); return *_objPointer;}
 
    /** Read-only version of GetObject.  EnsureObjectConstructed() will be called if necessary. */
-   const T & GetObject() const {(void) EnsureObjectConstructed(); return *_objPointer;}
+   MUSCLE_NODISCARD const T & GetObject() const {(void) EnsureObjectConstructed(); return *_objPointer;}
 
    /** Returns a reference to our wrapped object.  Note that this method DOES NOT
      * call EnsureObjectConstructed(), so if you call this method you MUST be sure the object
      * was already constructed, or you will get back a NULL reference.
      */
-   T & GetObjectUnchecked() {return *_objPointer;}
+   MUSCLE_NODISCARD T & GetObjectUnchecked() {return *_objPointer;}
 
    /** Read-only version of GetObjectUnchecked(). */
-   const T & GetObjectUnchecked() const {return *_objPointer;}
+   MUSCLE_NODISCARD const T & GetObjectUnchecked() const {return *_objPointer;}
 
    /** Ensures that our held object is constructed.  It's not typically necessary to call
      * this method manually, because GetObject() will call it for you when necessary.
@@ -117,7 +117,7 @@ public:
    bool EnsureObjectDestructed() const {if (_objPointer) {_objPointer->~T(); _objPointer = NULL; return true;} else return false;}
 
    /** Returns true iff the held object pointer is currently constructed. */
-   bool IsObjectConstructed() const {return _objPointer != NULL;}
+   MUSCLE_NODISCARD bool IsObjectConstructed() const {return _objPointer != NULL;}
 
 private:
    mutable T * _objPointer;

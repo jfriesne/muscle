@@ -23,13 +23,13 @@ public:
    virtual ~Flattenable() {/* empty */}
 
    /** @copydoc DoxyTemplate::IsFixedSize() const */
-   virtual bool IsFixedSize() const = 0;
+   MUSCLE_NODISCARD virtual bool IsFixedSize() const = 0;
 
    /** @copydoc DoxyTemplate::TypeCode() const */
-   virtual uint32 TypeCode() const = 0;
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const = 0;
 
    /** @copydoc DoxyTemplate::FlattenedSize() const */
-   virtual uint32 FlattenedSize() const = 0;
+   MUSCLE_NODISCARD virtual uint32 FlattenedSize() const = 0;
 
    /** @copydoc DoxyTemplate::Flatten(DataFlattener) const */
    virtual void Flatten(DataFlattener flat) const = 0;
@@ -37,7 +37,7 @@ public:
    /** @copydoc DoxyTemplate::AllowsTypeCode(uint32) const
      * @note base class's default implementation returns true iff (tc) equals either B_RAW_TYPE, or the value returned by TypeCode().
      */
-   virtual bool AllowsTypeCode(uint32 tc) const {return ((tc == B_RAW_TYPE)||(tc == TypeCode()));}
+   MUSCLE_NODISCARD virtual bool AllowsTypeCode(uint32 tc) const {return ((tc == B_RAW_TYPE)||(tc == TypeCode()));}
 
    /** @copydoc DoxyTemplate::Unflatten(DataUnflattener & unflat) */
    virtual status_t Unflatten(DataUnflattener & unflat) = 0;

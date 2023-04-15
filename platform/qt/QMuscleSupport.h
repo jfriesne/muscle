@@ -23,7 +23,7 @@ public:
    /** Returns a hash code for the given QString object.
      * @param str The QString to calculate a hash code for.
      */
-   uint32 operator () (const QString & str) const
+   MUSCLE_NODISCARD uint32 operator () (const QString & str) const
    {
 #if QT_VERSION >= 0x040000
       return qHash(str);
@@ -37,7 +37,7 @@ public:
      * @param k1 first key to compare
      * @param k2 second key to compare
      */
-   bool AreKeysEqual(const QString & k1, const QString & k2) const {return (k1==k2);}
+   MUSCLE_NODISCARD bool AreKeysEqual(const QString & k1, const QString & k2) const {return (k1==k2);}
 };
 
 }  // end namespace muscle

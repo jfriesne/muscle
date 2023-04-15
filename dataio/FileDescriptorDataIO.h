@@ -67,7 +67,7 @@ public:
    status_t SetBlockingIOEnabled(bool blocking);
 
    /** Returns true iff this object is using blocking I/O mode. */
-   bool IsBlockingIOEnabled() const {return _blocking;}
+   MUSCLE_NODISCARD bool IsBlockingIOEnabled() const {return _blocking;}
 
    /** Clears our held ConstSocketRef. */
    virtual void Shutdown();
@@ -80,10 +80,10 @@ public:
    virtual status_t Seek(int64 offset, int whence);
 
    /** Returns our current position in the file */
-   virtual int64 GetPosition() const;
+   MUSCLE_NODISCARD virtual int64 GetPosition() const;
 
-   virtual const ConstSocketRef & GetReadSelectSocket()  const {return _fd;}
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return _fd;}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return _fd;}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _fd;}
 
    /** Set whether or not this object should call fsync() on our file descriptor in the FileDescriptorDataIO destructor.  Defaults to false.
      * @param doFsyncOnClose If true, fsync(fd) will be called in our destructor.  If false (the default), it won't be.
@@ -91,7 +91,7 @@ public:
    void SetFSyncOnClose(bool doFsyncOnClose) {_dofSyncOnClose = doFsyncOnClose;}
 
    /** Returns whether or not this object should call fsync() on our file descriptor in the FileDescriptorDataIO destructor.  Defaults to false. */
-   bool IsFSyncOnClose() const {return _dofSyncOnClose;}
+   MUSCLE_NODISCARD bool IsFSyncOnClose() const {return _dofSyncOnClose;}
 
 private:
    ConstSocketRef _fd;

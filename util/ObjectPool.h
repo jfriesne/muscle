@@ -240,7 +240,7 @@ public:
    }
 
    /** Returns the name of the class of objects this pool is designed to hold. */
-   const char * GetObjectClassName() const {return typeid(Object).name();}
+   MUSCLE_NODISCARD const char * GetObjectClassName() const {return typeid(Object).name();}
 
    /** Prints this object's state to stdout.  Used for debugging. */
    virtual void PrintToStream() const
@@ -382,7 +382,7 @@ public:
      * in the pool, ready to be recycled.  This is the value that was
      * previously set either in the constructor or by SetMaxPoolSize().
      */
-   uint32 GetMaxPoolSize() const {return _maxPoolSize;}
+   MUSCLE_NODISCARD uint32 GetMaxPoolSize() const {return _maxPoolSize;}
 
    /** Sets a new maximum size for this pool.  Note that changing this
      * value will not cause any object to be added or removed to the
@@ -393,14 +393,14 @@ public:
    void SetMaxPoolSize(uint32 maxPoolSize) {_maxPoolSize = maxPoolSize;}
 
    /** Returns a read-only reference to a persistent Object that is default-constructed. */
-   const Object & GetDefaultObject() const {return GetDefaultObjectForType<Object>();}
+   MUSCLE_NODISCARD const Object & GetDefaultObject() const {return GetDefaultObjectForType<Object>();}
 
    /** Returns the total number of bytes currently taken up by this ObjectPool.
      * The returned value is computed by calling GetTotalDataSize() on each object
      * in turn (including objects in use and objects in reserve).  Note that this
      * method will only compile if the Object type has a GetTotalDataSize() method.
      */
-   uint32 GetTotalDataSize() const
+   MUSCLE_NODISCARD uint32 GetTotalDataSize() const
    {
       uint32 ret = sizeof(*this);
       if (_mutex.Lock().IsOK())
@@ -419,7 +419,7 @@ public:
    /** Returns the total number of items currently allocated by this ObjectPool.
      * Note that the returned figure includes both objects in use and objects in reserve.
      */
-   uint32 GetNumAllocatedItemSlots() const
+   MUSCLE_NODISCARD uint32 GetNumAllocatedItemSlots() const
    {
       uint32 ret = 0;
       if (_mutex.Lock().IsOK())
@@ -454,15 +454,15 @@ private:
       ObjectNode() : _arrayIndex(INVALID_NODE_INDEX), _nextIndex(INVALID_NODE_INDEX) {/* empty */}
 
       void SetArrayIndex(uint16 arrayIndex) {_arrayIndex = arrayIndex;}
-      uint16 GetArrayIndex() const {return _arrayIndex;}
+      MUSCLE_NODISCARD uint16 GetArrayIndex() const {return _arrayIndex;}
 
       void SetNextIndex(uint16 nextIndex) {_nextIndex = nextIndex;}
-      uint16 GetNextIndex() const {return _nextIndex;}
+      MUSCLE_NODISCARD uint16 GetNextIndex() const {return _nextIndex;}
 
-      const char * GetObjectClassName() const {return typeid(Object).name();}
+      MUSCLE_NODISCARD const char * GetObjectClassName() const {return typeid(Object).name();}
 
-      const Object & GetObject() const {return _object;}
-      Object & GetObject() {return _object;}
+      MUSCLE_NODISCARD const Object & GetObject() const {return _object;}
+      MUSCLE_NODISCARD Object & GetObject() {return _object;}
 
    private:
       Object _object;      // note:  MUST be the first object in the ObjectNode!
@@ -479,10 +479,10 @@ private:
       ObjectSlabData(ObjectPool * pool) : _pool(pool), _prev(NULL), _next(NULL), _firstFreeNodeIndex(INVALID_NODE_INDEX), _numNodesInUse(0) {/* empty */}
 
       /** Returns true iff there is at least one ObjectNode available in this slab. */
-      bool HasAvailableNodes() const {return (_firstFreeNodeIndex != INVALID_NODE_INDEX);}
+      MUSCLE_NODISCARD bool HasAvailableNodes() const {return (_firstFreeNodeIndex != INVALID_NODE_INDEX);}
 
       /** Returns true iff there is at least one ObjectNode in use in this slab. */
-      bool IsInUse() const {return (_numNodesInUse > 0);}
+      MUSCLE_NODISCARD bool IsInUse() const {return (_numNodesInUse > 0);}
 
       void RemoveFromSlabList()
       {
@@ -504,8 +504,8 @@ private:
          (_next ? _next->_data._prev : _pool->_lastSlab) = _pool->_firstSlab = slab;
       }
 
-      uint16 GetFirstFreeNodeIndex() const {return _firstFreeNodeIndex;}
-      uint16 GetNumNodesInUse()      const {return _numNodesInUse;}
+      MUSCLE_NODISCARD uint16 GetFirstFreeNodeIndex() const {return _firstFreeNodeIndex;}
+      MUSCLE_NODISCARD uint16 GetNumNodesInUse()      const {return _numNodesInUse;}
 
       void PopObjectNode(ObjectNode * node)
       {
@@ -530,9 +530,9 @@ private:
       }
 
       void SetNext(ObjectSlab * next) {_next = next;}
-      ObjectSlab * GetNext() const {return _next;}
+      MUSCLE_NODISCARD ObjectSlab * GetNext() const {return _next;}
 
-      const ObjectSlab * GetPrev() const {return _prev;}
+      MUSCLE_NODISCARD const ObjectSlab * GetPrev() const {return _prev;}
 
       void GetUsageStats(uint32 & min, uint32 & max, uint32 & total) const
       {
@@ -541,7 +541,7 @@ private:
          total += _numNodesInUse;
       }
 
-      const ObjectPool * GetPool() const {return _pool;}
+      MUSCLE_NODISCARD const ObjectPool * GetPool() const {return _pool;}
 
    private:
       ObjectPool * _pool;
@@ -570,7 +570,7 @@ private:
 
       // Note:  this method assumes a node is available!  Don't call it without
       //        calling HasAvailableNodes() first to check, or you will crash!
-      ObjectNode * ObtainObjectNode()
+      MUSCLE_NODISCARD ObjectNode * ObtainObjectNode()
       {
          ObjectNode * node = &_nodes[_data.GetFirstFreeNodeIndex()];
          _data.PopObjectNode(node);
@@ -580,9 +580,9 @@ private:
       void ReleaseObjectNode(ObjectNode * node) {_data.PushObjectNode(node);}
 
       void SetNext(ObjectSlab * next) {_data.SetNext(next);}
-      ObjectSlab * GetNext() const {return _data.GetNext();}
+      MUSCLE_NODISCARD ObjectSlab * GetNext() const {return _data.GetNext();}
 
-      const ObjectSlab * GetPrev() const {return _data.GetPrev();}
+      MUSCLE_NODISCARD const ObjectSlab * GetPrev() const {return _data.GetPrev();}
 
       void PerformSanityCheck(const ObjectPool * pool) const
       {
@@ -628,15 +628,15 @@ private:
          }
       }
 
-      const char * GetObjectClassName() const {return _nodes[0].GetObjectClassName();}
+      MUSCLE_NODISCARD const char * GetObjectClassName() const {return _nodes[0].GetObjectClassName();}
 
-      bool HasAvailableNodes() const {return _data.HasAvailableNodes();}
-      bool IsInUse() const           {return _data.IsInUse();}
+      MUSCLE_NODISCARD bool HasAvailableNodes() const {return _data.HasAvailableNodes();}
+      MUSCLE_NODISCARD bool IsInUse() const           {return _data.IsInUse();}
       void RemoveFromSlabList()      {_data.RemoveFromSlabList();}
       void AppendToSlabList()        {_data.AppendToSlabList(this);}
       void PrependToSlabList()       {_data.PrependToSlabList(this);}
 
-      uint32 GetTotalDataSize() const
+      MUSCLE_NODISCARD uint32 GetTotalDataSize() const
       {
          uint32 ret = sizeof(_data);
          for (uint32 i=0; i<ARRAYITEMS(_nodes); i++) ret += _nodes[i].GetObject().GetTotalDataSize();
@@ -656,7 +656,7 @@ private:
 
    // Must be called with _mutex locked!   Returns either NULL, or a pointer to a
    // newly allocated Object.
-   Object * ObtainObjectAux()
+   MUSCLE_NODISCARD Object * ObtainObjectAux()
    {
       Object * ret = NULL;
       if ((_firstSlab)&&(_firstSlab->HasAvailableNodes()))
@@ -690,7 +690,7 @@ private:
 
    // Must be called with _mutex locked!   Returns either NULL, or a pointer
    // an ObjectSlab that should be deleted outside of the critical section.
-   ObjectSlab * ReleaseObjectAux(Object * obj)
+   MUSCLE_NODISCARD ObjectSlab * ReleaseObjectAux(Object * obj)
    {
       ObjectNode * objNode = reinterpret_cast<ObjectNode *>(obj);
       ObjectSlab * objSlab = reinterpret_cast<ObjectSlab *>(objNode-objNode->GetArrayIndex());

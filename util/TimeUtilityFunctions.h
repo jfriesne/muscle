@@ -39,14 +39,14 @@ namespace muscle {
  *        time automatically to eliminate clock drift may cause this value to decrease occasionally!
  *        If you need a time value that is guaranteed to never decrease, you may want to call GetRunTime64() instead.
  */
-uint64 GetCurrentTime64(uint32 timeType=MUSCLE_TIMEZONE_UTC);
+MUSCLE_NODISCARD uint64 GetCurrentTime64(uint32 timeType=MUSCLE_TIMEZONE_UTC);
 
 /** Returns a current time value, in microseconds, that is guaranteed never to decrease.  The absolute
  *  values returned by this call are undefined, so you should only use it for measuring relative time
  *  (ie how much time has passed between two events).  For a "wall clock" type of result with
  *  a well-defined time-base, you can call GetCurrentTime64() instead.
  */
-uint64 GetRunTime64();
+MUSCLE_NODISCARD uint64 GetRunTime64();
 
 /** Set an offset-value that you want to be added to the values returned by GetRunTime64() for this process.
   * Not usually necessary, but this can be useful if you want to simulate different clocks while testing on a single host.
@@ -55,7 +55,7 @@ uint64 GetRunTime64();
 void SetPerProcessRunTime64Offset(int64 offset);
 
 /** Returns the offset currently being added to all values returned by GetRunTime64().  Default value is zero. */
-int64 GetPerProcessRunTime64Offset();
+MUSCLE_NODISCARD int64 GetPerProcessRunTime64Offset();
 
 /** Given a run-time value, returns the equivalent current-time value.
   * @param runTime64 A run-time value, eg as returned by GetRunTime64().
@@ -67,7 +67,7 @@ int64 GetPerProcessRunTime64Offset();
   * @note The values returned by this function are only approximate, and may differ slightly from one call to the next.
   *       Of course they will differ significantly if the system's real-time clock value is changed by the user.
   */
-inline uint64 GetCurrentTime64ForRunTime64(uint64 runTime64, uint32 timeType=MUSCLE_TIMEZONE_UTC) {return GetCurrentTime64(timeType)+(runTime64-GetRunTime64());}
+MUSCLE_NODISCARD inline uint64 GetCurrentTime64ForRunTime64(uint64 runTime64, uint32 timeType=MUSCLE_TIMEZONE_UTC) {return GetCurrentTime64(timeType)+(runTime64-GetRunTime64());}
 
 /** Given a current-time value, returns the equivalent run-time value.
   * @param currentTime64 A current-time value, eg as returned by GetCurrentTime64(timeType).
@@ -79,7 +79,7 @@ inline uint64 GetCurrentTime64ForRunTime64(uint64 runTime64, uint32 timeType=MUS
   * @note The values returned by this function are only approximate, and may differ slightly from one call to the next.
   *       Of course they will differ significantly if the system's real-time clock value is changed by the user.
   */
-inline uint64 GetRunTime64ForCurrentTime64(uint64 currentTime64, uint32 timeType=MUSCLE_TIMEZONE_UTC) {return GetRunTime64()+(currentTime64-GetCurrentTime64(timeType));}
+MUSCLE_NODISCARD inline uint64 GetRunTime64ForCurrentTime64(uint64 currentTime64, uint32 timeType=MUSCLE_TIMEZONE_UTC) {return GetRunTime64()+(currentTime64-GetCurrentTime64(timeType));}
 
 /** Convenience function:  Won't return for a given number of microsends.
  *  @param micros The number of microseconds to wait for.
@@ -93,7 +93,7 @@ status_t Snooze64(uint64 micros);
  *  @param lastTime A state variable.  Pass in the same reference every time you call this function.  (set to zero the first time)
  *  @return true iff it has been at least (interval) since the last time this function returned true, else false.
  */
-inline bool OnceEvery(uint64 interval, uint64 & lastTime)
+MUSCLE_NODISCARD inline bool OnceEvery(uint64 interval, uint64 & lastTime)
 {
    const uint64 now = GetRunTime64();
    if (now >= lastTime+interval)

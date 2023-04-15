@@ -39,7 +39,7 @@ public:
      * Defaults to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes),
      * but the returned value can be changed via SetPacketMaximumSize().
      */
-   virtual uint32 GetMaximumPacketSize() const {return _maxPacketSize;}
+   MUSCLE_NODISCARD virtual uint32 GetMaximumPacketSize() const {return _maxPacketSize;}
 
    /** This can be called to change the maximum packet size value returned
      * by GetMaximumPacketSize().  You might call this eg if you are on a network
@@ -53,8 +53,8 @@ public:
     */
    virtual void Shutdown() {_sock.Reset();}
 
-   virtual const ConstSocketRef & GetReadSelectSocket()  const {return _sock;}
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return _sock;}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return _sock;}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _sock;}
 
    /** Call this to make our Write() method use sendto() with the specified
      * destination address and port.  Calling this with (invalidIP, 0) will
@@ -66,7 +66,7 @@ public:
    /** Returns the IP address and port that Write() will send to, eg as was
      * previously specified in SetPacketSendDestination().
      */
-   virtual const IPAddressAndPort & GetPacketSendDestination() const {return _sendTo.HasItems() ? _sendTo.Head() : _sendTo.GetDefaultItem();}
+   MUSCLE_NODISCARD virtual const IPAddressAndPort & GetPacketSendDestination() const {return _sendTo.HasItems() ? _sendTo.Head() : _sendTo.GetDefaultItem();}
 
    /** Call this to make our Write() method use sendto() with the specified destination addresss and ports.
      * @param dests a list of IPAddressAndPort destinations; each Write() call will send a UDP packet to each destination in the list.
@@ -74,10 +74,10 @@ public:
    void SetPacketSendDestinations(const Queue<IPAddressAndPort> & dests) {_sendTo = dests;}
 
    /** Returns read/write access to our list of send-destinations. */
-   Queue<IPAddressAndPort> & GetPacketSendDestinations() {return _sendTo;}
+   MUSCLE_NODISCARD Queue<IPAddressAndPort> & GetPacketSendDestinations() {return _sendTo;}
 
    /** Returns read-only access to our list of send-destinations. */
-   const Queue<IPAddressAndPort> & GetPacketSendDestinations() const {return _sendTo;}
+   MUSCLE_NODISCARD const Queue<IPAddressAndPort> & GetPacketSendDestinations() const {return _sendTo;}
 
    /**
     * Enables or diables blocking I/O on this socket.
@@ -91,7 +91,7 @@ public:
    /** Returns true iff our socket is set to use blocking I/O (as specified in
     *  the constructor or in our SetBlockingIOEnabled() method)
     */
-   bool IsBlockingIOEnabled() const {return _blocking;}
+   MUSCLE_NODISCARD bool IsBlockingIOEnabled() const {return _blocking;}
 
 private:
    ConstSocketRef _sock;

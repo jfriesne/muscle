@@ -34,11 +34,11 @@ public:
 
    virtual void BeginIO(uint64 now);
    virtual bool OkayToTransfer(const PolicyHolder & holder);
-   virtual uint32 GetMaxTransferChunkSize(const PolicyHolder & holder);
+   MUSCLE_NODISCARD virtual uint32 GetMaxTransferChunkSize(const PolicyHolder & holder);
    virtual void BytesTransferred(const PolicyHolder & holder, uint32 numBytes);
    virtual void EndIO(uint64 now);
 
-   virtual uint64 GetPulseTime(const PulseArgs & args);
+   MUSCLE_NODISCARD virtual uint64 GetPulseTime(const PulseArgs & args);
    virtual void Pulse(const PulseArgs & args);
 
 private:

@@ -44,7 +44,7 @@ public:
    virtual AbstractReflectSessionRef CreateSession(const String & clientAddress, const IPAddressAndPort & factoryInfo);
 
    /** Returns the name of the shared memory area to consult for a list of IP addresses. */
-   const String & GetSharedMemoryAreaName() const {return _sharedMemName;}
+   MUSCLE_NODISCARD const String & GetSharedMemoryAreaName() const {return _sharedMemName;}
 
    /** Sets the name of the shared memory area to consult for a list of IP addresses.
      * @param name the new Shared Memory area name to use
@@ -52,7 +52,7 @@ public:
    void SetSharedMemoryAreaName(const String & name) {_sharedMemName = name;}
 
    /** Returns true iff IP addresses in the shared memory area are to be granted access. */
-   bool IsGrantList() const {return _isGrantList;}
+   MUSCLE_NODISCARD bool IsGrantList() const {return _isGrantList;}
 
    /** Sets whether IP addresses in the shared memory area are to be granted access.
      * @param igl true iff the list of IP addresses is a whitelist; false if it's a blacklist
@@ -60,7 +60,7 @@ public:
    void SetIsGrantList(bool igl) {_isGrantList = igl;}
 
    /** Returns true iff a missing shared memory area means all IP addresses should be granted access. */
-   bool IsDefaultPass() const {return _defaultPass;}
+   MUSCLE_NODISCARD bool IsDefaultPass() const {return _defaultPass;}
 
    /** Sets whether missing shared memory area means all IP addresses should be granted access.
      * @param dp true iff we default-grant access when the memory area is missing, false if we default-deny access in that case
@@ -70,7 +70,7 @@ public:
    /** Convenience method:  Returns true iff access should be allowed for the given settings and IP address.
      * @param ip the IP address to inquire about
      */
-   bool IsAccessAllowedForIP(const IPAddress & ip) const;
+   MUSCLE_NODISCARD bool IsAccessAllowedForIP(const IPAddress & ip) const;
 
 private:
    String _sharedMemName;

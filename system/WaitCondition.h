@@ -95,30 +95,30 @@ public:
 
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    /** Returns a reference to our back-end condition-variable implementation object.  Don't call this method from code that is meant to remain portable! */
-   std::condition_variable & GetNativeConditionVariableImplementation() const {return _conditionVariable;}
+   MUSCLE_NODISCARD std::condition_variable & GetNativeConditionVariableImplementation() const {return _conditionVariable;}
 #elif defined(MUSCLE_USE_PTHREADS)
    /** Returns a reference to our back-end condition-variable implementation object.  Don't call this method from code that is meant to remain portable! */
-   pthread_cond_t & GetNativeConditionVariableImplementation() const {return _conditionVariable;}
+   MUSCLE_NODISCARD pthread_cond_t & GetNativeConditionVariableImplementation() const {return _conditionVariable;}
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
    /** Returns a reference to our back-end condition-variable implementation object.  Don't call this method from code that is meant to remain portable! */
-   CONDITION_VARIABLE & GetNativeConditionVariableImplementation() const {return _conditionVariable;}
+   MUSCLE_NODISCARD CONDITION_VARIABLE & GetNativeConditionVariableImplementation() const {return _conditionVariable;}
 #elif defined(MUSCLE_QT_HAS_THREADS)
    /** Returns a reference to our back-end condition-variable implementation object.  Don't call this method from code that is meant to remain portable! */
-   QWaitCondition & GetNativeConditionVariableImplementation() const {return _conditionVariable;}
+   MUSCLE_NODISCARD QWaitCondition & GetNativeConditionVariableImplementation() const {return _conditionVariable;}
 #endif
 
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    /** Returns a reference to our back-end mutex implementation object.  Don't call this method from code that is meant to remain portable! */
-   std::mutex & GetNativeMutexImplementation() const {return _conditionMutex;}
+   MUSCLE_NODISCARD std::mutex & GetNativeMutexImplementation() const {return _conditionMutex;}
 #elif defined(MUSCLE_USE_PTHREADS)
    /** Returns a reference to our back-end mutex implementation object.  Don't call this method from code that is meant to remain portable! */
-   pthread_mutex_t & GetNativeMutexImplementation() const {return _conditionMutex;}
+   MUSCLE_NODISCARD pthread_mutex_t & GetNativeMutexImplementation() const {return _conditionMutex;}
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
    /** Returns a reference to our back-end mutex implementation object.  Don't call this method from code that is meant to remain portable! */
-   CRITICAL_SECTION & GetNativeMutexImplementation() const {return _conditionMutex;}
+   MUSCLE_NODISCARD CRITICAL_SECTION & GetNativeMutexImplementation() const {return _conditionMutex;}
 #elif defined(MUSCLE_QT_HAS_THREADS)
    /** Returns a reference to our back-end mutex implementation object.  Don't call this method from code that is meant to remain portable! */
-   QMutex & GetNativeMutexImplementation() const {return _conditionMutex;}
+   MUSCLE_NODISCARD QMutex & GetNativeMutexImplementation() const {return _conditionMutex;}
 #endif
 
 private:

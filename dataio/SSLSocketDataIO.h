@@ -103,19 +103,19 @@ public:
    /** Returns the pre-shared-key's username, as was previously passed to SetPreSharedKeyLoginInfo().
      * Default value is an empty string.
      */
-   const String & GetPreSharedKeyUserName() const {return _pskUserName;}
+   MUSCLE_NODISCARD const String & GetPreSharedKeyUserName() const {return _pskUserName;}
 
    /** Returns the pre-shared-key's password, as was previously passed to SetPreSharedKeyLoginInfo().
      * Default value is an empty string.
      */
-   const String & GetPreSharedKeyPassword() const {return _pskPassword;}
+   MUSCLE_NODISCARD const String & GetPreSharedKeyPassword() const {return _pskPassword;}
 
    /** Overridden to return a dummy (always-ready-for-read) socket when necessary,
      * as there are times when we need gateway->DoInput() to be called when even when there
      * aren't any actual bytes present to be read from our TCP socket.
      * See http://www.rtfm.com/openssl-examples/part2.pdf (Figure 8) for details.
      */
-   virtual const ConstSocketRef & GetReadSelectSocket() const;
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const;
 
    virtual io_status_t Read(void *buffer, uint32 size);
    virtual io_status_t Write(const void *buffer, uint32 size);

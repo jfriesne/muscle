@@ -2425,7 +2425,7 @@ status_t GetCountedObjectInfo(Hashtable<const char *, uint64> & results)
 class CompareSizesFunctor
 {
 public:
-   int Compare(const uint64 & v1, const uint64 & v2, void *) const
+   MUSCLE_NODISCARD int Compare(const uint64 & v1, const uint64 & v2, void *) const
    {
       const uint32 objCount1 = ((v1>>00) & 0xFFFFFFFF);
       const uint32 objCount2 = ((v2>>00) & 0xFFFFFFFF);

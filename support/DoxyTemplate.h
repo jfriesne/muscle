@@ -125,20 +125,20 @@ public:
    DoxyTemplate & operator ~() const;
 
    /** Returns true iff the FlattenedSize() method of this class will always return the same value for all possible objects of this class. */
-   bool IsFixedSize() const;
+   MUSCLE_NODISCARD bool IsFixedSize() const;
 
    /** Returns the type code value (eg B_STRING_TYPE or whatever) that represents this class */
-   uint32 TypeCode() const;
+   MUSCLE_NODISCARD uint32 TypeCode() const;
 
    /** Returns true iff the supplied type code value represents a type we know how to Unflatten() from.
      * @param tc the type-code value to check for appropriateness.
      */
-   bool AllowsTypeCode(uint32 tc) const;
+   MUSCLE_NODISCARD bool AllowsTypeCode(uint32 tc) const;
 
    /** Returns the number of bytes that Flatten() would write to its buffer, if it was called
      * while the object is in its current state.
      */
-   uint32 FlattenedSize() const;
+   MUSCLE_NODISCARD uint32 FlattenedSize() const;
 
    /** Writes this object's state out to the supplied memory buffer.
     *  @param flat a DataFlattener to use to write out the bytes.
@@ -158,16 +158,16 @@ public:
    /** Returns a 32-bit hash code calculated based on the current state of this object.
      * @note Implementing this method (and operator==()) is what allows a non-POD class to be used as a key in a Hashtable.
      */
-   uint32 HashCode() const;
+   MUSCLE_NODISCARD uint32 HashCode() const;
 
    /** Returns a 64-bit hash code calculated based on the current state of this object. */
-   uint64 HashCode64() const;
+   MUSCLE_NODISCARD uint64 HashCode64() const;
 
    /** Returns a 32-bit checksum calculated based on the current state of this object. */
-   uint32 CalculateChecksum() const;
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const;
 
    /** Returns a human-readable string representing the current state of this object, for debugging purposes. */
-   String ToString() const;
+   MUSCLE_NODISCARD String ToString() const;
 
    /** Prints a human-readable representation of this object's state to stdout, for debugging purposes. */
    void PrintToStream() const;

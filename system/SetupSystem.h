@@ -295,7 +295,7 @@ public:
 #endif
 
    /** Returns a hash code for this muscle_thread_id */
-   uint32 HashCode() const {return CalculateHashCode(&_id, sizeof(_id));}
+   MUSCLE_NODISCARD uint32 HashCode() const {return CalculateHashCode(&_id, sizeof(_id));}
 
    /** Returns a human-readable string representation of this thread ID.
      * Note that the returned buffer has the same lifetime as this object.

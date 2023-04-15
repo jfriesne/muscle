@@ -42,7 +42,7 @@ public:
    virtual const ConstSocketRef & GetReadSelectSocket() const;
    virtual const ConstSocketRef & GetWriteSelectSocket() const;
 
-   virtual bool HasBufferedOutput() const;
+   MUSCLE_NODISCARD virtual bool HasBufferedOutput() const;
    virtual void WriteBufferedOutput();
 
    /** Sets the child-data-IO we should use as our back-end for writing zlib-deflated bytes
@@ -54,7 +54,7 @@ public:
    status_t SetChildDataIO(const DataIORef & childDataIO);
 
    /** Returns our current back-end DataIORef, if we have one */
-   const DataIORef & GetChildDataIO() const;
+   MUSCLE_NODISCARD const DataIORef & GetChildDataIO() const;
 
 protected:
    /** Internal constructor for GZLibDataIO to call

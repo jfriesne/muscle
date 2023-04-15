@@ -46,7 +46,7 @@ private:
 DECLARE_REFTYPES(SignalHandlerSession);
 
 /** Returns true iff any SignalHandlerSession ever caught a signal since this process was started. */
-bool WasSignalCaught();
+MUSCLE_NODISCARD bool WasSignalCaught();
 
 /** Sets whether or not the ReflectServer in the main thread should try to handle signals.
   * Default state is false, unless MUSCLE_CATCH_SIGNALS_BY_DEFAULT was defined at compile time.
@@ -56,7 +56,7 @@ bool WasSignalCaught();
 void SetMainReflectServerCatchSignals(bool enable);
 
 /** Returns true iff the main-ReflectServer-handle-signals flags is set to true. */
-bool GetMainReflectServerCatchSignals();
+MUSCLE_NODISCARD bool GetMainReflectServerCatchSignals();
 
 } // end namespace muscle
 

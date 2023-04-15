@@ -34,14 +34,14 @@ protected:
       /** Returns the approximate time (in microseconds) at which our Pulse() method was called.
         * Calling this method is cheaper than calling GetRunTime64() directly.
         */
-      uint64 GetCallbackTime() const {return _callTime;}
+      MUSCLE_NODISCARD uint64 GetCallbackTime() const {return _callTime;}
 
       /** Returns the time (in microseconds) at which our Pulse() method was supposed to be called at.
         * Note that the actual call time (as returned by GetCallbackTime() will generally be a bit larger
         * than the value returned by GetScheduledTime(), as computers are not infinitely fast and therefore
         * they will have some latency before scheduled calls are executed.
         */
-      uint64 GetScheduledTime() const {return _prevTime;}
+      MUSCLE_NODISCARD uint64 GetScheduledTime() const {return _prevTime;}
 
    private:
       friend class PulseNode;
@@ -78,7 +78,7 @@ public:
     *         or return the time at which you want Pulse() to be called.  Returning values less
     *         than or equal to (now) will cause Pulse() to be called as soon as possible.
     */
-   virtual uint64 GetPulseTime(const PulseArgs & args);
+   MUSCLE_NODISCARD virtual uint64 GetPulseTime(const PulseArgs & args);
 
    /**
     * Will be called at the time specified previously by GetPulseTime().  GetPulseTime()
@@ -123,18 +123,18 @@ public:
    /** Returns true iff the given child is in our set of child PulseNodes.
      * @param child the child to look for.
      */
-   bool ContainsPulseChild(PulseNode * child) const {return ((child)&&(child->_parent == this));}
+   MUSCLE_NODISCARD bool ContainsPulseChild(PulseNode * child) const {return ((child)&&(child->_parent == this));}
 
    /** Returns when this object wants its call to Pulse() scheduled next, or MUSCLE_TIME_NEVER
     *  if it has no call to Pulse() currently scheduled.
     */
-   uint64 GetScheduledPulseTime() const {return _myScheduledTime;}
+   MUSCLE_NODISCARD uint64 GetScheduledPulseTime() const {return _myScheduledTime;}
 
    /** Returns the run-time at which the PulseNodeManager started calling our callbacks.
     *  Useful for any object that wants to limit the maximum duration of its timeslice
     *  in the PulseNodeManager's event loop.
     */
-   uint64 GetCycleStartTime() const {return _parent ? _parent->GetCycleStartTime() : _cycleStartedAt;}
+   MUSCLE_NODISCARD uint64 GetCycleStartTime() const {return _parent ? _parent->GetCycleStartTime() : _cycleStartedAt;}
 
    /** Sets the maximum number of microseconds that this class should allow its callback
     *  methods to execute for (relative to the cycle start time, as shown above).  Note
@@ -148,13 +148,13 @@ public:
    /** Returns the current suggested maximum duration of our time slice, or MUSCLE_TIME_NEVER
     *  if there is no suggested limit.  Default value is MUSCLE_TIME_NEVER.
     */
-   uint64 GetSuggestedMaximumTimeSlice() const {return _maxTimeSlice;}
+   MUSCLE_NODISCARD uint64 GetSuggestedMaximumTimeSlice() const {return _maxTimeSlice;}
 
    /** Convenience method -- returns true iff the current value of the run-time
     *  clock (GetRunTime64()) indicates that our suggested time slice has expired.
     *  This method is cheap to call often.
     */
-   bool IsSuggestedTimeSliceExpired() const {return ((_timeSlicingSuggested)&&(GetRunTime64() >= (_cycleStartedAt+_maxTimeSlice)));}
+   MUSCLE_NODISCARD bool IsSuggestedTimeSliceExpired() const {return ((_timeSlicingSuggested)&&(GetRunTime64() >= (_cycleStartedAt+_maxTimeSlice)));}
 
    /**
     * Sets a flag to indicate that GetPulseTime() should be called on this object.
@@ -168,11 +168,11 @@ public:
    void InvalidatePulseTime(bool clearPrevResult = true);
 
    /** Returns a pointer to this PulseNode's parent PulseNode, if any. */
-   PulseNode * GetPulseParent() const {return _parent;}
+   MUSCLE_NODISCARD PulseNode * GetPulseParent() const {return _parent;}
 
 private:
    void ReschedulePulseChild(PulseNode * child, int toList);
-   uint64 GetFirstScheduledChildTime() const {return _firstChild[LINKED_LIST_SCHEDULED] ? _firstChild[LINKED_LIST_SCHEDULED]->_aggregatePulseTime : MUSCLE_TIME_NEVER;}
+   MUSCLE_NODISCARD uint64 GetFirstScheduledChildTime() const {return _firstChild[LINKED_LIST_SCHEDULED] ? _firstChild[LINKED_LIST_SCHEDULED]->_aggregatePulseTime : MUSCLE_TIME_NEVER;}
    void GetPulseTimeAux(uint64 now, uint64 & min);
    void PulseAux(uint64 now);
 

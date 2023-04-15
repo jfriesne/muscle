@@ -42,7 +42,7 @@ public:
    virtual ~Socket();
 
    /** Returns a SOCKET_FAMILY_* value indicating what sort of socket this is */
-   int GetFamily() const {return _family;}
+   MUSCLE_NODISCARD int GetFamily() const {return _family;}
 
    /** Returns and releases our held file-descriptor.
      * When this method returns, ownership of the socket is transferred to the calling code.
@@ -50,7 +50,7 @@ public:
    int ReleaseFileDescriptor() {int ret = _fd; _family = SOCKET_FAMILY_INVALID; _fd = -1; return ret;}
 
    /** Returns the held socket fd, but does not release ownership of it. */
-   int GetFileDescriptor() const {return _fd;}
+   MUSCLE_NODISCARD int GetFileDescriptor() const {return _fd;}
 
    /** Sets our file-descriptor.  Will close any old one if appropriate.
      * @param fd The new file-descriptor to hold, or -1 if we shouldn't hold a file-descriptor any more.
@@ -69,7 +69,7 @@ public:
    /** Returns a SOCKET_FAMILY_* value describing the type of socket we are holding.
      * Returns SOCKET_FAMILY_INVALID if we are not holding any file descriptor at all.
      */
-   int GetSocketFamily() const {return _family;}
+   MUSCLE_NODISCARD int GetSocketFamily() const {return _family;}
 
 private:
    friend class ObjectPool<Socket>;
@@ -130,13 +130,13 @@ public:
    inline bool operator !=(const ConstSocketRef &rhs) const {return GetFileDescriptor() != rhs.GetFileDescriptor();}
 
    /** Convenience method.  Returns the file-descriptor we are holding, or -1 if we are a NULL reference. */
-   int GetFileDescriptor() const {const Socket * s = GetItemPointer(); return s?s->GetFileDescriptor():-1;}
+   MUSCLE_NODISCARD int GetFileDescriptor() const {const Socket * s = GetItemPointer(); return s?s->GetFileDescriptor():-1;}
 
    /** When we're being used as a key in a Hashtable, key on the file-descriptor we hold */
-   uint32 HashCode() const {return CalculateHashCode(GetFileDescriptor());}
+   MUSCLE_NODISCARD uint32 HashCode() const {return CalculateHashCode(GetFileDescriptor());}
 
    /** Convenience method.  Returns the SOCKET_FAMILY_* value of the Socket we are holding, or SOCKET_FAMILY_INVALID if we are a NULL reference. */
-   int GetSocketFamily() const {const Socket * s = GetItemPointer(); return s?s->GetSocketFamily():SOCKET_FAMILY_INVALID;}
+   MUSCLE_NODISCARD int GetSocketFamily() const {const Socket * s = GetItemPointer(); return s?s->GetSocketFamily():SOCKET_FAMILY_INVALID;}
 
 private:
    ConstSocketRef(const Socket * sock, bool doRefCount) {SetRef(sock, doRefCount);}
@@ -196,10 +196,10 @@ static inline ConstSocketRef GetConstSocketRefFromPool(SOCKET s, bool okayToClos
 #endif
 
 /** Convenience method:  Returns a NULL socket reference. */
-inline const ConstSocketRef & GetNullSocket() {return GetDefaultObjectForType<ConstSocketRef>();}
+MUSCLE_NODISCARD inline const ConstSocketRef & GetNullSocket() {return GetDefaultObjectForType<ConstSocketRef>();}
 
 /** Convenience method:  Returns a reference to an invalid Socket (ie a Socket object with a negative file-descriptor).  Note the difference between what this function returns and what GetNullSocket() returns!  If you're not sure which of these two functions to use, then GetNullSocket() is probably the one you want. */
-const ConstSocketRef & GetInvalidSocket();
+MUSCLE_NODISCARD const ConstSocketRef & GetInvalidSocket();
 
 } // end namespace muscle
 

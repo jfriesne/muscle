@@ -23,19 +23,19 @@ public:
    ObjectCounterBase(const char * objectCounterTypeName, uint32 sizeofObject);
 
    /** To be implemented by ObjectCounter subclass to return a human-readable name indicating the type that is being counted */
-   const char * GetCounterTypeName() const {return _objectCounterTypeName;}
+   MUSCLE_NODISCARD const char * GetCounterTypeName() const {return _objectCounterTypeName;}
 
    /** Returns the number of objects of our type that are currently allocated. */
-   uint32 GetCount() const {return _counter.GetCount();}
+   MUSCLE_NODISCARD uint32 GetCount() const {return _counter.GetCount();}
 
    /** Returns sizeof(Object) for the object-type we are counting */
-   uint32 GetSizeofObject() const {return _sizeofObject;}
+   MUSCLE_NODISCARD uint32 GetSizeofObject() const {return _sizeofObject;}
 
    /** Returns the previous counter in our global linked-list of ObjectCounters. */
-   const ObjectCounterBase * GetPreviousCounter() const {return _prevCounter;}
+   MUSCLE_NODISCARD const ObjectCounterBase * GetPreviousCounter() const {return _prevCounter;}
 
    /** Returns the next counter in our global linked-list of ObjectCounters. */
-   const ObjectCounterBase * GetNextCounter() const {return _nextCounter;}
+   MUSCLE_NODISCARD const ObjectCounterBase * GetNextCounter() const {return _nextCounter;}
 
    /** Increments our internal count */
    void IncrementCounter() {_counter.AtomicIncrement();}

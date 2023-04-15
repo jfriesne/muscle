@@ -34,8 +34,8 @@ public:
    virtual io_status_t Write(const void * buffer, uint32 size);
    virtual io_status_t WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest);
 
-   virtual const ConstSocketRef & GetReadSelectSocket()  const {return const_cast<SimulatedMulticastDataIO &>(*this).GetOwnerWakeupSocket();}
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return const_cast<SimulatedMulticastDataIO &>(*this).GetOwnerWakeupSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return const_cast<SimulatedMulticastDataIO &>(*this).GetOwnerWakeupSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return const_cast<SimulatedMulticastDataIO &>(*this).GetOwnerWakeupSocket();}
    virtual void Shutdown() {ShutdownAux();}
 
    /** Implemented as a no-op:  UDP sockets are always flushed immediately anyway */
@@ -45,7 +45,7 @@ public:
      * Defaults to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes),
      * but the returned value can be changed via SetPacketMaximumSize().
      */
-   virtual uint32 GetMaximumPacketSize() const {return _maxPacketSize;}
+   MUSCLE_NODISCARD virtual uint32 GetMaximumPacketSize() const {return _maxPacketSize;}
 
    /** This can be called to change the maximum packet size value returned
      * by GetMaximumPacketSize().  You might call this eg if you are on a network
@@ -55,7 +55,7 @@ public:
    void SetPacketMaximumSize(uint32 maxPacketSize) {_maxPacketSize = maxPacketSize;}
 
    /** Returns the multicast address that was passed in to our constructor. */
-   virtual const IPAddressAndPort & GetPacketSendDestination() const {return _multicastAddress;}
+   MUSCLE_NODISCARD virtual const IPAddressAndPort & GetPacketSendDestination() const {return _multicastAddress;}
 
 protected:
    virtual void InternalThreadEntry();
@@ -76,7 +76,7 @@ private:
    status_t EnqueueOutgoingMulticastControlCommand(uint32 whatCode, uint64 now, const IPAddressAndPort & destIAP);
    status_t ParseMulticastControlPacket(const ByteBuffer & buf, uint64 now, uint32 & retWhatCode);
    const char * GetUDPSocketTypeName(uint32 which) const;
-   bool IsInEnobufsErrorMode() const;
+   MUSCLE_NODISCARD bool IsInEnobufsErrorMode() const;
    void SetEnobufsErrorMode(bool enableErrorMode);
 
    IPAddressAndPort _multicastAddress;

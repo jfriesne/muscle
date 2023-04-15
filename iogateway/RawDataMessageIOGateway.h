@@ -32,7 +32,7 @@ public:
    /** Destructor */
    virtual ~RawDataMessageIOGateway();
 
-   virtual bool HasBytesToOutput() const;
+   MUSCLE_NODISCARD virtual bool HasBytesToOutput() const;
    virtual void Reset();
 
    /** Sets whether PR_NAME_DATA_TIMESTAMP int64s should be added to incoming Messages,
@@ -43,7 +43,7 @@ public:
    void SetReceiveTimestampingEnabled(bool en) {_receiveTimestampingEnabled = en;}
 
    /** Returns true if received-data timestamping is enabled */
-   bool GetReceiveTimestampingEnabled() const {return _receiveTimestampingEnabled;}
+   MUSCLE_NODISCARD bool GetReceiveTimestampingEnabled() const {return _receiveTimestampingEnabled;}
 
 protected:
    virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);

@@ -50,13 +50,13 @@ public:
    void SetValue(const T & newVal) {_value = newVal; _wasExplicitlySet = true;}
 
    /** Returns our current value */
-   const T & GetValue() const {return _value;}
+   MUSCLE_NODISCARD const T & GetValue() const {return _value;}
 
    /** Conversion operator, for convenience */
-   operator T() const {return _value;}
+   MUSCLE_NODISCARD operator T() const {return _value;}
 
    /** Returns true iff SetValue() was called after this object was constructed. */
-   bool HasValueBeenSet() const {return _wasExplicitlySet;}
+   MUSCLE_NODISCARD bool HasValueBeenSet() const {return _wasExplicitlySet;}
 
    /** Call this if you want to set the HasValueBeenSet() flag back to false again. */
    void ClearValueWasSetFlag() {_wasExplicitlySet = false;}

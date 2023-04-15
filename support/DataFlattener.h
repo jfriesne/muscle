@@ -102,13 +102,13 @@ public:
    }
 
    /** Returns the pointer that was passed in to our constructor (or to SetBuffer()) */
-   uint8 * GetBuffer() const {return _origWriteTo;}
+   MUSCLE_NODISCARD uint8 * GetBuffer() const {return _origWriteTo;}
 
    /** Returns the number of bytes we have written into our buffer so far. */
-   uint32 GetNumBytesWritten() const {return (uint32)(_writeTo-_origWriteTo);}
+   MUSCLE_NODISCARD uint32 GetNumBytesWritten() const {return (uint32)(_writeTo-_origWriteTo);}
 
    /** Returns the number of free bytes that are still remaining to write to */
-   uint32 GetNumBytesAvailable() const
+   MUSCLE_NODISCARD uint32 GetNumBytesAvailable() const
    {
       if (_maxBytes == MUSCLE_NO_LIMIT) return MUSCLE_NO_LIMIT;
       const uint32 nbw = GetNumBytesWritten();
@@ -116,7 +116,7 @@ public:
    }
 
    /** Returns the maximum number of bytes we are allowed to write, as passed in to our constructor (or to SetBuffer()) */
-   uint32 GetMaxNumBytes() const {return _maxBytes;}
+   MUSCLE_NODISCARD uint32 GetMaxNumBytes() const {return _maxBytes;}
 
    /** Convenience method:  Allocates and returns a ByteBuffer containing a copy of all the bytes we have written so far */
    Ref<ByteBuffer> GetByteBufferFromPool() const;
@@ -220,7 +220,7 @@ public:
    }
 
    /** Returns a pointer into our buffer at the location we will next write to */
-   uint8 * GetCurrentWritePointer() const {return _writeTo;}
+   MUSCLE_NODISCARD uint8 * GetCurrentWritePointer() const {return _writeTo;}
 
    /** Seeks our "write position" to a new offset within our output buffer.
      * @param offset the new write-position within our output buffer

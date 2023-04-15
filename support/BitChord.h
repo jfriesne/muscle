@@ -53,13 +53,13 @@ public:
      * @param whichBit a bit-index to check the validity of
      * @note a bit-index is valid if its value is less than (NumBits)
      */
-   static MUSCLE_CONSTEXPR bool IsBitIndexValid(uint32 whichBit) {return (whichBit < NumBits);}
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR bool IsBitIndexValid(uint32 whichBit) {return (whichBit < NumBits);}
 
    /** Returns the state of the specified bit
      * @param whichBit the index of the bit to query (eg 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
      * @returns true iff the bit was set
      */
-   bool IsBitSet(uint32 whichBit) const
+   MUSCLE_NODISCARD bool IsBitSet(uint32 whichBit) const
    {
       MASSERT(whichBit < NumBits, "BitChord::IsBitSet:  whichBit was out of range!\n");
       return IsBitSetUnchecked(whichBit);
@@ -120,14 +120,14 @@ public:
    }
 
    /** Returns true iff at least one bit is set in this bit-chord. */
-   bool AreAnyBitsSet() const
+   MUSCLE_NODISCARD bool AreAnyBitsSet() const
    {
       for (uint32 i=0; i<NUM_WORDS; i++) if (_words[i] != 0) return true;
       return false;
    }
 
    /** Returns the number of bits that are currently set in this BitChord */
-   uint32 GetNumBitsSet() const
+   MUSCLE_NODISCARD uint32 GetNumBitsSet() const
    {
       uint32 ret = 0;
       if (AreAnyBitsSet()) for (uint32 i=0;i<NumBits; i++) if (IsBitSet(i)) ret++;
@@ -135,7 +135,7 @@ public:
    }
 
    /** Returns true iff all bits in this bit-chord are set. */
-   bool AreAllBitsSet() const
+   MUSCLE_NODISCARD bool AreAllBitsSet() const
    {
       if ((NumBits%NUM_BITS_PER_WORD) == 0)
       {
@@ -153,7 +153,7 @@ public:
      * and clears the bit as a side-effect.
      * @param whichBit the index of the bit to return and then clear.
      */
-   bool GetAndClearBit(uint32 whichBit)
+   MUSCLE_NODISCARD bool GetAndClearBit(uint32 whichBit)
    {
       const bool ret = IsBitSet(whichBit);
       ClearBit(whichBit);
@@ -164,7 +164,7 @@ public:
      * and set the bit as a side-effect.
      * @param whichBit the index of the bit to return and then set.
      */
-   bool GetAndSetBit(uint32 whichBit)
+   MUSCLE_NODISCARD bool GetAndSetBit(uint32 whichBit)
    {
       const bool ret = IsBitSet(whichBit);
       SetBit(whichBit);
@@ -175,7 +175,7 @@ public:
      * and toggles the bit as a side-effect.
      * @param whichBit the index of the bit to return and then toggles.
      */
-   bool GetAndToggleBit(uint32 whichBit)
+   MUSCLE_NODISCARD bool GetAndToggleBit(uint32 whichBit)
    {
       const bool ret = IsBitSet(whichBit);
       ToggleBit(whichBit);
@@ -183,10 +183,10 @@ public:
    }
 
    /** Returns true iff at least one bit is unset in this bit-chord. */
-   bool AreAnyBitsUnset() const {return (AreAllBitsSet() == false);}
+   MUSCLE_NODISCARD bool AreAnyBitsUnset() const {return (AreAllBitsSet() == false);}
 
    /** Returns true iff all bits in this bit-chord are unset */
-   bool AreAllBitsUnset() const {return (AreAnyBitsSet() == false);}
+   MUSCLE_NODISCARD bool AreAllBitsUnset() const {return (AreAnyBitsSet() == false);}
 
    /** @copydoc DoxyTemplate::operator|=(const DoxyTemplate &) */
    BitChord & operator |=(const BitChord & rhs) {for (int i=0; i<NUM_WORDS; i++) _words[i] |= rhs._words[i]; return *this;}
@@ -227,13 +227,13 @@ public:
      * BitChord template-instantiation will always have the same flattened-size, different template-instantiations
      * of BitChords can have different flattened-sizes and they all share the same type-code)
      */
-   static bool IsFixedSize() {return false;}
+   MUSCLE_NODISCARD static bool IsFixedSize() {return false;}
 
    /** Part of the pseudo-Flattenable API:  Returns B_BITCHORD_TYPE. */
-   static uint32 TypeCode() {return B_BITCHORD_TYPE;}
+   MUSCLE_NODISCARD static uint32 TypeCode() {return B_BITCHORD_TYPE;}
 
    /** @copydoc DoxyTemplate::FlattenedSize() const */
-   static uint32 FlattenedSize() {return sizeof(uint32)+(NUM_WORDS*sizeof(uint32));}
+   MUSCLE_NODISCARD static uint32 FlattenedSize() {return sizeof(uint32)+(NUM_WORDS*sizeof(uint32));}
 
    /** @copydoc DoxyTemplate::Flatten(DataFlattener) const */
    void Flatten(DataFlattener flat) const
@@ -255,10 +255,10 @@ public:
    }
 
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
-   uint32 CalculateChecksum() const {return HashCode();}
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const {return HashCode();}
 
    /** @copydoc DoxyTemplate::HashCode() const */
-   uint32 HashCode() const {return CalculateHashCode(_words);}
+   MUSCLE_NODISCARD uint32 HashCode() const {return CalculateHashCode(_words);}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
    /** Equivalent to calling SetBit() multiple times; once per supplied argument.
@@ -287,55 +287,55 @@ public:
      * @param bits a list of bit-indices indicating which bit(s) to toggle
      * @note this method can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
-   template<typename ...Bits> BitChord WithBits(Bits... bits) const {BitChord ret(*this); const int arr[] {bits...}; for (auto bit : arr) ret.SetBit(bit); return ret;}
+   template<typename ...Bits> MUSCLE_NODISCARD BitChord WithBits(Bits... bits) const {BitChord ret(*this); const int arr[] {bits...}; for (auto bit : arr) ret.SetBit(bit); return ret;}
 
    /** Convenience method.  Returns a BitChord that is identical to this one, except that the
      * bits at the specified indices have been cleared.
      * @param bits a list of bit-indices indicating which bit(s) to toggle
      * @note this method can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
-   template<typename ...Bits> BitChord WithoutBits(Bits... bits) const {BitChord ret(*this); const int arr[] {bits...}; for (auto bit : arr) ret.ClearBit(bit); return ret;}
+   template<typename ...Bits> MUSCLE_NODISCARD BitChord WithoutBits(Bits... bits) const {BitChord ret(*this); const int arr[] {bits...}; for (auto bit : arr) ret.ClearBit(bit); return ret;}
 
    /** Convenience method.  Returns a BitChord that is identical to this one, except that the
      * bits at the specified indices have been toggled.
      * @param bits a list of bit-indices indicating which bit(s) to toggle
      * @note this method can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
-   template<typename ...Bits> BitChord WithToggledBits(Bits... bits) const {BitChord ret(*this); const int arr[] {bits...}; for (auto bit : arr) ret.ToggleBit(bit); return ret;}
+   template<typename ...Bits> MUSCLE_NODISCARD BitChord WithToggledBits(Bits... bits) const {BitChord ret(*this); const int arr[] {bits...}; for (auto bit : arr) ret.ToggleBit(bit); return ret;}
 
    /** Convenience method.  Returns true if at least one of the specified bits is set.
      * @param bits a list of bit-indices indicating which bit(s) to test
      * @returns true iff at least one of the specified bits is set
      * @note this method can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
-   template<typename ...Bits> bool AreAnyOfTheseBitsSet(Bits... bits) const {const int arr[] {bits...}; for (auto bit : arr) if (IsBitSet(bit)) return true; return false;}
+   template<typename ...Bits> MUSCLE_NODISCARD bool AreAnyOfTheseBitsSet(Bits... bits) const {const int arr[] {bits...}; for (auto bit : arr) if (IsBitSet(bit)) return true; return false;}
 
    /** Convenience method.  Returns true if at least one of the specified bits is set.
      * @param bits a list of bit-indices indicating which bit(s) to test
      * @returns true iff every one of the specified bits is set
      * @note this method can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
-   template<typename ...Bits> bool AreAllOfTheseBitsSet(Bits... bits) const {const int arr[] {bits...}; for (auto bit : arr) if (IsBitSet(bit) == false) return false; return true;}
+   template<typename ...Bits> MUSCLE_NODISCARD bool AreAllOfTheseBitsSet(Bits... bits) const {const int arr[] {bits...}; for (auto bit : arr) if (IsBitSet(bit) == false) return false; return true;}
 
    /** Convenience method.  Returns true if at least one of the specified bits is unset.
      * @param bits a list of bit-indices indicating which bit(s) to test
      * @returns true iff at least one of the specified bits is unset
      * @note this method can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
-   template<typename ...Bits> bool AreAnyOfTheseBitsUnset(Bits... bits) const {const int arr[] {bits...}; for (auto bit : arr) if (IsBitSet(bit) == false) return true; return false;}
+   template<typename ...Bits> MUSCLE_NODISCARD bool AreAnyOfTheseBitsUnset(Bits... bits) const {const int arr[] {bits...}; for (auto bit : arr) if (IsBitSet(bit) == false) return true; return false;}
 
    /** Convenience method.  Returns true if at least one of the specified bits is unset.
      * @param bits a list of bit-indices indicating which bit(s) to test
      * @returns true iff every one of the specified bits is unset
      * @note this method can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
-   template<typename ...Bits> bool AreAllOfTheseBitsUnset(Bits... bits) const {const int arr[] {bits...}; for (auto bit : arr) if (IsBitSet(bit)) return false; return true;}
+   template<typename ...Bits> MUSCLE_NODISCARD bool AreAllOfTheseBitsUnset(Bits... bits) const {const int arr[] {bits...}; for (auto bit : arr) if (IsBitSet(bit)) return false; return true;}
 
    /** Pseudo-constructor:  Returns a BitChord whose contents are copied from the supplied list of 32-bit words.
      * @param words a list of uint32s to copy into our internal array.  The number of arguments must be equal to NUM_WORDS.
      * @note this constructor can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
-   template<typename ...Words> static BitChord FromWords(Words... words)
+   template<typename ...Words> MUSCLE_NODISCARD static BitChord FromWords(Words... words)
    {
       const uint32 arr[] {words...};
       static_assert(ARRAYITEMS(arr) == NUM_WORDS, "Wrong number of 32-bit-word arguments was supplied to BitChord::FromWords()");
@@ -350,7 +350,7 @@ public:
      * @param bytes a list of uint8s to copy into our internal array.  The number of arguments must be equal to NUM_BYTES.
      * @note this constructor can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
-   template<typename ...Bytes> static BitChord FromBytes(Bytes... bytes)
+   template<typename ...Bytes> MUSCLE_NODISCARD static BitChord FromBytes(Bytes... bytes)
    {
       const uint8 arr[] {bytes...};
       static_assert(ARRAYITEMS(arr) == NUM_BYTES, "Wrong number of 8-bit-byte arguments was supplied to BitChord::FromBytes()");
@@ -364,7 +364,7 @@ public:
    /** Pseudo-constructor:  Returns a BitChord with all of its bits set EXCEPT the bits specified as arguments.
      * @param bits a list of bit-indices that should remain cleared
      */
-   template<typename ...Bits> static BitChord WithAllBitsSetExceptThese(Bits... bits)
+   template<typename ...Bits> MUSCLE_NODISCARD static BitChord WithAllBitsSetExceptThese(Bits... bits)
    {
       const int arr[] {bits...};
 
@@ -399,87 +399,87 @@ public:
      * bit at the specified index has been set.
      * @param whichBit the index of the bit to set in the returned object.
      */
-   BitChord WithBit(uint32 whichBit) const {BitChord ret(*this); ret.SetBit(whichBit); return ret;}
+   MUSCLE_NODISCARD BitChord WithBit(uint32 whichBit) const {BitChord ret(*this); ret.SetBit(whichBit); return ret;}
 
    /** Convenience method.  Returns a BitChord that is identical to this one, except that the
      * bit at the specified index has been either set or cleared, based on the boolean parameter
      * @param whichBit the index of the bit to set in the returned object.
      * @param newBitVal the new value for the specified bit.
      */
-   BitChord WithBitSetTo(uint32 whichBit, bool newBitVal) const {return newBitVal ? WithBit(whichBit) : WithoutBit(whichBit);}
+   MUSCLE_NODISCARD BitChord WithBitSetTo(uint32 whichBit, bool newBitVal) const {return newBitVal ? WithBit(whichBit) : WithoutBit(whichBit);}
 
    /** Convenience method.  Returns a BitChord that is identical to this one, except that the
      * bit at the specified index has been cleared.
      * @param whichBit the index of the bit to clear in the returned object.
      */
-   BitChord WithoutBit(uint32 whichBit) const {BitChord ret(*this); ret.ClearBit(whichBit); return ret;}
+   MUSCLE_NODISCARD BitChord WithoutBit(uint32 whichBit) const {BitChord ret(*this); ret.ClearBit(whichBit); return ret;}
 
    /** Convenience method.  Returns a BitChord that is identical to this one, except that the
      * bit at the specified index has been toggled.
      * @param whichBit the index of the bit to toggled in the returned object.
      */
-   BitChord WithToggledBit(uint32 whichBit) const {BitChord ret(*this); ret.ToggleBit(whichBit); return ret;}
+   MUSCLE_NODISCARD BitChord WithToggledBit(uint32 whichBit) const {BitChord ret(*this); ret.ToggleBit(whichBit); return ret;}
 
    /** Convenience method.  Returns a BitChord that is identical to this one, except that the
      * bits at the specified indices have been set.
      * @param whichBits BitChord representing the indices to set.
      */
-   BitChord WithBits(const BitChord & whichBits) const {BitChord ret(*this); ret.SetBits(whichBits); return ret;}
+   MUSCLE_NODISCARD BitChord WithBits(const BitChord & whichBits) const {BitChord ret(*this); ret.SetBits(whichBits); return ret;}
 
    /** Convenience method.  Returns a BitChord that is identical to this one, except that the
      * bits at the specified indices has been cleared.
      * @param whichBits the indices of the bits to clear in the returned object.
      */
-   BitChord WithoutBits(const BitChord & whichBits) const {BitChord ret(*this); ret.ClearBits(whichBits); return ret;}
+   MUSCLE_NODISCARD BitChord WithoutBits(const BitChord & whichBits) const {BitChord ret(*this); ret.ClearBits(whichBits); return ret;}
 
    /** Convenience method.  Returns a BitChord that is identical to this one, except that the
      * bits at the specified indices have been toggled.
      * @param whichBits the indices of the bits to toggle in the returned object.
      */
-   BitChord WithToggledBits(const BitChord & whichBits) const {BitChord ret(*this); ret.ToggleBits(whichBits); return ret;}
+   MUSCLE_NODISCARD BitChord WithToggledBits(const BitChord & whichBits) const {BitChord ret(*this); ret.ToggleBits(whichBits); return ret;}
 
    /** Convenience method.  Returns true if at least one of the specified bits is set.
      * @param bits a BitChord indicating which bit(s) to test
      * @returns true iff at least one of specified bits specified in (bits) is also set in (this)
      */
-   bool AreAnyOfTheseBitsSet(const BitChord & bits) const {BitChord b(*this); b &= bits; return b.AreAnyBitsSet();}
+   MUSCLE_NODISCARD bool AreAnyOfTheseBitsSet(const BitChord & bits) const {BitChord b(*this); b &= bits; return b.AreAnyBitsSet();}
 
    /** Convenience method.  Returns true if at least one of the specified bits is set.
      * @param bits a BitChord indicating which bit(s) to test
      * @returns true iff every one of the bits specified in (bits) is also set in (this)
      */
-   bool AreAllOfTheseBitsSet(const BitChord & bits) const {BitChord b(*this); b &= bits; return (b==bits);}
+   MUSCLE_NODISCARD bool AreAllOfTheseBitsSet(const BitChord & bits) const {BitChord b(*this); b &= bits; return (b==bits);}
 
    /** Returns a BitChord identical to this one, except that the bits specified in the
      * (whichBits) argument have been set or cleared, depending on the (setBits) argument
      * @param whichBits the bits to set (or clear)
      * @param setBits true iff (whichBits) should be set; false if they should be cleared.
      */
-   BitChord WithOrWithoutBits(const BitChord & whichBits, bool setBits) const {return setBits ? WithBits(whichBits) : WithoutBits(whichBits);}
+   MUSCLE_NODISCARD BitChord WithOrWithoutBits(const BitChord & whichBits, bool setBits) const {return setBits ? WithBits(whichBits) : WithoutBits(whichBits);}
 
    /** Returns a BitChord with all bits cleared (aka a default-constructed BitChord). */
-   static BitChord WithAllBitsCleared() {return BitChord();}
+   MUSCLE_NODISCARD static BitChord WithAllBitsCleared() {return BitChord();}
 
    /** Returns a BitChord with all of its bits set. */
-   static BitChord WithAllBitsSet() {BitChord ret; return ~ret;}
+   MUSCLE_NODISCARD static BitChord WithAllBitsSet() {BitChord ret; return ~ret;}
 
    /** Returns a BitChord just like this one, except with all of the bits toggled to their boolean inverse. */
-   BitChord WithAllBitsToggled() const {return ~(*this);}
+   MUSCLE_NODISCARD BitChord WithAllBitsToggled() const {return ~(*this);}
 
    /** Returns the number of bits that are represented by this bit-chord, as specified in the template arguments */
-   static MUSCLE_CONSTEXPR uint32 GetNumBitsInBitChord() {return NumBits;}
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR uint32 GetNumBitsInBitChord() {return NumBits;}
 
    /** Returns the number of 8-bit-bytes that are represented by this bit-chord */
-   static MUSCLE_CONSTEXPR uint32 GetNumBytesInBitChord() {return NUM_BYTES;}
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR uint32 GetNumBytesInBitChord() {return NUM_BYTES;}
 
    /** Returns the number of 32-bit-words that are represented by this bit-chord */
-   static MUSCLE_CONSTEXPR uint32 GetNumWordsInBitChord() {return NUM_WORDS;}
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR uint32 GetNumWordsInBitChord() {return NUM_WORDS;}
 
    /** Returns a human-readable String listing the bit-indices that are currently set.
      * For example, if bits #0, #3, #4, #5, and #7 are set, the returned String would
      * be "0,3-5,7".
      */
-   String ToString() const
+   MUSCLE_NODISCARD String ToString() const
    {
       String ret;
       int32 runStart = -1, runEnd = -1;
@@ -499,7 +499,7 @@ public:
    /** Returns a hexadecimal representation of this bit-chord.
      * @param suppressLeadingZeroes if true, leading zeros will be suppressed.  Defaults to false.
      */
-   String ToHexString(bool suppressLeadingZeroes = false) const
+   MUSCLE_NODISCARD String ToHexString(bool suppressLeadingZeroes = false) const
    {
       String ret; (void) ret.Prealloc(1+(NUM_BYTES*3));
       for (int32 i=NUM_BYTES-1; i>=0; i--)
@@ -517,7 +517,7 @@ public:
    }
 
    /** Returns a fixed-length binary representation of this bit-chord. */
-   String ToBinaryString() const
+   MUSCLE_NODISCARD String ToBinaryString() const
    {
       String ret; (void) ret.Prealloc(NumBits+1);
       for (int32 i=NumBits-1; i>=0; i--) ret += IsBitSet(i)?'1':'0';
@@ -540,7 +540,7 @@ public:
      * Don't call this unless you know what you're doing!
      * @param whichWord index of the word to return
      */
-   uint32 GetWord(uint32 whichWord) const
+   MUSCLE_NODISCARD uint32 GetWord(uint32 whichWord) const
    {
       MASSERT(whichWord < NUM_WORDS, "BitChord::GetWord:  whichWord was out of range!\n");
       return _words[whichWord];
@@ -566,7 +566,7 @@ public:
      * Don't call this unless you know what you're doing!
      * @param whichByte index of the byte to return
      */
-   uint8 GetByte(uint32 whichByte) const
+   MUSCLE_NODISCARD uint8 GetByte(uint32 whichByte) const
    {
       MASSERT(whichByte < NUM_BYTES, "BitChord::GetByte:  whichByte was out of range!\n");
       return (uint8) ((_words[whichByte/NUM_BYTES_PER_WORD]>>((whichByte%NUM_BYTES_PER_WORD)*NUM_BITS_PER_BYTE)) & 0xFF);
@@ -574,16 +574,16 @@ public:
 
 private:
 #ifdef MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
-   int OneIffBitIsSet(  uint32 whichBit) const {return IsBitSet(whichBit)?1:0;}
-   int OneIffBitIsUnset(uint32 whichBit) const {return IsBitSet(whichBit)?0:1;}
+   MUSCLE_NODISCARD int OneIffBitIsSet(  uint32 whichBit) const {return IsBitSet(whichBit)?1:0;}
+   MUSCLE_NODISCARD int OneIffBitIsUnset(uint32 whichBit) const {return IsBitSet(whichBit)?0:1;}
 #else
-   static constexpr uint32 GetWordWithFirstNBitsSet(int numBits)
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR uint32 GetWordWithFirstNBitsSet(int numBits)
    {
       return (numBits <= 0) ? ((uint32)0) : ((((uint32)1)<<(numBits-1)) | GetWordWithFirstNBitsSet(numBits-1));
    }
 #endif
 
-   bool IsBitSetUnchecked(uint32 whichBit) const {return ((_words[whichBit/NUM_BITS_PER_WORD] & (1<<(whichBit%NUM_BITS_PER_WORD))) != 0);}
+   MUSCLE_NODISCARD bool IsBitSetUnchecked(uint32 whichBit) const {return ((_words[whichBit/NUM_BITS_PER_WORD] & (1<<(whichBit%NUM_BITS_PER_WORD))) != 0);}
    void ClearBitUnchecked(uint32 whichBit) {_words[whichBit/NUM_BITS_PER_WORD] &= ~(1<<(whichBit%NUM_BITS_PER_WORD));}
    void SetBitUnchecked(  uint32 whichBit) {_words[whichBit/NUM_BITS_PER_WORD] |=  (1<<(whichBit%NUM_BITS_PER_WORD));}
    void SetBitUnchecked(  uint32 whichBit, bool newValue)

@@ -86,7 +86,7 @@ public:
      * to that object will be returned.
      * If the creation of the default object fails, NULL will be returned.
      */
-   ObjType * GetOrCreateThreadLocalObject()
+   MUSCLE_NODISCARD ObjType * GetOrCreateThreadLocalObject()
    {
       ObjType * ret = GetThreadLocalObject();
       if (ret) return ret;
@@ -170,7 +170,7 @@ private:
 
    bool _freeHeldObjects;
 
-   inline ObjType * GetThreadLocalObjectAux() const
+   MUSCLE_NODISCARD inline ObjType * GetThreadLocalObjectAux() const
    {
 #if defined(MUSCLE_USE_QT_THREADLOCALSTORAGE)
       return _storage.localData();
@@ -196,7 +196,7 @@ private:
 #endif
    }
 
-   inline bool IsSetupOkay() const
+   MUSCLE_NODISCARD inline bool IsSetupOkay() const
    {
 #if defined(MUSCLE_USE_CPLUSPLUS11_THREADS) || defined(MUSCLE_USE_QT_THREADLOCALSTORAGE)
       return true;

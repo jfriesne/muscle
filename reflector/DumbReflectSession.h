@@ -66,7 +66,7 @@ public:
    /** Returns true iff the specified default routing flag is set.
      * @param flag a MUSCLE_ROUTING_FLAG_* value.
      */
-   bool IsRoutingFlagSet(uint32 flag) const {return ((_defaultRoutingFlags & flag) != 0);}
+   MUSCLE_NODISCARD bool IsRoutingFlagSet(uint32 flag) const {return ((_defaultRoutingFlags & flag) != 0);}
 
 private:
    uint32 _defaultRoutingFlags;

@@ -43,7 +43,7 @@ public:
     * for an output stall, before presuming that the I/O is hosed.
     * Default implementation returns MUSCLE_TIME_NEVER, aka no limit.
     */
-   virtual uint64 GetOutputStallLimit() const {return MUSCLE_TIME_NEVER;}
+   MUSCLE_NODISCARD virtual uint64 GetOutputStallLimit() const {return MUSCLE_TIME_NEVER;}
 
    /**
     * Flushes the output buffer, if possible.  For some implementations,
@@ -72,7 +72,7 @@ public:
     * methods in the DataIO interface instead.  If you attempt to do any other I/O operations
     * on Socket or its file descriptor directly, the results are undefined.
     */
-   virtual const ConstSocketRef & GetReadSelectSocket() const = 0;
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const = 0;
 
    /**
     * This method should return a ConstSocketRef object containing a file descriptor
@@ -88,7 +88,7 @@ public:
     * methods in the DataIO interface instead.  If you attempt to do any other I/O operations
     * on Socket or its file descriptor directly, the results are undefined.
     */
-   virtual const ConstSocketRef & GetWriteSelectSocket() const = 0;
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const = 0;
 
    /**
     * Optional:  If your DataIO subclass is holding buffered data that it wants
@@ -97,7 +97,7 @@ public:
     *            WriteBufferedOutput() to be called ASAP.  Default implementation
     *            always returns false.
     */
-   virtual bool HasBufferedOutput() const {return false;}
+   MUSCLE_NODISCARD virtual bool HasBufferedOutput() const {return false;}
 
    /**
     * Optional:  If this DataIO is holding any buffered output data, this method should

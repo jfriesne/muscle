@@ -69,7 +69,7 @@ public:
    void SetPointer(T * pointerVal) {SetPointerAndBits(pointerVal, GetBits());}
 
    /** Returns our held pointer value, as previously set in the constructor or via SetPointer().  */
-   T * GetPointer() const
+   MUSCLE_NODISCARD T * GetPointer() const
    {
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
       return (T*) _pointer;
@@ -91,7 +91,7 @@ public:
    }
 
    /** Returns our current bit-chord of data-bits */
-   uintptr GetBits() const {return ExternalizeBits(GetInternalDataBits());}
+   MUSCLE_NODISCARD uintptr GetBits() const {return ExternalizeBits(GetInternalDataBits());}
 
    /** Convenience method:  Sets one of our bits to a new boolean value
      * @param whichBit the index of the bit to set.  Must be less than (NumBits).
@@ -131,7 +131,7 @@ public:
    /** Convenience method:  Returns the state of the (nth) bit, as a boolean.
      * @param whichBit the index of the bit to retrieve the value of.  Must be less than (NumBits).
      */
-   bool IsBitSet(unsigned int whichBit) const
+   MUSCLE_NODISCARD bool IsBitSet(unsigned int whichBit) const
    {
       MASSERT(whichBit<NumBits, "PointerAndBits::IsBitSet():  Invalid bit-index!");
 
@@ -159,7 +159,7 @@ public:
    }
 
    /** Returns a hash code for this object */
-   uint32 HashCode() const
+   MUSCLE_NODISCARD uint32 HashCode() const
    {
       uint32 ret = CalculateHashCode(_pointer);
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
@@ -189,12 +189,12 @@ private:
       MASSERT(((internalBits & ~_allDataBitsMask) == 0), "PointerAndBits():  Bad data-bits detected!  Bit-chords passed to PointerAndBits may only have the lowest (NumBits) bits set!");
    }
 
-   static inline MUSCLE_CONSTEXPR uintptr GetInternalBitMaskForBitIndex(unsigned int whichBit)
+   MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uintptr GetInternalBitMaskForBitIndex(unsigned int whichBit)
    {
       return InternalizeBits(((uintptr)1)<<whichBit);
    }
 
-   static inline MUSCLE_CONSTEXPR uintptr InternalizeBits(uintptr userBits)
+   MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uintptr InternalizeBits(uintptr userBits)
    {
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
       return userBits;
@@ -203,7 +203,7 @@ private:
 #endif
    }
 
-   static inline MUSCLE_CONSTEXPR uintptr ExternalizeBits(uintptr internalBits)
+   MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uintptr ExternalizeBits(uintptr internalBits)
    {
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
       return internalBits;
@@ -212,9 +212,9 @@ private:
 #endif
    }
 
-   uintptr MUSCLE_CONSTEXPR GetInternalDataBits() const {return GetDataBitsWord() & _allDataBitsMask;}
+   MUSCLE_NODISCARD uintptr MUSCLE_CONSTEXPR GetInternalDataBits() const {return GetDataBitsWord() & _allDataBitsMask;}
 
-   uintptr & GetReferenceToDataBitsWord()
+   MUSCLE_NODISCARD uintptr & GetReferenceToDataBitsWord()
    {
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
       return _dataBits;
@@ -223,7 +223,7 @@ private:
 #endif
    }
 
-   uintptr GetDataBitsWord() const
+   MUSCLE_NODISCARD uintptr GetDataBitsWord() const
    {
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
       return _dataBits;
@@ -242,25 +242,25 @@ private:
   * @param whichBit the index of the bit to (possibly) set.
   * @param b a boolean value.  If true, we'll return a bit-chord with the (whichBit)'th bit set.  If false, we'll return 0.
   */
-static inline MUSCLE_CONSTEXPR uintptr BooleanToBitChord(unsigned int whichBit, bool b) {return b ? (((uintptr)1)<<whichBit) : (uintptr)0;}
+MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uintptr BooleanToBitChord(unsigned int whichBit, bool b) {return b ? (((uintptr)1)<<whichBit) : (uintptr)0;}
 
 /** Convenience method:  Returns a bit-chord with the lowest bit set, or 0
   * @param b0 the boolean value to encode as the least-significant bit
   */
-static inline MUSCLE_CONSTEXPR uintptr BooleansToBitChord(bool b0) {return BooleanToBitChord(0, b0);}
+MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uintptr BooleansToBitChord(bool b0) {return BooleanToBitChord(0, b0);}
 
 /** Convenience method:  Returns a bit-chord with the lowest bits set, or 0
   * @param b0 the boolean value to encode as the least-significant bit
   * @param b1 the boolean value to encode as the second-least-significant bit
   */
-static inline MUSCLE_CONSTEXPR uintptr BooleansToBitChord(bool b0, bool b1) {return BooleanToBitChord(1, b1) | BooleansToBitChord(b0);}
+MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uintptr BooleansToBitChord(bool b0, bool b1) {return BooleanToBitChord(1, b1) | BooleansToBitChord(b0);}
 
 /** Convenience method:  Returns a bit-chord with the lowest bits set, or 0
   * @param b0 the boolean value to encode as the least-significant bit
   * @param b1 the boolean value to encode as the second-least-significant bit
   * @param b2 the boolean value to encode as the third-least-significant bit
   */
-static inline MUSCLE_CONSTEXPR uintptr BooleansToBitChord(bool b0, bool b1, bool b2) {return BooleanToBitChord(2, b2) | BooleansToBitChord(b0, b1);}
+MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uintptr BooleansToBitChord(bool b0, bool b1, bool b2) {return BooleanToBitChord(2, b2) | BooleansToBitChord(b0, b1);}
 
 /** Convenience method:  Returns a bit-chord with the lowest bits set, or 0
   * @param b0 the boolean value to encode as the least-significant bit
@@ -268,7 +268,7 @@ static inline MUSCLE_CONSTEXPR uintptr BooleansToBitChord(bool b0, bool b1, bool
   * @param b2 the boolean value to encode as the third-least-significant bit
   * @param b3 the boolean value to encode as the fourth-least-significant bit
   */
-static inline MUSCLE_CONSTEXPR uintptr BooleansToBitChord(bool b0, bool b1, bool b2, bool b3) {return BooleanToBitChord(3, b3) | BooleansToBitChord(b0, b1, b2);}
+MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uintptr BooleansToBitChord(bool b0, bool b1, bool b2, bool b3) {return BooleanToBitChord(3, b3) | BooleansToBitChord(b0, b1, b2);}
 
 } // end namespace muscle
 

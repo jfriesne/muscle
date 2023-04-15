@@ -47,8 +47,8 @@ namespace muscle {
 template <> class PODHashFunctor<std::thread::id>
 {
 public:
-   uint32 operator () (const std::thread::id & id) const {return (uint32) _hasher(id);}
-   bool AreKeysEqual(const std::thread::id & k1, const std::thread::id & k2) const {return (k1==k2);}
+   MUSCLE_NODISCARD uint32 operator () (const std::thread::id & id) const {return (uint32) _hasher(id);}
+   MUSCLE_NODISCARD bool AreKeysEqual(const std::thread::id & k1, const std::thread::id & k2) const {return (k1==k2);}
 
 private:
    std::hash<std::thread::id> _hasher;
@@ -95,15 +95,15 @@ public:
      * until the time WaitForInternalThreadToExit() is called and returns B_NO_ERROR.  Even if the thread
      * terminates itself before then, it is still considered to be 'running' as far as we're concerned)
      */
-   bool IsInternalThreadRunning() const {return _threadRunning;}
+   MUSCLE_NODISCARD bool IsInternalThreadRunning() const {return _threadRunning;}
 
    /** Returns true iff the calling thread is the internal thread, or false if the caller is any other thread. */
-   bool IsCallerInternalThread() const;
+   MUSCLE_NODISCARD bool IsCallerInternalThread() const;
 
    /** If the current thread is the internal thread of a Thread object, returns a pointer to that object.
      * Otherwise, returns NULL.
      */
-   static Thread * GetCurrentThread();
+   MUSCLE_NODISCARD static Thread * GetCurrentThread();
 
    /** Tells the internal thread to quit by sending it a NULL MessageRef, and then optionally
      * waits for it to go away by calling WaitForInternalThreadToExit().
@@ -159,7 +159,7 @@ public:
      * remain locked and stuck!
      * @returns a pointer to our internal Message queue, on success, or NULL on failure (couldn't lock)
      */
-   Queue<MessageRef> * LockAndReturnMessageQueue();
+   MUSCLE_NODISCARD Queue<MessageRef> * LockAndReturnMessageQueue();
 
    /** Unlocks our internal message queue, so that the internal thread can again pop messages off of it.
      * Should be called exactly once after each successful call to LockAndReturnMessageQueue().
@@ -176,7 +176,7 @@ public:
      * remain locked and stuck!
      * @returns a pointer to our internal reply queue on success, or NULL on failure (couldn't lock)
      */
-   Queue<MessageRef> * LockAndReturnReplyQueue();
+   MUSCLE_NODISCARD Queue<MessageRef> * LockAndReturnReplyQueue();
 
    /** Unlocks the reply message queue, so that the internal thread can again append messages to it.
      * Should be called exactly once after each successful call to LockAndReturnReplyQueue().
@@ -190,7 +190,7 @@ public:
      * This Thread object's thread-signalling sockets will be allocated by this method if they aren't already allocated.
      * @note this method will return a NULL reference if this Thread was created with constructor argument useMessagingSockets=false.
      */
-   const ConstSocketRef & GetOwnerWakeupSocket();
+   MUSCLE_NODISCARD const ConstSocketRef & GetOwnerWakeupSocket();
 
    /** Enumeration of the three socket-sets that are available for blocking on; used in GetOwnerThreadSocketSet(),
     *  GetInternalThreadSocketSet(), and related method calls.
@@ -227,7 +227,7 @@ public:
     *  @param socketSet SOCKET_SET_* indicating which socket-set to return a reference to.
     *  @note This method should only be called from the main thread!
     */
-   const Hashtable<ConstSocketRef, bool> & GetOwnerThreadSocketSet(uint32 socketSet) const {return _threadData[MESSAGE_THREAD_OWNER]._socketSets[socketSet];}
+   MUSCLE_NODISCARD const Hashtable<ConstSocketRef, bool> & GetOwnerThreadSocketSet(uint32 socketSet) const {return _threadData[MESSAGE_THREAD_OWNER]._socketSets[socketSet];}
 
    /** Register the specified socket so that WaitForNextMessageFromOwner() will return
      * whenever this socket indicates that it is (ready-for-read, ready-for-write, or has-exception)
@@ -259,7 +259,7 @@ public:
      * @returns true iff the specified socket is ready-for-x (where x is specified by the SOCKET_SET_* value)
      * @note This method should only be called from the main thread!
      */
-   bool IsOwnerThreadSocketReady(const ConstSocketRef & sock, uint32 socketSet) const {return GetOwnerThreadSocketSet(socketSet).GetWithDefault(sock, false);}
+   MUSCLE_NODISCARD bool IsOwnerThreadSocketReady(const ConstSocketRef & sock, uint32 socketSet) const {return GetOwnerThreadSocketSet(socketSet).GetWithDefault(sock, false);}
 
    /** Call this to set a suggested stack size for the new thread.  If set to non-zero, StartInternalThread()
     *  will try to set the stack size of the thread it creates to this value.  Note that calling this method
@@ -272,13 +272,13 @@ public:
    /** Returns the current suggested stack size, as was previously set by SetSuggestedStackSize().
      * Returns 0 if there is no suggested stack size specified (which is the default behavior).
      */
-   uint32 GetSuggestedStackSize() const {return _suggestedStackSize;}
+   MUSCLE_NODISCARD uint32 GetSuggestedStackSize() const {return _suggestedStackSize;}
 
    /** If called from within the internal thread, returns (roughly) the amount of data (in bytes)
      * currently on the thread's stack.  Returns zero if the thread stack size is unknown
      * (eg because this method was called from a different thread)
      */
-   uint32 GetCurrentStackUsage() const;
+   MUSCLE_NODISCARD uint32 GetCurrentStackUsage() const;
 
    /** Sets this thread's priority to the specified priority value.
      * If the thread is currently running, the change will take place immediately; otherwise
@@ -292,7 +292,7 @@ public:
      * by a previous call to SetThreadPriority()), or PRIORITY_UNSPECIFIED if no thread priority
      * has been specified.
      */
-   int GetThreadPriority() const {return _threadPriority;}
+   MUSCLE_NODISCARD int GetThreadPriority() const {return _threadPriority;}
 
    /** Values to pass in to Thread::SetThreadPriority() to specify a thread's execution-priority relative to other threads */
    enum {
@@ -314,13 +314,13 @@ public:
      * Note that this method is only available when the MUSCLE_USE_QT_THREADS preprocessor macro is defined,
      * since otherwise there is no QThread object in use.
      */
-   QThread * GetQThread() {return &_thread;}
+   MUSCLE_NODISCARD QThread * GetQThread() {return &_thread;}
 
    /** Returns a read-only pointer to the QThread object being used to implement our internal thread.
      * Note that this method is only available when the MUSCLE_USE_QT_THREADS preprocessor macro is defined,
      * since otherwise there is no QThread object in use.
      */
-   const QThread * GetQThread() const {return &_thread;}
+   MUSCLE_NODISCARD const QThread * GetQThread() const {return &_thread;}
 #endif
 
 protected:
@@ -413,7 +413,7 @@ protected:
      * @note this method will return a NULL reference if this Thread was created with constructor argument useMessagingSockets=false.
      * @returns The socket fd that the thread is to listen on, or a NULL reference on error.
      */
-   const ConstSocketRef & GetInternalThreadWakeupSocket();
+   MUSCLE_NODISCARD const ConstSocketRef & GetInternalThreadWakeupSocket();
 
    /** Closes all of our threading sockets, if they are open. */
    void CloseSockets();
@@ -444,7 +444,7 @@ protected:
     *  @param socketSet SOCKET_SET_* indicating which socket-set to return a reference to.
     *  @note This method should only be called from the internal thread!
     */
-   const Hashtable<ConstSocketRef, bool> & GetInternalThreadSocketSet(uint32 socketSet) const {return _threadData[MESSAGE_THREAD_INTERNAL]._socketSets[socketSet];}
+   MUSCLE_NODISCARD const Hashtable<ConstSocketRef, bool> & GetInternalThreadSocketSet(uint32 socketSet) const {return _threadData[MESSAGE_THREAD_INTERNAL]._socketSets[socketSet];}
 
    /** Register the specified socket so that WaitForNextMessageFromOwner() will return
      * whenever this socket indicates that it is (ready-for-read, ready-for-write, or has-exception)
@@ -476,7 +476,7 @@ protected:
      * @returns true iff the specified socket is ready-for-x (where x is specified by the SOCKET_SET_* value)
      * @note This method should only be called from the internal thread!
      */
-   bool IsInternalThreadSocketReady(const ConstSocketRef & sock, uint32 socketSet) const {return GetInternalThreadSocketSet(socketSet).GetWithDefault(sock, false);}
+   MUSCLE_NODISCARD bool IsInternalThreadSocketReady(const ConstSocketRef & sock, uint32 socketSet) const {return GetInternalThreadSocketSet(socketSet).GetWithDefault(sock, false);}
 
 private:
    Thread(ICallbackMechanism * optCallbackMechanism);  // deliberately private and unimplemented to avoid implicit-cast-to-boolean errors if you forget the first argument to the Thread ctor

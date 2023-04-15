@@ -48,27 +48,27 @@ public:
    status_t SetPattern(const String & matchString, bool isSimpleFormat=true, const char * segmentSeparatorChars = "/", uint32 maxSegments = MUSCLE_NO_LIMIT);
 
    /** Returns the pattern String as it was previously passed in to SetPattern() */
-   const String & GetPattern() const {return _pattern;}
+   MUSCLE_NODISCARD const String & GetPattern() const {return _pattern;}
 
    /** Returns true iff this SegmentedStringMatcher's pattern specifies exactly one possible string.
     *  (ie the pattern is just plain old text, with no wildcards or other pattern matching logic specified)
     */
-   bool IsPatternUnique() const;
+   MUSCLE_NODISCARD bool IsPatternUnique() const;
 
    /** Returns this SegmentedStringMatcher's separator chars, as passed in to the ctor or SetPattern(). */
-   const String & GetSeparatorChars() const {return _sepChars;}
+   MUSCLE_NODISCARD const String & GetSeparatorChars() const {return _sepChars;}
 
    /** Returns true iff (string) is matched by the current expression.
     * @param matchString a string to match against using our current expression.
     * @return true iff (matchString) matches, false otherwise.
     */
-   bool Match(const char * const matchString) const {return _negate ? !MatchAux(matchString) : MatchAux(matchString);}
+   MUSCLE_NODISCARD bool Match(const char * const matchString) const {return _negate ? !MatchAux(matchString) : MatchAux(matchString);}
 
    /** Convenience method:  Same as above, but takes a String object instead of a (const char *).
      * @param matchString a string to match against using our current expression.
      * @return true iff (matchString) matches, false otherwise.
      */
-   inline bool Match(const String & matchString) const {return Match(matchString());}
+   MUSCLE_NODISCARD inline bool Match(const String & matchString) const {return Match(matchString());}
 
    /** If set true, Match() will return the logical opposite of what
      * it would otherwise return; eg it will return true only when
@@ -81,7 +81,7 @@ public:
    void SetNegate(bool negate) {_negate = negate;}
 
    /** Returns the current state of our negate flag. */
-   bool IsNegate() const {return _negate;}
+   MUSCLE_NODISCARD bool IsNegate() const {return _negate;}
 
    /** Clears this SegmentedStringMatcher to its default state. */
    void Clear();
@@ -90,7 +90,7 @@ public:
    String ToString() const;
 
 private:
-   bool MatchAux(const char * const matchString) const;
+   MUSCLE_NODISCARD bool MatchAux(const char * const matchString) const;
 
    String _pattern;
    String _sepChars;
@@ -99,7 +99,7 @@ private:
 };
 DECLARE_REFTYPES(SegmentedStringMatcher);
 
-SegmentedStringMatcherRef::ItemPool * GetSegmentedStringMatcherPool();
+MUSCLE_NODISCARD SegmentedStringMatcherRef::ItemPool * GetSegmentedStringMatcherPool();
 
 /** Convenience method.  Returns a StringMatcher object from the default StringMatcher pool,
   * or a NULL reference on failure (out of memory?)

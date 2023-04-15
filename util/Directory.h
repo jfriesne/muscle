@@ -26,12 +26,12 @@ public:
    ~Directory() {Reset();}
 
    /** Returns true iff we were able to open the specified directory. */
-   bool IsValid() const {return (_dirPtr != NULL);}
+   MUSCLE_NODISCARD bool IsValid() const {return (_dirPtr != NULL);}
 
    /** Returns a pointer to the current file name in the directory iteration, or NULL if there is no current file name.
      * Note that the returned string will not remain valid if this Directory object is changed.
      */
-   const char * GetCurrentFileName() const {return _currentFileName;}
+   MUSCLE_NODISCARD const char * GetCurrentFileName() const {return _currentFileName;}
 
    /** Iterates to the next file name in the directory. */
    void operator++(int);
@@ -79,7 +79,7 @@ public:
      * @param dirPath Path to check to see if it refers to an existing directory.
      * @returns true iff (dirPath) does in fact refer to an existing directory.
      */
-   static bool Exists(const char * dirPath);
+   MUSCLE_NODISCARD static bool Exists(const char * dirPath);
 
    /** Returns the path string that was passed in to this Directory object, or NULL if
      * there is no current directory active.  Note that the Directory object makes an
@@ -87,7 +87,7 @@ public:
      * the string passed in to the constructor (or SetDir()) isn't anymore.
      * @note this string, if non-NULL, will always have a file-path-separator character at the end.
      */
-   const char * GetPath() const {return _path;}
+   MUSCLE_NODISCARD const char * GetPath() const {return _path;}
 
 private:
    Directory(const Directory & rhs);  // deliberately private and unimplemented

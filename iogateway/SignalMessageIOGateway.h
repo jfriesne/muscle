@@ -29,7 +29,7 @@ public:
    virtual ~SignalMessageIOGateway() {/* empty */}
 
    /** Always returns false. */
-   virtual bool HasBytesToOutput() const {return false;}
+   MUSCLE_NODISCARD virtual bool HasBytesToOutput() const {return false;}
 
    /** Returns a reference to our current signal message */
    MessageRef GetSignalMessage() const {return _signalMessage;}

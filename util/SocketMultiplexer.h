@@ -109,7 +109,7 @@ public:
      *           registered via RegisterSocketForReadyReady() for this method to work correctly.
      * @returns true if (fd) has data ready for reading, or false if it does not.
      */
-   inline bool IsSocketReadyForRead(int fd) const {return GetAlternateFDState().IsSocketReady(fd, FDSTATE_SET_READ);}
+   MUSCLE_NODISCARD inline bool IsSocketReadyForRead(int fd) const {return GetAlternateFDState().IsSocketReady(fd, FDSTATE_SET_READ);}
 
    /** Call this after WaitForEvents() returns, to find out if the specified file descriptor has
      * buffer space available to write to, or not.
@@ -117,7 +117,7 @@ public:
      *           registered via RegisterSocketForWriteReady() for this method to work correctly.
      * @returns true if (fd) has buffer space available for writing to, or false if it does not.
      */
-   inline bool IsSocketReadyForWrite(int fd) const {return GetAlternateFDState().IsSocketReady(fd, FDSTATE_SET_WRITE);}
+   MUSCLE_NODISCARD inline bool IsSocketReadyForWrite(int fd) const {return GetAlternateFDState().IsSocketReady(fd, FDSTATE_SET_WRITE);}
 
    /** Call this after WaitForEvents() returns, to find out if the specified file descriptor has
      * an exception state raised, or not.
@@ -125,7 +125,7 @@ public:
      *           registered via RegisterSocketForExceptionRaised() for this method to work correctly.
      * @returns true if (fd) has an exception state raised, or false if it does not.
      */
-   inline bool IsSocketExceptionRaised(int fd) const {return GetAlternateFDState().IsSocketReady(fd, FDSTATE_SET_EXCEPT);}
+   MUSCLE_NODISCARD inline bool IsSocketExceptionRaised(int fd) const {return GetAlternateFDState().IsSocketReady(fd, FDSTATE_SET_EXCEPT);}
 
    /** Call this after WaitForEvents() returns, to find out if the specified file descriptor has
      * an event of the specified type flagged, or not.  Note that this method can be used as an
@@ -135,7 +135,7 @@ public:
      * @param whichSet A FDSTATE_SET_* value indicating the type of event to query the socket for.
      * @returns true if (fd) has the specified event-type flagged, or false if it does not.
      */
-   inline bool IsSocketEventOfTypeFlagged(int fd, uint32 whichSet) const {return GetAlternateFDState().IsSocketReady(fd, whichSet);}
+   MUSCLE_NODISCARD inline bool IsSocketEventOfTypeFlagged(int fd, uint32 whichSet) const {return GetAlternateFDState().IsSocketReady(fd, whichSet);}
 
    /** Enumeration of different types of socket-sets we support (same as those supported by select()) */
    enum {
@@ -176,7 +176,7 @@ private:
          return B_NO_ERROR;
       }
 
-      inline bool IsSocketReady(int fd, int whichSet) const
+      MUSCLE_NODISCARD inline bool IsSocketReady(int fd, int whichSet) const
       {
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
          return ((_bits.GetWithDefault(fd) & (1<<(whichSet+8))) != 0);
@@ -219,7 +219,7 @@ private:
       Queue<struct epoll_event> _scratchEvents;
 # endif
 #elif defined(MUSCLE_USE_POLL)
-      short GetPollBitsForFDSet(uint32 whichSet, bool isRegister) const
+      MUSCLE_NODISCARD short GetPollBitsForFDSet(uint32 whichSet, bool isRegister) const
       {
          switch(whichSet)
          {
@@ -244,20 +244,20 @@ private:
 
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
    friend void NotifySocketMultiplexersThatSocketIsClosed(int);
-   void NotifySocketClosed(int fd)                    {GetCurrentFDState().NotifySocketClosed(fd);}
-   inline FDState & GetCurrentFDState()               {return _fdState;}
-   inline const FDState & GetCurrentFDState() const   {return _fdState;}
-   inline FDState & GetAlternateFDState()             {return _fdState;}
-   inline const FDState & GetAlternateFDState() const {return _fdState;}
+   void NotifySocketClosed(int fd)                                     {GetCurrentFDState().NotifySocketClosed(fd);}
+   MUSCLE_NODISCARD inline FDState & GetCurrentFDState()               {return _fdState;}
+   MUSCLE_NODISCARD inline const FDState & GetCurrentFDState() const   {return _fdState;}
+   MUSCLE_NODISCARD inline FDState & GetAlternateFDState()             {return _fdState;}
+   MUSCLE_NODISCARD inline const FDState & GetAlternateFDState() const {return _fdState;}
    FDState _fdState;  // For kqueue and epoll we only need to keep one FDState in memory at at time
 
    SocketMultiplexer * _prevMultiplexer;
    SocketMultiplexer * _nextMultiplexer;
 #else
-   inline FDState & GetCurrentFDState()               {return _fdStates[_curFDState];}
-   inline const FDState & GetCurrentFDState() const   {return _fdStates[_curFDState];}
-   inline FDState & GetAlternateFDState()             {return _fdStates[_curFDState?0:1];}
-   inline const FDState & GetAlternateFDState() const {return _fdStates[_curFDState?0:1];}
+   MUSCLE_NODISCARD inline FDState & GetCurrentFDState()               {return _fdStates[_curFDState];}
+   MUSCLE_NODISCARD inline const FDState & GetCurrentFDState() const   {return _fdStates[_curFDState];}
+   MUSCLE_NODISCARD inline FDState & GetAlternateFDState()             {return _fdStates[_curFDState?0:1];}
+   MUSCLE_NODISCARD inline const FDState & GetAlternateFDState() const {return _fdStates[_curFDState?0:1];}
 
    FDState _fdStates[2];
    int _curFDState;

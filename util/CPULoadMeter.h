@@ -32,10 +32,10 @@ public:
      * @returns 0.0f if the CPU was idle, 1.0f if the CPU was fully loaded, or something
      *          in between.  Returns a negative value if the CPU time could not be measured.
      */
-   float GetCPULoad();
+   MUSCLE_NODISCARD float GetCPULoad();
 
 private:
-   float CalculateCPULoad(uint64 idleTicks, uint64 totalTicks);
+   MUSCLE_NODISCARD float CalculateCPULoad(uint64 idleTicks, uint64 totalTicks);
 
    uint64 _previousTotalTicks;
    uint64 _previousIdleTicks;

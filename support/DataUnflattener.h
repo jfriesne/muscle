@@ -70,13 +70,13 @@ public:
    void SetBuffer(const ConstRef<ByteBuffer> & readFrom, uint32 maxBytes = MUSCLE_NO_LIMIT, uint32 startOffset = 0);
 
    /** Returns the pointer that was passed in to our constructor (or to SetBuffer()) */
-   const uint8 * GetBuffer() const {return _origReadFrom;}
+   MUSCLE_NODISCARD const uint8 * GetBuffer() const {return _origReadFrom;}
 
    /** Returns the number of bytes we have read from our buffer so far */
-   uint32 GetNumBytesRead() const {return (uint32)(_readFrom-_origReadFrom);}
+   MUSCLE_NODISCARD uint32 GetNumBytesRead() const {return (uint32)(_readFrom-_origReadFrom);}
 
    /** Returns the number of bytes we have remaining to read */
-   uint32 GetNumBytesAvailable() const
+   MUSCLE_NODISCARD uint32 GetNumBytesAvailable() const
    {
       if (_maxBytes == MUSCLE_NO_LIMIT) return MUSCLE_NO_LIMIT;
       const uint32 nbr = GetNumBytesRead();
@@ -84,7 +84,7 @@ public:
    }
 
    /** Returns the maximum number of bytes we are allowed to read, as passed in to our constructor (or to SetBuffer()) */
-   uint32 GetMaxNumBytes() const {return _maxBytes;}
+   MUSCLE_NODISCARD uint32 GetMaxNumBytes() const {return _maxBytes;}
 
    /** Returns true iff we have detected any problems reading in data so far */
    status_t GetStatus() const {return _status;}
@@ -113,24 +113,24 @@ public:
      * @note if the call fails, our error-flag will be set true as a side-effect; call
      *       WasParseErrorDetected() to check the error-flag.
      */
-   uint8  ReadByte()   {uint8 v = 0;    (void) ReadBytes(  &v, 1); return v;}
-   int8   ReadInt8()   {int8  v = 0;    (void) ReadInt8s(  &v, 1); return v;}
-   int16  ReadInt16()  {int16 v = 0;    (void) ReadInt16s( &v, 1); return v;}
-   int32  ReadInt32()  {int32 v = 0;    (void) ReadInt32s( &v, 1); return v;}
-   int64  ReadInt64()  {int64 v = 0;    (void) ReadInt64s( &v, 1); return v;}
-   float  ReadFloat()  {float v = 0.0f; (void) ReadFloats( &v, 1); return v;}
-   double ReadDouble() {double v = 0.0; (void) ReadDoubles(&v, 1); return v;}
+   MUSCLE_NODISCARD uint8  ReadByte()   {uint8 v = 0;    (void) ReadBytes(  &v, 1); return v;}
+   MUSCLE_NODISCARD int8   ReadInt8()   {int8  v = 0;    (void) ReadInt8s(  &v, 1); return v;}
+   MUSCLE_NODISCARD int16  ReadInt16()  {int16 v = 0;    (void) ReadInt16s( &v, 1); return v;}
+   MUSCLE_NODISCARD int32  ReadInt32()  {int32 v = 0;    (void) ReadInt32s( &v, 1); return v;}
+   MUSCLE_NODISCARD int64  ReadInt64()  {int64 v = 0;    (void) ReadInt64s( &v, 1); return v;}
+   MUSCLE_NODISCARD float  ReadFloat()  {float v = 0.0f; (void) ReadFloats( &v, 1); return v;}
+   MUSCLE_NODISCARD double ReadDouble() {double v = 0.0; (void) ReadDoubles(&v, 1); return v;}
 
    /** Reads and returns a primitive of the specified type.
      * @tparam T the type of primitive to return.
      */
-   template<typename T> T ReadPrimitive() {T v = T(); (void) ReadPrimitives(&v, 1); return v;}
+   template<typename T> MUSCLE_NODISCARD T ReadPrimitive() {T v = T(); (void) ReadPrimitives(&v, 1); return v;}
 ///@}
 
    /** Returns a pointer to the next NUL-terminated ASCII string inside our buffer, or NULL on failure
      * @note as a side effect, this method advances our internal read-pointer past the returned string
      */
-   const char * ReadCString()
+   MUSCLE_NODISCARD const char * ReadCString()
    {
       const uint32 nba = GetNumBytesAvailable();
       if (nba == 0) {_status = B_DATA_NOT_FOUND; return NULL;}
@@ -160,7 +160,7 @@ public:
      * @returns the unflattened object, by value.
      * @note errors in unflattening can be detected by calling GetStatus() after this call.
      */
-   template<typename T> T ReadFlat(uint32 maxNumBytes = MUSCLE_NO_LIMIT) {T ret; (void) ReadFlat(ret, maxNumBytes); return ret;}
+   template<typename T> MUSCLE_NODISCARD T ReadFlat(uint32 maxNumBytes = MUSCLE_NO_LIMIT) {T ret; (void) ReadFlat(ret, maxNumBytes); return ret;}
 
    /** Unflattens and returns a Flattenable or PseudoFlattenable object from data in our buffer
      * without attempting to read any 4-byte length prefix.
@@ -188,7 +188,7 @@ public:
      * @note After this method returns, we will have consumed both the 4-byte length prefix
      *       and the number of bytes it indicates (whether the Unflatten() call succeeded or not)
      */
-   template<typename T> T ReadFlatWithLengthPrefix() {T ret; (void) ReadFlatWithLengthPrefix(ret); return ret;}
+   template<typename T> MUSCLE_NODISCARD T ReadFlatWithLengthPrefix() {T ret; (void) ReadFlatWithLengthPrefix(ret); return ret;}
 
    /** Reads a 4-byte length-prefix from our buffer, and then passes (that many) bytes from our
      * buffer to the Unflatten() method of the specified Flattenable/PseudoFlattenable object.
@@ -283,7 +283,7 @@ public:
    }
 
    /** Returns a pointer into our buffer at the location we will next read from */
-   const uint8 * GetCurrentReadPointer() const {return _readFrom;}
+   MUSCLE_NODISCARD const uint8 * GetCurrentReadPointer() const {return _readFrom;}
 
    /** Moves the pointer into our buffer to the specified absolute offset from the beginning of the buffer.
      * @param offset the byte-offset from the top of the buffer to move the read-position to.

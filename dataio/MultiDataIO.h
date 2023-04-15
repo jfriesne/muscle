@@ -52,30 +52,30 @@ public:
      */
    virtual status_t Seek(int64 offset, int whence) {return SeekAll(0, offset, whence);}
 
-   virtual int64 GetPosition() const
+   MUSCLE_NODISCARD virtual int64 GetPosition() const
    {
       if (HasChildren() == false) return -1;
       const SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(GetFirstChild());
       return sdio ? sdio->GetPosition() : -1;
    }
 
-   virtual uint64 GetOutputStallLimit() const {return HasChildren() ? GetFirstChild()->GetOutputStallLimit() : MUSCLE_TIME_NEVER;}
+   MUSCLE_NODISCARD virtual uint64 GetOutputStallLimit() const {return HasChildren() ? GetFirstChild()->GetOutputStallLimit() : MUSCLE_TIME_NEVER;}
 
    virtual void FlushOutput();
 
    virtual void Shutdown() {_childIOs.Clear();}
 
-   virtual const ConstSocketRef & GetReadSelectSocket()  const {return HasChildren() ? GetFirstChild()->GetReadSelectSocket()  : GetNullSocket();}
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return HasChildren() ? GetFirstChild()->GetWriteSelectSocket() : GetNullSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return HasChildren() ? GetFirstChild()->GetReadSelectSocket()  : GetNullSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return HasChildren() ? GetFirstChild()->GetWriteSelectSocket() : GetNullSocket();}
 
-   virtual bool HasBufferedOutput() const;
+   MUSCLE_NODISCARD virtual bool HasBufferedOutput() const;
    virtual void WriteBufferedOutput();
 
    /** Returns a read-only reference to our list of child DataIO objects. */
-   const Queue<DataIORef> & GetChildDataIOs() const {return _childIOs;}
+   MUSCLE_NODISCARD const Queue<DataIORef> & GetChildDataIOs() const {return _childIOs;}
 
    /** Returns a read/write reference to our list of child DataIO objects. */
-   Queue<DataIORef> & GetChildDataIOs() {return _childIOs;}
+   MUSCLE_NODISCARD Queue<DataIORef> & GetChildDataIOs() {return _childIOs;}
 
    /** Sets whether an error condition in a child should be handled simply by removing the child,
      * or whether the error should be immediately propagated upwards.  Default value is false.
@@ -88,11 +88,11 @@ public:
    void SetAbsorbPartialErrors(bool ape) {_absorbPartialErrors = ape;}
 
    /** Returns true iff the absorb-partial-errors flag has been set. */
-   bool IsAbsorbPartialErrors() const {return _absorbPartialErrors;}
+   MUSCLE_NODISCARD bool IsAbsorbPartialErrors() const {return _absorbPartialErrors;}
 
 private:
-   bool HasChildren() const {return (_childIOs.HasItems());}
-   DataIO * GetFirstChild() const {return (_childIOs.Head()());}
+   MUSCLE_NODISCARD bool HasChildren() const {return (_childIOs.HasItems());}
+   MUSCLE_NODISCARD DataIO * GetFirstChild() const {return (_childIOs.Head()());}
    status_t SeekAll(uint32 first, int64 offset, int whence);
 
    Queue<DataIORef> _childIOs;

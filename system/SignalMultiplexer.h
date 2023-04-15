@@ -64,15 +64,15 @@ public:
    void CallSignalHandlers(int sigNum);
 
    /** Returns a reference to the singleton SignalMultiplexer object. */
-   static SignalMultiplexer & GetSignalMultiplexer() {return _signalMultiplexer;}
+   MUSCLE_NODISCARD static SignalMultiplexer & GetSignalMultiplexer() {return _signalMultiplexer;}
 
    /** Returns the total number of signals (of all kinds) that have been received by this SignalMultiplexer object. */
-   uint32 GetTotalNumSignalsReceived() const {return _totalSignalCounts;}
+   MUSCLE_NODISCARD uint32 GetTotalNumSignalsReceived() const {return _totalSignalCounts;}
 
    /** Returns the total number of signals of the specified kind that have been received by this SignalMultiplexer object.
      * @param type The signal number (eg SIGINT).  Note that only signal numbers up to 31 are tracked.
      */
-   uint32 GetNumSignalsReceivedOfType(uint32 type) const {return (type<ARRAYITEMS(_signalCounts))?_signalCounts[type]:0;}
+   MUSCLE_NODISCARD uint32 GetNumSignalsReceivedOfType(uint32 type) const {return (type<ARRAYITEMS(_signalCounts))?_signalCounts[type]:0;}
 
 private:
    SignalMultiplexer();  // ctor is deliberately private

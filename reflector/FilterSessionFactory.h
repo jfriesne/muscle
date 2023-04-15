@@ -105,10 +105,10 @@ public:
    void SetTotalMaxSessions(uint32 maxSessions) {_totalMaxSessions = maxSessions;}
 
    /** Returns the current max-sessions-per-host limit  */
-   uint32 GetMaxSessionsPerHost() const {return _maxSessionsPerHost;}
+   MUSCLE_NODISCARD uint32 GetMaxSessionsPerHost() const {return _maxSessionsPerHost;}
 
    /** Sets the current total-max-sessions limit -- ie how many sessions may be connected to our server concurrently.  */
-   uint32 GetTotalMaxSessions() const {return _totalMaxSessions;}
+   MUSCLE_NODISCARD uint32 GetTotalMaxSessions() const {return _totalMaxSessions;}
 
 private:
    Hashtable<String, StringMatcherRef> _bans;

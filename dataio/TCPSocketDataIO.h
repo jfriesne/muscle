@@ -42,7 +42,7 @@ public:
     * Stall limit for TCP streams is 180000000 microseconds (aka 3 minutes) by default.
     * Or change it by calling SetOutputStallLimit().
     */
-   virtual uint64 GetOutputStallLimit() const {return _stallLimit;}
+   MUSCLE_NODISCARD virtual uint64 GetOutputStallLimit() const {return _stallLimit;}
 
    /** Set a new output stall time limit.  Set to MUSCLE_TIME_NEVER to disable stall limiting.
      * @param limit the new time-limit, in microseconds, or MUSCLE_TIME_NEVER
@@ -60,8 +60,8 @@ public:
     */
    virtual void Shutdown() {_sock.Reset();}
 
-   virtual const ConstSocketRef & GetReadSelectSocket()  const {return _sock;}
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return _sock;}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return _sock;}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _sock;}
 
    /**
     * Enables or diables blocking I/O on this socket.
@@ -83,12 +83,12 @@ public:
    /** Returns true iff our socket is set to use blocking I/O (as specified in
     *  the constructor or in our SetBlockingIOEnabled() method)
     */
-   bool IsBlockingIOEnabled() const {return _blocking;}
+   MUSCLE_NODISCARD bool IsBlockingIOEnabled() const {return _blocking;}
 
    /** Returns true iff our socket has Nagle's algorithm enabled (as specified
     *  in our SetNaglesAlgorithmEnabled() method.  Default state is true.
     */
-   bool IsNaglesAlgorithmEnabled() const {return _naglesEnabled;}
+   MUSCLE_NODISCARD bool IsNaglesAlgorithmEnabled() const {return _naglesEnabled;}
 
 private:
    ConstSocketRef _sock;

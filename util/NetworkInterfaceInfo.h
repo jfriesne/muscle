@@ -81,62 +81,62 @@ public:
    NetworkInterfaceInfo(const String & name, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadcastIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType, uint32 mtu);
 
    /** Returns the name of this interface, or "" if the name is not known. */
-   const String & GetName() const {return _name;}
+   MUSCLE_NODISCARD const String & GetName() const {return _name;}
 
    /** Returns a (human-readable) description of this interface, or "" if a description is unavailable. */
-   const String & GetDescription() const {return _desc;}
+   MUSCLE_NODISCARD const String & GetDescription() const {return _desc;}
 
    /** Returns the IP address of this interface */
-   const IPAddress & GetLocalAddress() const {return _ip;}
+   MUSCLE_NODISCARD const IPAddress & GetLocalAddress() const {return _ip;}
 
    /** Returns the netmask of this interface */
-   const IPAddress & GetNetmask() const {return _netmask;}
+   MUSCLE_NODISCARD const IPAddress & GetNetmask() const {return _netmask;}
 
    /** If this interface is a point-to-point interface, this method returns the IP
      * address of the machine at the remote end of the interface.  Otherwise, this
      * method returns the broadcast address for this interface.
      */
-   const IPAddress & GetBroadcastAddress() const {return _broadcastIP;}
+   MUSCLE_NODISCARD const IPAddress & GetBroadcastAddress() const {return _broadcastIP;}
 
    /** Returns the MAC address of this network interface, or 0 if the MAC address isn't known.
      * Note that only the lower 48 bits of the returned 64-bit word are valid; the upper 16 bits will always be zero.
      * @note This functionality is currently implemented under BSD/MacOSX, Linux, and Windows.  Under other OS's where
      *       this information isn't implemented, this method will return 0.
      */
-   uint64 GetMACAddress() const {return _macAddress;}
+   MUSCLE_NODISCARD uint64 GetMACAddress() const {return _macAddress;}
 
    /** Returns a NETWORK_INTERFACE_HARDWARE_TYPE_* values describing the type of networking hardware this interface corresponds to.
      * @note that this functionality is currently implemented for MacOS/X, Linux, and Windows only.
      * Under other OS's this method currently only returns NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN
      * or NETWORK_INTERFACE_HARDWARE_LOOPBACK.
      */
-   uint32 GetHardwareType() const {return _hardwareType;}
+   MUSCLE_NODISCARD uint32 GetHardwareType() const {return _hardwareType;}
 
    /** Returns the MTU (Max Transfer Unit) of this network interface, in bytes.
      * The MTU is the maximum size (including IP headers) of a packet that this network interface can transmit without fragmentation.
      * Returns zero if the MTU of this network interface isn't known.
      * Note that on a network path with multiple hops, the effective MTU of the path may be smaller than the MTU of the local interface.
      */
-   uint32 GetMTU() const {return _mtu;}
+   MUSCLE_NODISCARD uint32 GetMTU() const {return _mtu;}
 
    /** Returns true iff this interface is currently enabled ("up"). */
-   bool IsEnabled() const {return _enabled;}
+   MUSCLE_NODISCARD bool IsEnabled() const {return _enabled;}
 
    /** Returns true iff this network interface is currently plugged in to anything
      * (ie iff a connected Ethernet cable is attached to the Ethernet jack).
      */
-   bool IsCopperDetected() const {return _copper;}
+   MUSCLE_NODISCARD bool IsCopperDetected() const {return _copper;}
 
    /** For debugging.  Returns a human-readable string describing this interface. */
-   String ToString() const;
+   MUSCLE_NODISCARD String ToString() const;
 
    /** @copydoc DoxyTemplate::HashCode() const */
-   uint32 HashCode() const;
+   MUSCLE_NODISCARD uint32 HashCode() const;
 
    /** Given a NETWORK_INTERFACE_HARDWARE_TYPE_* value, returns a human-readable string describing the type (eg "Ethernet" or "WiFi")
      * @param hardwareType a NETWORK_INTERFACE_HARDWARE_TYPE_* value
      */
-   static const char * GetNetworkHardwareTypeString(uint32 hardwareType);
+   MUSCLE_NODISCARD static const char * GetNetworkHardwareTypeString(uint32 hardwareType);
 
    /** Comparison Operator.  Returns true iff the two NetworkInterfaceInfos contain the same data as each other in all fields.
      * @param rhs A NetworkInterfaceInfo to compare ourself with

@@ -34,7 +34,7 @@ public:
      */
    MiniPacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway = AbstractMessageIOGatewayRef(), uint32 maxTransferUnit = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, uint32 magic = DEFAULT_MINI_TUNNEL_IOGATEWAY_MAGIC);
 
-   virtual bool HasBytesToOutput() const {return ((_currentOutputBuffers.HasItems())||(GetOutgoingMessageQueue().HasItems()));}
+   MUSCLE_NODISCARD virtual bool HasBytesToOutput() const {return ((_currentOutputBuffers.HasItems())||(GetOutgoingMessageQueue().HasItems()));}
 
    /** If set to true, any incoming UDP packets that aren't in our packetizer-format will be
      * be interpreted as separate, independent incoming messages.  If false (the default state),
@@ -44,7 +44,7 @@ public:
    void SetAllowMiscIncomingData(bool allowMisc) {_allowMiscData = allowMisc;}
 
    /** Returns true iff we are accepting non-packetized incoming UDP messages. */
-   bool GetAllowMiscIncomingData() const {return _allowMiscData;}
+   MUSCLE_NODISCARD bool GetAllowMiscIncomingData() const {return _allowMiscData;}
 
    /** Sets the source exclusion ID number for this gateway.  The source exclusion ID is
      * useful when you are broadcasting in such a way that your broadcast packets will come
@@ -57,7 +57,7 @@ public:
    void SetSourceExclusionID(uint32 sexID) {_sexID = sexID;}
 
    /** Returns the current source-exclusion ID.  See above for details. */
-   uint32 GetSourceExclusionID() const {return _sexID;}
+   MUSCLE_NODISCARD uint32 GetSourceExclusionID() const {return _sexID;}
 
    /** Set the level of zlib-compression to apply to outgoing packets just before sending them.
      * @param sendCompressionLevel 0 for no zlib-compression (this is the default) up to 9 for maximum compression.
@@ -65,7 +65,7 @@ public:
    void SetZLibCompressionLevel(uint8 sendCompressionLevel) {_sendCompressionLevel = sendCompressionLevel;}
 
    /** Returns the level of zlib-compression we will apply to outgoing packets just before sending them. */
-   uint8 GetZLibCompressionLevel() const {return _sendCompressionLevel;}
+   MUSCLE_NODISCARD uint8 GetZLibCompressionLevel() const {return _sendCompressionLevel;}
 
 protected:
    /** Implemented to receive packets from various sources and split them up into

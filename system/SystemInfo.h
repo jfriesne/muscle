@@ -19,7 +19,7 @@ namespace muscle {
   * operating system's name is unknown, returns "Unknown".
   * @param defaultString What to return if we don't know what the host OS is.  Defaults to "Unknown".
   */
-const char * GetOSName(const char * defaultString = "Unknown");
+MUSCLE_NODISCARD const char * GetOSName(const char * defaultString = "Unknown");
 
 /** An enumeration of filesystem locations that can be passed to GetSystemPath() */
 enum {
@@ -55,7 +55,7 @@ status_t GetNumberOfProcessors(uint32 & retNumProcessors);
   * system:  ie backslash for Windows, and forward-slash for every
   * other operating system.
   */
-inline const char * GetFilePathSeparator()
+MUSCLE_NODISCARD inline const char * GetFilePathSeparator()
 {
 #ifdef WIN32
    return "\\";
@@ -68,7 +68,7 @@ inline const char * GetFilePathSeparator()
   * of the various MUSCLE-specific build flags (as documented in COMPILEROPTIONS.txt)
   * that the MUSCLE codebase was compiled.
   */
-Queue<String> GetBuildFlags();
+MUSCLE_NODISCARD Queue<String> GetBuildFlags();
 
 /** Convenience method for debugging.  Dumps a human-readable record of the
   * various MUSCLE-specific build flags (as documented in COMPILEROPTIONS.txt)

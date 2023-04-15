@@ -69,20 +69,20 @@ public:
      * socket is only used for select() (call StdinDataIO::Read() to do the
      * actual data reading)
      */
-   virtual const ConstSocketRef & GetReadSelectSocket() const;
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const;
 
    /** If (writeToStdout) was specified true in the constructor, then this
      * method will return a socket that can be select()'d on to find out when
      * stdout has space to receive data.  Otherwise, this returns a NULL socket reference.
      * @note under Windows this method currently always returns a NULL socket reference in all cases.
      */
-   virtual const ConstSocketRef & GetWriteSelectSocket() const;
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const;
 
    /** Returns the blocking flag that was passed into our constructor */
-   bool IsBlockingIOEnabled() const {return _stdinBlocking;}
+   MUSCLE_NODISCARD bool IsBlockingIOEnabled() const {return _stdinBlocking;}
 
    /** Returns the writeToStdout flag that was passed into our constructor */
-   bool IsWriteToStdoutEnabled() const {return _writeToStdout;}
+   MUSCLE_NODISCARD bool IsWriteToStdoutEnabled() const {return _writeToStdout;}
 
 private:
    const bool _stdinBlocking;

@@ -41,7 +41,7 @@ public:
    /** Returns a pointer to the CallbackMechanism we're currently registered with,
      * or NULL if we aren't currently registered.
      */
-   ICallbackMechanism * GetCallbackMechanism() const {return _mechanism;}
+   MUSCLE_NODISCARD ICallbackMechanism * GetCallbackMechanism() const {return _mechanism;}
 
 protected:
    /** May be called from any thread.  Calling this method ensures that

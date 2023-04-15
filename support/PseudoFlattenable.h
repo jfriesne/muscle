@@ -53,7 +53,7 @@ public:
    /** Default implementation returns true iff (tc) is either B_RAW_TYPE or equal to the type-code returned by our TypeCode() method
      * @param tc the type code to check if we are compatible with, or not
      */
-   bool AllowsTypeCode(uint32 tc) const {return ((tc == B_RAW_TYPE)||(tc == static_cast<const SubclassType*>(this)->TypeCode()));}
+   MUSCLE_NODISCARD bool AllowsTypeCode(uint32 tc) const {return ((tc == B_RAW_TYPE)||(tc == static_cast<const SubclassType*>(this)->TypeCode()));}
 
    /** Convenience method:  Unflattens this object from the bytes in the supplied buffer.
      * @param buffer pointer to a buffer of bytes

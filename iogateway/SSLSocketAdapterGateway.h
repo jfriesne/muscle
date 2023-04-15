@@ -32,9 +32,9 @@ public:
 
    virtual status_t AddOutgoingMessage(const MessageRef & messageRef);
 
-   virtual bool IsReadyForInput() const;
-   virtual bool HasBytesToOutput() const;
-   virtual uint64 GetOutputStallLimit() const;
+   MUSCLE_NODISCARD virtual bool IsReadyForInput() const;
+   MUSCLE_NODISCARD virtual bool HasBytesToOutput() const;
+   MUSCLE_NODISCARD virtual uint64 GetOutputStallLimit() const;
    virtual void Shutdown();
    virtual void Reset();
    virtual void SetDataIO(const DataIORef & ref);
@@ -45,14 +45,14 @@ public:
    void SetSlaveGateway(const AbstractMessageIOGatewayRef & slaveGateway);
 
    /** Returns a reference to our held slave gateway (or a NULL reference if we haven't got one) */
-   const AbstractMessageIOGatewayRef & GetSlaveGateway() const {return _slaveGateway;}
+   MUSCLE_NODISCARD const AbstractMessageIOGatewayRef & GetSlaveGateway() const {return _slaveGateway;}
 
 protected:
    virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
    virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
 
 private:
-   uint32 GetSSLState() const;
+   MUSCLE_NODISCARD uint32 GetSSLState() const;
    void SetSSLForceReadReady(bool forceReadReady);
 
    AbstractMessageIOGatewayRef _slaveGateway;

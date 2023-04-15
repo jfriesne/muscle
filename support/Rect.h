@@ -47,28 +47,28 @@ public:
    ~Rect() {/* empty */}
 
    /** convenience method to get the left edge of this Rect */
-   inline float   left()   const {return (*this)[0];}
+   MUSCLE_NODISCARD inline float   left()   const {return (*this)[0];}
 
    /** convenience method to set the left edge of this Rect */
-   inline float & left()         {return (*this)[0];}
+   MUSCLE_NODISCARD inline float & left()         {return (*this)[0];}
 
    /** convenience method to get the top edge of this Rect */
-   inline float   top()    const {return (*this)[1];}
+   MUSCLE_NODISCARD inline float   top()    const {return (*this)[1];}
 
    /** convenience method to set the top edge of this Rect */
-   inline float & top()          {return (*this)[1];}
+   MUSCLE_NODISCARD inline float & top()          {return (*this)[1];}
 
    /** convenience method to get the right edge of this Rect */
-   inline float   right()  const {return (*this)[2];}
+   MUSCLE_NODISCARD inline float   right()  const {return (*this)[2];}
 
    /** convenience method to set the right edge of this Rect */
-   inline float & right()        {return (*this)[2];}
+   MUSCLE_NODISCARD inline float & right()        {return (*this)[2];}
 
    /** convenience method to get the bottom edge of this Rect */
-   inline float   bottom() const {return (*this)[3];}
+   MUSCLE_NODISCARD inline float   bottom() const {return (*this)[3];}
 
    /** convenience method to set the bottom edge of this Rect */
-   inline float & bottom()       {return (*this)[3];}
+   MUSCLE_NODISCARD inline float & bottom()       {return (*this)[3];}
 
    /** Set a new position for the rectangle.
      * @param l the new left-edge coordinate
@@ -94,16 +94,16 @@ public:
     }
 
    /** Returns the left top corner of the rectangle. */
-   inline Point LeftTop() const {return Point(left(), top());}
+   MUSCLE_NODISCARD inline Point LeftTop() const {return Point(left(), top());}
 
    /** Returns the right bottom corner of the rectangle. */
-   inline Point RightBottom() const {return Point(right(), bottom());}
+   MUSCLE_NODISCARD inline Point RightBottom() const {return Point(right(), bottom());}
 
    /** Returns the left bottom corner of the rectangle. */
-   inline Point LeftBottom() const {return Point(left(), bottom());}
+   MUSCLE_NODISCARD inline Point LeftBottom() const {return Point(left(), bottom());}
 
    /** Returns the right top corner of the rectangle. */
-   inline Point RightTop() const {return Point(right(), top());}
+   MUSCLE_NODISCARD inline Point RightTop() const {return Point(right(), top());}
 
    /** Set the left top corner of the rectangle.
      * @param p the new left/top corner for this Rect
@@ -213,47 +213,47 @@ public:
    /** Returns true iff this rectangle and (r) overlap in space.
      * @param r the Rect to check to see if it intersects with this Rect
      */
-   inline bool Intersects(const Rect & r) const {return (r&(*this)).IsValid();}
+   MUSCLE_NODISCARD inline bool Intersects(const Rect & r) const {return (r&(*this)).IsValid();}
 
    /** Returns true iff this rectangle's area is non imaginary (ie Width() and Height()) are both non-negative) */
-   inline bool IsValid() const {return ((Width() >= 0.0f)&&(Height() >= 0.0f));}
+   MUSCLE_NODISCARD inline bool IsValid() const {return ((Width() >= 0.0f)&&(Height() >= 0.0f));}
 
    /** Returns the area of this rectangle. */
-   inline float Area() const {return IsValid() ? (Width()*Height()) : 0.0f;}
+   MUSCLE_NODISCARD inline float Area() const {return IsValid() ? (Width()*Height()) : 0.0f;}
 
    /** Returns the width of this rectangle. */
-   inline float Width() const {return right() - left();}
+   MUSCLE_NODISCARD inline float Width() const {return right() - left();}
 
-   /** Returns the width of this rectangle as an integer. */
-   inline int32 IntegerWidth() const {return (int32)ceil(Width());}
+   /** Returns the width of this rectangle, rounded up to the nearest integer. */
+   MUSCLE_NODISCARD inline int32 IntegerWidth() const {return (int32)ceil(Width());}
 
    /** Returns the height of this rectangle. */
-   inline float Height() const {return bottom()-top();}
+   MUSCLE_NODISCARD inline float Height() const {return bottom()-top();}
 
-   /** Returns the height of this rectangle as an integer. */
-   inline int32 IntegerHeight() const {return (int32)ceil(Height());}
+   /** Returns the height of this rectangle, rounded up to the nearest integer. */
+   MUSCLE_NODISCARD inline int32 IntegerHeight() const {return (int32)ceil(Height());}
 
    /** Returns true iff this rectangle contains the specified point.
      * @param p the Point to check to see if it falls within this Rectangle's area
      */
-   inline bool Contains(const Point & p) const {return ((p.x() >= left())&&(p.x() <= right())&&(p.y() >= top())&&(p.y() <= bottom()));}
+   MUSCLE_NODISCARD inline bool Contains(const Point & p) const {return ((p.x() >= left())&&(p.x() <= right())&&(p.y() >= top())&&(p.y() <= bottom()));}
 
    /** Returns true iff this rectangle fully encompasses the specified rectangle.
      * @param p the Rect to check to see if it's entirely inside this Rect.
      */
-   inline bool Contains(Rect p) const {return ((Contains(p.LeftTop()))&&(Contains(p.RightTop()))&&(Contains(p.LeftBottom()))&&(Contains(p.RightBottom())));}
+   MUSCLE_NODISCARD inline bool Contains(Rect p) const {return ((Contains(p.LeftTop()))&&(Contains(p.RightTop()))&&(Contains(p.LeftBottom()))&&(Contains(p.RightBottom())));}
 
    /** Part of the pseudo-Flattenable API:  Returns true. */
-   bool IsFixedSize() const {return true;}
+   MUSCLE_NODISCARD bool IsFixedSize() const {return true;}
 
    /** Part of the pseudo-Flattenable API:  Returns B_RECT_TYPE. */
-   uint32 TypeCode() const {return B_RECT_TYPE;}
+   MUSCLE_NODISCARD uint32 TypeCode() const {return B_RECT_TYPE;}
 
    /** Part of the PseudoFlattenable API:  Returns 4*sizeof(float). */
-   static uint32 FlattenedSize() {return GetNumItemsInTuple()*sizeof(float);}
+   MUSCLE_NODISCARD static uint32 FlattenedSize() {return GetNumItemsInTuple()*sizeof(float);}
 
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
-   uint32 CalculateChecksum() const {return CalculateChecksumForFloat(left()) + (3*CalculateChecksumForFloat(top())) + (5*CalculateChecksumForFloat(right())) + (7*CalculateChecksumForFloat(bottom()));}
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const {return CalculateChecksumForFloat(left()) + (3*CalculateChecksumForFloat(top())) + (5*CalculateChecksumForFloat(right())) + (7*CalculateChecksumForFloat(bottom()));}
 
    /** @copydoc DoxyTemplate::Flatten(DataFlattener) const */
    void Flatten(DataFlattener flat) const {flat.WriteFloats(GetItemPointer(0), GetNumItemsInTuple());}
@@ -265,7 +265,7 @@ public:
      * selected by the AutoChooseHashFunctor template logic, instead of the PODHashFunctor.  (Unfortunately
      * AutoChooseHashFunctor doesn't check the superclasses when it looks for a HashCode method)
      */
-   uint32 HashCode() const {return Tuple<4,float>::HashCode();}
+   MUSCLE_NODISCARD uint32 HashCode() const {return Tuple<4,float>::HashCode();}
 };
 
 DECLARE_ALL_TUPLE_OPERATORS(Rect,float);

@@ -461,7 +461,7 @@ enum {
            /** Comparison operator.  Returns true iff this object has a different value than (rhs)
              * @param rhs the status_t to compare against
              */
-           MUSCLE_CONSTEXPR bool operator !=(const status_t & rhs) const {return !(*this==rhs);}
+           MUSCLE_CONSTEXPR bool operator != (const status_t & rhs) const {return !(*this==rhs);}
 
            /** This operator returns B_NO_ERROR iff both inputs are equal to B_NO_ERROR,
              * otherwise it returns one of the non-B_NO_ERROR values.  This operator is
@@ -485,19 +485,19 @@ enum {
            /** Returns "OK" if this status_t indicates success; otherwise returns the human-readable description
              * of the error this status_t indicates.
              */
-           MUSCLE_CONSTEXPR const char * GetDescription() const {return IsOK() ? "OK" : _desc;}
+           MUSCLE_NODISCARD MUSCLE_CONSTEXPR const char * GetDescription() const {return IsOK() ? "OK" : _desc;}
 
            /** Convenience method -- a synonym for GetDescription() */
-           MUSCLE_CONSTEXPR const char * operator()() const {return GetDescription();}
+           MUSCLE_NODISCARD MUSCLE_CONSTEXPR const char * operator()() const {return GetDescription();}
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status */
-           MUSCLE_CONSTEXPR bool IsOK() const {return (_desc == NULL);}
+           MUSCLE_NODISCARD MUSCLE_CONSTEXPR bool IsOK() const {return (_desc == NULL);}
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status
              * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
              * @note this allows for eg status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
              */
-           bool IsOK(status_t & writeErrorTo) const
+           MUSCLE_NODISCARD bool IsOK(status_t & writeErrorTo) const
            {
               const bool isOK = IsOK();
               if (isOK == false) writeErrorTo = *this;
@@ -505,13 +505,13 @@ enum {
            }
 
            /** Convenience method:  Returns true iff this object represents an error-status */
-           MUSCLE_CONSTEXPR bool IsError() const {return (_desc != NULL);}
+           MUSCLE_NODISCARD MUSCLE_CONSTEXPR bool IsError() const {return (_desc != NULL);}
 
            /** Convenience method:  Returns true iff this object represents an error-status
              * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
              * @note this allows for eg status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
              */
-           bool IsError(status_t & writeErrorTo) const
+           MUSCLE_NODISCARD bool IsError(status_t & writeErrorTo) const
            {
               const bool isError = IsError();
               if (isError) writeErrorTo = *this;
@@ -539,7 +539,7 @@ enum {
          *  @param e the errno value to return a statically-allocated human-readable-string for
          *  @returns a pointer to a human-readable string describing the error
          */
-        static inline const char * muscleStrError(int e)
+        MUSCLE_NODISCARD static inline const char * muscleStrError(int e)
         {
 #ifdef _MSC_VER
 # pragma warning( push )
@@ -686,40 +686,40 @@ enum {
            /** Returns "OK" if this io_status_t indicates success; otherwise returns the human-readable description
              * of the error this status_t indicates.
              */
-           MUSCLE_CONSTEXPR const char * GetDescription() const {return _status.GetDescription();}
+           MUSCLE_NODISCARD MUSCLE_CONSTEXPR const char * GetDescription() const {return _status.GetDescription();}
 
            /** Convenience method -- a synonym for GetDescription() */
-           MUSCLE_CONSTEXPR const char * operator()() const {return GetDescription();}
+           MUSCLE_NODISCARD MUSCLE_CONSTEXPR const char * operator()() const {return GetDescription();}
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status */
-           MUSCLE_CONSTEXPR bool IsOK() const {return _status.IsOK();}
+           MUSCLE_NODISCARD MUSCLE_CONSTEXPR bool IsOK() const {return _status.IsOK();}
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status
              * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
              * @note this allows for eg status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
              */
-           bool IsOK(status_t & writeErrorTo) const {return _status.IsOK(writeErrorTo);}
+           MUSCLE_NODISCARD bool IsOK(status_t & writeErrorTo) const {return _status.IsOK(writeErrorTo);}
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status.
              * @param addStateTo This object's state will be added to (addStateTo).
              * @note this allows for eg io_status_t ret; if ((func1().IsOK(ret))&&(func2().IsOK(ret))) {....} else return ret;
              */
-           bool IsOK(io_status_t & addStateTo) const {addStateTo += *this; return addStateTo.IsOK();}
+           MUSCLE_NODISCARD bool IsOK(io_status_t & addStateTo) const {addStateTo += *this; return addStateTo.IsOK();}
 
            /** Convenience method:  Returns true iff this object represents an error-status */
-           MUSCLE_CONSTEXPR bool IsError() const {return _status.IsError();}
+           MUSCLE_NODISCARD MUSCLE_CONSTEXPR bool IsError() const {return _status.IsError();}
 
            /** Convenience method:  Returns true iff this object represents an error-status
              * @param writeErrorTo If this object represents an error, the error will be copied into (writeErrorTo)
              * @note this allows for eg status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
              */
-           bool IsError(status_t & writeErrorTo) const {return _status.IsError(writeErrorTo);}
+           MUSCLE_NODISCARD bool IsError(status_t & writeErrorTo) const {return _status.IsError(writeErrorTo);}
 
            /** Convenience method:  Returns true iff this object represents an error-status
              * @param addStateTo This object's state will be added to (addStateTo)
              * @note this allows for eg io_status_t ret; if ((func1().IsError(ret))||(func2().IsError(ret))) return ret;
              */
-           bool IsError(io_status_t & addStateTo) const {addStateTo += *this; return addStateTo.IsError();}
+           MUSCLE_NODISCARD bool IsError(io_status_t & addStateTo) const {addStateTo += *this; return addStateTo.IsError();}
 
            /** Returns the byte-count indicated by the I/O operation, or a negative value if the operation failed. */
            MUSCLE_CONSTEXPR int32 GetByteCount() const {return _byteCount;}
@@ -733,13 +733,13 @@ enum {
              *       previously been transferred by the function-call.
              * @see the MTALLY_BYTES_OR_RETURN_ON_ERROR macro for a common usage of this method.
              */
-           MUSCLE_CONSTEXPR io_status_t WithSubsequentError(io_status_t subsequentError) const {return (_byteCount == 0) ? subsequentError : *this;}
+           MUSCLE_NODISCARD MUSCLE_CONSTEXPR io_status_t WithSubsequentError(io_status_t subsequentError) const {return (_byteCount == 0) ? subsequentError : *this;}
 
            /** Same as above, except this version takes a status_t as an argument instead of an io_status_t.
              * @param subsequentError an error value that was encountered in an I/O routine
              * @returns subsequentError if we're in the default-state, otherwise *this
              */
-           MUSCLE_CONSTEXPR io_status_t WithSubsequentError(status_t subsequentError) const {return (_byteCount == 0) ? io_status_t(subsequentError) : *this;}
+           MUSCLE_NODISCARD MUSCLE_CONSTEXPR io_status_t WithSubsequentError(status_t subsequentError) const {return (_byteCount == 0) ? io_status_t(subsequentError) : *this;}
 
         private:
            status_t _status;
@@ -884,7 +884,7 @@ enum {
 namespace muscle {
 
 /** A handy little method to swap the bytes of any int-style datatype around */
-template<typename T> inline T muscleSwapBytes(T swapMe) MUSCLE_NOEXCEPT
+template<typename T> MUSCLE_NODISCARD inline T muscleSwapBytes(T swapMe) MUSCLE_NOEXCEPT
 {
    union {T _iWide; uint8 _i8[sizeof(T)];} u1, u2;
    u1._iWide = swapMe;
@@ -898,7 +898,7 @@ template<typename T> inline T muscleSwapBytes(T swapMe) MUSCLE_NOEXCEPT
 /* This template safely copies a value in from an untyped byte buffer to a typed value, and returns the typed value.
  * @tparam T the type of value to return.
  */
-template<typename T> inline T muscleCopyIn(const void * source) {T dest; memcpy(&dest, source, sizeof(dest)); return dest;}
+template<typename T> MUSCLE_NODISCARD inline T muscleCopyIn(const void * source) {T dest; memcpy(&dest, source, sizeof(dest)); return dest;}
 
 /* This template safely copies a value in from an untyped byte buffer to a typed value.  */
 template<typename T> inline void muscleCopyIn(T & dest, const void * source) {memcpy(&dest, source, sizeof(dest));}
@@ -927,7 +927,7 @@ template <typename T> inline T * broken_gcc_newnothrow_array(size_t count)
   * present per instantiated type, per process.
   * @tparam T the type of object to return a reference to.
   */
-template <typename T> const T & GetDefaultObjectForType()
+template <typename T> MUSCLE_NODISCARD const T & GetDefaultObjectForType()
 {
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
    static T _defaultObject;
@@ -947,7 +947,7 @@ template <typename T> const T & GetDefaultObjectForType()
   * whereas GetDefaultObjectForType()'s object must always be in its default state.
   * @tparam T the type of object to return a reference to.
   */
-template <typename T> T & GetGlobalObjectForType()
+template <typename T> MUSCLE_NODISCARD T & GetGlobalObjectForType()
 {
    static T _defaultObject;
    return _defaultObject;
@@ -962,42 +962,42 @@ template <typename T> T & GetGlobalObjectForType()
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
 
 /** Returns the smaller of the two arguments */
-template<typename T> MUSCLE_CONSTEXPR T muscleMin(T arg1, T arg2) {return (arg1<arg2) ? arg1 : arg2;}
+template<typename T> MUSCLE_NODISCARD MUSCLE_CONSTEXPR T muscleMin(T arg1, T arg2) {return (arg1<arg2) ? arg1 : arg2;}
 
 /** Returns the smallest of all of the arguments */
-template<typename T1, typename ...T2> MUSCLE_CONSTEXPR T1 muscleMin(T1 arg1, T2... args) {return muscleMin(arg1, muscleMin(args...));}
+template<typename T1, typename ...T2> MUSCLE_NODISCARD MUSCLE_CONSTEXPR T1 muscleMin(T1 arg1, T2... args) {return muscleMin(arg1, muscleMin(args...));}
 
 /** Returns the larger of the two arguments */
-template<typename T> MUSCLE_CONSTEXPR T muscleMax(T arg1, T arg2) {return (arg1>arg2) ? arg1 : arg2;}
+template<typename T> MUSCLE_NODISCARD MUSCLE_CONSTEXPR T muscleMax(T arg1, T arg2) {return (arg1>arg2) ? arg1 : arg2;}
 
 /** Returns the largest of all of the arguments */
-template<typename T1, typename ...T2> MUSCLE_CONSTEXPR T1 muscleMax(T1 arg1, T2... args) {return muscleMax(arg1, muscleMax(args...));}
+template<typename T1, typename ...T2> MUSCLE_NODISCARD MUSCLE_CONSTEXPR T1 muscleMax(T1 arg1, T2... args) {return muscleMax(arg1, muscleMax(args...));}
 
 #else
 
 /** Returns the smaller of the two arguments */
-template<typename T> inline MUSCLE_CONSTEXPR T muscleMin(T p1, T p2) {return (p1 < p2) ? p1 : p2;}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleMin(T p1, T p2) {return (p1 < p2) ? p1 : p2;}
 
 /** Returns the smallest of the three arguments */
-template<typename T> inline MUSCLE_CONSTEXPR T muscleMin(T p1, T p2, T p3) {return muscleMin(p3, muscleMin(p1, p2));}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleMin(T p1, T p2, T p3) {return muscleMin(p3, muscleMin(p1, p2));}
 
 /** Returns the smallest of the four arguments */
-template<typename T> inline MUSCLE_CONSTEXPR T muscleMin(T p1, T p2, T p3, T p4) {return muscleMin(p3, p4, muscleMin(p1, p2));}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleMin(T p1, T p2, T p3, T p4) {return muscleMin(p3, p4, muscleMin(p1, p2));}
 
 /** Returns the smallest of the five arguments */
-template<typename T> inline MUSCLE_CONSTEXPR T muscleMin(T p1, T p2, T p3, T p4, T p5) {return muscleMin(p3, p4, p5, muscleMin(p1, p2));}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleMin(T p1, T p2, T p3, T p4, T p5) {return muscleMin(p3, p4, p5, muscleMin(p1, p2));}
 
 /** Returns the larger of the two arguments */
-template<typename T> inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2) {return (p1 < p2) ? p2 : p1;}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2) {return (p1 < p2) ? p2 : p1;}
 
 /** Returns the largest of the three arguments */
-template<typename T> inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2, T p3) {return muscleMax(p3, muscleMax(p1, p2));}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2, T p3) {return muscleMax(p3, muscleMax(p1, p2));}
 
 /** Returns the largest of the four arguments */
-template<typename T> inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2, T p3, T p4) {return muscleMax(p3, p4, muscleMax(p1, p2));}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2, T p3, T p4) {return muscleMax(p3, p4, muscleMax(p1, p2));}
 
 /** Returns the largest of the five arguments */
-template<typename T> inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2, T p3, T p4, T p5) {return muscleMax(p3, p4, p5, muscleMax(p1, p2));}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleMax(T p1, T p2, T p3, T p4, T p5) {return muscleMax(p3, p4, p5, muscleMax(p1, p2));}
 
 #endif
 
@@ -1092,7 +1092,7 @@ template<typename T> inline void muscleSwap(T & t1, T & t2) MUSCLE_NOEXCEPT {typ
   * @param theArray an array of any type
   * @returns True iff i is non-negative AND less than ARRAYITEMS(theArray))
   */
-template<typename T, int size> inline MUSCLE_CONSTEXPR bool muscleArrayIndexIsValid(int i, T (&theArray)[size]) {return ((theArray==theArray)&&(((unsigned int)i) < size));}
+template<typename T, int size> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR bool muscleArrayIndexIsValid(int i, T (&theArray)[size]) {return ((theArray==theArray)&&(((unsigned int)i) < size));}
 
 /** Convenience method for setting all items in the specified one-dimensional array to their default-constructed state (ie zero)
   * @param theArray an array of any type
@@ -1118,7 +1118,7 @@ template<typename T, int size1, int size2, int size3> inline void muscleClearArr
   * @param hi a maximum value
   * @returns The value in the range [lo, hi] that is closest to (v).
   */
-template<typename T> inline MUSCLE_CONSTEXPR T muscleClamp(T v, T lo, T hi) {return (v < lo) ? lo : ((v > hi) ? hi : v);}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleClamp(T v, T lo, T hi) {return (v < lo) ? lo : ((v > hi) ? hi : v);}
 
 /** Returns true iff (v) is in the range [lo,hi].
   * @param v A value
@@ -1126,23 +1126,23 @@ template<typename T> inline MUSCLE_CONSTEXPR T muscleClamp(T v, T lo, T hi) {ret
   * @param hi A maximum value
   * @returns true iff (v >= lo) and (v <= hi)
   */
-template<typename T> inline MUSCLE_CONSTEXPR bool muscleInRange(T v, T lo, T hi) {return ((v >= lo)&&(v <= hi));}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR bool muscleInRange(T v, T lo, T hi) {return ((v >= lo)&&(v <= hi));}
 
 /** Returns -1 if arg1 is larger, or 1 if arg2 is larger, or 0 if they are equal.
   * @param arg1 First item to compare
   * @param arg2 Second item to compare
   * @returns -1 if (arg1<arg2), or 1 if (arg2<arg1), or 0 otherwise.
   */
-template<typename T> inline MUSCLE_CONSTEXPR int muscleCompare(const T & arg1, const T & arg2) {return (arg2<arg1) ? 1 : ((arg1<arg2) ? -1 : 0);}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleCompare(const T & arg1, const T & arg2) {return (arg2<arg1) ? 1 : ((arg1<arg2) ? -1 : 0);}
 
 /** Returns the absolute value of (arg) */
-template<typename T> inline MUSCLE_CONSTEXPR T muscleAbs(T arg) {return (arg<0)?(-arg):arg;}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleAbs(T arg) {return (arg<0)?(-arg):arg;}
 
 /** Rounds the given float to the nearest integer value. */
-inline MUSCLE_CONSTEXPR int muscleRintf(float f) {return (f>=0.0f) ? ((int)(f+0.5f)) : -((int)((-f)+0.5f));}
+MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleRintf(float f) {return (f>=0.0f) ? ((int)(f+0.5f)) : -((int)((-f)+0.5f));}
 
 /** Returns -1 if the value is less than zero, +1 if it is greater than zero, or 0 otherwise. */
-template<typename T> inline MUSCLE_CONSTEXPR int muscleSgn(T arg) {return (arg<0)?-1:((arg>0)?1:0);}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleSgn(T arg) {return (arg<0)?-1:((arg>0)?1:0);}
 
 };  // end namespace muscle
 
@@ -1547,25 +1547,25 @@ MUSCLE_INLINE int16 B_SWAP_INT16(int16 arg)
   * @param arg The 32-bit floating point value to reinterpret
   * @returns a uint32 whose 32-bit bit-pattern is the same as the bits in (arg)
   */
-static inline uint32 B_REINTERPRET_FLOAT_AS_INT32(float arg)   {uint32 r; memcpy(&r, &arg, sizeof(r)); return r;}
+MUSCLE_NODISCARD static inline uint32 B_REINTERPRET_FLOAT_AS_INT32(float arg)   {uint32 r; memcpy(&r, &arg, sizeof(r)); return r;}
 
 /** Reinterprets the bit-pattern of a uint32 as a floating-point value.  (Note that mere casting isn't safe under x86!)
   * @param arg The uint32 value whose contents are known to represent the bits of a 32-bit floating-point value.
   * @returns The original floating point value that (arg) is equivalent to.
   */
-static inline float  B_REINTERPRET_INT32_AS_FLOAT(uint32 arg)  {float  r; memcpy(&r, &arg, sizeof(r)); return r;}
+MUSCLE_NODISCARD static inline float  B_REINTERPRET_INT32_AS_FLOAT(uint32 arg)  {float  r; memcpy(&r, &arg, sizeof(r)); return r;}
 
 /** Safely reinterprets a double-precision floating-point value to store its bit-pattern in a uint64.  (Note that mere casting isn't safe under x86!)
   * @param arg The 64-bit floating point value to reinterpret
   * @returns a uint64 whose 64-bit bit-pattern is the same as the bits in (arg)
   */
-static inline uint64 B_REINTERPRET_DOUBLE_AS_INT64(double arg) {uint64 r; memcpy(&r, &arg, sizeof(r)); return r;}
+MUSCLE_NODISCARD static inline uint64 B_REINTERPRET_DOUBLE_AS_INT64(double arg) {uint64 r; memcpy(&r, &arg, sizeof(r)); return r;}
 
 /** Reinterprets the bit-pattern of a uint64 as a double-precision floating-point value.  (Note that mere casting isn't safe under x86!)
   * @param arg The uint64 value whose contents are known to represent the bits of a 64-bit floating-point value.
   * @returns The original double-precision point value that (arg) is equivalent to.
   */
-static inline double B_REINTERPRET_INT64_AS_DOUBLE(uint64 arg) {double r; memcpy(&r, &arg, sizeof(r)); return r;}
+MUSCLE_NODISCARD static inline double B_REINTERPRET_INT64_AS_DOUBLE(uint64 arg) {double r; memcpy(&r, &arg, sizeof(r)); return r;}
 
 /** Given a 32-bit floating point value in native-endian form, returns a 32-bit integer contains the floating-point value's bits in big-endian format. */
 #define B_HOST_TO_BENDIAN_IFLOAT(arg)  B_HOST_TO_BENDIAN_INT32(B_REINTERPRET_FLOAT_AS_INT32(arg))
@@ -1632,7 +1632,7 @@ typedef ptrdiff_t ptrdiff; /**< ptrdiff is a signed integer type that is guarant
 #endif  /* __cplusplus */
 
 /** Platform-neutral interface to reading errno -- returns WSAGetLastError() on Windows, or errno on other OS's */
-static inline int GetErrno()
+MUSCLE_NODISCARD static inline int GetErrno()
 {
 #ifdef WIN32
    return WSAGetLastError();
@@ -1657,7 +1657,7 @@ static inline void SetErrno(int e)
   * failed because it would have had to block otherwise.
   * NOTE:  Returns int so that it will compile even in C environments where no bool type is defined.
   */
-static inline int PreviousOperationWouldBlock()
+MUSCLE_NODISCARD static inline int PreviousOperationWouldBlock()
 {
    const int e = GetErrno();
 #ifdef WIN32
@@ -1671,7 +1671,7 @@ static inline int PreviousOperationWouldBlock()
   * failed because it was interrupted by a signal or etc.
   * NOTE:  Returns int so that it will compile even in C environments where no bool type is defined.
   */
-static inline int PreviousOperationWasInterrupted()
+MUSCLE_NODISCARD static inline int PreviousOperationWasInterrupted()
 {
    const int e = GetErrno();
 #ifdef WIN32
@@ -1685,7 +1685,7 @@ static inline int PreviousOperationWasInterrupted()
   * failed because of a transient condition which wasn't fatal to the socket.
   * NOTE:  Returns int so that it will compile even in C environments where no bool type is defined.
   */
-static inline int PreviousOperationHadTransientFailure()
+MUSCLE_NODISCARD static inline int PreviousOperationHadTransientFailure()
 {
    const int e = GetErrno();
 #ifdef WIN32
@@ -1704,7 +1704,7 @@ static inline int PreviousOperationHadTransientFailure()
   * @param blocking True iff the socket/file descriptor is in blocking I/O mode.  (Type is int for C compatibility -- it's really a boolean parameter)
   * @returns The system call's return value equivalent in MUSCLE return value semantics.
   */
-static inline int32 ConvertReturnValueToMuscleSemantics(int32 origRet, uint32 maxSize, int blocking)
+MUSCLE_NODISCARD static inline int32 ConvertReturnValueToMuscleSemantics(int32 origRet, uint32 maxSize, int blocking)
 {
    const int32 retForBlocking = ((origRet > 0)||(maxSize == 0)) ? (int32)origRet : -1;
    return blocking ? retForBlocking : ((origRet<0)&&((PreviousOperationWouldBlock())||(PreviousOperationHadTransientFailure()))) ? 0 : retForBlocking;
@@ -1747,7 +1747,7 @@ static inline void StoreTraceValue(uint32 v)
 }
 
 /** Returns a pointer to the first value in the trace-values array. */
-static inline const volatile uint32 * GetTraceValues() {return _muscleTraceValues;}
+MUSCLE_NODISCARD static inline const volatile uint32 * GetTraceValues() {return _muscleTraceValues;}
 
 /** A macro for automatically setting a trace checkpoint value based on current code location.
   * The value will be the two characters of the function or file name, left-shifted by 16 bits,
@@ -1808,35 +1808,35 @@ public:
     *  @param cookie A user-defined value that was passed in to the Sort() method.
     *  @return A value indicating which item is "larger", as defined above.
     */
-   int Compare(const ItemType & item1, const ItemType & item2, void * cookie) const {(void) cookie; return muscleCompare(item1, item2);}
+   MUSCLE_NODISCARD int Compare(const ItemType & item1, const ItemType & item2, void * cookie) const {(void) cookie; return muscleCompare(item1, item2);}
 };
 
 /** Same as above, but used for pointers instead of direct items */
 template <typename ItemType> class CompareFunctor<ItemType *>
 {
 public:
-   int Compare(const ItemType * item1, const ItemType * item2, void * cookie) const {return CompareFunctor<ItemType>().Compare(*item1, *item2, cookie);}
+   MUSCLE_NODISCARD int Compare(const ItemType * item1, const ItemType * item2, void * cookie) const {return CompareFunctor<ItemType>().Compare(*item1, *item2, cookie);}
 };
 
 /** For void pointers, we just compare the pointer values, since they can't be de-referenced. */
 template<> class CompareFunctor<void *>
 {
 public:
-   int Compare(void * s1, void * s2, void * /*cookie*/) const {return muscleCompare(s1, s2);}
+   MUSCLE_NODISCARD int Compare(void * s1, void * s2, void * /*cookie*/) const {return muscleCompare(s1, s2);}
 };
 
 /** We assume that (const char *)'s should always be compared using strcmp(). */
 template<> class CompareFunctor<const char *>
 {
 public:
-   int Compare(const char * s1, const char * s2, void * /*cookie*/) const {return strcmp(s1, s2);}
+   MUSCLE_NODISCARD int Compare(const char * s1, const char * s2, void * /*cookie*/) const {return strcmp(s1, s2);}
 };
 
 /** We assume that (const char *)'s should always be compared using strcmp(). */
 template<> class CompareFunctor<char *>
 {
 public:
-   int Compare(char * s1, char * s2, void * /*cookie*/) const {return strcmp(s1, s2);}
+   MUSCLE_NODISCARD int Compare(char * s1, char * s2, void * /*cookie*/) const {return strcmp(s1, s2);}
 };
 
 /** For cases where you really do want to just use a pointer as the key, instead
@@ -1846,7 +1846,7 @@ public:
 template <typename PointerType> class PointerCompareFunctor
 {
 public:
-   int Compare(PointerType s1, PointerType s2, void * /*cookie*/) const {return muscleCompare(s1, s2);}
+   MUSCLE_NODISCARD int Compare(PointerType s1, PointerType s2, void * /*cookie*/) const {return muscleCompare(s1, s2);}
 };
 
 /** Convenience method:  Returns the Euclidean modulo of the given value for the given divisor.
@@ -1858,7 +1858,7 @@ public:
   *       arguably more useful for cyclic-sequence applications, as there will not be
   *       any anomalies in the resulting values as (value) transitions between positive and negative.
   */
-static inline uint32 EuclideanModulo(int32 value, uint32 divisor)
+MUSCLE_NODISCARD static inline uint32 EuclideanModulo(int32 value, uint32 divisor)
 {
    // Derived from the code posted at https://stackoverflow.com/a/51959866/131930
    return (value < 0) ? ((divisor-1)-((-1-value)%divisor)) : (value%divisor);
@@ -1872,7 +1872,7 @@ static inline uint32 EuclideanModulo(int32 value, uint32 divisor)
   * @param seed An arbitrary number that affects the output values.  Defaults to zero.
   * @returns a 32-bit hash value corresponding to the hashed data.
   */
-uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed = 0);
+MUSCLE_NODISCARD uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed = 0);
 
 /** Same as HashCode(), but this version produces a 64-bit result.
   * This code is also part of MurmurHash2, written by Austin Appleby
@@ -1881,7 +1881,7 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed = 0);
   * @param seed An arbitrary number that affects the output values.  Defaults to zero.
   * @returns a 32-bit hash value corresponding to the hashed data.
   */
-uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int seed = 0);
+MUSCLE_NODISCARD uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int seed = 0);
 
 /** This is a convenience function that will read through the passed-in byte
   * buffer and create a 32-bit checksum corresponding to its contents.
@@ -1890,16 +1890,16 @@ uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int
   * @param numBytes Number of bytes that (buffer) points to.
   * @returns A 32-bit number based on the contents of the buffer.
   */
-static inline uint32 CalculateChecksum(const void * buffer, uint32 numBytes) {return CalculateHashCode(buffer, numBytes);}
+MUSCLE_NODISCARD static inline uint32 CalculateChecksum(const void * buffer, uint32 numBytes) {return CalculateHashCode(buffer, numBytes);}
 
 /** Convenience method:  Given a uint64, returns a corresponding 32-bit checksum value */
-static inline uint32 CalculateChecksumForUint64(uint64 v) {const uint64 le = B_HOST_TO_LENDIAN_INT64(v); return CalculateChecksum(&le, sizeof(le));}
+MUSCLE_NODISCARD static inline uint32 CalculateChecksumForUint64(uint64 v) {const uint64 le = B_HOST_TO_LENDIAN_INT64(v); return CalculateChecksum(&le, sizeof(le));}
 
 /** Convenience method:  Given a float, returns a corresponding 32-bit checksum value */
-static inline uint32 CalculateChecksumForFloat(float v)   {const uint32 le = (v==0.0f) ? 0 : B_HOST_TO_LENDIAN_IFLOAT(v); return CalculateChecksum(&le, sizeof(le));}  // yes, the special case for 0.0f IS necessary, because the sign-bit might be set.  :(
+MUSCLE_NODISCARD static inline uint32 CalculateChecksumForFloat(float v)   {const uint32 le = (v==0.0f) ? 0 : B_HOST_TO_LENDIAN_IFLOAT(v); return CalculateChecksum(&le, sizeof(le));}  // yes, the special case for 0.0f IS necessary, because the sign-bit might be set.  :(
 
 /** Convenience method:  Given a double, returns a corresponding 32-bit checksum value */
-static inline uint32 CalculateChecksumForDouble(double v) {const uint64 le = (v==0.0) ? 0 : B_HOST_TO_LENDIAN_IDOUBLE(v); return CalculateChecksum(&le, sizeof(le));}  // yes, the special case for 0.0 IS necessary, because the sign-bit might be set.  :(
+MUSCLE_NODISCARD static inline uint32 CalculateChecksumForDouble(double v) {const uint64 le = (v==0.0) ? 0 : B_HOST_TO_LENDIAN_IDOUBLE(v); return CalculateChecksum(&le, sizeof(le));}  // yes, the special case for 0.0 IS necessary, because the sign-bit might be set.  :(
 
 /** This hashing functor type handles the trivial cases, where the KeyType is
  *  Plain Old Data that we can just feed directly into the CalculateHashCode() function.
@@ -1913,7 +1913,7 @@ static inline uint32 CalculateChecksumForDouble(double v) {const uint64 le = (v=
 template <class KeyType> class PODHashFunctor
 {
 public:
-   uint32 operator()(const KeyType & x) const
+   MUSCLE_NODISCARD uint32 operator()(const KeyType & x) const
    {
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
       static_assert(!std::is_class<KeyType>::value, "PODHashFunctor cannot be used on class or struct objects, because the object's compiler-inserted padding bytes would be unitialized and therefore they would cause inconsistent hash-code generation.  Try adding a 'uint32 HashCode() const' method to the class/struct instead.");
@@ -1921,7 +1921,7 @@ public:
 #endif
       return CalculateHashCode(&x, sizeof(x));
    }
-   bool AreKeysEqual(const KeyType & k1, const KeyType & k2) const {return (k1==k2);}
+   MUSCLE_NODISCARD bool AreKeysEqual(const KeyType & k1, const KeyType & k2) const {return (k1==k2);}
 };
 
 /** This hashing functor type calls HashCode() on the supplied object to retrieve the hash code.
@@ -1930,8 +1930,8 @@ public:
 template <class KeyType> class MethodHashFunctor
 {
 public:
-   uint32 operator()(const KeyType & x) const {return x.HashCode();}
-   bool AreKeysEqual(const KeyType & k1, const KeyType & k2) const {return (k1==k2);}
+   MUSCLE_NODISCARD uint32 operator()(const KeyType & x) const {return x.HashCode();}
+   MUSCLE_NODISCARD bool AreKeysEqual(const KeyType & k1, const KeyType & k2) const {return (k1==k2);}
 };
 
 /** This hashing functor type calls HashCode() on the supplied object to retrieve the hash code.  Used for pointers to key values.
@@ -1940,12 +1940,12 @@ public:
 template <typename KeyType> class MethodHashFunctor<KeyType *>
 {
 public:
-   uint32 operator()(const KeyType * x) const {return x->HashCode();}
+   MUSCLE_NODISCARD uint32 operator()(const KeyType * x) const {return x->HashCode();}
 
    /** Note that when pointers are used as hash keys, we determine equality by comparing the objects
      * the pointers point to, NOT by just comparing the pointers themselves!
      */
-   bool AreKeysEqual(const KeyType * k1, const KeyType * k2) const {return ((*k1)==(*k2));}
+   MUSCLE_NODISCARD bool AreKeysEqual(const KeyType * k1, const KeyType * k2) const {return ((*k1)==(*k2));}
 };
 
 /** This macro can be used whenever you want to explicitly specify the default AutoChooseHashFunctorHelper functor for your type.  It's easier than remembering the tortured C++ syntax */
@@ -1998,8 +1998,8 @@ public:
    /** Returns a hash code for the given C string.
      * @param str The C string to compute a hash code for.
      */
-   uint32 operator () (const char * str) const {return CalculateHashCode(str, (uint32)strlen(str));}
-   bool AreKeysEqual(const char * k1, const char * k2) const {return (strcmp(k1,k2)==0);}
+   MUSCLE_NODISCARD uint32 operator () (const char * str) const {return CalculateHashCode(str, (uint32)strlen(str));}
+   MUSCLE_NODISCARD bool AreKeysEqual(const char * k1, const char * k2) const {return (strcmp(k1,k2)==0);}
 };
 
 template <> class AutoChooseHashFunctorHelper<const void *> {public: typedef PODHashFunctor<const void *> Type;};
@@ -2042,7 +2042,7 @@ template <> class AutoChooseHashFunctorHelper<void *>       {public: typedef POD
   *            method, that method will be called, otherwise we'll use a PODHashFunctor.
   * @returns a hash code.
   */
-template<typename T> inline uint32 CalculateHashCode(const T & val)
+template<typename T> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T & val)
 {
    typename DEFAULT_HASH_FUNCTOR(T) hashFunctor;
    return hashFunctor(val);
@@ -2054,7 +2054,7 @@ template<typename T> inline uint32 CalculateHashCode(const T & val)
   *                 on each array item; otherwise a PODHashFunctor object will be used.
   * @returns a hash code for the array.
   */
-template<typename T, int size1> inline uint32 CalculateHashCode(const T (&theArray)[size1])
+template<typename T, int size1> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T (&theArray)[size1])
 {
    typename DEFAULT_HASH_FUNCTOR(T) hashFunctor;
    uint32 ret = size1;
@@ -2068,7 +2068,7 @@ template<typename T, int size1> inline uint32 CalculateHashCode(const T (&theArr
   *                 on each array item; otherwise a PODHashFunctor object will be used.
   * @returns a hash code for the array.
   */
-template<typename T, int size1, int size2> inline uint32 CalculateHashCode(const T (&theArray)[size1][size2])
+template<typename T, int size1, int size2> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T (&theArray)[size1][size2])
 {
    typename DEFAULT_HASH_FUNCTOR(T) hashFunctor;
    uint32 c = 0;
@@ -2083,18 +2083,18 @@ template<typename T, int size1, int size2> inline uint32 CalculateHashCode(const
   * @param val The value to calculate a hashcode for
   * @returns a hash code.
   */
-template<typename T> inline uint64 CalculateHashCode64(const T & val) {return CalculateHashCode64(&val, sizeof(val));}
+template<typename T> MUSCLE_NODISCARD inline uint64 CalculateHashCode64(const T & val) {return CalculateHashCode64(&val, sizeof(val));}
 
 #endif  // __cplusplus
 
 /** Given an ASCII decimal representation of a non-negative number, returns that number as a uint64. */
-uint64 Atoull(const char * str);
+MUSCLE_NODISCARD uint64 Atoull(const char * str);
 
 /** Similar to Atoull(), but handles negative numbers as well */
-int64 Atoll(const char * str);
+MUSCLE_NODISCARD int64 Atoll(const char * str);
 
 /** Given an ASCII hexadecimal representation of a non-negative number (with or without the optional "0x" prefix), returns that number as a uint64. */
-uint64 Atoxll(const char * str);
+MUSCLE_NODISCARD uint64 Atoxll(const char * str);
 
 #ifdef __cplusplus
 } // end namespace muscle

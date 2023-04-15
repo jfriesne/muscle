@@ -22,7 +22,7 @@ public:
     * can fit into a single packet.  Used by the I/O gateways eg to
     * determine how much memory to allocate before Read()-ing a packet of data in.
     */
-   virtual uint32 GetMaximumPacketSize() const = 0;
+   MUSCLE_NODISCARD virtual uint32 GetMaximumPacketSize() const = 0;
 
    /** For packet-oriented subclasses, this method may be overridden
      * to return the IPAddressAndPort that the most recently Read()
@@ -31,14 +31,14 @@ public:
      * to our SetSourceOfLastReadPacket() method, or an invalid IPAddressAndPort if
      * SetSourceOfLastReadPacket() has never been called.
      */
-   virtual const IPAddressAndPort & GetSourceOfLastReadPacket() const {return _lastPacketReceivedFrom;}
+   MUSCLE_NODISCARD virtual const IPAddressAndPort & GetSourceOfLastReadPacket() const {return _lastPacketReceivedFrom;}
 
    /** For packet-oriented subclasses, this method may be overridden
      * to return the IPAddressAndPort that outgoing packets will be
      * sent to (by default).
      * The default implementation returns a default/invalid IPAddressAndPort.
      */
-   virtual const IPAddressAndPort & GetPacketSendDestination() const = 0;
+   MUSCLE_NODISCARD virtual const IPAddressAndPort & GetPacketSendDestination() const = 0;
 
    /** For packet-oriented subclasses, this method may be overridden
      * to set/change the IPAddressAndPort that outgoing packets will
@@ -99,7 +99,7 @@ protected:
    void SetSourceOfLastReadPacket(const IPAddressAndPort & packetSource) {_lastPacketReceivedFrom = packetSource;}
 
    /** Returns a read/write reference to our source-of-last-read-packet field. */
-   IPAddressAndPort & GetWritableSourceOfLastReadPacket() {return _lastPacketReceivedFrom;}
+   MUSCLE_NODISCARD IPAddressAndPort & GetWritableSourceOfLastReadPacket() {return _lastPacketReceivedFrom;}
 
 private:
    IPAddressAndPort _lastPacketReceivedFrom;

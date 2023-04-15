@@ -27,7 +27,7 @@ public:
    bool operator !=(const Void &) const {return false;}
 
    /** Always returns 0 -- implemented only so that Voids can be used as values in an ImmutableHashtablePool */
-   uint32 HashCode() const {return 0;}
+   MUSCLE_NODISCARD uint32 HashCode() const {return 0;}
 };
 
 } // end namespace muscle

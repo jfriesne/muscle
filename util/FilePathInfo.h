@@ -36,30 +36,30 @@ public:
    ~FilePathInfo() {/* empty */}
 
    /** Returns true iff something exists at the specified path. */
-   bool Exists() const {return _flags.IsBitSet(FPI_FLAG_EXISTS);}
+   MUSCLE_NODISCARD bool Exists() const {return _flags.IsBitSet(FPI_FLAG_EXISTS);}
 
    /** Returns true iff the item at the specified path is a regular data file. */
-   bool IsRegularFile() const {return _flags.IsBitSet(FPI_FLAG_ISREGULARFILE);}
+   MUSCLE_NODISCARD bool IsRegularFile() const {return _flags.IsBitSet(FPI_FLAG_ISREGULARFILE);}
 
    /** Returns true iff the item at the specified path is a directory. */
-   bool IsDirectory()    const {return _flags.IsBitSet(FPI_FLAG_ISDIRECTORY);}
+   MUSCLE_NODISCARD bool IsDirectory()    const {return _flags.IsBitSet(FPI_FLAG_ISDIRECTORY);}
 
    /** Returns true iff the item at the specified path is a directory. */
-   bool IsSymLink()     const {return _flags.IsBitSet(FPI_FLAG_ISSYMLINK);}
+   MUSCLE_NODISCARD bool IsSymLink()     const {return _flags.IsBitSet(FPI_FLAG_ISSYMLINK);}
 
    /** Returns the current size of the file */
-   uint64 GetFileSize() const {return _size;}
+   MUSCLE_NODISCARD uint64 GetFileSize() const {return _size;}
 
    /** Returns the most recent access time, in microseconds since 1970.  Note that
      * not all filesystems update this time, so it may not be correct.
      */
-   uint64 GetAccessTime() const {return _atime;}
+   MUSCLE_NODISCARD uint64 GetAccessTime() const {return _atime;}
 
    /** Returns the most recent modification time, in microseconds since 1970.  */
-   uint64 GetModificationTime() const {return _mtime;}
+   MUSCLE_NODISCARD uint64 GetModificationTime() const {return _mtime;}
 
    /** Returns the most creation time, in microseconds since 1970.  */
-   uint64 GetCreationTime() const {return _ctime;}
+   MUSCLE_NODISCARD uint64 GetCreationTime() const {return _ctime;}
 
    /** Sets this object's state to reflect the item that exists at (optFilePath)
      * @param optFilePath The path to examine.  SetFilePath(NULL) is the same as calling Reset().
@@ -83,17 +83,17 @@ public:
    bool operator != (const FilePathInfo & rhs) const {return !(*this==rhs);}
 
    /** Returns a hash code for this object */
-   uint32 HashCode() const
+   MUSCLE_NODISCARD uint32 HashCode() const
    {
       return _flags.HashCode() + CalculateHashCode(_size) + (3*CalculateHashCode(_atime)) + (7*CalculateHashCode(_ctime)) + (11*CalculateHashCode(_mtime));
    }
 
 private:
 #ifdef WIN32
-   uint64 InternalizeFileTime(const FILETIME & ft) const;
+   MUSCLE_NODISCARD uint64 InternalizeFileTime(const FILETIME & ft) const;
 #else
-   uint64 InternalizeTimeSpec(const struct timespec & ts) const {return ((((uint64)ts.tv_sec)*MICROS_PER_SECOND)+(((uint64)ts.tv_nsec)/1000));}
-   uint64 InternalizeTimeT(time_t t) const {return (t==((time_t)-1)) ? 0 : (((uint64)t)*MICROS_PER_SECOND);}
+   MUSCLE_NODISCARD uint64 InternalizeTimeSpec(const struct timespec & ts) const {return ((((uint64)ts.tv_sec)*MICROS_PER_SECOND)+(((uint64)ts.tv_nsec)/1000));}
+   MUSCLE_NODISCARD uint64 InternalizeTimeT(time_t t) const {return (t==((time_t)-1)) ? 0 : (((uint64)t)*MICROS_PER_SECOND);}
 #endif
 
    enum {

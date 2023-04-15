@@ -74,29 +74,29 @@ public:
    status_t SetPattern(const String & expression, bool isSimpleFormat=true);
 
    /** Returns the pattern String as it was previously passed in to SetPattern() */
-   const String & GetPattern() const {return _pattern;}
+   MUSCLE_NODISCARD const String & GetPattern() const {return _pattern;}
 
    /** Returns true iff this StringMatcher's pattern specifies exactly one possible string.
     *  (ie the pattern is just plain old text, with no wildcards or other pattern matching logic specified)
     *  @note StringMatchers using numeric ranges are never considered unique, because eg looking up the
     *        string "<5>" in a Hashtable would not return a child node whose node-name is "5".
     */
-   bool IsPatternUnique() const {return ((_ranges.IsEmpty())&&(_flags.AreAnyOfTheseBitsSet(STRINGMATCHER_FLAG_CANMATCHMULTIPLEVALUES,STRINGMATCHER_FLAG_NEGATE) == false));}
+   MUSCLE_NODISCARD bool IsPatternUnique() const {return ((_ranges.IsEmpty())&&(_flags.AreAnyOfTheseBitsSet(STRINGMATCHER_FLAG_CANMATCHMULTIPLEVALUES,STRINGMATCHER_FLAG_NEGATE) == false));}
 
    /** Returns true iff this StringMatcher's pattern specifies a comma-separated list of one or more non-wildcarded substrings. */
-   bool IsPatternListOfUniqueValues() const {return _flags.IsBitSet(STRINGMATCHER_FLAG_UVLIST);}
+   MUSCLE_NODISCARD bool IsPatternListOfUniqueValues() const {return _flags.IsBitSet(STRINGMATCHER_FLAG_UVLIST);}
 
    /** Returns true iff (string) is matched by the current expression.
     * @param matchString a string to match against using our current expression.
     * @return true iff (matchString) matches, false otherwise.
     */
-   bool Match(const char * const matchString) const;
+   MUSCLE_NODISCARD bool Match(const char * const matchString) const;
 
    /** Convenience method:  Same as above, but takes a String object instead of a (const char *).
      * @param matchString a string to match against using our current expression.
      * @return true iff (matchString) matches, false otherwise.
      */
-   inline bool Match(const String & matchString) const {return Match(matchString());}
+   MUSCLE_NODISCARD inline bool Match(const String & matchString) const {return Match(matchString());}
 
    /** If set true, Match() will return the logical opposite of what
      * it would otherwise return; eg it will return true only when
@@ -109,19 +109,19 @@ public:
    void SetNegate(bool negate) {_flags.SetBit(STRINGMATCHER_FLAG_NEGATE, negate);}
 
    /** Returns the current state of our negate flag. */
-   bool IsNegate() const {return _flags.IsBitSet(STRINGMATCHER_FLAG_NEGATE);}
+   MUSCLE_NODISCARD bool IsNegate() const {return _flags.IsBitSet(STRINGMATCHER_FLAG_NEGATE);}
 
    /** Returns the true iff our current pattern is of the "simple" variety, or false if it is of the "official regex" variety. */
-   bool IsSimple() const {return _flags.IsBitSet(STRINGMATCHER_FLAG_SIMPLE);}
+   MUSCLE_NODISCARD bool IsSimple() const {return _flags.IsBitSet(STRINGMATCHER_FLAG_SIMPLE);}
 
    /** Resets this StringMatcher to the state it would be in if created with default arguments. */
    void Reset();
 
    /** Returns a human-readable string representing this StringMatcher, for debugging purposes. */
-   String ToString() const;
+   MUSCLE_NODISCARD String ToString() const;
 
    /** @copydoc DoxyTemplate::HashCode() const */
-   inline uint32 HashCode() const {return _pattern.HashCode() + _flags.HashCode();}
+   MUSCLE_NODISCARD inline uint32 HashCode() const {return _pattern.HashCode() + _flags.HashCode();}
 
    /** Efficiently swaps our state with the state of the StringMatcher passed in as an argument.
      * @param withMe the StringMatcher whose state should be swapped with our own.
@@ -172,7 +172,7 @@ DECLARE_REFTYPES(StringMatcher);
  *  to minimize the number of StringMatcher allocations and deletions
  *  by recycling the StringMatcher objects
  */
-StringMatcherRef::ItemPool * GetStringMatcherPool();
+MUSCLE_NODISCARD StringMatcherRef::ItemPool * GetStringMatcherPool();
 
 /** Convenience method.  Returns a StringMatcher object from the default StringMatcher pool,
   * or a NULL reference on failure (out of memory?)
@@ -194,21 +194,21 @@ StringMatcherRef GetStringMatcherFromPool(const String & matchString, bool isSim
  *                   tokens will be escaped.
  *  @returns the modified String with escaped regex chars
  */
-String EscapeRegexTokens(const String & str, const char * optTokens = NULL);
+MUSCLE_NODISCARD String EscapeRegexTokens(const String & str, const char * optTokens = NULL);
 
 /** This does essentially the opposite of EscapeRegexTokens():  It removes from the string
   * any backslashes that are not immediately preceded by another backslash.
   */
-String RemoveEscapeChars(const String & str);
+MUSCLE_NODISCARD String RemoveEscapeChars(const String & str);
 
 /** Returns true iff any "special" chars are found in (str).
  *  @param str The string to check for special regex chars.
  *  @return True iff any special regex chars were found in (str).
  */
-bool HasRegexTokens(const char * str);
+MUSCLE_NODISCARD bool HasRegexTokens(const char * str);
 
 /** As above, but takes a String object instead of a (const char *) */
-inline bool HasRegexTokens(const String & str) {return HasRegexTokens(str());}
+MUSCLE_NODISCARD inline bool HasRegexTokens(const String & str) {return HasRegexTokens(str());}
 
 /** Returns true iff the specified wild card pattern string can match more than one possible value-string.
  *  @param str The pattern string to check
@@ -217,10 +217,10 @@ inline bool HasRegexTokens(const String & str) {return HasRegexTokens(str());}
  *         were commas, or false if there are other wildcard characters as well.
  *  @return True iff the string might match more than one value-string; false if not.
  */
-bool CanWildcardStringMatchMultipleValues(const char * str, bool * optRetIsCommasOnly = NULL);
+MUSCLE_NODISCARD bool CanWildcardStringMatchMultipleValues(const char * str, bool * optRetIsCommasOnly = NULL);
 
 /** As above, but takes a String object instead of a (const char *) */
-inline bool CanWildcardStringMatchMultipleValues(const String & str, bool * optRetIsCommasOnly = NULL) {return CanWildcardStringMatchMultipleValues(str(), optRetIsCommasOnly);}
+MUSCLE_NODISCARD inline bool CanWildcardStringMatchMultipleValues(const String & str, bool * optRetIsCommasOnly = NULL) {return CanWildcardStringMatchMultipleValues(str(), optRetIsCommasOnly);}
 
 /** Returns true iff (c) is a regular expression "special" char as far as StringMatchers are concerned.
  *  @param c an ASCII char
@@ -228,7 +228,7 @@ inline bool CanWildcardStringMatchMultipleValues(const String & str, bool * optR
  *                                  StringMatchers recognize certain chars as special only if they are the first in the string)
  *  @return true iff (c) is a special regex char.
  */
-bool IsRegexToken(char c, bool isFirstCharInString);
+MUSCLE_NODISCARD bool IsRegexToken(char c, bool isFirstCharInString);
 
 /** Given a regular expression, makes it case insensitive by
  *  replacing every occurance of a letter with a upper-lower combo,
@@ -243,7 +243,7 @@ bool MakeRegexCaseInsensitive(String & str);
  *  @param str a String to modify to make case-insensitive
  *  @return the modified String.
  */
-inline String ToCaseInsensitive(const String & str) {String r = str; MakeRegexCaseInsensitive(r); return r;}
+MUSCLE_NODISCARD inline String ToCaseInsensitive(const String & str) {String r = str; MakeRegexCaseInsensitive(r); return r;}
 
 } // end namespace muscle
 

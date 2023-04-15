@@ -32,7 +32,7 @@ namespace muscle {
 
 #if defined(MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS)
 extern Mutex * _muscleAtomicMutexes;
-static inline int32 DoMutexAtomicIncrement(volatile int32 * count, int32 delta)
+MUSCLE_NODISCARD static inline int32 DoMutexAtomicIncrement(volatile int32 * count, int32 delta)
 {
    int32 ret;
    if (_muscleAtomicMutexes)
@@ -156,7 +156,7 @@ public:
      * environments, it can easily lead to race conditions
      * if you don't know what you are doing!
      */
-   int32 GetCount() const {return (int32) _count;}
+   MUSCLE_NODISCARD int32 GetCount() const {return (int32) _count;}
 
    /** Sets the current value of this counter.
      * Be careful when using this function in multithreaded

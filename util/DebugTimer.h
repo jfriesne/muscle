@@ -41,16 +41,16 @@ public:
    void SetMode(uint32 newMode);
 
    /** Returns the currently active mode number */
-   uint32 GetMode() const {return _currentMode;}
+   MUSCLE_NODISCARD uint32 GetMode() const {return _currentMode;}
 
    /** Convenience method:  Equivalent to GetElapsedTime(GetMode()) */
-   uint64 GetElapsedTime() const {return GetElapsedTime(GetMode());}
+   MUSCLE_NODISCARD uint64 GetElapsedTime() const {return GetElapsedTime(GetMode());}
 
    /** Returns the amount of elapsed time, in microseconds, that has been spent in the given mode.
     *  Note that if (whichMode) is the currently active mode, the returned value will be growing from moment to moment.
     *  @param whichMode the mode we are querying the elapsed-time for (mode-numbering is arbitrary and up to the caller)
     */
-   uint64 GetElapsedTime(uint32 whichMode) const
+   MUSCLE_NODISCARD uint64 GetElapsedTime(uint32 whichMode) const
    {
       const uint64 * et = _modeToElapsedTime.Get(whichMode);
       return (et ? *et : 0) + ((whichMode == _currentMode) ? (MUSCLE_DEBUG_TIMER_CLOCK-_startTime) : 0);
@@ -62,7 +62,7 @@ public:
    void SetLogEnabled(bool e) {_enableLog = e;}
 
    /** Returns the state of the print-to-log-enabled, as set by SetLogEnabled() */
-   bool IsLogEnabled() const {return _enableLog;}
+   MUSCLE_NODISCARD bool IsLogEnabled() const {return _enableLog;}
 
    /** Set the minimum-log-time value, in microseconds.  Time intervals shorter than this will not be logged.  Defaults to zero.
      * @param lt time threshold, in microseconds
@@ -70,7 +70,7 @@ public:
    void SetMinLogTime(uint64 lt) {_minLogTime = lt;}
 
    /** Returns the current minimum-log-time value, in microseconds. */
-   uint64 GetMinLogTime() const {return _minLogTime;}
+   MUSCLE_NODISCARD uint64 GetMinLogTime() const {return _minLogTime;}
 
 private:
    uint32 _currentMode;

@@ -29,7 +29,7 @@ public:
    /** Wrapper function that calls CloneImp() and verifies that the returned value is of the correct type.
      * @returns a pointer to a newly-allocated copy of this object on success, or NULL on failure (out of memory?)
      */
-   Cloneable * Clone() const
+   MUSCLE_NODISCARD Cloneable * Clone() const
    {
       Cloneable * ret = CloneImp();
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
@@ -44,7 +44,7 @@ public:
 
 protected:
    /** Should be implemented by the inheriting concrete class to return a freshly allocated copy of itself. */
-   virtual Cloneable * CloneImp() const = 0;
+   MUSCLE_NODISCARD virtual Cloneable * CloneImp() const = 0;
 };
 
 /** This macro declares a "virtual Cloneable * CloneImp() const" method that performs the
@@ -54,12 +54,12 @@ protected:
   * class.  (If there was a way to automate this using templates, I'd use that instead,
   * but I haven't seen a reasonable way to do that yet)
   */
-#define DECLARE_STANDARD_CLONE_METHOD(class_name)   \
-   virtual Cloneable * CloneImp() const             \
-   {                                                \
-      Cloneable * r = newnothrow class_name(*this); \
-      if (r == NULL) MWARN_OUT_OF_MEMORY;           \
-      return r;                                     \
+#define DECLARE_STANDARD_CLONE_METHOD(class_name)        \
+   MUSCLE_NODISCARD virtual Cloneable * CloneImp() const \
+   {                                                     \
+      Cloneable * r = newnothrow class_name(*this);      \
+      if (r == NULL) MWARN_OUT_OF_MEMORY;                \
+      return r;                                          \
    }
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
@@ -75,7 +75,7 @@ protected:
   *       superior, in that it will do the right thing whether the passed-in
   *       argument derived from Cloneable or not.
   */
-template<typename T> T * CloneObject(const T & item)
+template<typename T> MUSCLE_NODISCARD T * CloneObject(const T & item)
 {
    const Cloneable * c = dynamic_cast<const Cloneable *>(&item);
    if (c) return static_cast<T *>(c->Clone());
@@ -96,6 +96,7 @@ template<typename T> T * CloneObject(const T & item)
   * @note this version is used (via SFINAE) for any type that inherits from Cloneable.
   */
 template <typename T>
+MUSCLE_NODISCARD
 typename std::enable_if<std::is_base_of<Cloneable, T>::value, T*>::type
 CloneObject(const T& item)
 {
@@ -110,6 +111,7 @@ CloneObject(const T& item)
   * @note this version is used (via SFINAE) for any type that does NOT inherit from Cloneable.
   */
 template <typename T>
+MUSCLE_NODISCARD
 typename std::enable_if<!std::is_base_of<Cloneable, T>::value, T*>::type
 CloneObject(const T& item)
 {

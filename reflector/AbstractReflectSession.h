@@ -40,13 +40,13 @@ public:
     * not be acted upon (ie they will be forced to wait).
     * Default implementation always returns true.
     */
-   virtual bool IsReadyToAcceptSessions() const {return true;}
+   MUSCLE_NODISCARD virtual bool IsReadyToAcceptSessions() const {return true;}
 
    /**
     * Returns an auto-assigned ID value that represents this factory.
     * The returned value is guaranteed to be unique across all factories in the server.
     */
-   uint32 GetFactoryID() const {return _id;}
+   MUSCLE_NODISCARD uint32 GetFactoryID() const {return _id;}
 
 protected:
    /**
@@ -108,10 +108,10 @@ public:
 
    virtual status_t AttachedToServer();
    virtual void AboutToDetachFromServer();
-   virtual bool IsReadyToAcceptSessions() const {return _slaveRef() ? _slaveRef()->IsReadyToAcceptSessions() : true;}
+   MUSCLE_NODISCARD virtual bool IsReadyToAcceptSessions() const {return _slaveRef() ? _slaveRef()->IsReadyToAcceptSessions() : true;}
 
    /** Returns the reference to the "slave" factory that was passed in to our constructor. */
-   const ReflectSessionFactoryRef & GetSlave() const {return _slaveRef;}
+   MUSCLE_NODISCARD const ReflectSessionFactoryRef & GetSlave() const {return _slaveRef;}
 
 private:
    ReflectSessionFactoryRef _slaveRef;
@@ -134,28 +134,28 @@ public:
    /** Returns the hostname of this client that is associated with this session.
      * May only be called if this session is currently attached to a ReflectServer.
      */
-   const String & GetHostName() const;
+   MUSCLE_NODISCARD const String & GetHostName() const;
 
    /** Returns the server-side port that this session was accepted on, or 0 if
      * we weren't accepted from a port (eg we were created locally)
      * May only be called if this session is currently attached to a ReflectServer.
      */
-   uint16 GetPort() const;
+   MUSCLE_NODISCARD uint16 GetPort() const;
 
    /** Returns the server-side network interface IP that this session was accepted on,
      * or 0 if we weren't created via accepting a network connection  (eg we were created locally)
      * May only be called if this session is currently attached to a ReflectServer.
      */
-   const IPAddress & GetLocalInterfaceAddress() const;
+   MUSCLE_NODISCARD const IPAddress & GetLocalInterfaceAddress() const;
 
    /** Returns a globally unique ID for this session. */
-   uint32 GetSessionID() const {return _sessionID;}
+   MUSCLE_NODISCARD uint32 GetSessionID() const {return _sessionID;}
 
    /**
     * Returns an ID string to represent this session with.
     * (This string is the ASCII representation of GetSessionID())
     */
-   const String & GetSessionIDString() const {return _idString;}
+   MUSCLE_NODISCARD const String & GetSessionIDString() const {return _idString;}
 
    /** Marks this session for immediate termination and removal from the server. */
    virtual void EndSession();
@@ -186,7 +186,7 @@ public:
     *         been enabled (via SetAutoReconnectDelay()), in which case this
     *         method will return false and try to Reconnect() again, instead.
     */
-   virtual bool ClientConnectionClosed();
+   MUSCLE_NODISCARD virtual bool ClientConnectionClosed();
 
    /**
     * For sessions that were added to the server with AddNewConnectSession(),
@@ -234,19 +234,19 @@ public:
     * or NULL reference if there is none.  The returned gateway remains
     * the property of this session.
     */
-   const AbstractMessageIOGatewayRef & GetGateway() const {return _gateway;}
+   MUSCLE_NODISCARD const AbstractMessageIOGatewayRef & GetGateway() const {return _gateway;}
 
    /**
      * Convenience method:  returns a reference DataIO object attached to this session's
      * current gateway object, or NULL if there isn't one.
      */
-   const DataIORef & GetDataIO() const;
+   MUSCLE_NODISCARD const DataIORef & GetDataIO() const;
 
    /** Should return true iff we have data pending for output.
     *  Default implementation calls HasBytesToOutput() on our installed AbstractDataIOGateway object,
     *  if we have one, or returns false if we don't.
     */
-   virtual bool HasBytesToOutput() const;
+   MUSCLE_NODISCARD virtual bool HasBytesToOutput() const;
 
    /**
      * Should return true iff we are willing to read more bytes from our
@@ -255,7 +255,7 @@ public:
      * have one, or returns false if we don't.
      *
      */
-   virtual bool IsReadyForInput() const;
+   MUSCLE_NODISCARD virtual bool IsReadyForInput() const;
 
    /** Called by the ReflectServer when it wants us to read some more bytes from our client.
      * Default implementation simply calls DoInput() on our Gateway object (if any).
@@ -304,7 +304,7 @@ public:
    virtual AbstractMessageIOGatewayRef CreateGateway();
 
    /** Overridden to support auto-reconnect via SetAutoReconnectDelay() */
-   virtual uint64 GetPulseTime(const PulseArgs &);
+   MUSCLE_NODISCARD virtual uint64 GetPulseTime(const PulseArgs &);
 
    /** Overridden to support auto-reconnect via SetAutoReconnectDelay() */
    virtual void Pulse(const PulseArgs &);
@@ -312,10 +312,10 @@ public:
    /** Convenience method -- returns a human-readable string describing our
     *  type, our hostname, our session ID, and what port we are connected to.
     */
-   String GetSessionDescriptionString() const;
+   MUSCLE_NODISCARD String GetSessionDescriptionString() const;
 
    /** Returns the destination we connected to asynchronously. */
-   const IPAddressAndPort & GetAsyncConnectDestination() const {return _asyncConnectDest;}
+   MUSCLE_NODISCARD const IPAddressAndPort & GetAsyncConnectDestination() const {return _asyncConnectDest;}
 
    /** Sets the async-connect-destination (as returned by GetAsyncConnectDestination())
      * manually.  Typically you don't need to call this; so only call this method if you really know
@@ -327,7 +327,7 @@ public:
    void SetAsyncConnectDestination(const IPAddressAndPort & iap, bool reconnectViaTCP) {_asyncConnectDest = iap; _reconnectViaTCP = reconnectViaTCP;}
 
    /** Returns the node path of the node representing this session (eg "/192.168.1.105/17") */
-   virtual const String & GetSessionRootPath() const {return _sessionRootPath;}
+   MUSCLE_NODISCARD virtual const String & GetSessionRootPath() const {return _sessionRootPath;}
 
    /** Sets the amount of time that should pass between when this session loses its connection
      * (that was previously set up using AddNewConnectSession() or AddNewDormantConnectSession())
@@ -341,7 +341,7 @@ public:
      * SetAutoReconnectDelay().  Note that this setting is only relevant for sessions
      * that were attached using AddNewConnectSession() or AddNewDormantConnectSession().
      */
-   uint64 GetAutoReconnectDelay() const {return _autoReconnectDelay;}
+   MUSCLE_NODISCARD uint64 GetAutoReconnectDelay() const {return _autoReconnectDelay;}
 
    /** Sets the maximum time that we should allow an asynchronous-connect to continue before
      * forcibly aborting it.  Default behavior is determined by the MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS
@@ -358,18 +358,18 @@ public:
      * Note that this setting is only relevant for sessions that were attached using AddNewConnectSession()
      * or AddNewDormantConnectSession().
      */
-   uint64 GetMaxAsyncConnectPeriod() const {return _maxAsyncConnectPeriod;}
+   MUSCLE_NODISCARD uint64 GetMaxAsyncConnectPeriod() const {return _maxAsyncConnectPeriod;}
 
    /** Returns true iff we are currently in the middle of an asynchronous TCP connection */
-   bool IsConnectingAsync() const {return _connectingAsync;}
+   MUSCLE_NODISCARD bool IsConnectingAsync() const {return _connectingAsync;}
 
    /** Returns true iff this session is currently connected to our remote counterpart. */
-   bool IsConnected() const {return _isConnected;}
+   MUSCLE_NODISCARD bool IsConnected() const {return _isConnected;}
 
    /** Returns true if this session was successfully connected to its remote counterpart before it became disconnected.
      * Returns false if the session never was successfully connected.
      */
-   bool WasConnected() const {return _wasConnected;}
+   MUSCLE_NODISCARD bool WasConnected() const {return _wasConnected;}
 
    /** This method may be called by ReflectServer when the server process runs low on memory.
      * If it returns true this session may be disposed of in order to free up memory.  If it
@@ -380,7 +380,7 @@ public:
      * passed to AddNewConnectSession(), unless SetExpendable() had already been explicitly
      * called on the session beforehand.
      */
-   bool IsExpendable() const {return _isExpendable;}
+   MUSCLE_NODISCARD bool IsExpendable() const {return _isExpendable;}
 
    /** Calls this to set or clear the isExpendable flag on a session (see IsExpendable() for details)
      * @param isExpendable If true, this session may be removed in a low-on-memory situation.  If false, it won't be.
@@ -452,12 +452,12 @@ public:
    /** Convenience method:  Returns the "read" file descriptor associated with this session's
      * DataIO class, or a NULL reference if there is none.
      */
-   const ConstSocketRef & GetSessionReadSelectSocket() const;
+   MUSCLE_NODISCARD const ConstSocketRef & GetSessionReadSelectSocket() const;
 
    /** Convenience method:  Returns the "write" file descriptor associated with this session's
      * DataIO class, or a NULL reference if there is none.
      */
-   const ConstSocketRef & GetSessionWriteSelectSocket() const;
+   MUSCLE_NODISCARD const ConstSocketRef & GetSessionWriteSelectSocket() const;
 
    /** Prints to stdout a report of what sessions are currently present on this server, and how
      * much memory each of them is currently using for various things.  Useful for understanding
@@ -483,12 +483,12 @@ protected:
     *  @param defaultHostName The hostname that the system suggests be used for this session.
     *  Default implementation just returns (defaultHostName), ie it goes with the suggested name.
     */
-   virtual String GenerateHostName(const IPAddress & ip, const String & defaultHostName) const;
+   MUSCLE_NODISCARD virtual String GenerateHostName(const IPAddress & ip, const String & defaultHostName) const;
 
    /** Returns the timestamp (in microseconds, as reported by GetRunTime64()) of the most recent
      * time this session successfully sent some data to its client.
      */
-   uint64 GetLastByteOutputTimeStamp() const {return _lastByteOutputAt;}
+   MUSCLE_NODISCARD uint64 GetLastByteOutputTimeStamp() const {return _lastByteOutputAt;}
 
 private:
    virtual void TallySubscriberTablesInfo(uint32 & retNumCachedSubscriberTables, uint32 & tallyNumNodes, uint32 & tallyNumNodeBytes) const;  // yes, this virtual method is intentionally private!
@@ -496,7 +496,7 @@ private:
    void SetPolicyAux(AbstractSessionIOPolicyRef & setRef, uint32 & setChunk, const AbstractSessionIOPolicyRef & newRef, bool isInput);
    void PlanForReconnect();
    void SetConnectingAsync(bool isConnectingAsync);
-   bool IsThisSessionScheduledForPostSleepReconnect() const;
+   MUSCLE_NODISCARD bool IsThisSessionScheduledForPostSleepReconnect() const;
 
    friend class ReflectServer;
 

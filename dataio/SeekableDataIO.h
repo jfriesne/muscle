@@ -43,7 +43,7 @@ public:
     * Should return the current position, in bytes, of the stream from
     * its start position, or -1 if the current position is not known.
     */
-   virtual int64 GetPosition() const = 0;
+   MUSCLE_NODISCARD virtual int64 GetPosition() const = 0;
 
    /** Returns the total length of this DataIO's stream, in bytes.
      * The default implementation computes this value by Seek()'ing
@@ -52,7 +52,7 @@ public:
      * override this method to provide a more efficient mechanism, if there is one.
      * @returns The total length of this DataIO's stream, in bytes, or -1 on error.
      */
-   virtual int64 GetLength();
+   MUSCLE_NODISCARD virtual int64 GetLength();
 };
 DECLARE_REFTYPES(SeekableDataIO);
 

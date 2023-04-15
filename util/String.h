@@ -62,21 +62,21 @@ class Rect;
   * @param s2 The second of the two strings to compare using the number-aware comparison algorithm.
   * @returns 0 if the two strings are equal, >0 if (s2) is the "later" string, or <0 if (s1) is the "later" string.
   */
-int NumericAwareStrcmp(const char * s1, const char * s2);
+MUSCLE_NODISCARD int NumericAwareStrcmp(const char * s1, const char * s2);
 
 /** Same as NumericAwareStrcmp(), but case-insensitive.
   * @param s1 The first of the two strings to compare using the case-insensitive number-aware comparison algorithm.
   * @param s2 The second of the two strings to compare using the case-insensitive number-aware comparison algorithm.
   * @returns 0 if the two strings are equal, >0 if (s2) is the "later" string, or <0 if (s1) is the "later" string.
   */
-int NumericAwareStrcasecmp(const char * s1, const char * s2);
+MUSCLE_NODISCARD int NumericAwareStrcasecmp(const char * s1, const char * s2);
 
 /** Wrapper for strcasecmp(), which isn't always named the same on all OS's
   * @param s1 The first of the two strings to compare using the case-insensitive comparison algorithm.
   * @param s2 The second of the two strings to compare using the case-insensitive comparison algorithm.
   * @returns 0 if the two strings are equal, >0 if (s2) is the "later" string, or <0 if (s1) is the "later" string.
   */
-inline int Strcasecmp(const char * s1, const char * s2)
+MUSCLE_NODISCARD inline int Strcasecmp(const char * s1, const char * s2)
 {
 #ifdef WIN32
    return _stricmp(s1, s2);
@@ -91,7 +91,7 @@ inline int Strcasecmp(const char * s1, const char * s2)
   * @param n The maximum number of bytes to compare (any bytes after the (nth) byte in the strings will be ignored)
   * @returns 0 if the two strings are equal, >0 if (s2) is the "later" string, or <0 if (s1) is the "later" string.
   */
-inline int Strncasecmp(const char * s1, const char * s2, size_t n)
+MUSCLE_NODISCARD inline int Strncasecmp(const char * s1, const char * s2, size_t n)
 {
 #ifdef WIN32
    return _strnicmp(s1, s2, n);
@@ -106,7 +106,7 @@ inline int Strncasecmp(const char * s1, const char * s2, size_t n)
   * @returns a pointer to (needle), if it exists inside (haystack), or NULL if it doesn't.
   * @note that the search is case-insensitive.
   */
-const char * Strcasestr(const char * haystack, const char * needle);
+MUSCLE_NODISCARD const char * Strcasestr(const char * haystack, const char * needle);
 
 /** Extended wrapper for strcasestr(), which isn't always named the same on all OS's
   * @param haystack The string to search in
@@ -117,7 +117,7 @@ const char * Strcasestr(const char * haystack, const char * needle);
   * @returns a pointer to a (needle), if one exists inside (haystack), or NULL if it doesn't.
   * @note that the search is case-insensitive.
   */
-const char * StrcasestrEx(const char * haystack, uint32 haystackLen, const char * needle, uint32 needleLen, bool searchBackwards);
+MUSCLE_NODISCARD const char * StrcasestrEx(const char * haystack, uint32 haystackLen, const char * needle, uint32 needleLen, bool searchBackwards);
 
 /** An arbitrary-length character-string class.  Represents a dynamically resizable, NUL-terminated ASCII string.
   * This class can be used to hold UTF8-encoded strings as well, but because the code in this class is not
@@ -348,12 +348,12 @@ public:
    /** Array Operator.  Used to get easy access to the characters that make up this string.
     *  @param index Index of the character to return.  Be sure to only use valid indices!
     */
-   char operator [] (uint32 index) const {VerifyIndex(index); return Cstr()[index];}
+   MUSCLE_NODISCARD char operator [] (uint32 index) const {VerifyIndex(index); return Cstr()[index];}
 
    /** Array Operator.  Used to get easy access to the characters that make up this string.
     *  @param index Index of the character to set.  Be sure to only use valid indices!
     */
-   char & operator [] (uint32 index) {VerifyIndex(index); return GetBuffer()[index];}
+   MUSCLE_NODISCARD char & operator [] (uint32 index) {VerifyIndex(index); return GetBuffer()[index];}
 
    /** Adds a space to the end of this string. */
    void operator ++ (int) {(*this) += ' ';}
@@ -365,37 +365,37 @@ public:
     *  @param index A value between 0 and (Length()-1), inclusive.
     *  @return A character value.
     */
-   char CharAt(uint32 index) const {return operator[](index);}
+   MUSCLE_NODISCARD char CharAt(uint32 index) const {return operator[](index);}
 
    /** Compares this string to another string using strcmp()
      * @param rhs A string to compare ourself with
      * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
-   int CompareTo(const String & rhs) const {return strcmp(Cstr(), rhs.Cstr());}
+   MUSCLE_NODISCARD int CompareTo(const String & rhs) const {return strcmp(Cstr(), rhs.Cstr());}
 
    /** Compares this string to a C string using strcmp()
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
-   int CompareTo(const char * rhs) const {return strcmp(Cstr(), rhs?rhs:"");}
+   MUSCLE_NODISCARD int CompareTo(const char * rhs) const {return strcmp(Cstr(), rhs?rhs:"");}
 
    /** Compares this string to another string using NumericAwareStrcmp()
      * @param rhs A string to compare ourself with
      * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
-   int NumericAwareCompareTo(const String & rhs) const {return NumericAwareStrcmp(Cstr(), rhs.Cstr());}
+   MUSCLE_NODISCARD int NumericAwareCompareTo(const String & rhs) const {return NumericAwareStrcmp(Cstr(), rhs.Cstr());}
 
    /** Compares this string to a C string using NumericAwareStrcmp()
      * @param rhs Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
-   int NumericAwareCompareTo(const char * rhs) const {return NumericAwareStrcmp(Cstr(), rhs?rhs:"");}
+   MUSCLE_NODISCARD int NumericAwareCompareTo(const char * rhs) const {return NumericAwareStrcmp(Cstr(), rhs?rhs:"");}
 
    /** Returns a read-only C-style pointer to our held character string. */
-   const char * Cstr() const {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
+   MUSCLE_NODISCARD const char * Cstr() const {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
 
    /** Convenience synonym for Cstr(). */
-   const char * operator()() const {return Cstr();}
+   MUSCLE_NODISCARD const char * operator()() const {return Cstr();}
 
    /** Clears this string so that it contains no characters.  Equivalent to setting this string to "". */
    void Clear() {_length = 0; WriteNULTerminatorByte();}
@@ -444,30 +444,30 @@ public:
 #endif
 
    /** Returns true iff this string is a zero-length string. */
-   bool IsEmpty() const {return (_length == 0);}
+   MUSCLE_NODISCARD bool IsEmpty() const {return (_length == 0);}
 
    /** Returns true iff this string starts with a number.
      * @param allowNegativeValues if true, negative values will be considered as numbers also.  Defaults to true.
      */
-   bool StartsWithNumber(bool allowNegativeValues = true) const {const char * s = Cstr(); return ((isdigit(*s))||((allowNegativeValues)&&(s[0]=='-')&&(isdigit(s[1]))));}
+   MUSCLE_NODISCARD bool StartsWithNumber(bool allowNegativeValues = true) const {const char * s = Cstr(); return ((isdigit(*s))||((allowNegativeValues)&&(s[0]=='-')&&(isdigit(s[1]))));}
 
    /** Returns true iff this string is not a zero-length string. */
-   bool HasChars() const {return (_length > 0);}
+   MUSCLE_NODISCARD bool HasChars() const {return (_length > 0);}
 
    /** Returns true iff this string starts with (prefix)
      * @param c a character to check for at the end of this String.
      */
-   bool EndsWith(char c) const {return (_length > 0)&&(Cstr()[_length-1] == c);}
+   MUSCLE_NODISCARD bool EndsWith(char c) const {return (_length > 0)&&(Cstr()[_length-1] == c);}
 
    /** Returns true iff this string ends with (suffix)
      * @param suffix a String to check for at the end of this String.
      */
-   bool EndsWith(const String & suffix) const {return ((Length() >= suffix.Length())&&(strcmp(Cstr()+(Length()-suffix.Length()), suffix.Cstr()) == 0));}
+   MUSCLE_NODISCARD bool EndsWith(const String & suffix) const {return ((Length() >= suffix.Length())&&(strcmp(Cstr()+(Length()-suffix.Length()), suffix.Cstr()) == 0));}
 
    /** Returns true iff this string ends with (suffix)
      * @param suffix a String to check for at the end of this String.  NULL pointers are treated as a synonym for "".
      */
-   bool EndsWith(const char * suffix) const
+   MUSCLE_NODISCARD bool EndsWith(const char * suffix) const
    {
       if (suffix == NULL) suffix = "";
       const uint32 suffixLen = (uint32) strlen(suffix);
@@ -477,23 +477,23 @@ public:
    /** Returns true iff this string is equal to (string), as determined by strcmp().
      * @param str a String to compare this String with.
      */
-   bool Equals(const String & str) const {return (*this == str);}
+   MUSCLE_NODISCARD bool Equals(const String & str) const {return (*this == str);}
 
    /** Returns true iff this string is equal to (str), as determined by strcmp().
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
-   bool Equals(const char * str) const {return (*this == str);}
+   MUSCLE_NODISCARD bool Equals(const char * str) const {return (*this == str);}
 
    /** Returns true iff this string contains a single character (c).
      * @param c a character to compare this String with.
      */
-   bool Equals(char c) const {return (_length == 1)&&(Cstr()[0] == c);}
+   MUSCLE_NODISCARD bool Equals(char c) const {return (_length == 1)&&(Cstr()[0] == c);}
 
    /** Returns the first index of (ch) in this string starting at or after (fromIndex), or -1 if not found.
      * @param ch A character to look for in this string.
      * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
-   int IndexOf(char ch, uint32 fromIndex = 0) const
+   MUSCLE_NODISCARD int IndexOf(char ch, uint32 fromIndex = 0) const
    {
       const char * temp = (fromIndex < Length()) ? strchr(Cstr()+fromIndex, ch) : NULL;
       return temp ? (int)(temp - Cstr()) : -1;
@@ -503,25 +503,25 @@ public:
      * @param ch A character to look for in this string.
      * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
-   bool Contains(char ch, uint32 fromIndex = 0) const {return (IndexOf(ch, fromIndex) >= 0);}
+   MUSCLE_NODISCARD bool Contains(char ch, uint32 fromIndex = 0) const {return (IndexOf(ch, fromIndex) >= 0);}
 
    /** Returns true iff substring (str) is in this string starting at or after (fromIndex).
      * @param str A String to look for in this string.
      * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
-   bool Contains(const String & str, uint32 fromIndex = 0) const {return (IndexOf(str, fromIndex) >=0);}
+   MUSCLE_NODISCARD bool Contains(const String & str, uint32 fromIndex = 0) const {return (IndexOf(str, fromIndex) >=0);}
 
    /** Returns true iff the substring (str) is in this string starting at or after (fromIndex).
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
-   bool Contains(const char * str, uint32 fromIndex = 0) const {return (IndexOf(str, fromIndex) >= 0);}
+   MUSCLE_NODISCARD bool Contains(const char * str, uint32 fromIndex = 0) const {return (IndexOf(str, fromIndex) >= 0);}
 
    /** Returns the first index of substring (str) in this string starting at or after (fromIndex), or -1 if not found.
      * @param str A String to look for in this string.
      * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
-   int IndexOf(const String & str, uint32 fromIndex = 0) const
+   MUSCLE_NODISCARD int IndexOf(const String & str, uint32 fromIndex = 0) const
    {
       const char * temp = (fromIndex < Length()) ? strstr(Cstr()+fromIndex, str()) : NULL;
       return temp ? (int)(temp - Cstr()) : -1;
@@ -531,7 +531,7 @@ public:
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
-   int IndexOf(const char * str, uint32 fromIndex = 0) const
+   MUSCLE_NODISCARD int IndexOf(const char * str, uint32 fromIndex = 0) const
    {
       const char * temp = (fromIndex < Length()) ? strstr(Cstr()+fromIndex, str?str:"") : NULL;
       return temp ? (int)(temp - Cstr()) : -1;
@@ -541,7 +541,7 @@ public:
      * @param ch A character to look for in this string.
      * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
-   int LastIndexOf(char ch, uint32 fromIndex = 0) const
+   MUSCLE_NODISCARD int LastIndexOf(char ch, uint32 fromIndex = 0) const
    {
       if (fromIndex < Length())
       {
@@ -555,12 +555,12 @@ public:
    /** Returns the last index of substring (str) in this string
      * @param str A String to look for in this string.
      */
-   int LastIndexOf(const String & str) const {return (str.Length() <= Length()) ? LastIndexOf(str, Length()-str.Length()) : -1;}
+   MUSCLE_NODISCARD int LastIndexOf(const String & str) const {return (str.Length() <= Length()) ? LastIndexOf(str, Length()-str.Length()) : -1;}
 
    /** Returns the last index of substring (str) in this string
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
-   int LastIndexOf(const char * str) const
+   MUSCLE_NODISCARD int LastIndexOf(const char * str) const
    {
       if (str == NULL) str = "";
       uint32 strLen = (uint32) strlen(str);
@@ -571,40 +571,40 @@ public:
      * @param str A String to look for in this string.
      * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
-   int LastIndexOf(const String & str, uint32 fromIndex) const;
+   MUSCLE_NODISCARD int LastIndexOf(const String & str, uint32 fromIndex) const;
 
    /** Returns the last index of substring (str) in this string starting at or after (fromIndex), or -1 if not found.
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      * @param fromIndex Index of the first character to start searching at in this String.  Defaults to zero (ie start from the first character)
      */
-   int LastIndexOf(const char * str, uint32 fromIndex) const;
+   MUSCLE_NODISCARD int LastIndexOf(const char * str, uint32 fromIndex) const;
 
    /** Returns the number of characters in the string (not including the terminating NUL byte) */
-   uint32 Length() const {return _length;}
+   MUSCLE_NODISCARD uint32 Length() const {return _length;}
 
    /** Returns the number of bytes of storage we have allocated.  Note that this value will often
      * be greater than the value returned by Length(), since we allocate extra bytes to minimize
      * the number of reallocations that must be done as data is being added to a String.
      */
-   uint32 GetNumAllocatedBytes() const {return _bufferLen;}
+   MUSCLE_NODISCARD uint32 GetNumAllocatedBytes() const {return _bufferLen;}
 
    /** Returns the number of instances of (c) in this string.
      * @param ch The character to count the number of instances of in this String.
      * @param fromIndex The index of the first character to begin counting at.  Defaults to zero (ie to the start of the String)
      */
-   uint32 GetNumInstancesOf(char ch, uint32 fromIndex=0) const;
+   MUSCLE_NODISCARD uint32 GetNumInstancesOf(char ch, uint32 fromIndex=0) const;
 
    /** Returns the number of instances of (substring) in this string.
      * @param substring String to count the number of instances of in this String.
      * @param fromIndex The index of the first character to begin counting at.  Defaults to zero (ie to the start of the String)
      */
-   uint32 GetNumInstancesOf(const String & substring, uint32 fromIndex=0) const;
+   MUSCLE_NODISCARD uint32 GetNumInstancesOf(const String & substring, uint32 fromIndex=0) const;
 
    /** Returns the number of instances of (substring) in this string.
      * @param substring C string to count the number of instances of in this String.
      * @param fromIndex The index of the first character to begin counting at.  Defaults to zero (ie to the start of the String)
      */
-   uint32 GetNumInstancesOf(const char * substring, uint32 fromIndex=0) const;
+   MUSCLE_NODISCARD uint32 GetNumInstancesOf(const char * substring, uint32 fromIndex=0) const;
 
    /** Returns the Levenshtein distance between this string and (otherString).
      * @param otherString a String to calculate our Levenshtein distance to.
@@ -614,7 +614,7 @@ public:
      * @returns The Levenshtein distance -- ie the number of single-character insertions, deletions,
      *          or character replacements it would take to convert one string into the other.
      */
-   uint32 GetDistanceTo(const String & otherString, uint32 maxResult = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD uint32 GetDistanceTo(const String & otherString, uint32 maxResult = MUSCLE_NO_LIMIT) const;
 
    /** Returns the Levenshtein distance between this string and (otherString).
      * @param otherString a C string to calculate our Levenshtein distance to.  NULL pointers are considered a synonym for "".
@@ -624,22 +624,22 @@ public:
      * @returns The Levenshtein distance -- ie the number of single-character insertions, deletions,
      *          or character replacements it would take to convert one string into the other.
      */
-   uint32 GetDistanceTo(const char * otherString, uint32 maxResult = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD uint32 GetDistanceTo(const char * otherString, uint32 maxResult = MUSCLE_NO_LIMIT) const;
 
    /** Returns true iff this string starts with (c)
      * @param c The character to see if this string starts with or not
      */
-   bool StartsWith(char c) const {return (*Cstr() == c);}
+   MUSCLE_NODISCARD bool StartsWith(char c) const {return (*Cstr() == c);}
 
    /** Returns true iff this string starts with (prefix)
      * @param prefix The prefix to see whether this string starts with or not
      */
-   bool StartsWith(const String & prefix) const {return ((Length() >= prefix.Length())&&(strncmp(Cstr(), prefix(), prefix.Length()) == 0));}
+   MUSCLE_NODISCARD bool StartsWith(const String & prefix) const {return ((Length() >= prefix.Length())&&(strncmp(Cstr(), prefix(), prefix.Length()) == 0));}
 
    /** Returns true iff this string starts with (prefix)
      * @param prefix Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
-   bool StartsWith(const char * prefix) const
+   MUSCLE_NODISCARD bool StartsWith(const char * prefix) const
    {
       if (prefix == NULL) prefix = "";
       uint32 prefixLen = (uint32) strlen(prefix);
@@ -650,58 +650,58 @@ public:
      * @param str The string to prepend
      * @param count How many instances of (str) to prepend.  Defaults to 1.
      */
-   String Prepend(const String & str, uint32 count = 1) const;
+   MUSCLE_NODISCARD String Prepend(const String & str, uint32 count = 1) const;
 
    /** Returns a string that consists of (count) copies of (str), followed by this string.
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      * @param count How many instances of (str) should be prepended to this string.  Defaults to 1.
      */
-   String Prepend(const char * str, uint32 count = 1) const;
+   MUSCLE_NODISCARD String Prepend(const char * str, uint32 count = 1) const;
 
    /** Returns a string that consists of (count) copies of (c), followed by this string.
      * @param c The character to prepend
      * @param count How many instances of (c) to prepend.  Defaults to 1.
      */
-   String Prepend(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return Prepend(cc, count);}
+   MUSCLE_NODISCARD String Prepend(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return Prepend(cc, count);}
 
    /** Similar to Prepend(), but this version will insert separator string between our current content and the prepended string, if necessary.
      * @param str A string to prepended to the end of this string.
      * @param sep Pointer to the string used to separate words.  Defaults to " "
      * @returns a reference to this object, which will have had the specified string prepended, with an inserted (sep) infix if necessary.
      */
-   String PrependWord(const String & str, const char * sep = " ") const {return str.AppendWord(*this, sep);}
+   MUSCLE_NODISCARD String PrependWord(const String & str, const char * sep = " ") const {return str.AppendWord(*this, sep);}
 
    /** Returns a string that consists of this string followed by (count) copies of (str).
      * @param str A string to append to the end of this string.
      * @param count How many copies of (str) to append.  Defaults to 1.
      */
-   String Append(const String & str, uint32 count = 1) const;
+   MUSCLE_NODISCARD String Append(const String & str, uint32 count = 1) const;
 
    /** Returns a string that consists of this string followed by (count) copies of (str).
      * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      * @param count How many instances of (str) should be appended to this string.  Defaults to 1.
      */
-   String Append(const char * str, uint32 count = 1) const;
+   MUSCLE_NODISCARD String Append(const char * str, uint32 count = 1) const;
 
    /** Returns a string that consists of this string followed by (count) copies of (c).
      * @param c The character to append
      * @param count How many instances of (c) to append.  Defaults to 1.
      */
-   String Append(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return Append(cc, count);}
+   MUSCLE_NODISCARD String Append(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return Append(cc, count);}
 
    /** Similar to the += operator, but this version will insert a separator between our current content and the appended string, if necessary.
      * @param str Pointer to a C string to return appended to this string.  NULL pointers are considered a synonym for "".
      * @param sep Pointer to the string used to separate words.  Defaults to " "
      * @returns a reference to this object, which will have had the specified string appended, with an inserted (sep) infix if necessary.
      */
-   String AppendWord(const char * str, const char * sep = " ") const;
+   MUSCLE_NODISCARD String AppendWord(const char * str, const char * sep = " ") const;
 
    /** Similar to the += operator, but this version will insert a separator between our current content and the appended string, if necessary.
      * @param str A string to append to the end of this string.
      * @param sep Pointer to the string used to separate words.  Defaults to " "
      * @returns a reference to this object, which will have had the specified string appended, with an inserted (sep) infix if necessary.
      */
-   String AppendWord(const String & str, const char * sep = " ") const;
+   MUSCLE_NODISCARD String AppendWord(const String & str, const char * sep = " ") const;
 
    /** Returns a string that is like this string, but padded out to the specified minimum length with (padChar).
     *  @param minLength Minimum length that the returned string should be.
@@ -709,7 +709,7 @@ public:
     *  @param padChar The character to pad out the string with.  Defaults to ' '.
     *  @returns the new, padded String.
     */
-   String Pad(uint32 minLength, bool padOnRight = false, char padChar = ' ') const;
+   MUSCLE_NODISCARD String Pad(uint32 minLength, bool padOnRight = false, char padChar = ' ') const;
 
    /** Returns a string that is the same as this one, except that the beginning of each line in the string has (numIndentChars)
      * instances of (indentChar) prepended to it.
@@ -717,19 +717,19 @@ public:
      * @param indentChar The character to use to make the indentations.  Defaults to ' '.
      * @returns the indented string.
      */
-   String Indent(uint32 numIndentChars, char indentChar = ' ') const;
+   MUSCLE_NODISCARD String Indent(uint32 numIndentChars, char indentChar = ' ') const;
 
    /** Returns a string that consists of only the last part of this string, starting with index (beginIndex).  Does not modify the string it is called on.
      * @param beginIndex the index of the first character to include in the returned substring
      */
-   String Substring(uint32 beginIndex) const {return String(*this, beginIndex);}
+   MUSCLE_NODISCARD String Substring(uint32 beginIndex) const {return String(*this, beginIndex);}
 
    /** Returns a string that consists of only the characters in this string from range (beginIndex) to (endIndex-1).  Does not modify the string it is called on.
      * @param beginIndex the index of the first character to include in the returned substring
      * @param endIndex the index after the final character to include in the returned substring (if set to MUSCLE_NO_LIMIT, or any other too-large-value,
      *                 returned substring will include thi entire string starting with (beginIndex)
      */
-   String Substring(uint32 beginIndex, uint32 endIndex) const {return String(*this, beginIndex, endIndex);}
+   MUSCLE_NODISCARD String Substring(uint32 beginIndex, uint32 endIndex) const {return String(*this, beginIndex, endIndex);}
 
    /** Returns a string that consists of only the last part of this string, starting with the first character after the last instance of (markerString).
     *  If (markerString) is not found in the string, then this entire String is returned.
@@ -737,14 +737,14 @@ public:
     *  Does not modify the string it is called on.
     *  @param markerString the substring to return the suffix string that follows
     */
-   String Substring(const String & markerString) const
+   MUSCLE_NODISCARD String Substring(const String & markerString) const
    {
       int idx = LastIndexOf(markerString);
       return (idx >= 0) ? String(*this, idx+markerString.Length()) : *this;
    }
 
    /** @copydoc String::Substring(const String &) const */
-   String Substring(const char * markerString) const
+   MUSCLE_NODISCARD String Substring(const char * markerString) const
    {
       int idx = LastIndexOf(markerString);
       return (idx >= 0) ? String(*this, idx+(int)strlen(markerString)) : *this;  // if (idx >= 0), then we know markerString is non-NULL
@@ -757,22 +757,22 @@ public:
     *  @param beginIndex the first character in our string to search at
     *  @param markerString the substring to return the suffix string that follows
     */
-   String Substring(uint32 beginIndex, const String & markerString) const {return String(*this, beginIndex, (uint32) IndexOf(markerString, beginIndex));}
+   MUSCLE_NODISCARD String Substring(uint32 beginIndex, const String & markerString) const {return String(*this, beginIndex, (uint32) IndexOf(markerString, beginIndex));}
 
    /** @copydoc String::Substring(uint32, const String &) const */
-   String Substring(uint32 beginIndex, const char * markerString) const {return String(*this, beginIndex, (uint32) IndexOf(markerString, beginIndex));}
+   MUSCLE_NODISCARD String Substring(uint32 beginIndex, const char * markerString) const {return String(*this, beginIndex, (uint32) IndexOf(markerString, beginIndex));}
 
    /** Returns an all lower-case version of this string.  Does not modify the string it is called on. */
-   String ToLowerCase() const;
+   MUSCLE_NODISCARD String ToLowerCase() const;
 
    /** Returns an all upper-case version of this string.  Does not modify the string it is called on. */
-   String ToUpperCase() const;
+   MUSCLE_NODISCARD String ToUpperCase() const;
 
    /** Returns a version of this string where All Words Are In Lower Case Except For The First Letter. */
-   String ToMixedCase() const;
+   MUSCLE_NODISCARD String ToMixedCase() const;
 
    /** Returns an version of this string that has all leading and trailing whitespace removed.  Does not modify the string it is called on. */
-   String Trim() const;
+   MUSCLE_NODISCARD String Trim() const;
 
    /** Swaps the state of this string with (swapWithMe).  Very efficient since little or no data copying is required.
      * @param swapWithMe the String to swap contents with
@@ -806,130 +806,130 @@ public:
      * @param s the String to compare this string to
      * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
-   int CompareToIgnoreCase(const String & s) const {return Strcasecmp(Cstr(), s());}
+   MUSCLE_NODISCARD int CompareToIgnoreCase(const String & s) const {return Strcasecmp(Cstr(), s());}
 
    /** Like CompareTo(), but case insensitive.
      * @param s the String to compare this string to
      * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
-   int CompareToIgnoreCase(const char * s) const {return Strcasecmp(Cstr(), s?s:"");}
+   MUSCLE_NODISCARD int CompareToIgnoreCase(const char * s) const {return Strcasecmp(Cstr(), s?s:"");}
 
    /** Like NumericAwareCompareTo(), but case insensitive.
      * @param s the String to compare this string to
      * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
-   int NumericAwareCompareToIgnoreCase(const String & s) const {return NumericAwareStrcasecmp(Cstr(), s());}
+   MUSCLE_NODISCARD int NumericAwareCompareToIgnoreCase(const String & s) const {return NumericAwareStrcasecmp(Cstr(), s());}
 
    /** Like NumericAwareCompareTo(), but case insensitive.
      * @param s the String to compare this string to
      * @returns 0 if the two strings are equal, a negative value if this string is "first", or a positive value of (rhs) is "first"
      */
-   int NumericAwareCompareToIgnoreCase(const char * s) const {return NumericAwareStrcasecmp(Cstr(), s?s:"");}
+   MUSCLE_NODISCARD int NumericAwareCompareToIgnoreCase(const char * s) const {return NumericAwareStrcasecmp(Cstr(), s?s:"");}
 
    /** Like EndsWith(), but case insensitive.
      * @param c a character to check for at the end of this String.
      */
-   bool EndsWithIgnoreCase(char c) const {return (HasChars())&&(tolower(Cstr()[_length-1]) == tolower(c));}
+   MUSCLE_NODISCARD bool EndsWithIgnoreCase(char c) const {return (HasChars())&&(tolower(Cstr()[_length-1]) == tolower(c));}
 
    /** Like EndsWith(), but case insensitive.
      * @param s a suffix to check for at the end of this String.
      */
-   bool EndsWithIgnoreCase(const String & s) const {return ((Length() >= s.Length())&&(Strcasecmp(Cstr()+(Length()-s.Length()), s()) == 0));}
+   MUSCLE_NODISCARD bool EndsWithIgnoreCase(const String & s) const {return ((Length() >= s.Length())&&(Strcasecmp(Cstr()+(Length()-s.Length()), s()) == 0));}
 
    /** Like EndsWith(), but case insensitive.
      * @param s a suffix to check for at the end of this String.
      */
-   bool EndsWithIgnoreCase(const char * s) const;
+   MUSCLE_NODISCARD bool EndsWithIgnoreCase(const char * s) const;
 
    /** Like Equals(), but case insensitive.
      * @param s a string to check for (case-insensitive) equality with this String
      */
-   bool EqualsIgnoreCase(const String & s) const {return ((this==&s)||((Length()==s.Length())&&(Strcasecmp(Cstr(), s()) == 0)));}
+   MUSCLE_NODISCARD bool EqualsIgnoreCase(const String & s) const {return ((this==&s)||((Length()==s.Length())&&(Strcasecmp(Cstr(), s()) == 0)));}
 
    /** Like Equals(), but case insensitive.
      * @param s a string to check for (case-insensitive) equality with this String
      */
-   bool EqualsIgnoreCase(const char * s) const {if (s==NULL) s=""; return ((Cstr()==s)||(Strcasecmp(Cstr(), s) == 0));}
+   MUSCLE_NODISCARD bool EqualsIgnoreCase(const char * s) const {if (s==NULL) s=""; return ((Cstr()==s)||(Strcasecmp(Cstr(), s) == 0));}
 
    /** Like Equals(), but case insensitive.
      * @param c a character to check for (case-insensitive) equality with this String.
      */
-   bool EqualsIgnoreCase(char c) const {return (_length==1)&&(tolower(Cstr()[0])==tolower(c));}
+   MUSCLE_NODISCARD bool EqualsIgnoreCase(char c) const {return (_length==1)&&(tolower(Cstr()[0])==tolower(c));}
 
    /** Like Contains(), but case insensitive.
      * @param s A String to look for in this string.
      * @param f Index of the first character to start searching at in this String.  Defaults to zero.
      */
-   bool ContainsIgnoreCase(const String & s, uint32 f = 0) const {return (IndexOfIgnoreCase(s, f) >= 0);}
+   MUSCLE_NODISCARD bool ContainsIgnoreCase(const String & s, uint32 f = 0) const {return (IndexOfIgnoreCase(s, f) >= 0);}
 
    /** Like Contains(), but case insensitive.
      * @param s A String to look for in this string.
      * @param f Index of the first character to start searching at in this String.  Defaults to zero.
      */
-   bool ContainsIgnoreCase(const char * s, uint32 f = 0) const {return (IndexOfIgnoreCase(s, f) >= 0);}
+   MUSCLE_NODISCARD bool ContainsIgnoreCase(const char * s, uint32 f = 0) const {return (IndexOfIgnoreCase(s, f) >= 0);}
 
    /** Like Contains(), but case insensitive.
      * @param ch A character to look for in this string.
      * @param f Index of the first character to start searching at in this String.  Defaults to zero.
      */
-   bool ContainsIgnoreCase(char ch, uint32 f = 0) const {return (IndexOfIgnoreCase(ch, f) >= 0);}
+   MUSCLE_NODISCARD bool ContainsIgnoreCase(char ch, uint32 f = 0) const {return (IndexOfIgnoreCase(ch, f) >= 0);}
 
    /** Like IndexOf(), but case insensitive.
      * @param s A String to look for in this string.
      * @param f Index of the first character to start searching at in this String.
      */
-   int IndexOfIgnoreCase(const String & s, uint32 f = 0) const;
+   MUSCLE_NODISCARD int IndexOfIgnoreCase(const String & s, uint32 f = 0) const;
 
    /** Like IndexOf(), but case insensitive.
      * @param s A string to look for in this string.
      * @param f Index of the first character to start searching at in this String.
      */
-   int IndexOfIgnoreCase(const char * s, uint32 f = 0) const;
+   MUSCLE_NODISCARD int IndexOfIgnoreCase(const char * s, uint32 f = 0) const;
 
    /** Like IndexOf(), but case insensitive.
      * @param ch A character to look for in this string.
      * @param f Index of the first character to start searching at in this String.  Defaults to zero.
      */
-   int IndexOfIgnoreCase(char ch, uint32 f = 0) const;
+   MUSCLE_NODISCARD int IndexOfIgnoreCase(char ch, uint32 f = 0) const;
 
    /** Like LastIndexOf(), but case insensitive.
      * @param s A String to look for in this string.
      * @param f Index of the first character to start searching at in this String.  Defaults to zero.
      */
-   int LastIndexOfIgnoreCase(const String & s, uint32 f = 0) const;
+   MUSCLE_NODISCARD int LastIndexOfIgnoreCase(const String & s, uint32 f = 0) const;
 
    /** Like LastIndexOf(), but case insensitive.
      * @param s A string to look for in this string.
      * @param f Index of the first character to start searching at in this String.  Defaults to zero.
      */
-   int LastIndexOfIgnoreCase(const char * s, uint32 f = 0) const;
+   MUSCLE_NODISCARD int LastIndexOfIgnoreCase(const char * s, uint32 f = 0) const;
 
    /** Like LastIndexOf(), but case insensitive.
      * @param ch A character to look for in this string.
      * @param f Index of the first character to start searching at in this String.  Defaults to zero.
      */
-   int LastIndexOfIgnoreCase(char ch, uint32 f = 0) const;
+   MUSCLE_NODISCARD int LastIndexOfIgnoreCase(char ch, uint32 f = 0) const;
 
    /** Like StartsWith(), but case insensitive.
      * @param c The character to see if this string starts with or not
      */
-   bool StartsWithIgnoreCase(char c) const {return (_length > 0)&&(tolower(Cstr()[0]) == tolower(c));}
+   MUSCLE_NODISCARD bool StartsWithIgnoreCase(char c) const {return (_length > 0)&&(tolower(Cstr()[0]) == tolower(c));}
 
    /** Like StartsWith(), but case insensitive.
      * @param s The prefix to see whether this string starts with or not
      */
-   bool StartsWithIgnoreCase(const String & s) const {return ((Length() >= s.Length())&&(Strncasecmp(Cstr(), s(), s.Length()) == 0));}
+   MUSCLE_NODISCARD bool StartsWithIgnoreCase(const String & s) const {return ((Length() >= s.Length())&&(Strncasecmp(Cstr(), s(), s.Length()) == 0));}
 
    /** Like StartsWith(), but case insensitive.
      * @param s The prefix to see whether this string starts with or not
      */
-   bool StartsWithIgnoreCase(const char * s) const {if (s==NULL) s=""; return (Strncasecmp(Cstr(), s, strlen(s)) == 0);}
+   MUSCLE_NODISCARD bool StartsWithIgnoreCase(const char * s) const {if (s==NULL) s=""; return (Strncasecmp(Cstr(), s, strlen(s)) == 0);}
 
    /** @copydoc DoxyTemplate::HashCode() const */
-   inline uint32 HashCode() const {return CalculateHashCode(Cstr(), Length());}
+   MUSCLE_NODISCARD inline uint32 HashCode() const {return CalculateHashCode(Cstr(), Length());}
 
    /** @copydoc DoxyTemplate::HashCode64() const */
-   inline uint64 HashCode64() const {return CalculateHashCode64(Cstr(), Length());}
+   MUSCLE_NODISCARD inline uint64 HashCode64() const {return CalculateHashCode64(Cstr(), Length());}
 
    /** Replaces all instances of (oldChar) in this string with (newChar).
      * @param replaceMe The character to search for.
@@ -947,7 +947,7 @@ public:
      * @param fromIndex Index of the first character to start replacing characters at.  Defaults to 0.
      * @returns The modified string.
      */
-   String WithReplacements(char replaceMe, char withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT, uint32 fromIndex=0) const;
+   MUSCLE_NODISCARD String WithReplacements(char replaceMe, char withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT, uint32 fromIndex=0) const;
 
    /** Replaces all instances of (replaceMe) in this string with (withMe).
      * @param replaceMe The substring to search for.
@@ -965,7 +965,7 @@ public:
      * @param fromIndex Index of the first character to start replacing characters at.  Defaults to 0.
      * @returns The modified string.
      */
-   String WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT, uint32 fromIndex=0) const;
+   MUSCLE_NODISCARD String WithReplacements(const String & replaceMe, const String & withMe, uint32 maxReplaceCount = MUSCLE_NO_LIMIT, uint32 fromIndex=0) const;
 
    /** Replaces all instances in this String of each key in (beforeToAfter) with its corresponding value.
      * @param beforeToAfter a table of before/after pairs to replace.
@@ -988,7 +988,7 @@ public:
      *       String("1,2,3,4").WithReplacements("1","2").WithReplacements("2","3") would unhelpfully return "3,3,3,4"
      *       while the corresponding single call to this method would return the desired result "2,3,3,4".
      */
-   String WithReplacements(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD String WithReplacements(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount = MUSCLE_NO_LIMIT) const;
 
    /** Returns a String equal to this one, except with all instances of any of the characters specified in
      * (charsToEscape) escaped by inserting an instance of (escapeChar) just before them (unless they already
@@ -1001,7 +1001,7 @@ public:
      *       class; ie you'd use this method to add escape-characters to literals in a String that you plan
      *       to parse later on using a StringTokenizer to which you have passed the same (escapeChar) argument.
      */
-   String WithCharsEscaped(const char * charsToEscape, char escapeChar = '\\') const;
+   MUSCLE_NODISCARD String WithCharsEscaped(const char * charsToEscape, char escapeChar = '\\') const;
 
    /** Same as the previous method, except this version lets you specify a single escape-character directly as a char.
      * @param charToEscape the character to you want escaped in the String.
@@ -1011,7 +1011,7 @@ public:
      *       class; ie you'd use this method to add escape-characters to literals in a String that you plan
      *       to parse later on using a StringTokenizer to which you have passed the same (escapeChar) argument.
      */
-   String WithCharsEscaped(char charToEscape, char escapeChar = '\\') const
+   MUSCLE_NODISCARD String WithCharsEscaped(char charToEscape, char escapeChar = '\\') const
    {
       const char s[] = {charToEscape, '\0'};
       return WithCharsEscaped(s, escapeChar);
@@ -1023,17 +1023,17 @@ public:
    /** Part of the Flattenable pseudo-interface.
     *  @return false
     */
-   bool IsFixedSize() const {return false;}
+   MUSCLE_NODISCARD bool IsFixedSize() const {return false;}
 
    /** Part of the Flattenable pseudo-interface.
     *  @return B_STRING_TYPE
     */
-   uint32 TypeCode() const {return B_STRING_TYPE;}
+   MUSCLE_NODISCARD uint32 TypeCode() const {return B_STRING_TYPE;}
 
    /** Part of the Flattenable pseudo-interface.
     *  @return Length()+1  (the +1 is for the terminating NUL byte)
     */
-   uint32 FlattenedSize() const {return Length()+1;}
+   MUSCLE_NODISCARD uint32 FlattenedSize() const {return Length()+1;}
 
    /** Part of the Flattenable pseudo-interface.  Flattens our string into (buffer).
     *  @param flat the DataFlattener to use to write out the flattened data bytes.
@@ -1080,62 +1080,62 @@ public:
      *            more than 256 bytes being written.
      * @returns a new String with the appropriate tokens replaced.
      */
-   String Arg(bool value, const char * fmt = "%s") const;
+   MUSCLE_NODISCARD String Arg(bool value, const char * fmt = "%s") const;
 
    /** As above, but for char values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(char value, const char * fmt = "%i") const;
+   MUSCLE_NODISCARD String Arg(char value, const char * fmt = "%i") const;
 
    /** As above, but for unsigned char values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(unsigned char value, const char * fmt = "%u") const;
+   MUSCLE_NODISCARD String Arg(unsigned char value, const char * fmt = "%u") const;
 
    /** As above, but for short values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(short value, const char * fmt = "%i") const;
+   MUSCLE_NODISCARD String Arg(short value, const char * fmt = "%i") const;
 
    /** As above, but for unsigned shot values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(unsigned short value, const char * fmt = "%u") const;
+   MUSCLE_NODISCARD String Arg(unsigned short value, const char * fmt = "%u") const;
 
    /** As above, but for int values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(int value, const char * fmt = "%i") const;
+   MUSCLE_NODISCARD String Arg(int value, const char * fmt = "%i") const;
 
    /** As above, but for unsigned int values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(unsigned int value, const char * fmt = "%u") const;
+   MUSCLE_NODISCARD String Arg(unsigned int value, const char * fmt = "%u") const;
 
    /** As above, but for long values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(long value, const char * fmt = "%li") const;
+   MUSCLE_NODISCARD String Arg(long value, const char * fmt = "%li") const;
 
    /** As above, but for unsigned long values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(unsigned long value, const char * fmt = "%lu") const;
+   MUSCLE_NODISCARD String Arg(unsigned long value, const char * fmt = "%lu") const;
 
    /** As above, but for long long values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(long long value, const char * fmt = INT64_FORMAT_SPEC) const;
+   MUSCLE_NODISCARD String Arg(long long value, const char * fmt = INT64_FORMAT_SPEC) const;
 
    /** As above, but for unsigned long long values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(unsigned long long value, const char * fmt = UINT64_FORMAT_SPEC) const;
+   MUSCLE_NODISCARD String Arg(unsigned long long value, const char * fmt = UINT64_FORMAT_SPEC) const;
 
    /** As above, but for float values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(float value, const char * fmt) const;
+   MUSCLE_NODISCARD String Arg(float value, const char * fmt) const;
 
    /** As above, but for float values.
      * Returns a String representation of the given floating point value,
@@ -1149,12 +1149,12 @@ public:
      * @note Trailing zeroes will be omitted from the string, as will the decimal point itself, if it
      *       would otherwise be the last character in the String.
      */
-   String Arg(float f, uint32 minDigitsAfterDecimal = 0, uint32 maxDigitsAfterDecimal = MUSCLE_NO_LIMIT) const {return Arg((double)f, minDigitsAfterDecimal, maxDigitsAfterDecimal);}
+   MUSCLE_NODISCARD String Arg(float f, uint32 minDigitsAfterDecimal = 0, uint32 maxDigitsAfterDecimal = MUSCLE_NO_LIMIT) const {return Arg((double)f, minDigitsAfterDecimal, maxDigitsAfterDecimal);}
 
    /** As above, but for double values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(double value, const char * fmt) const;
+   MUSCLE_NODISCARD String Arg(double value, const char * fmt) const;
 
    /** As above, but for double values.
      * Returns a String representation of the given floating point value,
@@ -1168,86 +1168,86 @@ public:
      * @note Trailing zeroes will be omitted from the string, as will the decimal point itself, if it
      *       would otherwise be the last character in the String.
      */
-   String Arg(double f, uint32 minDigitsAfterDecimal = 0, uint32 maxDigitsAfterDecimal = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD String Arg(double f, uint32 minDigitsAfterDecimal = 0, uint32 maxDigitsAfterDecimal = MUSCLE_NO_LIMIT) const;
 
    /** As above, but for string values.
      * @param value the string to replace any instances of %1 with (or %2 if %1 isn't present, or etc)
      */
-   String Arg(const String & value) const;
+   MUSCLE_NODISCARD String Arg(const String & value) const;
 
    /** As above, but for Point values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(const Point & value, const char * fmt = "%f,%f") const;
+   MUSCLE_NODISCARD String Arg(const Point & value, const char * fmt = "%f,%f") const;
 
    /** As above, but for Rect values.
      * @copydoc Arg(bool, const char *) const
      */
-   String Arg(const Rect & value, const char * fmt = "%f,%f,%f,%f") const;
+   MUSCLE_NODISCARD String Arg(const Rect & value, const char * fmt = "%f,%f,%f,%f") const;
 
    /** As above, but for C-string values.
      * @param value the string to replace any instances of "%1" with (or "%2" if "%1" isn't present, or etc)
      */
-   String Arg(const char * value) const;
+   MUSCLE_NODISCARD String Arg(const char * value) const;
 
    /** As above, but for non-const C-string values.
      * @param value the string to replace any instances of "%1" with (or "%2" if "%1" isn't present, or etc)
      */
-   String Arg(char * value) const {return Arg((const char *)value);}
+   MUSCLE_NODISCARD String Arg(char * value) const {return Arg((const char *)value);}
 
    /** As above, but for printing pointer values.
      * @param value the pointer-value whose string representation we should replace any instances of %1 with (or %2 if %1 isn't present, or etc)
      */
-   String Arg(const void * value) const;
+   MUSCLE_NODISCARD String Arg(const void * value) const;
 
    /** A templated convenience-method for any class-object with a ToString() method that returns a String.
      * Equivalent to calling Arg(t.ToString()).
      * @param t Reference to the class object to call ToString() on.
      */
-   template<class T> String Arg(const T & t) const {return Arg(t.ToString());}
+   template<class T> MUSCLE_NODISCARD String Arg(const T & t) const {return Arg(t.ToString());}
 
    /** A templated convenience-method for a pointer of any type.
      * Equivalent to calling Arg((const void *)tpr).
      * @param tptr A pointer of some arbitrary type.
      */
-   template<class T> String Arg(const T * tptr) const {return Arg((const void *)tptr);}
+   template<class T> MUSCLE_NODISCARD String Arg(const T * tptr) const {return Arg((const void *)tptr);}
 
    /** A templated convenience-method for a const pointer of any type.
      * Equivalent to calling Arg((const T *)tpr).
      * @param tptr A pointer of some arbitrary type.
      */
-   template<class T> String Arg(T * tptr) const {return Arg((const T *)tptr);}
+   template<class T> MUSCLE_NODISCARD String Arg(T * tptr) const {return Arg((const T *)tptr);}
 
    /** If this string already ends with the specified character, returns this string verbatim.
      * Otherwise, returns a String equivalent to this one but with the specified character appended.
      * @param c The char we want to be sure is at the end of the returned String.
      */
-   String WithSuffix(char c) const {return EndsWith(c) ? *this : Append(c);}
+   MUSCLE_NODISCARD String WithSuffix(char c) const {return EndsWith(c) ? *this : Append(c);}
 
    /** If this string already ends with the specified string, returns this string verbatim.
      * Otherwise, returns a String equivalent to this one but with the specified string appended.
      * @param str The string we want to be sure is at the end of the returned String.
      */
-   String WithSuffix(const String & str) const {return EndsWith(str) ? *this : Append(str);}
+   MUSCLE_NODISCARD String WithSuffix(const String & str) const {return EndsWith(str) ? *this : Append(str);}
 
    /** If this string already begins with the specified character, returns this string verbatim.
      * Otherwise, returns a String equivalent to this one but with the specified character prepended.
      * @param c The character we want to be sure is at the beginning of the returned String.
      */
-   String WithPrefix(char c) const {return StartsWith(c) ? *this : Prepend(c);}
+   MUSCLE_NODISCARD String WithPrefix(char c) const {return StartsWith(c) ? *this : Prepend(c);}
 
    /** If this string already begins with the specified string, returns this string verbatim.
      * Otherwise, returns a String equivalent to this one but with the specified string prepended.
      * @param str The string we want to be sure is at the beginning of the returned String.
      */
-   String WithPrefix(const String & str) const {return StartsWith(str) ? *this : Prepend(str);}
+   MUSCLE_NODISCARD String WithPrefix(const String & str) const {return StartsWith(str) ? *this : Prepend(str);}
 
    /** Returns a String like this one, but with any characters (c) removed from the end.
      * @param c The char we want to be sure is not at the end of the returned String.
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
      *                    Defaults to MUSCLE_NO_LIMIT, ie remove all trailing (c) chars.
      */
-   String WithoutSuffix(char c, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD String WithoutSuffix(char c, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
    /** Returns a String like this one, but with any instances of (str) removed from the end.
      * @param str The substring we want to be sure is not at the end of the returned String.
@@ -1255,14 +1255,14 @@ public:
      *                    Defaults to MUSCLE_NO_LIMIT, ie remove all trailing (str) substrings.
      * @note if (str) is empty, this method will return (*this).
      */
-   String WithoutSuffix(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD String WithoutSuffix(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
    /** Returns a String like this one, but with any characters (c) removed from the beginning.
      * @param c The char we want to be sure is not at the beginning of the returned String.
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
      *                    Defaults to MUSCLE_NO_LIMIT, ie remove all starting (c) chars.
      */
-   String WithoutPrefix(char c, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD String WithoutPrefix(char c, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
    /** Returns a String like this one, but with any instances of (str) removed from the beginning.
      * @param str The substring we want to be sure is not at the beginning of the returned String.
@@ -1270,14 +1270,14 @@ public:
      *                    Defaults to MUSCLE_NO_LIMIT, ie remove all starting (str) substrings.
      * @note if (str) is empty, this method will return (*this).
      */
-   String WithoutPrefix(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD String WithoutPrefix(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
    /** Returns a String like this one, but with any characters (c) removed from the end.
      * @param c The char we want to be sure is not at the end of the returned String (case-insensitive).
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
      *                    Defaults to MUSCLE_NO_LIMIT, ie remove all trailing (c) chars.
      */
-   String WithoutSuffixIgnoreCase(char c, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD String WithoutSuffixIgnoreCase(char c, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
    /** Returns a String like this one, but with any instances of (str) removed from the end.
      * @param str The substring we want to be sure is not at the end of the returned String (case-insensitive).
@@ -1285,14 +1285,14 @@ public:
      *                    Defaults to MUSCLE_NO_LIMIT, ie remove all trailing (str) substrings.
      * @note if (str) is empty, this method will return (*this).
      */
-   String WithoutSuffixIgnoreCase(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD String WithoutSuffixIgnoreCase(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
    /** Returns a String like this one, but with any characters (c) removed from the beginning.
      * @param c The char we want to be sure is not at the beginning of the returned String (case-insensitive).
      * @param maxToRemove Maximum number of instances of (c) to remove from the returned String.
      *                    Defaults to MUSCLE_NO_LIMIT, ie remove all starting (c) chars.
      */
-   String WithoutPrefixIgnoreCase(char c, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD String WithoutPrefixIgnoreCase(char c, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
    /** Returns a String like this one, but with any instances of (str) removed from the beginning.
      * @param str The substring we want to be sure is not at the beginning of the returned String (case-insensitive).
@@ -1300,7 +1300,7 @@ public:
      *                    Defaults to MUSCLE_NO_LIMIT, ie remove all starting (str) substrings.
      * @note if (str) is empty, this method will return (*this).
      */
-   String WithoutPrefixIgnoreCase(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD String WithoutPrefixIgnoreCase(const String & str, uint32 maxToRemove = MUSCLE_NO_LIMIT) const;
 
    /** Returns a String equal to this one, but with any integer/numeric suffix removed.
      * For example, if you called this method on the String "Joe-54", this method would return "Joe".
@@ -1308,31 +1308,31 @@ public:
      *                                 If there was no numeric suffix, zero will be written here.
      * @note that negative numeric suffixes aren't supported -- ie plus or minus is not considered to be part of the numeric-suffix.
      */
-   String WithoutNumericSuffix(uint32 * optRetRemovedSuffixValue = NULL) const;
+   MUSCLE_NODISCARD String WithoutNumericSuffix(uint32 * optRetRemovedSuffixValue = NULL) const;
 
    /** If this string ends in a numeric value, returns that value; otherwise returns (defaultValue).
      *  For example, ParseNumericSuffix("Joe-54") would return 54.
      *  @param defaultValue the value to return if no numeric suffix is found.  Defaults to zero.
      *  @note that negative numeric suffixes aren't supported -- ie plus or minus is not considered to be part of the numeric-suffix.
      */
-   uint32 ParseNumericSuffix(uint32 defaultValue = 0) const;
+   MUSCLE_NODISCARD uint32 ParseNumericSuffix(uint32 defaultValue = 0) const;
 
    /** Returns a 32-bit checksum corresponding to this String's contents.
      * Note that this method method is O(N).
      */
-   uint32 CalculateChecksum() const {return muscle::CalculateChecksum((const uint8 *) Cstr(), Length());}
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const {return muscle::CalculateChecksum((const uint8 *) Cstr(), Length());}
 
    /** Returns true iff the given pointer points into our held character array.
      * @param s A character pointer.  It will not be dereferenced by this call.
      */
-   bool IsCharInLocalArray(const char * s) const {const char * b = Cstr(); return muscleInRange(s, b, b+_length);}
+   MUSCLE_NODISCARD bool IsCharInLocalArray(const char * s) const {const char * b = Cstr(); return muscleInRange(s, b, b+_length);}
 
 private:
-   bool IsSpaceChar(char c) const {return ((c==' ')||(c=='\t')||(c=='\r')||(c=='\n'));}
+   MUSCLE_NODISCARD bool IsSpaceChar(char c) const {return ((c==' ')||(c=='\t')||(c=='\r')||(c=='\n'));}
    status_t EnsureBufferSize(uint32 newBufLen, bool retainValue, bool allowShrink);
-   String ArgAux(const char * buf) const;
-   bool IsArrayDynamicallyAllocated() const {return (_bufferLen>sizeof(_strData._smallBuffer));}
-   char * GetBuffer() {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
+   MUSCLE_NODISCARD String ArgAux(const char * buf) const;
+   MUSCLE_NODISCARD bool IsArrayDynamicallyAllocated() const {return (_bufferLen>sizeof(_strData._smallBuffer));}
+   MUSCLE_NODISCARD char * GetBuffer() {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
    void ClearSmallBuffer() {memset(_strData._smallBuffer, 0, sizeof(_strData._smallBuffer));}
    void WriteNULTerminatorByte() {GetBuffer()[_length] = '\0';}
    int32 ReplaceAux(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount, String & writeTo) const;
@@ -1367,7 +1367,7 @@ public:
      * @param s1 the first String to compare
      * @param s2 the second String to compare
      */
-   int Compare(const String & s1, const String & s2, void *) const {return s1.CompareToIgnoreCase(s2);}
+   MUSCLE_NODISCARD int Compare(const String & s1, const String & s2, void *) const {return s1.CompareToIgnoreCase(s2);}
 };
 
 /** A custom compare functor for numeric-aware comparisons of Strings. */
@@ -1378,7 +1378,7 @@ public:
      * @param s1 the first String to compare
      * @param s2 the second String to compare
      */
-   int Compare(const String & s1, const String & s2, void *) const {return s1.NumericAwareCompareTo(s2);}
+   MUSCLE_NODISCARD int Compare(const String & s1, const String & s2, void *) const {return s1.NumericAwareCompareTo(s2);}
 };
 
 /** A custom compare functor for case-insensitive numeric-aware comparisons of Strings. */
@@ -1389,7 +1389,7 @@ public:
      * @param s1 the first String to compare
      * @param s2 the second String to compare
      */
-   int Compare(const String & s1, const String & s2, void *) const {return s1.NumericAwareCompareToIgnoreCase(s2);}
+   MUSCLE_NODISCARD int Compare(const String & s1, const String & s2, void *) const {return s1.NumericAwareCompareToIgnoreCase(s2);}
 };
 
 /** Convenience method:  returns a string with no characters in it (a.k.a. "") */

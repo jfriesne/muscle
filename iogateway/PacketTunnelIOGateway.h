@@ -43,7 +43,7 @@ public:
      */
    PacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway = AbstractMessageIOGatewayRef(), uint32 maxTransferUnit = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, uint32 magic = DEFAULT_TUNNEL_IOGATEWAY_MAGIC);
 
-   virtual bool HasBytesToOutput() const {return ((_currentOutputBuffers.HasItems())||(GetOutgoingMessageQueue().HasItems()));}
+   MUSCLE_NODISCARD virtual bool HasBytesToOutput() const {return ((_currentOutputBuffers.HasItems())||(GetOutgoingMessageQueue().HasItems()));}
 
    /** Sets the maximum size message we will allow ourself to receive.  Defaults to MUSCLE_NO_LIMIT.
      * @param messageSize new maximum incoming message size, in bytes, or MUSCLE_NO_LIMIT to not enforce any maximum
@@ -51,7 +51,7 @@ public:
    void SetMaxIncomingMessageSize(uint32 messageSize) {_maxIncomingMessageSize = messageSize;}
 
    /** Returns the current setting of the maximum-message-size value.  Default to MUSCLE_NO_LIMIT. */
-   uint32 GetMaxIncomingMessageSize() const {return _maxIncomingMessageSize;}
+   MUSCLE_NODISCARD uint32 GetMaxIncomingMessageSize() const {return _maxIncomingMessageSize;}
 
    /** If set to true, any incoming UDP packets that aren't in our packetizer-format will be
      * be interpreted as separate, independent incoming messages.  If false (the default state),
@@ -61,7 +61,7 @@ public:
    void SetAllowMiscIncomingData(bool allowMisc) {_allowMiscData = allowMisc;}
 
    /** Returns true iff we are accepting non-packetized incoming UDP messages. */
-   bool GetAllowMiscIncomingData() const {return _allowMiscData;}
+   MUSCLE_NODISCARD bool GetAllowMiscIncomingData() const {return _allowMiscData;}
 
    /** Sets the source exclusion ID number for this gateway.  The source exclusion ID is
      * useful when you are broadcasting in such a way that your broadcast packets will come
@@ -74,7 +74,7 @@ public:
    void SetSourceExclusionID(uint32 sexID) {_sexID = sexID;}
 
    /** Returns the current source-exclusion ID.  See above for details. */
-   uint32 GetSourceExclusionID() const {return _sexID;}
+   MUSCLE_NODISCARD uint32 GetSourceExclusionID() const {return _sexID;}
 
 protected:
    /** Implemented to receive packets from various sources and re-assemble them together into

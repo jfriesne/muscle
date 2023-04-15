@@ -40,16 +40,16 @@ public:
    ~Point() {/* empty */}
 
    /** convenience method to set the x value of this Point */
-   inline float & x()       {return (*this)[0];}
+   MUSCLE_NODISCARD inline float & x()       {return (*this)[0];}
 
    /** convenience method to get the x value of this Point */
-   inline float   x() const {return (*this)[0];}
+   MUSCLE_NODISCARD inline float   x() const {return (*this)[0];}
 
    /** convenience method to set the y value of this Point */
-   inline float & y()       {return (*this)[1];}
+   MUSCLE_NODISCARD inline float & y()       {return (*this)[1];}
 
    /** convenience method to get the y value of this Point */
-   inline float   y() const {return (*this)[1];}
+   MUSCLE_NODISCARD inline float   y() const {return (*this)[1];}
 
    /** Sets a new value for the point.
     *  @param ax The new x value
@@ -83,16 +83,16 @@ public:
    }
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns true */
-   bool IsFixedSize() const {return true;}
+   MUSCLE_NODISCARD bool IsFixedSize() const {return true;}
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns B_POINT_TYPE */
-   uint32 TypeCode() const {return B_POINT_TYPE;}
+   MUSCLE_NODISCARD uint32 TypeCode() const {return B_POINT_TYPE;}
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns 2*sizeof(float) */
-   static uint32 FlattenedSize() {return GetNumItemsInTuple()*sizeof(float);}
+   MUSCLE_NODISCARD static uint32 FlattenedSize() {return GetNumItemsInTuple()*sizeof(float);}
 
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
-   uint32 CalculateChecksum() const {return CalculateChecksumForFloat(x()) + (3*CalculateChecksumForFloat(y()));}
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const {return CalculateChecksumForFloat(x()) + (3*CalculateChecksumForFloat(y()));}
 
    /** @copydoc DoxyTemplate::Flatten(DataFlattener) const */
    void Flatten(DataFlattener flat) const {flat.WriteFloats(GetItemPointer(0), GetNumItemsInTuple());}
@@ -104,20 +104,20 @@ public:
      * selected by the AutoChooseHashFunctor template logic, instead of the PODHashFunctor.  (Unfortunately
      * AutoChooseHashFunctor doesn't check the superclasses when it looks for a HashCode method)
      */
-   uint32 HashCode() const {return Tuple<2,float>::HashCode();}
+   MUSCLE_NODISCARD uint32 HashCode() const {return Tuple<2,float>::HashCode();}
 
    /** Returns the distance between this point and (pt).
      * @param pt The point we want to calculate the distance to.
      * @returns a non-negative distance value.
      */
-   float GetDistanceTo(const Point & pt) const {return (float)sqrt(GetDistanceToSquared(pt));}
+   MUSCLE_NODISCARD float GetDistanceTo(const Point & pt) const {return (float)sqrt(GetDistanceToSquared(pt));}
 
    /** Returns the square of the distance between this point and (pt).
      * @param pt The point we want to calculate the distance to.
      * @returns a non-negative distance-squared value.
      * @note this method is more efficient that calling GetDistanceTo(), since it doesn't have to call sqrt().
      */
-   float GetDistanceToSquared(const Point & pt) const
+   MUSCLE_NODISCARD float GetDistanceToSquared(const Point & pt) const
    {
       const float dx = pt.x()-x();
       const float dy = pt.y()-y();

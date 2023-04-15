@@ -45,24 +45,24 @@ public:
    ByteBuffer & operator=(const ByteBuffer & rhs) {if ((this != &rhs)&&(SetBuffer(rhs.GetNumBytes(), rhs.GetBuffer()).IsError())) Clear(); return *this;}
 
    /** Read/Write Accessor.  Returns a pointer to our held buffer, or NULL if we are not currently holding a buffer. */
-   uint8 * GetBuffer() {return _buffer;}
+   MUSCLE_NODISCARD uint8 * GetBuffer() {return _buffer;}
 
    /** Read-only Accessor.  Returns a pointer to our held buffer, or NULL if we are not currently holding a buffer. */
-   const uint8 * GetBuffer() const {return _buffer;}
+   MUSCLE_NODISCARD const uint8 * GetBuffer() const {return _buffer;}
 
    /** Convenience synonym for GetBuffer(). */
-   const uint8 * operator()() const {return _buffer;}
+   MUSCLE_NODISCARD const uint8 * operator()() const {return _buffer;}
 
    /** Convenience synonym for GetBuffer(). */
-   uint8 * operator()() {return _buffer;}
+   MUSCLE_NODISCARD uint8 * operator()() {return _buffer;}
 
    /** Returns the size of our held buffer, in bytes. */
-   uint32 GetNumBytes() const {return _numValidBytes;}
+   MUSCLE_NODISCARD uint32 GetNumBytes() const {return _numValidBytes;}
 
    /** Returns the number of bytes we have allocated internally.  Note that this
     *  number may be larger than the number of bytes we officially contain (as returned by GetNumBytes())
     */
-   uint32 GetNumAllocatedBytes() {return _numAllocatedBytes;}
+   MUSCLE_NODISCARD uint32 GetNumAllocatedBytes() {return _numAllocatedBytes;}
 
    /** Returns true iff (rhs) is holding data that is byte-for-byte the same as our own data
      * @param rhs the ByteBuffer to compare against
@@ -123,13 +123,13 @@ public:
    /** Returns the contents of this ByteBuffer as a human-readable hexadecimal string
      * @param maxBytesToInclude optional maximum number of byte-values to include in the string.  Defaults to MUSCLE_NO_LIMIT.
      */
-   String ToHexString(uint32 maxBytesToInclude = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD String ToHexString(uint32 maxBytesToInclude = MUSCLE_NO_LIMIT) const;
 
    /** Returns the contents of this ByteBuffer as a human-readable annotated hexadecimal/ASCII string
      * @param maxBytesToInclude optional maximum number of byte-values to include in the string.  Defaults to MUSCLE_NO_LIMIT.
      * @param numColumns if specified non-zero, then the string will be generated with this many bytes per row.  Defaults to 16.
      */
-   String ToAnnotatedHexString(uint32 maxBytesToInclude = MUSCLE_NO_LIMIT, uint32 numColumns = 16) const;
+   MUSCLE_NODISCARD String ToAnnotatedHexString(uint32 maxBytesToInclude = MUSCLE_NO_LIMIT, uint32 numColumns = 16) const;
 
    /** Sets our content using the given byte buffer.
      * @param numBytes Number of bytes to copy in (or just to allocate, if (optBuffer) is NULL).  Defaults to zero bytes (ie, don't allocate a buffer)
@@ -195,7 +195,7 @@ public:
    }
 
    /** Returns a hash code for this ByteBuffer */
-   uint32 HashCode() const {return CalculateHashCode(GetBuffer(), GetNumBytes());}
+   MUSCLE_NODISCARD uint32 HashCode() const {return CalculateHashCode(GetBuffer(), GetNumBytes());}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
@@ -206,9 +206,9 @@ public:
 #endif
 
    // Flattenable interface
-   virtual bool IsFixedSize() const {return false;}
-   virtual uint32 TypeCode() const {return B_RAW_TYPE;}
-   virtual uint32 FlattenedSize() const {return _numValidBytes;}
+   MUSCLE_NODISCARD virtual bool IsFixedSize() const {return false;}
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const {return B_RAW_TYPE;}
+   MUSCLE_NODISCARD virtual uint32 FlattenedSize() const {return _numValidBytes;}
    virtual void Flatten(DataFlattener flat) const {flat.WriteBytes(_buffer, _numValidBytes);}
    virtual bool AllowsTypeCode(uint32 tc) const {(void) tc; return true;}
    virtual status_t Unflatten(DataUnflattener & unflat)
@@ -223,7 +223,7 @@ public:
      * bytes and does not depend on the the allocation-strategy setting or any reserve-bytes
      * that are currently allocated but not valid.
      */
-   uint32 CalculateChecksum() const {return muscle::CalculateChecksum(_buffer, _numValidBytes);}
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const {return muscle::CalculateChecksum(_buffer, _numValidBytes);}
 
    /** Sets our allocation strategy pointer.  Note that you should be careful when you call this,
     *  as changing strategies can lead to allocation/deallocation method mismatches.
@@ -232,12 +232,12 @@ public:
    void SetMemoryAllocationStrategy(IMemoryAllocationStrategy * imas) {_allocStrategy = imas;}
 
    /** Returns the current value of our allocation strategy pointer (may be NULL if the default strategy is in use) */
-   IMemoryAllocationStrategy * GetMemoryAllocationStrategy() const {return _allocStrategy;}
+   MUSCLE_NODISCARD IMemoryAllocationStrategy * GetMemoryAllocationStrategy() const {return _allocStrategy;}
 
    /** Returns true iff (byte) is part of our held buffer of bytes.
      * @param byte a pointer to a byte of data.  This pointer will not be derefenced by this method.
      */
-   bool IsByteInLocalBuffer(const uint8 * byte) const {return ((_buffer)&&(byte >= _buffer)&&(byte < (_buffer+_numValidBytes)));}
+   MUSCLE_NODISCARD bool IsByteInLocalBuffer(const uint8 * byte) const {return ((_buffer)&&(byte >= _buffer)&&(byte < (_buffer+_numValidBytes)));}
 
 protected:
    /** Overridden to set our buffer directly from (copyFrom)'s Flatten() method
@@ -265,7 +265,7 @@ ByteBuffer operator+(const ByteBuffer & lhs, const ByteBuffer & rhs);
 /** This function returns a pointer to a singleton ObjectPool that can be used to minimize the number of
  *  ByteBuffer allocations and frees by recycling the ByteBuffer objects.
  */
-ByteBufferRef::ItemPool * GetByteBufferPool();
+MUSCLE_NODISCARD ByteBufferRef::ItemPool * GetByteBufferPool();
 
 /** Convenience method:  Gets a ByteBuffer from the ByteBuffer pool, makes sure it holds the specified number of bytes, and returns it.
  *  @param numBytes Number of bytes to copy in (or just allocate, if (optBuffer) is NULL).  Defaults to zero bytes (ie retrieve an empty buffer)
@@ -318,7 +318,7 @@ ByteBufferRef GetByteBufferFromPool(SeekableDataIO & dio);
 ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, SeekableDataIO & dio);
 
 /** Convenience method:  returns a read-only reference to an empty ByteBuffer */
-const ByteBuffer & GetEmptyByteBuffer();
+MUSCLE_NODISCARD const ByteBuffer & GetEmptyByteBuffer();
 
 /** Convenience method:  returns a read-only reference to a ByteBuffer that contains no data. */
 ConstByteBufferRef GetEmptyByteBufferRef();
@@ -337,7 +337,7 @@ public:
     *  @param size Number of bytes to allocate
     *  @returns A pointer to the allocated bytes on success, or NULL on failure.
     */
-   virtual void * Malloc(size_t size) = 0;
+   MUSCLE_NODISCARD virtual void * Malloc(size_t size) = 0;
 
    /** Called when a ByteBuffer needs to resize a memory buffer.  This method should be implemented to behave similarly to realloc().
     *  @param ptr Pointer to the buffer to resize, or NULL if there is no current buffer.
@@ -346,7 +346,7 @@ public:
     *  @param retainData If false, the returned buffer need not retain the contents of the old buffer.
     *  @returns A pointer to the new buffer on success, or NULL on failure (or if newSize == 0)
     */
-   virtual void * Realloc(void * ptr, size_t newSize, size_t oldSize, bool retainData) = 0;
+   MUSCLE_NODISCARD virtual void * Realloc(void * ptr, size_t newSize, size_t oldSize, bool retainData) = 0;
 
    /** Called when a ByteBuffer needs to free a memory buffer.  This method should be implemented to behave similarly to free().
     *  @param ptr Pointer to the buffer to free.

@@ -27,7 +27,7 @@ public:
    void SetSlaveGateway(const AbstractMessageIOGatewayRef & slaveGateway) {_slaveGateway = slaveGateway;}
 
    /** Returns our current slave gateway, or a NULL reference if we don't have one. */
-   const AbstractMessageIOGatewayRef & GetSlaveGateway() const {return _slaveGateway;}
+   MUSCLE_NODISCARD const AbstractMessageIOGatewayRef & GetSlaveGateway() const {return _slaveGateway;}
 
 protected:
    /** Handles the received bytes using the slave-gateway (if one is present) or by calling Message::Unflatten() if one isn't.

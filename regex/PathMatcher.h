@@ -23,10 +23,10 @@ public:
    String ToString() const;
 
    /** Returns a read/write reference to our list of StringMatcher references. */
-   const Queue<StringMatcherRef> & GetStringMatchers() const {return _queue;}
+   MUSCLE_NODISCARD const Queue<StringMatcherRef> & GetStringMatchers() const {return _queue;}
 
    /** Returns a read-only reference to our list of StringMatcher references. */
-   Queue<StringMatcherRef> & GetStringMatchers() {return _queue;}
+   MUSCLE_NODISCARD Queue<StringMatcherRef> & GetStringMatchers() {return _queue;}
 
 private:
    Queue<StringMatcherRef> _queue;
@@ -70,14 +70,14 @@ public:
      * @param optMsg if non-NULL, the Message to match against.  (If NULL, then we'll just return true)
      * @param optNode if non-NULL, the DataNode associated with the Message (may not be available in all contexts)
      */
-   bool FilterMatches(ConstMessageRef & optMsg, const DataNode * optNode) const
+   MUSCLE_NODISCARD bool FilterMatches(ConstMessageRef & optMsg, const DataNode * optNode) const
    {
       const QueryFilter * filter = GetFilter()();
       return ((filter == NULL)||(optMsg() == NULL)||(filter->Matches(optMsg, optNode)));
    }
 
    /** Returns a human-readable string representing this PathMatcherEntry, for easier debugging */
-   String ToString() const;
+   MUSCLE_NODISCARD String ToString() const;
 
 private:
    StringMatcherQueueRef _parser;
@@ -155,7 +155,7 @@ public:
     * @param optMessage if non-NULL, this Message will be tested by the QueryFilter objects.
     * @param optNode this DataNode pointer will be passed to the QueryFilter objects.
     */
-   bool MatchesPath(const char * path, const Message * optMessage, const DataNode * optNode) const;
+   MUSCLE_NODISCARD bool MatchesPath(const char * path, const Message * optMessage, const DataNode * optNode) const;
 
    /**
     * Utility method.
@@ -178,10 +178,10 @@ public:
    status_t SetFilterForEntry(const String & path, const ConstQueryFilterRef & newFilter);
 
    /** Returns a read-only reference to our table of PathMatcherEntries. */
-   const Hashtable<String, PathMatcherEntry> & GetEntries() const {return _entries;}
+   MUSCLE_NODISCARD const Hashtable<String, PathMatcherEntry> & GetEntries() const {return _entries;}
 
    /** Returns the number of QueryFilters we are currently using. */
-   uint32 GetNumFilters() const {return _numFilters;}
+   MUSCLE_NODISCARD uint32 GetNumFilters() const {return _numFilters;}
 
 private:
    Hashtable<String, PathMatcherEntry> _entries;
@@ -194,7 +194,7 @@ DECLARE_REFTYPES(PathMatcher);
  *  @param path the path string (eg "/x/y/z/...") to search through
  *  @returns a pointer into (path), or NULL on failure.
  */
-const char * GetPathClause(int depth, const char * path);
+MUSCLE_NODISCARD const char * GetPathClause(int depth, const char * path);
 
 /** As above, but returns a String object for just the given clause,
  *  instead of the entire remainder of the string.  This version is
@@ -203,7 +203,7 @@ const char * GetPathClause(int depth, const char * path);
  *  @param path the path string (eg "/x/y/z/...") to search through
  *  @returns The string that is the (nth) item in the path, or "" if the depth is invalid.
  */
-String GetPathClauseString(int depth, const char * path);
+MUSCLE_NODISCARD String GetPathClauseString(int depth, const char * path);
 
 /** Returns the number of clauses in the given path string.
  *  @param path A path string.  Any leading slash will be ignored.
@@ -212,7 +212,7 @@ String GetPathClauseString(int depth, const char * path);
  *           returns 2, "/test/me/thoroughly" returns 3.
  *
  */
-int GetPathDepth(const char * path);
+MUSCLE_NODISCARD int GetPathDepth(const char * path);
 
 } // end namespace muscle
 

@@ -39,16 +39,16 @@ public:
 
    virtual status_t AboutToAllocate(size_t currentlyAllocatedBytes, size_t allocRequestBytes);
    virtual void AboutToFree(size_t currentlyAllocatedBytes, size_t freeBytes);
-   virtual size_t GetNumAvailableBytes(size_t currentlyAllocated) const;
+   MUSCLE_NODISCARD virtual size_t GetNumAvailableBytes(size_t currentlyAllocated) const;
 
    /** Overridden to return our total memory size as passed in to our ctor. */
-   virtual size_t GetMaxNumBytes() const {return _maxBytes;}
+   MUSCLE_NODISCARD virtual size_t GetMaxNumBytes() const {return _maxBytes;}
 
    /** Returns our own process's member ID value, as passed in to the constructor */
-   int32 GetMemberID() const {return _memberID;}
+   MUSCLE_NODISCARD int32 GetMemberID() const {return _memberID;}
 
    /** Returns the number of processes in our process group, as specified in the constructor. */
-   uint32 GetGroupSize() const {return _groupSize;}
+   MUSCLE_NODISCARD uint32 GetGroupSize() const {return _groupSize;}
 
    /** Returns the current memory used, in bytes, for each member of our group.
     *  @param retCounts on success, the bytes used by each member of our group will
@@ -65,16 +65,16 @@ public:
    /** Returns true iff our shared memory area setup worked and we are ready for use.
      * Returns false if there was a problem setting up and we aren't usable.
      */
-   bool IsValid() const {return (_shared.GetAreaSize() > 0);}
+   MUSCLE_NODISCARD bool IsValid() const {return (_shared.GetAreaSize() > 0);}
 
 private:
    void ResetDaemonCounter(); // Note: this assumes the SharedMemory is already locked for read/write!
    status_t ChangeDaemonCounter(int32 byteDelta);  // Note: this assumes the SharedMemory is not locked yet
    status_t ChangeDaemonCounterAux(int32 byteDelta);  // Note: this assumes the SharedMemory is not locked yet
-   size_t CalculateTotalAllocationSum() const;
-   uint32 GetNumSlots() const {return _shared.GetAreaSize()/sizeof(size_t);}
-   size_t * GetArrayPointer() {return (size_t *) _shared();}
-   const size_t * GetArrayPointer() const {return (const size_t *) _shared();}
+   MUSCLE_NODISCARD size_t CalculateTotalAllocationSum() const;
+   MUSCLE_NODISCARD uint32 GetNumSlots() const {return _shared.GetAreaSize()/sizeof(size_t);}
+   MUSCLE_NODISCARD size_t * GetArrayPointer() {return (size_t *) _shared();}
+   MUSCLE_NODISCARD const size_t * GetArrayPointer() const {return (const size_t *) _shared();}
 
    size_t _localAllocated;
    size_t _maxBytes;

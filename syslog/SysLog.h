@@ -105,23 +105,23 @@ static inline status_t PrintStackTrace(FILE * optFile = NULL, uint32 maxDepth = 
 static inline status_t GetStackTrace(String & /*retStr*/, uint32 maxDepth = 64) {(void) maxDepth; return B_NO_ERROR;}
 
 // Minimalist version of GetLogLevelName(), just returns a dummy string
-static inline const char * GetLogLevelName(int /*logLevel*/) {return "<omitted>";}
+MUSCLE_NODISCARD static inline const char * GetLogLevelName(int /*logLevel*/) {return "<omitted>";}
 
 // Minimalist version of GetLogLevelKeyword(), just returns a dummy string
-static inline const char * GetLogLevelKeyword(int /*logLevel*/) {return "<omitted>";}
+MUSCLE_NODISCARD static inline const char * GetLogLevelKeyword(int /*logLevel*/) {return "<omitted>";}
 # endif
 #endif
 
 #ifdef MUSCLE_INLINE_LOGGING
-inline int ParseLogLevelKeyword(const char *)         {return MUSCLE_LOG_NONE;}
-inline int GetFileLogLevel()                          {return MUSCLE_LOG_NONE;}
+MUSCLE_NODISCARD inline int ParseLogLevelKeyword(const char *)         {return MUSCLE_LOG_NONE;}
+MUSCLE_NODISCARD inline int GetFileLogLevel()                          {return MUSCLE_LOG_NONE;}
 // Note:  GetFileLogName() is not defined here for the inline-logging case, because it causes chicken-and-egg header problems
-//inline String GetFileLogName()                      {return "";}
-inline uint32 GetFileLogMaximumSize()                 {return MUSCLE_NO_LIMIT;}
-inline uint32 GetMaxNumLogFiles()                     {return MUSCLE_NO_LIMIT;}
-inline bool GetFileLogCompressionEnabled()            {return false;}
-inline int GetConsoleLogLevel()                       {return MUSCLE_LOG_INFO;}
-inline int GetMaxLogLevel()                           {return MUSCLE_LOG_INFO;}
+//MUSCLE_NODISCARD inline String GetFileLogName()                      {return "";}
+MUSCLE_NODISCARD inline uint32 GetFileLogMaximumSize()                 {return MUSCLE_NO_LIMIT;}
+MUSCLE_NODISCARD inline uint32 GetMaxNumLogFiles()                     {return MUSCLE_NO_LIMIT;}
+MUSCLE_NODISCARD inline bool GetFileLogCompressionEnabled()            {return false;}
+MUSCLE_NODISCARD inline int GetConsoleLogLevel()                       {return MUSCLE_LOG_INFO;}
+MUSCLE_NODISCARD inline int GetMaxLogLevel()                           {return MUSCLE_LOG_INFO;}
 inline status_t SetFileLogLevel(int)                  {return B_NO_ERROR;}
 inline status_t SetFileLogName(const String &)        {return B_NO_ERROR;}
 inline status_t SetFileLogMaximumSize(uint32)         {return B_NO_ERROR;}
@@ -138,12 +138,12 @@ inline void CloseCurrentLogFile()                     {/* empty */}
  *  @param keyword a string such as "debug", "log", or "info".
  *  @return A MUSCLE_LOG_* value
  */
-int ParseLogLevelKeyword(const char * keyword);
+MUSCLE_NODISCARD int ParseLogLevelKeyword(const char * keyword);
 
 /** Returns the current log level for logging to a file.
  *  @return a MUSCLE_LOG_* value.
  */
-int GetFileLogLevel();
+MUSCLE_NODISCARD int GetFileLogLevel();
 
 /** Returns the user-specified name for the file to log to.
  *  (note that this may be different from the log file name actually used,
@@ -152,28 +152,28 @@ int GetFileLogLevel();
  *  @return a file name or file path representing where the user would like the
  *          log file to be written.
  */
-String GetFileLogName();
+MUSCLE_NODISCARD String GetFileLogName();
 
 /** Returns the maximum size (in bytes) that we will allow the log file(s) to grow to.
   * Default is MUSCLE_NO_LIMIT, ie unlimited file size.
   */
-uint32 GetFileLogMaximumSize();
+MUSCLE_NODISCARD uint32 GetFileLogMaximumSize();
 
 /** Returns the maximum number of log files that should be written out before
   * old log files start to be deleted.  Defaults to MUSCLE_NO_LIMIT, ie
   * never delete any log files.
   */
-uint32 GetMaxNumLogFiles();
+MUSCLE_NODISCARD uint32 GetMaxNumLogFiles();
 
 /** Returns true if log files are to be gzip-compressed when they are closed;
   * or false if they should be left in raw text form.  Default value is false.
   */
-bool GetFileLogCompressionEnabled();
+MUSCLE_NODISCARD bool GetFileLogCompressionEnabled();
 
 /** Returns the current log level for logging to stdout.
  *  @return a MUSCLE_LOG_* value.
  */
-int GetConsoleLogLevel();
+MUSCLE_NODISCARD int GetConsoleLogLevel();
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
 namespace muscle_private
@@ -189,7 +189,7 @@ extern std::atomic<int> _maxLogThreshold;
 /** Returns the max of GetFileLogLevel() and GetConsoleLogLevel()
  *  @return a MUSCLE_LOG_* value
  */
-static inline int GetMaxLogLevel()
+MUSCLE_NODISCARD static inline int GetMaxLogLevel()
 {
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
    return muscle_private::_maxLogThreshold;  // I guess we'll take our chances here
@@ -379,13 +379,13 @@ status_t GetStackTrace(String & retStr, uint32 maxDepth = 64);
  *  @param logLevel A MUSCLE_LOG_* value
  *  @return A pretty human-readable description string such as "Informational" or "Warnings and Errors Only"
  */
-const char * GetLogLevelName(int logLevel);
+MUSCLE_NODISCARD const char * GetLogLevelName(int logLevel);
 
 /** Returns a brief human-readable string for the given log level.
  *  @param logLevel A MUSCLE_LOG_* value
  *  @return A brief human-readable description string such as "info" or "warn"
  */
-const char * GetLogLevelKeyword(int logLevel);
+MUSCLE_NODISCARD const char * GetLogLevelKeyword(int logLevel);
 
 /** Writes a standard text string of the format "[L mm/dd hh:mm:ss]" into (buf).
  *  @param buf Char buffer to write into.  Should be at least 64 chars long.
@@ -402,20 +402,20 @@ void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & lca);
   * @param fileName the filename associated with the location (eg as returned by the __FILE__ macro)
   * @param lineNumber the line number within the file.
   */
-uint32 GenerateSourceCodeLocationKey(const char * fileName, uint32 lineNumber);
+MUSCLE_NODISCARD uint32 GenerateSourceCodeLocationKey(const char * fileName, uint32 lineNumber);
 
 /** Given a source-code location key (as returned by GenerateSourceCodeLocationKey()),
   * returns the standard human-readable representation of that value.  (eg "7QF2")
   * @param key the source-code-location-key, represented as a uint32.
   */
-String SourceCodeLocationKeyToString(uint32 key);
+MUSCLE_NODISCARD String SourceCodeLocationKeyToString(uint32 key);
 
 /** Given a standard human-readable representation of a source-code-location
   * key (eg "7EF2"), returns the uint16 key value.  This is the inverse
   * function of SourceCodeLocationKeyToString().
   * @param s the source-code-location-key, represented as a human-readable string.
   */
-uint32 SourceCodeLocationKeyFromString(const String & s);
+MUSCLE_NODISCARD uint32 SourceCodeLocationKeyFromString(const String & s);
 
 /** This class represents all the fields necessary to present a human with a human-readable time/date stamp.  Objects of this class are typically populated by the GetHumanReadableTimeValues() function, below. */
 class HumanReadableTimeValues MUSCLE_FINAL_CLASS
@@ -437,28 +437,28 @@ public:
    HumanReadableTimeValues(int year, int month, int dayOfMonth, int dayOfWeek, int hour, int minute, int second, int microsecond) : _year(year), _month(month), _dayOfMonth(dayOfMonth), _dayOfWeek(dayOfWeek), _hour(hour), _minute(minute), _second(second), _microsecond(microsecond) {/* empty */}
 
    /** Returns the year value (eg 2005) */
-   int GetYear() const {return _year;}
+   MUSCLE_NODISCARD int GetYear() const {return _year;}
 
    /** Returns the month value (January=0, February=1, March=2, ..., December=11). */
-   int GetMonth() const {return _month;}
+   MUSCLE_NODISCARD int GetMonth() const {return _month;}
 
    /** Returns the day-of-month value (which ranges between 0 and 30, inclusive). */
-   int GetDayOfMonth() const {return _dayOfMonth;}
+   MUSCLE_NODISCARD int GetDayOfMonth() const {return _dayOfMonth;}
 
    /** Returns the day-of-week value (Sunday=0, Monday=1, Tuesday=2, Wednesday=3, Thursday=4, Friday=5, Saturday=6). */
-   int GetDayOfWeek() const {return _dayOfWeek;}
+   MUSCLE_NODISCARD int GetDayOfWeek() const {return _dayOfWeek;}
 
    /** Returns the hour value (which ranges between 0 and 23, inclusive). */
-   int GetHour() const {return _hour;}
+   MUSCLE_NODISCARD int GetHour() const {return _hour;}
 
    /** Returns the minute value (which ranges between 0 and 59, inclusive). */
-   int GetMinute() const {return _minute;}
+   MUSCLE_NODISCARD int GetMinute() const {return _minute;}
 
    /** Returns the second value (which ranges between 0 and 59, inclusive). */
-   int GetSecond() const {return _second;}
+   MUSCLE_NODISCARD int GetSecond() const {return _second;}
 
    /** Returns the microsecond value (which ranges between 0 and 999999, inclusive). */
-   int GetMicrosecond() const {return _microsecond;}
+   MUSCLE_NODISCARD int GetMicrosecond() const {return _microsecond;}
 
    /** Sets the year value (eg 2005)
      * @param year new year value A.D. (in full four-digit form)
@@ -538,10 +538,10 @@ public:
      * @param s The string to expand the tokens of
      * @returns The same string, except with any and all of the above tokens expanded as described.
      */
-   String ExpandTokens(const String & s) const;
+   MUSCLE_NODISCARD String ExpandTokens(const String & s) const;
 
    /** Returns a human-readable string showing the contents of this HumanReadableTimeValues object */
-   String ToString() const;
+   MUSCLE_NODISCARD String ToString() const;
 
 private:
    int _year;
@@ -602,7 +602,7 @@ status_t GetTimeStampFromHumanReadableTimeValues(const HumanReadableTimeValues &
   *                 in the local time zone, and no time zone conversion will be done.
   * @returns The equivalent ASCII string, or "" on failure.
   */
-String GetHumanReadableTimeString(uint64 timeUS, uint32 timeType = MUSCLE_TIMEZONE_UTC);
+MUSCLE_NODISCARD String GetHumanReadableTimeString(uint64 timeUS, uint32 timeType = MUSCLE_TIMEZONE_UTC);
 
 /** Does the inverse operation of GetHumanReadableTimeString():
   * Given a time string of the format "YYYY/MM/DD HH:MM:SS",
@@ -613,7 +613,7 @@ String GetHumanReadableTimeString(uint64 timeUS, uint32 timeType = MUSCLE_TIMEZO
   *                 be expressed as a time of the local time zone.
   * @returns The equivalent time value, or zero on failure.
   */
-uint64 ParseHumanReadableTimeString(const String & str, uint32 timeType = MUSCLE_TIMEZONE_UTC);
+MUSCLE_NODISCARD uint64 ParseHumanReadableTimeString(const String & str, uint32 timeType = MUSCLE_TIMEZONE_UTC);
 
 /** Given a string that represents a time interval, returns the equivalent value in microsends.
   * A time interval should be expressed as a non-negative integer, optionally followed by
@@ -630,7 +630,7 @@ uint64 ParseHumanReadableTimeString(const String & str, uint32 timeType = MUSCLE
   * @param str The string to parse
   * @returns a time interval value, in microseconds.
   */
-uint64 ParseHumanReadableTimeIntervalString(const String & str);
+MUSCLE_NODISCARD uint64 ParseHumanReadableTimeIntervalString(const String & str);
 
 /** Given a time interval specified in microseconds, returns a human-readable
   * string representing that time, eg "3 weeks, 2 days, 1 hour, 25 minutes, 2 seconds, 350 microseconds"
@@ -649,7 +649,7 @@ uint64 ParseHumanReadableTimeIntervalString(const String & str);
   *                position to be rounded up to the nearest unit, rather than always being rounded down.
   * @returns a human-readable time interval description string.
   */
-String GetHumanReadableTimeIntervalString(uint64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL, bool roundUp = false);
+MUSCLE_NODISCARD String GetHumanReadableTimeIntervalString(uint64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL, bool roundUp = false);
 
 /** Works the same as GetHumanReadableTimeIntervalString() except it interprets the passed-in microseconds value
   * as a signed integer rather than unsigned, and thus will yield a useful result for negative values
@@ -669,14 +669,14 @@ String GetHumanReadableTimeIntervalString(uint64 micros, uint32 maxClauses = MUS
   *                position to be rounded up to the nearest unit, rather than always being rounded down.
   * @returns a human-readable time interval description string.
   */
-String GetHumanReadableSignedTimeIntervalString(int64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL, bool roundUp = false);
+MUSCLE_NODISCARD String GetHumanReadableSignedTimeIntervalString(int64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL, bool roundUp = false);
 
 /** Works the same as ParseHumanReadableTimeIntervalString(), except that if the string
   * starts with a - sign, a negative value will be returned.
   * @param str The string to parse
   * @returns a time interval value, in microseconds.
   */
-int64 ParseHumanReadableSignedTimeIntervalString(const String & str);
+MUSCLE_NODISCARD int64 ParseHumanReadableSignedTimeIntervalString(const String & str);
 
 /** @} */ // end of systemlog doxygen group
 

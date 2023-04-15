@@ -41,7 +41,7 @@ public:
    /** Returns true if this IPAddress is equal to (rhs), disregarding the interfaceIndex field.
      * @param rhs the IPAddress to compare this IPAddress against
      */
-   bool EqualsIgnoreInterfaceIndex(const IPAddress & rhs) const {return ((_lowBits == rhs._lowBits)&&(_highBits == rhs._highBits));}
+   MUSCLE_NODISCARD bool EqualsIgnoreInterfaceIndex(const IPAddress & rhs) const {return ((_lowBits == rhs._lowBits)&&(_highBits == rhs._highBits));}
 
    /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator == (const IPAddress & rhs) const {return ((EqualsIgnoreInterfaceIndex(rhs))&&(_interfaceIndex == rhs._interfaceIndex));}
@@ -97,10 +97,10 @@ public:
    void SetBits(uint64 lowBits, uint64 highBits) {_lowBits = lowBits; _highBits = highBits;}
 
    /** Returns the lower 64 bits of the IP address (for IPv4 the lower 32 bits of this value represent the IPv4 address) */
-   uint64 GetLowBits()  const {return _lowBits;}
+   MUSCLE_NODISCARD uint64 GetLowBits()  const {return _lowBits;}
 
    /** Returns the upper 64 bits of the IP address (for IPv4 this value should always be zero) */
-   uint64 GetHighBits() const {return _highBits;}
+   MUSCLE_NODISCARD uint64 GetHighBits() const {return _highBits;}
 
    /** Sets the lower 64 bits of the IP address
      * @param lb the new lower-64-bits value
@@ -128,15 +128,15 @@ public:
    void UnsetInterfaceIndex() {_interfaceIndex = MUSCLE_NO_LIMIT;}
 
    /** Returns true iff our interface-index field is currently set to a valid value */
-   bool IsInterfaceIndexValid() const {return (_interfaceIndex != MUSCLE_NO_LIMIT);}
+   MUSCLE_NODISCARD bool IsInterfaceIndexValid() const {return (_interfaceIndex != MUSCLE_NO_LIMIT);}
 
    /** Returns the interface-index/Zone-ID value for this IP address.  Meaningful only in the context of IPv6.
      * @param optDefaultValue what value to return if our interface-index field isn't currently valid.  Defaults to 0.
      */
-   uint32 GetInterfaceIndex(uint32 optDefaultValue = 0) const {return IsInterfaceIndexValid() ? _interfaceIndex : optDefaultValue;}
+   MUSCLE_NODISCARD uint32 GetInterfaceIndex(uint32 optDefaultValue = 0) const {return IsInterfaceIndexValid() ? _interfaceIndex : optDefaultValue;}
 
    /** @copydoc DoxyTemplate::HashCode() const */
-   uint32 HashCode() const {return CalculateHashCode(_interfaceIndex)+CalculateHashCode(_lowBits)+CalculateHashCode(_highBits);}
+   MUSCLE_NODISCARD uint32 HashCode() const {return CalculateHashCode(_interfaceIndex)+CalculateHashCode(_lowBits)+CalculateHashCode(_highBits);}
 
    /** Writes our address into the specified uint8 array, in the required network-friendly order.
      * @param networkBuf If non-NULL, the 16-byte network-array to write to.  Typically you would pass in
@@ -170,16 +170,16 @@ public:
    }
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns true */
-   static MUSCLE_CONSTEXPR bool IsFixedSize() {return true;}
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR bool IsFixedSize() {return true;}
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns IP_ADDRESS_TYPE */
-   static MUSCLE_CONSTEXPR uint32 TypeCode() {return IP_ADDRESS_TYPE;}
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR uint32 TypeCode() {return IP_ADDRESS_TYPE;}
 
    /** Part of the PseudoFlattenable pseudo-interface */
-   static MUSCLE_CONSTEXPR uint32 FlattenedSize() {return sizeof(uint64) + sizeof(uint64) + sizeof(uint32);}
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR uint32 FlattenedSize() {return sizeof(uint64) + sizeof(uint64) + sizeof(uint32);}
 
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
-   uint32 CalculateChecksum() const;
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const;
 
    /** @copydoc DoxyTemplate::Flatten(DataFlattener flat) const */
    void Flatten(DataFlattener flat) const;
@@ -190,7 +190,7 @@ public:
    /** Convenience method:  Returns a SOCKET_FAMILY_* value describing this IP address's associated socket family.
      * @returns SOCKET_FAMILY_IPV4 is we are an IPv4 address, or SOCKET_FAMILY_IPV6 is we are an IPv6 address ,or SOCKET_FAMILY_INVALID if we are an invalid address.
      */
-   int GetSocketFamily() const
+   MUSCLE_NODISCARD int GetSocketFamily() const
    {
 #ifdef MUSCLE_AVOID_IPV6
       return IsValid() ? SOCKET_FAMILY_IPV4 : SOCKET_FAMILY_INVALID;
@@ -204,38 +204,38 @@ public:
      * it means that the 64 high-bits are all zero, and the upper 32-bits of the
      * 64 low-bits are zero, and the lower 32-bits of the 64 low-bits are non-zero.
      */
-   bool IsValid() const;
+   MUSCLE_NODISCARD bool IsValid() const;
 
    /** Returns true iff this address qualifies as an IPv4 address.
      * (If MUSCLE_AVOID_IPV6 is defined, this method always returns true)
      */
-   bool IsIPv4() const;
+   MUSCLE_NODISCARD bool IsIPv4() const;
 
    /** Returns true iff this address qualifies as an IPv4 broadcast address.
      * @note This method is IPv4-specific (there is no such thing as an IPv6 broadcast address, only multicast!)
      */
-   bool IsBroadcast() const;
+   MUSCLE_NODISCARD bool IsBroadcast() const;
 
    /** Returns true iff this address qualifies as a multicast address.  */
-   bool IsMulticast() const;
+   MUSCLE_NODISCARD bool IsMulticast() const;
 
    /** Returns true iff this address qualifies as an IPv6 node-local multicast address.  */
-   bool IsIPv6NodeLocalMulticast() const {return IsIPv6LocalMulticast(0x01);}
+   MUSCLE_NODISCARD bool IsIPv6NodeLocalMulticast() const {return IsIPv6LocalMulticast(0x01);}
 
    /** Returns true iff this address qualifies as an IPv6 link-local multicast address.  */
-   bool IsIPv6LinkLocalMulticast() const {return IsIPv6LocalMulticast(0x02);}
+   MUSCLE_NODISCARD bool IsIPv6LinkLocalMulticast() const {return IsIPv6LocalMulticast(0x02);}
 
    /** Returns true iff this address qualifies as a standard loopback-device address (eg 127.0.0.1 or ::1 or fe80::1) */
-   bool IsStandardLoopbackDeviceAddress() const;
+   MUSCLE_NODISCARD bool IsStandardLoopbackDeviceAddress() const;
 
    /** Returns true iff this address is a stateless/self-assigned IP address (ie 169.254.*.* for IPv4, or fe80::* for IPv6) */
-   bool IsSelfAssigned() const;
+   MUSCLE_NODISCARD bool IsSelfAssigned() const;
 
    /** Returns a human-readable string equivalent to this IPAddress object.  Behaves the same as Inet_NtoA(*this, printIPv4AddressesInIPv4Style).
      *  @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
      *                                       Defaults to true.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
      */
-   String ToString(bool printIPv4AddressesInIPv4Style = true) const;
+   MUSCLE_NODISCARD String ToString(bool printIPv4AddressesInIPv4Style = true) const;
 
    /** Given a human-readable IP-address string (as returned by ToString()), sets this IPAddress object to the
      * value represented by the string.  Behaves similarly to Inet_AtoN()
@@ -252,13 +252,13 @@ public:
    /** Returns our IPv4 address as a uint32.
      * If we represent something other than an IPv4 address, the return value is undefined.
      */
-   uint32 GetIPv4AddressAsUint32() const {return ((uint32)(_lowBits & 0xFFFFFFFF));}
+   MUSCLE_NODISCARD uint32 GetIPv4AddressAsUint32() const {return ((uint32)(_lowBits & 0xFFFFFFFF));}
 
    /** Convenience method:  Returns an IPAddress object identical to this one,
      * except that the returned IPAddress has its interface index field set to the specified value.
      * @param interfaceIndex The new interface index value to use in the returned object (or MUSCLE_NO_LIMIT to specify an invalid interface index)
      */
-   IPAddress WithInterfaceIndex(uint32 interfaceIndex) const
+   MUSCLE_NODISCARD IPAddress WithInterfaceIndex(uint32 interfaceIndex) const
    {
       IPAddress addr = *this;
       addr.SetInterfaceIndex(interfaceIndex);
@@ -266,7 +266,7 @@ public:
    }
 
    /** Convenience method:  Returns an IPAddress object identical to this one, but with the interface-index field unset. */
-   IPAddress WithoutInterfaceIndex() const {return WithInterfaceIndex(MUSCLE_NO_LIMIT);}
+   MUSCLE_NODISCARD IPAddress WithoutInterfaceIndex() const {return WithInterfaceIndex(MUSCLE_NO_LIMIT);}
 
 private:
    bool IsIPv6LocalMulticast(uint8 scope) const;
@@ -377,13 +377,13 @@ public:
    bool operator >= (const IPAddressAndPort & rhs) const {return !(*this<rhs);}
 
    /** @copydoc DoxyTemplate::HashCode() const */
-   uint32 HashCode() const {return _ip.HashCode()+_port;}
+   MUSCLE_NODISCARD uint32 HashCode() const {return _ip.HashCode()+_port;}
 
    /** Returns this object's current IP address */
-   const IPAddress & GetIPAddress() const {return _ip;}
+   MUSCLE_NODISCARD const IPAddress & GetIPAddress() const {return _ip;}
 
    /** Returns this object's current port number */
-   uint16 GetPort() const {return _port;}
+   MUSCLE_NODISCARD uint16 GetPort() const {return _port;}
 
    /** Sets both the IP address and port fields of this object.
      * @param ip the new IP address to use
@@ -405,7 +405,7 @@ public:
    void Reset() {_ip = invalidIP; _port = 0;}
 
    /** Returns true iff both our IP address and port number are valid (ie non-zero) */
-   bool IsValid() const {return ((_ip != invalidIP)&&(_port != 0));}
+   MUSCLE_NODISCARD bool IsValid() const {return ((_ip != invalidIP)&&(_port != 0));}
 
    /** Sets this object's state from the passed-in character string.
      * IPv4 address may be of the form "192.168.1.102", or of the form "192.168.1.102:2960".
@@ -426,19 +426,19 @@ public:
      * @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
      *                                      Defaults to true.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
      */
-   String ToString(bool includePort = true, bool printIPv4AddressesInIPv4Style = true) const;
+   MUSCLE_NODISCARD String ToString(bool includePort = true, bool printIPv4AddressesInIPv4Style = true) const;
 
    /** Part of the Flattenable pseudo-interface:  Returns true */
-   static MUSCLE_CONSTEXPR bool IsFixedSize() {return true;}
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR bool IsFixedSize() {return true;}
 
    /** Part of the Flattenable pseudo-interface:  Returns IP_ADDRESS_AND_PORT_TYPE */
-   static MUSCLE_CONSTEXPR uint32 TypeCode() {return IP_ADDRESS_AND_PORT_TYPE;}
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR uint32 TypeCode() {return IP_ADDRESS_AND_PORT_TYPE;}
 
    /** Part of the Flattenable pseudo-interface */
-   static MUSCLE_CONSTEXPR uint32 FlattenedSize() {return IPAddress::FlattenedSize() + sizeof(uint16);}
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR uint32 FlattenedSize() {return IPAddress::FlattenedSize() + sizeof(uint16);}
 
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
-   uint32 CalculateChecksum() const {return _ip.CalculateChecksum() + _port;}
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const {return _ip.CalculateChecksum() + _port;}
 
    /** Copies this point into an endian-neutral flattened buffer.
     *  @param flat the DataFlattener to use to output serialized bytes
@@ -455,7 +455,7 @@ public:
      * except that the included IPAddress has its interface index field set to the specified value.
      * @param interfaceIndex The new interface index value to use in the returned object (or MUSCLE_NO_LIMIT to specify an invalid index)
      */
-   IPAddressAndPort WithInterfaceIndex(uint32 interfaceIndex) const
+   MUSCLE_NODISCARD IPAddressAndPort WithInterfaceIndex(uint32 interfaceIndex) const
    {
       IPAddress addr = _ip;
       addr.SetInterfaceIndex(interfaceIndex);
@@ -463,7 +463,7 @@ public:
    }
 
    /** Convenience method:  Returns an IPAddressAndPort object identical to this one, but with the interface-index field unset. */
-   IPAddressAndPort WithoutInterfaceIndex() const {return WithInterfaceIndex(MUSCLE_NO_LIMIT);}
+   MUSCLE_NODISCARD IPAddressAndPort WithoutInterfaceIndex() const {return WithInterfaceIndex(MUSCLE_NO_LIMIT);}
 
 private:
    IPAddress _ip;

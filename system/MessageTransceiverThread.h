@@ -114,7 +114,7 @@ public:
 
    virtual status_t AttachedToServer();
    virtual void AboutToDetachFromServer();
-   virtual bool ClientConnectionClosed();
+   MUSCLE_NODISCARD virtual bool ClientConnectionClosed();
    virtual void AsyncConnectCompleted();
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);
    virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData);
@@ -125,7 +125,7 @@ public:
      * thread, or false if incoming Messages should be handled locally by our StorageReflectSession superclass.
      * Defaults state is true.
      */
-   bool IsForwardAllIncomingMessagesToSupervisor() const {return _forwardAllIncomingMessagesToSupervisor;}
+   MUSCLE_NODISCARD bool IsForwardAllIncomingMessagesToSupervisor() const {return _forwardAllIncomingMessagesToSupervisor;}
 
    /** Set whether Messages received from this session's remote peer should be forwarded to the
      * ThreadSupervisorSession for presentation to the owner thread, or handled locally.
@@ -199,7 +199,7 @@ public:
      * thread, or false if incoming Messages should be handled locally by their StorageReflectSession superclass.
      * Defaults state is true.
      */
-   bool IsForwardAllIncomingMessagesToSupervisor() const {return _forwardAllIncomingMessagesToSupervisor;}
+   MUSCLE_NODISCARD bool IsForwardAllIncomingMessagesToSupervisor() const {return _forwardAllIncomingMessagesToSupervisor;}
 
    /** Set whether Messages received from our sessions' remote peers should be forwarded to the
      * ThreadSupervisorSession for presentation to the owner thread, or handled locally.
@@ -259,7 +259,7 @@ public:
    /** Overridden to end the server (and hence, the thread) if our connection to the thread is broken.
      * (this shouldn't ever happen, but just in case...)
      */
-   virtual bool ClientConnectionClosed();
+   MUSCLE_NODISCARD virtual bool ClientConnectionClosed();
 
    /** Sets the default distribution path for this session.  This path, if set, determines which ThreadWorkerSessions
      * are to receive outgoing data messages when the messages themselves contain no distribution path --
@@ -270,7 +270,7 @@ public:
    void SetDefaultDistributionPath(const String & path) {_defaultDistributionPath = path;}
 
    /** Returns the current default distribution path. */
-   const String & GetDefaultDistributionPath() const {return _defaultDistributionPath;}
+   MUSCLE_NODISCARD const String & GetDefaultDistributionPath() const {return _defaultDistributionPath;}
 
 protected:
    /** Handles control messages received from the main thread.
@@ -536,7 +536,7 @@ public:
    status_t SetDefaultDistributionPath(const String & distPath);
 
    /** Returns our current default distribution path, or "" if it is unset. */
-   const String & GetDefaultDistributionPath() const {return _defaultDistributionPath;}
+   MUSCLE_NODISCARD const String & GetDefaultDistributionPath() const {return _defaultDistributionPath;}
 
    /**
      * Call this to get the next event notification message from the internal thread.  Typically you will want to call this
@@ -639,7 +639,7 @@ public:
      * SetForwardAllIncomingMessagesToSupervisor() method of ThreadWorkerSessions it has just created.
      * @see ThreadWorkerSession::SetForwardAllIncomingMessagesToSupervisor()
      */
-   bool IsForwardAllIncomingMessagesToSupervisor() const {return _forwardAllIncomingMessagesToSupervisor;}
+   MUSCLE_NODISCARD bool IsForwardAllIncomingMessagesToSupervisor() const {return _forwardAllIncomingMessagesToSupervisor;}
 
    /** Sets the value that this MessageTransceiverThread will pass to the
      * SetForwardAllIncomingMessagesToSupervisor() method of ThreadWorkerSessions it has just created.

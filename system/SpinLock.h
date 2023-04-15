@@ -96,7 +96,7 @@ public:
    }
 
    /** Returns true iff we successfully locked our SpinLock. */
-   bool IsSpinLockLocked() const {return _isSpinLockLocked;}
+   MUSCLE_NODISCARD bool IsSpinLockLocked() const {return _isSpinLockLocked;}
 
 private:
    SpinLockGuard(const SpinLockGuard &);  // copy ctor, deliberately inaccessible

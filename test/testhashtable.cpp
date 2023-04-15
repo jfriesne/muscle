@@ -643,7 +643,7 @@ int main(int argc, char ** argv)
          for (HashtableIterator<String, String> iter(table); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO,"[%s] -> [%s]\n", iter.GetKey()(), iter.GetValue()());
       }
 
-      table.CountAverageLookupComparisons(true);
+      (void) table.CountAverageLookupComparisons(true);
 
       printf("table[\"Summer\"] = [%s]\n", table["Summer"]());
       printf("table[\"Butter\"] = [%s]\n", table["Butter"]());

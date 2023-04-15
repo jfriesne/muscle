@@ -107,13 +107,13 @@ public:
      * @param itemHashFunctor reference to a hash-functor object to use to calculate hash values for our items.
      * @note This method is only callable if our item-type is hashable
      */
-   template<class ItemHashFunctorType> uint32 HashCode(const ItemHashFunctorType & itemHashFunctor) const;
+   template<class ItemHashFunctorType> MUSCLE_NODISCARD uint32 HashCode(const ItemHashFunctorType & itemHashFunctor) const;
 
    /** Calculates and returns a hash code for this Queue using the default hash-functor for our item type.
      * The value returned by this method depends on both the ordering and the contents of the items in this Queue.
      * @note This method is only callable if our item-type is hashable
      */
-   uint32 HashCode() const
+   MUSCLE_NODISCARD uint32 HashCode() const
    {
       typename DEFAULT_HASH_FUNCTOR(ItemType) hashFunctor;
       return HashCode<>(hashFunctor);
@@ -183,13 +183,13 @@ public:
     *  @param item The item to append.
     *  @return A pointer to the appended item on success, or a NULL pointer on failure.
     */
-   QQ_UniversalSinkItemRef ItemType * AddTailAndGet(QQ_SinkItemParam item);
+   QQ_UniversalSinkItemRef MUSCLE_NODISCARD ItemType * AddTailAndGet(QQ_SinkItemParam item);
 
    /** As above, except that an item is appended.
     *  @return A pointer to the appended item on success, or a NULL pointer on failure.
     *  @note that for POD ItemTypes, the appended item will be in an unitialized state.
     */
-   ItemType * AddTailAndGet();
+   MUSCLE_NODISCARD ItemType * AddTailAndGet();
 
    /** Prepends (item) to the head of the queue.  Queue size grows by one.
     *  @param item The item to prepend.
@@ -234,13 +234,13 @@ public:
     *  @param item The item to prepend.
     *  @return A pointer to the prepend item on success, or a NULL pointer on failure.
     */
-   QQ_UniversalSinkItemRef ItemType * AddHeadAndGet(QQ_SinkItemParam item);
+   QQ_UniversalSinkItemRef MUSCLE_NODISCARD ItemType * AddHeadAndGet(QQ_SinkItemParam item);
 
    /** As above, except that an item is prepended.
     *  @return A pointer to the prepended item on success, or a NULL pointer on failure.
     *  @note that for POD ItemTypes, the prepended item will be in an unitialized state.
     */
-   ItemType * AddHeadAndGet();
+   MUSCLE_NODISCARD ItemType * AddHeadAndGet();
 
    /** Removes the item at the head of the queue.
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the queue was already empty.
@@ -323,7 +323,7 @@ public:
     *  @param index Index of the item to return a pointer to.
     *  @return a pointer to the internally held item, or NULL if (index) was invalid.
     */
-   ItemType * GetItemAt(uint32 index) const {return (index<_itemCount)?GetItemAtUnchecked(index):NULL;}
+   MUSCLE_NODISCARD ItemType * GetItemAt(uint32 index) const {return (index<_itemCount)?GetItemAtUnchecked(index):NULL;}
 
    /** The same as GetItemAt(), except this version doesn't check to make sure
     *  (index) is valid.
@@ -331,14 +331,14 @@ public:
     *  @return a pointer to the internally held item.  The returned value is undefined
     *          if the index isn't valid, so be careful!
     */
-   ItemType * GetItemAtUnchecked(uint32 index) const {return &_queue[InternalizeIndex(index)];}
+   MUSCLE_NODISCARD ItemType * GetItemAtUnchecked(uint32 index) const {return &_queue[InternalizeIndex(index)];}
 
    /** Returns a reference to the (index)'th item in the Queue, if such an item exists,
      * or a reference to a default item if it doesn't.  Unlike the [] operator,
      * it is okay to call this method with any value of (index).
      * @param index Which item to return.
      */
-   const ItemType & GetWithDefault(uint32 index) const {return (index<_itemCount)?(*this)[index]:GetDefaultItem();}
+   MUSCLE_NODISCARD const ItemType & GetWithDefault(uint32 index) const {return (index<_itemCount)?(*this)[index]:GetDefaultItem();}
 
    /** Returns a copy of the (index)'th item in the Queue, if such an item exists,
      * or the supplied default item if it doesn't.  Unlike the [] operator,
@@ -349,7 +349,7 @@ public:
      *       returning (defItem) by-reference makes it too easy to call this method
      *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   ItemType GetWithDefault(uint32 index, const ItemType & defItem) const {return (index<_itemCount)?(*this)[index]:defItem;}
+   MUSCLE_NODISCARD ItemType GetWithDefault(uint32 index, const ItemType & defItem) const {return (index<_itemCount)?(*this)[index]:defItem;}
 
    /** Sets all items in this Queue to be equal to the argument
      * @param newItem The item to set everything in this Queue equal to
@@ -431,37 +431,37 @@ public:
    void FastClear() {_itemCount = _headIndex = _tailIndex = 0;}
 
    /** Returns the number of items in the queue.  (This number does not include pre-allocated space) */
-   uint32 GetNumItems() const {return _itemCount;}
+   MUSCLE_NODISCARD uint32 GetNumItems() const {return _itemCount;}
 
    /** Returns the total number of item-slots we have allocated space for.  Note that this is NOT
     *  the same as the value returned by GetNumItems() -- it is generally larger, since we often
     *  pre-allocate additional slots in advance, in order to cut down on the number of re-allocations
     *  we need to peform.
     */
-   uint32 GetNumAllocatedItemSlots() const {return _queueSize;}
+   MUSCLE_NODISCARD uint32 GetNumAllocatedItemSlots() const {return _queueSize;}
 
    /** Returns the number of "extra" (ie currently unoccupied) array slots we currently have allocated.
      * Attempting to add more than (this many) additional items to this Queue will cause a memory reallocation.
      */
-   uint32 GetNumUnusedItemSlots() const {return _queueSize-_itemCount;}
+   MUSCLE_NODISCARD uint32 GetNumUnusedItemSlots() const {return _queueSize-_itemCount;}
 
    /** Returns the number of bytes of memory taken up by this Queue's data */
-   uint32 GetTotalDataSize() const {return sizeof(*this)+(GetNumAllocatedItemSlots()*sizeof(ItemType));}
+   MUSCLE_NODISCARD uint32 GetTotalDataSize() const {return sizeof(*this)+(GetNumAllocatedItemSlots()*sizeof(ItemType));}
 
    /** Convenience method:  Returns true iff there are no items in the queue. */
-   bool IsEmpty() const {return (_itemCount == 0);}
+   MUSCLE_NODISCARD bool IsEmpty() const {return (_itemCount == 0);}
 
    /** Convenience method:  Returns true iff there is at least one item in the queue. */
-   bool HasItems() const {return (_itemCount > 0);}
+   MUSCLE_NODISCARD bool HasItems() const {return (_itemCount > 0);}
 
    /** Returns a read-only reference the head item in the queue.  You must not call this when the queue is empty! */
-   const ItemType & Head() const {return *GetItemAtUnchecked(0);}
+   MUSCLE_NODISCARD const ItemType & Head() const {return *GetItemAtUnchecked(0);}
 
    /** Returns a read-only reference the tail item in the queue.  You must not call this when the queue is empty! */
-   const ItemType & Tail() const {return *GetItemAtUnchecked(_itemCount-1);}
+   MUSCLE_NODISCARD const ItemType & Tail() const {return *GetItemAtUnchecked(_itemCount-1);}
 
    /** Returns a read-only reference the head item in the queue, or a default item if the Queue is empty. */
-   const ItemType & HeadWithDefault() const {return HasItems() ? Head() : GetDefaultItem();}
+   MUSCLE_NODISCARD const ItemType & HeadWithDefault() const {return HasItems() ? Head() : GetDefaultItem();}
 
    /** Returns a read-only reference the head item in the queue, or to the supplied default item if the Queue is empty.
      * @param defaultItem An item to return if the Queue is empty.
@@ -469,10 +469,10 @@ public:
      *       returning (defItem) by-reference makes it too easy to call this method
      *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   ItemType HeadWithDefault(const ItemType & defaultItem) const {return HasItems() ? Head() : defaultItem;}
+   MUSCLE_NODISCARD ItemType HeadWithDefault(const ItemType & defaultItem) const {return HasItems() ? Head() : defaultItem;}
 
    /** Returns a read-only reference the tail item in the queue, or a default item if the Queue is empty. */
-   const ItemType & TailWithDefault() const {return HasItems() ? Tail() : GetDefaultItem();}
+   MUSCLE_NODISCARD const ItemType & TailWithDefault() const {return HasItems() ? Tail() : GetDefaultItem();}
 
    /** Returns a read-only reference the tail item in the queue, or to the supplied default item if the Queue is empty.
      * @param defaultItem An item to return if the Queue is empty.
@@ -480,19 +480,19 @@ public:
      *       returning (defItem) by-reference makes it too easy to call this method
      *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   ItemType TailWithDefault(const ItemType & defaultItem) const {return HasItems() ? Tail() : defaultItem;}
+   MUSCLE_NODISCARD ItemType TailWithDefault(const ItemType & defaultItem) const {return HasItems() ? Tail() : defaultItem;}
 
    /** Returns a writable reference the head item in the queue.  You must not call this when the queue is empty! */
-   ItemType & Head() {return *GetItemAtUnchecked(0);}
+   MUSCLE_NODISCARD ItemType & Head() {return *GetItemAtUnchecked(0);}
 
    /** Returns a writable reference the tail item in the queue.  You must not call this when the queue is empty! */
-   ItemType & Tail() {return *GetItemAtUnchecked(_itemCount-1);}
+   MUSCLE_NODISCARD ItemType & Tail() {return *GetItemAtUnchecked(_itemCount-1);}
 
    /** Returns a pointer to the first item in the queue, or NULL if the queue is empty */
-   ItemType * HeadPointer() const {return GetItemAt(0);}
+   MUSCLE_NODISCARD ItemType * HeadPointer() const {return GetItemAt(0);}
 
    /** Returns a pointer to the last item in the queue, or NULL if the queue is empty */
-   ItemType * TailPointer() const {return GetItemAt(_itemCount-1);}
+   MUSCLE_NODISCARD ItemType * TailPointer() const {return GetItemAt(_itemCount-1);}
 
    /** Convenient read-only array-style operator (be sure to only use valid indices!)
      * @param index the index of the item to get (between 0 and (GetNumItems()-1), inclusive)
@@ -548,7 +548,7 @@ public:
     *               to the number of items in the list.  Defaults to MUSCLE_NO_LIMIT.
     *  @return True if the item was found in the specified range, or false otherwise.
     */
-   bool Contains(const ItemType & item, uint32 startAt = 0, uint32 endAtPlusOne = MUSCLE_NO_LIMIT) const {return (IndexOf(item, startAt, endAtPlusOne) >= 0);}
+   MUSCLE_NODISCARD bool Contains(const ItemType & item, uint32 startAt = 0, uint32 endAtPlusOne = MUSCLE_NO_LIMIT) const {return (IndexOf(item, startAt, endAtPlusOne) >= 0);}
 
    /** Returns the first index of the given (item), or -1 if (item) is not found in the list.  O(n) search time.
     *  @param item The item to look for.
@@ -558,7 +558,7 @@ public:
     *               to the number of items in the list.  Defaults to MUSCLE_NO_LIMIT.
     *  @return The index of the first item found, or -1 if no such item was found in the specified range.
     */
-   int32 IndexOf(const ItemType & item, uint32 startAt = 0, uint32 endAtPlusOne = MUSCLE_NO_LIMIT) const;
+   MUSCLE_NODISCARD int32 IndexOf(const ItemType & item, uint32 startAt = 0, uint32 endAtPlusOne = MUSCLE_NO_LIMIT) const;
 
    /** Returns the last index of the given (item), or -1 if (item) is not found in the list.  O(n) search time.
     *  This method is different from IndexOf() in that this method searches backwards in the list.
@@ -569,7 +569,7 @@ public:
     *               to search back to the beginning of the list, if necessary.
     *  @return The index of the first item found in the reverse search, or -1 if no such item was found in the specified range.
     */
-   int32 LastIndexOf(const ItemType & item, uint32 startAt = MUSCLE_NO_LIMIT, uint32 endAt = 0) const;
+   MUSCLE_NODISCARD int32 LastIndexOf(const ItemType & item, uint32 startAt = MUSCLE_NO_LIMIT, uint32 endAt = 0) const;
 
    /**
     *  Swaps the values of the two items at the given indices.  This operation
@@ -676,22 +676,22 @@ public:
    /** Returns true iff the first item in our queue is equal to (prefix).
      * @param prefix the item to check for at the head of this Queue
      */
-   bool StartsWith(const ItemType & prefix) const {return ((HasItems())&&(Head() == prefix));}
+   MUSCLE_NODISCARD bool StartsWith(const ItemType & prefix) const {return ((HasItems())&&(Head() == prefix));}
 
    /** Returns true iff the (prefixQueue) is a prefix of this queue.
      * @param prefixQueue the items to check for at the head of this Queue
      */
-   bool StartsWith(const Queue<ItemType> & prefixQueue) const;
+   MUSCLE_NODISCARD bool StartsWith(const Queue<ItemType> & prefixQueue) const;
 
    /** Returns true iff the last item in our queue is equal to (suffix).
      * @param suffix the item to check for at the tail of this Queue
      */
-   bool EndsWith(const ItemType & suffix) const {return ((HasItems())&&(Tail() == suffix));}
+   MUSCLE_NODISCARD bool EndsWith(const ItemType & suffix) const {return ((HasItems())&&(Tail() == suffix));}
 
    /** Returns true iff the (suffixQueue) is a suffix of this queue.
      * @param suffixQueue the list of items to check for at the tail of this Queue
      */
-   bool EndsWith(const Queue<ItemType> & suffixQueue) const;
+   MUSCLE_NODISCARD bool EndsWith(const Queue<ItemType> & suffixQueue) const;
 
    /**
     *  Returns a pointer to the nth internally-held contiguous-Item-sub-array, to allow efficient
@@ -703,7 +703,7 @@ public:
     *          Note that this array is only guaranteed valid as long as no items are
     *          added or removed from the Queue.
     */
-   ItemType * GetArrayPointer(uint32 whichArray, uint32 & retLength) {return const_cast<ItemType *>(GetArrayPointerAux(whichArray, retLength));}
+   MUSCLE_NODISCARD ItemType * GetArrayPointer(uint32 whichArray, uint32 & retLength) {return const_cast<ItemType *>(GetArrayPointerAux(whichArray, retLength));}
 
    /** Read-only version of the above
     *  @param whichArray Index of the internal array to return a pointer to.  Typically zero or one.
@@ -712,7 +712,7 @@ public:
     *          Note that this array is only guaranteed valid as long as no items are
     *          added or removed from the Queue.
     */
-   const ItemType * GetArrayPointer(uint32 whichArray, uint32 & retLength) const {return GetArrayPointerAux(whichArray, retLength);}
+   MUSCLE_NODISCARD const ItemType * GetArrayPointer(uint32 whichArray, uint32 & retLength) const {return GetArrayPointerAux(whichArray, retLength);}
 
    /** Normalizes the layout of the items held in this Queue so that they are guaranteed to be contiguous
      * in memory.  This is useful if you want to pass pointers to items in this array in to functions
@@ -726,27 +726,27 @@ public:
      * in the normal C-array ordering.  Returns false otherwise.  Call Normalize() if you want to
      * make sure that the data is normalized.
      */
-   bool IsNormalized() const {return ((_itemCount == 0)||(_headIndex <= _tailIndex));}
+   MUSCLE_NODISCARD bool IsNormalized() const {return ((_itemCount == 0)||(_headIndex <= _tailIndex));}
 
    /** Returns true iff (val) is physically located in this container's internal items array.
      * @param val Reference to an item.
      */
-   bool IsItemLocatedInThisContainer(const ItemType & val) const {return ((HasItems())&&((uintptr)((&val)-_queue) < (uintptr)GetNumItems()));}
+   MUSCLE_NODISCARD bool IsItemLocatedInThisContainer(const ItemType & val) const {return ((HasItems())&&((uintptr)((&val)-_queue) < (uintptr)GetNumItems()));}
 
    /** Returns a read-only reference to a default-constructed item of this Queue's type.
      * This item is guaranteed to remain valid for the life of the process.
      */
-   const ItemType & GetDefaultItem() const {return GetDefaultObjectForType<ItemType>();}
+   MUSCLE_NODISCARD const ItemType & GetDefaultItem() const {return GetDefaultObjectForType<ItemType>();}
 
    /** Returns a pointer to our internally held array of items.  Note that this array's items are not guaranteed
      * to be stored in order -- in particular, the items may be "wrapped around" the end of the array, with the
      * first items in the sequence appearing near the end of the array.  Only use this function if you know exactly
      * what you are doing!
      */
-   ItemType * GetRawArrayPointer() {return _queue;}
+   MUSCLE_NODISCARD ItemType * GetRawArrayPointer() {return _queue;}
 
    /** As above, but provides read-only access */
-   const ItemType * GetRawArrayPointer() const {return _queue;}
+   MUSCLE_NODISCARD const ItemType * GetRawArrayPointer() const {return _queue;}
 
    /** Causes this Queue to drop any data it is currently holding and use the specified array as its data-buffer instead.
      * @param numItemsInArray The number of items pointed to by (array).
@@ -775,7 +775,7 @@ public:
 
 private:
    /** Returns true iff we need to set our ItemType objects to their default-constructed state when we're done using them */
-   inline bool IsPerItemClearNecessary() const
+   MUSCLE_NODISCARD inline bool IsPerItemClearNecessary() const
    {
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
       return !std::is_trivial<ItemType>::value;
@@ -785,7 +785,7 @@ private:
    }
 
    // Like strcmp() except for vectors instead of strings
-   int lexicographicalCompare(const Queue & rhs) const
+   MUSCLE_NODISCARD int lexicographicalCompare(const Queue & rhs) const
    {
       const uint32 commonRange = muscleMin(GetNumItems(), rhs.GetNumItems());
       for (uint32 i=0; i<commonRange; i++)
@@ -803,17 +803,17 @@ private:
 
    status_t EnsureSizeAux(uint32 numSlots, ItemType ** optRetOldArray) {return EnsureSizeAux(numSlots, false, 0, optRetOldArray, false);}
    status_t EnsureSizeAux(uint32 numSlots, bool setNumItems, uint32 extraReallocItems, ItemType ** optRetOldArray, bool allowShrink);
-   const ItemType * GetArrayPointerAux(uint32 whichArray, uint32 & retLength) const;
+   MUSCLE_NODISCARD const ItemType * GetArrayPointerAux(uint32 whichArray, uint32 & retLength) const;
    void SwapContentsAux(Queue<ItemType> & that);  // note:  can't be MUSCLE_NOEXCEPT because we may copy items
 
-   inline uint32 NextIndex(uint32 idx) const {return (idx >= _queueSize-1) ? 0 : idx+1;}
-   inline uint32 PrevIndex(uint32 idx) const {return (idx == 0) ? _queueSize-1 : idx-1;}
+   MUSCLE_NODISCARD inline uint32 NextIndex(uint32 idx) const {return (idx >= _queueSize-1) ? 0 : idx+1;}
+   MUSCLE_NODISCARD inline uint32 PrevIndex(uint32 idx) const {return (idx == 0) ? _queueSize-1 : idx-1;}
 
    /** Translates a user-index into an index into the _queue array.
      * @param idx user-index between 0 and (_itemCount-1), inclusive
      * @returns an array-offset between 0 and (_queueSize-1), inclusive
      */
-   inline uint32 InternalizeIndex(uint32 idx) const
+   MUSCLE_NODISCARD inline uint32 InternalizeIndex(uint32 idx) const
    {
 #ifdef __clang_analyzer__
       assert(idx < _queueSize);
@@ -824,8 +824,8 @@ private:
 
    // Helper methods, used for sorting (stolen from http://www-ihm.lri.fr/~thomas/VisuTri/inplacestablesort.html)
    template<class CompareFunctorType> void   Merge(const CompareFunctorType & compareFunctor, uint32 from, uint32 pivot, uint32 to, uint32 len1, uint32 len2, void * optCookie);
-   template<class CompareFunctorType> uint32 Lower(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, const ItemType & val, void * optCookie) const;
-   template<class CompareFunctorType> uint32 Upper(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, const ItemType & val, void * optCookie) const;
+   template<class CompareFunctorType> MUSCLE_NODISCARD uint32 Lower(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, const ItemType & val, void * optCookie) const;
+   template<class CompareFunctorType> MUSCLE_NODISCARD uint32 Upper(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, const ItemType & val, void * optCookie) const;
 
    ItemType * _queue; // points to _smallQueue, or to a dynamically alloc'd array
    uint32 _queueSize; // number of slots in the _queue array

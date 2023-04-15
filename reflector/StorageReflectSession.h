@@ -29,7 +29,7 @@ public:
    void SetMaxIncomingMessageSize(uint32 maxIncomingMessageBytes) {_maxIncomingMessageSize = maxIncomingMessageBytes;}
 
    /** Returns our current setting for the maximum incoming message size for sessions we produce. */
-   uint32 GetMaxIncomingMessageSize() const {return _maxIncomingMessageSize;}
+   MUSCLE_NODISCARD uint32 GetMaxIncomingMessageSize() const {return _maxIncomingMessageSize;}
 
 protected:
    /** If we have a limited maximum size for incoming messages, then this method
@@ -68,7 +68,7 @@ public:
      *                 (but be careful not to modify the Message that (nodeData) points to;
      *                 instead, allocate a new Message and set (nodeData) to point to it.
      */
-   virtual bool MatchPath(const String & path, ConstMessageRef & nodeData) const = 0;
+   MUSCLE_NODISCARD virtual bool MatchPath(const String & path, ConstMessageRef & nodeData) const = 0;
 };
 
 /** Macro for declaring a MUSCLE DataNode-tree traversal callback within a class.  Declares both the callback method, and a static callback-method that is used to convert the callback's This argument into a genuine C++-"this"-based method call. */
@@ -97,16 +97,16 @@ public:
    virtual void AfterMessageReceivedFromGateway(const MessageRef & msg, void * userData);
 
    /** Returns a read-only reference to our parameters message */
-   const Message & GetParametersConst() const {return _parameters;}
+   MUSCLE_NODISCARD const Message & GetParametersConst() const {return _parameters;}
 
    /** Convenience method:  Returns the effective Parameters Message for this session (ie as
      * would be returned in response to a PR_COMMAND_GETPARAMETERS Message from our client)
      */
    MessageRef GetEffectiveParameters() const;
 
-   virtual bool ClientConnectionClosed();
+   MUSCLE_NODISCARD virtual bool ClientConnectionClosed();
    virtual void AsyncConnectCompleted();
-   virtual uint64 GetPulseTime(const PulseArgs & args);
+   MUSCLE_NODISCARD virtual uint64 GetPulseTime(const PulseArgs & args);
    virtual void Pulse(const PulseArgs & args);
 
 protected:
@@ -231,7 +231,7 @@ protected:
        *                Message, but it is not allowed to modify the Message that (optData) points to.
        * @param rootDepth the depth at which the traversal started (ie 0 if started at root)
        */
-      bool MatchesNode(DataNode & node, ConstMessageRef & optData, int rootDepth) const;
+      MUSCLE_NODISCARD bool MatchesNode(DataNode & node, ConstMessageRef & optData, int rootDepth) const;
 
       /**
        * Does a depth-first traversal of the node tree, starting with (node) as the root.
@@ -253,7 +253,7 @@ protected:
        * @param optData If non-NULL, any QueryFilters will use this Message to filter against.
        * @param nodeDepth the depth at which the traversal started (ie 0 if started at root)
        */
-      uint32 GetMatchCount(DataNode & node, const Message * optData, int nodeDepth) const;
+      MUSCLE_NODISCARD uint32 GetMatchCount(DataNode & node, const Message * optData, int nodeDepth) const;
 
    private:
       // This little structy class is used to pass context data around more efficiently
@@ -263,9 +263,9 @@ protected:
          TraversalContext(PathMatchCallback cb, StorageReflectSession * This, bool useFilters, void * userData, int rootDepth) : _cb(cb), _This(This), _useFilters(useFilters), _userData(userData), _rootDepth(rootDepth), _visitCount(0) {/* empty */}
 
          int CallCallbackMethod(DataNode & nextChild) {_visitCount++; return _cb(_This, nextChild, _userData);}
-         uint32 GetVisitCount() const {return _visitCount;}
-         int GetRootDepth() const {return _rootDepth;}
-         bool IsUseFiltersOkay() const {return _useFilters;}
+         MUSCLE_NODISCARD uint32 GetVisitCount() const {return _visitCount;}
+         MUSCLE_NODISCARD int GetRootDepth() const {return _rootDepth;}
+         MUSCLE_NODISCARD bool IsUseFiltersOkay() const {return _useFilters;}
 
       private:
          PathMatchCallback _cb;
@@ -276,10 +276,10 @@ protected:
          uint32 _visitCount;
       };
 
-      int DoTraversalAux(TraversalContext & data, DataNode & node);
-      bool DoDirectChildLookup(TraversalContext & data, const DataNode & node, const String & key, int32 entryIdx, Hashtable<DataNode *, Void> & alreadyDid, int & depth);
-      bool PathMatches(DataNode & node, ConstMessageRef & optData, const PathMatcherEntry & entry, int rootDepth) const;
-      bool CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optKnownMatchingEntryIndex, int & depth);
+      MUSCLE_NODISCARD int DoTraversalAux(TraversalContext & data, DataNode & node);
+      MUSCLE_NODISCARD bool DoDirectChildLookup(TraversalContext & data, const DataNode & node, const String & key, int32 entryIdx, Hashtable<DataNode *, Void> & alreadyDid, int & depth);
+      MUSCLE_NODISCARD bool PathMatches(DataNode & node, ConstMessageRef & optData, const PathMatcherEntry & entry, int rootDepth) const;
+      MUSCLE_NODISCARD bool CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optKnownMatchingEntryIndex, int & depth);
    };
 
    friend class DataNode;
@@ -289,7 +289,7 @@ protected:
     * Default implementation looks at the PR_NAME_PRIVILEGE_BITS parameter to determine whether to return true or false.
     * @param whichPriv a PR_PRIVILEGE_* value
     */
-   virtual bool HasPrivilege(int whichPriv) const;
+   MUSCLE_NODISCARD virtual bool HasPrivilege(int whichPriv) const;
 
    /**
     * Returns the given Message to our client, inside an error message with the given error code.
@@ -458,7 +458,7 @@ protected:
    void SetSubscriptionsEnabled(bool e) {_subscriptionsEnabled = e;}
 
    /** Returns true iff our "subscriptions enabled" flag is set.  Default state is of this flag is true.  */
-   bool GetSubscriptionsEnabled() const {return _subscriptionsEnabled;}
+   MUSCLE_NODISCARD bool GetSubscriptionsEnabled() const {return _subscriptionsEnabled;}
 
    /** Called when a PR_COMMAND_GETPARAMETERS Message is received from our client.   After filling the usual
      * data into the PR_RESULTS_PARAMETERS reply Message, the StorageReflectSession class will call this method,
@@ -476,7 +476,7 @@ protected:
     * @param path The fully specified path to a single node in the database.
     * @return A pointer to the specified DataNode, or NULL if the node wasn't found.
     */
-   DataNode * GetDataNode(const String & path) const {return _sessionDir() ? _sessionDir()->FindFirstMatchingNode(path()) : NULL;}
+   MUSCLE_NODISCARD DataNode * GetDataNode(const String & path) const {return _sessionDir() ? _sessionDir()->FindFirstMatchingNode(path()) : NULL;}
 
    /**
     * Call this to get a new DataNode, instead of using the DataNode ctor directly.
@@ -518,10 +518,10 @@ protected:
    DataNodeRef GetSessionNode() const {return _sessionDir;}
 
    /** Returns a reference to our parameters message */
-   Message & GetParameters() {return _parameters;}
+   MUSCLE_NODISCARD Message & GetParameters() {return _parameters;}
 
    /** Returns a reference to the global root node of the database */
-   DataNode & GetGlobalRoot() const {return *(_sharedData->_root());}
+   MUSCLE_NODISCARD DataNode & GetGlobalRoot() const {return *(_sharedData->_root());}
 
    /** Macro to declare the proper callback declarations for the message-passing callback.  */
    DECLARE_MUSCLE_TRAVERSAL_CALLBACK(StorageReflectSession, PassMessageCallback);    /** Matching nodes are sent the given message.  */

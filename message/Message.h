@@ -28,16 +28,16 @@ DECLARE_REFTYPES(Message);
   * Useful in cases where you need to refer to an empty Message but don't wish to be
   * constantly constructing/destroying temporary Message objects.
   */
-inline const Message & GetEmptyMessage() {return GetDefaultObjectForType<Message>();}
+MUSCLE_NODISCARD inline const Message & GetEmptyMessage() {return GetDefaultObjectForType<Message>();}
 
 /** Same as GetEmptyMessage(), except it returns a ConstMessageRef instead of a Message. */
-const ConstMessageRef & GetEmptyMessageRef();
+MUSCLE_NODISCARD const ConstMessageRef & GetEmptyMessageRef();
 
 /** This function returns a pointer to a singleton ObjectPool that can be
  *  used to minimize the number of Message allocations and deletions by
  *  recycling the Message objects.
  */
-MessageRef::ItemPool * GetMessagePool();
+MUSCLE_NODISCARD MessageRef::ItemPool * GetMessagePool();
 
 /** Convenience method:  Gets a Message from the Message pool and returns a reference to it.
  *  @param what The 'what' code to set in the returned Message.
@@ -125,18 +125,18 @@ public:
    /** Returns true iff this iterator is pointing at valid field name data.
      * It's only safe to call GetFieldName() if this method returns true.
      */
-   bool HasData() const {return _iter.HasData();}
+   MUSCLE_NODISCARD bool HasData() const {return _iter.HasData();}
 
    /** Returns a reference to the current field name.  Note that it is only safe
      * to call this method if HasData() returned true!  The value returned by
      * HasData() may change if the Message we are iterating over is modified.
      */
-   const String & GetFieldName() const {return _iter.GetKey();}
+   MUSCLE_NODISCARD const String & GetFieldName() const {return _iter.GetKey();}
 
    /** Returns the type code (B_STRING_TYPE, B_INT32_TYPE, etc) of iterator's
      * current Message-field (as specified by the return value of GetFieldName()).
      */
-   uint32 GetFieldType() const {return _iter.GetValue().TypeCode();}
+   MUSCLE_NODISCARD uint32 GetFieldType() const {return _iter.GetValue().TypeCode();}
 
 private:
    friend class Message;
@@ -275,23 +275,23 @@ public:
     *  @param type The type of field to count, or B_ANY_TYPE to count all field types.
     *  @return The number of matching fields
     */
-   uint32 GetNumNames(uint32 type = B_ANY_TYPE) const;
+   MUSCLE_NODISCARD uint32 GetNumNames(uint32 type = B_ANY_TYPE) const;
 
    /** Returns true if there are any fields of the given type in the Message.
     *  @param type The type of field to check for, or B_ANY_TYPE to check for any field type.
     *  @return True iff any fields of the given type exist.
     */
-   bool HasNames(uint32 type = B_ANY_TYPE) const {return (GetNumNames(type) > 0);}
+   MUSCLE_NODISCARD bool HasNames(uint32 type = B_ANY_TYPE) const {return (GetNumNames(type) > 0);}
 
    /** @return true iff there are no fields in this Message. */
-   bool IsEmpty() const {return (_entries.IsEmpty());}
+   MUSCLE_NODISCARD bool IsEmpty() const {return (_entries.IsEmpty());}
 
    /** Returns the type code of the field with the given name, or (defaultTypeCode) if the field doesn't exist.
      * @param fieldName the name of the field to query
      * @param defaultTypeCode the value to return if the field doesn't exist.  Default to B_ANY_TYPE.
      * @returns the typecode of the specified field, or (defaultTypeCode)
      */
-   uint32 GetFieldTypeForName(const String & fieldName, uint32 defaultTypeCode = B_ANY_TYPE) const;
+   MUSCLE_NODISCARD uint32 GetFieldTypeForName(const String & fieldName, uint32 defaultTypeCode = B_ANY_TYPE) const;
 
    /** Prints debug info describing the contents of this Message to stdout.
      * @param optFile If non-NULL, the text will be printed to this file.  If left as NULL, stdout will be used as a default.
@@ -306,7 +306,7 @@ public:
     *  @param indentLevel Number of spaces to indent each generate line.  Used while recursing to format nested messages text nicely
     *  @returns a String representation of this Message, for debugging
     */
-   String ToString(uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
+   MUSCLE_NODISCARD String ToString(uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
 
    /** Same as ToString(), except the text is added to the given String instead
     *  of being returned as a new String.
@@ -325,13 +325,13 @@ public:
    status_t Rename(const String & old_entry, const String & new_entry);
 
    /** Returns false (Messages can be of various sizes, depending on how many fields they have, etc.) */
-   virtual bool IsFixedSize() const {return false;}
+   MUSCLE_NODISCARD virtual bool IsFixedSize() const {return false;}
 
    /** Returns B_MESSAGE_TYPE */
-   virtual uint32 TypeCode() const {return B_MESSAGE_TYPE;}
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const {return B_MESSAGE_TYPE;}
 
    /** Returns the number of bytes it would take to flatten this Message into a byte buffer. */
-   virtual uint32 FlattenedSize() const;
+   MUSCLE_NODISCARD virtual uint32 FlattenedSize() const;
 
    /**
     *  Converts this Message into a flattened buffer of bytes that can be saved to disk
@@ -969,7 +969,7 @@ public:
      * @param fieldName The field name to look for the flattened object under.
      * @returns The unflattened object that was found, if one was found and successfully unflattened, or a default-constructed item if it wasn't.
      */
-   template <class T> T GetFlat(const String & fieldName) const
+   template <class T> MUSCLE_NODISCARD T GetFlat(const String & fieldName) const
    {
       T ret;
       return (FindFlat(fieldName, ret).IsOK()) ? ret : GetDefaultObjectForType<T>();
@@ -982,7 +982,7 @@ public:
      * @param index The index of the object within (fieldName) to unflatten and return.  Defaults to zero (ie the first item)
      * @returns The unflattened object that was found, if one was found and successfully unflattened, or the specified fallback-item if it wasn't.
      */
-   template <class T> T GetFlat(const String & fieldName, const T & defaultValue, uint32 index = 0) const
+   template <class T> MUSCLE_NODISCARD T GetFlat(const String & fieldName, const T & defaultValue, uint32 index = 0) const
    {
       T ret;
       return (FindFlat(fieldName, index, ret).IsOK()) ? ret : defaultValue;
@@ -1081,7 +1081,7 @@ public:
      * @param fieldName The field name to look for the RefCountableRef object under.
      * @returns The unflattened object that was found, if one was found and successfully unflattened, or a default-constructed item if it wasn't.
      */
-   template <class T> T GetTag(const String & fieldName) const
+   template <class T> MUSCLE_NODISCARD T GetTag(const String & fieldName) const
    {
       T ret;
       return FindTag(fieldName, ret).IsOK() ? ret : GetDefaultObjectForType<T>();
@@ -1094,7 +1094,7 @@ public:
      * @param index The index of the object within (fieldName) to return.  Defaults to zero (ie the first item)
      * @returns The object that was found, if one was found, or the specified fallback-item if it wasn't.
      */
-   template <class T> T GetTag(const String & fieldName, const T & defaultValue, uint32 index = 0) const
+   template <class T> MUSCLE_NODISCARD T GetTag(const String & fieldName, const T & defaultValue, uint32 index = 0) const
    {
       T ret;
       return FindTag(fieldName, index, ret).IsOK() ? ret : defaultValue;
@@ -1432,7 +1432,7 @@ public:
      * @returns a pointer to the returned field's name String on success, or NULL on failure.  Note that this pointer
      *          is not guaranteed to remain valid if the Message is modified.
      */
-   const String * GetFirstFieldNameString(uint32 optTypeCode = B_ANY_TYPE) const {return GetExtremeFieldNameStringAux(optTypeCode, false);}
+   MUSCLE_NODISCARD const String * GetFirstFieldNameString(uint32 optTypeCode = B_ANY_TYPE) const {return GetExtremeFieldNameStringAux(optTypeCode, false);}
 
    /** Convenience method:  Returns the last field name of the given type, or NULL if none is found.
      * @param optTypeCode If specified, only field names with the specified type will be considered.
@@ -1440,21 +1440,21 @@ public:
      * @returns a pointer to the returned field's name String on success, or NULL on failure.  Note that this pointer
      *          is not guaranteed to remain valid if the Message is modified.
      */
-   const String * GetLastFieldNameString(uint32 optTypeCode = B_ANY_TYPE) const {return GetExtremeFieldNameStringAux(optTypeCode, true);}
+   MUSCLE_NODISCARD const String * GetLastFieldNameString(uint32 optTypeCode = B_ANY_TYPE) const {return GetExtremeFieldNameStringAux(optTypeCode, true);}
 
    /** Returns true iff there is a field with the given name and type present in the Message.
     *  @param fieldName the field name to look for.
     *  @param type the type to look for, or B_ANY_TYPE if type isn't important to you.
     *  @return true if such a field exists, else false.
     */
-   bool HasName(const String & fieldName, uint32 type = B_ANY_TYPE) const {return (GetMessageField(fieldName, type) != NULL);}
+   MUSCLE_NODISCARD bool HasName(const String & fieldName, uint32 type = B_ANY_TYPE) const {return (GetMessageField(fieldName, type) != NULL);}
 
    /** Returns the position of the specified field name within a MessageFieldNameIterator's name-traversal order.
      * @param fieldName the field name to inquire about
      * @returns returns 0 for the first field's name, 1 for the second, and so on).  Returns -1 if the field isn't found.
      * @note this method runs with O(N) complexity.
      */
-   int32 IndexOfName(const String & fieldName) const {return _entries.IndexOfKey(fieldName);}
+   MUSCLE_NODISCARD int32 IndexOfName(const String & fieldName) const {return _entries.IndexOfKey(fieldName);}
 
    /** Returns the number of values in the field with the given name and type in the Message.
     *  @param fieldName the field name to look for.
@@ -1462,7 +1462,7 @@ public:
     *  @return The number of values stored under (fieldName) if a field of the right type exists,
     *          or zero if the field doesn't exist or isn't of a matching type.
     */
-   uint32 GetNumValuesInName(const String & fieldName, uint32 type = B_ANY_TYPE) const;
+   MUSCLE_NODISCARD uint32 GetNumValuesInName(const String & fieldName, uint32 type = B_ANY_TYPE) const;
 
    /** Takes the field named (fieldName) in this message, and moves the field into (moveTo).
     *  Any data that was already in (moveTo) under (fieldName) will be replaced.
@@ -1596,7 +1596,7 @@ public:
      * @param type Type of field you are looking for, or B_ANY_TYPE if any type will do.  Defaults to B_ANY_TYPE.
      * @returns A pointer to the field's data on success, or NULL if a field with the specified name and type wasn't found.
      */
-   void * GetPointerToNormalizedFieldData(const String & fieldName, uint32 * retItemCount, uint32 type = B_ANY_TYPE);
+   MUSCLE_NODISCARD void * GetPointerToNormalizedFieldData(const String & fieldName, uint32 * retItemCount, uint32 type = B_ANY_TYPE);
 
    /**
     * Swaps the contents and 'what' code of this Message with the specified Message.
@@ -1643,7 +1643,7 @@ public:
      * @param compareData If true, then the data in the fields will be compared also, and true will not be returned unless all the data items are equal.
      * @returns true If and only if our fields are a subset of (rhs)'s fields.
      */
-   bool FieldsAreSubsetOf(const Message & rhs, bool compareData) const;
+   MUSCLE_NODISCARD bool FieldsAreSubsetOf(const Message & rhs, bool compareData) const;
 
    /**
     * Iterates over the contents of this Message to compute a checksum.
@@ -1655,7 +1655,7 @@ public:
     *                        checksum.  If false (the default), they will be
     *                        ignored.
     */
-   uint32 CalculateChecksum(bool countNonFlattenableFields = false) const;
+   MUSCLE_NODISCARD uint32 CalculateChecksum(bool countNonFlattenableFields = false) const;
 
    /**
     * Returns an iterator that iterates over the names of the fields in this
@@ -1696,7 +1696,7 @@ public:
      * @param idx The index to look under inside the field.  Defaults to zero.
      * @returns a Pointer to the String data item's Nul-terminated C string array on success, or (defVal) if the item could not be found.
      */
-   inline const char * GetCstr(const String & fn, const char * defVal = NULL, uint32 idx = 0) const {const char * r; return (FindString( fn, idx, &r).IsOK()) ? r : defVal;}
+   MUSCLE_NODISCARD inline const char * GetCstr(const String & fn, const char * defVal = NULL, uint32 idx = 0) const {const char * r; return (FindString( fn, idx, &r).IsOK()) ? r : defVal;}
 
    /** Convenience method for retrieving a pointer to a pointer data item inside a Message.
      * @param fn The field name to look for the pointer under.
@@ -1704,7 +1704,7 @@ public:
      * @param idx The index to look under inside the field.  Defaults to zero.
      * @returns The requested pointer on success, or (defVal) on failure.
      */
-   inline void * GetPointer(const String & fn, void * defVal = NULL, uint32 idx = 0) const {void * r; return (FindPointer(fn, idx,  r).IsOK()) ? r : defVal;}
+   MUSCLE_NODISCARD inline void * GetPointer(const String & fn, void * defVal = NULL, uint32 idx = 0) const {void * r; return (FindPointer(fn, idx,  r).IsOK()) ? r : defVal;}
 
    /** Convenience method for retrieving a pointer to a String data item inside a Message.
      * @param fn The field name to look for the String under.
@@ -1712,14 +1712,14 @@ public:
      * @param idx The index to look under inside the field.  Defaults to zero.
      * @returns a Pointer to the String data item on success, or (defVal) if the item could not be found.
      */
-   inline const String * GetStringPointer(const String & fn, const String * defVal=NULL, uint32 idx = 0) const {const String * r; return (FindString(fn, idx, &r).IsOK()) ? r : defVal;}
+   MUSCLE_NODISCARD inline const String * GetStringPointer(const String & fn, const String * defVal=NULL, uint32 idx = 0) const {const String * r; return (FindString(fn, idx, &r).IsOK()) ? r : defVal;}
 
    /** Convenience method for retrieving a reference to a String data item inside a Message.
      * @param fn The field name to look for the String under.
      * @param idx The index to look under inside the field.  Defaults to zero.
      * @returns a read-only reference to the String, if found, or a read-only reference to an empty String otherwise.
      */
-   inline const String & GetStringReference(const String & fn, uint32 idx = 0) const {return *GetStringPointer(fn, &GetEmptyString(), idx);}
+   MUSCLE_NODISCARD inline const String & GetStringReference(const String & fn, uint32 idx = 0) const {return *GetStringPointer(fn, &GetEmptyString(), idx);}
 
 #define DECLARE_MUSCLE_UNSIGNED_INTEGER_FIND_METHODS(bw)                                                                                               \
    inline status_t FindInt##bw (const String & fieldName, uint32 index, uint##bw & val) const {return FindInt##bw (fieldName, index, (int##bw &)val);} \
@@ -1748,9 +1748,9 @@ public:
    DECLARE_MUSCLE_POINTER_FIND_METHODS(String,  const char *); ///< This macro defines old-style Find methods with pointer value arguments, for backwards compatibility.
 
 #define DECLARE_MUSCLE_CONVENIENCE_METHODS(name, type) \
-   inline type Get##name(const String & fieldName, const type & defVal = type(), uint32 idx = 0) const {type r; return (Find##name (fieldName, idx, r).IsOK()) ? (const type &)r : defVal;} \
-   inline status_t CAdd##name(    const String & fieldName, const type & value, const type & defVal = type())   {return (value == defVal) ? B_NO_ERROR : Add##name     (fieldName, value);}        \
-   inline status_t CPrepend##name(const String & fieldName, const type & value, const type & defVal = type())   {return (value == defVal) ? B_NO_ERROR : Prepend##name (fieldName, value);}
+   MUSCLE_NODISCARD inline type Get##name(const String & fieldName, const type & defVal = type(), uint32 idx = 0) const {type r; return (Find##name (fieldName, idx, r).IsOK()) ? (const type &)r : defVal;} \
+   MUSCLE_NODISCARD inline status_t CAdd##name(    const String & fieldName, const type & value, const type & defVal = type())   {return (value == defVal) ? B_NO_ERROR : Add##name     (fieldName, value);}        \
+   MUSCLE_NODISCARD inline status_t CPrepend##name(const String & fieldName, const type & value, const type & defVal = type())   {return (value == defVal) ? B_NO_ERROR : Prepend##name (fieldName, value);}
    DECLARE_MUSCLE_CONVENIENCE_METHODS(Bool,    bool);            ///< This macro defines Get(), CAdd(), and CPrepend() methods for convience in common use cases.
    DECLARE_MUSCLE_CONVENIENCE_METHODS(Double,  double);          ///< This macro defines Get(), CAdd(), and CPrepend() methods for convience in common use cases.
    DECLARE_MUSCLE_CONVENIENCE_METHODS(Float,   float);           ///< This macro defines Get(), CAdd(), and CPrepend() methods for convience in common use cases.
@@ -1774,7 +1774,7 @@ public:
     * @note this method is guaranteed never to return 0, so that 0 can
     *       be used as a guard-value in calling code if desired.
     */
-   uint64 TemplateHashCode64() const;
+   MUSCLE_NODISCARD uint64 TemplateHashCode64() const;
 
    /**
      * Returns the number of bytes that TemplatedFlatten()  would need to flatten just the
@@ -1783,7 +1783,7 @@ public:
      * @param templateMsg the Message to use as a guide for what data to read from this Message.
      * @see TemplatedFlatten() for details.
      */
-   uint32 TemplatedFlattenedSize(const Message & templateMsg) const;
+   MUSCLE_NODISCARD uint32 TemplatedFlattenedSize(const Message & templateMsg) const;
 
    /**
     * Writes the bare payload-data of this Message into (buffer), using (templateMsg)
@@ -1827,24 +1827,24 @@ private:
 
    // Given a known uint32, returns the size of an item of that type.
    // Returns zero if items of the given type are variable length.
-   static uint32 GetElementSize(uint32 type);
+   MUSCLE_NODISCARD static uint32 GetElementSize(uint32 type);
 
-   muscle_private::MessageField * GetMessageField(const String & fieldName, uint32 etc);
-   const muscle_private::MessageField * GetMessageField(const String & fieldName, uint32 etc) const;
-   muscle_private::MessageField * GetOrCreateMessageField(const String & fieldName, uint32 tc);
-   const muscle_private::MessageField * GetMessageFieldAndTypeCode(const String & fieldName, uint32 index, uint32 * retTypeCode) const;
+   MUSCLE_NODISCARD muscle_private::MessageField * GetMessageField(const String & fieldName, uint32 etc);
+   MUSCLE_NODISCARD const muscle_private::MessageField * GetMessageField(const String & fieldName, uint32 etc) const;
+   MUSCLE_NODISCARD muscle_private::MessageField * GetOrCreateMessageField(const String & fieldName, uint32 tc);
+   MUSCLE_NODISCARD const muscle_private::MessageField * GetMessageFieldAndTypeCode(const String & fieldName, uint32 index, uint32 * retTypeCode) const;
 
    status_t AddFlatAux(const String & fieldName, const FlatCountableRef & flat, uint32 etc, bool prepend);
    status_t AddDataAux(const String & fieldName, const void * data, uint32 size, uint32 etc, bool prepend);
 
-   const uint8 * FindFlatAux(const muscle_private::MessageField * ada, uint32 index, uint32 & retNumBytes, const FlatCountable ** optRetFCPtr) const;
+   MUSCLE_NODISCARD const uint8 * FindFlatAux(const muscle_private::MessageField * ada, uint32 index, uint32 & retNumBytes, const FlatCountable ** optRetFCPtr) const;
    status_t FindDataItemAux(const String & fieldName, uint32 index, uint32 tc, void * setValue, uint32 valueSize) const;
 
    status_t ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const FlatCountableRef & flat, uint32 tc);
 
-   uint64 TemplateHashCode64Aux(uint32 & count) const;
+   MUSCLE_NODISCARD uint64 TemplateHashCode64Aux(uint32 & count) const;
 
-   const String * GetExtremeFieldNameStringAux(uint32 optTypeCode, bool isLast) const
+   MUSCLE_NODISCARD const String * GetExtremeFieldNameStringAux(uint32 optTypeCode, bool isLast) const
    {
       if (optTypeCode == B_ANY_TYPE) return isLast ? _entries.GetLastKey() : _entries.GetFirstKey();
 
@@ -1967,7 +1967,7 @@ template<typename T> status_t Message :: CPrependArchiveMessage(const String & f
   * @param what a 32-bit what-code
   * @returns a human-readable String representation of that 'what'-code
   */
-static inline String GetTypeCodeString(uint32 what)
+MUSCLE_NODISCARD static inline String GetTypeCodeString(uint32 what)
 {
    char buf[sizeof(uint32)+1];  // +1 for the NUL byte
    ::MakePrettyTypeCodeString(what, buf);

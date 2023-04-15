@@ -57,7 +57,7 @@ public:
    virtual status_t Seek(int64 offset, int whence);
 
    /** Returns our current position in the file. */
-   virtual int64 GetPosition() const;
+   MUSCLE_NODISCARD virtual int64 GetPosition() const;
 
    /** Flushes the file output by calling fflush() */
    virtual void FlushOutput();
@@ -75,7 +75,7 @@ public:
    /**
     * Returns the FILE object held by this object, or NULL if there is none.
     */
-   FILE * GetFile() const {return _file;}
+   MUSCLE_NODISCARD FILE * GetFile() const {return _file;}
 
    /**
     * Sets our file pointer to the specified handle, closing any previously held file handle first.
@@ -98,7 +98,7 @@ public:
     * methods in the DataIO interface instead.  If you attempt to do any other I/O operations
     * on Socket or its file descriptor directly, the results are undefined.
     */
-   virtual const ConstSocketRef & GetReadSelectSocket() const {return _selectSocketRef;}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const {return _selectSocketRef;}
 
    /**
     * This method should return a ConstSocketRef object containing a file descriptor
@@ -115,7 +115,7 @@ public:
     * methods in the DataIO interface instead.  If you attempt to do any other I/O operations
     * on Socket or its file descriptor directly, the results are undefined.
     */
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return _selectSocketRef;}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _selectSocketRef;}
 
 private:
    void SetSocketsFromFile(FILE * optFile);

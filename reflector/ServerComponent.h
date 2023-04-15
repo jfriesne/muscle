@@ -47,7 +47,7 @@ public:
      * RTTI info; subclasses may override this to return something prettier,
      * if they wish.
      */
-   virtual const char * GetTypeName() const;
+   MUSCLE_NODISCARD virtual const char * GetTypeName() const;
 
    /**
     * This method is called when this object has been added to
@@ -93,7 +93,7 @@ public:
    virtual void MessageReceivedFromFactory(ReflectSessionFactory & from, const MessageRef & msg, void * userData);
 
    /** Returns true if we are attached to the ReflectServer object, false if we are not.  */
-   bool IsAttachedToServer() const {return (_owner != NULL);}
+   MUSCLE_NODISCARD bool IsAttachedToServer() const {return (_owner != NULL);}
 
    /** Returns true if we are attached FULLY to the ReflectServer object, false if we are not.
      * The difference between this method and IsAttachedToServer() is that this method only returns
@@ -101,7 +101,7 @@ public:
      * has been called.  Compare that to IsAttachedToServer()'s which returns true during the
      * AttachedToServer and AboutToDetachFromServer() calls themselves, also.
      */
-   bool IsFullyAttachedToServer() const {return _fullyAttached;}
+   MUSCLE_NODISCARD bool IsFullyAttachedToServer() const {return _fullyAttached;}
 
    /** Sets the fully-attached-to-server flag for this session.  Typically only the ReflectServer class should call this.
      * @param fullyAttached true iff we are not fully attached; false if we are no longer fully attacked
@@ -109,7 +109,7 @@ public:
    void SetFullyAttachedToServer(bool fullyAttached) {_fullyAttached = fullyAttached;}
 
    /** Returns the ReflectServer we are currently attached to, or NULL if we aren't currently attached to a ReflectServer. */
-   ReflectServer * GetOwner() const {return _owner;}
+   MUSCLE_NODISCARD ReflectServer * GetOwner() const {return _owner;}
 
    /** Sets the ReflectServer we are currently attached to.  Don't call this if you don't know what you are doing.
      * @param s the ReflectServer object that we should use for method-call forwarding to ReflectServer functionality
@@ -118,19 +118,19 @@ public:
 
 protected:
    /** Returns the value GetRunTime64() was at when this server's ServerProcessLoop() began. */
-   uint64 GetServerStartTime() const;
+   MUSCLE_NODISCARD uint64 GetServerStartTime() const;
 
    /** Returns a number that is unique (hopefully) to our ReflectServer object in this process */
-   uint64 GetServerSessionID() const;
+   MUSCLE_NODISCARD uint64 GetServerSessionID() const;
 
    /** Returns the number of bytes that are currently available to be allocated */
-   uint64 GetNumAvailableBytes() const;
+   MUSCLE_NODISCARD uint64 GetNumAvailableBytes() const;
 
    /** Returns the maximum number of bytes that may be allocated at any given time */
-   uint64 GetMaxNumBytes() const;
+   MUSCLE_NODISCARD uint64 GetMaxNumBytes() const;
 
    /** Returns the number of bytes that are currently allocated */
-   uint64 GetNumUsedBytes() const;
+   MUSCLE_NODISCARD uint64 GetNumUsedBytes() const;
 
    /** Passes through to ReflectServer::PutAcceptFactory()
     *  @param port The TCP port the server will listen on.  (muscled's traditional port is 2960)
@@ -165,7 +165,7 @@ protected:
     * this Message and expect it to remain there, so be careful not
     * to remove or overwrite it if you are using StorageReflectSessions)
     */
-   Message & GetCentralState() const;
+   MUSCLE_NODISCARD Message & GetCentralState() const;
 
    /**
     * Adds the given AbstractReflectSession to the server's session list.
@@ -232,10 +232,10 @@ protected:
    status_t AddNewDormantConnectSession(const AbstractReflectSessionRef & ref, const IPAddressAndPort & targetIPAddressAndPort, uint64 autoReconnectDelay = MUSCLE_TIME_NEVER, uint64 maxAsyncConnectPeriod = MUSCLE_MAX_ASYNC_CONNECT_DELAY_MICROSECONDS);
 
    /** Returns our server's table of attached sessions. */
-   const Hashtable<const String *, AbstractReflectSessionRef> & GetSessions() const;
+   MUSCLE_NODISCARD const Hashtable<const String *, AbstractReflectSessionRef> & GetSessions() const;
 
    /** Returns our server's table of attached sessions, indexed by uint32. */
-   const Hashtable<uint32, AbstractReflectSessionRef> & GetSessionsByIDNumber() const;
+   MUSCLE_NODISCARD const Hashtable<uint32, AbstractReflectSessionRef> & GetSessionsByIDNumber() const;
 
    /**
     * Looks up a session connected to our ReflectServer via its session ID string.
@@ -255,7 +255,7 @@ protected:
      * @tparam SessionType the type of session object you want to find and return a pointer to.
      * @note this method iterates over the session list, so it's not as efficient as one might hope.
      */
-   template <class SessionType> SessionType * FindFirstSessionOfType() const
+   template <class SessionType> MUSCLE_NODISCARD SessionType * FindFirstSessionOfType() const
    {
       for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
       {
@@ -289,7 +289,7 @@ protected:
    }
 
    /** Returns the table of session factories currently attached to the server. */
-   const Hashtable<IPAddressAndPort, ReflectSessionFactoryRef> & GetFactories() const;
+   MUSCLE_NODISCARD const Hashtable<IPAddressAndPort, ReflectSessionFactoryRef> & GetFactories() const;
 
    /** Given a port number, returns a reference to the factory of that port, or a NULL reference if no
 such factory exists. */

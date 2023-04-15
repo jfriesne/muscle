@@ -28,7 +28,7 @@ public:
    /** Destructor */
    virtual ~PlainTextMessageIOGateway();
 
-   virtual bool HasBytesToOutput() const;
+   MUSCLE_NODISCARD virtual bool HasBytesToOutput() const;
    virtual void Reset();
 
    /** Set the end-of-line string to be attached to outgoing text lines.
@@ -45,7 +45,7 @@ public:
    void SetFlushPartialIncomingLines(bool f) {_flushPartialIncomingLines = f;}
 
    /** Returns the flush-partial-incoming-lines value, as set by SetFlushPartialIncomingLines(). */
-   bool GetFlushPartialIncomingLines() const {return _flushPartialIncomingLines;}
+   MUSCLE_NODISCARD bool GetFlushPartialIncomingLines() const {return _flushPartialIncomingLines;}
 
    /** Force any pending input to be immediately flushed out
      * @param receiver The object to call MessageReceivedFromGateway() on, if necessary.
@@ -53,7 +53,7 @@ public:
    void FlushInput(AbstractGatewayMessageReceiver & receiver);
 
    /** Returns true iff we currently have any incoming text buffered up waiting for a carriage return to be received */
-   bool HasBufferedIncomingText() const {return _incomingText.HasChars();}
+   MUSCLE_NODISCARD bool HasBufferedIncomingText() const {return _incomingText.HasChars();}
 
 protected:
    virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);

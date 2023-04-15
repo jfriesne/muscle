@@ -133,7 +133,7 @@ status_t ReadAndInflateAndWrite(DataIO & sourceDeflatedIO, DataIO & destInflated
   * Returns false iff the MessageRef is NULL or not deflated.
   * @param msgRef The Message to determine the inflated/deflated status of.
   */
-bool IsMessageDeflated(const MessageRef & msgRef);
+MUSCLE_NODISCARD bool IsMessageDeflated(const MessageRef & msgRef);
 
 /** Examines the contents of the given Message, and creates and returns a new
  *  Message that represents the same data as the given Message, but in compressed form.

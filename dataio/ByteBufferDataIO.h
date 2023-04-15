@@ -32,7 +32,7 @@ public:
    void SetBuffer(const ByteBufferRef & buf) {_buf = buf;}
 
    /** Returns the current byte buffer reference we are using. */
-   const ByteBufferRef & GetBuffer() const {return _buf;}
+   MUSCLE_NODISCARD const ByteBufferRef & GetBuffer() const {return _buf;}
 
    /**
     *  Copies bytes from our ByteBuffer into (buffer).  If we have no buffer, returns B_BAD_OBJECT.
@@ -58,7 +58,7 @@ public:
     */
    virtual status_t Seek(int64 offset, int whence);
 
-   virtual int64 GetPosition() const {return _seekPos;}
+   MUSCLE_NODISCARD virtual int64 GetPosition() const {return _seekPos;}
 
    /**
     *  No-op method.
@@ -70,10 +70,10 @@ public:
    virtual void Shutdown() {_buf.Reset();}
 
    /** Can't select on this one, sorry */
-   virtual const ConstSocketRef & GetReadSelectSocket() const {return GetNullSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const {return GetNullSocket();}
 
    /** Can't select on this one, sorry */
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetNullSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetNullSocket();}
 
 private:
    ByteBufferRef _buf;

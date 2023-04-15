@@ -38,7 +38,7 @@ status_t ParsePythonArgs(PyObject * args, PyObject * keywords, Message & msg);
  *  @param index The index of the item in the field to use (often zero)
  *  @return A PyObject on success, or NULL (and sets the exception string) on failure.
  */
-PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fieldName, uint32 index);
+MUSCLE_NODISCARD PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fieldName, uint32 index);
 
 /** Adds the given PyObject to the given Message, under the given key.
  *  Note that this function will not properly handle all possible Python types, but only
@@ -60,7 +60,7 @@ status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message
  *  be used in a Message for an arg of that type, if a fieldname wasn't explicitly specified.
  *  @param type a B_*_TYPE value indicating the type to inquire about
  */
-const char * GetDefaultPythonArgFieldName(uint32 type);
+MUSCLE_NODISCARD const char * GetDefaultPythonArgFieldName(uint32 type);
 
 /** @} */ // end of pythonutilityfunctions doxygen group
 

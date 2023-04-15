@@ -71,7 +71,7 @@ public:
     */
    virtual ~MessageIOGateway();
 
-   virtual bool HasBytesToOutput() const;
+   MUSCLE_NODISCARD virtual bool HasBytesToOutput() const;
    virtual void Reset();
 
    /**
@@ -109,10 +109,10 @@ public:
    void SetMaxIncomingMessageSize(uint32 maxBytes) {_maxIncomingMessageSize = maxBytes;}
 
    /** Returns the current maximum incoming message size, as was set above. */
-   uint32 GetMaxIncomingMessageSize() const {return _maxIncomingMessageSize;}
+   MUSCLE_NODISCARD uint32 GetMaxIncomingMessageSize() const {return _maxIncomingMessageSize;}
 
    /** Returns our encoding method, as specified in the constructor or via SetOutgoingEncoding(). */
-   int32 GetOutgoingEncoding() const {return _outgoingEncoding;}
+   MUSCLE_NODISCARD int32 GetOutgoingEncoding() const {return _outgoingEncoding;}
 
    /** Call this to change the encoding this gateway applies to outgoing Messages.
      * Note that the encoding change will take place starting with the next Message
@@ -211,7 +211,7 @@ protected:
     * The default Message protocol uses an 8-byte header (4 bytes for encoding ID, 4 bytes for message size),
     * so the default implementation of this method always returns 8.
     */
-   virtual uint32 GetHeaderSize() const;
+   MUSCLE_NODISCARD virtual uint32 GetHeaderSize() const;
 
    /**
     * Must Extract and returns the buffer body size from the given header.
@@ -220,10 +220,10 @@ protected:
     * @return The number of bytes in the body of the message associated with (header), on success,
     *         or a negative value to indicate an error (invalid header, etc).
     */
-   virtual int32 GetBodySize(const uint8 * header) const;
+   MUSCLE_NODISCARD virtual int32 GetBodySize(const uint8 * header) const;
 
    /** Overridden to return true until our PONG Message is received back */
-   virtual bool IsStillAwaitingSynchronousMessagingReply() const {return _noRPCReply.IsInBatch() ? HasBytesToOutput() : (_pendingSyncPingCounter >= 0);}
+   MUSCLE_NODISCARD virtual bool IsStillAwaitingSynchronousMessagingReply() const {return _noRPCReply.IsInBatch() ? HasBytesToOutput() : (_pendingSyncPingCounter >= 0);}
 
    /** Overridden to filter out our PONG Message and pass everything else on to (r).
      * @param msg the Message that was received
@@ -244,7 +244,7 @@ protected:
      * @param msg a Message received from the remote peer
      * @param syncPingCounter The value of the ping-counter that we are interested in checking against.
      */
-   virtual bool IsSynchronousPongMessage(const MessageRef & msg, uint32 syncPingCounter) const;
+   MUSCLE_NODISCARD virtual bool IsSynchronousPongMessage(const MessageRef & msg, uint32 syncPingCounter) const;
 
    /**
      * Removes the next MessageRef from our outgoing Message queue and returns it in (retMsg).
@@ -262,21 +262,21 @@ protected:
      * to be deflated independently of its predecessors, giving more flexibility at the expense of
      * less compression.
      */
-   virtual bool AreOutgoingMessagesIndependent() const {return false;}
+   MUSCLE_NODISCARD virtual bool AreOutgoingMessagesIndependent() const {return false;}
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    /** Convenience method for subclasses:   Returns the ZLibCodec to use for deflating outgoing data,
      * or NULL if no ZLibCodec should be used for outgoing data.
      * @note this method is only declared if preprocessor constant MUSCLE_ENABLE_ZLIB_ENCODING is defined.
      */
-   ZLibCodec * GetSendCodec() const {return GetCodec(_outgoingEncoding, _sendCodec);}
+   MUSCLE_NODISCARD ZLibCodec * GetSendCodec() const {return GetCodec(_outgoingEncoding, _sendCodec);}
 
    /** Convenience method for subclasses:   Returns the ZLibCodec to use for inflating incoming data,
      * or NULL if no ZLibCodec should be used for incoming data.
      * @param encoding the MUSCLE_MESSAGE_ENCODING_* value we want to decode
      * @note this method is only declared if preprocessor constant MUSCLE_ENABLE_ZLIB_ENCODING is defined.
      */
-   ZLibCodec * GetReceiveCodec(int32 encoding) const
+   MUSCLE_NODISCARD ZLibCodec * GetReceiveCodec(int32 encoding) const
    {
       // For receiving data, any ZLibCodec will do, so we'll just force it to the default codec-level
       return GetCodec(muscleInRange((int32)encoding, (int32)MUSCLE_MESSAGE_ENCODING_ZLIB_1, (int32)MUSCLE_MESSAGE_ENCODING_ZLIB_9) ? MUSCLE_MESSAGE_ENCODING_ZLIB_6 : encoding, _recvCodec);
@@ -287,7 +287,7 @@ private:
    ByteBufferRef FlattenHeaderAndMessageAux(const MessageRef & msgRef) const;
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-   ZLibCodec * GetCodec(int32 newEncoding, ZLibCodec * & setCodec) const;
+   MUSCLE_NODISCARD ZLibCodec * GetCodec(int32 newEncoding, ZLibCodec * & setCodec) const;
 #endif
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complain that I haven't documented this class -- but it's a private class so I don't need to
@@ -368,7 +368,7 @@ public:
      * Calculated by calling FlattenedSize() on the Messages as they are added to
      * or removed from the queue)
      */
-   uint32 GetNumOutgoingDataBytes() const {return _outgoingByteCount;}
+   MUSCLE_NODISCARD uint32 GetNumOutgoingDataBytes() const {return _outgoingByteCount;}
 
 protected:
    virtual status_t PopNextOutgoingMessage(MessageRef & ret);
@@ -397,7 +397,7 @@ status_t OptimizeMessageForTransmissionToMultipleGateways(const MessageRef & msg
   * OptimizeMessageForTransmissionToMultipleGateways() called on it already.
   * @param msg the Message to check for the presence of an optimization-tag.
   */
-bool IsMessageOptimizedForTransmissionToMultipleGateways(const MessageRef & msg);
+MUSCLE_NODISCARD bool IsMessageOptimizedForTransmissionToMultipleGateways(const MessageRef & msg);
 
 //////////////////////////////////////////////////////////////////////////////////
 //

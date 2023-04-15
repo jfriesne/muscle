@@ -32,30 +32,30 @@ public:
 
    virtual io_status_t Read(void * buffer, uint32 size) {return _childIO() ? _childIO()->Read(buffer, size) : B_BAD_OBJECT;}
    virtual io_status_t Write(const void * buffer, uint32 size) {return _childIO() ? _childIO()->Write(buffer, size) : B_BAD_OBJECT;}
-   virtual uint64 GetOutputStallLimit() const {return _childIO() ? _childIO()->GetOutputStallLimit() : MUSCLE_TIME_NEVER;}
+   MUSCLE_NODISCARD virtual uint64 GetOutputStallLimit() const {return _childIO() ? _childIO()->GetOutputStallLimit() : MUSCLE_TIME_NEVER;}
 
    virtual void FlushOutput() {if (_childIO()) _childIO()->FlushOutput();}
    virtual void Shutdown() {if (_childIO()) _childIO()->Shutdown(); _childIO.Reset();}
 
-   virtual const ConstSocketRef & GetReadSelectSocket()  const {return _childIO() ? _childIO()->GetReadSelectSocket()  : GetNullSocket();}
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return _childIO() ? _childIO()->GetWriteSelectSocket() : GetNullSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return _childIO() ? _childIO()->GetReadSelectSocket()  : GetNullSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _childIO() ? _childIO()->GetWriteSelectSocket() : GetNullSocket();}
 
-   virtual bool HasBufferedOutput() const {return _childIO() ? _childIO()->HasBufferedOutput() : false;}
+   MUSCLE_NODISCARD virtual bool HasBufferedOutput() const {return _childIO() ? _childIO()->HasBufferedOutput() : false;}
    virtual void WriteBufferedOutput() {if (_childIO()) _childIO()->WriteBufferedOutput();}
 
    virtual status_t Seek(int64 offset, int whence) {return _seekableChildIO ? _seekableChildIO->Seek(offset, whence) : B_BAD_OBJECT;}
-   virtual int64 GetPosition() const {return _seekableChildIO ? _seekableChildIO->GetPosition() : -1;}
-   virtual int64 GetLength() {return _seekableChildIO ? _seekableChildIO->GetLength() : -1;}
+   MUSCLE_NODISCARD virtual int64 GetPosition() const {return _seekableChildIO ? _seekableChildIO->GetPosition() : -1;}
+   MUSCLE_NODISCARD virtual int64 GetLength() {return _seekableChildIO ? _seekableChildIO->GetLength() : -1;}
 
-   virtual const IPAddressAndPort & GetSourceOfLastReadPacket() const {return _packetChildIO ? _packetChildIO->GetSourceOfLastReadPacket() : GetDefaultObjectForType<IPAddressAndPort>();}
-   virtual const IPAddressAndPort & GetPacketSendDestination() const  {return _packetChildIO ? _packetChildIO->GetPacketSendDestination()  : GetDefaultObjectForType<IPAddressAndPort>();}
+   MUSCLE_NODISCARD virtual const IPAddressAndPort & GetSourceOfLastReadPacket() const {return _packetChildIO ? _packetChildIO->GetSourceOfLastReadPacket() : GetDefaultObjectForType<IPAddressAndPort>();}
+   MUSCLE_NODISCARD virtual const IPAddressAndPort & GetPacketSendDestination() const  {return _packetChildIO ? _packetChildIO->GetPacketSendDestination()  : GetDefaultObjectForType<IPAddressAndPort>();}
    virtual status_t SetPacketSendDestination(const IPAddressAndPort & iap) {return _packetChildIO ? _packetChildIO->SetPacketSendDestination(iap) : B_BAD_OBJECT;}
-   virtual uint32 GetMaximumPacketSize() const {return _packetChildIO ? _packetChildIO->GetMaximumPacketSize() : 0;}
+   MUSCLE_NODISCARD virtual uint32 GetMaximumPacketSize() const {return _packetChildIO ? _packetChildIO->GetMaximumPacketSize() : 0;}
    virtual io_status_t ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource) {return _packetChildIO ? _packetChildIO->ReadFrom(buffer, size, retPacketSource) : B_BAD_OBJECT;}
    virtual io_status_t WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest) {return _packetChildIO ? _packetChildIO->WriteTo(buffer, size, packetDest) : B_BAD_OBJECT;}
 
    /** Returns a reference to our held child DataIO (if any) */
-   const DataIORef & GetChildDataIO() const {return _childIO;}
+   MUSCLE_NODISCARD const DataIORef & GetChildDataIO() const {return _childIO;}
 
    /** Sets our current held child DataIO.
      * @param childDataIO The new child DataIO to forward method calls along to.

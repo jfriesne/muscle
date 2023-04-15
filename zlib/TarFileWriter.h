@@ -106,10 +106,10 @@ public:
    };
 
    /** Returns true iff we successfully opened the .tar output file. */
-   bool IsFileOpen() const {return (_writerIO() != NULL);}
+   MUSCLE_NODISCARD bool IsFileOpen() const {return (_writerIO() != NULL);}
 
    /** Returns true iff we successfully started a .tar record block and it is currently open. */
-   bool IsFileDataBlockOpen() const {return (_currentHeaderOffset >= 0);}
+   MUSCLE_NODISCARD bool IsFileDataBlockOpen() const {return (_currentHeaderOffset >= 0);}
 
 private:
    enum {TAR_BLOCK_SIZE=512};

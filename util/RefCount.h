@@ -80,14 +80,14 @@ public:
    }
 
    /** Returns this object's current recyler pointer. */
-   AbstractObjectManager * GetManager() const {return _manager;}
+   MUSCLE_NODISCARD AbstractObjectManager * GetManager() const {return _manager;}
 
    /** Returns this object's current reference count.  Note that
      * the value returned by this method is volatile in multithreaded
      * environments, so it may already be wrong by the time it is returned.
      * Be careful!
      */
-   uint32 GetRefCount() const {return _refCount.GetCount();}
+   MUSCLE_NODISCARD uint32 GetRefCount() const {return _refCount.GetCount();}
 
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
    /** If -DMUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS was specified on the compile line,
@@ -100,7 +100,7 @@ public:
      * Note that enabling this feature uses up gobs of extra memory and CPU, so don't leave
      * it enabled after you are done debugging.
      */
-   const String * GetAllocationLocation() const {return _allocatedAtStackTrace;}
+   MUSCLE_NODISCARD const String * GetAllocationLocation() const {return _allocatedAtStackTrace;}
 #endif
 
 private:
@@ -260,7 +260,7 @@ public:
      * @param rhs the ConstRef whose referenced object we will compare to our own referenced object.
      * @note error-status values are not considered in this comparison.
      */
-   bool IsDeeplyEqualTo(const ConstRef & rhs) const
+   MUSCLE_NODISCARD bool IsDeeplyEqualTo(const ConstRef & rhs) const
    {
       const Item * myItem  = this->GetItemPointer();
       const Item * hisItem = rhs.GetItemPointer();
@@ -296,10 +296,10 @@ public:
    /** Returns the ref-counted data item.  The returned data item
     *  is only guaranteed valid for as long as this RefCount object exists.
     */
-   const Item * GetItemPointer() const {return _item.IsBitSet(REF_BIT_HASVALIDOBJECT) ? static_cast<const Item *>(_item.GetPointer()) : NULL;}
+   MUSCLE_NODISCARD const Item * GetItemPointer() const {return _item.IsBitSet(REF_BIT_HASVALIDOBJECT) ? static_cast<const Item *>(_item.GetPointer()) : NULL;}
 
    /** Convenience synonym for GetItemPointer(). */
-   const Item * operator()() const {return this->GetItemPointer();}
+   MUSCLE_NODISCARD const Item * operator()() const {return this->GetItemPointer();}
 
    /** Unreferences our held data item (if any), and turns this object back into a NULL reference.
     *  (equivalent to *this = ConstRef();)
@@ -325,7 +325,7 @@ public:
    /** Returns true iff we are refcounting our held object, or false
      * if we are merely pointing to it (see constructor documentation for details)
      */
-   bool IsRefCounting() const {return (_item.GetBits() == ((1<<REF_BIT_HASVALIDOBJECT)|(1<<REF_BIT_ISREFCOUNTING)));}
+   MUSCLE_NODISCARD bool IsRefCounting() const {return (_item.GetBits() == ((1<<REF_BIT_HASVALIDOBJECT)|(1<<REF_BIT_ISREFCOUNTING)));}
 
    /** Convenience method:  Returns a ConstRefCountableRef object referencing the same RefCountable as this typed ref. */
    ConstRefCountableRef GetRefCountableRef() const
@@ -377,7 +377,7 @@ public:
      * @returns a reference that points to the same object as this reference, but with the specified
      *          type, or a NULL reference if the implicit call to dynamic_cast<> returned NULL.
      */
-   template<class SubclassRefType> SubclassRefType DowncastTo() const
+   template<class SubclassRefType> MUSCLE_NODISCARD SubclassRefType DowncastTo() const
    {
       SubclassRefType ret;
       (void) ret.SetFromRefCountableRef(GetRefCountableRef());
@@ -385,10 +385,10 @@ public:
    }
 
    /** Returns true iff we are pointing to a valid item (ie if (GetItemPointer() != NULL)) */
-   bool IsValid() const {return (this->GetItemPointer() != NULL);}
+   MUSCLE_NODISCARD bool IsValid() const {return (this->GetItemPointer() != NULL);}
 
    /** Returns true iff we are not pointing to a valid item (ie if (GetItemPointer() == NULL)) */
-   bool IsNull() const {return (this->GetItemPointer() == NULL);}
+   MUSCLE_NODISCARD bool IsNull() const {return (this->GetItemPointer() == NULL);}
 
    /** Returns true only if we are certain that no other Refs are pointing
      * at the same RefCountable object that we are.  If this Ref's do-reference-counting
@@ -396,7 +396,7 @@ public:
      * be sure about sharing unless we are reference counting.  If this ConstRef is
      * a NULL Ref, then this method will return true.
      */
-   bool IsRefPrivate() const
+   MUSCLE_NODISCARD bool IsRefPrivate() const
    {
       const Item * item = this->GetItemPointer();
       return ((item == NULL)||((this->IsRefCounting())&&(item->GetRefCount() == 1)));
@@ -451,7 +451,7 @@ public:
    /** This method allows Refs to be keys in Hashtables.  Node that we hash on the pointer's value, not the object it points to!
      * @note error-status-codes are not considered when computing the hash
      */
-   uint32 HashCode() const {return CalculateHashCode(this->GetItemPointer());}
+   MUSCLE_NODISCARD uint32 HashCode() const {return CalculateHashCode(this->GetItemPointer());}
 
 private:
    friend class DummyConstRef<Item>;
@@ -545,7 +545,7 @@ public:
      * @param cookie arbitrary user-specific value
      * @note error-status values are not considered in this comparison.
      */
-   int Compare(const ConstRef<ItemType> & item1, const ConstRef<ItemType> & item2, void * cookie) const {return CompareFunctor<const ItemType *>().Compare(item1(), item2(), cookie);}
+   MUSCLE_NODISCARD int Compare(const ConstRef<ItemType> & item1, const ConstRef<ItemType> & item2, void * cookie) const {return CompareFunctor<const ItemType *>().Compare(item1(), item2(), cookie);}
 };
 
 /**
@@ -594,10 +594,10 @@ public:
    /** Returns the ref-counted data item.  The returned data item
     *  is only guaranteed valid for as long as this RefCount object exists.
     */
-   Item * GetItemPointer() const {return const_cast<Item *>((static_cast<const ConstRef<Item> *>(this))->GetItemPointer());}
+   MUSCLE_NODISCARD Item * GetItemPointer() const {return const_cast<Item *>((static_cast<const ConstRef<Item> *>(this))->GetItemPointer());}
 
    /** Read-write implementation of the convenience synonym for GetItemPointer(). */
-   Item * operator()() const {return GetItemPointer();}
+   MUSCLE_NODISCARD Item * operator()() const {return GetItemPointer();}
 
    /** Convenience method:  Returns a read/write RefCountableRef object referencing the same RefCountable as this typed ref. */
    RefCountableRef GetRefCountableRef() const
@@ -610,7 +610,7 @@ public:
    }
 
    /** Redeclared here so that the AutoChooseHashFunctor code will see it */
-   uint32 HashCode() const {return this->ConstRef<Item>::HashCode();}
+   MUSCLE_NODISCARD uint32 HashCode() const {return this->ConstRef<Item>::HashCode();}
 
    /** Assigment operator.
     *  Unreferences the previous held data item, and adds a reference to the data item of (rhs).
@@ -675,14 +675,14 @@ public:
  *  @param rt Pointer to a const reference object, or NULL.
  *  @returns If rt is NULL, this function returns NULL.  Otherwise it returns rt->GetItemPointer().
  */
-template <class Item> inline const Item * CheckedGetItemPointer(const ConstRef<Item> * rt) {return rt ? rt->GetItemPointer() : NULL;}
+template <class Item> MUSCLE_NODISCARD inline const Item * CheckedGetItemPointer(const ConstRef<Item> * rt) {return rt ? rt->GetItemPointer() : NULL;}
 
 /** This function works similarly to RefCount::GetItemPointer(), except that this function
  *  can be safely called with a NULL Ref object as an argument.
  *  @param rt Pointer to a const reference object, or NULL.
  *  @returns If rt is NULL, this function returns NULL.  Otherwise it returns rt->GetItemPointer().
  */
-template <class Item> inline Item * CheckedGetItemPointer(const Ref<Item> * rt) {return rt ? rt->GetItemPointer() : NULL;}
+template <class Item> MUSCLE_NODISCARD inline Item * CheckedGetItemPointer(const Ref<Item> * rt) {return rt ? rt->GetItemPointer() : NULL;}
 
 /** Convenience method for converting a ConstRef into a non-const Ref.  Only call this method if you are sure you know what you are doing,
   * because usually the original ConstRef was declared as a ConstRef for a good reason!

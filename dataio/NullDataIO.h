@@ -48,10 +48,10 @@ public:
    virtual void Shutdown() {_shutdown = true;}
 
    /** Returns the read socket specified in our constructor (if any) */
-   virtual const ConstSocketRef & GetReadSelectSocket() const {return _readSelectSocket;}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const {return _readSelectSocket;}
 
    /** Returns the write socket specified in our constructor (if any) */
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return _writeSelectSocket;}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _writeSelectSocket;}
 
 private:
    ConstSocketRef _readSelectSocket;

@@ -110,7 +110,7 @@ public:
     *  to read from the child process, call Read() on this object but don't try to recv()/etc on
     *  this socket directly!
     */
-   virtual const ConstSocketRef & GetReadSelectSocket() const {return GetChildSelectSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const {return GetChildSelectSocket();}
 
    /** Returns a socket that can be select()'d on for notifications of write availability to the
     *  child's stdin stream.
@@ -119,10 +119,10 @@ public:
     *  to write to the child process, call Write() on this object but don't try to send()/etc on
     *  this socket directly!
     */
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetChildSelectSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetChildSelectSocket();}
 
    /** Returns true iff the child process is available (ie if startup succeeded). */
-   bool IsChildProcessAvailable() const;
+   MUSCLE_NODISCARD bool IsChildProcessAvailable() const;
 
    /** Specify the series of actions we should take to gracefully shutdown the child process
      * when this object is closed.
@@ -160,9 +160,9 @@ public:
 
    /** Returns the process ID of the child process. */
 #if defined(WIN32) || defined(CYGWIN)
-   uint32 GetChildProcessID() const {return (uint32)GetProcessId(_childProcess);}
+   MUSCLE_NODISCARD uint32 GetChildProcessID() const {return (uint32)GetProcessId(_childProcess);}
 #else
-   pid_t GetChildProcessID() const {return _childPID;}
+   MUSCLE_NODISCARD pid_t GetChildProcessID() const {return _childPID;}
 #endif
 
    /** Tries to forcibly kill the child process immediately.
@@ -200,7 +200,7 @@ public:
      *       for the child process to flout convention, leading to false
      *       positives or false negatives in this method's return value.
      */
-   bool DidChildProcessCrash() const {return _childProcessCrashed;}
+   MUSCLE_NODISCARD bool DidChildProcessCrash() const {return _childProcessCrashed;}
 
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
    /** Currently implemented under MacOS/X only, and only if you set
@@ -316,7 +316,7 @@ private:
    status_t LaunchPrivilegedChildProcess(const char ** argv);
 #endif
    void DoGracefulChildShutdown();
-   const ConstSocketRef & GetChildSelectSocket() const;
+   MUSCLE_NODISCARD const ConstSocketRef & GetChildSelectSocket() const;
 
    bool _blocking;
 

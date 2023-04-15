@@ -63,24 +63,24 @@ public:
    ~StringTokenizer();
 
    /** Returns the next token in the parsed string, or NULL if there are no more tokens left */
-   char * GetNextToken();
+   MUSCLE_NODISCARD char * GetNextToken();
 
    /** Convenience synonym for GetNextToken() */
-   char * operator()() {return GetNextToken();}
+   MUSCLE_NODISCARD char * operator()() {return GetNextToken();}
 
    /** Returns the remainder of the string, starting with the next token,
     *  or NULL if there are no more tokens in the string.
     *  Doesn't affect the next return value of GetNextToken(), though.
     */
-   char * GetRemainderOfString();
+   MUSCLE_NODISCARD char * GetRemainderOfString();
 
    /** Returns the separator-escape character that was passed in to our constructor (or '\0' if none) */
-   char GetEscapeChar() const {return _escapeChar;}
+   MUSCLE_NODISCARD char GetEscapeChar() const {return _escapeChar;}
 
    /** Convenience method:  Returns a Queue containing all the remaining the tokenized substrings from this StringTokenizer.
     *  @param maxResults the maximum number of tokens to add to the returned Queue before returning.  Defaults to MUSCLE_NO_LIMIT.
     */
-   Queue<String> Split(uint32 maxResults = MUSCLE_NO_LIMIT);
+   MUSCLE_NODISCARD Queue<String> Split(uint32 maxResults = MUSCLE_NO_LIMIT);
 
    /** Convenience method:  Joins the tokenizedStrings in the supplied list together with (joinChar), and returns the resulting String.
      * @param tokenizedStrings the list of sub-strings to join together
@@ -89,11 +89,11 @@ public:
      * @param escapeChar if non-zero, we'll use this escape-character to keep instances of (joinChar) within the tokenized substrings unambiguous.
      *                   Defaults to zero.
      */
-   static String Join(const Queue<String> & tokenizedStrings, bool includeEmptyStrings, char joinChar, char escapeChar = '\0');
+   MUSCLE_NODISCARD static String Join(const Queue<String> & tokenizedStrings, bool includeEmptyStrings, char joinChar, char escapeChar = '\0');
 
 private:
-   bool IsHardSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_hardSepsBitChord, c)));}
-   bool IsSoftSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_softSepsBitChord, c)));}
+   MUSCLE_NODISCARD bool IsHardSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_hardSepsBitChord, c)));}
+   MUSCLE_NODISCARD bool IsSoftSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_softSepsBitChord, c)));}
 
    void DefaultInitialize();
    void DeletePrivateBufferIfNecessary();
@@ -125,8 +125,8 @@ private:
 
    enum {BITS_PER_WORD = (sizeof(uint32)*8)};
 
-   bool IsBitSet(const uint32 * bits, uint8 whichBit) const {return ((bits[(whichBit)/BITS_PER_WORD] &  (1<<((whichBit)%BITS_PER_WORD))) != 0);}
-   void SetBit(        uint32 * bits, uint8 whichBit)       {         bits[(whichBit)/BITS_PER_WORD] |= (1<<((whichBit)%BITS_PER_WORD));       }
+   MUSCLE_NODISCARD bool IsBitSet(const uint32 * bits, uint8 whichBit) const {return ((bits[(whichBit)/BITS_PER_WORD] &  (1<<((whichBit)%BITS_PER_WORD))) != 0);}
+   void SetBit(                         uint32 * bits, uint8 whichBit)       {         bits[(whichBit)/BITS_PER_WORD] |= (1<<((whichBit)%BITS_PER_WORD));       }
 
    void SetBitChords(const char * optSepChars);
 };

@@ -80,27 +80,27 @@ public:
    }
 
    /** Returns the pointer that was passed in to our constructor (or to SetBuffer()) */
-   uint8 * GetBuffer() const {return _origWriteTo;}
+   MUSCLE_NODISCARD uint8 * GetBuffer() const {return _origWriteTo;}
 
    /** Returns the pointer to a ByteBuffer that was passed in to our constructor (or to SetBuffer())
      * Returns NULL if we aren't currently associated with any ByteBuffer object.
      */
-   ByteBuffer * GetByteBuffer() const {return _byteBuffer;}
+   MUSCLE_NODISCARD ByteBuffer * GetByteBuffer() const {return _byteBuffer;}
 
    /** Returns the number of bytes we have written into our buffer so far
      * @note in the case where a ByteBuffer reference was passed to SetBuffer(), this value
      *       includes any bytes that were already present in the ByteBuffer at the time.
      */
-   uint32 GetNumBytesWritten() const {return (uint32)(_writeTo-_origWriteTo);}
+   MUSCLE_NODISCARD uint32 GetNumBytesWritten() const {return (uint32)(_writeTo-_origWriteTo);}
 
    /** Returns the number of free bytes we still have remaining to write to
      * @note in the case where a ByteBuffer reference was passed to SetBuffer(), this value
      *       includes any bytes that we haven't allocated yet, but are permitted to allocate in the future.
      */
-   uint32 GetNumBytesAvailable() const {return _bytesLeft;}
+   MUSCLE_NODISCARD uint32 GetNumBytesAvailable() const {return _bytesLeft;}
 
    /** Returns the maximum number of bytes we are allowed to write, as passed in to our constructor (or to SetBuffer()) */
-   uint32 GetMaxNumBytes() const {return _maxBytes;}
+   MUSCLE_NODISCARD uint32 GetMaxNumBytes() const {return _maxBytes;}
 
    /** Returns an error code if we've detected any errors while writing data (so far), or B_NO_ERROR if we haven't seen any. */
    status_t GetStatus() const {return _status;}
@@ -230,7 +230,7 @@ public:
    }
 
    /** Returns a pointer into our buffer at the location we will next write to */
-   uint8 * GetCurrentWritePointer() const {return _writeTo;}
+   MUSCLE_NODISCARD uint8 * GetCurrentWritePointer() const {return _writeTo;}
 
    /** Seeks our "write position" to a new offset within our output buffer.
      * @param offset the new write-position within our output buffer

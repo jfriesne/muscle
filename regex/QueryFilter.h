@@ -66,7 +66,7 @@ public:
    virtual status_t SetFromArchive(const Message & archive);
 
    /** Should be overridden to return the appropriate QUERY_FILTER_TYPE_* code. */
-   virtual uint32 TypeCode() const = 0;
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const = 0;
 
    /** Must be implemented to return true iff (msg) matches the criterion.
      * @param msg Reference to a read-only Message to check to see whether it matches our criteria or not.  The QueryFilter is allowed to
@@ -75,14 +75,14 @@ public:
      * @param optNode The DataNode object the matching is being done on, or NULL if the DataNode is not available.
      * @returns true iff the Messages matches, else false.
      */
-   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const = 0;
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const = 0;
 
    /** Returns true iff we can be instantiated using a Message with the given
      * 'what' code.  Default implementation returns true iff (what) equals the
      * value returned by our own TypeCode() method.
      * @param what the type-code to check for acceptability
      */
-   virtual bool AcceptsTypeCode(uint32 what) const {return TypeCode() == what;}
+   MUSCLE_NODISCARD virtual bool AcceptsTypeCode(uint32 what) const {return TypeCode() == what;}
 };
 DECLARE_REFTYPES(QueryFilter);
 
@@ -103,8 +103,8 @@ public:
 
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
-   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const {(void) optNode; return muscleInRange(msg()->what, _minWhatCode, _maxWhatCode);}
-   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_WHATCODE;}
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const {(void) optNode; return muscleInRange(msg()->what, _minWhatCode, _maxWhatCode);}
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_WHATCODE;}
 
 private:
    uint32 _minWhatCode;
@@ -134,7 +134,7 @@ public:
    void SetIndex(uint32 index) {_index = index;}
 
    /** Returns our current index-in-field setting, as set by SetIndex() or in our constructor */
-   uint32 GetIndex() const {return _index;}
+   MUSCLE_NODISCARD uint32 GetIndex() const {return _index;}
 
    /** Sets the field name to use.
      * @param fieldName the new field name to use in our query
@@ -142,7 +142,7 @@ public:
    void SetFieldName(const String & fieldName) {_fieldName = fieldName;}
 
    /** Returns the current field name, as set by SetFieldName() or in our constructor. */
-   const String & GetFieldName() const {return _fieldName;}
+   MUSCLE_NODISCARD const String & GetFieldName() const {return _fieldName;}
 
 private:
    String _fieldName;
@@ -168,8 +168,8 @@ public:
 
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
-   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_VALUEEXISTS;}
-   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const {(void) optNode; const void * junk; return (msg()->FindData(GetFieldName(), _typeCode, &junk, NULL).IsOK());}
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_VALUEEXISTS;}
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const {(void) optNode; const void * junk; return (msg()->FindData(GetFieldName(), _typeCode, &junk, NULL).IsOK());}
 
    /** Sets the type code that we will look for in the target Message.
      * @param typeCode the type code to look for.  Use B_ANY_TYPE to indicate that you don't care what the type code is.
@@ -179,7 +179,7 @@ public:
    /** Returns the type code we are to look in the target Message for.
      * Note that this method is different from TypeCode()!
      */
-   uint32 GetTypeCode() const {return _typeCode;}
+   MUSCLE_NODISCARD uint32 GetTypeCode() const {return _typeCode;}
 
 private:
    uint32 _typeCode;
@@ -198,7 +198,7 @@ enum {
    NUM_NQF_MASK_OPS      /**< guard value */
 };
 
-template <typename DataType> inline DataType NQFDoMaskOp(uint8 maskOp, const DataType & msgVal, const DataType & mask)
+template <typename DataType> MUSCLE_NODISCARD inline DataType NQFDoMaskOp(uint8 maskOp, const DataType & msgVal, const DataType & mask)
 {
    switch(maskOp)
    {
@@ -215,7 +215,7 @@ template <typename DataType> inline DataType NQFDoMaskOp(uint8 maskOp, const Dat
 
 // Separate implementation for bool because you can't use bitwise negate on a bool, the result is undefined
 // and causes unecessary implicit int<->bool casts (per Mika)
-template<> inline bool NQFDoMaskOp(uint8 maskOp, const bool & msgVal, const bool & mask)
+template<> MUSCLE_NODISCARD inline bool NQFDoMaskOp(uint8 maskOp, const bool & msgVal, const bool & mask)
 {
    switch(maskOp)
    {
@@ -230,10 +230,10 @@ template<> inline bool NQFDoMaskOp(uint8 maskOp, const bool & msgVal, const bool
    }
 }
 // Dummy specializations for mask operations, for types that don't have bitwise operations defined.
-template<> inline Point  NQFDoMaskOp(uint8 /*maskOp*/, const Point &  /*msgVal*/, const Point &  /*argVal*/) {return Point();}
-template<> inline Rect   NQFDoMaskOp(uint8 /*maskOp*/, const Rect &   /*msgVal*/, const Rect &   /*argVal*/) {return Rect();}
-template<> inline float  NQFDoMaskOp(uint8 /*maskOp*/, const float &  /*msgVal*/, const float &  /*argVal*/) {return float();}
-template<> inline double NQFDoMaskOp(uint8 /*maskOp*/, const double & /*msgVal*/, const double & /*argVal*/) {return double();}
+template<> MUSCLE_NODISCARD inline Point  NQFDoMaskOp(uint8 /*maskOp*/, const Point &  /*msgVal*/, const Point &  /*argVal*/) {return Point();}
+template<> MUSCLE_NODISCARD inline Rect   NQFDoMaskOp(uint8 /*maskOp*/, const Rect &   /*msgVal*/, const Rect &   /*argVal*/) {return Rect();}
+template<> MUSCLE_NODISCARD inline float  NQFDoMaskOp(uint8 /*maskOp*/, const float &  /*msgVal*/, const float &  /*argVal*/) {return float();}
+template<> MUSCLE_NODISCARD inline double NQFDoMaskOp(uint8 /*maskOp*/, const double & /*msgVal*/, const double & /*argVal*/) {return double();}
 
 /** This templated class is used to generate a number of numeric-comparison-query classes, all of which are quite similar to each other. */
 template <typename DataType, uint32 DataTypeCode, uint32 ClassTypeCode>
@@ -301,9 +301,9 @@ public:
       return B_NO_ERROR;
    }
 
-   virtual uint32 TypeCode() const {return ClassTypeCode;}
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const {return ClassTypeCode;}
 
-   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const
    {
       (void) optNode;  // shut compiler and Doxygen up
 
@@ -323,7 +323,7 @@ public:
    void SetOperator(uint8 op) {_op = op;}
 
    /** Returns the currently specified operator, as specified in the constructor or in SetOperator() */
-   uint8 GetOperator() const {return _op;}
+   MUSCLE_NODISCARD uint8 GetOperator() const {return _op;}
 
    /** Set the value to compare against.
      * @param value The new value.
@@ -331,7 +331,7 @@ public:
    void SetValue(DataType value) {_value = value;}
 
    /** Returns the currently specified value, as specified in the constructor or in SetValue() */
-   DataType GetValue() const {return _value;}
+   MUSCLE_NODISCARD DataType GetValue() const {return _value;}
 
    /** Operators defined for our expressions */
    enum {
@@ -345,7 +345,7 @@ public:
    };
 
    /** Returns true iff this filter will assume a default value if it can't find an actual value in the Message it tests. */
-   bool IsAssumedDefault() const {return _assumeDefault;}
+   MUSCLE_NODISCARD bool IsAssumedDefault() const {return _assumeDefault;}
 
    /** Sets the assumed default value to the specified value.
      * @param d The value to match against if we don't find a value in the Message.
@@ -365,13 +365,13 @@ public:
    void SetMask(uint8 maskOp, const DataType & maskValue) {_maskOp = maskOp, _mask = maskValue;}
 
    /** Returns this QueryFilter's current NQF_MASK_OP_* setting. */
-   uint8 GetMaskOp() const {return _maskOp;}
+   MUSCLE_NODISCARD uint8 GetMaskOp() const {return _maskOp;}
 
    /** Returns this QueryFilter's current mask value. */
-   uint8 GetMaskValue() const {return _mask;}
+   MUSCLE_NODISCARD uint8 GetMaskValue() const {return _mask;}
 
 private:
-   bool MatchesAux(const DataType & valueInMsg) const
+   MUSCLE_NODISCARD bool MatchesAux(const DataType & valueInMsg) const
    {
       switch(_op)
       {
@@ -419,7 +419,7 @@ public:
      */
    ChildCountQueryFilter(uint8 op, uint32 value) : NumericQueryFilter<int32, B_INT32_TYPE, QUERY_FILTER_TYPE_CHILDCOUNT>(GetEmptyString(), op, value) {/* empty */}
 
-   virtual bool Matches(ConstMessageRef & /*msg*/, const DataNode * optNode) const;
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & /*msg*/, const DataNode * optNode) const;
 };
 DECLARE_REFTYPES(ChildCountQueryFilter);
 
@@ -444,10 +444,10 @@ public:
    virtual status_t SetFromArchive(const Message & archive);
 
    /** Returns a read-only reference to our Queue of child ConstQueryFilterRefs. */
-   const Queue<ConstQueryFilterRef> & GetChildren() const {return _children;}
+   MUSCLE_NODISCARD const Queue<ConstQueryFilterRef> & GetChildren() const {return _children;}
 
    /** Returns a read/write reference to our Queue of child ConstQueryFilterRefs. */
-   Queue<ConstQueryFilterRef> & GetChildren() {return _children;}
+   MUSCLE_NODISCARD Queue<ConstQueryFilterRef> & GetChildren() {return _children;}
 
 private:
    Queue<ConstQueryFilterRef> _children;
@@ -485,8 +485,8 @@ public:
 
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
-   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_MINMATCH;}
-   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_MINMATCH;}
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 
    /** Set the minimum number of children that must match the target Message in order for this
      * filter to match the target Message.  If the specified number is greater than the number of
@@ -497,7 +497,7 @@ public:
    void SetMinMatchCount(uint32 minMatches) {_minMatches = minMatches;}
 
    /** Returns the minimum-match-count for this filter, as specified in the constructor or by SetMinMatchCount(). */
-   uint32 GetMinMatchCount() const {return _minMatches;}
+   MUSCLE_NODISCARD uint32 GetMinMatchCount() const {return _minMatches;}
 
 private:
    uint32 _minMatches;
@@ -534,8 +534,8 @@ public:
 
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
-   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_MAXMATCH;}
-   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_MAXMATCH;}
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 
    /** Set the maximum number of children that may match the target Message in order for this
      * filter to match the target Message.  If the specified number is greater than the number of
@@ -546,7 +546,7 @@ public:
    void SetMaxMatchCount(uint32 maxMatches) {_maxMatches = maxMatches;}
 
    /** Returns the maximum-match-count for this filter, as specified in the constructor or by SetMaxMatchCount(). */
-   uint32 GetMaxMatchCount() const {return _maxMatches;}
+   MUSCLE_NODISCARD uint32 GetMaxMatchCount() const {return _maxMatches;}
 
 private:
    uint32 _maxMatches;
@@ -882,8 +882,8 @@ public:
    }
 #endif
 
-   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_XOR;}
-   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_XOR;}
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 };
 DECLARE_REFTYPES(XorQueryFilter);
 
@@ -905,8 +905,8 @@ public:
 
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
-   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_MESSAGE;}
-   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_MESSAGE;}
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 
    /** Set the sub-filter to use on the target's sub-Message.
      * @param childFilter Filter to use, or a NULL reference to indicate that any sub-Message found should match.
@@ -955,8 +955,8 @@ public:
 
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
-   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_STRING;}
-   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_STRING;}
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 
    /** Set the operator to use.
      * @param op One of the OP_* values enumerated below.
@@ -964,7 +964,7 @@ public:
    void SetOperator(uint8 op) {if (op != _op) {_op = op; FreeMatcher();}}
 
    /** Returns the currently specified operator, as specified in the constructor or in SetOperator() */
-   uint8 GetOperator() const {return _op;}
+   MUSCLE_NODISCARD uint8 GetOperator() const {return _op;}
 
    /** Set the value to compare against.
      * @param value The new value.
@@ -972,7 +972,7 @@ public:
    void SetValue(const String & value) {if (value != _value) {_value = value; FreeMatcher();}}
 
    /** Returns the currently specified value, as specified in the constructor or in SetValue() */
-   const String & GetValue() const {return _value;}
+   MUSCLE_NODISCARD const String & GetValue() const {return _value;}
 
    /** Enumeration of operators that may be used by the StringQueryFilter */
    enum {
@@ -1006,7 +1006,7 @@ public:
    };
 
    /** Returns true iff this filter will assume a default value if it can't find an actual value in the Message it tests. */
-   bool IsAssumedDefault() const {return _assumeDefault;}
+   MUSCLE_NODISCARD bool IsAssumedDefault() const {return _assumeDefault;}
 
    /** Sets the assumed default value to the specified value.
      * @param d The value to match against if we don't find a value in the Message.
@@ -1022,11 +1022,11 @@ public:
      * @param s the string to test to see if it meets our criteria
      * @returns true if the string matches, or false if it doesn't match
      */
-   bool MatchesString(const String & s) const;
+   MUSCLE_NODISCARD bool MatchesString(const String & s) const;
 
 private:
    void FreeMatcher();
-   bool DoMatch(const String & s) const;
+   MUSCLE_NODISCARD bool DoMatch(const String & s) const;
 
    String _value;
    uint8 _op;
@@ -1055,8 +1055,8 @@ public:
      */
    NodeNameQueryFilter(uint8 op, const String & value) : StringQueryFilter(GetEmptyString(), op, value) {/* empty */}
 
-   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_NODENAME;}
-   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_NODENAME;}
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 };
 DECLARE_REFTYPES(NodeNameQueryFilter);
 
@@ -1093,8 +1093,8 @@ public:
 
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
-   virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_RAWDATA;}
-   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
+   MUSCLE_NODISCARD virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_RAWDATA;}
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 
    /** Set the operator to use.
      * @param op One of the OP_* values enumerated below.
@@ -1102,7 +1102,7 @@ public:
    void SetOperator(uint8 op) {_op = op;}
 
    /** Returns the currently specified operator, as specified in the constructor or in SetOperator() */
-   uint8 GetOperator() const {return _op;}
+   MUSCLE_NODISCARD uint8 GetOperator() const {return _op;}
 
    /** Set the value to compare against.
      * @param value The new value.
@@ -1117,7 +1117,7 @@ public:
    /** Returns the type code we are to look in the target Message for.
      * Note that this method is different from TypeCode()!
      */
-   uint32 GetTypeCode() const {return _typeCode;}
+   MUSCLE_NODISCARD uint32 GetTypeCode() const {return _typeCode;}
 
    /** Returns the currently specified value, as specified in the constructor or in SetValue() */
    ConstByteBufferRef GetValue() const {return _value;}
@@ -1147,7 +1147,7 @@ public:
    void SetAssumedDefault(const ConstByteBufferRef & bufRef) {_default = bufRef;}
 
    /** Returns the current assumed default value, or a NULL reference if there is none. */
-   const ConstByteBufferRef & GetAssumedDefault() const {return _default;}
+   MUSCLE_NODISCARD const ConstByteBufferRef & GetAssumedDefault() const {return _default;}
 
 private:
    ConstByteBufferRef _value;
@@ -1206,7 +1206,7 @@ DECLARE_REFTYPES(MuscleQueryFilterFactory);
   * will fall back to returning a reference to a MuscleQueryFilterFactory
   * object (which is also what it does by default).
   */
-QueryFilterFactoryRef GetGlobalQueryFilterFactory();
+MUSCLE_NODISCARD QueryFilterFactoryRef GetGlobalQueryFilterFactory();
 
 /** Call this method if you want to install a custom QueryFilterFactory
   * object as the global QueryFilterFactory.  Calling this method with

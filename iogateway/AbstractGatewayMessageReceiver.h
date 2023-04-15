@@ -99,10 +99,10 @@ public:
    QueueGatewayMessageReceiver() {/* empty */}
 
    /** Returns a read-only reference to our held Queue of received Messages. */
-   const Queue<MessageRef> & GetMessages() const {return _messageQueue;}
+   MUSCLE_NODISCARD const Queue<MessageRef> & GetMessages() const {return _messageQueue;}
 
    /** Returns a read-only reference to our held Queue of received Messages. */
-   Queue<MessageRef> & GetMessages() {return _messageQueue;}
+   MUSCLE_NODISCARD Queue<MessageRef> & GetMessages() {return _messageQueue;}
 
    /** Convenience method; Removes the next item from the head of the queue and returns it.
      * @param msg On success, the removed Message will be written into this MessageRef
@@ -111,7 +111,7 @@ public:
    status_t RemoveHead(MessageRef & msg) {return _messageQueue.RemoveHead(msg);}
 
    /** Convenience method, provided for backwards compatibility with older code. */
-   bool HasItems() const {return _messageQueue.HasItems();}
+   MUSCLE_NODISCARD bool HasItems() const {return _messageQueue.HasItems();}
 
 protected:
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData) {(void) userData; (void) _messageQueue.AddTail(msg);}

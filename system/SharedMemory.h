@@ -75,30 +75,30 @@ public:
    void UnlockArea();
 
    /** Returns the size of our current area in bytes, or zero if there is no current area */
-   uint32 GetAreaSize() const {return _areaSize;}
+   MUSCLE_NODISCARD uint32 GetAreaSize() const {return _areaSize;}
 
    /** Returns true iff we are currently locked */
-   bool IsLocked() const {return _isLocked;}
+   MUSCLE_NODISCARD bool IsLocked() const {return _isLocked;}
 
    /** Returns true iff we created our memory area ourselves, or false if we found
     *  it already created.  The returned value is meaningless if there is no current area.
     */
-   bool IsCreatedLocally() const {return _isCreatedLocally;}
+   MUSCLE_NODISCARD bool IsCreatedLocally() const {return _isCreatedLocally;}
 
    /** Returns the name of our current area (as passed in to SetArea() or
     *  generated within SetArea(), or "" if we have no current area.
     */
-   const String & GetAreaName() const {return _areaName;}
+   MUSCLE_NODISCARD const String & GetAreaName() const {return _areaName;}
 
    /** Returns a pointer to shared memory area.  Note that this memory
     *  may be accessed, written to, or even deleted by other processes!  So you'll typically
     *  want to call one of the LockArea*() methods before accessing the memory it points to.
     *  @returns Pointer to the shared memory area, or NULL if there is no current area.
     */
-   uint8 * GetAreaPointer() const {return (uint8 *) _area;}
+   MUSCLE_NODISCARD uint8 * GetAreaPointer() const {return (uint8 *) _area;}
 
    /** Convenience synonym for GetAreaPointer(). */
-   uint8 * operator()() const {return (uint8 *) _area;}
+   MUSCLE_NODISCARD uint8 * operator()() const {return (uint8 *) _area;}
 
    /** Rudely deletes the current shared area.
     *  After this call returns, no processes will be able to SetArea() or LockArea()

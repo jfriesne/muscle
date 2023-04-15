@@ -57,7 +57,7 @@ public:
    void SetThreadPool(ThreadPool * tp);
 
    /** Returns a pointer to the ThreadPool this client is currently registered with, or NULL if it isn't registered anywhere. */
-   ThreadPool * GetThreadPool() const {return _threadPool;}
+   MUSCLE_NODISCARD ThreadPool * GetThreadPool() const {return _threadPool;}
 
 protected:
    /** Called from inside one of the ThreadPool's threads, some time after SendMessageToThreadPool(msg) was
@@ -96,7 +96,7 @@ public:
    virtual ~ThreadPool();
 
    /** Returns the maximum number of threads this ThreadPool is allowed to keep around at once time (as specified in the constructor) */
-   uint32 GetMaxThreadCount() const {return _maxThreadCount;}
+   MUSCLE_NODISCARD uint32 GetMaxThreadCount() const {return _maxThreadCount;}
 
    /** Used for debugging only */
    virtual void PrintToStream() const
@@ -147,7 +147,7 @@ private:
    status_t SendMessageToThreadPool(IThreadPoolClient * client, const MessageRef & msg);
    void DispatchPendingMessagesUnsafe();  // _poolLock must be locked when this is called!
    void ThreadFinishedProcessingClientMessages(uint32 threadID, IThreadPoolClient * client);
-   bool DoesClientHaveMessagesOutstandingUnsafe(IThreadPoolClient * client) const;
+   MUSCLE_NODISCARD bool DoesClientHaveMessagesOutstandingUnsafe(IThreadPoolClient * client) const;
    void MessageReceivedFromThreadPoolAux(IThreadPoolClient * client, const MessageRef & msg, uint32 numLeft) {client->MessageReceivedFromThreadPool(msg, numLeft);}  // just to skirt protected-member issues
 
    const uint32 _maxThreadCount;

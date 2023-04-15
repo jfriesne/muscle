@@ -73,10 +73,10 @@ public:
    /** Returns the current sequence of byte-buffers we are holding, to be handed to future callers of our Read() methods, in order.
      * @note Keys are the ByteBuffers themselves; values are the IPAddressAndPort associated with each byte-buffer.
      */
-   const Hashtable<ByteBufferRef, IPAddressAndPort> & GetBuffersToRead() const {return _bufsToRead;}
+   MUSCLE_NODISCARD const Hashtable<ByteBufferRef, IPAddressAndPort> & GetBuffersToRead() const {return _bufsToRead;}
 
    /** Non-const version of GetBuffersToRead(). */
-   Hashtable<ByteBufferRef, IPAddressAndPort> & GetBuffersToRead() {return _bufsToRead;}
+   MUSCLE_NODISCARD Hashtable<ByteBufferRef, IPAddressAndPort> & GetBuffersToRead() {return _bufsToRead;}
 
    /** Clears our list of "sent" buffers */
    void ClearWrittenBuffers() {_writtenBufs.Clear();}
@@ -84,22 +84,22 @@ public:
    /** Returns the current sequence of "sent" byte-buffers we are holding.  Keys are the ByteBuffers themselves;
      * values are the IPAddressAndPort passed in to WriteTo() for each byte-buffer.
      */
-   const Hashtable<ByteBufferRef, IPAddressAndPort> & GetWrittenBuffers() const {return _writtenBufs;}
+   MUSCLE_NODISCARD const Hashtable<ByteBufferRef, IPAddressAndPort> & GetWrittenBuffers() const {return _writtenBufs;}
 
    /** Non-const version of GetWrittenBuffers(). */
-   Hashtable<ByteBufferRef, IPAddressAndPort> & GetWrittenBuffers() {return _writtenBufs;}
+   MUSCLE_NODISCARD Hashtable<ByteBufferRef, IPAddressAndPort> & GetWrittenBuffers() {return _writtenBufs;}
 
    /** Disable us! */
    virtual void Shutdown() {_bufsToRead.Clear(); _writtenBufs.Clear();}
 
    /** Can't select on this one, sorry -- returns GetNullSocket() */
-   virtual const ConstSocketRef & GetReadSelectSocket() const {return GetNullSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const {return GetNullSocket();}
 
    /** Can't select on this one, sorry -- returns GetNullSocket() */
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetNullSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetNullSocket();}
 
    /** Returns the maxPacketSize value that was passed in to our constructor */
-   virtual uint32 GetMaximumPacketSize() const {return _maxPacketSize;}
+   MUSCLE_NODISCARD virtual uint32 GetMaximumPacketSize() const {return _maxPacketSize;}
 
    virtual io_status_t ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource);
    virtual io_status_t WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest);
@@ -107,7 +107,7 @@ public:
    /** implemented as a no-op. */
    virtual void FlushOutput() {/* empty */}
 
-   virtual const IPAddressAndPort & GetPacketSendDestination() const {return _packetSendDestination;}
+   MUSCLE_NODISCARD virtual const IPAddressAndPort & GetPacketSendDestination() const {return _packetSendDestination;}
    virtual status_t SetPacketSendDestination(const IPAddressAndPort & iap) {_packetSendDestination = iap; return B_NO_ERROR;}
 
 private:

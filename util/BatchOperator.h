@@ -29,7 +29,7 @@ public:
    };
 
    /** Read-only access to our internal NestCount object, in case you are interested in querying its state. */
-   const NestCount & GetNestCount() const {return _count;}
+   MUSCLE_NODISCARD const NestCount & GetNestCount() const {return _count;}
 
 protected:
    /** This constructor is available only to our concrete BatchOperator subclasses. */

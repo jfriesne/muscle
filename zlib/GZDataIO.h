@@ -31,10 +31,10 @@ public:
    virtual void Shutdown();
 
    /** Returns a NULL ConstSocketRef -- selecting on this class is not currently supported */
-   virtual const ConstSocketRef & GetReadSelectSocket() const;
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const;
 
    /** Returns a NULL ConstSocketRef -- selecting on this class is not currently supported */
-   virtual const ConstSocketRef & GetWriteSelectSocket() const;
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const;
 
 private:
    DECLARE_COUNTED_OBJECT(GZDataIO);

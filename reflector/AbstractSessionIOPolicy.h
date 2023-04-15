@@ -28,13 +28,13 @@ public:
    PolicyHolder(AbstractReflectSession * session, bool asInput) : _session(session), _asInput(asInput) {/* empty */}
 
    /** Returns the session object this PolicyHolder is being used by (as passed in to the constructor) */
-   AbstractReflectSession * GetSession() const {return _session;}
+   MUSCLE_NODISCARD AbstractReflectSession * GetSession() const {return _session;}
 
    /** Returns true iff this PolicyHolder is being used to regulate input data (as passed in to the constructor) */
-   bool IsAsInput() const {return _asInput;}
+   MUSCLE_NODISCARD bool IsAsInput() const {return _asInput;}
 
    /** @copydoc DoxyTemplate::HashCode() const */
-   uint32 HashCode() const {return ((uint32)((uintptr)_session))+(_asInput?1:0);}  // double-cast for AMD64
+   MUSCLE_NODISCARD uint32 HashCode() const {return ((uint32)((uintptr)_session))+(_asInput?1:0);}  // double-cast for AMD64
 
    /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
    bool operator == (const PolicyHolder & rhs) {return ((rhs._session == _session)&&(rhs._asInput == _asInput));}
@@ -106,7 +106,7 @@ public:
      *                in the select() call, so the server won't be awoken even if the
      *                session's socket becomes ready)
      */
-   virtual bool OkayToTransfer(const PolicyHolder & holder) = 0;
+   MUSCLE_NODISCARD virtual bool OkayToTransfer(const PolicyHolder & holder) = 0;
 
    /** Should return the maximum number of bytes that the given session is allowed to
      * transfer to/from its IOGateway's DataIO during the next I/O stage of our event loop.
@@ -126,7 +126,7 @@ public:
      *          This value will be passed in to the session's gateway's DoInput()
      *          or DoOutput() method, as appropriate.
      */
-   virtual uint32 GetMaxTransferChunkSize(const PolicyHolder & holder) = 0;
+   MUSCLE_NODISCARD virtual uint32 GetMaxTransferChunkSize(const PolicyHolder & holder) = 0;
 
    /** Called to notify you that the given session transferred the given
      * number of bytes to/from its DataIO object.

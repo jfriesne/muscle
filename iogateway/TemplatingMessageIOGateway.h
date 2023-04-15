@@ -47,7 +47,7 @@ public:
 protected:
    virtual ByteBufferRef FlattenHeaderAndMessage(const MessageRef & msgRef) const;
    virtual MessageRef UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const;
-   virtual int32 GetBodySize(const uint8 * header) const;
+   MUSCLE_NODISCARD virtual int32 GetBodySize(const uint8 * header) const;
 
    /** Should return true iff the given outgoing Message is something we should attempt
      * to send using our templatization mechanism.  Default implementation always returns true.
@@ -55,7 +55,7 @@ protected:
      * @return true if we should use templatizing to send it, or false if we should just
      *              send it using the old MessageIOGateway/Flatten() mechanism instead.
      */
-   virtual bool IsOkayToTemplatizeMessage(const Message & outgoingMsg) const {(void) outgoingMsg; return true;}
+   MUSCLE_NODISCARD virtual bool IsOkayToTemplatizeMessage(const Message & outgoingMsg) const {(void) outgoingMsg; return true;}
 
 private:
    const uint32 _maxLRUCacheSizeBytes;

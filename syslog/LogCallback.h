@@ -38,31 +38,31 @@ public:
    LogCallbackArgs(const time_t & when, int logLevel, const char * sourceFile, const char * sourceFunction, int sourceLine, const char * text, va_list * argList) : _when(when), _logLevel(logLevel), _sourceFile(sourceFile), _sourceFunction(sourceFunction), _sourceLine(sourceLine), _text(text), _argList(argList) {/* empty */}
 
    /** Returns the timestamp indicating when this message was generated, in (seconds since 1970) format. */
-   const time_t & GetWhen() const {return _when;}
+   MUSCLE_NODISCARD const time_t & GetWhen() const {return _when;}
 
    /** Returns the MUSCLE_LOG_* severity level of this log message. */
-   int GetLogLevel() const {return _logLevel;}
+   MUSCLE_NODISCARD int GetLogLevel() const {return _logLevel;}
 
    /** Returns the name of the source code file that contains the LogLine() call that generated this callback, or "" if it's not available.  */
-   const char * GetSourceFile() const {return _sourceFile;}
+   MUSCLE_NODISCARD const char * GetSourceFile() const {return _sourceFile;}
 
   /** Returns the name of the source code function that contains the LogLine() call that generated this callback,
     * or "" if it's not available.
     */
-   const char * GetSourceFunction() const {return _sourceFunction;}
+   MUSCLE_NODISCARD const char * GetSourceFunction() const {return _sourceFunction;}
 
    /** Returns the line number of the LogLine() call that generated this callback, or -1 if it's not available. */
-   int GetSourceLineNumber() const {return _sourceLine;}
+   MUSCLE_NODISCARD int GetSourceLineNumber() const {return _sourceLine;}
 
    /** Returns the format text if this object is being passed in a Log() callback.  If this object is being passed
      * in a LogLine() callback, this will be the verbatim text of the line.
      */
-   const char * GetText() const {return _text;}
+   MUSCLE_NODISCARD const char * GetText() const {return _text;}
 
    /** Returns the Log() callback, this is a pointer to a va_list object that can be used to expand (text).
      * In a LogLine() callback, this value will be NULL..
      */
-   va_list * GetArgList() const {return _argList;}
+   MUSCLE_NODISCARD va_list * GetArgList() const {return _argList;}
 
    /** Set the timestamp associated with the Log message
      * @param when A time value (seconds since 1970)
@@ -150,7 +150,7 @@ public:
      * Logging calls whose severity-value is greater than this value will not be passed to this callback.
      * Default value is MUSCLE_LOG_INFO.
      */
-   int GetLogLevelThreshold() const {return _logLevelThreshold;}
+   MUSCLE_NODISCARD int GetLogLevelThreshold() const {return _logLevelThreshold;}
 
 private:
    int _logLevelThreshold;
@@ -240,7 +240,7 @@ public:
    void SetConsoleLogToStderr(bool toStderr) {_logToStderr = toStderr;}
 
    /** Returns true iff we are currently set to log to stderr instead of stdout */
-   bool GetConsoleLogToStderr() const {return _logToStderr;}
+   MUSCLE_NODISCARD bool GetConsoleLogToStderr() const {return _logToStderr;}
 
 private:
    FILE * GetConsoleOutputStream() const {return _logToStderr ? stderr : stdout;}
@@ -278,16 +278,16 @@ public:
    uint32 AddPreExistingLogFiles(const String & filePattern);
 
    /** Returns the name of the log file we will output to.  Default is an empty string (ie file logging disabled) */
-   const String & GetFileLogName() const {return _prototypeLogFileName;}
+   MUSCLE_NODISCARD const String & GetFileLogName() const {return _prototypeLogFileName;}
 
    /** Returns the maximum size of the log file we will output to.  When the file reaches this size we'll create another.  Default is MUSCLE_NO_LIMIT (aka no maximum size). */
-   uint32 GetMaxLogFileSize() const {return _maxLogFileSize;}
+   MUSCLE_NODISCARD uint32 GetMaxLogFileSize() const {return _maxLogFileSize;}
 
    /** Returns the maximum number of log files we will keep present on disk at once (before starting to delete the old ones).  Default is MUSCLE_NO_LIMIT (aka no maximum number of files) */
-   uint32 GetMaxNumLogFiles() const {return _maxNumLogFiles;}
+   MUSCLE_NODISCARD uint32 GetMaxNumLogFiles() const {return _maxNumLogFiles;}
 
    /** Returns whether or not we should compress old log files to save disk space.  Defaults to false. */
-   bool GetFileCompressionEnabled() {return _compressionEnabled;}
+   MUSCLE_NODISCARD bool GetFileCompressionEnabled() {return _compressionEnabled;}
 
    /** Sets the name of the file to log to.
      * @param logName File name/path (including %-tokens as necessary)

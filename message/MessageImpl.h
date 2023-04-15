@@ -58,36 +58,36 @@ public:
    virtual status_t ReplaceDataItem(uint32 index, const void * data, uint32 numBytes) = 0;
 
    // Returns the size (in bytes) of the item in the (index)'th slot.
-   virtual uint32 GetItemSize(uint32 index) const = 0;
+   MUSCLE_NODISCARD virtual uint32 GetItemSize(uint32 index) const = 0;
 
    // Returns the number of items currently in the field
-   virtual uint32 GetNumItems() const = 0;
+   MUSCLE_NODISCARD virtual uint32 GetNumItems() const = 0;
 
    // Convenience methods
-   bool HasItems() const {return (GetNumItems()>0);}
-   bool IsEmpty() const {return (GetNumItems()==0);}
+   MUSCLE_NODISCARD bool HasItems() const {return (GetNumItems()>0);}
+   MUSCLE_NODISCARD bool IsEmpty() const {return (GetNumItems()==0);}
 
    // Returns a 32-bit checksum for this field
-   virtual uint32 CalculateChecksum(bool countNonFlattenableFields) const = 0;
+   MUSCLE_NODISCARD virtual uint32 CalculateChecksum(bool countNonFlattenableFields) const = 0;
 
    // Returns true iff all elements in the field have the same size
-   virtual bool ElementsAreFixedSize() const = 0;
+   MUSCLE_NODISCARD virtual bool ElementsAreFixedSize() const = 0;
 
    // Flattenable interface
-   virtual bool IsFixedSize() const {return false;}
+   MUSCLE_NODISCARD virtual bool IsFixedSize() const {return false;}
 
    // returns a separate (deep) copy of this field
    virtual Ref<AbstractDataArray> Clone() const = 0;
 
    // Returns true iff this field should be included when flattening.
-   virtual bool IsFlattenable() const = 0;
+   MUSCLE_NODISCARD virtual bool IsFlattenable() const = 0;
 
    // For debugging:  returns a description of our contents as a String
    virtual void AddToString(String & s, uint32 maxRecurseLevel, int indent) const = 0;
 
    // Returns true iff this field is identical to (rhs).  If (compareContents) is false,
    // only the field lengths and type codes are checked, not the data itself.
-   bool IsEqualTo(const AbstractDataArray * rhs, bool compareContents) const
+   MUSCLE_NODISCARD bool IsEqualTo(const AbstractDataArray * rhs, bool compareContents) const
    {
       if ((TypeCode() != rhs->TypeCode())||(GetNumItems() != rhs->GetNumItems())) return false;
       return compareContents ? AreContentsEqual(rhs) : true;
@@ -109,7 +109,7 @@ protected:
     *  and has the same data as (*this).  The TypeCode() and GetNumItems() of (rhs) are
     *  guaranteed to equal those of this AbstractDataArray.  Called by IsEqualTo().
     */
-   virtual bool AreContentsEqual(const AbstractDataArray * rhs) const = 0;
+   MUSCLE_NODISCARD virtual bool AreContentsEqual(const AbstractDataArray * rhs) const = 0;
 
 private:
    DECLARE_COUNTED_OBJECT(AbstractDataArray);
@@ -141,8 +141,8 @@ public:
    String ToString() const;
 
    // Flattenable Pseudo-Interface
-   uint32 TypeCode() const {return _typeCode;}
-   uint32 FlattenedSize() const {return HasArray() ? GetArray()->FlattenedSize() : SingleFlattenedSize();}
+   MUSCLE_NODISCARD uint32 TypeCode() const {return _typeCode;}
+   MUSCLE_NODISCARD uint32 FlattenedSize() const {return HasArray() ? GetArray()->FlattenedSize() : SingleFlattenedSize();}
    void Flatten(DataFlattener flat) const {FlattenAux(flat, MUSCLE_NO_LIMIT);}
    status_t Unflatten(DataUnflattener & unflat);
 
@@ -155,28 +155,28 @@ public:
    void Sort(uint32 from, uint32 to) {if (HasArray()) GetArray()->Sort(from, to);}
    status_t FindDataItem(uint32 index, const void ** setDataLoc) const {return HasArray() ? GetArray()->FindDataItem(index, setDataLoc) : SingleFindDataItem(index, setDataLoc);}
    status_t ReplaceDataItem(uint32 index, const void * data, uint32 numBytes) {return HasArray() ? GetArray()->ReplaceDataItem(index, data, numBytes) : SingleReplaceDataItem(index, data, numBytes);}
-   uint32 GetItemSize(uint32 index) const {return HasArray() ? GetArray()->GetItemSize(index) : SingleGetItemSize(index);}
-   uint32 GetNumItems() const {return (_state == FIELD_STATE_EMPTY) ? 0 : (HasArray() ? GetArray()->GetNumItems() : 1);}
-   bool HasItems() const {return (GetNumItems() > 0);}
-   bool IsEmpty()  const {return (GetNumItems() == 0);}
-   uint32 CalculateChecksum(bool countNonFlattenableFields) const {return HasArray() ? GetArray()->CalculateChecksum(countNonFlattenableFields) : SingleCalculateChecksum(countNonFlattenableFields);}
-   bool ElementsAreFixedSize() const {return HasArray() ? GetArray()->ElementsAreFixedSize() : SingleElementsAreFixedSize();}
-   bool IsFixedSize() const {return false;}
-   bool IsFlattenable() const {return HasArray() ? GetArray()->IsFlattenable() : SingleIsFlattenable();}
+   MUSCLE_NODISCARD uint32 GetItemSize(uint32 index) const {return HasArray() ? GetArray()->GetItemSize(index) : SingleGetItemSize(index);}
+   MUSCLE_NODISCARD uint32 GetNumItems() const {return (_state == FIELD_STATE_EMPTY) ? 0 : (HasArray() ? GetArray()->GetNumItems() : 1);}
+   MUSCLE_NODISCARD bool HasItems() const {return (GetNumItems() > 0);}
+   MUSCLE_NODISCARD bool IsEmpty()  const {return (GetNumItems() == 0);}
+   MUSCLE_NODISCARD uint32 CalculateChecksum(bool countNonFlattenableFields) const {return HasArray() ? GetArray()->CalculateChecksum(countNonFlattenableFields) : SingleCalculateChecksum(countNonFlattenableFields);}
+   MUSCLE_NODISCARD bool ElementsAreFixedSize() const {return HasArray() ? GetArray()->ElementsAreFixedSize() : SingleElementsAreFixedSize();}
+   MUSCLE_NODISCARD bool IsFixedSize() const {return false;}
+   MUSCLE_NODISCARD bool IsFlattenable() const {return HasArray() ? GetArray()->IsFlattenable() : SingleIsFlattenable();}
    void AddToString(String & s, uint32 maxRecurseLevel, int indent) const;
-   bool IsEqualTo(const MessageField & rhs, bool compareContents) const;
+   MUSCLE_NODISCARD bool IsEqualTo(const MessageField & rhs, bool compareContents) const;
    status_t EnsurePrivate();  // un-shares our data, if necessary
 
-   const String & GetItemAtAsString(uint32 index) const;
-   const Point & GetItemAtAsPoint(uint32 index) const;
-   const Rect & GetItemAtAsRect(uint32 index) const;
+   MUSCLE_NODISCARD const String & GetItemAtAsString(uint32 index) const;
+   MUSCLE_NODISCARD const Point & GetItemAtAsPoint(uint32 index) const;
+   MUSCLE_NODISCARD const Rect & GetItemAtAsRect(uint32 index) const;
    RefCountableRef GetItemAtAsRefCountableRef(uint32 index) const;
    status_t ReplaceFlatCountableDataItem(uint32 index, const FlatCountableRef & fcRef);
    status_t ShareTo(MessageField & shareToMe) const;
-   bool HasArray() const {return (_state == FIELD_STATE_ARRAY);}  // returns true iff we have an AbstractDataArray object allocated
+   MUSCLE_NODISCARD bool HasArray() const {return (_state == FIELD_STATE_ARRAY);}  // returns true iff we have an AbstractDataArray object allocated
 
-   uint64 TemplatedHashCode64() const {return ((uint64)GetNumItems())*((uint64)TypeCode());}
-   uint32 TemplatedFlattenedSize(const MessageField * optPayloadField) const;
+   MUSCLE_NODISCARD uint64 TemplatedHashCode64() const {return ((uint64)GetNumItems())*((uint64)TypeCode());}
+   MUSCLE_NODISCARD uint32 TemplatedFlattenedSize(const MessageField * optPayloadField) const;
    void TemplatedFlatten(const MessageField * optPayloadField, uint8 * & buf) const;
    status_t TemplatedUnflatten(Message & unflattenTo, const String & fieldName, DataUnflattener & unflat) const;
 
@@ -184,13 +184,13 @@ protected:
    void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const {if (HasArray()) GetArray()->FlattenAux(flat, maxItemsToFlatten); else SingleFlatten(flat);}
 
 private:
-   const AbstractDataArray * GetArray() const {return static_cast<AbstractDataArray *>(GetInlineItemAsRefCountableRef()());}
-   AbstractDataArray * GetArray() {return static_cast<AbstractDataArray *>(GetInlineItemAsRefCountableRef()());}
+   MUSCLE_NODISCARD const AbstractDataArray * GetArray() const {return static_cast<AbstractDataArray *>(GetInlineItemAsRefCountableRef()());}
+   MUSCLE_NODISCARD AbstractDataArray * GetArray() {return static_cast<AbstractDataArray *>(GetInlineItemAsRefCountableRef()());}
    AbstractDataArrayRef GetArrayRef() const {AbstractDataArrayRef ret; (void) ret.SetFromRefCountableRef(GetInlineItemAsRefCountableRef()); return ret;}
-   uint32 GetNumItemsInFlattenedBuffer(const uint8 * bytes, uint32 numBytes) const;
+   MUSCLE_NODISCARD uint32 GetNumItemsInFlattenedBuffer(const uint8 * bytes, uint32 numBytes) const;
 
    // single-item implementation of the AbstractDataArray methods
-   uint32 SingleFlattenedSize() const;
+   MUSCLE_NODISCARD uint32 SingleFlattenedSize() const;
    void SingleFlatten(DataFlattener flat) const;
    status_t SingleUnflatten(DataUnflattener & unflat);
    status_t SingleAddDataItem(const void * data, uint32 numBytes);
@@ -198,10 +198,10 @@ private:
    status_t SinglePrependDataItem(const void * data, uint32 numBytes);
    status_t SingleFindDataItem(uint32 index, const void ** setDataLoc) const;
    status_t SingleReplaceDataItem(uint32 index, const void * data, uint32 numBytes);
-   uint32 SingleGetItemSize(uint32 index) const;
-   uint32 SingleCalculateChecksum(bool countNonFlattenableFields) const;
-   bool SingleElementsAreFixedSize() const;
-   bool SingleIsFlattenable() const;
+   MUSCLE_NODISCARD uint32 SingleGetItemSize(uint32 index) const;
+   MUSCLE_NODISCARD uint32 SingleCalculateChecksum(bool countNonFlattenableFields) const;
+   MUSCLE_NODISCARD bool SingleElementsAreFixedSize() const;
+   MUSCLE_NODISCARD bool SingleIsFlattenable() const;
    void SingleAddToString(String & s, uint32 maxRecurseLevel, int indent) const;
    void SingleSetValue(const void * data, uint32 numBytes);
    AbstractDataArrayRef CreateDataArray(uint32 typeCode) const;
@@ -322,73 +322,73 @@ private:
       *p = b;
    }
 
-   bool GetInlineItemAsBool() const
+   MUSCLE_NODISCARD bool GetInlineItemAsBool() const
    {
       MASSERT(((_state == FIELD_STATE_INLINE)&&(_dataType == DATA_TYPE_BOOL)), "GetInlineItemAsBool:  invalid state!");
       const bool * p MUSCLE_MAY_ALIAS = reinterpret_cast<const bool *>(_union._data); return *p;
    }
 
-   double GetInlineItemAsDouble() const
+   MUSCLE_NODISCARD double GetInlineItemAsDouble() const
    {
       MASSERT(((_state == FIELD_STATE_INLINE)&&(_dataType == DATA_TYPE_DOUBLE)), "GetInlineItemAsDouble:  invalid state!");
       const double * p MUSCLE_MAY_ALIAS = reinterpret_cast<const double *>(_union._data); return *p;
    }
 
-   float GetInlineItemAsFloat() const
+   MUSCLE_NODISCARD float GetInlineItemAsFloat() const
    {
       MASSERT(((_state == FIELD_STATE_INLINE)&&(_dataType == DATA_TYPE_FLOAT)), "GetInlineItemAsFloat:  invalid state!");
       const float * p MUSCLE_MAY_ALIAS = reinterpret_cast<const float *>(_union._data); return *p;
    }
 
-   int8 GetInlineItemAsInt8() const
+   MUSCLE_NODISCARD int8 GetInlineItemAsInt8() const
    {
       MASSERT(((_state == FIELD_STATE_INLINE)&&(_dataType == DATA_TYPE_INT8)), "GetInlineItemAsInt8:  invalid state!");
       const int8 * p MUSCLE_MAY_ALIAS = reinterpret_cast<const int8 *>(_union._data); return *p;
    }
 
-   int16 GetInlineItemAsInt16() const
+   MUSCLE_NODISCARD int16 GetInlineItemAsInt16() const
    {
       MASSERT(((_state == FIELD_STATE_INLINE)&&(_dataType == DATA_TYPE_INT16)), "GetInlineItemAsInt16:  invalid state!");
       const int16 * p MUSCLE_MAY_ALIAS = reinterpret_cast<const int16 *>(_union._data); return *p;
    }
 
-   int32 GetInlineItemAsInt32() const
+   MUSCLE_NODISCARD int32 GetInlineItemAsInt32() const
    {
       MASSERT(((_state == FIELD_STATE_INLINE)&&(_dataType == DATA_TYPE_INT32)), "GetInlineItemAsInt32:  invalid state!");
       const int32 * p MUSCLE_MAY_ALIAS = reinterpret_cast<const int32 *>(_union._data); return *p;
    }
 
-   int64 GetInlineItemAsInt64() const
+   MUSCLE_NODISCARD int64 GetInlineItemAsInt64() const
    {
       MASSERT(((_state == FIELD_STATE_INLINE)&&(_dataType == DATA_TYPE_INT64)), "GetInlineItemAsInt64:  invalid state!");
       const int64 * p MUSCLE_MAY_ALIAS = reinterpret_cast<const int64 *>(_union._data); return *p;
    }
 
-   MFVoidPointer GetInlineItemAsPointer() const
+   MUSCLE_NODISCARD MFVoidPointer GetInlineItemAsPointer() const
    {
       MASSERT(((_state == FIELD_STATE_INLINE)&&(_dataType == DATA_TYPE_POINTER)), "GetInlineItemAsPointer:  invalid state!");
       const MFVoidPointer * p MUSCLE_MAY_ALIAS = reinterpret_cast<const MFVoidPointer *>(_union._data); return *p;
    }
 
-   const Point & GetInlineItemAsPoint() const
+   MUSCLE_NODISCARD const Point & GetInlineItemAsPoint() const
    {
       MASSERT(((_state == FIELD_STATE_INLINE)&&(_dataType == DATA_TYPE_POINT)), "GetInlineItemAsPoint:  invalid state!");
       const Point * p MUSCLE_MAY_ALIAS = reinterpret_cast<const Point *>(_union._data); return *p;
    }
 
-   const Rect & GetInlineItemAsRect() const
+   MUSCLE_NODISCARD const Rect & GetInlineItemAsRect() const
    {
       MASSERT(((_state == FIELD_STATE_INLINE)&&(_dataType == DATA_TYPE_RECT)), "GetInlineItemAsRect:  invalid state!");
       const Rect * p MUSCLE_MAY_ALIAS = reinterpret_cast<const Rect *>(_union._data); return *p;
    }
 
-   const String & GetInlineItemAsString() const
+   MUSCLE_NODISCARD const String & GetInlineItemAsString() const
    {
       MASSERT(((_state == FIELD_STATE_INLINE)&&(_dataType == DATA_TYPE_STRING)), "GetInlineItemAsString:  invalid state!");
       const String * p MUSCLE_MAY_ALIAS = reinterpret_cast<const String *>(_union._data); return *p;
    }
 
-   const RefCountableRef & GetInlineItemAsRefCountableRef() const
+   MUSCLE_NODISCARD const RefCountableRef & GetInlineItemAsRefCountableRef() const
    {
       // No assert here, since we also use this method to grab the array object
       const RefCountableRef * p MUSCLE_MAY_ALIAS = reinterpret_cast<const RefCountableRef *>(_union._data); return *p;

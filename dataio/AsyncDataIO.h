@@ -43,7 +43,7 @@ public:
    virtual status_t Seek(int64 offset, int whence);
 
    /** AsyncDataIO::GetPosition() always returns -1, since the current position of the I/O is not well-defined outside of the internal I/O thread. */
-   virtual int64 GetPosition() const {return -1;}
+   MUSCLE_NODISCARD virtual int64 GetPosition() const {return -1;}
 
    /** Will tell the I/O thread to flush, asynchronously. */
    virtual void FlushOutput();
@@ -51,11 +51,11 @@ public:
    /** Will tell the I/O thread to shut down its I/O, asynchronously. */
    virtual void Shutdown();
 
-   virtual const ConstSocketRef & GetReadSelectSocket()  const {return const_cast<AsyncDataIO &>(*this).GetOwnerWakeupSocket();}
-   virtual const ConstSocketRef & GetWriteSelectSocket() const {return const_cast<AsyncDataIO &>(*this).GetOwnerWakeupSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return const_cast<AsyncDataIO &>(*this).GetOwnerWakeupSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return const_cast<AsyncDataIO &>(*this).GetOwnerWakeupSocket();}
 
    /** AsyncDataIO::GetLength() always returns -1, since the current length of the I/O is not well-defined outside of the internal I/O thread. */
-   virtual int64 GetLength() {return -1;}
+   MUSCLE_NODISCARD virtual int64 GetLength() {return -1;}
 
 protected:
    virtual void InternalThreadEntry();
@@ -66,7 +66,7 @@ protected:
      * @param prevPulseTime the time that was previously returned by this method, or MUSCLE_TIME_NEVER if this method
      *                      was never previously called.
      */
-   virtual uint64 InternalThreadGetPulseTime(uint64 prevPulseTime) {(void) prevPulseTime; return MUSCLE_TIME_NEVER;}
+   MUSCLE_NODISCARD virtual uint64 InternalThreadGetPulseTime(uint64 prevPulseTime) {(void) prevPulseTime; return MUSCLE_TIME_NEVER;}
 
    /** Called in the internal thread at roughly the time specified by GetInternalThreadPulseTime().
      * Default implementation is a no-op.
@@ -102,10 +102,10 @@ private:
       AsyncCommand(uint64 streamLocation, uint8 cmd) : _streamLocation(streamLocation), _offset(0), _whence(0), _cmd(cmd) {/* empty */}
       AsyncCommand(uint64 streamLocation, uint8 cmd, int64 offset, int whence) : _streamLocation(streamLocation), _offset(offset), _whence(whence), _cmd(cmd) {/* empty */}
 
-      uint64 GetStreamLocation() const {return _streamLocation;}
-      uint8 GetCommand() const {return _cmd;}
-      int64 GetOffset() const {return _offset;}
-      int GetWhence() const {return _whence;}
+      MUSCLE_NODISCARD uint64 GetStreamLocation() const {return _streamLocation;}
+      MUSCLE_NODISCARD uint8 GetCommand() const {return _cmd;}
+      MUSCLE_NODISCARD int64 GetOffset() const {return _offset;}
+      MUSCLE_NODISCARD int GetWhence() const {return _whence;}
 
    private:
       uint64 _streamLocation;
