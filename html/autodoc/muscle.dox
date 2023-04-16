@@ -2284,6 +2284,8 @@ PREDEFINED             = __cplusplus=201100 \
                          MUSCLE_ENABLE_MEMORY_TRACKING \
                          MUSCLE_ENABLE_ZLIB_ENCODING \
                          MUSCLE_FINAL_CLASS=final \
+                         "MUSCLE_NODISCARD=[[nodiscard]]" \
+                         MUSCLE_NOEXCEPT=noexcept \
                          DOXYGEN_SHOULD_IGNORE_THIS \
                          HT_UniversalSinkKeyRef= \
                          HT_UniversalSinkValueRef= \
