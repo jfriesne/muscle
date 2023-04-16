@@ -2103,14 +2103,14 @@ public:
      * @param iterFlags A bit-chord of HTIT_FLAG_* constants to pass to the HashtableIterator we used when iterating over this table's
      *                  contents to construct the inverted table to return.  Defaults to zero for default behaviour.
      */
-   template<class ValueHashFunctorType> Hashtable<ValueType, KeyType, ValueHashFunctorType> ComputeInvertedTable(uint32 iterFlags = 0) const;
+   template<class ValueHashFunctorType> MUSCLE_NODISCARD Hashtable<ValueType, KeyType, ValueHashFunctorType> ComputeInvertedTable(uint32 iterFlags = 0) const;
 
    /** Convenience method:  Returns a histogram of the values in this Hashtable.
      * @tparam ValueHashFunctorType the type of the hash functor to use to compute hash values for values in this Hashtable.
      * @note keys in the returned Hashtable correspond to values in this Hashtable.  Values in the returned histogram-Hashtable
      *            are uint32's, set to the number of instances of that values that are present in this Hashtable.
      */
-   template<class ValueHashFunctorType> Hashtable<ValueType, uint32, ValueHashFunctorType> ComputeValuesHistogram() const;
+   template<class ValueHashFunctorType> MUSCLE_NODISCARD Hashtable<ValueType, uint32, ValueHashFunctorType> ComputeValuesHistogram() const;
 
 private:
    typedef typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase HashtableEntryBaseType;

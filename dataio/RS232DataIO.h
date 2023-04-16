@@ -53,7 +53,7 @@ public:
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetSerialSelectSocket();}
 
    /** Returns true iff we have a valid serial port to communicate through */
-   bool IsPortAvailable() const;
+   MUSCLE_NODISCARD bool IsPortAvailable() const;
 
    /** Returns a list of serial port names that are present on this machine.
     *  These names may be passed in to the constructor of this class verbatim.

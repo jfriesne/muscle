@@ -20,7 +20,7 @@ public:
    StringMatcherQueue() {/* empty */}
 
    /** Returns a human-readable string representing this StringMatcherQueue, for easier debugging */
-   String ToString() const;
+   MUSCLE_NODISCARD String ToString() const;
 
    /** Returns a read/write reference to our list of StringMatcher references. */
    MUSCLE_NODISCARD const Queue<StringMatcherRef> & GetStringMatchers() const {return _queue;}

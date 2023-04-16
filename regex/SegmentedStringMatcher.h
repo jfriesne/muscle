@@ -87,7 +87,7 @@ public:
    void Clear();
 
    /** Returns a human-readable string representing this StringMatcher, for debugging purposes. */
-   String ToString() const;
+   MUSCLE_NODISCARD String ToString() const;
 
 private:
    MUSCLE_NODISCARD bool MatchAux(const char * const matchString) const;

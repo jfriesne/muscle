@@ -138,7 +138,7 @@ public:
    void PrintToStream() const;
 
    /** Returns a human-readable string representing our state (for debugging) */
-   String ToString() const;
+   MUSCLE_NODISCARD String ToString() const;
 
    // Flattenable Pseudo-Interface
    MUSCLE_NODISCARD uint32 TypeCode() const {return _typeCode;}

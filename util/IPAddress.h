@@ -269,7 +269,7 @@ public:
    MUSCLE_NODISCARD IPAddress WithoutInterfaceIndex() const {return WithInterfaceIndex(MUSCLE_NO_LIMIT);}
 
 private:
-   bool IsIPv6LocalMulticast(uint8 scope) const;
+   MUSCLE_NODISCARD bool IsIPv6LocalMulticast(uint8 scope) const;
    void WriteToNetworkArrayAux(uint8 * out, uint64 in)          const {BigEndianConverter::Export(in, out);}
    void ReadFromNetworkArrayAux(const uint8 * in, uint64 & out) const {BigEndianConverter::Import(in, out);}
 
