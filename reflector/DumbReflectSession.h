@@ -4,6 +4,7 @@
 #define MuscleDumbReflectSession_h
 
 #include "reflector/AbstractReflectSession.h"
+#include "support/BitChord.h"
 
 namespace muscle {
 
@@ -19,15 +20,12 @@ DECLARE_REFTYPES(DumbReflectSessionFactory);
 
 /** These flags govern the default routing behavior of unrecognized Message types */
 enum {
-   MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF      = 0x01,  /**< If this bit is set, Messages broadcast by this session will be received by this session */
-   MUSCLE_ROUTING_FLAG_GATEWAY_TO_NEIGHBORS = 0x02,  /**< If this bit is set, unrecognized Messages received by this session's gateway will be broadcast to all neighbors. */
-   MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY = 0x04   /**< If this bit is set, unrecognized Messages received by this session's neighbors will be forwarded to this session's gateway. */
+   MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF = 0,  /**< If this bit is set, Messages broadcast by this session will be received by this session */
+   MUSCLE_ROUTING_FLAG_GATEWAY_TO_NEIGHBORS, /**< If this bit is set, unrecognized Messages received by this session's gateway will be broadcast to all neighbors. */
+   MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY, /**< If this bit is set, unrecognized Messages received by this session's neighbors will be forwarded to this session's gateway. */
+   NUM_MUSCLE_ROUTING_FLAGS                  /**< Guard value */
 };
-
-#ifndef DEFAULT_MUSCLE_ROUTING_FLAGS_BIT_CHORD
-/** Default message-forwarding instructions for DumbReflectSession::MessageReceivedFromGateway() and DumbReflectSession::MessageReceivedFromSession() to follow. */
-# define DEFAULT_MUSCLE_ROUTING_FLAGS_BIT_CHORD (MUSCLE_ROUTING_FLAG_GATEWAY_TO_NEIGHBORS | MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY)
-#endif
+DECLARE_BITCHORD_FLAGS_TYPE(MuscleRoutingFlags, NUM_MUSCLE_ROUTING_FLAGS);
 
 /** This class represents a single TCP connection between a muscled server and a client program.
  *  This class implements a simple "reflect-all-messages-to-all-clients"
@@ -54,22 +52,16 @@ public:
    /** Sets or unsets the specified default routing flag.
      * @param flag a MUSCLE_ROUTING_FLAG_* value
      * @param enable If true, the flag is set; if false, the flag is un-set.
-     * Note that the default states of the flags are specified by the DEFAULT_MUSCLE_ROUTING_FLAGS_BIT_CHORD macro, defined in DumbReflectSession.h
-     * Currently the default state of the flags is for all defined routing bits to be set.
      */
-   void SetRoutingFlag(uint32 flag, bool enable)
-   {
-      if (enable) _defaultRoutingFlags |= flag;
-             else _defaultRoutingFlags &= ~flag;
-   }
+   void SetRoutingFlag(uint32 flag, bool enable) {_defaultRoutingFlags.SetBit(flag, enable);}
 
    /** Returns true iff the specified default routing flag is set.
      * @param flag a MUSCLE_ROUTING_FLAG_* value.
      */
-   MUSCLE_NODISCARD bool IsRoutingFlagSet(uint32 flag) const {return ((_defaultRoutingFlags & flag) != 0);}
+   MUSCLE_NODISCARD bool IsRoutingFlagSet(uint32 flag) const {return _defaultRoutingFlags.IsBitSet(flag);}
 
 private:
-   uint32 _defaultRoutingFlags;
+   MuscleRoutingFlags _defaultRoutingFlags;
 
    DECLARE_COUNTED_OBJECT(DumbReflectSession);
 };

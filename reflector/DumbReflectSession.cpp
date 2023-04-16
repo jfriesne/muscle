@@ -14,7 +14,7 @@ AbstractReflectSessionRef DumbReflectSessionFactory :: CreateSession(const Strin
 }
 
 DumbReflectSession ::
-DumbReflectSession() : _defaultRoutingFlags(DEFAULT_MUSCLE_ROUTING_FLAGS_BIT_CHORD)
+DumbReflectSession() : _defaultRoutingFlags(MUSCLE_ROUTING_FLAG_GATEWAY_TO_NEIGHBORS,MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY)
 {
    // empty
 }
