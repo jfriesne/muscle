@@ -84,7 +84,7 @@ public:
          if (s == prevString) dupCount++;
          prevString = s;
 
-         if ((totalCount%10000)==0) printf("TestReaderThread:  Read string [%s] (%.04f%% are duplicate values)        \r", s(), 100.0f*(((float)dupCount)/totalCount));
+         if ((totalCount%20000)==0) printf("TestReaderThread:  Read string [%s] (%.04f%% are duplicate values)        \r", s(), 100.0f*(((float)dupCount)/totalCount));
          const char * slash = strstr(s(), " / ");
          if (slash)
          {
@@ -114,12 +114,14 @@ int main(int argc, char ** argv)
    AtomicWriterThread writerThread;
    AtomicReaderThread readerThread;
 
-   LogTime(MUSCLE_LOG_INFO, "AtomicValue torture test running; will end after one minute.\n");
+   const uint64 duration = isFromScript ? SecondsToMicros(10) : MinutesToMicros(1);
+
+   LogTime(MUSCLE_LOG_INFO, "AtomicValue torture test running; will end after %s.\n", GetHumanReadableTimeIntervalString(duration)());
 
    status_t ret;
    if ((writerThread.StartInternalThread().IsOK(ret))&&(readerThread.StartInternalThread().IsOK(ret)))
    {
-      (void) Snooze64(isFromScript ? SecondsToMicros(10) : MinutesToMicros(1));
+      (void) Snooze64(duration);
    }
    else LogTime(MUSCLE_LOG_CRITICALERROR, "Error starting Atomic thread! [%s]\n", ret());
 
