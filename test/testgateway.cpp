@@ -9,8 +9,7 @@
 
 using namespace muscle;
 
-#define TEST(x)     {if ((x).IsError()) printf("Test failed, line %i\n",__LINE__); return 10;}
-#define TESTSIZE(x) {if ((x) < 0) printf("Test failed, line %i\n",__LINE__); return 10;}
+#define TEST(x) {if ((x).IsError()) {printf("Test failed, line %i\n",__LINE__); return 10;}}
 
 DataIORef GetFileRef(FILE * file)
 {
@@ -43,11 +42,11 @@ int main(int argc, char ** argv)
             TEST(m()->AddBool("Ugly", (i%2)!=0));
             TEST(g.AddOutgoingMessage(m));
          }
-         while(g.HasBytesToOutput()) TESTSIZE(g.DoOutput().GetByteCount());
+         while(g.HasBytesToOutput()) TEST(g.DoOutput());
          //g.GetDataIO()()->FlushOutput();
          printf("Done Writing!\n");
       }
-      else printf("Error, could not open test file!\n");
+      else {printf("Error, could not open test file!\n"); return 10;}
 
       // Now try to read it back in
       FILE * in = muscleFopen("test.dat", "rb");
@@ -64,7 +63,7 @@ int main(int argc, char ** argv)
 
          printf("Done Reading!\n");
       }
-      else printf("Error, could not re-open test file!\n");
+      else {printf("Error, could not re-open test file!\n"); return 10;}
    }
    else if (argc > 1)
    {
@@ -85,7 +84,7 @@ int main(int argc, char ** argv)
             }
             printf("Done Reading file [%s]!\n", argv[i]);
          }
-         else printf("Error, could not open file [%s]!\n", argv[i]);
+         else {printf("Error, could not open file [%s]!\n", argv[i]); return 10;}
       }
    }
    return 0;

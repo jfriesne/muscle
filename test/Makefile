@@ -172,7 +172,7 @@ testmini : $(STDOBJS) Message.o String.o testmini.o SysLog.o ByteBuffer.o SetupS
 testresponse : $(STDOBJS) testresponse.o MessageIOGateway.o AbstractMessageIOGateway.o SysLog.o SetupSystem.o PulseNode.o Message.o String.o ByteBuffer.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testnagle : $(STDOBJS) testnagle.o SysLog.o SetupSystem.o String.o ByteBuffer.o
+testnagle : $(STDOBJS) testnagle.o SysLog.o SetupSystem.o String.o ByteBuffer.o Thread.o Message.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testrefcount : $(STDOBJS) testrefcount.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Thread.o Message.o ByteBuffer.o

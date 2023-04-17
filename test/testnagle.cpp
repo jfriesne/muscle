@@ -1,13 +1,16 @@
 #include "dataio/TCPSocketDataIO.h"
 #include "system/SetupSystem.h"
+#include "system/Thread.h"
 #include "util/NetworkUtilityFunctions.h"
 #include "util/SocketMultiplexer.h"
 
 using namespace muscle;
 
-status_t HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush)
+status_t HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush, uint64 testDuration)
 {
-   LogTime(MUSCLE_LOG_ERROR, "Beginning catch session (%s)\n", doFlush?"flush enabled":"flush disabled");
+   LogTime(MUSCLE_LOG_INFO, "Beginning catch session (%s) sock=%i\n", doFlush?"flush enabled":"flush disabled", sock.GetFileDescriptor());
+
+   const uint64 endTime = (testDuration == MUSCLE_TIME_NEVER) ? MUSCLE_TIME_NEVER : (GetRunTime64()+testDuration);
 
    TCPSocketDataIO sockIO(sock, false);
    uint64 lastThrowTime = 0;
@@ -17,13 +20,13 @@ status_t HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doF
    uint64 total = 0;
    uint8 ball = 'B';  // this is what we throw back and forth over the TCP socket!
    SocketMultiplexer multiplexer;
-   while(1)
+   while(GetRunTime64() < endTime)
    {
       const int fd = sock.GetFileDescriptor();
       (void) multiplexer.RegisterSocketForReadReady(fd);
       if (myTurnToThrow) (void) multiplexer.RegisterSocketForWriteReady(fd);
 
-      MRETURN_ON_ERROR(multiplexer.WaitForEvents());
+      MRETURN_ON_ERROR(multiplexer.WaitForEvents(endTime));
 
       if ((myTurnToThrow)&&(multiplexer.IsSocketReadyForWrite(fd)))
       {
@@ -70,38 +73,107 @@ status_t HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doF
    return B_NO_ERROR;
 }
 
+class NaglePingPongThread : public Thread
+{
+public:
+   NaglePingPongThread(const ConstSocketRef & s, bool hasTheBall, bool doFlush)
+      : _sock(s)
+      , _hasTheBall(hasTheBall)
+      , _doFlush(doFlush)
+   {
+      // empty
+   }
+
+   virtual void InternalThreadEntry()
+   {
+      const status_t ret = HandleSession(_sock, _hasTheBall, _doFlush, SecondsToMicros(10));
+      if (ret.IsError()) LogTime(MUSCLE_LOG_ERROR, "NaglePingPongThread %p:   HandleSession() returned [%s]\n", this, ret());
+   }
+
+private:
+   ConstSocketRef _sock;
+   const bool _hasTheBall;
+   const bool _doFlush;
+};
+
+static status_t DoNagleTest(bool doFlush)
+{
+   // Note that I'm doing all this explicit socket setup instead of just calling CreateSocketPair()
+   // only because I want to be certain that we are using TCP sockets here and not Unix sockets.
+
+   uint16 port = 0;
+   ConstSocketRef acceptSock = CreateAcceptingSocket(0, 1, &port);
+   MRETURN_ON_ERROR(acceptSock);
+
+   ConstSocketRef sendSock = Connect(IPAddressAndPort(localhostIP, port), "testnagle", "testnagle", false);
+   MRETURN_ON_ERROR(sendSock);
+
+   ConstSocketRef recvSock = Accept(acceptSock);
+   MRETURN_ON_ERROR(recvSock);
+
+   NaglePingPongThread t1(recvSock, false, doFlush);
+   MRETURN_ON_ERROR(t1.StartInternalThread());
+
+   NaglePingPongThread t2(sendSock, true, doFlush);
+   MRETURN_ON_ERROR(t2.StartInternalThread());
+
+   MRETURN_ON_ERROR(t1.WaitForInternalThreadToExit());
+   MRETURN_ON_ERROR(t2.WaitForInternalThreadToExit());
+
+   return B_NO_ERROR;
+}
+
 // This program helps me test whether or not the host OS supports TCPSocketDataIO::FlushOutput() properly or not.
-// The two instances of it play "catch" with a byte over a TCP socket, and it measures how fast it takes the
-// byte to make each round-trip, and prints statistics about it.
 int main(int argc, char ** argv)
 {
-   const bool doFlush = (strcmp(argv[argc-1], "flush") == 0);
-   if (doFlush) argc--;
-
-   status_t ret;
-
-   const uint16 TEST_PORT = 15000;
    CompleteSetupSystem css;
-   if (argc > 1)
+
+   if ((argc > 1)&&(strcmp(argv[1], "fromscript") == 0))
    {
-      ConstSocketRef s = Connect(argv[1], TEST_PORT, "testnagle");
-      ret = s() ? HandleSession(s, true, doFlush) : s.GetStatus();
+      // For automated testing:  Two threads play "catch" with a byte over a TCP socket, and it measures
+      // how fast it takes the byte to make each round-trip, and prints statistics about it for ten seconds.
+      status_t ret;
+
+      printf("\nRunning test with FlushOutput disabled...\n");
+      if (DoNagleTest(false).IsError(ret)) {LogTime(MUSCLE_LOG_ERROR, "DoNagleTest(false) returned [%s]\n", ret()); return 10;}
+
+      printf("\nRunning test with FlushOutput enabled...\n");
+      if (DoNagleTest(true).IsError(ret)) {LogTime(MUSCLE_LOG_ERROR, "DoNagleTest(true) returned [%s]\n", ret()); return 10;}
    }
    else
    {
+      // For manual testing (i.e. user launches a separate session in Terminal on one or more machines)
+      const uint16 TEST_PORT = 15000;
+      const bool doFlush = (strcmp(argv[argc-1], "flush") == 0);
+      if (doFlush) argc--;
+
+      status_t ret;
       const uint16 port = TEST_PORT;
-      ConstSocketRef as = CreateAcceptingSocket(port);
-      if (as())
+
+      const IPAddress connectTo = (argc > 1) ? IPAddress(argv[1]) : IPAddress();
+      if (connectTo.IsValid())
       {
-         LogTime(MUSCLE_LOG_INFO, "testnagle awaiting incoming TCP connections on port %u.\n", port);
-         ConstSocketRef s = Accept(as);
-         ret = s() ? HandleSession(s, false, doFlush) : s.GetStatus();
+         ConstSocketRef s = Connect(IPAddressAndPort(connectTo, TEST_PORT), "testnagle", "testnagle", false);
+         ret = s() ? HandleSession(s, true, doFlush, MUSCLE_TIME_NEVER) : s.GetStatus();
       }
       else
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Could not bind to TCP port %u (already in use?)\n", port);
-         ret = as.GetStatus();
+         ConstSocketRef as = CreateAcceptingSocket(port);
+         if (as())
+         {
+            LogTime(MUSCLE_LOG_INFO, "testnagle awaiting incoming TCP connections on port %u.\n", port);
+            ConstSocketRef s = Accept(as);
+            ret = s() ? HandleSession(s, false, doFlush, MUSCLE_TIME_NEVER) : s.GetStatus();
+         }
+         else
+         {
+            LogTime(MUSCLE_LOG_CRITICALERROR, "Could not bind to TCP port %u (already in use?)\n", port);
+            ret = as.GetStatus();
+         }
       }
+      return ret.IsOK() ? 0 : 10;
    }
-   return ret.IsOK() ? 0 : 10;
+
+   return 0;
 }
+

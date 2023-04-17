@@ -20,6 +20,8 @@ key:  - new feature
    o Renamed String::Indent() to String::IndentedBy().
    o Removed DEFAULT_MUSCLE_ROUTING_FLAGS_BIT_CHORD, and rewrote
      the routing flags to use the BitChord class.
+   o Rewrote testnagle.cpp to include a unit-test for automated testing.
+   * Fixed logic error in testgateway.cpp.
 
 9.25 - Release 4/7/2023
    - Rewrote String::WithReplacements(const Hashtable<String,String> &)
