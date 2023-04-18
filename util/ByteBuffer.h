@@ -210,7 +210,7 @@ public:
    MUSCLE_NODISCARD virtual uint32 TypeCode() const {return B_RAW_TYPE;}
    MUSCLE_NODISCARD virtual uint32 FlattenedSize() const {return _numValidBytes;}
    virtual void Flatten(DataFlattener flat) const {flat.WriteBytes(_buffer, _numValidBytes);}
-   virtual bool AllowsTypeCode(uint32 tc) const {(void) tc; return true;}
+   MUSCLE_NODISCARD virtual bool AllowsTypeCode(uint32 tc) const {(void) tc; return true;}
    virtual status_t Unflatten(DataUnflattener & unflat)
    {
       MRETURN_ON_ERROR(SetBuffer(unflat.GetNumBytesAvailable(), unflat.GetCurrentReadPointer()));
