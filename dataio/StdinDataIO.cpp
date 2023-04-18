@@ -43,7 +43,7 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
          if (_slaveSocketsMutex.Lock().IsOK())
          {
             temp = _slaveSockets;
-            _slaveSocketsMutex.Unlock();
+            (void) _slaveSocketsMutex.Unlock();
          }
 
          // Now send the data we read from stdin to all the registered sockets
@@ -59,7 +59,7 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
                const ConstSocketRef * v = temp.Get(iter.GetKey());
                if ((v)&&(v->IsValid() == false)) (void) _slaveSockets.Remove(iter.GetKey());
             }
-            _slaveSocketsMutex.Unlock();
+            (void) _slaveSocketsMutex.Unlock();
          }
 
          temp.Clear();  // it's important not to have extra Refs hanging around in case the process exits!
@@ -88,7 +88,7 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
          _stdinHandle = INVALID_HANDLE_VALUE;
       }
 
-      _slaveSocketsMutex.Unlock();
+      (void) _slaveSocketsMutex.Unlock();
    }
    return 0;
 }
@@ -144,7 +144,7 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
          }
          else LogTime(MUSCLE_LOG_ERROR, "StdinDataIO:  Could not start stdin thread!\n");
 
-         _slaveSocketsMutex.Unlock();
+         (void) _slaveSocketsMutex.Unlock();
 
          // We don't start the thread running until here, that way there's no chance of race conditions if the thread exits immediately
          if (threadCreated) ResumeThread(_slaveThread);
@@ -172,8 +172,8 @@ void StdinDataIO :: Close()
 #ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
    if ((_stdinBlocking == false)&&(_slaveSocketsMutex.Lock().IsOK()))
    {
-      _slaveSockets.Remove(_slaveSocketTag);
-      _slaveSocketsMutex.Unlock();
+      (void) _slaveSockets.Remove(_slaveSocketTag);
+      (void) _slaveSocketsMutex.Unlock();
       // Note that I deliberately let the Stdin thread keep running, since there's no clean way to stop it from another thread.
    }
 #else

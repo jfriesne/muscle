@@ -271,7 +271,7 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
          for (uint32 i=0; szDevices[i] != '\0';)
          {
             const char * pszCurrentDevice = &szDevices[i];
-            if (strncmp(pszCurrentDevice, "COM", 3) == 0) retList.AddTail(pszCurrentDevice);
+            if (strncmp(pszCurrentDevice, "COM", 3) == 0) (void) retList.AddTail(pszCurrentDevice);
 
             // Go to next NULL character
             while(szDevices[i] != '\0') i++;
