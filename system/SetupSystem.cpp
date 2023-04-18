@@ -1051,7 +1051,7 @@ static uint64 GetRunTime64Aux()
          ret = (_wrapOffset+newVal)*1000;  // convert to microseconds
          _prevVal = newVal;
       }
-      _rtMutex.Unlock();
+      (void) _rtMutex.Unlock();
    }
    return ret;
 #elif defined(__APPLE__)
@@ -1508,7 +1508,7 @@ int Socket :: GetFamilyForFD(int fd)
    if (fd < 0) return SOCKET_FAMILY_INVALID;
 
 #ifdef WIN32
-   WSAPROTOCOL_INFO pInfo;
+   WSAPROTOCOL_INFOW pInfo;
    int pInfoSize = sizeof(pInfo);
    if (getsockopt((SOCKET)fd, SOL_SOCKET, SO_PROTOCOL_INFO, (char *)&pInfo, &pInfoSize) < 0) return SOCKET_FAMILY_INVALID;
    const int sockFamily = pInfo.iAddressFamily;
