@@ -1508,6 +1508,9 @@ DefaultFileLogger :: DefaultFileLogger(int defaultLogThreshold)
    , _maxNumLogFiles(MUSCLE_NO_LIMIT)
    , _compressionEnabled(false)
    , _logFileOpenAttemptFailed(false)
+#ifdef WIN32
+   , _lastGetAttributesTime(0)
+#endif
 {
    // empty
 }
@@ -1523,6 +1526,13 @@ void DefaultFileLogger :: Log(const LogCallbackArgs & a)
    {
       vfprintf(_logFile.GetFile(), a.GetText(), *a.GetArgList());
       _logFile.FlushOutput();
+
+#ifdef WIN32
+      // Hack fix: Force Windows to at least occasionally update the file-size indicator
+      // https://stackoverflow.com/questions/76049891/how-to-programatically-force-windows-to-update-a-files-reported-on-disk-size-w
+      if (OnceEvery(SecondsToMicros(1), _lastGetAttributesTime)) (void) GetFileAttributesA(_activeLogFileName());
+#endif
+
       if ((_maxLogFileSize != MUSCLE_NO_LIMIT)&&(_inLogPreamble.IsInBatch() == false))  // wait until we're outside the preamble to avoid breaking up lines too much
       {
          const int64 curFileSize = _logFile.GetPosition();
@@ -1626,6 +1636,9 @@ status_t DefaultFileLogger :: EnsureLogFileCreated(const LogCallbackArgs & a)
       (void) OpenLogFileForWriting(logFileName, _logFile);
       if (_logFile.GetFile() != NULL)
       {
+#ifdef WIN32
+         _lastGetAttributesTime = GetRunTime64();
+#endif
          _activeLogFileName = logFileName;
          LogTime(MUSCLE_LOG_DEBUG, "Created Log file [%s]\n", _activeLogFileName());
 

@@ -331,6 +331,10 @@ private:
    FileDataIO _logFile;
    bool _logFileOpenAttemptFailed;
    Queue<String> _oldLogFileNames;
+
+#ifdef WIN32
+   uint64 _lastGetAttributesTime;
+#endif
 };
 DECLARE_REFTYPES(DefaultFileLogger);
 

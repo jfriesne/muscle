@@ -35,6 +35,9 @@ key:  - new feature
    - Added a PR_NAME_KEEPALIVE_INTERVAL_SECONDS parameter so clients can
      tell muscled to send a PR_RESULT_NOOP every (so many) seconds to
      verify TCP connectivity on an otherwise idle connection.
+   - DefaultFileLogger now calls GetFileAttributeA() on the log file (at
+     most once per second) in order to get Windows to update the log file's
+     file-size entry in a semi-timely manner.
    o Removed DataIO::GetReadByteTimeStamp() as it wasn't being used.
    o CloseSocket() now prints an error message if its call to close() fails.
    * GetProcessMemoryUsage() now returns more accurate values.
