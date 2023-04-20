@@ -15,9 +15,10 @@
  == void regprint(regex_t *r, FILE *d);
  */
 void
-regprint(r, d)
-regex_t *r;
-FILE *d;
+regprint(
+regex_t *r,
+FILE *d,
+)
 {
 	register struct re_guts *g = r->re_g;
 	register int i;
@@ -88,9 +89,10 @@ FILE *d;
  == static void s_print(register struct re_guts *g, FILE *d);
  */
 static void
-s_print(g, d)
-register struct re_guts *g;
-FILE *d;
+s_print(
+register struct re_guts *g,
+FILE *dx
+)
 {
 	register sop *s;
 	register cset *cs;
@@ -229,8 +231,9 @@ FILE *d;
  == static char *regchar(int ch);
  */
 static char *			/* -> representation */
-regchar(ch)
-int ch;
+regchar(
+int ch
+)
 {
 	static char buf[10];
 

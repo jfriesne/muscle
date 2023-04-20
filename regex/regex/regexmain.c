@@ -33,9 +33,7 @@ extern void regprint();
 /*
  - main - do the simple case, hand off to regress() for regression
  */
-main(argc, argv)
-int argc;
-char *argv[];
+main(int argc, char *argv[])
 {
 	regex_t re;
 #	define	NS	10
@@ -133,8 +131,9 @@ char *argv[];
  == void regress(FILE *in);
  */
 void
-regress(in)
-FILE *in;
+regress(
+FILE *in
+)
 {
 	char inbuf[1000];
 #	define	MAXF	10
@@ -210,13 +209,14 @@ FILE *in;
  == void try(char *f0, char *f1, char *f2, char *f3, char *f4, int opts);
  */
 void
-try(f0, f1, f2, f3, f4, opts)
-char *f0;
-char *f1;
-char *f2;
-char *f3;
-char *f4;
-int opts;			/* may not match f1 */
+try(
+char *f0,
+char *f1,
+char *f2,
+char *f3,
+char *f4,
+int opts			/* may not match f1 */
+)
 {
 	regex_t re;
 #	define	NSUBS	10
@@ -321,9 +321,10 @@ int opts;			/* may not match f1 */
  == int options(int type, char *s);
  */
 int
-options(type, s)
-int type;			/* 'c' compile, 'e' exec */
-char *s;
+options(
+int type,			/* 'c' compile, 'e' exec */
+char *s
+)
 {
 	register char *p;
 	register int o = (type == 'c') ? copts : eopts;
@@ -378,9 +379,10 @@ char *s;
  == int opt(int c, char *s);
  */
 int				/* predicate */
-opt(c, s)
+opt(
 int c;
-char *s;
+char *s
+)
 {
 	return(strchr(s, c) != NULL);
 }
@@ -390,8 +392,9 @@ char *s;
  == void fixstr(register char *p);
  */
 void
-fixstr(p)
-register char *p;
+fixstr(
+register char *p
+)
 {
 	if (p == NULL)
 		return;
@@ -412,10 +415,11 @@ register char *p;
  == char *check(char *str, regmatch_t sub, char *should);
  */
 char *				/* NULL or complaint */
-check(str, sub, should)
-char *str;
-regmatch_t sub;
-char *should;
+check(
+char *str,
+regmatch_t sub,
+char *should
+)
 {
 	register int len;
 	register int shlen;
@@ -489,8 +493,9 @@ char *should;
  == static char *eprint(int err);
  */
 static char *
-eprint(err)
-int err;
+eprint(
+int err
+)
 {
 	static char epbuf[100];
 	size_t len = regerror(REG_ITOA|err, (regex_t *)NULL, epbuf, sizeof(epbuf));
@@ -503,8 +508,9 @@ int err;
  == static int efind(char *name);
  */
 static int
-efind(name)
-char *name;
+efind(
+char *name
+)
 {
 	static char efbuf[100];
 	regex_t re;

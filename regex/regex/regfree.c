@@ -12,8 +12,9 @@
  */
 REXTERN
 void
-regfree(preg)
-regex_t *preg;
+regfree(
+regex_t *preg
+)
 {
 	register struct re_guts *g;
 

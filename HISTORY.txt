@@ -21,6 +21,8 @@ key:  - new feature
    o Removed DEFAULT_MUSCLE_ROUTING_FLAGS_BIT_CHORD, and rewrote
      the routing flags to use the BitChord class.
    o Rewrote testnagle.cpp to include a unit-test for automated testing.
+   o Updated function declarations in regex captive library to avoid
+     compiler warnings.
    * Fixed logic error in testgateway.cpp.
 
 9.25 - Release 4/7/2023
