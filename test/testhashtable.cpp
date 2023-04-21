@@ -357,6 +357,8 @@ int main(int argc, char ** argv)
 
    if (tempMsg.HasName("inter")) return DoInteractiveTest();
 
+   const bool isFromScript = tempMsg.HasName("fromscript");
+
    // Make sure that setting equal to an empty Hashtable clears the buffer (FogBugz #10274)
    {
       Hashtable<String,String> table;
@@ -701,6 +703,7 @@ int main(int argc, char ** argv)
    }
    table.Clear();
 
+   if (!isFromScript)
    {
       const uint32 NUM_ITEMS = 1000000;
       const uint32 NUM_RUNS  = 3;
@@ -740,8 +743,9 @@ int main(int argc, char ** argv)
    }
 
    // Now some timing test with String keys and values, for testing of the C++11 move semantics
-   PrintAndClearStringCopyCounts("Before String Sort test");
+   if (!isFromScript)
    {
+      PrintAndClearStringCopyCounts("Before String Sort test");
       const uint32 NUM_ITEMS = 1000000;
       const uint32 NUM_RUNS  = 3;
       Hashtable<String, String> testCopy;
@@ -777,12 +781,13 @@ int main(int argc, char ** argv)
       }
       printf("STRING GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC " RUNS ARE:\n", NUM_RUNS);
       for (HashtableIterator<String, double> iter(tallies); iter.HasData(); iter++) printf("   STRING %f items/second for %s\n", iter.GetValue()/NUM_RUNS, iter.GetKey()());
+      PrintAndClearStringCopyCounts("After String Sort test");
    }
-   PrintAndClearStringCopyCounts("After String Sort test");
 
-   printf("Begin torture test!\n");
    _state = 4;
+   if (!isFromScript)
    {
+      printf("Begin torture test!\n");
       bool fastClear = false;
       Hashtable<String, uint32> t;
       for (uint32 numEntries=1; numEntries < 1000; numEntries++)
@@ -897,6 +902,6 @@ int main(int argc, char ** argv)
    printf("Thread-safe hashtable iterators were disabled at compile time, so I won't test them!\n");
    return 0;
 #else
-   return DoThreadTest();
+   return isFromScript ? 0 : DoThreadTest();
 #endif
 }

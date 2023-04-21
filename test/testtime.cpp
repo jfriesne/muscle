@@ -20,6 +20,8 @@ int main(int argc, char ** argv)
    (void) ParseArgs(argc, argv, argsMsg);
    HandleStandardDaemonArgs(argsMsg);
 
+   const bool isFromScript = argsMsg.HasName("fromscript");
+
    const uint64 epoch = 0;
    printf("epoch time (UTC) = %s\n", GetHumanReadableTimeString(epoch, MUSCLE_TIMEZONE_UTC)());
    printf("epoch time (loc) = %s\n", GetHumanReadableTimeString(epoch, MUSCLE_TIMEZONE_LOCAL)());
@@ -68,18 +70,21 @@ int main(int argc, char ** argv)
    }
 
    // Test intervals
-   printf("Testing time interval parsing and generation.  This may take a little while...\n");
-   const uint64 TEN_YEARS_IN_MICROSECONDS = ((uint64)315360)*NANOS_PER_SECOND;  // yes, nanos per second is correct here!
-   uint64 delta = 1;
-   for (uint64 i=0; i<=TEN_YEARS_IN_MICROSECONDS; i+=delta)
+   if (!isFromScript)
    {
-      bool isAccurate;
-      const String s = GetHumanReadableTimeIntervalString(i, MUSCLE_NO_LIMIT, 0, &isAccurate);
-      if (isAccurate == false) printf("Error, string [%s] is not accurate for i=" UINT64_FORMAT_SPEC ".\n", s(), i);
-      const uint64 t = ParseHumanReadableTimeIntervalString(s);
-      //printf(" " UINT64_FORMAT_SPEC " -> %s -> " UINT64_FORMAT_SPEC "\n", i, s(), t);
-      if (t != i) printf("Error, Recovered time " UINT64_FORMAT_SPEC " does not match original time " UINT64_FORMAT_SPEC " (string=[%s])\n", t, i, s());
-      delta++;
+      printf("Testing time interval parsing and generation.  This may take a little while...\n");
+      const uint64 TEN_YEARS_IN_MICROSECONDS = ((uint64)315360)*NANOS_PER_SECOND;  // yes, nanos per second is correct here!
+      uint64 delta = 1;
+      for (uint64 i=0; i<=TEN_YEARS_IN_MICROSECONDS; i+=delta)
+      {
+         bool isAccurate;
+         const String s = GetHumanReadableTimeIntervalString(i, MUSCLE_NO_LIMIT, 0, &isAccurate);
+         if (isAccurate == false) printf("Error, string [%s] is not accurate for i=" UINT64_FORMAT_SPEC ".\n", s(), i);
+         const uint64 t = ParseHumanReadableTimeIntervalString(s);
+         //printf(" " UINT64_FORMAT_SPEC " -> %s -> " UINT64_FORMAT_SPEC "\n", i, s(), t);
+         if (t != i) printf("Error, Recovered time " UINT64_FORMAT_SPEC " does not match original time " UINT64_FORMAT_SPEC " (string=[%s])\n", t, i, s());
+         delta++;
+      }
    }
 
    return 0;

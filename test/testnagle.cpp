@@ -86,7 +86,7 @@ public:
 
    virtual void InternalThreadEntry()
    {
-      const status_t ret = HandleSession(_sock, _hasTheBall, _doFlush, SecondsToMicros(10));
+      const status_t ret = HandleSession(_sock, _hasTheBall, _doFlush, SecondsToMicros(2));
       if (ret.IsError()) LogTime(MUSCLE_LOG_ERROR, "NaglePingPongThread %p:   HandleSession() returned [%s]\n", this, ret());
    }
 

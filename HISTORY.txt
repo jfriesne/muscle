@@ -23,6 +23,8 @@ key:  - new feature
    o Rewrote testnagle.cpp to include a unit-test for automated testing.
    o Updated function declarations in regex captive library to avoid
      compiler warnings.
+   o Updated the unit tests so none of them takes more than 5 seconds
+     to complete when done as part of a CMake "make test" pass.
    * Fixed logic error in testgateway.cpp.
 
 9.25 - Release 4/7/2023

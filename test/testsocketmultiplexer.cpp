@@ -64,7 +64,7 @@ int main(int argc, char ** argv)
    uint64 minRunTime = (uint64)-1;
    uint64 maxRunTime = 0;
    SocketMultiplexer multiplexer;
-   const uint64 endTime = GetRunTime64() + SecondsToMicros(10);
+   const uint64 endTime = GetRunTime64() + SecondsToMicros(5);
    bool error = false;
    while(error==false)
    {

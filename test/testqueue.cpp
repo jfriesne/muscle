@@ -27,7 +27,7 @@ void PrintToStream(const Queue<int> & q)
    }
 }
 
-static status_t UnitTestQueue()
+static status_t UnitTestQueue(bool isFromScript)
 {
    CompleteSetupSystem css;  // needed for string-count stats
 
@@ -182,6 +182,7 @@ static status_t UnitTestQueue()
       printf("\n");
    }
 
+   if (!isFromScript)
    {
       const uint32 NUM_ITEMS = 300000000;
       const uint32 NUM_RUNS  = 3;
@@ -205,6 +206,7 @@ static status_t UnitTestQueue()
       printf("GRAND AVERAGE ITEMS PER SECOND WAS %f items per second\n", tally/NUM_RUNS);
    }
 
+   if (!isFromScript)
    {
       const uint32 NUM_ITEMS = 1000000;
       const uint32 NUM_RUNS  = 3;
@@ -227,8 +229,9 @@ static status_t UnitTestQueue()
       printf("GRAND AVERAGE ITEMS PER SECOND WAS %f items per second\n", tally/NUM_RUNS);
    }
 
-   PrintAndClearStringCopyCounts("Before String Sort Tests");
+   if (!isFromScript)
    {
+      PrintAndClearStringCopyCounts("Before String Sort Tests");
       const uint32 NUM_ITEMS = 1000000;
       const uint32 NUM_RUNS  = 3;
       Queue<String> qq; (void) qq.EnsureSize(NUM_ITEMS, true);
@@ -248,8 +251,8 @@ static status_t UnitTestQueue()
          tally += itemsPerSecond;
       }
       printf("STRING GRAND AVERAGE ITEMS PER SECOND WAS %f items per second\n", tally/NUM_RUNS);
+      PrintAndClearStringCopyCounts("After String Sort Tests");
    }
-   PrintAndClearStringCopyCounts("After String Sort Tests");
 
    printf("REVERSE TEST\n");
    {
@@ -296,44 +299,47 @@ static status_t UnitTestQueue()
       }
    }
 
-   printf("\nStress-testing Queue::Normalize()... this may take a minute\n");
-   for (uint32 i=0; i<20000; i++)
+   if (!isFromScript)
    {
-      Queue<int> qq;
-      int counter = 0;
-      for (uint32 j=0; j<i; j++)
+      for (uint32 i=0; i<20000; i++)
       {
-         switch(rand()%6)
+         printf("\nStress-testing Queue::Normalize()... this may take a minute\n");
+         Queue<int> qq;
+         int counter = 0;
+         for (uint32 j=0; j<i; j++)
          {
-            case 0:  case 1: MPRINT_ON_ERROR("AddTail",    qq.AddTail(counter++)); break;
-            case 2:  case 3: MPRINT_ON_ERROR("AddHead",    qq.AddHead(counter++)); break;
-            case 4:          MPRINT_ON_ERROR("RemoveHead", qq.RemoveHead());       break;
-            case 5:          MPRINT_ON_ERROR("RemoveTail", qq.RemoveTail());       break;
+            switch(rand()%6)
+            {
+               case 0:  case 1: MPRINT_ON_ERROR("AddTail",    qq.AddTail(counter++)); break;
+               case 2:  case 3: MPRINT_ON_ERROR("AddHead",    qq.AddHead(counter++)); break;
+               case 4:  {const status_t r = qq.RemoveHead(); if (r != B_DATA_NOT_FOUND) {MPRINT_ON_ERROR("RemoveHead", r);} break;}
+               case 5:  {const status_t r = qq.RemoveTail(); if (r != B_DATA_NOT_FOUND) {MPRINT_ON_ERROR("RemoveTail", r);} break;}
+            }
          }
+
+         int * compareArray = new int[qq.GetNumItems()];
+         for (uint32 j=0; j<qq.GetNumItems(); j++) compareArray[j] = qq[j];
+         qq.Normalize();
+
+         const int * a = qq.HeadPointer();
+         if (memcmp(compareArray, a, qq.GetNumItems()*sizeof(int)))
+         {
+            printf("ERROR IN NORMALIZE!\n");
+            for (uint32 j=0; j<qq.GetNumItems(); j++) printf("   Expected %i, got %i (qi=%i at " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", compareArray[j], a[j], qq[j], j, qq.GetNumItems());
+            return B_LOGIC_ERROR;
+         }
+
+         delete [] compareArray;
       }
-
-      int * compareArray = new int[qq.GetNumItems()];
-      for (uint32 j=0; j<qq.GetNumItems(); j++) compareArray[j] = qq[j];
-      qq.Normalize();
-
-      const int * a = qq.HeadPointer();
-      if (memcmp(compareArray, a, qq.GetNumItems()*sizeof(int)))
-      {
-         printf("ERROR IN NORMALIZE!\n");
-         for (uint32 j=0; j<qq.GetNumItems(); j++) printf("   Expected %i, got %i (qi=%i at " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", compareArray[j], a[j], qq[j], j, qq.GetNumItems());
-         return B_LOGIC_ERROR;
-      }
-
-      delete [] compareArray;
    }
-   printf("Queue test complete.\n");
 
+   printf("Queue test complete.\n");
    return B_NO_ERROR;
 }
 
-int main(int, char **)
+int main(int argc, char ** argv)
 {
-   const status_t ret = UnitTestQueue();
+   const status_t ret = UnitTestQueue((argc>=2)&&(strcmp(argv[1], "fromscript")==0));
    if (ret.IsOK())
    {
       LogTime(MUSCLE_LOG_INFO, "testqueue passed, exiting!\n");

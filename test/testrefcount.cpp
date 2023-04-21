@@ -74,11 +74,13 @@ public:
 };
 
 // This program exercises the Ref class.
-int main(int, char **)
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem setupSystem;
 
    printf("sizeof(TestItemRef)=%i\n", (int)sizeof(TestItemRef));
+
+   const bool isFromScript = ((argc>=2)&&(strcmp(argv[1], "fromscript")==0));
 
    {
       printf("Checking queue...\n");
@@ -115,8 +117,9 @@ int main(int, char **)
       printf("Done with hash table test!\n");
    }
 
-   printf("Beginning multithreaded object usage test...\n");
+   if (!isFromScript)
    {
+      printf("Beginning multithreaded object usage test...\n");
       const uint32 NUM_THREADS = 50;
       TestThread threads[NUM_THREADS];
       for (uint32 i=0; i<NUM_THREADS; i++) (void) threads[i].StartInternalThread();

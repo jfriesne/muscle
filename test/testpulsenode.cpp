@@ -14,8 +14,8 @@ using namespace muscle;
 
 // This test creates and exercises a large number of PulseNodes, just to be sure that
 // such a thing can be done without too much inefficiency.
-static const int NUM_PULSE_CHILDREN = 100000;   // an unreasonable number too be sure, but we want to be scalable... :^)
-static const uint64 PULSE_INTERVAL  = 100000;   // have one child fire every 100ms
+static const int NUM_PULSE_CHILDREN = 100000; // an unreasonable number to be sure, but we want to be scalable... :^)
+static const uint64 PULSE_INTERVAL  = 50000;  // have one child fire every 50
 
 class TestPulseChild : public PulseNode
 {

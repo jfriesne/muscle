@@ -114,7 +114,7 @@ int main(int argc, char ** argv)
    AtomicWriterThread writerThread;
    AtomicReaderThread readerThread;
 
-   const uint64 duration = isFromScript ? SecondsToMicros(10) : MinutesToMicros(1);
+   const uint64 duration = isFromScript ? SecondsToMicros(5) : MinutesToMicros(1);
 
    LogTime(MUSCLE_LOG_INFO, "AtomicValue torture test running; will end after %s.\n", GetHumanReadableTimeIntervalString(duration)());
 
