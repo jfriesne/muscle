@@ -96,7 +96,7 @@ MessageRef GetLightweightCopyOfMessageFromPool(const Message & copyMe);
 MessageRef GetLightweightCopyOfMessageFromPool(ObjectPool<Message> & pool, const Message & copyMe);
 
 /** This is an iterator that allows you to efficiently iterate over the field names in a Message. */
-class MessageFieldNameIterator MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD MessageFieldNameIterator MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.
@@ -229,7 +229,7 @@ private:
  *  Note that for quick debugging purposes, it is possible to dump a Message's contents to stdout
  *  at any time by calling PrintToStream() on the Message.
  */
-class Message MUSCLE_FINAL_CLASS : public FlatCountable, public Cloneable
+class MUSCLE_NODISCARD Message MUSCLE_FINAL_CLASS : public FlatCountable, public Cloneable
 {
 public:
    /** 32 bit what code, for quick identification of message types.  Set this however you like. */
@@ -306,7 +306,7 @@ public:
     *  @param indentLevel Number of spaces to indent each generate line.  Used while recursing to format nested messages text nicely
     *  @returns a String representation of this Message, for debugging
     */
-   MUSCLE_NODISCARD String ToString(uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
+   String ToString(uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
 
    /** Same as ToString(), except the text is added to the given String instead
     *  of being returned as a new String.

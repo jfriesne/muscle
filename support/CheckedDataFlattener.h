@@ -16,7 +16,7 @@ namespace muscle {
   * so that the data-size doesn't need to be calculated in advance.
   * @tparam EndianConverter the type of EndianConverter object to use when flattening data-types into raw bytes.
   */
-template<class EndianConverter> class CheckedDataFlattenerHelper : public NotCopyable
+template<class EndianConverter> class MUSCLE_NODISCARD CheckedDataFlattenerHelper : public NotCopyable
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */

@@ -12,7 +12,7 @@ class SeekableDataIO;
 class IMemoryAllocationStrategy;
 
 /** This class is used to hold a dynamically-resizable buffer of raw bytes (aka uint8s), and is also Flattenable and RefCountable. */
-class ByteBuffer : public FlatCountable
+class MUSCLE_NODISCARD ByteBuffer : public FlatCountable
 {
 public:
    /** Constructs a ByteBuffer that holds the specified bytes.
@@ -123,13 +123,13 @@ public:
    /** Returns the contents of this ByteBuffer as a human-readable hexadecimal string
      * @param maxBytesToInclude optional maximum number of byte-values to include in the string.  Defaults to MUSCLE_NO_LIMIT.
      */
-   MUSCLE_NODISCARD String ToHexString(uint32 maxBytesToInclude = MUSCLE_NO_LIMIT) const;
+   String ToHexString(uint32 maxBytesToInclude = MUSCLE_NO_LIMIT) const;
 
    /** Returns the contents of this ByteBuffer as a human-readable annotated hexadecimal/ASCII string
      * @param maxBytesToInclude optional maximum number of byte-values to include in the string.  Defaults to MUSCLE_NO_LIMIT.
      * @param numColumns if specified non-zero, then the string will be generated with this many bytes per row.  Defaults to 16.
      */
-   MUSCLE_NODISCARD String ToAnnotatedHexString(uint32 maxBytesToInclude = MUSCLE_NO_LIMIT, uint32 numColumns = 16) const;
+   String ToAnnotatedHexString(uint32 maxBytesToInclude = MUSCLE_NO_LIMIT, uint32 numColumns = 16) const;
 
    /** Sets our content using the given byte buffer.
      * @param numBytes Number of bytes to copy in (or just to allocate, if (optBuffer) is NULL).  Defaults to zero bytes (ie, don't allocate a buffer)

@@ -17,7 +17,7 @@ namespace muscle {
   * To use this class, just instantiate a CPULoadMeter object, and then call
   * GetCPULoad() every so often (eg whenever you want to update your CPU load display)
   */
-class CPULoadMeter MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD CPULoadMeter MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor */

@@ -13,7 +13,7 @@ class ByteBuffer;
   * @tparam EndianConverter the type of EndianConverter object use when converting raw serialized bytes to native data-types
   * @tparam SizeChecker the type of checker-object to use when checking input-buffer sizes.  Defaults to using a RealSizeChecker.
   */
-template<class EndianConverter, class SizeChecker=RealSizeChecker> class DataUnflattenerHelper MUSCLE_FINAL_CLASS
+template<class EndianConverter, class SizeChecker=RealSizeChecker> class MUSCLE_NODISCARD DataUnflattenerHelper MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */

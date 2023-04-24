@@ -13,14 +13,14 @@ namespace muscle {
 DECLARE_REFTYPES(StringMatcher);
 
 /** A reference-countable list of references to StringMatcher objects */
-class StringMatcherQueue MUSCLE_FINAL_CLASS : public RefCountable
+class MUSCLE_NODISCARD StringMatcherQueue MUSCLE_FINAL_CLASS : public RefCountable
 {
 public:
    /** Constructor. */
    StringMatcherQueue() {/* empty */}
 
    /** Returns a human-readable string representing this StringMatcherQueue, for easier debugging */
-   MUSCLE_NODISCARD String ToString() const;
+   String ToString() const;
 
    /** Returns a read/write reference to our list of StringMatcher references. */
    MUSCLE_NODISCARD const Queue<StringMatcherRef> & GetStringMatchers() const {return _queue;}
@@ -43,7 +43,7 @@ StringMatcherQueueRef::ItemPool * GetStringMatcherQueuePool();
  *  that test a wildcarded path, and optionally, the QueryFilter object that tests the content
  *  of matching Messages.
  */
-class PathMatcherEntry MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD PathMatcherEntry MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor */
@@ -77,7 +77,7 @@ public:
    }
 
    /** Returns a human-readable string representing this PathMatcherEntry, for easier debugging */
-   MUSCLE_NODISCARD String ToString() const;
+   String ToString() const;
 
 private:
    StringMatcherQueueRef _parser;
@@ -94,7 +94,7 @@ private:
   * criteria of the QueryFilter are considered to match the query.  This filtering is optional -- specify a null
   * ConstQueryFilterRef to disable it.
   */
-class PathMatcher : public RefCountable
+class MUSCLE_NODISCARD PathMatcher : public RefCountable
 {
 public:
    /** Default Constructor.  Creates a PathMatcher with no query strings in it */
@@ -203,7 +203,7 @@ MUSCLE_NODISCARD const char * GetPathClause(int depth, const char * path);
  *  @param path the path string (eg "/x/y/z/...") to search through
  *  @returns The string that is the (nth) item in the path, or "" if the depth is invalid.
  */
-MUSCLE_NODISCARD String GetPathClauseString(int depth, const char * path);
+String GetPathClauseString(int depth, const char * path);
 
 /** Returns the number of clauses in the given path string.
  *  @param path A path string.  Any leading slash will be ignored.

@@ -17,7 +17,7 @@
 namespace muscle {
 
 /** A portable version of Be's BRect class. */
-class Rect MUSCLE_FINAL_CLASS : public Tuple<4,float>, public PseudoFlattenable<Rect>
+class MUSCLE_NODISCARD Rect MUSCLE_FINAL_CLASS : public Tuple<4,float>, public PseudoFlattenable<Rect>
 {
 public:
    /** Default Constructor.

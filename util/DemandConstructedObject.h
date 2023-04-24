@@ -22,7 +22,7 @@ namespace muscle {
  *
  *  @tparam T the type of object that we will represent (and demand-construct)
  */
-template <typename T> class DemandConstructedObject
+template <typename T> class MUSCLE_NODISCARD DemandConstructedObject
 {
 public:
    /** Constructor.  */

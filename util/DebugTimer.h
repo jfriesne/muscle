@@ -21,7 +21,7 @@ namespace muscle {
  *  spent in various modes, and then when the DebugTimer object goes away, it will Log a message
  *  describing how much time was spent in each mode.
  */
-class DebugTimer MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD DebugTimer MUSCLE_FINAL_CLASS
 {
 public:
    /** Constructor

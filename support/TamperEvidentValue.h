@@ -14,7 +14,7 @@ namespace muscle {
   * anyone has explicitly set this value after it was constructed.
   * @tparam T the type of value we should hold and flag changes to.
   */
-template <typename T> class TamperEvidentValue
+template <typename T> class MUSCLE_NODISCARD TamperEvidentValue
 {
 public:
    /** Default constructor */

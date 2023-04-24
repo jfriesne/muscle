@@ -25,7 +25,7 @@ namespace muscle {
   *       to each other, even if they happen to specify the same value for the NumBits template-parameter.
   *       See the DECLARE_BITCHORD_FLAGS_TYPE macro at the bottom of BitChord.h for more information.
   */
-template <uint32 NumBits, class TagClass=Void> class BitChord : public PseudoFlattenable<BitChord<NumBits, TagClass> >
+template <uint32 NumBits, class TagClass=Void> class MUSCLE_NODISCARD BitChord : public PseudoFlattenable<BitChord<NumBits, TagClass> >
 {
 public:
    /** Default constructor */
@@ -479,7 +479,7 @@ public:
      * For example, if bits #0, #3, #4, #5, and #7 are set, the returned String would
      * be "0,3-5,7".
      */
-   MUSCLE_NODISCARD String ToString() const
+   String ToString() const
    {
       String ret;
       int32 runStart = -1, runEnd = -1;
@@ -499,7 +499,7 @@ public:
    /** Returns a hexadecimal representation of this bit-chord.
      * @param suppressLeadingZeroes if true, leading zeros will be suppressed.  Defaults to false.
      */
-   MUSCLE_NODISCARD String ToHexString(bool suppressLeadingZeroes = false) const
+   String ToHexString(bool suppressLeadingZeroes = false) const
    {
       String ret; (void) ret.Prealloc(1+(NUM_BYTES*3));
       for (int32 i=NUM_BYTES-1; i>=0; i--)
@@ -517,7 +517,7 @@ public:
    }
 
    /** Returns a fixed-length binary representation of this bit-chord. */
-   MUSCLE_NODISCARD String ToBinaryString() const
+   String ToBinaryString() const
    {
       String ret; (void) ret.Prealloc(NumBits+1);
       for (int32 i=NumBits-1; i>=0; i--) ret += IsBitSet(i)?'1':'0';

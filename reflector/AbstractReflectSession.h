@@ -312,7 +312,7 @@ public:
    /** Convenience method -- returns a human-readable string describing our
     *  type, our hostname, our session ID, and what port we are connected to.
     */
-   MUSCLE_NODISCARD String GetSessionDescriptionString() const;
+   String GetSessionDescriptionString() const;
 
    /** Returns the destination we connected to asynchronously. */
    MUSCLE_NODISCARD const IPAddressAndPort & GetAsyncConnectDestination() const {return _asyncConnectDest;}
@@ -483,7 +483,7 @@ protected:
     *  @param defaultHostName The hostname that the system suggests be used for this session.
     *  Default implementation just returns (defaultHostName), ie it goes with the suggested name.
     */
-   MUSCLE_NODISCARD virtual String GenerateHostName(const IPAddress & ip, const String & defaultHostName) const;
+   virtual String GenerateHostName(const IPAddress & ip, const String & defaultHostName) const;
 
    /** Returns the timestamp (in microseconds, as reported by GetRunTime64()) of the most recent
      * time this session successfully sent some data to its client.

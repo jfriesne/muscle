@@ -16,7 +16,7 @@ enum {
 /** This class represents an IPv6 network address, including the 128-bit IP
   * address and the interface index field (necessary for connecting to link-local addresses)
   */
-class IPAddress MUSCLE_FINAL_CLASS : public PseudoFlattenable<IPAddress>
+class MUSCLE_NODISCARD IPAddress MUSCLE_FINAL_CLASS : public PseudoFlattenable<IPAddress>
 {
 public:
    /** Constructor
@@ -235,7 +235,7 @@ public:
      *  @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
      *                                       Defaults to true.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
      */
-   MUSCLE_NODISCARD String ToString(bool printIPv4AddressesInIPv4Style = true) const;
+   String ToString(bool printIPv4AddressesInIPv4Style = true) const;
 
    /** Given a human-readable IP-address string (as returned by ToString()), sets this IPAddress object to the
      * value represented by the string.  Behaves similarly to Inet_AtoN()
@@ -258,7 +258,7 @@ public:
      * except that the returned IPAddress has its interface index field set to the specified value.
      * @param interfaceIndex The new interface index value to use in the returned object (or MUSCLE_NO_LIMIT to specify an invalid interface index)
      */
-   MUSCLE_NODISCARD IPAddress WithInterfaceIndex(uint32 interfaceIndex) const
+   IPAddress WithInterfaceIndex(uint32 interfaceIndex) const
    {
       IPAddress addr = *this;
       addr.SetInterfaceIndex(interfaceIndex);
@@ -266,7 +266,7 @@ public:
    }
 
    /** Convenience method:  Returns an IPAddress object identical to this one, but with the interface-index field unset. */
-   MUSCLE_NODISCARD IPAddress WithoutInterfaceIndex() const {return WithInterfaceIndex(MUSCLE_NO_LIMIT);}
+   IPAddress WithoutInterfaceIndex() const {return WithInterfaceIndex(MUSCLE_NO_LIMIT);}
 
 private:
    MUSCLE_NODISCARD bool IsIPv6LocalMulticast(uint8 scope) const;
@@ -426,7 +426,7 @@ public:
      * @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
      *                                      Defaults to true.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
      */
-   MUSCLE_NODISCARD String ToString(bool includePort = true, bool printIPv4AddressesInIPv4Style = true) const;
+   String ToString(bool includePort = true, bool printIPv4AddressesInIPv4Style = true) const;
 
    /** Part of the Flattenable pseudo-interface:  Returns true */
    MUSCLE_NODISCARD static MUSCLE_CONSTEXPR bool IsFixedSize() {return true;}
@@ -455,7 +455,7 @@ public:
      * except that the included IPAddress has its interface index field set to the specified value.
      * @param interfaceIndex The new interface index value to use in the returned object (or MUSCLE_NO_LIMIT to specify an invalid index)
      */
-   MUSCLE_NODISCARD IPAddressAndPort WithInterfaceIndex(uint32 interfaceIndex) const
+   IPAddressAndPort WithInterfaceIndex(uint32 interfaceIndex) const
    {
       IPAddress addr = _ip;
       addr.SetInterfaceIndex(interfaceIndex);
@@ -463,7 +463,7 @@ public:
    }
 
    /** Convenience method:  Returns an IPAddressAndPort object identical to this one, but with the interface-index field unset. */
-   MUSCLE_NODISCARD IPAddressAndPort WithoutInterfaceIndex() const {return WithInterfaceIndex(MUSCLE_NO_LIMIT);}
+   IPAddressAndPort WithoutInterfaceIndex() const {return WithInterfaceIndex(MUSCLE_NO_LIMIT);}
 
 private:
    IPAddress _ip;

@@ -120,7 +120,7 @@ status_t ParseArgs(const String & arg, Message & addTo, bool caseSensitive = fal
   *               to add to the String
   * @return The resulting String.
   */
-MUSCLE_NODISCARD String UnparseArgs(const Message & argMsg);
+String UnparseArgs(const Message & argMsg);
 
 /** Parses the given arguments into a Queue of Strings.
   * Any prefixed dashes will be stripped/ignored.
@@ -186,7 +186,7 @@ status_t ParseArgs(const String & arg, Queue<String> & addTo, bool caseSensitive
   *                    length of the Queue.  Defaults to MUSCLE_NO_LIMIT.
   * @return The resulting String.
   */
-MUSCLE_NODISCARD String UnparseArgs(const Queue<String> & argQ, uint32 startIdx=0, uint32 afterEndIdx=MUSCLE_NO_LIMIT);
+String UnparseArgs(const Queue<String> & argQ, uint32 startIdx=0, uint32 afterEndIdx=MUSCLE_NO_LIMIT);
 
 /** Convenience method:  Looks for a given hostname or hostname:port string in
  *  the given field of the args Message, and returns the appropriate parsed
@@ -220,7 +220,7 @@ status_t ParseConnectArg(const String & arg, String & retHost, uint16 & retPort,
   * @param host A hostname or IP address
   * @param port A port number.
   */
-MUSCLE_NODISCARD String GetConnectString(const String & host, uint16 port);
+String GetConnectString(const String & host, uint16 port);
 
 /** Convenience method:  Looks for a port number in the given field of the Message,
  *  and sets (retPort) if it finds one.
@@ -318,7 +318,7 @@ void RemoveANSISequences(String & s);
   *                                  special case (ie we won't filter them out)
   * @returns the DNS label that most closely resembles (s).
   */
-MUSCLE_NODISCARD String CleanupDNSLabel(const String & s, const String & optAdditionalAllowedChars = GetEmptyString());
+String CleanupDNSLabel(const String & s, const String & optAdditionalAllowedChars = GetEmptyString());
 
 /** Given a DNS path string (eg "www.foo.com") runs each dot-separated portion of the
   * path through CleanupDNSLabel() and returns the cleaned up result.
@@ -328,7 +328,7 @@ MUSCLE_NODISCARD String CleanupDNSLabel(const String & s, const String & optAddi
   *                                  special case (ie we won't filter them out)
   * @returns the DNS path that most closely resembles (s).
   */
-MUSCLE_NODISCARD String CleanupDNSPath(const String & s, const String & optAdditionalAllowedChars = GetEmptyString());
+String CleanupDNSPath(const String & s, const String & optAdditionalAllowedChars = GetEmptyString());
 
 /** Convenience function.  Given a buffer of arbitrary data, returns a nybble-ized String
   * that represents that same data using only the ASCII characters 'A' through 'P.  The
@@ -364,7 +364,7 @@ status_t DenybbleizeData(const String & nybbleizedText, ByteBuffer & retBuf);
   * @param str A string to nybbleize
   * @returns A nybbleized equivalent of (str), as described in NybbleizeData().
   */
-MUSCLE_NODISCARD String NybbleizeString(const String & str);
+String NybbleizeString(const String & str);
 
 /** Convenience function:  Returns a string which is the denybbleized
   * representation of the passed-in nybbleized string.
@@ -376,7 +376,7 @@ MUSCLE_NODISCARD String NybbleizeString(const String & str);
   *               If you need to be able to decode any legal nybbleized string,
   *               call NybbleizeData() instead of this function.
   */
-MUSCLE_NODISCARD String DenybbleizeString(const String & nybStr);
+String DenybbleizeString(const String & nybStr);
 
 /** This function is like strstr(), except that instead of searching for a substring
   * within a string, it looks for a given binary pattern inside a binary buffer.
@@ -496,7 +496,7 @@ void LogHexBytes(int logLevel, const Queue<uint8> & bytes, const char * optDesc 
   *                   If set to zero, then all the output will be placed
   *                   on a single line, using a simpler hex-only format.
   */
-MUSCLE_NODISCARD String HexBytesToAnnotatedString(const void * bytes, uint32 numBytes, const char * optDesc = NULL, uint32 numColumns = 16);
+String HexBytesToAnnotatedString(const void * bytes, uint32 numBytes, const char * optDesc = NULL, uint32 numColumns = 16);
 
 /** This function is the same as PrintHexBytes(), but the output is returned as a String.
   * @param bbRef Reference to the ByteBuffer to return a structured-text description of.  May be a NULL reference.
@@ -506,7 +506,7 @@ MUSCLE_NODISCARD String HexBytesToAnnotatedString(const void * bytes, uint32 num
   *                   If set to zero, then all the output will be placed
   *                   on a single line, using a simpler hex-only format.
   */
-MUSCLE_NODISCARD String HexBytesToAnnotatedString(const ConstByteBufferRef & bbRef, const char * optDesc = NULL, uint32 numColumns = 16);
+String HexBytesToAnnotatedString(const ConstByteBufferRef & bbRef, const char * optDesc = NULL, uint32 numColumns = 16);
 
 /** This function is the same as PrintHexBytes(), but the output is returned as a String.
   * @param bb The ByteBuffer to return a structured-text description of.
@@ -516,7 +516,7 @@ MUSCLE_NODISCARD String HexBytesToAnnotatedString(const ConstByteBufferRef & bbR
   *                   If set to zero, then all the output will be placed
   *                   on a single line, using a simpler hex-only format.
   */
-MUSCLE_NODISCARD String HexBytesToAnnotatedString(const ByteBuffer & bb, const char * optDesc = NULL, uint32 numColumns = 16);
+String HexBytesToAnnotatedString(const ByteBuffer & bb, const char * optDesc = NULL, uint32 numColumns = 16);
 
 /** This function is the same as PrintHexBytes(), but the output is returned as a String.
   * @param bytes A Queue of uint8s representing the bytes to return a structured-text description of.
@@ -526,7 +526,7 @@ MUSCLE_NODISCARD String HexBytesToAnnotatedString(const ByteBuffer & bb, const c
   *                   If set to zero, then all the output will be placed
   *                   on a single line, using a simpler hex-only format.
   */
-MUSCLE_NODISCARD String HexBytesToAnnotatedString(const Queue<uint8> & bytes, const char * optDesc = NULL, uint32 numColumns = 16);
+String HexBytesToAnnotatedString(const Queue<uint8> & bytes, const char * optDesc = NULL, uint32 numColumns = 16);
 
 /** Given a string with an ASCII representation of hexadecimal bytes,
   * returns the corresponding binary data.
@@ -544,25 +544,25 @@ ByteBufferRef ParseHexBytes(const char * buf);
   * @param numBytes The number of bytes that (buf) points to.
   * @returns a String with human-readable contents:  eg "5F A3 A2"...
   */
-MUSCLE_NODISCARD String HexBytesToString(const uint8 * buf, uint32 numBytes);
+String HexBytesToString(const uint8 * buf, uint32 numBytes);
 
 /** Given a reference to a byte buffer, returns an ASCII representation of it.
   * @param bbRef Reference to a buffer of bytes.
   * @returns a String with human-readable contents:  eg "5F A3 A2"...
   */
-MUSCLE_NODISCARD String HexBytesToString(const ConstByteBufferRef & bbRef);
+String HexBytesToString(const ConstByteBufferRef & bbRef);
 
 /** Given a byte buffer, returns an ASCII representation of it.
   * @param bb a buffer of bytes.
   * @returns a String with human-readable contents:  eg "5F A3 A2"...
   */
-MUSCLE_NODISCARD String HexBytesToString(const ByteBuffer & bb);
+String HexBytesToString(const ByteBuffer & bb);
 
 /** Given a Queue of uint8s, returns an ASCII representation of it.
   * @param bytes a Queue of uint8s.
   * @returns a String with human-readable contents:  eg "5F A3 A2"...
   */
-MUSCLE_NODISCARD String HexBytesToString(const Queue<uint8> & bytes);
+String HexBytesToString(const Queue<uint8> & bytes);
 
 /** A convenience method, useful to optimally create a single PR_COMMAND_BATCH
   * Message out of a set of zero or more other Messages.  Here's how it works:
@@ -618,7 +618,7 @@ status_t DeleteFile(const char * filePath);
   * @param argv0 argv[0], as passed to main().
   * @returns a human-readable title string.
   */
-MUSCLE_NODISCARD String GetHumanReadableProgramNameFromArgv0(const char * argv0);
+String GetHumanReadableProgramNameFromArgv0(const char * argv0);
 
 #ifdef WIN32
 /** This function is only available on Win32, and does the
@@ -655,7 +655,7 @@ MUSCLE_NODISCARD uint64 GetProcessMemoryUsage();
   * @param defaultValue the value to return if the requested environment variable does not exist.
   *                     Defaults to an empty String.
   */
-MUSCLE_NODISCARD String GetEnvironmentVariableValue(const String & envVarName, const String & defaultValue = GetEmptyString());
+String GetEnvironmentVariableValue(const String & envVarName, const String & defaultValue = GetEmptyString());
 
 /** @} */ // end of miscutilityfunctions doxygen group
 

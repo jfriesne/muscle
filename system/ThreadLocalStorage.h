@@ -36,7 +36,7 @@ namespace muscle {
   * thread, which it can use without needing to do any serialization.
   * @tparam ObjType the type of item to hold on a per-thread basis.
   */
-template <class ObjType> class ThreadLocalStorage
+template <class ObjType> class MUSCLE_NODISCARD ThreadLocalStorage
 {
 public:
    /** Constructor.

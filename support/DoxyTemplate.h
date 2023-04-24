@@ -167,7 +167,7 @@ public:
    MUSCLE_NODISCARD uint32 CalculateChecksum() const;
 
    /** Returns a human-readable string representing the current state of this object, for debugging purposes. */
-   MUSCLE_NODISCARD String ToString() const;
+   String ToString() const;
 
    /** Prints a human-readable representation of this object's state to stdout, for debugging purposes. */
    void PrintToStream() const;

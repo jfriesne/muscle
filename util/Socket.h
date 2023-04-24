@@ -16,7 +16,7 @@ namespace muscle {
   * object (and thereby automatically close its held file-descriptor) when the file
   * descriptor is no longer needed for anything.
   */
-class Socket : public RefCountable, private NotCopyable
+class MUSCLE_NODISCARD Socket : public RefCountable, private NotCopyable
 {
 public:
    /** Default constructor. */

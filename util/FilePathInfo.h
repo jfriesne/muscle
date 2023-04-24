@@ -9,7 +9,7 @@
 namespace muscle {
 
 /** A cross-platform API for examining the attributes of a particular file. */
-class FilePathInfo MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD FilePathInfo MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor:  creates an invalid FilePathInfo object.  */

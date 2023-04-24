@@ -71,13 +71,13 @@ private:
 };
 
 /** This convenience class can be used to automatically lock/unlock a SpinLock based on the SpinLockGuard's ctor/dtor */
-class SpinLockGuard MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD SpinLockGuard MUSCLE_FINAL_CLASS
 {
 public:
    /** Constructor.  Locks the specified SpinLock.
      * @param sl The SpinLock to lock.
      */
-   MUSCLE_NODISCARD SpinLockGuard(const SpinLock & sl) : _spinlock(sl)
+   SpinLockGuard(const SpinLock & sl) : _spinlock(sl)
    {
       status_t ret;
       if (_spinlock.Lock().IsOK(ret)) _isSpinLockLocked = true;

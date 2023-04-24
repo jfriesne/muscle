@@ -12,7 +12,7 @@ namespace muscle {
   * @tparam NumItems the number of items to hold in the Tuple
   * @tparam ItemType the type of each of the items
   */
-template <int NumItems, class ItemType> class Tuple
+template <int NumItems, class ItemType> class MUSCLE_NODISCARD Tuple
 {
 public:
    /** Default ctor;  All values are set to their default value. */

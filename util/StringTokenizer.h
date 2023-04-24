@@ -18,7 +18,7 @@ namespace muscle {
   * differentiated from its neighbors by the presence of one or more of the specified separator-tokens
   * between the two sub-strings.
   */
-class StringTokenizer MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD StringTokenizer MUSCLE_FINAL_CLASS
 {
 public:
    /** Initializes the StringTokenizer to parse (tokenizeMe), which should be a string of tokens (eg words),
@@ -80,7 +80,7 @@ public:
    /** Convenience method:  Returns a Queue containing all the remaining the tokenized substrings from this StringTokenizer.
     *  @param maxResults the maximum number of tokens to add to the returned Queue before returning.  Defaults to MUSCLE_NO_LIMIT.
     */
-   MUSCLE_NODISCARD Queue<String> Split(uint32 maxResults = MUSCLE_NO_LIMIT);
+   Queue<String> Split(uint32 maxResults = MUSCLE_NO_LIMIT);
 
    /** Convenience method:  Joins the tokenizedStrings in the supplied list together with (joinChar), and returns the resulting String.
      * @param tokenizedStrings the list of sub-strings to join together

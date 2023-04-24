@@ -74,7 +74,7 @@ enum {
   * It's exposed publically here only because certain (ahem) poorly written programs
   * need to subclass it in order to be able to safely block until it has gone away.
   */
-class DrainTag : public RefCountable
+class MUSCLE_NODISCARD DrainTag : public RefCountable
 {
 public:
    /** Constructor */

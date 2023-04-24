@@ -68,7 +68,7 @@ MUSCLE_NODISCARD inline const char * GetFilePathSeparator()
   * of the various MUSCLE-specific build flags (as documented in COMPILEROPTIONS.txt)
   * that the MUSCLE codebase was compiled.
   */
-MUSCLE_NODISCARD Queue<String> GetBuildFlags();
+Queue<String> GetBuildFlags();
 
 /** Convenience method for debugging.  Dumps a human-readable record of the
   * various MUSCLE-specific build flags (as documented in COMPILEROPTIONS.txt)

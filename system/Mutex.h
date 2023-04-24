@@ -374,16 +374,16 @@ private:
   *       via -DWITH_DEADLOCK_FINDER=ON in CMake, or via -DMUSCLE_ENABLE_DEADLOCK_FINDER as compiler argument)
   *       to give you more useful debugging information about deadlocks that could happen (even if they didn't this time)
   */
-class MutexGuard MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD MutexGuard MUSCLE_FINAL_CLASS
 {
 public:
    /** Constructor.  Locks the specified Mutex.
      * @param m The Mutex to lock.
      */
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   MUSCLE_NODISCARD MutexGuard(const Mutex & m, const char * optFileName = NULL, int fileLine = 0) : _mutex(m), _optFileName(optFileName), _fileLine(fileLine)
+   MutexGuard(const Mutex & m, const char * optFileName = NULL, int fileLine = 0) : _mutex(m), _optFileName(optFileName), _fileLine(fileLine)
 #else
-   MUSCLE_NODISCARD MutexGuard(const Mutex & m) : _mutex(m)
+   MutexGuard(const Mutex & m) : _mutex(m)
 #endif
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER

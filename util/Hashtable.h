@@ -102,7 +102,7 @@ enum {
  * @tparam ValueType the type of the values of the key-value pairs in the Hashtable that this object will iterate over.
  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
  */
-template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class HashtableIterator MUSCLE_FINAL_CLASS
+template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class MUSCLE_NODISCARD HashtableIterator MUSCLE_FINAL_CLASS
 {
 public:
    /** Convenience typedef for the type of Hashtable this HashtableIterator is associated with. */
@@ -260,7 +260,7 @@ private:
   * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
   * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
   */
-template<class KeyType, class ValueType, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType) > class HashtableBase
+template<class KeyType, class ValueType, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType) > class MUSCLE_NODISCARD HashtableBase
 {
 public:
    /** Returns the number of items stored in the table. */
@@ -1588,7 +1588,7 @@ private:
   * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
   * @tparam SubclassType the type of the subclasss that is instantiating this HashtableMid class (used for CRTP pattern)
   */
-template <class KeyType, class ValueType, class HashFunctorType, class SubclassType> class HashtableMid : public HashtableBase<KeyType, ValueType, HashFunctorType>
+template <class KeyType, class ValueType, class HashFunctorType, class SubclassType> class MUSCLE_NODISCARD HashtableMid : public HashtableBase<KeyType, ValueType, HashFunctorType>
 {
 public:
    /** The iterator type that goes with this HashtableMid type */
@@ -2036,7 +2036,7 @@ private:
  * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
  */
-template <class KeyType, class ValueType, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType) > class Hashtable MUSCLE_FINAL_CLASS : public HashtableMid<KeyType, ValueType, HashFunctorType, Hashtable<KeyType, ValueType, HashFunctorType> >
+template <class KeyType, class ValueType, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType) > class MUSCLE_NODISCARD Hashtable MUSCLE_FINAL_CLASS : public HashtableMid<KeyType, ValueType, HashFunctorType, Hashtable<KeyType, ValueType, HashFunctorType> >
 {
 public:
    /** The iterator type that goes with this HashtableMid type */
@@ -2133,7 +2133,7 @@ private:
   * @tparam EntryCompareFunctorType the type of the compare-functor to use to compare key/value-pair entries in this Hashtable.  (Whether this will be used to compare keys or values depends on the subclass that is instantiating us)
   * @tparam SubclassType the type of the subclasss that is instantiating this OrderedHashtable class (used for CRTP pattern)
   */
-template <class KeyType, class ValueType, class HashFunctorType, class EntryCompareFunctorType, class SubclassType > class OrderedHashtable : public HashtableMid<KeyType, ValueType, HashFunctorType, SubclassType>
+template <class KeyType, class ValueType, class HashFunctorType, class EntryCompareFunctorType, class SubclassType > class MUSCLE_NODISCARD OrderedHashtable : public HashtableMid<KeyType, ValueType, HashFunctorType, SubclassType>
 {
 public:
    /** The iterator type that goes with this HashtableMid type */
@@ -2225,7 +2225,7 @@ private:
   * @tparam KeyCompareFunctorType type of the key-compare functor to use when comparing two keys for sorting purposes.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
   * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
   */
-template <class KeyType, class ValueType, class KeyCompareFunctorType=CompareFunctor<KeyType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class OrderedKeysHashtable MUSCLE_FINAL_CLASS : public OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByKeyEntryCompareFunctor<KeyCompareFunctorType>, OrderedKeysHashtable<KeyType, ValueType, KeyCompareFunctorType, HashFunctorType> >
+template <class KeyType, class ValueType, class KeyCompareFunctorType=CompareFunctor<KeyType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class MUSCLE_NODISCARD OrderedKeysHashtable MUSCLE_FINAL_CLASS : public OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByKeyEntryCompareFunctor<KeyCompareFunctorType>, OrderedKeysHashtable<KeyType, ValueType, KeyCompareFunctorType, HashFunctorType> >
 {
 public:
    // Some convenient typedefs, for brevity's sake
@@ -2302,7 +2302,7 @@ public:
   * @tparam ValueCompareFunctorType type of the value-compare functor to use when comparing two values for sorting purposes.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
   * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
   */
-template <class KeyType, class ValueType, class ValueCompareFunctorType=CompareFunctor<ValueType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class OrderedValuesHashtable MUSCLE_FINAL_CLASS : public OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByValueEntryCompareFunctor<ValueCompareFunctorType>, OrderedValuesHashtable<KeyType, ValueType, ValueCompareFunctorType, HashFunctorType> >
+template <class KeyType, class ValueType, class ValueCompareFunctorType=CompareFunctor<ValueType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class MUSCLE_NODISCARD OrderedValuesHashtable MUSCLE_FINAL_CLASS : public OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByValueEntryCompareFunctor<ValueCompareFunctorType>, OrderedValuesHashtable<KeyType, ValueType, ValueCompareFunctorType, HashFunctorType> >
 {
 public:
    // Some convenient typedefs, for brevity's sake

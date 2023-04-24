@@ -119,7 +119,7 @@ DECLARE_REFTYPES(AbstractDataArray);
 /** This class is a private part of the Message class's implementation.  User code should not access this class directly.
   * This class represents the value-data of one field in a Message object.
   */
-class MessageField MUSCLE_FINAL_CLASS : public PseudoFlattenable<MessageField>
+class MUSCLE_NODISCARD MessageField MUSCLE_FINAL_CLASS : public PseudoFlattenable<MessageField>
 {
 public:
    /** Default ctor:  Creates a MessageField with no type */
@@ -138,7 +138,7 @@ public:
    void PrintToStream() const;
 
    /** Returns a human-readable string representing our state (for debugging) */
-   MUSCLE_NODISCARD String ToString() const;
+   String ToString() const;
 
    // Flattenable Pseudo-Interface
    MUSCLE_NODISCARD uint32 TypeCode() const {return _typeCode;}

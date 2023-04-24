@@ -152,7 +152,7 @@ MUSCLE_NODISCARD int GetFileLogLevel();
  *  @return a file name or file path representing where the user would like the
  *          log file to be written.
  */
-MUSCLE_NODISCARD String GetFileLogName();
+String GetFileLogName();
 
 /** Returns the maximum size (in bytes) that we will allow the log file(s) to grow to.
   * Default is MUSCLE_NO_LIMIT, ie unlimited file size.
@@ -408,7 +408,7 @@ MUSCLE_NODISCARD uint32 GenerateSourceCodeLocationKey(const char * fileName, uin
   * returns the standard human-readable representation of that value.  (eg "7QF2")
   * @param key the source-code-location-key, represented as a uint32.
   */
-MUSCLE_NODISCARD String SourceCodeLocationKeyToString(uint32 key);
+String SourceCodeLocationKeyToString(uint32 key);
 
 /** Given a standard human-readable representation of a source-code-location
   * key (eg "7EF2"), returns the uint16 key value.  This is the inverse
@@ -418,7 +418,7 @@ MUSCLE_NODISCARD String SourceCodeLocationKeyToString(uint32 key);
 MUSCLE_NODISCARD uint32 SourceCodeLocationKeyFromString(const String & s);
 
 /** This class represents all the fields necessary to present a human with a human-readable time/date stamp.  Objects of this class are typically populated by the GetHumanReadableTimeValues() function, below. */
-class HumanReadableTimeValues MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD HumanReadableTimeValues MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor */
@@ -538,10 +538,10 @@ public:
      * @param s The string to expand the tokens of
      * @returns The same string, except with any and all of the above tokens expanded as described.
      */
-   MUSCLE_NODISCARD String ExpandTokens(const String & s) const;
+   String ExpandTokens(const String & s) const;
 
    /** Returns a human-readable string showing the contents of this HumanReadableTimeValues object */
-   MUSCLE_NODISCARD String ToString() const;
+   String ToString() const;
 
 private:
    int _year;
@@ -602,7 +602,7 @@ status_t GetTimeStampFromHumanReadableTimeValues(const HumanReadableTimeValues &
   *                 in the local time zone, and no time zone conversion will be done.
   * @returns The equivalent ASCII string, or "" on failure.
   */
-MUSCLE_NODISCARD String GetHumanReadableTimeString(uint64 timeUS, uint32 timeType = MUSCLE_TIMEZONE_UTC);
+String GetHumanReadableTimeString(uint64 timeUS, uint32 timeType = MUSCLE_TIMEZONE_UTC);
 
 /** Does the inverse operation of GetHumanReadableTimeString():
   * Given a time string of the format "YYYY/MM/DD HH:MM:SS",
@@ -649,7 +649,7 @@ MUSCLE_NODISCARD uint64 ParseHumanReadableTimeIntervalString(const String & str)
   *                position to be rounded up to the nearest unit, rather than always being rounded down.
   * @returns a human-readable time interval description string.
   */
-MUSCLE_NODISCARD String GetHumanReadableTimeIntervalString(uint64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL, bool roundUp = false);
+String GetHumanReadableTimeIntervalString(uint64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL, bool roundUp = false);
 
 /** Works the same as GetHumanReadableTimeIntervalString() except it interprets the passed-in microseconds value
   * as a signed integer rather than unsigned, and thus will yield a useful result for negative values
@@ -669,7 +669,7 @@ MUSCLE_NODISCARD String GetHumanReadableTimeIntervalString(uint64 micros, uint32
   *                position to be rounded up to the nearest unit, rather than always being rounded down.
   * @returns a human-readable time interval description string.
   */
-MUSCLE_NODISCARD String GetHumanReadableSignedTimeIntervalString(int64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL, bool roundUp = false);
+String GetHumanReadableSignedTimeIntervalString(int64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL, bool roundUp = false);
 
 /** Works the same as ParseHumanReadableTimeIntervalString(), except that if the string
   * starts with a - sign, a negative value will be returned.

@@ -30,7 +30,7 @@ template <class KeyType, class ValueType, uint32 MaxCacheableTableSize, class Ke
   * @tparam KeyHashFunctorType you can optionally specify the hash functor object to use for keys in the pool's ImmutableHashtables.  If left unspecified, an appropriate hash functor will be chosen via SFINAE.
   * @tparam ValueHashFunctorType you can optionally specify the hash functor object to use for values in the pool's ImmutableHashtables.  If left unspecified, an appropriate hash functor will be chosen via SFINAE.
   */
-template <class KeyType, class ValueType, uint32 MaxCacheableTableSize, class KeyHashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType), class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType) > class ImmutableHashtable MUSCLE_FINAL_CLASS : public RefCountable
+template <class KeyType, class ValueType, uint32 MaxCacheableTableSize, class KeyHashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType), class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType) > class MUSCLE_NODISCARD ImmutableHashtable MUSCLE_FINAL_CLASS : public RefCountable
 {
 public:
    /** Default constructor */
@@ -83,7 +83,7 @@ private:
   * @tparam KeyHashFunctorType you can optionally specify the hash functor object to use for keys in the ImmutableHashtable.  If left unspecified, an appropriate hash functor will be chosen via SFINAE.
   * @tparam ValueHashFunctorType you can optionally specify the hash functor object to use for values in the ImmutableHashtable.  If left unspecified, an appropriate hash functor will be chosen via SFINAE.
   */
-template <class KeyType, class ValueType, uint32 MaxCacheableTableSize, class KeyHashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType), class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType) > class ImmutableHashtablePool MUSCLE_FINAL_CLASS : private NotCopyable
+template <class KeyType, class ValueType, uint32 MaxCacheableTableSize, class KeyHashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType), class ValueHashFunctorType=typename DEFAULT_HASH_FUNCTOR(ValueType) > class MUSCLE_NODISCARD ImmutableHashtablePool MUSCLE_FINAL_CLASS : private NotCopyable
 {
 public:
    /** Default constructor. */

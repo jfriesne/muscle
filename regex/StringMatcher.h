@@ -18,7 +18,7 @@
 namespace muscle {
 
 /** This class uses the regex library to implement "simple" string matching (similar to filename globbing in bash) as well as full regular expression pattern-matching. */
-class StringMatcher MUSCLE_FINAL_CLASS : public RefCountable
+class MUSCLE_NODISCARD StringMatcher MUSCLE_FINAL_CLASS : public RefCountable
 {
 public:
    /** Default Constructor. */
@@ -118,7 +118,7 @@ public:
    void Reset();
 
    /** Returns a human-readable string representing this StringMatcher, for debugging purposes. */
-   MUSCLE_NODISCARD String ToString() const;
+   String ToString() const;
 
    /** @copydoc DoxyTemplate::HashCode() const */
    MUSCLE_NODISCARD inline uint32 HashCode() const {return _pattern.HashCode() + _flags.HashCode();}
@@ -194,12 +194,12 @@ StringMatcherRef GetStringMatcherFromPool(const String & matchString, bool isSim
  *                   tokens will be escaped.
  *  @returns the modified String with escaped regex chars
  */
-MUSCLE_NODISCARD String EscapeRegexTokens(const String & str, const char * optTokens = NULL);
+String EscapeRegexTokens(const String & str, const char * optTokens = NULL);
 
 /** This does essentially the opposite of EscapeRegexTokens():  It removes from the string
   * any backslashes that are not immediately preceded by another backslash.
   */
-MUSCLE_NODISCARD String RemoveEscapeChars(const String & str);
+String RemoveEscapeChars(const String & str);
 
 /** Returns true iff any "special" chars are found in (str).
  *  @param str The string to check for special regex chars.

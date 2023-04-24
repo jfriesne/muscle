@@ -29,7 +29,7 @@ class AtomicCounter;
   * the setup in their constructor, and tear it down
   * again in their destructor.
   */
-class SetupSystem
+class MUSCLE_NODISCARD SetupSystem
 {
 protected:
    /** Default constructor, a no-op.
@@ -45,7 +45,7 @@ public:
 };
 
 /** This SetupSystem handles initializing the environment's threading mechanisms. */
-class ThreadSetupSystem : public SetupSystem
+class MUSCLE_NODISCARD ThreadSetupSystem : public SetupSystem
 {
 public:
    /** Constructor.  Records the thread ID of the main
@@ -90,7 +90,7 @@ int32 DoMutexAtomicIncrement(int32 * count, int32 delta);
 #endif
 
 /** This SetupSystem handles initializing the environment's TCP stack */
-class NetworkSetupSystem : public SetupSystem
+class MUSCLE_NODISCARD NetworkSetupSystem : public SetupSystem
 {
 public:
    /** Constructor.  Under Windows, this calls WSAStartup()
@@ -110,7 +110,7 @@ public:
 /** This SetupSystem handles initializing the system's
   * math routines as necessary.
   */
-class MathSetupSystem : public SetupSystem
+class MUSCLE_NODISCARD MathSetupSystem : public SetupSystem
 {
 public:
    /** Constructor.  Under Borland C++, this constructor
@@ -127,7 +127,7 @@ public:
 /** This SetupSystem handles initializing the system's
   * time-handling routines as necessary.
   */
-class TimeSetupSystem : public SetupSystem
+class MUSCLE_NODISCARD TimeSetupSystem : public SetupSystem
 {
 public:
    /** Constructor. */
@@ -142,7 +142,7 @@ public:
   * has some chance of working (eg it makes sure that
   * sizeof(uint32)==4, etc)
   */
-class SanitySetupSystem : public SetupSystem
+class MUSCLE_NODISCARD SanitySetupSystem : public SetupSystem
 {
 public:
    /** Constructor.  Does some quick sanity checking
@@ -170,7 +170,7 @@ public:
   * individual smaller SetupSystem objects on the
   * stack, instead.  Your choice.
   */
-class CompleteSetupSystem : public SetupSystem
+class MUSCLE_NODISCARD CompleteSetupSystem : public SetupSystem
 {
 public:
    /** Constructor.  No-op, all the other *SetupSystem objects are created at this point.

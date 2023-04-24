@@ -46,14 +46,14 @@ private:
  *  and decrements the NestCount in its destructor.  It's useful for reliably
  *  tracking call-nest-counts in functions with multiple return() points.
  */
-class NestCountGuard MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD NestCountGuard MUSCLE_FINAL_CLASS
 {
 public:
    /** Constructor.  Increments the specified counter value.
      * @param count A reference to the uint32 that our constructor will
      *              increment, and our destructor will decrement.
      */
-   MUSCLE_NODISCARD NestCountGuard(NestCount & count) : _count(count) {(void) _count.Increment();}
+   NestCountGuard(NestCount & count) : _count(count) {(void) _count.Increment();}
 
    /** Destructor.  Decrements our associated counter value. */
    ~NestCountGuard() {(void) _count.Decrement();}

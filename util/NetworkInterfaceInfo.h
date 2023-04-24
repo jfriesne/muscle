@@ -60,7 +60,7 @@ DECLARE_BITCHORD_FLAGS_TYPE(GNIIFlags, NUM_GNII_FLAGS);
 #define GNII_FLAGS_INCLUDE_ALL_ADDRESSED_INTERFACES (GNIIFlags::WithAllBitsSetExceptThese(GNII_FLAG_INCLUDE_UNADDRESSED_INTERFACES))  /**< default setting -- all interfaces that currently have an IP address will be returned */
 
 /** This little container class is used to return data from the GetNetworkInterfaceInfos() function, below */
-class NetworkInterfaceInfo MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD NetworkInterfaceInfo MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  Sets all member variables to default values. */
@@ -128,7 +128,7 @@ public:
    MUSCLE_NODISCARD bool IsCopperDetected() const {return _copper;}
 
    /** For debugging.  Returns a human-readable string describing this interface. */
-   MUSCLE_NODISCARD String ToString() const;
+   String ToString() const;
 
    /** @copydoc DoxyTemplate::HashCode() const */
    MUSCLE_NODISCARD uint32 HashCode() const;

@@ -44,7 +44,7 @@ namespace muscle {
  *  flag -DMUSCLE_USE_POLL, -DMUSCLE_USE_EPOLL, or -DMUSCLE_USE_KQUEUE
  *  (respectively) on the compile line.
  */
-class SocketMultiplexer
+class MUSCLE_NODISCARD SocketMultiplexer
 {
 public:
    /** Constructor. */

@@ -116,14 +116,18 @@
 #endif
 
 #ifndef MUSCLE_AVOID_NODISCARD
-# if defined(MUSCLE_USE_CPLUSPLUS17)
-#  define MUSCLE_NODISCARD [[nodiscard]]
-# elif defined(__GNUC__) && (__GNUC__ >= 4)
-#  define MUSCLE_NODISCARD __attribute__((warn_unused_result))
-# elif defined(_MSC_VER) && (_MSC_VER >= 1700)
-#  define MUSCLE_NODISCARD _Check_return_
+# ifdef __cplusplus
+#  if defined(MUSCLE_USE_CPLUSPLUS17)
+#   define MUSCLE_NODISCARD [[nodiscard]]
+#  elif defined(__GNUC__) && (__GNUC__ >= 4)
+#   define MUSCLE_NODISCARD __attribute__((warn_unused_result))
+#  elif defined(_MSC_VER) && (_MSC_VER >= 1700)
+#   define MUSCLE_NODISCARD _Check_return_
+#  else
+#   define MUSCLE_NODISCARD
+#  endif
 # else
-#  define MUSCLE_NODISCARD
+#  define MUSCLE_NODISCARD   // defined away for now, since clang doesn't understand this as a C keyword even though it should be present in C23
 # endif
 #endif
 

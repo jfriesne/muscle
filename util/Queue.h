@@ -39,7 +39,7 @@ namespace muscle {
  *  class (aka Vector) if that is all you need.
  *  @tparam ItemType the type of object to be stored in this Queue.
  */
-template <class ItemType> class Queue MUSCLE_FINAL_CLASS
+template <class ItemType> class MUSCLE_NODISCARD Queue MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  */
@@ -842,14 +842,14 @@ private:
   * information for method-calls to read when passing the data as via method-arguments is too onerous.
   * @tparam ItemType the type of object held by the Queue that we will push/pop items to/from.
   */
-template <typename ItemType> class QueueStackGuard : private NotCopyable
+template <typename ItemType> class MUSCLE_NODISCARD QueueStackGuard : private NotCopyable
 {
 public:
    /** Default constructor
      * @param q the Queue to add an item to
      * @param item the item to add to the tail of the Queue
      */
-   MUSCLE_NODISCARD QueueStackGuard(Queue<ItemType> & q, const ItemType & item) : _queue(q) {(void) _queue.AddTail(item);}
+   QueueStackGuard(Queue<ItemType> & q, const ItemType & item) : _queue(q) {(void) _queue.AddTail(item);}
 
    /** Destructor -- pops the last item out of the Queue that was specified in the constructor. */
    ~QueueStackGuard() {(void) _queue.RemoveTail();}

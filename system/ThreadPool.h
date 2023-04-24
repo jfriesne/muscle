@@ -83,7 +83,7 @@ private:
   * This class is Thread-safe, in that you can have IThreadPoolClients using it from different
   * threads simultaneously, and it will still work as expected.
   */
-class ThreadPool : private AbstractObjectRecycler
+class MUSCLE_NODISCARD ThreadPool : private AbstractObjectRecycler
 {
 public:
    /** Constructor.

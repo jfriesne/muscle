@@ -101,7 +101,7 @@ MUSCLE_NODISCARD bool GetAutomaticIPv4AddressMappingEnabled();
   * @note This function may invoke a synchronous DNS lookup, which means that it may take
   *       a long time to return (eg if the DNS server is not responding)
   */
-MUSCLE_NODISCARD IPAddress GetHostByName(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
+IPAddress GetHostByName(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
 
 /** This function is the same as GetHostByName(), except that only the built-in name-resolution
   * functionality will be used.  In particular, none of the registered IHostNameResolver callbacks
@@ -119,7 +119,7 @@ MUSCLE_NODISCARD IPAddress GetHostByName(const char * name, bool expandLocalhost
   * @note This function may invoke a synchronous DNS lookup, which means that it may take
   *       a long time to return (eg if the DNS server is not responding)
   */
-MUSCLE_NODISCARD IPAddress GetHostByNameNative(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
+IPAddress GetHostByNameNative(const char * name, bool expandLocalhost = false, bool preferIPv6 = true);
 
 /** Sets the parameters for GetHostByName()'s internal DNS-results LRU cache.
   * Note that this cache is disabled by default, so by default every call to GetHostByName()
@@ -329,7 +329,7 @@ void Inet_NtoA(const IPAddress & address, char * outBuf, bool preferIPv4Style = 
   *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
   *                         Defaults to false.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
   */
-MUSCLE_NODISCARD String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4Style = false);
+String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4Style = false);
 
 /** Returns true iff (s) is a well-formed IP address (eg "192.168.0.1" or "ff12::888" or etc)
   * @param s An ASCII string to check the formatting of
@@ -342,10 +342,10 @@ MUSCLE_NODISCARD bool IsIPAddress(const char * s);
   * @param buf numeric IP address in ASCII.
   * @returns IP address as a IPAddress, or invalidIP on failure.
   */
-MUSCLE_NODISCARD IPAddress Inet_AtoN(const char * buf);
+IPAddress Inet_AtoN(const char * buf);
 
 /** Returns a string that is the local host's primary host name. */
-MUSCLE_NODISCARD String GetLocalHostName();
+String GetLocalHostName();
 
 /** Reurns the IP address that the given socket is connected to.
  *  @param sock The socket to find out info about.
@@ -356,7 +356,7 @@ MUSCLE_NODISCARD String GetLocalHostName();
  *  @param optRetPort if non-NULL, the port we are connected to on the remote peer will be written here.  Defaults to NULL.
  *  @return The IP address on success, or invalidIP on failure (such as if the socket isn't valid and connected).
  */
-MUSCLE_NODISCARD IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort = NULL);
+IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort = NULL);
 
 /** Creates and returns a pair of stream-oriented sockets that are connected to each other, so that any bytes
  *  you write into one socket come out as bytes to read from the other socket.
@@ -553,7 +553,7 @@ void SetLocalHostIPOverride(const IPAddress & ip);
   * if none was set.  Note that this function <b>does not</b> report the local computer's IP address,
   * unless you previously called SetLocalHostIPOverride() with that address.
   */
-MUSCLE_NODISCARD IPAddress GetLocalHostIPOverride();
+IPAddress GetLocalHostIPOverride();
 
 /** Creates and returns a socket that can be used for UDP communications.
  *  Returns a non-NULL ConstSocketReference on success, or a NULL reference on failure.
@@ -711,7 +711,7 @@ status_t SetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock,
   * @param sock The socket to query the sending interface of.
   * @returns the interface's IP address, or invalidIP on error.
   */
-MUSCLE_NODISCARD IPAddress GetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock);
+IPAddress GetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock);
 
 #ifndef MUSCLE_AVOID_IPV6
 

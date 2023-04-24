@@ -55,7 +55,7 @@ MUSCLE_NODISCARD static inline int32 DoMutexAtomicIncrement(volatile int32 * cou
   * it degenerates to a regular old counter variable, which is very lightweight and portable,
   * but of course will only work properly in single-threaded environments.
   */
-class AtomicCounter MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD AtomicCounter MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  The count value is initialized to zero. */

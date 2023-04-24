@@ -43,7 +43,7 @@ namespace muscle {
   *                 - (and so on)
   * @note if T is of type void, then no compile-time validation of the (NumBits) argument will be performed.
   */
-template <class T, unsigned int NumBits> class PointerAndBits
+template <class T, unsigned int NumBits> class MUSCLE_NODISCARD PointerAndBits
 {
 public:
    /** Default constructor.  Sets this object to a NULL pointer with all data-bits set to zero. */

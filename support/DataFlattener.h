@@ -16,7 +16,7 @@ class ByteBuffer;
   * and/or Flattenable/PseudoFlattenable objects to a fixed-size byte-buffer.
   * @tparam EndianConverter the type of EndianConverter object to use when flattening data-types into raw bytes.
   */
-template<class EndianConverter> class DataFlattenerHelper MUSCLE_FINAL_CLASS
+template<class EndianConverter> class MUSCLE_NODISCARD DataFlattenerHelper MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before trying to write data with object! */

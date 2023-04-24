@@ -24,7 +24,7 @@ namespace muscle {
   *
   * @tparam T the type of object to allow atomic access to.
   */
-template<typename T, uint32 ATOMIC_BUFFER_SIZE=4> class AtomicValue MUSCLE_FINAL_CLASS
+template<typename T, uint32 ATOMIC_BUFFER_SIZE=4> class MUSCLE_NODISCARD AtomicValue MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  Our value will be default-initialized. */

@@ -11,6 +11,9 @@ key:  - new feature
    - Tagged ObjectPool::ObtainObject() with MUSCLE_NODISCARD.
    - Added MUSCLE_NODISCARD to all the functions and methods that it
      wouldn't make sense to call without examining their return value.
+   - Added MUSCLE_NODISCARD to various concrete classes (String,
+     Queue, Hashtable, IPAddress, etc) that shouldn't be ignored when
+     used as return values.
    o Renamed String::Append() to String::WithAppend().
    o Renamed String::Prepend() to String::WithPrepend().
    o Renamed String::AppendWord() to String::WithAppendedWord().
@@ -26,6 +29,9 @@ key:  - new feature
    o Updated the unit tests so none of them takes more than 5 seconds
      to complete when done as part of a CMake "make test" pass.
    * Fixed logic error in testgateway.cpp.
+   * MUSCLE_NODISCARD is now defined as a no-op when compiling C code,
+     to avoid breaking the build under C compilers that say they support
+     C23 but nevertheless don't grok [[nodiscard]] yet.
 
 9.25 - Release 4/7/2023
    - Rewrote String::WithReplacements(const Hashtable<String,String> &)
