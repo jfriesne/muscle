@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-9.30 -
+9.30 - Released 4/28/2023
    - Tagged the constructor of the MutexGuard class (and friends) as
      MUSCLE_NODISCARD so the compiler will warm about anonymous guards.
    - Tagged ObjectPool::ObtainObject() with MUSCLE_NODISCARD.
@@ -33,7 +33,7 @@ key:  - new feature
      to avoid breaking the build under C compilers that say they support
      C23 but nevertheless don't grok [[nodiscard]] yet.
 
-9.25 - Release 4/7/2023
+9.25 - Released 4/7/2023
    - Rewrote String::WithReplacements(const Hashtable<String,String> &)
      to only scan the input string once, instead of once per key.
    - Added a String::Replace(const Hashtable<String,String> &) method.
