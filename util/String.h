@@ -689,16 +689,16 @@ public:
      */
    String WithAppend(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return WithAppend(cc, count);}
 
-   /** Similar to the += operator, but this version will insert a separator between our current content and the appended string, if necessary.
+   /** Similar to WithAppend(), but this version will insert a separator between our current content and the appended string, if necessary.
      * @param str Pointer to a C string to return appended to this string.  NULL pointers are considered a synonym for "".
-     * @param sep Pointer to the string used to separate words.  Defaults to " "
+     * @param sep Pointer to the string used to separate the appended content from the existing content, in the returned String.  Defaults to " "
      * @returns a reference to this object, which will have had the specified string appended, with an inserted (sep) infix if necessary.
      */
    String WithAppendedWord(const char * str, const char * sep = " ") const;
 
-   /** Similar to the += operator, but this version will insert a separator between our current content and the appended string, if necessary.
+   /** Similar to WithAppend(), but this version will insert a separator between our current content and the appended string, if necessary.
      * @param str A string to append to the end of this string.
-     * @param sep Pointer to the string used to separate words.  Defaults to " "
+     * @param sep Pointer to the string used to separate the appended content from the existing content, in the returned String.  Defaults to " "
      * @returns a reference to this object, which will have had the specified string appended, with an inserted (sep) infix if necessary.
      */
    String WithAppendedWord(const String & str, const char * sep = " ") const;
