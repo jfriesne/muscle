@@ -21,11 +21,11 @@ class BatchOperatorBase
 {
 public:
    /** This class is used by the DECLARE_BATCHGUARD() macro.  Do not access it directly. */
-   class BatchGuard
+   class MUSCLE_NODISCARD BatchGuard
    {
    public:
       /** Default constructor. */
-      MUSCLE_NODISCARD BatchGuard() {/* empty */}
+      BatchGuard() {/* empty */}
    };
 
    /** Read-only access to our internal NestCount object, in case you are interested in querying its state. */
