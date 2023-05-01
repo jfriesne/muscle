@@ -124,7 +124,7 @@ MUSCLE_NODISCARD const char * StrcasestrEx(const char * haystack, uint32 haystac
   * UTF8-aware, certain operations (such as Reverse() and ToLowerCase()) may not do the right thing when used in
   * conjunction with non-ASCII UTF8 data.
   */
-class String MUSCLE_FINAL_CLASS : public PseudoFlattenable<String>
+class MUSCLE_NODISCARD String MUSCLE_FINAL_CLASS : public PseudoFlattenable<String>
 {
 public:
    /** Constructor.

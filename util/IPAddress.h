@@ -318,7 +318,7 @@ const IPAddress broadcastIP = broadcastIP_IPv6;
   * useful things on the two such as using them as key values in a hash table,
   * converting them to/from user-readable strings, etc.
   */
-class IPAddressAndPort MUSCLE_FINAL_CLASS : public PseudoFlattenable<IPAddressAndPort>
+class MUSCLE_NODISCARD IPAddressAndPort MUSCLE_FINAL_CLASS : public PseudoFlattenable<IPAddressAndPort>
 {
 public:
    /** Default constructor.   Creates an IPAddressAndPort object with the address field
