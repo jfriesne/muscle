@@ -63,7 +63,7 @@ static inline status_t LogStackTrace(int level = MUSCLE_LOG_INFO, uint32 maxLeve
 // No-op implementation of PrintStackTrace()
 static inline status_t PrintStackTrace(FILE * fpOut = NULL, uint32 maxLevel=64) {(void) fpOut; (void) maxLevel; return B_NO_ERROR;}
 
-// No-op implementation of GetStackTracke(), just return B_NO_ERROR
+// No-op implementation of GetStackTrace(), just return B_NO_ERROR
 static inline status_t GetStackTrace(String & retStr, uint32 maxDepth = 64) {(void) retStr; (void) maxDepth; return B_NO_ERROR;}
 
 // No-op version of GetLogLevelName(), just returns a dummy string
@@ -101,7 +101,7 @@ static inline status_t LogStackTrace(int level = MUSCLE_LOG_INFO, uint32 maxDept
 // Minimalist version of PrintStackTrace(), just prints a dummy string
 static inline status_t PrintStackTrace(FILE * optFile = NULL, uint32 maxDepth = 64) {(void) maxDepth; fprintf(optFile?optFile:stdout, "<stack trace omitted>\n"); return B_NO_ERROR;}
 
-// Minimalist version of GetStackTracke(), just returns B_NO_ERROR
+// Minimalist version of GetStackTrace(), just returns B_NO_ERROR
 static inline status_t GetStackTrace(String & /*retStr*/, uint32 maxDepth = 64) {(void) maxDepth; return B_NO_ERROR;}
 
 // Minimalist version of GetLogLevelName(), just returns a dummy string
