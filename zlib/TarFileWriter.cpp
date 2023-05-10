@@ -145,7 +145,7 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
 
 status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode, uint32 ownerID, uint32 groupID, uint64 modificationTime, int linkIndicator, const char * linkedFileName, uint64 prestatedFileSize)
 {
-   if ((strlen(fileName) > 100)||((linkedFileName)&&(strlen(linkedFileName)>100))) return B_BAD_ARGUMENT;  // string fields are only 100 chars long!
+   if ((strlen(fileName) > 100)||((linkedFileName)&&(strlen(linkedFileName)>100))) return B_ERROR("File Entry name too long for .tar format");  // string fields are only 100 chars long!
 
    MRETURN_ON_ERROR(FinishCurrentFileDataBlock());  // should pad out position out to a multiple of 512, if necessary
 
