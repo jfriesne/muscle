@@ -61,14 +61,14 @@ int main(int argc, char ** argv)
    {
       TestCloneable tc1("Foo");
       TestCloneable * tc2 = CloneTester(&tc1);
-      printf("A: TestCloneable1=[%s] TestCloneable2=[%s]\n", tc1.GetTitle()(), tc2?tc2->GetTitle()():NULL);
+      printf("A: TestCloneable1=[%s] TestCloneable2=[%s]\n", tc1.GetTitle()(), tc2?tc2->GetTitle()():"(null)");
       delete tc2;
    }
 
    {
       SubclassOfTestCloneable tc1("Bar");
       TestCloneable * tc2 = CloneTester(&tc1);
-      printf("B: SubclassOfTestCloneable1=[%s] SubclassOfTestCloneable2=[%s]\n", tc1.GetTitle()(), tc2?tc2->GetTitle()():NULL);
+      printf("B: SubclassOfTestCloneable1=[%s] SubclassOfTestCloneable2=[%s]\n", tc1.GetTitle()(), tc2?tc2->GetTitle()():"(null)");
       delete tc2;
    }
 
@@ -76,7 +76,7 @@ int main(int argc, char ** argv)
    {
       BrokenSubclassOfTestCloneable tc1("Baz");
       TestCloneable * tc2 = CloneTester(&tc1);  // note:  This line is expected to crash with an assertion failure!
-      printf("C: BrokenSubclassOfTestCloneable1=[%s] BrokenSubclassOfTestCloneable2=[%s]\n", tc1.GetTitle()(), tc2?tc2->GetTitle()():NULL);
+      printf("C: BrokenSubclassOfTestCloneable1=[%s] BrokenSubclassOfTestCloneable2=[%s]\n", tc1.GetTitle()(), tc2?tc2->GetTitle()():"(null)");
       delete tc2;
    }
 

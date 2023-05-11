@@ -6,6 +6,9 @@ key:  - new feature
       o other
 
    * Added MUSCLE_NODISCARD tag to the String and IPAddressAndPort classes.
+   * Fixed code that was passing NULL as an argument to %s in printf() or
+     LogTime().  Thanks to Ruurd Adema for pointing out that doing that is
+     undefined behavior.
 
 9.30 - Released 4/28/2023
    - Tagged the constructor of the MutexGuard class (and friends) as

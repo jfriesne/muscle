@@ -366,7 +366,7 @@ void ReflectServer :: CheckForOutOfMemory(const AbstractReflectSessionRef & optS
       }
 
       const uint32 dumpCount = DumpBoggedSessions();       // see what other cleanup we can do
-      if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "Low Memory condition detected in session [%s].  Dumped " UINT32_FORMAT_SPEC " bogged sessions!\n", optSessionRef()?optSessionRef()->GetSessionDescriptionString()():NULL, dumpCount);
+      if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "Low Memory condition detected in session [%s].  Dumped " UINT32_FORMAT_SPEC " bogged sessions!\n", optSessionRef()?optSessionRef()->GetSessionDescriptionString()():"(null)", dumpCount);
    }
 #else
    (void) optSessionRef;
@@ -711,7 +711,7 @@ ServerProcessLoop()
                      {
                         const DataIO * dio = g->GetDataIO()();
                         const Socket * sck = dio ? dio->GetWriteSelectSocket()() : NULL;
-                        LogTime(MUSCLE_LOG_WARNING, "Session [%s] has " UINT32_FORMAT_SPEC " Messages in its outgoing-Message-Queue, but no writeable socket (gw=[%s] dio=[%s] sock=%p).  Possible resource leak?\n", session->GetSessionDescriptionString()(), outQSize, typeid(*g).name(), dio?typeid(*dio).name():NULL, sck);
+                        LogTime(MUSCLE_LOG_WARNING, "Session [%s] has " UINT32_FORMAT_SPEC " Messages in its outgoing-Message-Queue, but no writeable socket (gw=[%s] dio=[%s] sock=%p).  Possible resource leak?\n", session->GetSessionDescriptionString()(), outQSize, typeid(*g).name(), dio?typeid(*dio).name():"(null)", sck);
                         session->_lastReportedQueueSize = outQSize;
                      }
                   }
