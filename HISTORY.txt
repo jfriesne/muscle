@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added an IsFileOpen() method to the GZDataIO class.
    * Added MUSCLE_NODISCARD tag to the String and IPAddressAndPort classes.
    * Fixed code that was passing NULL as an argument to %s in printf() or
      LogTime().  Thanks to Ruurd Adema for pointing out that doing that is

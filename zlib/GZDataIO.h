@@ -36,6 +36,9 @@ public:
    /** Returns a NULL ConstSocketRef -- selecting on this class is not currently supported */
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const;
 
+   /** Returns true iff our internal file-handle is currently valid */
+   MUSCLE_NODISCARD bool IsFileOpen() const {return (_file != NULL);}
+
 private:
    DECLARE_COUNTED_OBJECT(GZDataIO);
 
