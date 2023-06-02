@@ -57,7 +57,7 @@ public:
             _status |= ret;
          }
 
-         (void) Snooze64(MillisToMicros(1));  // otherwise we flood the zone with updates and cause problems
+         (void) Snooze64(MillisToMicros(10));  // otherwise we flood the zone with updates and cause problems
       }
    }
 

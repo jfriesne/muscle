@@ -1403,7 +1403,7 @@ private:
    // HashtableIterator's private API
    void RegisterIterator(IteratorType * iter) const
    {
-      if ((IsEmpty())||(iter->_flags & HTIT_FLAG_NOREGISTER)) iter->_prevIter = iter->_nextIter = NULL;
+      if (iter->_flags & HTIT_FLAG_NOREGISTER) iter->_prevIter = iter->_nextIter = NULL;
       else
       {
 #ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
@@ -1420,7 +1420,11 @@ private:
             _iteratorThreadID = muscle_thread_id::GetCurrentThreadID();  // we're the first iterator on this Hashtable!
             iter->_okayToUnsetThreadID = true;  // remember that (iter) is the iterator who has to unset _iteratorThreadID
          }
+# ifdef MUSCLE_AVOID_CPLUSPLUS11
          else if (_iteratorThreadID != muscle_thread_id::GetCurrentThreadID())  // there's a race condition here but it's harmless
+# else
+         else if (_iteratorThreadID.load() != muscle_thread_id::GetCurrentThreadID())  // there's a race condition here but it's harmless
+# endif
          {
             // If we got here, then we're in a different thread from the one that has permission
             // to register iterators.  So for thread-safety, we're going to refrain from registering (iter).
@@ -1577,7 +1581,11 @@ private:
 
    mutable IteratorType * _iterList;  // list of existing iterators for this table
 #ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
+# ifdef MUSCLE_AVOID_CPLUSPLUS11
    mutable muscle_thread_id _iteratorThreadID; // this is the ID of the thread that is allowed to register iterators (or 0 if none are registered)
+# else
+   mutable std::atomic<muscle_thread_id> _iteratorThreadID; // this is the ID of the thread that is allowed to register iterators (or 0 if none are registered)
+# endif
    mutable AtomicCounter _iteratorCount;       // this represents the number of HashtableIterators currently registered with this Hashtable
 #endif
 };
@@ -2835,7 +2843,14 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableBase<
       muscleSwap(_iterList,         swapMe._iterList);
 #ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
       muscleSwap(_iteratorCount,    swapMe._iteratorCount);
+# ifdef MUSCLE_AVOID_CPLUSPLUS11
       muscleSwap(_iteratorThreadID, swapMe._iteratorThreadID);
+# else
+      // Not atomic, but if you're swapping the contents of a Hashtable while multiple threads are iterating it, you're done for anyway
+      muscle_thread_id tmp = swapMe._iteratorThreadID.load();
+      swapMe._iteratorThreadID = this->_iteratorThreadID.load();
+      this->_iteratorThreadID = tmp;
+# endif
 #endif
 
       // Lastly, swap the owners of all iterators, so that they will unregister from the correct table when they die

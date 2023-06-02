@@ -41,6 +41,13 @@ CXXFLAGS += -std=c++11 -W -Wall
 
 LFLAGS =
 LIBS =  -lpthread
+
+#CXXFLAGS += -fsanitize=thread -g
+#LFLAGS   += -fsanitize=thread
+
+#CXXFLAGS += -fsanitize=address,undefined -g
+#LFLAGS   += -fsanitize=address,undefined
+
 EXECUTABLES = testhashtable testmini testfilepathinfo testmicro testmessage testclone testzip testtar testrefcount testqueue teststringtokenizer testtuple testgateway testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions testendian testsysteminfo testregex testnagle testresponse testqueryfilter testtypedefs testserial testpulsenode testnetconfigdetect testnetutil testpool testatomicvalue testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess testsharedmem
 
 REGEXOBJS =

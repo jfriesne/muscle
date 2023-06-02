@@ -6,12 +6,14 @@ key:  - new feature
       o other
 
    - Added an IsFileOpen() method to the GZDataIO class.
-   o Hashtable::RegisterIterator() no longer registers the iterator if
-     the table is currently empty.
+   o Increased the Snooze64() time in testatomicvalue's writer thread
+     to 10mS as it appears that 1mS snoozes were being rounded down to zero.
    * Added MUSCLE_NODISCARD tag to the String and IPAddressAndPort classes.
    * Fixed code that was passing NULL as an argument to %s in printf() or
      LogTime().  Thanks to Ruurd Adema for pointing out that doing that is
      undefined behavior.
+   * Changed Hashtable::_iteratorThreadID to be a std::atomic<> to
+     avoid potential undefined behavior in multithreaded scenarios.
 
 9.30 - Released 4/28/2023
    - Tagged the constructor of the MutexGuard class (and friends) as
