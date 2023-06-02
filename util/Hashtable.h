@@ -1403,7 +1403,7 @@ private:
    // HashtableIterator's private API
    void RegisterIterator(IteratorType * iter) const
    {
-      if (iter->_flags & HTIT_FLAG_NOREGISTER) iter->_prevIter = iter->_nextIter = NULL;
+      if ((IsEmpty())||(iter->_flags & HTIT_FLAG_NOREGISTER)) iter->_prevIter = iter->_nextIter = NULL;
       else
       {
 #ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
