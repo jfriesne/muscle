@@ -1334,15 +1334,13 @@ private:
 
    void InitializeIterator(IteratorType & iter) const
    {
-      RegisterIterator(&iter);
-      iter._iterCookie = this->IndexToEntryChecked((iter._flags & HTIT_FLAG_BACKWARDS) ? _iterTailIdx : _iterHeadIdx);
+      RegisterIterator(&iter, this->IndexToEntryChecked((iter._flags & HTIT_FLAG_BACKWARDS) ? _iterTailIdx : _iterHeadIdx));
       iter.UpdateKeyAndValuePointers();
    }
 
    void InitializeIteratorAt(IteratorType & iter, const KeyType & startAt) const
    {
-      RegisterIterator(&iter);
-      iter._iterCookie = this->GetEntry(this->ComputeHash(startAt), startAt);
+      RegisterIterator(&iter, this->GetEntry(this->ComputeHash(startAt), startAt));
       iter.UpdateKeyAndValuePointers();
    }
 
@@ -1401,9 +1399,17 @@ private:
    }
 
    // HashtableIterator's private API
-   void RegisterIterator(IteratorType * iter) const
+   void RegisterIterator(IteratorType * iter, void * newIterCookie) const
    {
-      if (iter->_flags & HTIT_FLAG_NOREGISTER) iter->_prevIter = iter->_nextIter = NULL;
+      iter->_iterCookie = newIterCookie;
+
+           if (iter->_flags & HTIT_FLAG_NOREGISTER) iter->_prevIter = iter->_nextIter = NULL;
+      else if (newIterCookie == NULL)
+      {
+         // no need to register if we're not pointing at anything anyway
+         iter->_flags   |= HTIT_FLAG_NOREGISTER;  // so that UnregisterIterator() will also be a no-op for (iter)
+         iter->_prevIter = iter->_nextIter = NULL;
+      }
       else
       {
 #ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
@@ -3747,9 +3753,8 @@ HashtableIterator<KeyType,ValueType,HashFunctorType>:: operator=(const Hashtable
       _flags = rhs._flags;   // must be done while unregistered, in case NOREGISTER flag changes state
       _owner = rhs._owner;
       _scratchKeyAndValue = rhs._scratchKeyAndValue;
-      if (_owner) _owner->RegisterIterator(this);
 
-      _iterCookie = rhs._iterCookie;
+      if (_owner) _owner->RegisterIterator(this, rhs._iterCookie);
       UpdateKeyAndValuePointers();
    }
    return *this;
