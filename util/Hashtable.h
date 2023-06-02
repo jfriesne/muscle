@@ -3755,6 +3755,8 @@ HashtableIterator<KeyType,ValueType,HashFunctorType>:: operator=(const Hashtable
       _scratchKeyAndValue = rhs._scratchKeyAndValue;
 
       if (_owner) _owner->RegisterIterator(this, rhs._iterCookie);
+             else _iterCookie = NULL;  // no owner == no data
+
       UpdateKeyAndValuePointers();
    }
    return *this;
