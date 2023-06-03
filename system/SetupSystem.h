@@ -240,8 +240,8 @@ bool IsCurrentThreadMainThread();
 class muscle_thread_id
 {
 public:
-   /** Default constructor.  Returns an muscle_thread_id object that doesn't represent any thread. */
-   muscle_thread_id()
+   /** Default constructor.  Returns a muscle_thread_id object that doesn't represent any thread. */
+   muscle_thread_id() MUSCLE_NOEXCEPT
 #if !defined(MUSCLE_USE_CPLUSPLUS11_THREADS) && !defined(MUSCLE_USE_PTHREADS)
       : _id(0)
 # endif
