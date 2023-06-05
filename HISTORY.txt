@@ -17,6 +17,8 @@ key:  - new feature
      undefined behavior.
    * Changed Hashtable::_iteratorThreadID to be a std::atomic<> to
      avoid potential undefined behavior in multithreaded scenarios.
+   * Fixed AtomicValue class to use bitmasks instead of modulo and
+     only support powers-of-two array sizes.
 
 9.30 - Released 4/28/2023
    - Tagged the constructor of the MutexGuard class (and friends) as

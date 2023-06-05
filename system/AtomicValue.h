@@ -23,6 +23,8 @@ namespace muscle {
   * modified while the reading-thread is in the middle of using it.
   *
   * @tparam T the type of object to allow atomic access to.
+  * @tparam ATOMIC_BUFFER_SIZE the number of slots we should keep in our buffer to use for n-way buffering.
+  *         Defaults to 4.  Must be a power of two.
   */
 template<typename T, uint32 ATOMIC_BUFFER_SIZE=4> class MUSCLE_NODISCARD AtomicValue MUSCLE_FINAL_CLASS
 {
@@ -36,30 +38,25 @@ public:
    AtomicValue(const T & val) : _readIndex(0), _writeIndex(0) {_buffer[_readIndex] = val;}
 
    /** Returns a copy of the current state of our held value */
-   MUSCLE_NODISCARD T GetValue() const {return _buffer[_readIndex % ATOMIC_BUFFER_SIZE];}
+   MUSCLE_NODISCARD T GetValue() const {return _buffer[_readIndex & ATOMIC_BUFFER_MASK];}
 
    /** Returns a read-only reference to the current state of our held value.
      * @note that this reference may not remain valid for long, so if you call this
      *       method, be sure to read any data you need from the reference quickly.
      */
-   MUSCLE_NODISCARD const T & GetValueRef() const {return _buffer[_readIndex % ATOMIC_BUFFER_SIZE];}
+   MUSCLE_NODISCARD const T & GetValueRef() const {return _buffer[_readIndex & ATOMIC_BUFFER_MASK];}
 
    /** Attempts to set our held value to a new value in a thread-safe fashion.
      * @param newValue the new value to set
-     * @returns B_NO_ERROR on success, or B_BAD_OBJECT if we couldn't perform the set because our buffer-queue was full
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY if we couldn't perform the set because our internal buffer-queue lost too many races in a row.
      */
    status_t SetValue(const T & newValue)
    {
-#if defined(MUSCLE_AVOID_CPLUSPLUS11)
-      uint32 oldReadIndex = _readIndex % ATOMIC_BUFFER_SIZE;
-#else
-      uint32 oldReadIndex = _readIndex.load() % ATOMIC_BUFFER_SIZE;
-#endif
-
+      uint32 oldReadIndex = _readIndex & ATOMIC_BUFFER_MASK;
       while(1)
       {
-         const uint32 newWriteIndex = (++_writeIndex % ATOMIC_BUFFER_SIZE);
-         if (newWriteIndex == oldReadIndex) return B_BAD_OBJECT;  // out of buffer space!
+         const uint32 newWriteIndex = (++_writeIndex & ATOMIC_BUFFER_MASK);
+         if (newWriteIndex == oldReadIndex) return B_OUT_OF_MEMORY;  // out of buffer space!
 
          _buffer[newWriteIndex] = newValue;
 
@@ -74,7 +71,6 @@ public:
 #else
 #        error "AtomicValue:  Unsupported platform, no compare-and-swap function known"
 #endif
-
          if (casSucceeded) break;
       }
       return B_NO_ERROR;
@@ -90,6 +86,8 @@ public:
    MUSCLE_NODISCARD const T * GetInternalValuesArray() const {return _buffer;}
 
 private:
+   static const uint32 ATOMIC_BUFFER_MASK = ATOMIC_BUFFER_SIZE-1;
+
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    std::atomic<uint32> _readIndex;
    std::atomic<uint32> _writeIndex;
@@ -101,6 +99,11 @@ private:
    volatile int32_t _writeIndex;
 #else
 #  error "AtomicValue:  Unsupported platform"
+#endif
+
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+    enum {TestPowerOfTwoValue = ATOMIC_BUFFER_SIZE && !(ATOMIC_BUFFER_SIZE&(ATOMIC_BUFFER_SIZE-1))};
+    static_assert(TestPowerOfTwoValue, "AtomicValue template's ATOMIC_BUFFER_SIZE template-parameter must be a power of two");
 #endif
 
    T _buffer[ATOMIC_BUFFER_SIZE];
