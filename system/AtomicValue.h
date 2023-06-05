@@ -28,41 +28,38 @@ template<typename T, uint32 ATOMIC_BUFFER_SIZE=4> class MUSCLE_NODISCARD AtomicV
 {
 public:
    /** Default constructor.  Our value will be default-initialized. */
-   AtomicValue() : _readIndex(0), _writeIndex(0) {/* empty */}
+   AtomicValue() : _readIndex(0), _writeIndex(0) {_buffer[0] = T();}
 
    /** Explicit constructor.
      * @param val the initial value for our held value
      */
-   AtomicValue(const T & val) : _readIndex(0), _writeIndex(0) {_buffer[_readIndex] = val;}
+   AtomicValue(const T & val) : _readIndex(0), _writeIndex(0) {_buffer[0] = val;}
 
    /** Returns a copy of the current state of our held value */
-   MUSCLE_NODISCARD T GetValue() const {return _buffer[_readIndex % ATOMIC_BUFFER_SIZE];}
+   MUSCLE_NODISCARD T GetValue() const {return _buffer[_readIndex];}
 
    /** Returns a read-only reference to the current state of our held value.
      * @note that this reference may not remain valid for long, so if you call this
      *       method, be sure to read any data you need from the reference quickly.
      */
-   MUSCLE_NODISCARD const T & GetValueRef() const {return _buffer[_readIndex % ATOMIC_BUFFER_SIZE];}
+   MUSCLE_NODISCARD const T & GetValueRef() const {return _buffer[_readIndex];}
 
    /** Attempts to set our held value to a new value in a thread-safe fashion.
      * @param newValue the new value to set
-     * @returns B_NO_ERROR on success, or B_BAD_OBJECT if we couldn't perform the set because our buffer-queue was full
      */
-   status_t SetValue(const T & newValue)
+   void SetValue(const T & newValue)
    {
 #if defined(MUSCLE_AVOID_CPLUSPLUS11)
-      uint32 oldReadIndex = _readIndex % ATOMIC_BUFFER_SIZE;
+      uint32 oldReadIndex = _readIndex;
 #else
-      uint32 oldReadIndex = _readIndex.load() % ATOMIC_BUFFER_SIZE;
+      uint32 oldReadIndex = _readIndex.load();
 #endif
+
+      const uint32 newWriteIndex = ((_writeIndex+1) % ATOMIC_BUFFER_SIZE);
+      _buffer[newWriteIndex] = newValue;
 
       while(1)
       {
-         const uint32 newWriteIndex = (++_writeIndex % ATOMIC_BUFFER_SIZE);
-         if (newWriteIndex == oldReadIndex) return B_BAD_OBJECT;  // out of buffer space!
-
-         _buffer[newWriteIndex] = newValue;
-
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
          const bool casSucceeded = _readIndex.compare_exchange_strong(oldReadIndex, newWriteIndex, std::memory_order_release, std::memory_order_relaxed);
 #elif defined(__APPLE__)
@@ -75,9 +72,12 @@ public:
 #        error "AtomicValue:  Unsupported platform, no compare-and-swap function known"
 #endif
 
-         if (casSucceeded) break;
+         if (casSucceeded)
+         {
+            _writeIndex = newWriteIndex;
+            break;
+         }
       }
-      return B_NO_ERROR;
    }
 
    /** Returns the size of our internal values-array, as specified by our template argument */

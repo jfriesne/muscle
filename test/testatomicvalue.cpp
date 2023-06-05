@@ -50,14 +50,8 @@ public:
          muscleSprintf(buf, " / " UINT32_FORMAT_SPEC, temp.HashCode());
          temp += buf;
 
-         const status_t ret = _atomicValue.SetValue(temp);
-         if (ret.IsError())
-         {
-            LogTime(MUSCLE_LOG_ERROR, "AtomicWriterThread:   AtomicValue::SetValue(%s) failed! [%s]\n", temp(), ret());
-            _status |= ret;
-         }
-
-         (void) Snooze64(MillisToMicros(10));  // otherwise we flood the zone with updates and cause problems
+         _atomicValue.SetValue(temp);
+         (void) Snooze64(MillisToMicros(5));  // otherwise we flood the zone with updates and cause problems
       }
    }
 
