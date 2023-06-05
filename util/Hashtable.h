@@ -1429,7 +1429,7 @@ private:
 # ifdef MUSCLE_AVOID_CPLUSPLUS11
          else if (_iteratorThreadID != muscle_thread_id::GetCurrentThreadID())  // there's a race condition here but it's harmless
 # else
-         else if (_iteratorThreadID.load() != muscle_thread_id::GetCurrentThreadID())  // there's a race condition here but it's harmless
+         else if (_iteratorThreadID.load() != muscle_thread_id::GetCurrentThreadID())
 # endif
          {
             // If we got here, then we're in a different thread from the one that has permission
