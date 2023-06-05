@@ -19,6 +19,8 @@ key:  - new feature
      avoid potential undefined behavior in multithreaded scenarios.
    * Fixed AtomicValue class to use bitmasks instead of modulo and
      only support powers-of-two array sizes.
+   * Fixed the handling of InterlockedCompareExchange()'s return value
+     in the AtomicValue class.
 
 9.30 - Released 4/28/2023
    - Tagged the constructor of the MutexGuard class (and friends) as
