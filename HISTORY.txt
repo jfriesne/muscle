@@ -12,6 +12,8 @@ key:  - new feature
    o Increased the Snooze64() time in testatomicvalue's writer thread
      to 10mS as it appears that 1mS snoozes were being rounded down to zero.
    o Added MUSCLE_NODISCARD tag to the String and IPAddressAndPort classes.
+   o Increased the default value of AtomicValue's ATOMIC_BUFFER_SIZE
+     template argument to 8.
    * Fixed code that was passing NULL as an argument to %s in printf() or
      LogTime().  Thanks to Ruurd Adema for pointing out that doing that is
      undefined behavior.

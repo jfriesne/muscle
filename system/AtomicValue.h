@@ -24,9 +24,9 @@ namespace muscle {
   *
   * @tparam T the type of object to allow atomic access to.
   * @tparam ATOMIC_BUFFER_SIZE the number of slots we should keep in our buffer to use for n-way buffering.
-  *         Defaults to 4.  Must be a power of two.
+  *         Defaults to 8.  Must be a power of two.
   */
-template<typename T, uint32 ATOMIC_BUFFER_SIZE=4> class MUSCLE_NODISCARD AtomicValue MUSCLE_FINAL_CLASS
+template<typename T, uint32 ATOMIC_BUFFER_SIZE=8> class MUSCLE_NODISCARD AtomicValue MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  Our value will be default-initialized. */

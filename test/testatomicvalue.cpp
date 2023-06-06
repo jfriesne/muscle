@@ -75,27 +75,28 @@ public:
    virtual void InternalThreadEntry()
    {
       uint32 dupCount = 0, totalCount = 0;
-      String prevString;
+      String prevString, curString;  // deliberately declaring (curString) here to avoid in-loop reallocations
       while(_pleaseExit.GetCount() == 0)
       {
-         const String s = _atomicValue.GetValue();
+         curString = _atomicValue.GetValue();
 
          totalCount++;
-         if (s == prevString) dupCount++;
-         prevString = s;
+         if (curString == prevString) dupCount++;
 
-         if ((totalCount%20000)==0) printf("TestReaderThread:  Read string [%s] (%.04f%% are duplicate values)        \r", s(), 100.0f*(((float)dupCount)/totalCount));
-         const char * slash = strstr(s(), " / ");
+         if ((totalCount%20000)==0) printf("TestReaderThread:  Read string [%s] (%.04f%% are duplicate values)        \r", curString(), 100.0f*(((float)dupCount)/totalCount));
+         const char * slash = strstr(curString(), " / ");
          if (slash)
          {
             const uint32 allegedHashCode = (uint32) Atoull(slash+3);
-            const uint32 actualHashCode  = s.Substring(0, (uint32) (slash-s())).HashCode();
+            const uint32 actualHashCode  = curString.Substring(0, (uint32) (slash-curString())).HashCode();
             if (allegedHashCode != actualHashCode)
             {
-               LogTime(MUSCLE_LOG_ERROR, "AtomicReaderThread:  ERROR: Read string [%s], expected hash code " UINT32_FORMAT_SPEC ", computed hash code " UINT32_FORMAT_SPEC "\n", s(), allegedHashCode, actualHashCode);
+               LogTime(MUSCLE_LOG_ERROR, "AtomicReaderThread:  ERROR: Read string [%s], expected hash code " UINT32_FORMAT_SPEC ", computed hash code " UINT32_FORMAT_SPEC "\n", curString(), allegedHashCode, actualHashCode);
                _status |= B_LOGIC_ERROR;
             }
          }
+
+         prevString.SwapContents(curString);
       }
    }
 
