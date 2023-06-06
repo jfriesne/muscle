@@ -38,13 +38,13 @@ public:
    AtomicValue(const T & val) : _readIndex(0), _writeIndex(0) {_buffer[_readIndex] = val;}
 
    /** Returns a copy of the current state of our held value */
-   MUSCLE_NODISCARD T GetValue() const {return _buffer[_readIndex & ATOMIC_BUFFER_MASK];}
+   MUSCLE_NODISCARD T GetValue() const {return _buffer[_readIndex];}  // & ATOMIC_BUFFER_MASK isn't necessary here!
 
    /** Returns a read-only reference to the current state of our held value.
      * @note that this reference may not remain valid for long, so if you call this
      *       method, be sure to read any data you need from the reference quickly.
      */
-   MUSCLE_NODISCARD const T & GetValueRef() const {return _buffer[_readIndex & ATOMIC_BUFFER_MASK];}
+   MUSCLE_NODISCARD const T & GetValueRef() const {return _buffer[_readIndex];}  // & ATOMIC_BUFFER_MASK isn't necessary here!
 
    /** Attempts to set our held value to a new value in a thread-safe fashion.
      * @param newValue the new value to set
@@ -52,7 +52,7 @@ public:
      */
    status_t SetValue(const T & newValue)
    {
-      uint32 oldReadIndex = _readIndex & ATOMIC_BUFFER_MASK;
+      uint32 oldReadIndex = _readIndex;  // & ATOMIC_BUFFER_MASK isn't necessary here!
       while(1)
       {
          const uint32 newWriteIndex = (++_writeIndex & ATOMIC_BUFFER_MASK);
@@ -89,8 +89,8 @@ private:
    static const uint32 ATOMIC_BUFFER_MASK = ATOMIC_BUFFER_SIZE-1;
 
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
-   std::atomic<uint32> _readIndex;
-   std::atomic<uint32> _writeIndex;
+   std::atomic<uint32> _readIndex;   // cycles from 0 through (ATOMIC_BUFFER_SIZE-1)
+   std::atomic<uint32> _writeIndex;  // increments continuously towards max uint32 value, then rolls over to zero and repeats
 #elif defined(WIN32)
    volatile long _readIndex;
    volatile long _writeIndex;
@@ -102,8 +102,8 @@ private:
 #endif
 
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
-    enum {TestPowerOfTwoValue = ATOMIC_BUFFER_SIZE && !(ATOMIC_BUFFER_SIZE&(ATOMIC_BUFFER_SIZE-1))};
-    static_assert(TestPowerOfTwoValue, "AtomicValue template's ATOMIC_BUFFER_SIZE template-parameter must be a power of two");
+   enum {TestPowerOfTwoValue = ATOMIC_BUFFER_SIZE && !(ATOMIC_BUFFER_SIZE&(ATOMIC_BUFFER_SIZE-1))};
+   static_assert(TestPowerOfTwoValue, "AtomicValue template's ATOMIC_BUFFER_SIZE template-parameter must be a power of two");
 #endif
 
    T _buffer[ATOMIC_BUFFER_SIZE];
