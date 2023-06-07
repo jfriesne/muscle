@@ -373,10 +373,26 @@ status_t ParseConnectArg(const String & s, String & retHost, uint16 & retPort, b
       retHost = s.Substring(1,rBracket);
       return ParseConnectArgAux(s, rBracket+1, retPort, portRequired);
    }
-   else if (s.GetNumInstancesOf(':') != 1)  // I assume IPv6-style address strings never have exactly one colon in them
+   else
    {
-      retHost = s;
-      return portRequired ? B_BAD_ARGUMENT : B_NO_ERROR;
+      const int32 magicSuffixIdx = s.LastIndexOf("_port_");  // special stupid syntax for when passing bracket-chars on the command-line isn't possible (hi osascript)
+      if (magicSuffixIdx >= 0)
+      {
+         retHost = s.Substring(0, magicSuffixIdx);
+
+         const int32 portIdx = magicSuffixIdx+6;
+         if (muscleInRange(s()[portIdx], '0', '9'))
+         {
+            retPort = (uint16)atoi(s()+portIdx);
+            return B_NO_ERROR;
+         }
+         else return portRequired ? B_BAD_ARGUMENT : B_NO_ERROR;
+      }
+      else if (s.GetNumInstancesOf(':') != 1)  // I assume IPv6-style address strings never have exactly one colon in them
+      {
+         retHost = s;
+         return portRequired ? B_BAD_ARGUMENT : B_NO_ERROR;
+      }
    }
 #endif
 

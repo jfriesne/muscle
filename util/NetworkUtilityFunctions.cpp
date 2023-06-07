@@ -2137,11 +2137,23 @@ void IPAddressAndPort :: SetFromString(const String & s, uint16 defaultPort, boo
       _port = ((colIdx >= 0)&&(muscleInRange(s()[colIdx+1], '0', '9'))) ? (uint16)atoi(s()+colIdx+1) : defaultPort;
       return;
    }
-   else if (s.GetNumInstancesOf(':') != 1)  // I assume IPv6-style address strings never have exactly one colon in them
+   else
    {
-      _ip   = ResolveIP(s, allowDNSLookups);
-      _port = defaultPort;
-      return;
+      const int32 magicSuffixIdx = s.LastIndexOf("_port_");  // special stupid syntax for when passing bracket-chars on the command-line isn't possible (hi osascript)
+      if (magicSuffixIdx >= 0)
+      {
+         _ip = ResolveIP(s.Substring(0, magicSuffixIdx), allowDNSLookups);
+
+         const int32 portIdx = magicSuffixIdx+6;
+         _port = (muscleInRange(s()[portIdx], '0', '9')) ? (uint16)atoi(s()+portIdx) : defaultPort;
+         return;
+      }
+      else if (s.GetNumInstancesOf(':') != 1)  // I assume IPv6-style address strings never have exactly one colon in them
+      {
+         _ip   = ResolveIP(s, allowDNSLookups);
+         _port = defaultPort;
+         return;
+      }
    }
 #endif
 
