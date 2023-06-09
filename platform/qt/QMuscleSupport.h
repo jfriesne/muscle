@@ -6,6 +6,7 @@
 #include <QString>
 #include <QPoint>
 #include <QRect>
+#include <QSize>
 
 #include "support/MuscleSupport.h"  // for PODHashFunctor, etc
 
@@ -39,6 +40,27 @@ public:
      * @param k2 second key to compare
      */
    MUSCLE_NODISCARD bool AreKeysEqual(const QString & k1, const QString & k2) const {return (k1==k2);}
+};
+
+/** Enables the use of QSizes as keys in a MUSCLE Hashtable. */
+template <> class PODHashFunctor<QSize>
+{
+public:
+   /** Returns a hash code for the given QSize object.
+     * @param sz The QSize to calculate a hash code for.
+     */
+   MUSCLE_NODISCARD uint32 operator () (const QSize & sz) const
+   {
+      const uint32 hw = CalculateHashCode(sz.width());
+      const uint32 hh = CalculateHashCode(sz.height());
+      return (hw + (hh*13));
+   }
+
+   /** Returns true iff the two QSize are equal.
+     * @param k1 first key to compare
+     * @param k2 second key to compare
+     */
+   MUSCLE_NODISCARD bool AreKeysEqual(const QSize & k1, const QSize & k2) const {return (k1==k2);}
 };
 
 /** Enables the use of QPoints as keys in a MUSCLE Hashtable. */
