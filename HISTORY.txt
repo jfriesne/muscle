@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.31 - Released 6/14/2023
    - Added an IsFileOpen() method to the GZDataIO class.
    - Modified the Hashtable class so that HashtableIterators
      are only registered in the iterators-list if they are actually
