@@ -2,6 +2,7 @@
 # include <machine/endian.h>  // gotta do this or it won't compile under OS/X Tiger
 #endif
 
+#include "Python.h"  // Python.h is part of the standard Python language distribution, in the Include sub-folder
 #include "python/PythonUtilityFunctions.h"
 #include "message/Message.h"
 
@@ -299,4 +300,3 @@ PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fiel
 }
 
 } // end namespace muscle
-

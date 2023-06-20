@@ -3,11 +3,14 @@
 #ifndef PythonUtilityFunctions_h
 #define PythonUtilityFunctions_h
 
-// Python.h is part of the Python2.2.1 distribution, in the Include folder.
-// If you want to include PythonUtilityFunctions.h in your code, you'll need
-// to make sure that python/Include is in your includes-path.
 #include "support/MuscleSupport.h"
-#include "Python.h"
+
+#ifndef PyObject_HEAD
+extern "C" {
+   struct _object;  // forward declaration
+   typedef struct _object PyObject;
+};
+#endif
 
 namespace muscle {
 
