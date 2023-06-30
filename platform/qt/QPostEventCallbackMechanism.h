@@ -26,7 +26,7 @@ protected:
 
    virtual bool event(QEvent * e)
    {
-      if (e->type() == CALLBACKMECHANISM_EVENT_CODE)
+      if (e->type() == (QEvent::Type) CALLBACKMECHANISM_EVENT_CODE)
       {
          DispatchCallbacks();
          return true;
