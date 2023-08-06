@@ -339,7 +339,7 @@ CheckPolicy(Hashtable<AbstractSessionIOPolicyRef, Void> & policies, const Abstra
    if (p)
    {
       // Any policy that is found attached to a session goes into our temporary policy set
-       (void) policies.PutWithDefault(policyRef);
+      (void) policies.PutWithDefault(policyRef);
 
       // If the session is ready, and BeginIO() hasn't been called on this policy already, do so now
       if ((ph.GetSession())&&(p->_hasBegun == false))
@@ -579,7 +579,7 @@ ServerProcessLoop()
          {
             if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, aborting! [%s]\n", ret());
             (void) ClearLameDucks();
-            return B_ERRNO;
+            return r.GetStatus();
          }
       }
 
@@ -726,28 +726,27 @@ ServerProcessLoop()
       TCHECKPOINT;
 
       // Pulse() our other PulseNode objects, as necessary
+      if (policies.HasItems())
       {
          // Tell the session policies we're done doing I/O (for now)
-         if (policies.HasItems())
+         for (HashtableIterator<AbstractSessionIOPolicyRef, Void> iter(policies); iter.HasData(); iter++)
          {
-            for (HashtableIterator<AbstractSessionIOPolicyRef, Void> iter(policies); iter.HasData(); iter++)
+            AbstractSessionIOPolicy * p = iter.GetKey()();
+            if (p->_hasBegun)
             {
-               AbstractSessionIOPolicy * p = iter.GetKey()();
-               if (p->_hasBegun)
-               {
-                  p->EndIO(GetRunTime64());
-                  p->_hasBegun = false;
-               }
+               p->EndIO(GetRunTime64());
+               p->_hasBegun = false;
             }
          }
 
          // Pulse the Policies
-         if (policies.HasItems()) for (HashtableIterator<AbstractSessionIOPolicyRef, Void> iter(policies); iter.HasData(); iter++) CallPulseAux(*iter.GetKey()(), GetRunTime64());
+         for (HashtableIterator<AbstractSessionIOPolicyRef, Void> iter(policies); iter.HasData(); iter++) CallPulseAux(*iter.GetKey()(), GetRunTime64());
 
-         // Pulse the Server
-         CallPulseAux(*this, GetRunTime64());
+         policies.Clear();
       }
-      policies.Clear();
+
+      // Pulse the Server
+      CallPulseAux(*this, GetRunTime64());
 
       TCHECKPOINT;
 

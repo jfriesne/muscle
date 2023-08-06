@@ -6,8 +6,9 @@ key:  - new feature
       o other
 
    o Updated PythonUtilityFunctions.h to use a forward-declaration
-     instead of include-ing Python.h directly, to avoid
-     portential namespace collisions between Python and Qt.
+     instead of #include-ing Python.h directly, to avoid potential
+     namespace-collisions between Python and Qt.
+   * Applied fixes for various minor issues flagged by pvs-studio-analyzer.
 
 9.31 - Released 6/14/2023
    - Added an IsFileOpen() method to the GZDataIO class.

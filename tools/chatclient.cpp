@@ -325,7 +325,7 @@ int main(int argc, char ** argv)
                                        LogTime(MUSCLE_LOG_INFO, "User #%s is now known as %s\n", sessionID(), name);
                                     }
                                  }
-                                 else if (strncmp(nodeName, "userstatus", 9) == 0)
+                                 else if (strncmp(nodeName, "userstatus", 10) == 0)
                                  {
                                     const char * status;
                                     if (pmsg->FindString("userstatus", &status).IsOK()) LogTime(MUSCLE_LOG_INFO, "%s is now [%s]\n", GetUserName(_users, sessionID)(), status);

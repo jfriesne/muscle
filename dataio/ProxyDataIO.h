@@ -60,7 +60,7 @@ public:
    /** Sets our current held child DataIO.
      * @param childDataIO The new child DataIO to forward method calls along to.
      */
-   virtual void SetChildDataIO(const DataIORef & childDataIO)
+   void SetChildDataIO(const DataIORef & childDataIO)
    {
       _childIO         = childDataIO;
       _seekableChildIO = dynamic_cast<SeekableDataIO *>(_childIO());

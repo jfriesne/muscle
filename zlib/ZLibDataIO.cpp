@@ -254,13 +254,13 @@ private:
 };
 
 ZLibDataIO :: ZLibDataIO(int compressionLevel)
-   : _imp(new ZLibDataIOImp(DataIORef(), compressionLevel, false))
+   : _imp(newnothrow ZLibDataIOImp(DataIORef(), compressionLevel, false))
 {
    if (_imp == NULL) MWARN_OUT_OF_MEMORY;
 }
 
 ZLibDataIO :: ZLibDataIO(const DataIORef & childIO, int compressionLevel)
-   : _imp(new ZLibDataIOImp(childIO, compressionLevel, false))
+   : _imp(newnothrow ZLibDataIOImp(childIO, compressionLevel, false))
 {
    if (_imp == NULL) MWARN_OUT_OF_MEMORY;
 }

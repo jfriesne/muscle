@@ -24,7 +24,10 @@
 namespace muscle {
 
 FileDescriptorDataIO ::
-FileDescriptorDataIO(const ConstSocketRef & fd, bool blocking) : _fd(fd), _dofSyncOnClose(false)
+FileDescriptorDataIO(const ConstSocketRef & fd, bool blocking)
+   : _fd(fd)
+   , _blocking(true)  // just to keep the static analyzers happy
+   , _dofSyncOnClose(false)
 {
    (void) SetBlockingIOEnabled(blocking);
 }

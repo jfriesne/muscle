@@ -254,6 +254,7 @@ QMessageTransceiverHandler :: QMessageTransceiverHandler(QObject * parent, const
    : QObject(parent)
    , _master(NULL)
    , _mtt(NULL)
+   , _sessionID(-1)
    , _prevSeen(NULL)
    , _nextSeen(NULL)
 {
@@ -264,6 +265,7 @@ QMessageTransceiverHandler :: QMessageTransceiverHandler(QObject * parent, const
    : QObject(parent, name)
    , _master(NULL)
    , _mtt(NULL)
+   , _sessionID(-1)
    , _prevSeen(NULL)
    , _nextSeen(NULL)
 {
@@ -273,7 +275,7 @@ QMessageTransceiverHandler :: QMessageTransceiverHandler(QObject * parent, const
 
 QMessageTransceiverHandler :: ~QMessageTransceiverHandler()
 {
-   (void) Reset(false);  // yes, it's virtual... but that's okay, it will just call our implementation
+   (void) QMessageTransceiverHandler::Reset(false);  // yes, it's virtual... but that's okay, it will just call our implementation
 }
 
 status_t QMessageTransceiverHandler :: SetupAsNewSession(IMessageTransceiverMaster & master, const ConstSocketRef & sock, const ThreadWorkerSessionRef & optSessionRef)

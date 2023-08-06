@@ -241,7 +241,7 @@ class NumericQueryFilter : public ValueQueryFilter
 {
 public:
    /** Default constructor.  Sets our value to its default (usually zero), and the operator to OP_EQUAL_TO. */
-   NumericQueryFilter() : _value(), _mask(), _op(OP_EQUAL_TO), _maskOp(NQF_MASK_OP_NONE), _assumeDefault(false) {/* empty */}
+   NumericQueryFilter() : _value(), _mask(), _op(OP_EQUAL_TO), _maskOp(NQF_MASK_OP_NONE), _assumeDefault(false), _default() {/* empty */}
 
    /** Constructor.  This constructor will create a QueryFilter that only returns true from Matches()
      * If the matched Message has the field item with the specified value in it.
@@ -250,7 +250,7 @@ public:
      * @param value The value to compare to the value found in the Message.
      * @param index Optional index of the item within the field.  Defaults to zero.
      */
-   NumericQueryFilter(const String & fieldName, uint8 op, DataType value, uint32 index = 0) : ValueQueryFilter(fieldName, index), _value(value), _mask(), _op(op), _maskOp(NQF_MASK_OP_NONE), _assumeDefault(false) {/* empty */}
+   NumericQueryFilter(const String & fieldName, uint8 op, DataType value, uint32 index = 0) : ValueQueryFilter(fieldName, index), _value(value), _mask(), _op(op), _maskOp(NQF_MASK_OP_NONE), _assumeDefault(false), _default() {/* empty */}
 
    /** Constructor.  This constructor is similar to the constructor shown above,
      * except that when this constructor is used, if the specified item does not exist in
@@ -1065,7 +1065,7 @@ class RawDataQueryFilter : public ValueQueryFilter
 {
 public:
    /** Default constructor.  The byte buffer is set to a zero-length/NULL buffer, and the operator is set to OP_EQUAL_TO. */
-   RawDataQueryFilter() : _op(OP_EQUAL_TO) {/* Empty */}
+   RawDataQueryFilter() : _value(), _op(OP_EQUAL_TO), _typeCode(B_ANY_TYPE), _default() {/* Empty */}
 
    /** Constructor.
      * @param fieldName Field name to look under.
@@ -1074,7 +1074,7 @@ public:
      * @param typeCode Typecode to look for in the target Message.  Default is B_ANY_TYPE, indicating that any type code is acceptable.
      * @param index Optional index of the item within the field.  Defaults to zero.
      */
-   RawDataQueryFilter(const String & fieldName, uint8 op, const ConstByteBufferRef & value, uint32 typeCode = B_ANY_TYPE, uint32 index = 0) : ValueQueryFilter(fieldName, index), _value(value), _op(op), _typeCode(typeCode) {/* empty */}
+   RawDataQueryFilter(const String & fieldName, uint8 op, const ConstByteBufferRef & value, uint32 typeCode = B_ANY_TYPE, uint32 index = 0) : ValueQueryFilter(fieldName, index), _value(value), _op(op), _typeCode(typeCode), _default() {/* empty */}
 
    /** Constructor.  This constructor is similar to the constructor shown above,
      * except that when this constructor is used, if the specified item does not exist in

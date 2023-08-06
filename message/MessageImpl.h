@@ -407,7 +407,7 @@ private:
 
    union {
       uint64 _forceAlignment;
-      char _data[(UNIONSIZE/sizeof(char))+((((int)UNIONSIZE)%sizeof(char))?1:0)];  // (int) cast necessary for Qt-4.6.0 compatibility --jaf
+      char _data[UNIONSIZE];
    } _union;
 };
 

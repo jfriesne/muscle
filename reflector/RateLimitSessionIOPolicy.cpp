@@ -12,6 +12,7 @@ RateLimitSessionIOPolicy(uint32 maxRate, uint32 primeBytes)
    , _byteLimit(primeBytes)
    , _lastTransferAt(0)
    , _transferTally(0)
+   , _numParticipants(0)
 {
    // empty
 }

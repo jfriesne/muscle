@@ -5,7 +5,12 @@
 namespace muscle {
 
 PlainTextMessageIOGateway ::
-PlainTextMessageIOGateway() : _eolString("\r\n"), _prevCharWasCarriageReturn(false), _flushPartialIncomingLines(false)
+PlainTextMessageIOGateway()
+   : _eolString("\r\n")
+   , _currentSendLineIndex(-1)
+   , _currentSendOffset(-1)
+   , _prevCharWasCarriageReturn(false)
+   , _flushPartialIncomingLines(false)
 {
    // empty
 }

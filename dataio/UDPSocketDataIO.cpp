@@ -4,7 +4,10 @@
 
 namespace muscle {
 
-UDPSocketDataIO :: UDPSocketDataIO(const ConstSocketRef & sock, bool blocking) : _sock(sock), _maxPacketSize(MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET)
+UDPSocketDataIO :: UDPSocketDataIO(const ConstSocketRef & sock, bool blocking)
+   : _sock(sock)
+   , _blocking(true)   // just to keep the static analyzers happy
+   , _maxPacketSize(MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET)
 {
    (void) SetBlockingIOEnabled(blocking);
    (void) _sendTo.AddTail();  // so that by default, Write() will just call send() on our socket

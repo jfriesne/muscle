@@ -168,48 +168,55 @@ status_t WriteZipFile(DataIO & writeTo, const Message & msg, int compressionLeve
    else return B_ZLIB_ERROR;
 }
 
+static status_t ReadZipFileAuxAux(zipFile zf, Message & msg, char * nameBuf, uint32 nameBufLen, bool loadData)
+{
+   unz_file_info fileInfo;
+   if (unzGetCurrentFileInfo(zf, &fileInfo, nameBuf, nameBufLen, NULL, 0, NULL, 0) != UNZ_OK) return B_ZLIB_ERROR;
+
+   // Add the new entry to the appropriate spot in the tree (demand-allocate sub-Messages as necessary)
+   const char * nulByte = strchr(nameBuf, '\0');
+   const bool isFolder = ((nulByte > nameBuf)&&(*(nulByte-1) == '/'));
+   Message * m = &msg;
+   StringTokenizer tok(true, nameBuf, "//");
+   const char * nextTok;
+   while((nextTok = tok()) != NULL)
+   {
+      String fn(nextTok);
+      if ((isFolder)||(tok.GetRemainderOfString()))
+      {
+         // Demand-allocate a sub-message
+         MessageRef subMsg;
+         if (m->FindMessage(fn, subMsg).IsError())
+         {
+            MRETURN_ON_ERROR(m->AddMessage(fn, Message()));
+            MRETURN_ON_ERROR(m->FindMessage(fn, subMsg));
+         }
+         m = subMsg();
+      }
+      else
+      {
+         if (loadData)
+         {
+            ByteBufferRef bufRef = GetByteBufferFromPool((uint32) fileInfo.uncompressed_size);
+            MRETURN_ON_ERROR(bufRef);
+            if (unzReadCurrentFile(zf, bufRef()->GetBuffer(), bufRef()->GetNumBytes()) != (int32)bufRef()->GetNumBytes()) return B_IO_ERROR;
+            MRETURN_ON_ERROR(m->AddFlat(fn, bufRef));
+         }
+         else MRETURN_ON_ERROR(m->AddInt64(fn, fileInfo.uncompressed_size));
+      }
+   }
+
+   return B_NO_ERROR;
+}
+
 static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32 nameBufLen, bool loadData)
 {
    while(unzOpenCurrentFile(zf) == UNZ_OK)
    {
-      unz_file_info fileInfo;
-      if (unzGetCurrentFileInfo(zf, &fileInfo, nameBuf, nameBufLen, NULL, 0, NULL, 0) != UNZ_OK) return B_ZLIB_ERROR;
+      status_t ret = ReadZipFileAuxAux(zf, msg, nameBuf, nameBufLen, loadData);
+      if (unzCloseCurrentFile(zf) != UNZ_OK) ret |= B_ZLIB_ERROR;
+      MRETURN_ON_ERROR(ret);
 
-      // Add the new entry to the appropriate spot in the tree (demand-allocate sub-Messages as necessary)
-      {
-         const char * nulByte = strchr(nameBuf, '\0');
-         const bool isFolder = ((nulByte > nameBuf)&&(*(nulByte-1) == '/'));
-         Message * m = &msg;
-         StringTokenizer tok(true, nameBuf, "//");
-         const char * nextTok;
-         while((nextTok = tok()) != NULL)
-         {
-            String fn(nextTok);
-            if ((isFolder)||(tok.GetRemainderOfString()))
-            {
-               // Demand-allocate a sub-message
-               MessageRef subMsg;
-               if (m->FindMessage(fn, subMsg).IsError())
-               {
-                  MRETURN_ON_ERROR(m->AddMessage(fn, Message()));
-                  MRETURN_ON_ERROR(m->FindMessage(fn, subMsg));
-               }
-               m = subMsg();
-            }
-            else
-            {
-               if (loadData)
-               {
-                  ByteBufferRef bufRef = GetByteBufferFromPool((uint32) fileInfo.uncompressed_size);
-                  MRETURN_ON_ERROR(bufRef);
-                  if (unzReadCurrentFile(zf, bufRef()->GetBuffer(), bufRef()->GetNumBytes()) != (int32)bufRef()->GetNumBytes()) return B_IO_ERROR;
-                  MRETURN_ON_ERROR(m->AddFlat(fn, bufRef));
-               }
-               else MRETURN_ON_ERROR(m->AddInt64(fn, fileInfo.uncompressed_size));
-            }
-         }
-      }
-      if (unzCloseCurrentFile(zf) != UNZ_OK) return B_ZLIB_ERROR;
       if (unzGoToNextFile(zf) != UNZ_OK) break;
    }
    return B_NO_ERROR;

@@ -32,7 +32,7 @@ static const String MESSAGE_SOURCE_SESSION_ID_NAME = "__messageWasFrom";
 class ServerThreadSession : public DumbReflectSession, private Thread
 {
 public:
-   ServerThreadSession()
+   ServerThreadSession() : _count(0)
    {
       // Set up our communication mechanism with our internally held I/O thread
       // Must be done in the constructor so that the ReflectServer's event loop

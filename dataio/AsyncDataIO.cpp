@@ -8,7 +8,7 @@ namespace muscle {
 
 AsyncDataIO :: ~AsyncDataIO()
 {
-   ShutdownInternalThread();
+   AsyncDataIO::ShutdownInternalThread();  // note that if we are subclassed, the subclass dtor should also call ShutdownInternalThread(), to avoid a race condition of internal-thread-vs-destructors
 }
 
 io_status_t AsyncDataIO :: Read(void * buffer, uint32 size)

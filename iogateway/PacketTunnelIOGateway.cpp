@@ -25,6 +25,7 @@ PacketTunnelIOGateway :: PacketTunnelIOGateway(const AbstractMessageIOGatewayRef
    , _sexID(0)
    , _outputPacketSize(0)
    , _sendMessageIDCounter(0)
+   , _currentOutputBufferOffset(0)
    , _maxIncomingMessageSize(MUSCLE_NO_LIMIT)
 {
    // empty

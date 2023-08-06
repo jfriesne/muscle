@@ -22,14 +22,14 @@ class MUSCLE_NODISCARD StringMatcher MUSCLE_FINAL_CLASS : public RefCountable
 {
 public:
    /** Default Constructor. */
-   StringMatcher() {/* empty */}
+   StringMatcher() : _regExp() {/* empty */}
 
    /** A constructor that sets the given expression.  See SetPattern() for argument semantics.
      * @param expression the pattern string to use in future pattern-matches.
      * @param isSimpleFormat if true, a simple globbing syntax is expected in (expression).
      *                       Otherwise, the full regex syntax will be expected.  Defaults to true.
      */
-   StringMatcher(const String & expression, bool isSimpleFormat = true) {(void) SetPattern(expression, isSimpleFormat);}
+   StringMatcher(const String & expression, bool isSimpleFormat = true) : _regExp() {(void) SetPattern(expression, isSimpleFormat);}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    StringMatcher(const StringMatcher & rhs) : RefCountable(rhs) {*this = rhs;}

@@ -49,7 +49,7 @@ public:
    Queue(const Queue& rhs);
 
    /** Destructor. */
-   virtual ~Queue();
+   ~Queue();
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    Queue & operator=(const Queue & rhs);
@@ -62,6 +62,8 @@ public:
       : _queue(NULL)
       , _queueSize(0)
       , _itemCount(0)
+      , _headIndex(0)  // initialization not strictly necessary, but
+      , _tailIndex(0)  // here anyway to keep the static analyzers happy
    {
       (void) AddTailMulti(list);
    }
@@ -71,13 +73,11 @@ public:
       : _queue(NULL)
       , _queueSize(0)
       , _itemCount(0)
+      , _headIndex(0)  // initialization not strictly necessary, but
+      , _tailIndex(0)  // here anyway to keep the static analyzers happy
    {
       if (rhs._queue == rhs._smallQueue) *this = rhs;
-      else
-      {
-         _headIndex = _tailIndex = 0;  // define these so that ClangSA won't complain about swapping undefined values
-         SwapContents(rhs);
-      }
+                                    else SwapContents(rhs);
    }
 
    /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */

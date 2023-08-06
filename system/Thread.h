@@ -481,8 +481,6 @@ protected:
 private:
    Thread(ICallbackMechanism * optCallbackMechanism);  // deliberately private and unimplemented to avoid implicit-cast-to-boolean errors if you forget the first argument to the Thread ctor
 
-   ICallbackMechanism * _optCallbackMechanism;
-
    // The read/write versions of these methods are intentionally private, since we want callers to use the Register()/Unregister() calls instead
    // of modifying the Hashtables directly.  That way the registration mechanism can be customized by subclasses, if desired.
    Hashtable<ConstSocketRef, bool> & GetInternalThreadSocketSetRW(uint32 socketSet) {return _threadData[MESSAGE_THREAD_INTERNAL]._socketSets[socketSet];}

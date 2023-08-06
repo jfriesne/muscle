@@ -1402,10 +1402,11 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
    uint32 elementSize = GetElementSize(tc);
    if (elementSize == 0)
    {
-       // zero indicates a variable-sized data item; we will use a ByteBuffer to hold it.
+       if (numBytes == 0) return B_TYPE_MISMATCH;
+
+       // element size of zero indicates a variable-sized data item; we will use a ByteBuffer to hold it.
        isVariableSize = true;
        elementSize    = numBytes;
-       if (elementSize == 0) return B_TYPE_MISMATCH;
    }
    if (numBytes % elementSize) return B_BAD_ARGUMENT;  // Can't add half an element, silly!
 
