@@ -241,12 +241,9 @@ static void DoSession(DataIORef io, bool allowRead = true)
                const io_status_t bytesRead = stdinGateway.DoInput(receiver);
                if (bytesRead.IsError())
                {
-                  stdinFD = -1;  // indicate that stdin is no longer available
-                  if (keepGoing)
-                  {
-                     keepGoing = false;
-                     LogTime(MUSCLE_LOG_INFO, "Stdin has been closed; exiting...\n");
-                  }
+                  keepGoing = false;
+                  stdinFD   = -1;  // indicate that stdin is no longer available
+                  LogTime(MUSCLE_LOG_INFO, "Stdin has been closed; exiting...\n");
                   break;
                }
                if (bytesRead.GetByteCount() == 0) break;  // nothing more to read, for now

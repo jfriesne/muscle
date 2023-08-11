@@ -307,9 +307,10 @@ status_t MessageTransceiverThread :: RequestOutputQueuesDrainedNotification(cons
    MRETURN_ON_ERROR(replyRef()->CAddMessage(MTT_NAME_MESSAGE, notifyRef));
 
    DrainTagRef drainTagRef(optDrainTag ? optDrainTag : newnothrow DrainTag);
-   if (drainTagRef()) drainTagRef()->SetReplyMessage(replyRef);
    if (drainTagRef())
    {
+       drainTagRef()->SetReplyMessage(replyRef);
+
        MRETURN_ON_ERROR(commandRef()->CAddString(MTT_NAME_PATH, optDistPath));
        MRETURN_ON_ERROR(commandRef()->AddTag(MTT_NAME_DRAIN_TAG, drainTagRef));
        return SendMessageToInternalThread(commandRef);

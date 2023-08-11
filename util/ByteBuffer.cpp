@@ -56,13 +56,12 @@ status_t ByteBuffer :: SetNumBytes(uint32 newNumBytes, bool retainData)
       }
       else
       {
-         uint8 * newBuf = NULL;
-         if (newNumBytes > 0)
-         {
-            newBuf = (uint8 *) (as ? as->Malloc(newNumBytes) : muscleAlloc(newNumBytes));
-            MRETURN_OOM_ON_NULL(newBuf);
-         }
-         if (as) as->Free(_buffer, _numAllocatedBytes); else muscleFree(_buffer);
+         uint8 * newBuf = (uint8 *) (as ? as->Malloc(newNumBytes) : muscleAlloc(newNumBytes));
+         MRETURN_OOM_ON_NULL(newBuf);
+
+         if (as) as->Free(_buffer, _numAllocatedBytes);
+            else muscleFree(_buffer);
+
          _buffer = newBuf;
          _numAllocatedBytes = _numValidBytes = newNumBytes;
       }

@@ -48,7 +48,8 @@ DoOutputImplementation(uint32 maxBytes)
          }
       }
 
-      if ((_sendBufByteOffset >= 0)&&(_sendBufByteOffset < _sendBufLength))
+      // At this point we are guaranteed that (_sendBufByteOffset >= 0 or else we would have returned, above
+      if (_sendBufByteOffset < _sendBufLength)
       {
          const uint32 mtuSize = GetMaximumPacketSize();
          if (mtuSize > 0)

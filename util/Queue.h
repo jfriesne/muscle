@@ -1381,7 +1381,7 @@ InsertItemsAt(uint32 index, const ItemType * items, uint32 numNewItems)
    const uint32 oldSize = GetNumItems();
    const uint32 newSize = oldSize+numNewItems;
 
-   ItemType * oldItems;
+   ItemType * oldItems = NULL;  // set NULL just to keep the static analyzer happy
    MRETURN_ON_ERROR(EnsureSizeAux(newSize, true, &oldItems, NULL, false));
 
    int32 si = 0;

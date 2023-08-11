@@ -1391,6 +1391,7 @@ uint32 Message :: GetElementSize(uint32 type)
 status_t Message :: AddDataAux(const String & fieldName, const void * data, uint32 numBytes, uint32 tc, bool prepend)
 {
    if (numBytes == 0) return B_BAD_ARGUMENT;   // can't add 0 bytes, that's silly
+
    if (tc == B_STRING_TYPE)
    {
       const String temp((const char *)data);  // kept separate to avoid gcc optimizer bug (otherwise -O3 crashes here)
@@ -1402,8 +1403,6 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
    uint32 elementSize = GetElementSize(tc);
    if (elementSize == 0)
    {
-       if (numBytes == 0) return B_TYPE_MISMATCH;
-
        // element size of zero indicates a variable-sized data item; we will use a ByteBuffer to hold it.
        isVariableSize = true;
        elementSize    = numBytes;

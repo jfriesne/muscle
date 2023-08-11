@@ -579,6 +579,7 @@ ServerProcessLoop()
          {
             if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, aborting! [%s]\n", ret());
             (void) ClearLameDucks();
+            EventLoopCycleEnds();  // probably not that important, but it makes PVS studio happy if we tie up the loose end
             return r.GetStatus();
          }
       }
