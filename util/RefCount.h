@@ -3,6 +3,10 @@
 #ifndef MuscleRefCount_h
 #define MuscleRefCount_h
 
+#ifdef MUSCLE_ENABLE_HELGRIND_ANNOTATIONS
+# include <valgrind/helgrind.h>
+#endif
+
 #include "util/Cloneable.h"
 #include "util/ObjectPool.h"
 #include "util/PointerAndBits.h"
@@ -101,6 +105,11 @@ public:
      * it enabled after you are done debugging.
      */
    MUSCLE_NODISCARD const String * GetAllocationLocation() const {return _allocatedAtStackTrace;}
+#endif
+
+#ifdef MUSCLE_ENABLE_HELGRIND_ANNOTATIONS
+   /** Accessor method, for debugging with helgrind only.  Please ignore this! */
+   const AtomicCounter & GetAtomicCounter() const {return _refCount;}
 #endif
 
 private:
@@ -472,11 +481,24 @@ private:
       if (item)
       {
          const bool isRefCounting = this->IsRefCounting();
-         if ((isRefCounting)&&(item->DecrementRefCount()))
+         if (isRefCounting)
          {
-            AbstractObjectManager * m = item->GetManager();
-            if (m) m->RecycleObject(const_cast<Item *>(item));
-              else delete item;
+            if (item->DecrementRefCount())
+            {
+               // special annotation to help helgrind understand what we're doing here
+               // see:  https://valgrind.org/docs/manual/hg-manual.html
+#ifdef MUSCLE_ENABLE_HELGRIND_ANNOTATIONS
+               ANNOTATE_HAPPENS_AFTER(&item->GetAtomicCounter());
+               ANNOTATE_HAPPENS_BEFORE_FORGET_ALL(&item->GetAtomicCounter());
+#endif
+
+               AbstractObjectManager * m = item->GetManager();
+               if (m) m->RecycleObject(const_cast<Item *>(item));
+                 else delete item;
+            }
+#ifdef MUSCLE_ENABLE_HELGRIND_ANNOTATIONS
+            else ANNOTATE_HAPPENS_BEFORE(&item->GetAtomicCounter());
+#endif
          }
          _item.SetPointerAndBits(NULL, 0);
       }

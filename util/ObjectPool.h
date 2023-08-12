@@ -8,10 +8,13 @@
 
 namespace muscle {
 
+#if defined(MUSCLE_ENABLE_HELGRIND_ANNOTATIONS) && !defined(DISABLE_OBJECT_POOLING)
 // Uncomment this #define to disable object pools (ie turn them into
 // simple passthroughs to the new/delete operators).
-// This is helpful if you are trying to track down memory leaks.
-//#define DISABLE_OBJECT_POOLING 1
+// This is helpful if you are trying to track down memory leaks, or checking
+// for potential race conditions using helgrind.
+# define DISABLE_OBJECT_POOLING 1
+#endif
 
 #ifndef DEFAULT_MUSCLE_POOL_SLAB_SIZE
 /** Default maximum size of each ObjectPool "slab", in bytes.  Defaults to 4096, since that corresponds nicely to a standard kernel-page size. */
@@ -188,12 +191,13 @@ public:
       if (obj)
       {
          MASSERT(obj->GetManager()==this, "ObjectPool::ReleaseObject was passed an object that it never allocated!");
-         *obj = GetDefaultObject();  // necessary so that eg if (obj) is holding any Refs, it will release them now
-         obj->SetManager(NULL);
 
 #ifdef DISABLE_OBJECT_POOLING
          delete obj;
 #else
+         *obj = GetDefaultObject();  // necessary so that eg if (obj) is holding any Refs, it will release them now
+         obj->SetManager(NULL);
+
          if (_mutex.Lock().IsOK())
          {
             ObjectSlab * slabToDelete = ReleaseObjectAux(obj);

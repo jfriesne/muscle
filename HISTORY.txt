@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a -DWITH_HELGRIND option to CMakeLists.txt to enable
+     causality annotations in the reference-counting of RefCount.h
+     so that helgrind doesn't give false-positive warnings when
+     analyzing an execution of this code for race conditions.
    o Updated PythonUtilityFunctions.h to use a forward-declaration
      instead of #include-ing Python.h directly, to avoid potential
      namespace-collisions between Python and Qt.

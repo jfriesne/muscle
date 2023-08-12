@@ -60,6 +60,14 @@ command.  Here is a list of flags that the CMakeLists.txt file recognizes:
    to instrument the generated code to find programming errors at runtime
    that might otherwise go unnoticed.
 
+-DWITH_HELGRIND "Enable helgrind annotations for reference-counting" (defaults to OFF)
+   Specify this to enable the ANNOTATE_HAPPENS_BEFORE and ANNOTATE_HAPPENS_AFTER macros in
+   RefCount.h that let helgrind know that we're doing reference-counting there.  Without this,
+   helgrind is likely to report some unnecessary false-positives because it won't understand
+   the semantics we are using.  See https://valgrind.org/docs/manual/hg-manual.html for details.
+   Note that if this option is enabled, valgrind must be installed locally so that the build
+   can find helgrind.h
+
 -DWITH_DEADLOCKFINDER "Enable building with MUSCLE's potential-deadlock-detection logic enabled" (defaults to OFF)
    Useful if you want to instrument the code to find potential deadlocks at runtime.
 

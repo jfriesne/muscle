@@ -49,6 +49,12 @@ if (WITH_PTHREADS)
    add_definitions(-DMUSCLE_USE_PTHREADS)
 endif (WITH_PTHREADS)
 
+option(WITH_HELGRIND "Enable helgrind annotations for reference-counting" OFF)
+if (WITH_HELGRIND)
+   message("Note:  -DWITH_HELGRIND=ON argument was specified:  building MUSCLE with helgrind annotations support!")
+   add_definitions(-DMUSCLE_ENABLE_HELGRIND_ANNOTATIONS)
+endif (WITH_HELGRIND)
+
 option(WITH_SANITIZE "Enable building with clang's sanitizer-checks enabled" OFF)
 if (WITH_SANITIZE)
    message("Note:  -DWITH_SANITIZE=ON argument was specified:  clang will build MUSCLE with sanitizer-checks enabled.")
