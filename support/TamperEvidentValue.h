@@ -18,20 +18,17 @@ template <typename T> class MUSCLE_NODISCARD TamperEvidentValue
 {
 public:
    /** Default constructor */
-   TamperEvidentValue() : _value(), _wasExplicitlySet(false) {/* empty */}
+   MUSCLE_CONSTEXPR TamperEvidentValue() : _value(), _wasExplicitlySet(false) {/* empty */}
 
    /** Explicit constructor -- sets our value to the specified value, but doesn't set the value-was-explicitly-set flag.
      * @param val the value to initially set this object to.
      */
-   TamperEvidentValue(const T & val) : _value(val), _wasExplicitlySet(false) {/* empty */}
+   MUSCLE_CONSTEXPR TamperEvidentValue(const T & val) : _value(val), _wasExplicitlySet(false) {/* empty */}
 
    /** Copy constructor.  Copies both the value and the flag-state from the passed-in TamperEvidentValue object.
      * @param rhs the object to make this object a duplicate of
      */
-   TamperEvidentValue(const TamperEvidentValue & rhs) : _value(rhs._value), _wasExplicitlySet(rhs._wasExplicitlySet) {/* empty */}
-
-   /** Destructor */
-   ~TamperEvidentValue() {/* empty */}
+   MUSCLE_CONSTEXPR TamperEvidentValue(const TamperEvidentValue & rhs) : _value(rhs._value), _wasExplicitlySet(rhs._wasExplicitlySet) {/* empty */}
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &)
      * @note our HasValueBeenSet() flag will be set to true by this operation

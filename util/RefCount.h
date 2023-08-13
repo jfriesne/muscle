@@ -38,14 +38,14 @@ class RefCountable
 {
 public:
    /** Default constructor.  Refcount begins at zero. */
-   RefCountable() : _manager(NULL)
+   MUSCLE_CONSTEXPR RefCountable() : _manager(NULL)
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
       , _allocatedAtStackTrace(NULL)
 #endif
    {/* empty */}
 
    /** Copy constructor -- ref count and manager settings are deliberately not copied over! */
-   RefCountable(const RefCountable &) : _refCount(), _manager(NULL)
+   MUSCLE_CONSTEXPR RefCountable(const RefCountable &) : _refCount(), _manager(NULL)
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
       , _allocatedAtStackTrace(NULL)
 #endif
@@ -142,25 +142,25 @@ public:
     *  Default constructor.
     *  Creates a NULL reference (suitable for later initialization with SetRef(), or the assignment operator)
     */
-   ConstRef() : _item(NULL, BooleansToBitChord(false, true)) {/* empty */}
+   MUSCLE_CONSTEXPR ConstRef() : _item(NULL, BooleansToBitChord(false, true)) {/* empty */}
 
    /**
      * Explicit constructor.  Increases the reference-count of the specified item.
      * Once referenced, (item) will be automatically deleted (or recycled) when the last ConstRef that references it goes away.
      * @param item A dynamically allocated object that the ConstRef class will assume responsibility for deleting.  May be NULL.
      */
-   explicit ConstRef(const Item * item) : _item(item, BooleansToBitChord((item != NULL), true)) {RefItem();}
+   explicit MUSCLE_CONSTEXPR ConstRef(const Item * item) : _item(item, BooleansToBitChord((item != NULL), true)) {RefItem();}
 
    /** Error-constructor.  Sets this ConstRef to be a NULL reference with the specified error code.
      * @param status the B_* error-code to contain.  If you pass in B_NO_ERROR, then B_NULL_REF will be used by default.
      */
-   ConstRef(status_t status) {SetStatusAux(status);}
+   MUSCLE_CONSTEXPR ConstRef(status_t status) {SetStatusAux(status);}
 
    /** Copy constructor.  Creates an additional reference to the object referenced by (rhs).
     *  The referenced object won't be deleted until ALL Refs that reference it are gone.
     *  @param rhs the object to make this a copy of.  Note that the data pointed to by (rhs) is not duplicated, only double-referenced.
     */
-   ConstRef(const ConstRef & rhs) {*this = rhs;}
+   MUSCLE_CONSTEXPR ConstRef(const ConstRef & rhs) {*this = rhs;}
 
    /** This constructor is useful for automatic upcasting (eg creating an ConstAbstractReflectSessionRef from a ConstStorageReflectSessionRef)
      * @param refItem A Ref or ConstRef to copy our state from.
@@ -583,7 +583,7 @@ public:
     *  Default constructor.
     *  Creates a NULL reference (suitable for later initialization with SetRef(), or the assignment operator)
     */
-   Ref() : ConstRef<Item>() {/* empty */}
+   MUSCLE_CONSTEXPR Ref() : ConstRef<Item>() {/* empty */}
 
    /**
      * Explicit constructor.  Increases the reference-count of the specified item.
@@ -733,6 +733,18 @@ template <class Item> inline ConstRef<Item> AddConstToRef(const Ref<Item> & nonC
    if (item) ret.SetRef(item, nonConstItem.IsRefCounting());
         else ret.SetStatus(nonConstItem.GetStatus());
    return ret;
+}
+
+// Called by ObjectPool constructor.  It's only placed here because ObjectPool.h isn't allowed to
+// reference RefCount.h to avoid a circular-include problem.
+template <class Object, int MUSCLE_POOL_SLAB_SIZE>
+void ObjectPool<Object, MUSCLE_POOL_SLAB_SIZE> :: ForceEagerEvaluationOfTemplatedStaticVariables() const
+{
+   (void) GetDefaultObjectForType<Object>();
+   (void) GetDefaultObjectForType<Ref<Object > >();
+   (void) GetDefaultObjectForType<ConstRef<Object > >();
+   (void) GetDefaultObjectForType<DummyRef<Object > >();
+   (void) GetDefaultObjectForType<DummyConstRef<Object > >();
 }
 
 } // end namespace muscle

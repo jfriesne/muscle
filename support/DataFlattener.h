@@ -20,7 +20,7 @@ template<class EndianConverter> class MUSCLE_NODISCARD DataFlattenerHelper MUSCL
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before trying to write data with object! */
-   DataFlattenerHelper() : _endianConverter() {Init();}
+   MUSCLE_CONSTEXPR DataFlattenerHelper() : _endianConverter() {Init();}
 
    /** Constructs a DataFlattenerHelper to write (maxBytes) bytes into the byte-array (writeTo) points to.
      * @param writeTo The buffer to write bytes into.  Caller must guarantee that this pointer will still

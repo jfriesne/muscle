@@ -17,7 +17,7 @@ class Archivable
 {
 public:
    /** Constructor */
-   Archivable() {/* empty */}
+   MUSCLE_CONSTEXPR Archivable() {/* empty */}
 
    /** Destructor */
    virtual ~Archivable() {/* empty */}

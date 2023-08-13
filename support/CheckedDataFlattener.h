@@ -20,7 +20,7 @@ template<class EndianConverter> class MUSCLE_NODISCARD CheckedDataFlattenerHelpe
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */
-   CheckedDataFlattenerHelper() : _endianConverter() {Reset();}
+   MUSCLE_CONSTEXPR CheckedDataFlattenerHelper() : _endianConverter() {Reset();}
 
    /** Constructs a CheckedDataFlattener that will write up to the specified number of bytes into (writeTo)
      * @param writeTo The buffer to write bytes into.  Caller must guarantee that this pointer remains valid when any methods on this class are called.

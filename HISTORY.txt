@@ -9,10 +9,19 @@ key:  - new feature
      causality annotations in the reference-counting of RefCount.h
      so that helgrind doesn't give false-positive warnings when
      analyzing an execution of this code for race conditions.
+   - Added MUSCLE_CONSTEXPR tag to trivial constructors and methods
+     of various POD-like utility classes.
    o Updated PythonUtilityFunctions.h to use a forward-declaration
      instead of #include-ing Python.h directly, to avoid potential
      namespace-collisions between Python and Qt.
    * Applied fixes for various minor issues flagged by pvs-studio-analyzer.
+   * Changed SignalMultiplexer's received-signal-counters to be
+     AtomicCounters rather than uint32 to avoid helgrind complaints
+     when a signal is handled.
+   * The ObjectPool constructor now calls GetDefaultObjectForType()
+     on its object-type and the associated Ref-types, to ensure that
+     the static singleton is initialized while the process is still
+     in a single-threaded state.
 
 9.31 - Released 6/14/2023
    - Added an IsFileOpen() method to the GZDataIO class.

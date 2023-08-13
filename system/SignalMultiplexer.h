@@ -4,6 +4,7 @@
 #define MuscleSignalMultiplexer_h
 
 #include "system/Mutex.h"
+#include "system/AtomicCounter.h"
 #include "util/Queue.h"
 
 namespace muscle {
@@ -67,15 +68,16 @@ public:
    MUSCLE_NODISCARD static SignalMultiplexer & GetSignalMultiplexer() {return _signalMultiplexer;}
 
    /** Returns the total number of signals (of all kinds) that have been received by this SignalMultiplexer object. */
-   MUSCLE_NODISCARD uint32 GetTotalNumSignalsReceived() const {return _totalSignalCounts;}
+   MUSCLE_NODISCARD uint32 GetTotalNumSignalsReceived() const {return _totalSignalCounts.GetCount();}
 
    /** Returns the total number of signals of the specified kind that have been received by this SignalMultiplexer object.
      * @param type The signal number (eg SIGINT).  Note that only signal numbers up to 31 are tracked.
      */
-   MUSCLE_NODISCARD uint32 GetNumSignalsReceivedOfType(uint32 type) const {return (type<ARRAYITEMS(_signalCounts))?_signalCounts[type]:0;}
+   MUSCLE_NODISCARD uint32 GetNumSignalsReceivedOfType(uint32 type) const {return (type<ARRAYITEMS(_signalCounts))?_signalCounts[type].GetCount():0;}
 
 private:
-   SignalMultiplexer();  // ctor is deliberately private
+   SignalMultiplexer()  {/* empty */}  // ctor is deliberately private
+   ~SignalMultiplexer() {/* empty */}  // dtor is deliberately private
 
    status_t UpdateSignalSets();
    status_t RegisterSignals();
@@ -86,8 +88,8 @@ private:
    Queue<ISignalHandler *> _handlers;
    Queue<int> _currentSignalSet;
 
-   uint32 _totalSignalCounts;  // incremented inside the interrupt code, beware!
-   uint32 _signalCounts[32];   // incremented inside the interrupt code, beware!
+   AtomicCounter _totalSignalCounts;  // incremented inside the interrupt code
+   AtomicCounter _signalCounts[32];   // incremented inside the interrupt code
 
    static SignalMultiplexer _signalMultiplexer;  // the singleton object
 };

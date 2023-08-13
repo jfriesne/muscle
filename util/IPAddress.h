@@ -24,7 +24,7 @@ public:
      * @param highBits the upper 64 bits of the IP address (defaults to 0).  Not used for IPv4 addresses.
      * @param interfaceIndex the interface index (defaults to MUSCLE_NO_LIMIT, a.k.a invalid).  Useful primarily for link-local IPv6 addresses.  Not used for IPv4.
      */
-   IPAddress(uint64 lowBits = 0, uint64 highBits = 0, uint32 interfaceIndex = MUSCLE_NO_LIMIT) : _lowBits(lowBits), _highBits(highBits), _interfaceIndex(interfaceIndex) {/* empty */}
+   MUSCLE_CONSTEXPR IPAddress(uint64 lowBits = 0, uint64 highBits = 0, uint32 interfaceIndex = MUSCLE_NO_LIMIT) : _lowBits(lowBits), _highBits(highBits), _interfaceIndex(interfaceIndex) {/* empty */}
 
    /** Convenience constructor.  Calling this is equivalent to creating an IPAddress
      * object and then calling SetFromString() on it with the given arguments.
@@ -33,7 +33,7 @@ public:
    explicit IPAddress(const String & s) : _lowBits(0), _highBits(0), _interfaceIndex(MUSCLE_NO_LIMIT) {(void) SetFromString(s);}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   IPAddress(const IPAddress & rhs) : _lowBits(rhs._lowBits), _highBits(rhs._highBits), _interfaceIndex(rhs._interfaceIndex) {/* empty */}
+   MUSCLE_CONSTEXPR IPAddress(const IPAddress & rhs) : _lowBits(rhs._lowBits), _highBits(rhs._highBits), _interfaceIndex(rhs._interfaceIndex) {/* empty */}
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    IPAddress & operator = (const IPAddress & rhs) {_lowBits = rhs._lowBits; _highBits = rhs._highBits; _interfaceIndex = rhs._interfaceIndex; return *this;}
@@ -324,13 +324,13 @@ public:
    /** Default constructor.   Creates an IPAddressAndPort object with the address field
      * set to (invalidIP) and the port field set to zero.
      */
-   IPAddressAndPort() : _ip(invalidIP), _port(0) {/* empty */}
+   MUSCLE_CONSTEXPR IPAddressAndPort() : _ip(invalidIP), _port(0) {/* empty */}
 
    /** Explicit constructor
      * @param ip The IP address to represent
      * @param port The port number to represent
      */
-   IPAddressAndPort(const IPAddress & ip, uint16 port) : _ip(ip), _port(port) {/* empty */}
+   MUSCLE_CONSTEXPR IPAddressAndPort(const IPAddress & ip, uint16 port) : _ip(ip), _port(port) {/* empty */}
 
    /** Convenience constructor.  Calling this is equivalent to creating an IPAddressAndPort
      * object and then calling SetFromString() on it with the given arguments.

@@ -59,13 +59,7 @@ class MUSCLE_NODISCARD AtomicCounter MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  The count value is initialized to zero. */
-   AtomicCounter() : _count(0)
-   {
-      // empty
-   }
-
-   /** Destructor */
-   ~AtomicCounter()
+   MUSCLE_CONSTEXPR AtomicCounter() : _count(0)
    {
       // empty
    }

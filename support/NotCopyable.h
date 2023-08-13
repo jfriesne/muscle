@@ -24,7 +24,7 @@ class NotCopyable
 {
 public:
    /** Default constructor, does nothing. */
-   NotCopyable() {/* empty */}
+   MUSCLE_CONSTEXPR NotCopyable() {/* empty */}
 
 private:
 #ifndef MUSCLE_AVOID_CPLUSPLUS11

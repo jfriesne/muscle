@@ -1097,7 +1097,7 @@ static uint64 GetRunTime64Aux()
          const uint64 ret = ((_wrapOffset+newVal)*MICROS_PER_SECOND)/_posixTicksPerSecond;  // convert to microseconds
          _prevVal = newTicks;
 
-         _rtMutex.Unlock();
+         (void) _rtMutex.Unlock();
          return ret;
       }
       else return 0;  // Oops?

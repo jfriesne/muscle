@@ -47,7 +47,7 @@ template <class T, unsigned int NumBits> class MUSCLE_NODISCARD PointerAndBits
 {
 public:
    /** Default constructor.  Sets this object to a NULL pointer with all data-bits set to zero. */
-   PointerAndBits() : _pointer(0)
+   MUSCLE_CONSTEXPR PointerAndBits() : _pointer(0)
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
       , _dataBits(0)
 #endif
@@ -61,7 +61,7 @@ public:
      * @param pointerVal the pointer value to hold
      * @param dataBits a bit-chord of bits to store along inside along with the pointer.  Only the low (NumBits) bits may be set in this value!
      */
-   PointerAndBits(T * pointerVal, uintptr dataBits) {SetPointerAndBits(pointerVal, dataBits);}
+   MUSCLE_CONSTEXPR PointerAndBits(T * pointerVal, uintptr dataBits) {SetPointerAndBits(pointerVal, dataBits);}
 
    /** Sets our held pointer value to the specified new value.  The current bit-chord values are retained.
      * @param pointerVal the new pointer value to store.  Must be a sufficiently well-aligned value, unless MUSCLE_AVOID_TAGGED_POINTERS is defined.

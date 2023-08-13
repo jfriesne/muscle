@@ -61,8 +61,8 @@ void SignalMultiplexer :: RemoveHandler(ISignalHandler * s)
 
 void SignalMultiplexer :: CallSignalHandlers(int sigNum)
 {
-   _totalSignalCounts++;
-   if (muscleInRange(sigNum, 0, (int)(ARRAYITEMS(_signalCounts)-1))) _signalCounts[sigNum]++;
+   (void) _totalSignalCounts.AtomicIncrement();
+   if (muscleInRange(sigNum, 0, (int)(ARRAYITEMS(_signalCounts)-1))) (void) _signalCounts[sigNum].AtomicIncrement();
 
    // Can't lock the Mutex here because we are being called within a signal context!
    // So we just have to hope that _handlers won't change while we do this
@@ -134,12 +134,6 @@ void SignalMultiplexer :: UnregisterSignals()
    newact.sa_handler = NULL;
    for (uint32 i=0; i<_currentSignalSet.GetNumItems(); i++) (void) sigaction(_currentSignalSet[i], &newact, NULL);
 #endif
-}
-
-SignalMultiplexer :: SignalMultiplexer()
-   : _totalSignalCounts(0)
-{
-   for (uint32 i=0; i<ARRAYITEMS(_signalCounts); i++) _signalCounts[i] = 0;
 }
 
 SignalMultiplexer SignalMultiplexer::_signalMultiplexer;

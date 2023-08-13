@@ -16,25 +16,22 @@ template <int NumItems, class ItemType> class MUSCLE_NODISCARD Tuple
 {
 public:
    /** Default ctor;  All values are set to their default value. */
-   Tuple() {Reset();}
+   MUSCLE_CONSTEXPR Tuple() {Reset();}
 
    /** Value constructor.  All items are set to (value)
      * @param value an item-value to set all of our item-value-slots to
      */
-   Tuple(const ItemType & value) {*this = value;}
+   MUSCLE_CONSTEXPR Tuple(const ItemType & value) {*this = value;}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   Tuple(const Tuple & rhs) {*this = rhs;}
+   MUSCLE_CONSTEXPR Tuple(const Tuple & rhs) {*this = rhs;}
 
    /** Silly constructor -- This constructor does no initialization at all.  The arguments are here merely to differentiate it
     *  from the other constructors, and are ignored.  When this constructor is used, the items in this Tuple will be in an
     *  undefined state and their state should be set to something definite before use.  (Exception:  if the items are
     *  class objects with constructors, those constructors will still be called)
     */
-   Tuple(bool, bool) {/* empty */}
-
-   /** Destructor */
-   ~Tuple() {/* empty */}
+   MUSCLE_CONSTEXPR Tuple(bool, bool) {/* empty */}
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    Tuple & operator =(const Tuple & rhs) {if (this != &rhs) {for (int i=0; i<NumItems; i++) _items[i] = rhs._items[i];} return *this;}
@@ -120,12 +117,12 @@ public:
    /** Read-write array operator (not bounds-checked)
      * @param i the index of the value to return.  Should be in the range [0, NumItems-1], inclusive.
      */
-   MUSCLE_NODISCARD ItemType & operator [](uint32 i) {return _items[i];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR ItemType & operator [](uint32 i) {return _items[i];}
 
    /** Read-only array operator (not bounds-checked)
      * @param i the index of the value to return.  Should be in the range [0, NumItems-1], inclusive.
      */
-   MUSCLE_NODISCARD const ItemType & operator [](uint32 i) const {return _items[i];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR const ItemType & operator [](uint32 i) const {return _items[i];}
 
    /** Returns the dot-product of (this) and (rhs)
      * @param rhs the other Tuple to calculate the dot-product of

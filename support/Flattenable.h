@@ -17,7 +17,7 @@ class Flattenable
 {
 public:
    /** Constructor */
-   Flattenable() {/* empty */}
+   MUSCLE_CONSTEXPR Flattenable() {/* empty */}
 
    /** Destructor */
    virtual ~Flattenable() {/* empty */}

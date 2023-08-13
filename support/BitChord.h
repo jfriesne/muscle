@@ -29,7 +29,7 @@ template <uint32 NumBits, class TagClass=Void> class MUSCLE_NODISCARD BitChord :
 {
 public:
    /** Default constructor */
-   BitChord() {ClearAllBits();}
+   MUSCLE_CONSTEXPR BitChord() {ClearAllBits();}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
    /** Variadic constructor; takes a list of bit-indices indicating which bits should be set in this BitChord.
@@ -37,14 +37,11 @@ public:
      * @note for example, BitChord bc(a, b, c); is equivalent to BitChord bc; bc.SetBit(a); bc.SetBit(b); bc.SetBit(c);
      * @note this constructor can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
      */
-   template<typename ...Bits> explicit BitChord(Bits... bits) {ClearAllBits(); const int arr[] {bits...}; for (auto bit : arr) SetBit(bit);}
+   template<typename ...Bits> explicit MUSCLE_CONSTEXPR BitChord(Bits... bits) {ClearAllBits(); const int arr[] {bits...}; for (auto bit : arr) SetBit(bit);}
 #endif
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   BitChord(const BitChord & rhs) {*this = rhs;}
-
-   /** Destructor */
-   ~BitChord() {/* empty */}
+   MUSCLE_CONSTEXPR BitChord(const BitChord & rhs) {*this = rhs;}
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    BitChord & operator =(const BitChord & rhs) {for (int i=0; i<NUM_WORDS; i++) _words[i] = rhs._words[i]; return *this;}

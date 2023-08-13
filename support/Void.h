@@ -15,7 +15,7 @@ class Void MUSCLE_FINAL_CLASS
 {
 public:
    /** Default ctor */
-   Void() {/* empty */}
+   MUSCLE_CONSTEXPR Void() {/* empty */}
 
    /** Always returns false -- all Voids are created equal and therefore one can't be less than another. */
    bool operator <(const Void &) const {return false;}

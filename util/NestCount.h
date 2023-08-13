@@ -15,7 +15,7 @@ class NestCount MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor.  Sets the nest count to zero. */
-   NestCount() : _count(0) {/* empty */}
+   MUSCLE_CONSTEXPR NestCount() : _count(0) {/* empty */}
 
    /** Increments our value, and returns true iff the new value is one. */
    bool Increment() {return (++_count == 1);}

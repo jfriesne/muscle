@@ -134,6 +134,13 @@ public:
       static_assert(NUM_OBJECTS_PER_SLAB<=65535, "Too many objects per ObjectSlab, uint16 indices will overflow!");
       static_assert(((NUM_OBJECTS_PER_SLAB==1)||(sizeof(ObjectSlab) <= MUSCLE_POOL_SLAB_SIZE)), "sizeof(ObjectSlab) is larger than MUSCLE_POOL_SLAB_SIZE");
 #endif
+
+      // This call is here solely to force the static-singleton object it returns to be initialized now,
+      // near the top of main(), rather than waiting until some poor spawned thread calls it for the first
+      // time later on and generates a helgrind hit because the static-initializer code wrote to the object
+      // in the middle of multithreaded access
+      // ref:  https://stackoverflow.com/questions/76891627/templated-read-only-singleton-function-vs-thread-safety
+      ForceEagerEvaluationOfTemplatedStaticVariables();
    }
 
    /**
@@ -714,6 +721,8 @@ private:
       }
       return NULL;
    }
+
+   void ForceEagerEvaluationOfTemplatedStaticVariables() const;
 
    uint32 _curPoolSize;  // tracks the current number of "available" objects
    uint32 _maxPoolSize;  // the maximum desired number of "available" objects
