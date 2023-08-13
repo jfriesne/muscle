@@ -17,7 +17,7 @@ template<class EndianConverter, class SizeChecker=RealSizeChecker> class MUSCLE_
 {
 public:
    /** Default constructor.  Create an invalid object.  Call SetBuffer() before using */
-   MUSCLE_CONSTEXPR DataUnflattenerHelper() : _endianConverter(), _sizeChecker() {Reset();}
+   MUSCLE_CONSTEXPR_17 DataUnflattenerHelper() : _endianConverter(), _sizeChecker() {Reset();}
 
    /** Constructs a DataUnflattener that will read up to the specified number of bytes
      * @param readFrom The buffer to read bytes from.  Caller must guarantee that this pointer remains valid when any methods on this class are called.

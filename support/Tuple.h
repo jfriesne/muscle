@@ -16,15 +16,15 @@ template <int NumItems, class ItemType> class MUSCLE_NODISCARD Tuple
 {
 public:
    /** Default ctor;  All values are set to their default value. */
-   MUSCLE_CONSTEXPR Tuple() {Reset();}
+   MUSCLE_CONSTEXPR_17 Tuple() {Reset();}
 
    /** Value constructor.  All items are set to (value)
      * @param value an item-value to set all of our item-value-slots to
      */
-   MUSCLE_CONSTEXPR Tuple(const ItemType & value) {*this = value;}
+   MUSCLE_CONSTEXPR_17 Tuple(const ItemType & value) {*this = value;}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   MUSCLE_CONSTEXPR Tuple(const Tuple & rhs) {*this = rhs;}
+   MUSCLE_CONSTEXPR_17 Tuple(const Tuple & rhs) {*this = rhs;}
 
    /** Silly constructor -- This constructor does no initialization at all.  The arguments are here merely to differentiate it
     *  from the other constructors, and are ignored.  When this constructor is used, the items in this Tuple will be in an
@@ -117,12 +117,12 @@ public:
    /** Read-write array operator (not bounds-checked)
      * @param i the index of the value to return.  Should be in the range [0, NumItems-1], inclusive.
      */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR ItemType & operator [](uint32 i) {return _items[i];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 ItemType & operator [](uint32 i) {return _items[i];}
 
    /** Read-only array operator (not bounds-checked)
      * @param i the index of the value to return.  Should be in the range [0, NumItems-1], inclusive.
      */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR const ItemType & operator [](uint32 i) const {return _items[i];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 const ItemType & operator [](uint32 i) const {return _items[i];}
 
    /** Returns the dot-product of (this) and (rhs)
      * @param rhs the other Tuple to calculate the dot-product of

@@ -149,18 +149,18 @@ public:
      * Once referenced, (item) will be automatically deleted (or recycled) when the last ConstRef that references it goes away.
      * @param item A dynamically allocated object that the ConstRef class will assume responsibility for deleting.  May be NULL.
      */
-   explicit MUSCLE_CONSTEXPR ConstRef(const Item * item) : _item(item, BooleansToBitChord((item != NULL), true)) {RefItem();}
+   explicit MUSCLE_CONSTEXPR_17 ConstRef(const Item * item) : _item(item, BooleansToBitChord((item != NULL), true)) {RefItem();}
 
    /** Error-constructor.  Sets this ConstRef to be a NULL reference with the specified error code.
      * @param status the B_* error-code to contain.  If you pass in B_NO_ERROR, then B_NULL_REF will be used by default.
      */
-   MUSCLE_CONSTEXPR ConstRef(status_t status) {SetStatusAux(status);}
+   MUSCLE_CONSTEXPR_17 ConstRef(status_t status) {SetStatusAux(status);}
 
    /** Copy constructor.  Creates an additional reference to the object referenced by (rhs).
     *  The referenced object won't be deleted until ALL Refs that reference it are gone.
     *  @param rhs the object to make this a copy of.  Note that the data pointed to by (rhs) is not duplicated, only double-referenced.
     */
-   MUSCLE_CONSTEXPR ConstRef(const ConstRef & rhs) {*this = rhs;}
+   MUSCLE_CONSTEXPR_17 ConstRef(const ConstRef & rhs) {*this = rhs;}
 
    /** This constructor is useful for automatic upcasting (eg creating an ConstAbstractReflectSessionRef from a ConstStorageReflectSessionRef)
      * @param refItem A Ref or ConstRef to copy our state from.

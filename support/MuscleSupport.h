@@ -111,6 +111,12 @@
 # define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ "new" include file isn't available (eg because we're on an ancient platform) */
 #endif
 
+#if defined(MUSCLE_USE_CPLUSPLUS17)
+# define MUSCLE_CONSTEXPR_17 constexpr /**< Defined a constexpr in C++17 and above, and defined as empty otherwise */
+#else
+# define MUSCLE_CONSTEXPR_17
+#endif
+
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11) && !defined(MUSCLE_USE_CPLUSPLUS17) && ((__cplusplus >= 201703L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L)))
 # define MUSCLE_USE_CPLUSPLUS17
 #endif

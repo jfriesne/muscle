@@ -24,7 +24,7 @@ public:
      * Creates a rectangle with upper left point (0,0), and lower right point (-1,-1).
      * Note that this rectangle has a negative area!  (that is to say, it's imaginary)
      */
-   MUSCLE_CONSTEXPR Rect() {Set(0.0f,0.0f,-1.0f,-1.0f);}
+   MUSCLE_CONSTEXPR_17 Rect() {Set(0.0f,0.0f,-1.0f,-1.0f);}
 
    /** Constructor where you specify the left, top, right, and bottom coordinates
      * @param l the left-edge coordinate
@@ -32,40 +32,40 @@ public:
      * @param r the right-edge coordinate
      * @param b the bottom-edge coordinate
      */
-   MUSCLE_CONSTEXPR Rect(float l, float t, float r, float b) {Set(l,t,r,b);}
+   MUSCLE_CONSTEXPR_17 Rect(float l, float t, float r, float b) {Set(l,t,r,b);}
 
    /** Constructor where you specify the leftTop point and the rightBottom point.
      * @param leftTop a Point to indicate the left/top corner of this Rect
      * @param rightBottom a Point to indicate the right/bottom corner of this Rect
      */
-   MUSCLE_CONSTEXPR Rect(Point leftTop, Point rightBottom) {Set(leftTop.x(), leftTop.y(), rightBottom.x(), rightBottom.y());}
+   MUSCLE_CONSTEXPR_17 Rect(Point leftTop, Point rightBottom) {Set(leftTop.x(), leftTop.y(), rightBottom.x(), rightBottom.y());}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   MUSCLE_CONSTEXPR Rect(const Rect & rhs) : Tuple<4,float>(rhs) {/* empty */}
+   MUSCLE_CONSTEXPR_17 Rect(const Rect & rhs) : Tuple<4,float>(rhs) {/* empty */}
 
    /** convenience method to get the left edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline float   left()   const {return (*this)[0];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float   left()   const {return (*this)[0];}
 
    /** convenience method to set the left edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline float & left()         {return (*this)[0];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float & left()         {return (*this)[0];}
 
    /** convenience method to get the top edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline float   top()    const {return (*this)[1];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float   top()    const {return (*this)[1];}
 
    /** convenience method to set the top edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline float & top()          {return (*this)[1];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float & top()          {return (*this)[1];}
 
    /** convenience method to get the right edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline float   right()  const {return (*this)[2];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float   right()  const {return (*this)[2];}
 
    /** convenience method to set the right edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline float & right()        {return (*this)[2];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float & right()        {return (*this)[2];}
 
    /** convenience method to get the bottom edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline float   bottom() const {return (*this)[3];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float   bottom() const {return (*this)[3];}
 
    /** convenience method to set the bottom edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline float & bottom()       {return (*this)[3];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float & bottom()       {return (*this)[3];}
 
    /** Set a new position for the rectangle.
      * @param l the new left-edge coordinate
@@ -73,7 +73,7 @@ public:
      * @param r the new right-edge coordinate
      * @param b the new bottom-edge coordinate
      */
-   inline MUSCLE_CONSTEXPR void Set(float l, float t, float r, float b)
+   inline MUSCLE_CONSTEXPR_17 void Set(float l, float t, float r, float b)
    {
       left()   = l;
       top()    = t;
@@ -91,36 +91,36 @@ public:
     }
 
    /** Returns the left top corner of the rectangle. */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline Point LeftTop() const {return Point(left(), top());}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline Point LeftTop() const {return Point(left(), top());}
 
    /** Returns the right bottom corner of the rectangle. */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline Point RightBottom() const {return Point(right(), bottom());}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline Point RightBottom() const {return Point(right(), bottom());}
 
    /** Returns the left bottom corner of the rectangle. */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline Point LeftBottom() const {return Point(left(), bottom());}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline Point LeftBottom() const {return Point(left(), bottom());}
 
    /** Returns the right top corner of the rectangle. */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline Point RightTop() const {return Point(right(), top());}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline Point RightTop() const {return Point(right(), top());}
 
    /** Set the left top corner of the rectangle.
      * @param p the new left/top corner for this Rect
      */
-   inline MUSCLE_CONSTEXPR void SetLeftTop(const Point & p) {left() = p.x(); top() = p.y();}
+   inline MUSCLE_CONSTEXPR_17 void SetLeftTop(const Point & p) {left() = p.x(); top() = p.y();}
 
    /** Set the right bottom corner of the rectangle.
      * @param p the new right/bottom corner for this Rect
      */
-   inline MUSCLE_CONSTEXPR void SetRightBottom(const Point & p) {right() = p.x(); bottom() = p.y();}
+   inline MUSCLE_CONSTEXPR_17 void SetRightBottom(const Point & p) {right() = p.x(); bottom() = p.y();}
 
    /** Set the left bottom corner of the rectangle.
      * @param p the new left/bottom corner for this Rect
      */
-   inline MUSCLE_CONSTEXPR void SetLeftBottom(const Point & p) {left() = p.x(); bottom() = p.y();}
+   inline MUSCLE_CONSTEXPR_17 void SetLeftBottom(const Point & p) {left() = p.x(); bottom() = p.y();}
 
    /** Set the right top corner of the rectangle.
      * @param p the new right/top corner for this Rect
      */
-   inline MUSCLE_CONSTEXPR void SetRightTop(const Point & p) {right() = p.x(); top() = p.y();}
+   inline MUSCLE_CONSTEXPR_17 void SetRightTop(const Point & p) {right() = p.x(); top() = p.y();}
 
    /** Makes the rectangle smaller by the amount specified in both the x and y dimensions
      * @param p a Point whose dimensions indicate how much smaller to make our x and y dimensions on each edge, respectively

@@ -11,6 +11,8 @@ key:  - new feature
      analyzing an execution of this code for race conditions.
    - Added MUSCLE_CONSTEXPR tag to trivial constructors and methods
      of various POD-like utility classes.
+   - Added MUSCLE_CONSTEXPR_17 macro, for places where a constexpr
+     tag is useful but only allowed in C++17 or later.
    o Updated PythonUtilityFunctions.h to use a forward-declaration
      instead of #include-ing Python.h directly, to avoid potential
      namespace-collisions between Python and Qt.

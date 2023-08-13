@@ -25,34 +25,34 @@ class MUSCLE_NODISCARD Point MUSCLE_FINAL_CLASS : public Tuple<2,float>, public 
 {
 public:
    /** Default constructor, sets the point to be (0.0f, 0.0f) */
-   MUSCLE_CONSTEXPR Point() {/* empty */}
+   MUSCLE_CONSTEXPR_17 Point() {/* empty */}
 
    /** Constructor where you specify the initial value of the point
     *  @param ax Initial x position
     *  @param ay Initial y position
     */
-   MUSCLE_CONSTEXPR Point(float ax, float ay) {Set(ax, ay);}
+   MUSCLE_CONSTEXPR_17 Point(float ax, float ay) {Set(ax, ay);}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   MUSCLE_CONSTEXPR Point(const Point & rhs) : Tuple<2,float>(rhs) {/* empty */}
+   MUSCLE_CONSTEXPR_17 Point(const Point & rhs) : Tuple<2,float>(rhs) {/* empty */}
 
    /** convenience method to set the x value of this Point */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline float & x()       {return (*this)[0];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float & x()       {return (*this)[0];}
 
    /** convenience method to get the x value of this Point */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline float   x() const {return (*this)[0];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float   x() const {return (*this)[0];}
 
    /** convenience method to set the y value of this Point */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline float & y()       {return (*this)[1];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float & y()       {return (*this)[1];}
 
    /** convenience method to get the y value of this Point */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR inline float   y() const {return (*this)[1];}
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float   y() const {return (*this)[1];}
 
    /** Sets a new value for the point.
     *  @param ax The new x value
     *  @param ay The new y value
     */
-   MUSCLE_CONSTEXPR void Set(float ax, float ay) {x() = ax; y() = ay;}
+   MUSCLE_CONSTEXPR_17 void Set(float ax, float ay) {x() = ax; y() = ay;}
 
    /** If the point is outside the rectangle specified by the two arguments,
     *  it will be moved horizontally and/or vertically until it falls inside the rectangle.
