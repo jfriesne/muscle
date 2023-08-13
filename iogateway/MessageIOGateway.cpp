@@ -153,7 +153,6 @@ DoOutputImplementation(uint32 maxBytes)
       if (mtuSize > 0)
       {
          PacketDataIO * pdio = GetPacketDataIO();  // guaranteed non-NULL because (mtuSize > 0)
-         IPAddressAndPort packetDest;
          const ByteBuffer * bb = _sendBuffer._buffer();
          const io_status_t numBytesSent = _nextPacketDest.IsValid()
                                         ? pdio->WriteTo(bb->GetBuffer(), bb->GetNumBytes(), _nextPacketDest)
