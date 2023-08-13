@@ -20,7 +20,7 @@ class MUSCLE_NODISCARD Socket : public RefCountable, private NotCopyable
 {
 public:
    /** Default constructor. */
-   MUSCLE_CONSTEXPR Socket() : _family(SOCKET_FAMILY_INVALID), _fd(-1), _okayToClose(false) {/* empty */}
+   Socket() : _family(SOCKET_FAMILY_INVALID), _fd(-1), _okayToClose(false) {/* empty */}
 
    /** Constructor.
      * @param fd File descriptor of a socket.  If (okayToClose) is true, then (fd) becomes property of this Socket object.
