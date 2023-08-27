@@ -24,6 +24,7 @@ key:  - new feature
      on its object-type and the associated Ref-types, to ensure that
      the static singleton is initialized while the process is still
      in a single-threaded state.
+   * IsMessageDeflated() now takes a ConstMessageRef rather than MessageRef.
 
 9.31 - Released 6/14/2023
    - Added an IsFileOpen() method to the GZDataIO class.

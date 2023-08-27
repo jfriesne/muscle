@@ -78,7 +78,7 @@ static ZLibCodec * GetZLibCodec(int level)
 #endif
 }
 
-bool IsMessageDeflated(const MessageRef & msgRef)
+bool IsMessageDeflated(const ConstMessageRef & msgRef)
 {
    return ((msgRef())&&(msgRef()->HasName(MUSCLE_ZLIB_FIELD_NAME_STRING)));
 }
