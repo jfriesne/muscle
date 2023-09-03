@@ -3178,7 +3178,7 @@ uint32
 HashtableBase<KeyType,ValueType,HashFunctorType>::Remove(const HashtableBase<HisKeyType,HisValueType,HisHashFunctorType> & pairs)
 {
    uint32 removeCount = 0;
-   if (&pairs == this)
+   if (static_cast<const void *>(&pairs) == static_cast<const void *>(this))
    {
       removeCount = GetNumItems();
       Clear();
