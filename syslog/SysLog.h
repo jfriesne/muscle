@@ -44,12 +44,12 @@ enum
 // No-op implementation of LogPlain()
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 static inline status_t LogPlainAux(int, const char * , ...) {return B_NO_ERROR;}
-# define LogPlain(logLevel, ...) ((void)(((logLevel) <= GetMaxLogLevel()) ? LogPlainAux(logLevel, __VA_ARGS__) : B_NO_ERROR))
+# define LogPlain(logLevel, ...) ((void)(((logLevel) <= muscle::GetMaxLogLevel()) ? muscle::LogPlainAux(logLevel, __VA_ARGS__) : muscle::B_NO_ERROR))
 
 // No-op implementation of LogTime()
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 static inline status_t LogTimeAux(int, const char *, ...) {return B_NO_ERROR;}
-# define LogTime(logLevel, ...) ((void)(((logLevel) <= GetMaxLogLevel()) ? LogTimeAux(logLevel, __VA_ARGS__) : B_NO_ERROR))
+# define LogTime(logLevel, ...) ((void)(((logLevel) <= muscle::GetMaxLogLevel()) ? muscle::LogTimeAux(logLevel, __VA_ARGS__) : muscle::B_NO_ERROR))
 
 // No-op implementation of WarnOutOfMemory()
 static inline void WarnOutOfMemory(const char *, int) {/* empty */}
@@ -82,12 +82,12 @@ static inline const char * GetLogLevelKeyword(int /*logLevel*/) {return "<omitte
 // Minimalist version of LogPlain(), just sends the output to stdout.
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 static inline status_t LogPlainAux(int, const char * fmt, ...) {va_list va; va_start(va, fmt); vprintf(fmt, va); va_end(va); return B_NO_ERROR;}
-# define LogPlain(logLevel, ...) ((void)(((logLevel) <= GetMaxLogLevel()) ? LogPlainAux(logLevel, __VA_ARGS__) : B_NO_ERROR))
+# define LogPlain(logLevel, ...) ((void)(((logLevel) <= muscle::GetMaxLogLevel()) ? muscle::LogPlainAux(logLevel, __VA_ARGS__) : muscle::B_NO_ERROR))
 
 // Minimalist version of LogTime(), just sends a tiny header and the output to stdout.
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 static inline status_t LogTimeAux(int logLevel, const char * fmt, ...) {printf("%i: ", logLevel); va_list va; va_start(va, fmt); vprintf(fmt, va); va_end(va); return B_NO_ERROR;}
-# define LogTime(logLevel, ...) ((void)(((logLevel) <= GetMaxLogLevel()) ? LogTimeAux(logLevel, __VA_ARGS__) : B_NO_ERROR))
+# define LogTime(logLevel, ...) ((void)(((logLevel) <= muscle::GetMaxLogLevel()) ? muscle::LogTimeAux(logLevel, __VA_ARGS__) : muscle::B_NO_ERROR))
 
 // Minimalist version of WarnOutOfMemory()
 static inline void WarnOutOfMemory(const char * file, int line) {printf("ERROR--MEMORY ALLOCATION FAILURE!  (%s:%i)\n", file, line);}
@@ -280,7 +280,7 @@ status_t SetConsoleLogToStderr(bool toStderr);
  */
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 status_t LogPlainAux(int logLevel, const char * fmt, ...);
-# define LogPlain(logLevel, ...) ((void)(((logLevel) <= GetMaxLogLevel()) ? LogPlainAux(logLevel, __VA_ARGS__) : B_NO_ERROR))
+# define LogPlain(logLevel, ...) ((void)(((logLevel) <= muscle::GetMaxLogLevel()) ? muscle::LogPlainAux(logLevel, __VA_ARGS__) : muscle::B_NO_ERROR))
 
 /** Calls LogTime() with a critical "MEMORY ALLOCATION FAILURE" Message.
   * Note that you typically wouldn't call this function directly;
@@ -300,7 +300,7 @@ void WarnOutOfMemory(const char * file, int line);
 #ifdef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(5,6)
 status_t LogTimeAux(const char * sourceFile, const char * optSourceFunction, int line, int logLevel, const char * fmt, ...);
-# define LogTime(logLevel, ...) ((void)(((logLevel) <= GetMaxLogLevel()) ? LogTimeAux(__FILE__, __FUNCTION__, __LINE__, logLevel, __VA_ARGS__) : B_NO_ERROR))
+# define LogTime(logLevel, ...) ((void)(((logLevel) <= muscle::GetMaxLogLevel()) ? muscle::LogTimeAux(__FILE__, __FUNCTION__, __LINE__, logLevel, __VA_ARGS__) : muscle::B_NO_ERROR))
 #else
 
 /** MUSCLE's primary function for logging.  Typically called indirectly, via the LogTime() macro.
@@ -317,7 +317,7 @@ status_t LogTimeAux(const char * sourceFile, const char * optSourceFunction, int
  */
 MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
 status_t LogTimeAux(int logLevel, const char * fmt, ...);
-# define LogTime(logLevel, ...) ((void)(((logLevel) <= GetMaxLogLevel()) ? LogTimeAux(logLevel, __VA_ARGS__) : B_NO_ERROR))
+# define LogTime(logLevel, ...) ((void)(((logLevel) <= muscle::GetMaxLogLevel()) ? muscle::LogTimeAux(logLevel, __VA_ARGS__) : muscle::B_NO_ERROR))
 
 #endif
 

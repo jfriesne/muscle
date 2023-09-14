@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Fixed the LogTime() and LogPlain() macros so that they compile
+     when called from a different namespace.
+
 9.32 - Released 9/8/2023
    - Added a -DWITH_HELGRIND option to CMakeLists.txt to enable
      causality annotations in the reference-counting of RefCount.h
