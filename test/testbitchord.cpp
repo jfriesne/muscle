@@ -103,7 +103,25 @@ int main(void)
    printf("X20 [%s]\n", fromWords.ToHexString()());
 
    TestOptionBits fromBytes = TestOptionBits::FromBytes((uint8)1,(uint8)2,(uint8)3,(uint8)4,(uint8)(0x65));
-   printf("X21 [%s]\n", fromBytes.ToHexString()());
+   const String hexString = fromBytes.ToHexString();
+   printf("X21 [%s]\n", hexString());
+
+   const TestOptionBits restoredFromHex = TestOptionBits::FromHexString(hexString);
+   if (restoredFromHex != fromBytes)
+   {
+      printf("ERROR:  FromHexString() didn't return the original value again!  [%s] -> [%s] -> [%s]\n", fromBytes.ToString()(), hexString(), restoredFromHex.ToString()());
+      return 10;
+   }
+
+   const String binString = fromBytes.ToBinaryString();
+   printf("X22 [%s]\n", binString());
+
+   const TestOptionBits restoredFromBin = TestOptionBits::FromBinaryString(binString);
+   if (restoredFromBin != fromBytes)
+   {
+      printf("ERROR:  FromBinaryString() didn't return the original value again!  [%s] -> [%s] -> [%s]\n", fromBytes.ToString()(), binString(), restoredFromBin.ToString()());
+      return 10;
+   }
 
    return 0;
 }

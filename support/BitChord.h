@@ -513,11 +513,62 @@ public:
       return ret;
    }
 
+   /** Given a hex string (of the form produced by the ToHexString() method above)
+     * parses that string and returns the BitChord value it represents.
+     * @param hexString the hex string to parse
+     */
+   static BitChord FromHexString(const String & hexString)
+   {
+      BitChord ret;
+
+      uint32 bitShift = 0;
+      const char * curChar = hexString()+hexString.Length();  // points to the NUL terminator
+      while((curChar > hexString())&&(bitShift < NumBits))
+      {
+         --curChar;
+
+         const int8 nybble = ParseHexChar(*curChar);
+         if (nybble >= 0)
+         {
+            for (uint32 i=0; ((i<4)&&(bitShift < NumBits)); i++)
+            {
+               if (nybble & (1<<i)) ret.SetBit(bitShift);
+               bitShift++;
+            }
+         }
+      }
+      return ret;
+   }
+
    /** Returns a fixed-length binary representation of this bit-chord. */
    String ToBinaryString() const
    {
       String ret; (void) ret.Prealloc(NumBits+1);
       for (int32 i=NumBits-1; i>=0; i--) ret += IsBitSet(i)?'1':'0';
+      return ret;
+   }
+
+   /** Given a binary string (of the form produced by the ToBinaryString() method above)
+     * parses that string and returns the BitChord value it represents.
+     * @param binString the binary string to parse
+     */
+   static BitChord FromBinaryString(const String & binString)
+   {
+      BitChord ret;
+
+      uint32 bitShift = 0;
+      const char * curChar = binString()+binString.Length();  // points to the NUL terminator
+      while((curChar > binString())&&(bitShift < NumBits))
+      {
+         --curChar;
+
+         const int8 bit = ParseBinaryChar(*curChar);
+         if (bit >= 0)
+         {
+            if (bit != 0) ret.SetBit(bitShift);
+            bitShift++;
+         }
+      }
       return ret;
    }
 
@@ -570,6 +621,24 @@ public:
    }
 
 private:
+   static int8 ParseHexChar(char c)
+   {
+      if (muscleInRange(c, '0', '9')) return c-'0';
+      if (muscleInRange(c, 'A', 'F')) return c-'A';
+      if (muscleInRange(c, 'a', 'f')) return c-'a';
+      return -1;
+   }
+
+   static int8 ParseBinaryChar(char c)
+   {
+      switch(c)
+      {
+         case '0':  return  0;
+         case '1':  return  1;
+         default:   return -1;
+      }
+   }
+
 #ifdef MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
    MUSCLE_NODISCARD int OneIffBitIsSet(  uint32 whichBit) const {return IsBitSet(whichBit)?1:0;}
    MUSCLE_NODISCARD int OneIffBitIsUnset(uint32 whichBit) const {return IsBitSet(whichBit)?0:1;}
