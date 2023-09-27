@@ -323,7 +323,7 @@ public:
     *  @param index Index of the item to return a pointer to.
     *  @return a pointer to the internally held item, or NULL if (index) was invalid.
     */
-   MUSCLE_NODISCARD ItemType * GetItemAt(uint32 index) const {return (index<_itemCount)?GetItemAtUnchecked(index):NULL;}
+   MUSCLE_NODISCARD ItemType * GetItemAt(uint32 index) const {return IsIndexValid(index)?GetItemAtUnchecked(index):NULL;}
 
    /** The same as GetItemAt(), except this version doesn't check to make sure
     *  (index) is valid.
@@ -338,7 +338,7 @@ public:
      * it is okay to call this method with any value of (index).
      * @param index Which item to return.
      */
-   MUSCLE_NODISCARD const ItemType & GetWithDefault(uint32 index) const {return (index<_itemCount)?(*this)[index]:GetDefaultItem();}
+   MUSCLE_NODISCARD const ItemType & GetWithDefault(uint32 index) const {return IsIndexValid(index)?(*this)[index]:GetDefaultItem();}
 
    /** Returns a copy of the (index)'th item in the Queue, if such an item exists,
      * or the supplied default item if it doesn't.  Unlike the [] operator,
@@ -349,7 +349,7 @@ public:
      *       returning (defItem) by-reference makes it too easy to call this method
      *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
-   MUSCLE_NODISCARD ItemType GetWithDefault(uint32 index, const ItemType & defItem) const {return (index<_itemCount)?(*this)[index]:defItem;}
+   MUSCLE_NODISCARD ItemType GetWithDefault(uint32 index, const ItemType & defItem) const {return IsIndexValid(index)?(*this)[index]:defItem;}
 
    /** Sets all items in this Queue to be equal to the argument
      * @param newItem The item to set everything in this Queue equal to
@@ -453,6 +453,11 @@ public:
 
    /** Convenience method:  Returns true iff there is at least one item in the queue. */
    MUSCLE_NODISCARD bool HasItems() const {return (_itemCount > 0);}
+
+   /** Convenience method:  Returns true iff (index) is less than the number of valid items currently in the Queue.
+     * @param index an index to test to see if it's valid
+     */
+   MUSCLE_NODISCARD bool IsIndexValid(uint32 index) const {return (index < _itemCount);}
 
    /** Returns a read-only reference the head item in the queue.  You must not call this when the queue is empty! */
    MUSCLE_NODISCARD const ItemType & Head() const {return *GetItemAtUnchecked(0);}
@@ -726,7 +731,7 @@ public:
      * in the normal C-array ordering.  Returns false otherwise.  Call Normalize() if you want to
      * make sure that the data is normalized.
      */
-   MUSCLE_NODISCARD bool IsNormalized() const {return ((_itemCount == 0)||(_headIndex <= _tailIndex));}
+   MUSCLE_NODISCARD bool IsNormalized() const {return ((IsEmpty())||(_headIndex <= _tailIndex));}
 
    /** Returns true iff (val) is physically located in this container's internal items array.
      * @param val Reference to an item.
@@ -935,7 +940,7 @@ template <class ItemType>
 ItemType &
 Queue<ItemType>::operator[](uint32 i)
 {
-   MASSERT(i<_itemCount, "Invalid index to Queue::[]");
+   MASSERT(IsIndexValid(i), "Invalid index to Queue::[]");
    ItemType * ret = &_queue[InternalizeIndex(i)];
 #ifdef __clang_analyzer__
    assert(ret != NULL);  // not sure why this is necessary
@@ -947,7 +952,7 @@ template <class ItemType>
 const ItemType &
 Queue<ItemType>::operator[](uint32 i) const
 {
-   MASSERT(i<_itemCount, "Invalid index to Queue::[]");
+   MASSERT(IsIndexValid(i), "Invalid index to Queue::[]");
    return *GetItemAtUnchecked(i);
 }
 
@@ -972,8 +977,8 @@ AddTailAndGet(QQ_SinkItemParam item)
    ItemType * oldArray;
    if (EnsureSizeAux(_itemCount+1, false, _itemCount+1, &oldArray, false).IsError()) return NULL;
 
-   if (_itemCount == 0) _headIndex = _tailIndex = 0;
-                   else _tailIndex = NextIndex(_tailIndex);
+   if (IsEmpty()) _headIndex = _tailIndex = 0;
+             else _tailIndex = NextIndex(_tailIndex);
    _itemCount++;
    ItemType * ret = &_queue[_tailIndex];
 #ifdef __clang_analyzer__
@@ -990,8 +995,8 @@ Queue<ItemType>::
 AddTailAndGet()
 {
    if (EnsureSize(_itemCount+1, false, _itemCount+1).IsError()) return NULL;
-   if (_itemCount == 0) _headIndex = _tailIndex = 0;
-                   else _tailIndex = NextIndex(_tailIndex);
+   if (IsEmpty()) _headIndex = _tailIndex = 0;
+             else _tailIndex = NextIndex(_tailIndex);
    _itemCount++;
    return &_queue[_tailIndex];
 }
@@ -1060,8 +1065,8 @@ AddHeadAndGet(QQ_SinkItemParam item)
 
    ItemType * oldArray;
    if (EnsureSizeAux(_itemCount+1, false, _itemCount+1, &oldArray, false).IsError()) return NULL;
-   if (_itemCount == 0) _headIndex = _tailIndex = 0;
-                   else _headIndex = PrevIndex(_headIndex);
+   if (IsEmpty()) _headIndex = _tailIndex = 0;
+             else _headIndex = PrevIndex(_headIndex);
    _itemCount++;
    ItemType * ret = &_queue[_headIndex];
    *ret = QQ_ForwardItem(item);
@@ -1075,8 +1080,8 @@ Queue<ItemType>::
 AddHeadAndGet()
 {
    if (EnsureSize(_itemCount+1, false, _itemCount+1).IsError()) return NULL;
-   if (_itemCount == 0) _headIndex = _tailIndex = 0;
-                   else _headIndex = PrevIndex(_headIndex);
+   if (IsEmpty()) _headIndex = _tailIndex = 0;
+             else _headIndex = PrevIndex(_headIndex);
    _itemCount++;
    return &_queue[_headIndex];
 }
@@ -1128,8 +1133,8 @@ status_t
 Queue<ItemType>::
 RemoveHead(ItemType & returnItem)
 {
-   if (_itemCount == 0) return B_DATA_NOT_FOUND;
-   returnItem = _queue[_headIndex];
+   if (IsEmpty()) return B_DATA_NOT_FOUND;
+   returnItem = QQ_PlunderItem(_queue[_headIndex]);
    return RemoveHead();
 }
 
@@ -1158,7 +1163,7 @@ status_t
 Queue<ItemType>::
 RemoveHead()
 {
-   if (_itemCount == 0) return B_DATA_NOT_FOUND;
+   if (IsEmpty()) return B_DATA_NOT_FOUND;
    const uint32 oldHeadIndex = _headIndex;
    _headIndex = NextIndex(_headIndex);
    _itemCount--;
@@ -1174,7 +1179,7 @@ RemoveHeadWithDefault()
    if (IsEmpty()) return GetDefaultItem();
    else
    {
-      const ItemType ret = Head();
+      const ItemType ret = QQ_PlunderItem(Head());
       (void) RemoveHead();
       return ret;
    }
@@ -1185,8 +1190,8 @@ status_t
 Queue<ItemType>::
 RemoveTail(ItemType & returnItem)
 {
-   if (_itemCount == 0) return B_DATA_NOT_FOUND;
-   returnItem = _queue[_tailIndex];
+   if (IsEmpty()) return B_DATA_NOT_FOUND;
+   returnItem = QQ_PlunderItem(_queue[_tailIndex]);
    return RemoveTail();
 }
 
@@ -1195,7 +1200,7 @@ status_t
 Queue<ItemType>::
 RemoveTail()
 {
-   if (_itemCount == 0) return B_DATA_NOT_FOUND;
+   if (IsEmpty()) return B_DATA_NOT_FOUND;
    const uint32 removedItemIndex = _tailIndex;
    _tailIndex = PrevIndex(_tailIndex);
    _itemCount--;
@@ -1211,7 +1216,7 @@ RemoveTailWithDefault()
    if (IsEmpty()) return GetDefaultItem();
    else
    {
-      const ItemType ret = Tail();
+      const ItemType ret = QQ_PlunderItem(Tail());
       (void) RemoveTail();
       return ret;
    }
@@ -1237,7 +1242,7 @@ Queue<ItemType>::
 RemoveItemAt(uint32 index, ItemType & returnItem)
 {
    if (index >= _itemCount) return B_BAD_ARGUMENT;
-   returnItem = _queue[InternalizeIndex(index)];
+   returnItem = QQ_PlunderItem(_queue[InternalizeIndex(index)]);
    return RemoveItemAt(index);
 }
 
@@ -1257,7 +1262,7 @@ RemoveItemAt(uint32 index)
       while(internalizedIndex != _headIndex)
       {
          const uint32 prev = PrevIndex(internalizedIndex);
-         _queue[internalizedIndex] = _queue[prev];
+         _queue[internalizedIndex] = QQ_PlunderItem(_queue[prev]);
          internalizedIndex = prev;
       }
       indexToClear = _headIndex;
@@ -1269,7 +1274,7 @@ RemoveItemAt(uint32 index)
       while(internalizedIndex != _tailIndex)
       {
          const uint32 next = NextIndex(internalizedIndex);
-         _queue[internalizedIndex] = _queue[next];
+         _queue[internalizedIndex] = QQ_PlunderItem(_queue[next]);
          internalizedIndex = next;
       }
       indexToClear = _tailIndex;
@@ -1289,7 +1294,7 @@ RemoveItemAtWithDefault(uint32 index)
    if (index >= GetNumItems()) return GetDefaultItem();
    else
    {
-      const ItemType ret = (*this)[index];
+      const ItemType ret = QQ_PlunderItem((*this)[index]);
       (void) RemoveItemAt(index);
       return ret;
    }
@@ -1604,11 +1609,11 @@ RemoveAllInstancesOf(const ItemType & val)
    uint32 writeTo = 0;
    for(uint32 readFrom=0; readFrom<origSize; readFrom++)
    {
-      const ItemType & nextRead = (*this)[readFrom];
+      ItemType & nextRead = (*this)[readFrom];
       if (nextRead == val) ret++;
       else
       {
-         if (readFrom > writeTo) (*this)[writeTo] = nextRead;
+         if (readFrom > writeTo) (*this)[writeTo] = QQ_PlunderItem(nextRead);
          writeTo++;
       }
    }
@@ -1637,9 +1642,9 @@ RemoveSortedDuplicateItems()
    const uint32 totalItems = GetNumItems();
    for (uint32 i=0; i<totalItems; i++)
    {
-      const ItemType & nextItem = (*this)[i];
-      const ItemType & wItem    = (*this)[numWrittenItems-1];
-      if (!(nextItem == wItem)) (*this)[numWrittenItems++] = nextItem;
+      ItemType & nextItem    = (*this)[i];
+      const ItemType & wItem = (*this)[numWrittenItems-1];
+      if (!(nextItem == wItem)) (*this)[numWrittenItems++] = QQ_PlunderItem(nextItem);
    }
 
    const uint32 ret = GetNumItems()-numWrittenItems;
@@ -1771,7 +1776,7 @@ template <class ItemType>
 const ItemType *
 Queue<ItemType> :: GetArrayPointerAux(uint32 whichArray, uint32 & retLength) const
 {
-   if (_itemCount > 0)
+   if (HasItems())
    {
       switch(whichArray)
       {

@@ -8,6 +8,11 @@ key:  - new feature
    - Added FromHexString() and FromBinaryString() methods to the
      BitChord class, to complement the ToHexString()
      and ToBinaryString() methods.
+   - Added a Queue::IsIndexValid(uint32) convenience-method.
+   - Updated the Queue::Remove*() methods to use std::move()
+     when possible.
+   - Updated the Hashtable::Remove*() methods to use std::move()
+     when possible.
    * Fixed the LogTime() and LogPlain() macros so that they compile
      when called from a different namespace.
 

@@ -27,9 +27,37 @@ void PrintToStream(const Queue<int> & q)
    }
 }
 
+#define TEST_MOVE_OPERATORS 1
+#ifdef TEST_MOVE_OPERATORS
+class MovableItem
+{
+public:
+   MovableItem() {printf("MovableItem DEFAULT CTOR this=%p\n", this);}
+   ~MovableItem() {printf("MovableItem DTOR this=%p\n", this);}
+
+   MovableItem(const MovableItem & rhs) {printf("MovableItem COPY CTOR this=%p rhs=%p\n", this, &rhs);}
+   MovableItem(const MovableItem && rhs) {printf("MovableItem MOVE CTOR this=%p rhs=%p\n", this, &rhs);}
+
+   MovableItem & operator =(const MovableItem & rhs) {printf("MovableItem ASSIGNMENT OPERATOR this=%p rhs=%p\n", this, &rhs); return *this;}
+   MovableItem & operator =(MovableItem && rhs) {printf("MovableItem MOVE OPERATOR this=%p rhs=%p\n", this, &rhs); return *this;}
+};
+#endif
+
 static status_t UnitTestQueue(bool isFromScript)
 {
    CompleteSetupSystem css;  // needed for string-count stats
+
+#ifdef TEST_MOVE_OPERATORS
+   Queue<MovableItem> miq;
+
+   printf("Adding 10 MovableItems\n");
+   for (uint32 i=0; i<10; i++) (void) miq.AddTail();
+
+   MovableItem temp;
+   if (miq.RemoveTail(temp).IsOK()) printf("RemoveTail() succeeded\n");
+   if (miq.RemoveHead(temp).IsOK()) printf("RemovedHead() succeeded\n");
+   if (miq.RemoveItemAt(1, temp).IsOK()) printf("RemoveItemAt() succeeded\n");
+#endif
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    {

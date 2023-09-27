@@ -539,7 +539,7 @@ public:
      * @param key The key of the key-value mapping to remove.
      * @return The value of the removed key-value mapping, or a default-constructed value if the key wasn't found.
      */
-   MUSCLE_NODISCARD ValueType RemoveWithDefault(const KeyType & key) {ValueType ret; return (RemoveAux(key, &ret).IsOK()) ? ret : GetDefaultValue();}
+   MUSCLE_NODISCARD ValueType RemoveWithDefault(const KeyType & key) {ValueType ret; return RemoveAux(key, &ret).IsOK() ? ret : GetDefaultValue();}
 
    /** Removes a mapping from the table and returns the removed value.
      * If the mapping did not exist in the table, the specified default value is returned instead.
@@ -547,7 +547,7 @@ public:
      * @param defaultValue The default value to return if (key) wasn't found.
      * @return The value of the removed key-value mapping, or the specified default value if the key wasn't found.
      */
-   HT_UniversalSinkValueRef MUSCLE_NODISCARD ValueType RemoveWithDefault(const KeyType & key, HT_SinkValueParam defaultValue) {ValueType ret; return (RemoveAux(key, &ret).IsOK()) ? ret : HT_ForwardValue(defaultValue);}
+   HT_UniversalSinkValueRef MUSCLE_NODISCARD ValueType RemoveWithDefault(const KeyType & key, HT_SinkValueParam defaultValue) {ValueType ret; return RemoveAux(key, &ret).IsOK() ? ret : HT_ForwardValue(defaultValue);}
 
    /** Convenience method:  Removes from this Hashtable all key/value pairs for which the same key is not present in (pairs)
      * @param pairs the other table to intersect our table against
@@ -1127,7 +1127,7 @@ private:
          if (this->IsPerValueClearNecessary()) this->_value = defaultValue;  //        classes!  So it's important that the Hashtable be in a consistent state here
       }
 
-      /** Removes this entry from the free list, so that we are ready for use.
+      /** Removes this entry from the free list, so that it is ready for use.
         * @param freeHeadIdx Index of the current head of the free list
         * @param table Pointer to the first entry in the HashtableEntry array
         * @returns the index of the new head of the free list
@@ -1144,7 +1144,7 @@ private:
          return ret;
       }
 
-      /** Allocates and returns an array if (size) HashtableEnty objects. */
+      /** Allocates and returns an array of (size) HashtableEntry objects. */
       MUSCLE_NODISCARD static HashtableEntryBase * CreateEntriesArray(uint32 size)
       {
          HashtableEntry * ret = newnothrow_array(HashtableEntry,size);
@@ -2988,7 +2988,7 @@ status_t
 HashtableBase<KeyType,ValueType,HashFunctorType>::RemoveEntry(HashtableEntryBase * e, ValueType * optSetValue)
 {
    RemoveIterationEntry(e);
-   if (optSetValue) *optSetValue = e->_value;
+   if (optSetValue) *optSetValue = HT_PlunderValue(e->_value);
 
    HashtableEntryBase * prev = this->GetEntryBucketPrevChecked(e);
    HashtableEntryBase * next = this->GetEntryBucketNextChecked(e);
