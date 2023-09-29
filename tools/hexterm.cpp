@@ -617,7 +617,7 @@ int hextermmain(const char * argv0, const Message & args)
             }
          }
       }
-      else LogTime(MUSCLE_LOG_CRITICALERROR, "Could not bind to port %i\n", port);
+      else LogTime(MUSCLE_LOG_CRITICALERROR, "Could not bind to port %i [%s]\n", port, as.GetStatus()());
    }
    else if (ParseConnectArg(args, "udp", host, port, true).IsOK())
    {
