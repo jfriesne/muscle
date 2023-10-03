@@ -1719,7 +1719,7 @@ void DefaultFileLogger :: CloseLogFile()
             }
             else LogTime(MUSCLE_LOG_ERROR, "Could not open compressed Log file [%s]! [%s]\n", gzName(), B_ERRNO());
          }
-         else LogTime(MUSCLE_LOG_ERROR, "Could not reopen Log file [%s] to compress it! [%s]\n", oldFileName(), B_ERRNO());
+         else LogTime(MUSCLE_LOG_DEBUG, "Could not reopen Log file [%s] to compress it! [%s]\n", oldFileName(), B_ERRNO());  // set to MUSCLE_LOG_DEBUG to avoid creating a log file in race conditions
       }
 #endif
       if ((_maxNumLogFiles != MUSCLE_NO_LIMIT)&&(_oldLogFileNames.Contains(oldFileName) == false)) (void) _oldLogFileNames.AddTail(oldFileName);  // so we can delete it later
