@@ -402,8 +402,8 @@ int main(int argc, char ** argv)
       (void) keysOnly.PutWithDefault(2);
       (void) keysOnly.PutWithDefault(5);
       (void) keysOnly.PutWithDefault(10);
-      for (HashtableIterator<int, Void> iter(keysOnly); iter.HasData(); iter++)  printf("key=%i\n", iter.GetKey());
-      printf("B sizeof(keysOnly)=%u hash=" UINT32_FORMAT_SPEC "\n", (unsigned int) sizeof(keysOnly), keysOnly.HashCode());
+      for (HashtableIterator<int, Void> iter(keysOnly, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++) printf("key=%i isAtStart=%i isAtEnd=%i\n", iter.GetKey(), iter.IsAtStart(), iter.IsAtEnd());
+      printf("B sizeof(keysOnly)=%u hash=" UINT32_FORMAT_SPEC " numItems= " UINT32_FORMAT_SPEC "\n", (unsigned int) sizeof(keysOnly), keysOnly.HashCode(), keysOnly.GetNumItems());
    }
 
    {

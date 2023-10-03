@@ -13,6 +13,8 @@ key:  - new feature
      when possible.
    - Updated the Hashtable::Remove*() methods to use std::move()
      when possible.
+   - Added IsAtStart() and IsAtEnd() convenience-methods to the
+     HashtableIterator class.
    * Fixed the LogTime() and LogPlain() macros so that they compile
      when called from a different namespace.
 

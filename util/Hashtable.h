@@ -199,6 +199,12 @@ public:
      */
    MUSCLE_NODISCARD bool IsBackwards() const {return ((_flags & HTIT_FLAG_BACKWARDS) != 0);}
 
+   /** Convenience method.  Returns true iff we are currently referencing the first key/value pair in our iteration-sequence */
+   MUSCLE_NODISCARD bool IsAtStart() const {return ((HasData())&&(_currentKey == (IsBackwards() ? _owner->GetLastKey() : _owner->GetFirstKey())));}
+
+   /** Convenience method.  Returns true iff we are currently referencing the final key/value pair in our iteration-sequence */
+   MUSCLE_NODISCARD bool IsAtEnd() const {return ((HasData())&&(_currentKey == (IsBackwards() ? _owner->GetFirstKey() : _owner->GetLastKey())));}
+
 private:
    friend class HashtableBase<KeyType, ValueType, HashFunctorType>;
 
