@@ -13,10 +13,6 @@
 # include <sys/time.h>
 #endif
 
-#if defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
-# include "native/timer.h"
-#endif
-
 namespace muscle {
 
 /** @defgroup timeutilityfunctions The TimeUtilityFunctions function API

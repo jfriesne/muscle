@@ -397,9 +397,7 @@ MathSetupSystem :: ~MathSetupSystem()
    // empty
 }
 
-#if defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
-   // empty
-#elif defined(WIN32)
+#if defined(WIN32)
 static Mutex _rtMutex;  // used for serializing access inside GetRunTime64Aux(), if necessary
 # if defined(MUSCLE_USE_QUERYPERFORMANCECOUNTER)
 static uint64 _qpcTicksPerSecond = 0;
@@ -415,9 +413,7 @@ static clock_t _posixTicksPerSecond = 0;
 
 static void InitClockFrequency()
 {
-#if defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
-   // empty
-#elif defined(WIN32)
+#if defined(WIN32)
 # if defined(MUSCLE_USE_QUERYPERFORMANCECOUNTER)
    LARGE_INTEGER tps;
    if (QueryPerformanceFrequency(&tps)) _qpcTicksPerSecond = tps.QuadPart;
@@ -1002,9 +998,7 @@ static inline uint32 get_tbu() {uint32 tbu; asm volatile("mftbu %0" : "=r" (tbu)
 /** Defined here since every MUSCLE program will have to include this file anyway... */
 static uint64 GetRunTime64Aux()
 {
-#if defined(TARGET_PLATFORM_XENOMAI) && !defined(MUSCLE_AVOID_XENOMAI)
-   return rt_timer_tsc2ns(rt_timer_tsc())/1000;
-#elif defined(WIN32)
+#if defined(WIN32)
    uint64 ret = 0;
    if (_rtMutex.Lock().IsOK())
    {
@@ -2708,10 +2702,6 @@ Queue<String> GetBuildFlags()
 
 #ifdef MUSCLE_COUNT_STRING_COPY_OPERATIONS
    (void) q.AddTail("MUSCLE_COUNT_STRING_COPY_OPERATIONS");
-#endif
-
-#ifdef MUSCLE_AVOID_XENOMAI
-   (void) q.AddTail("MUSCLE_AVOID_XENOMAI");
 #endif
 
 #ifdef DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD
