@@ -27,8 +27,8 @@ class BitChord:
       self._words    = array.array('L', [0]*self._numWords)
 
    def IsBitSet(self, whichBit):
-      return (self._words[self.__getWhichWord(whichBit)] & (1<<self.__getWhichBitWithinWord(whichBit))) != 0  
-  
+      return (self._words[self.__getWhichWord(whichBit)] & (1<<self.__getWhichBitWithinWord(whichBit))) != 0
+
    def SetBit(self, whichBit, newBitValue = True):
       whichWord          = self.__getWhichWord(whichBit)
       whichBitWithinWord = self.__getWhichBitWithinWord(whichBit)
@@ -36,7 +36,7 @@ class BitChord:
          self._words[whichWord] |= (1<<whichBitWithinWord)
       else:
          self._words[whichWord] &= ~(1<<whichBitWithinWord)
-      
+
    def ClearBit(self, whichBit):
       self.SetBit(whichBit, False)
 
@@ -67,7 +67,7 @@ class BitChord:
        for i in xrange(len(self._words)):
          if (self._words[i] != 0):
             return True
-      
+
    def AreAllBitsSet(self):
       if ((self._numBits%NUM_BITS_PER_WORD) == 0):
          for i in xrange(len(self._words)):
@@ -102,7 +102,7 @@ class BitChord:
 
    def GetNumWords(self):
       return self._numWords
-      
+
    def TypeCode(self):
       return B_BITCHORD_TYPE
 
@@ -161,7 +161,7 @@ if __name__ == "__main__":
    print(bc.AreAllBitsSet())
 
    print("Flattening: %s", bc)
-   outFile = open("test.bitchord", "wb")   
+   outFile = open("test.bitchord", "wb")
    bc.Flatten(outFile)
    outFile.close()
 
