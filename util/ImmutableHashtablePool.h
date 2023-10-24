@@ -181,24 +181,21 @@ private:
       const bool alreadyHadKey = oldTable.ContainsKey(key);
       const uint32 newSize = oldTable.GetNumItems() + (optNewVal ? (alreadyHadKey?0:1) : (alreadyHadKey?-1:0));
 
-      if ((optNewVal == NULL)||(newSize > MaxCacheableTableSize))
+      const uint32 refStatus = GetRefStatus(startWith);
+      if (refStatus != REF_STATUS_PUBLIC)
       {
-         const uint32 refStatus = GetRefStatus(startWith);
-         if (refStatus != REF_STATUS_PUBLIC)
+         // No sense creating a new table if nobody else has access to (startWith()) anyway; it's cheaper to just modify (startWith()) in-place, ImmutableHashtable notwithstanding
+         ImmutableHashtable<KeyType, ValueType, MaxCacheableTableSize> * isw = const_cast<ImmutableHashtable<KeyType, ValueType, MaxCacheableTableSize> *>(startWith());
+         if (optNewVal)
          {
-            // No sense creating a new table if nobody else has access to (startWith()) anyway; it's cheaper to just modify (startWith()) in-place, ImmutableHashtable notwithstanding
-            ImmutableHashtable<KeyType, ValueType, MaxCacheableTableSize> * isw = const_cast<ImmutableHashtable<KeyType, ValueType, MaxCacheableTableSize> *>(startWith());
-            if (optNewVal)
-            {
-               if (isw->_table.Put(key, *optNewVal).IsError()) return ConstImmutableHashtableTypeRef();
-            }
-            else if (isw->_table.Remove(key).IsError()) return startWith;  // didn't change anything but the key isn't in the table, so all's good, I guess?
-
-            if (refStatus == REF_STATUS_INLRUCACHE) (void) _lruCache.Remove(isw->_hashCodeSum); // old sum is outdated
-            isw->_hashCodeSum = newSum;
-            if (refStatus == REF_STATUS_INLRUCACHE) (void) _lruCache.Put(isw->_hashCodeSum, startWith); // new sum is correct
-            return startWith;
+            if (isw->_table.Put(key, *optNewVal).IsError()) return ConstImmutableHashtableTypeRef();
          }
+         else if (isw->_table.Remove(key).IsError()) return startWith;  // didn't change anything but the key isn't in the table, so all's good, I guess?
+
+         if (refStatus == REF_STATUS_INLRUCACHE) (void) _lruCache.Remove(isw->_hashCodeSum); // old sum is outdated
+         isw->_hashCodeSum = newSum;
+         if (refStatus == REF_STATUS_INLRUCACHE) (void) _lruCache.Put(isw->_hashCodeSum, startWith); // new sum is correct
+         return startWith;
       }
 
       // Demand-create a new table and add it to our tables-cache for potential re-use later by others
