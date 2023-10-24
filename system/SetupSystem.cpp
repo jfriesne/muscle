@@ -2447,7 +2447,7 @@ void PrintCountedObjectInfo()
          totalNumBytes   += ((uint64)objSize)*((uint64)objCount);
       }
 
-      printf("Counted Object Info report follows: (" UINT32_FORMAT_SPEC " types counted, " UINT64_FORMAT_SPEC " total objects, %.02f total MB, average " UINT64_FORMAT_SPEC " bytes/object)\n", table.GetNumItems(), totalNumObjects, ((double)totalNumBytes)/(1024*1024), (totalNumObjects>0)?(uint64)(totalNumBytes/totalNumObjects):0LL);
+      printf("Counted Object Info report follows: (" UINT32_FORMAT_SPEC " types counted, " UINT64_FORMAT_SPEC " total objects, %.02f total MB, average " UINT64_FORMAT_SPEC " bytes/object)\n", table.GetNumItems(), totalNumObjects, ((double)totalNumBytes)/(1024*1024), (uint64)((totalNumObjects>0)?(totalNumBytes/totalNumObjects):0));
       for (HashtableIterator<const char *, uint64> iter(table, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
       {
          const uint64 v        = iter.GetValue();
