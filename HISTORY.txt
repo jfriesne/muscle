@@ -15,6 +15,8 @@ key:  - new feature
      when possible.
    - Added IsAtStart() and IsAtEnd() convenience-methods to the
      HashtableIterator class.
+   - The snoopsharedmem tool now support an optional (maxBytesToPrint)
+     argument, in case you only want to see the header of the region.
    o Removed obsolete references to TARGET_PLATFORM_XENOMAI.
    o Updated the captive zlib library to the current GitHub version,
      to avoid "function declaration without a prototype is deprecated"
