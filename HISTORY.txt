@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.33 - Released 10/30/2023
    - Added FromHexString() and FromBinaryString() methods to the
      BitChord class, to complement the ToHexString()
      and ToBinaryString() methods.
