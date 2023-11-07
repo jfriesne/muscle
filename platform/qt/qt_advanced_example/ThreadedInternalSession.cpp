@@ -86,7 +86,7 @@ status_t ThreadedInternalSession :: MessageReceivedFromOwner(const MessageRef & 
       }
       return B_NO_ERROR;  // message processed, indicate this thread should keep running
    }
-   else return B_ERROR;  // indicate that it's time for this thread to terminate now
+   else return B_SHUTTING_DOWN;  // indicate that it's time for this thread to terminate now
 }
 
 #if defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)

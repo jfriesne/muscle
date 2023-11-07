@@ -107,7 +107,7 @@ protected:
 
          return B_NO_ERROR;
       }
-      else return B_ERROR;  // a NULL (msgRef) means it's time for us (the internal thread) to go away; returning an error code will accomplish our demise
+      else return B_SHUTTING_DOWN;  // a NULL (msgRef) means it's time for us (the internal thread) to go away; returning an error code will accomplish our demise
    }
 
 private:

@@ -119,7 +119,7 @@ status_t ThreadPool :: ThreadPoolThread :: SendMessagesToInternalThread(IThreadP
 
 status_t ThreadPool :: ThreadPoolThread :: MessageReceivedFromOwner(const MessageRef & msgRef, uint32 /*numLeft*/)
 {
-   if (msgRef() == NULL) return B_ERROR;  // time to go away!
+   if (msgRef() == NULL) return B_SHUTTING_DOWN;  // time to go away!
 
    MASSERT((_currentClient != NULL),    "ThreadPoolThread::MessageReceivedFromOwner:  _currentClient is NULL!");
    MASSERT((_internalQueue.HasItems()), "ThreadPoolThread::MessageReceivedFromOwner:  _internalQueue is empty!");

@@ -798,7 +798,7 @@ status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & 
 
       return B_NO_ERROR;
    }
-   else return B_BAD_ARGUMENT;
+   else return B_SHUTTING_DOWN;
 }
 
 DrainTag :: ~DrainTag()

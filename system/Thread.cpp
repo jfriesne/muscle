@@ -341,7 +341,7 @@ void Thread :: QtSocketReadReady(int /*sock*/)
 
 status_t Thread :: MessageReceivedFromOwner(const MessageRef & ref, uint32)
 {
-   return ref() ? B_NO_ERROR : B_ERROR;
+   return ref() ? B_NO_ERROR : B_SHUTTING_DOWN;
 }
 
 status_t Thread :: WaitForInternalThreadToExit()

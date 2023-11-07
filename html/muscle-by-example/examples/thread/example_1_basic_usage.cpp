@@ -33,8 +33,8 @@ protected:
       }
       else
       {
-         printf("MyThread::MessageReceivedFromOwner():  Oops, main thread thinks we should shut down now!  Returning B_ERROR to exit.\n");
-         return B_ERROR;
+         printf("MyThread::MessageReceivedFromOwner():  Oops, main thread thinks we should shut down now!  Returning B_SHUTTING_DOWN to exit.\n");
+         return B_SHUTTING_DOWN;
       }
    }
 };
