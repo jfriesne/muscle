@@ -578,24 +578,25 @@ enum {
 
         // Some more-specific status_t return codes (for convenience, and to minimize the likelihood of
         // differently-phrased error strings for common types of reasons-for-failure)
-        #define B_OUT_OF_MEMORY   status_t( "Out of Memory") ///< "Out of Memory"  - we tried to allocate memory from the heap and got denied
-        #define B_UNIMPLEMENTED   status_t( "Unimplemented") ///< "Unimplemented"  - function is not implemented (for this OS?)
-        #define B_ACCESS_DENIED   status_t( "Access Denied") ///< "Access Denied"  - we aren't allowed to do the thing we tried to do
-        #define B_DATA_NOT_FOUND  status_t("Data not Found") ///< "Data not Found" - we couldn't find the data we were looking for
-        #define B_FILE_NOT_FOUND  status_t("File not Found") ///< "File not Found" - we couldn't find the file we were looking for
-        #define B_BAD_ARGUMENT    status_t(  "Bad Argument") ///< "Bad Argument"   - one of the passed-in arguments didn't make sense
-        #define B_BAD_DATA        status_t(      "Bad Data") ///< "Bad Data"       - data we were trying to use was malformed
-        #define B_BAD_OBJECT      status_t(    "Bad Object") ///< "Bad Object"     - the object the method was called on is not in a usable state for this operation
-        #define B_END_OF_STREAM   status_t( "End of Stream") ///< "End of Stream"  - EOF / the end of the byte-stream was reached
-        #define B_TIMED_OUT       status_t(     "Timed Out") ///< "Timed Out"      - the operation took too long, so we gave up
-        #define B_IO_ERROR        status_t(     "I/O Error") ///< "I/O Error"      - an I/O operation failed
-        #define B_IO_READY        status_t(     "I/O Ready") ///< "I/O Ready"      - this call has ended early because other I/O is ready for you to handle.
-        #define B_LOCK_FAILED     status_t(   "Lock Failed") ///< "Lock Failed"    - an attempt to lock a shared resource (eg a Mutex) failed.
-        #define B_TYPE_MISMATCH   status_t( "Type Mismatch") ///< "Type Mismatch"  - tried to fit a square block into a round hole
-        #define B_ZLIB_ERROR      status_t(    "ZLib Error") ///< "ZLib Error"     - a zlib library-function reported an error
-        #define B_SSL_ERROR       status_t(     "SSL Error") ///< "SSL Error"      - an OpenSSL library-function reported an error
-        #define B_NULL_REF        status_t(      "NULL Ref") ///< "NULL Ref"       - returned by the GetStatus() method of a Ref or ConstRef that is currently NULL
-        #define B_LOGIC_ERROR     status_t(   "Logic Error") ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
+        #define B_OUT_OF_MEMORY   status_t(  "Out of Memory")  ///< "Out of Memory"    - we tried to allocate memory from the heap and got denied
+        #define B_UNIMPLEMENTED   status_t(  "Unimplemented")  ///< "Unimplemented"    - function is not implemented (for this OS?)
+        #define B_ACCESS_DENIED   status_t(  "Access Denied")  ///< "Access Denied"    - we aren't allowed to do the thing we tried to do
+        #define B_DATA_NOT_FOUND  status_t( "Data not Found")  ///< "Data not Found"   - we couldn't find the data we were looking for
+        #define B_FILE_NOT_FOUND  status_t( "File not Found")  ///< "File not Found"   - we couldn't find the file we were looking for
+        #define B_BAD_ARGUMENT    status_t(   "Bad Argument")  ///< "Bad Argument"     - one of the passed-in arguments didn't make sense
+        #define B_BAD_DATA        status_t(       "Bad Data")  ///< "Bad Data"         - data we were trying to use was malformed
+        #define B_BAD_OBJECT      status_t(     "Bad Object")  ///< "Bad Object"       - the object the method was called on is not in a usable state for this operation
+        #define B_END_OF_STREAM   status_t(  "End of Stream")  ///< "End of Stream"    - EOF / the end of the byte-stream was reached
+        #define B_TIMED_OUT       status_t(      "Timed Out")  ///< "Timed Out"        - the operation took too long, so we gave up
+        #define B_IO_ERROR        status_t(      "I/O Error")  ///< "I/O Error"        - an I/O operation failed
+        #define B_IO_READY        status_t(      "I/O Ready")  ///< "I/O Ready"        - this call has ended early because other I/O is ready for you to handle.
+        #define B_LOCK_FAILED     status_t(    "Lock Failed")  ///< "Lock Failed"      - an attempt to lock a shared resource (eg a Mutex) failed.
+        #define B_TYPE_MISMATCH   status_t(  "Type Mismatch")  ///< "Type Mismatch"    - tried to fit a square block into a round hole
+        #define B_ZLIB_ERROR      status_t(     "ZLib Error")  ///< "ZLib Error"       - a zlib library-function reported an error
+        #define B_SSL_ERROR       status_t(      "SSL Error")  ///< "SSL Error"        - an OpenSSL library-function reported an error
+        #define B_SHUTTING_DOWN   status_t("Planned Shutdown") ///< "Planned Shutdown" - deliberate error because our thread/process/etc has been requested to terminate
+        #define B_NULL_REF        status_t(       "NULL Ref")  ///< "NULL Ref"         - returned by the GetStatus() method of a Ref or ConstRef that is currently NULL
+        #define B_LOGIC_ERROR     status_t(    "Logic Error")  ///< "Logic Error"      - internal logic has gone wrong somehow (bug?)
 #else
         // Basic/general status_t return codes
         MUSCLE_CONSTEXPR_OR_CONST status_t B_NO_ERROR;       ///< This value is returned by a function or method that succeeded
@@ -610,24 +611,25 @@ enum {
 
         // Some more-specific status_t return codes (for convenience, and to minimize the likelihood of
         // differently-phrased error strings for common types of reasons-for-failure)
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_OUT_OF_MEMORY( "Out of Memory");  ///< "Out of Memory"  - we tried to allocate memory from the heap and got denied
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_UNIMPLEMENTED( "Unimplemented");  ///< "Unimplemented"  - function is not implemented (for this OS?)
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_ACCESS_DENIED( "Access Denied");  ///< "Access Denied"  - we aren't allowed to do the thing we tried to do
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_DATA_NOT_FOUND("Data not Found"); ///< "Data not Found" - we couldn't find the data we were looking for
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_FILE_NOT_FOUND("File not Found"); ///< "File not Found" - we couldn't find the file we were looking for
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_BAD_ARGUMENT(  "Bad Argument");   ///< "Bad Argument"   - one of the passed-in arguments didn't make sense
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_BAD_DATA(      "Bad Data");       ///< "Bad Data"       - data we were trying to use was malformed
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_BAD_OBJECT(    "Bad Object");     ///< "Bad Object"     - the object the method was called on is not in a usable state for this operation
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_END_OF_STREAM( "End of Stream");  ///< "End of Stream"  - EOF / the end of the byte-stream was reached
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_TIMED_OUT(     "Timed Out");      ///< "Timed Out"      - the operation took too long, so we gave up
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_IO_ERROR(      "I/O Error");      ///< "I/O Error"      - an I/O operation failed
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_IO_READY(      "I/O Ready");      ///< "I/O Ready"      - this call has ended early because other I/O is ready for you to handle.
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_LOCK_FAILED(   "Lock Failed");    ///< "Lock Failed"    - an attempt to lock a shared resource (eg a Mutex) failed.
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_TYPE_MISMATCH( "Type Mismatch");  ///< "Type Mismatch"  - tried to fit a square block into a round hole
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_ZLIB_ERROR(    "ZLib Error");     ///< "ZLib Error"     - a zlib library-function reported an error
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_SSL_ERROR(     "SSL Error");      ///< "SSL Error"      - an OpenSSL library-function reported an error
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_NULL_REF(      "NULL Ref");       ///< "NULL Ref"       - returned by the GetStatus() method of a Ref or ConstRef that is currently NULL
-        MUSCLE_CONSTEXPR_OR_CONST status_t B_LOGIC_ERROR(   "Logic Error");    ///< "Logic Error"    - internal logic has gone wrong somehow (bug?)
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_OUT_OF_MEMORY( "Out of Memory");    ///< "Out of Memory"    - we tried to allocate memory from the heap and got denied
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_UNIMPLEMENTED( "Unimplemented");    ///< "Unimplemented"    - function is not implemented (for this OS?)
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_ACCESS_DENIED( "Access Denied");    ///< "Access Denied"    - we aren't allowed to do the thing we tried to do
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_DATA_NOT_FOUND("Data not Found");   ///< "Data not Found"   - we couldn't find the data we were looking for
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_FILE_NOT_FOUND("File not Found");   ///< "File not Found"   - we couldn't find the file we were looking for
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_BAD_ARGUMENT(  "Bad Argument");     ///< "Bad Argument"     - one of the passed-in arguments didn't make sense
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_BAD_DATA(      "Bad Data");         ///< "Bad Data"         - data we were trying to use was malformed
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_BAD_OBJECT(    "Bad Object");       ///< "Bad Object"       - the object the method was called on is not in a usable state for this operation
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_END_OF_STREAM( "End of Stream");    ///< "End of Stream"    - EOF / the end of the byte-stream was reached
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_TIMED_OUT(     "Timed Out");        ///< "Timed Out"        - the operation took too long, so we gave up
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_IO_ERROR(      "I/O Error");        ///< "I/O Error"        - an I/O operation failed
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_IO_READY(      "I/O Ready");        ///< "I/O Ready"        - this call has ended early because other I/O is ready for you to handle.
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_LOCK_FAILED(   "Lock Failed");      ///< "Lock Failed"      - an attempt to lock a shared resource (eg a Mutex) failed.
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_TYPE_MISMATCH( "Type Mismatch");    ///< "Type Mismatch"    - tried to fit a square block into a round hole
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_ZLIB_ERROR(    "ZLib Error");       ///< "ZLib Error"       - a zlib library-function reported an error
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_SSL_ERROR(     "SSL Error");        ///< "SSL Error"        - an OpenSSL library-function reported an error
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_SHUTTING_DOWN( "Planned Shutdown"); ///< "Planned Shutdown" - deliberate error because our thread/process/etc has been requested to terminate
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_NULL_REF(      "NULL Ref");         ///< "NULL Ref"         - returned by the GetStatus() method of a Ref or ConstRef that is currently NULL
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_LOGIC_ERROR(   "Logic Error");      ///< "Logic Error"      - internal logic has gone wrong somehow (bug?)
 #  endif
 
         /** This class is similar to a status_t, but it also contains a byte-count field.

@@ -338,7 +338,9 @@ protected:
      * @param msgRef Reference to the just-received Message object.
      * @param numLeft Number of Messages still left in the owner's message queue.
      * @return B_NO_ERROR if you wish to continue processing, or an error code if you wish to
-     *                    terminate the internal thread and go away.
+     *                    terminate the internal thread and go away.  (B_SHUTTING_DOWN is a good
+     *                    error code to return in the latter case, so that the calling code can
+     *                    know there wasn't any "real" error that occurred)
      */
    virtual status_t MessageReceivedFromOwner(const MessageRef & msgRef, uint32 numLeft);
 

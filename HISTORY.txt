@@ -5,6 +5,11 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a B_SHUTTING_DOWN error code, useful for returning
+     from Thread::MessageReceivedFromOwner() overrides if there
+     isn't any real error but the internal thread is exiting on
+     request.
+
 9.33 - Released 10/30/2023
    - Added FromHexString() and FromBinaryString() methods to the
      BitChord class, to complement the ToHexString()
