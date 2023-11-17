@@ -9,6 +9,11 @@ key:  - new feature
      from Thread::MessageReceivedFromOwner() overrides if there
      isn't any real error but the internal thread is exiting on
      request.
+   - Added a templated GetConstRefToDefaultObjectForType()
+     convenience function to util/RefCount.h
+   o Modified IsRegexToken() to return false for '-', since
+     hyphens aren't meaningful except in the context of
+     "character class" regex tokens (which will get escaped anyway).
 
 9.33 - Released 10/30/2023
    - Added FromHexString() and FromBinaryString() methods to the

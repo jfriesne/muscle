@@ -747,6 +747,9 @@ void ObjectPool<Object, MUSCLE_POOL_SLAB_SIZE> :: ForceEagerEvaluationOfTemplate
    (void) GetDefaultObjectForType<DummyConstRef<Object > >();
 }
 
+/** Convenience function:  Returns a read-only reference to a singleton object of the specified type */
+template <class Object> DummyConstRef<Object> GetConstRefToDefaultObjectForType() {return DummyConstRef<Object>(GetDefaultObjectForType<Object>());}
+
 } // end namespace muscle
 
 #endif

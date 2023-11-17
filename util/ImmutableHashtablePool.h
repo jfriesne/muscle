@@ -96,7 +96,7 @@ public:
    typedef ConstRef<ImmutableHashtable<KeyType, ValueType, MaxCacheableTableSize, KeyHashFunctorType> > ConstImmutableHashtableTypeRef;
 
    /** Returns a reference to an empty immutable Hashtable */
-   ConstImmutableHashtableTypeRef GetEmptyTable() const {return DummyConstRef<ImmutableHashtableType>(GetDefaultObjectForType<ImmutableHashtableType>());}
+   ConstImmutableHashtableTypeRef GetEmptyTable() const {return GetConstRefToDefaultObjectForType<ImmutableHashtableType>();}
 
    /** Returns a reference to an immutable Hashtable that is identical to one that was passed in as the first argument, except that
      * the returned Hashtable has been updated with a Put(key, value) call using the specified key and value arguments.

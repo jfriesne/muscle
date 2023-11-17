@@ -218,7 +218,7 @@ bool IsRegexToken(char c, bool isFirstCharInString)
    {
       // muscle 2.50:  fixed to match exactly the chars specified in muscle/regex/regex/regcomp.c
       case '[': case ']': case '*': case '?': case '\\': case ',': case '|': case '(': case ')':
-      case '=': case '^': case '+': case '$': case '{':  case '}': case '-':  // note:  deliberately not including ':'
+      case '=': case '^': case '+': case '$': case '{':  case '}': // note:  deliberately not including ':' or '-'
         return true;
 
       case '<': case '~':   // these chars are only special if they are the first character in the string
