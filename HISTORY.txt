@@ -11,6 +11,7 @@ key:  - new feature
      request.
    - Added a templated GetConstRefToDefaultObjectForType()
      convenience function to util/RefCount.h
+   - Added a GetHardLinkCount() method to the FilePathInfo class.
    o Modified IsRegexToken() to return false for '-', since
      hyphens aren't meaningful except in the context of
      "character class" regex tokens (which will get escaped anyway).

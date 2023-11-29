@@ -29,8 +29,9 @@ public:
      * @param aTime Access time, in microseconds-since-1970.
      * @param cTime Creation time, in microseconds-since-1970.
      * @param mTime Modification time, in microseconds-since-1970.
+     * @param hardLinkCount The number of directories that this file-path appears under
      */
-   FilePathInfo(bool exists, bool isRegularFile, bool isDir, bool isSymlink, uint64 fileSizeBytes, uint64 aTime, uint64 cTime, uint64 mTime);
+   FilePathInfo(bool exists, bool isRegularFile, bool isDir, bool isSymlink, uint64 fileSizeBytes, uint64 aTime, uint64 cTime, uint64 mTime, uint32 hardLinkCount);
 
    /** Destructor.  */
    ~FilePathInfo() {/* empty */}
@@ -61,6 +62,12 @@ public:
    /** Returns the most creation time, in microseconds since 1970.  */
    MUSCLE_NODISCARD uint64 GetCreationTime() const {return _ctime;}
 
+   /** Returns the the number of directories that this file-path appears under.  (Typically 1, but
+     * can be more if hard-links are in use and pointing to the same file from various locations)
+     * AFAIK the only time this method should ever return 0 is if the FilePathInfo object isn't valid.
+     */
+   MUSCLE_NODISCARD uint32 GetHardLinkCount() const {return _hardLinkCount;}
+
    /** Sets this object's state to reflect the item that exists at (optFilePath)
      * @param optFilePath The path to examine.  SetFilePath(NULL) is the same as calling Reset().
      */
@@ -76,7 +83,8 @@ public:
           && (_size  == rhs._size)
           && (_atime == rhs._atime)
           && (_ctime == rhs._ctime)
-          && (_mtime == rhs._mtime);
+          && (_mtime == rhs._mtime)
+          && (_hardLinkCount == rhs._hardLinkCount);
    }
 
    /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
@@ -85,7 +93,7 @@ public:
    /** Returns a hash code for this object */
    MUSCLE_NODISCARD uint32 HashCode() const
    {
-      return _flags.HashCode() + CalculateHashCode(_size) + (3*CalculateHashCode(_atime)) + (7*CalculateHashCode(_ctime)) + (11*CalculateHashCode(_mtime));
+      return _flags.HashCode() + CalculateHashCode(_size) + (3*CalculateHashCode(_atime)) + (7*CalculateHashCode(_ctime)) + (11*CalculateHashCode(_mtime)) + (13*CalculateHashCode(_hardLinkCount));
    }
 
 private:
@@ -110,6 +118,7 @@ private:
    uint64 _atime;  // access time
    uint64 _ctime;  // creation time
    uint64 _mtime;  // modification time
+   uint32 _hardLinkCount;
 };
 
 } // end namespace muscle

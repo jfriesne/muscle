@@ -10,11 +10,12 @@
 
 namespace muscle {
 
-FilePathInfo :: FilePathInfo(bool exists, bool isRegularFile, bool isDir, bool isSymlink, uint64 fileSizeBytes, uint64 aTime, uint64 cTime, uint64 mTime)
+FilePathInfo :: FilePathInfo(bool exists, bool isRegularFile, bool isDir, bool isSymlink, uint64 fileSizeBytes, uint64 aTime, uint64 cTime, uint64 mTime, uint32 hardLinkCount)
    : _size(fileSizeBytes)
    , _atime(aTime)
    , _ctime(cTime)
    , _mtime(mTime)
+   , _hardLinkCount(hardLinkCount)
 {
    if (exists)        _flags.SetBit(FPI_FLAG_EXISTS);
    if (isRegularFile) _flags.SetBit(FPI_FLAG_ISREGULARFILE);
@@ -59,6 +60,7 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
             _atime = InternalizeFileTime(info.ftLastAccessTime);
             _ctime = InternalizeFileTime(info.ftCreationTime);
             _mtime = InternalizeFileTime(info.ftLastWriteTime);
+            _hardLinkCount = (uint32) info.nNumberOfLinks;
             _size  = (((uint64)info.nFileSizeHigh)<<32)|((uint64)info.nFileSizeLow);
          }
          CloseHandle(hFile);
@@ -95,6 +97,8 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
          _mtime = InternalizeTimeT(statInfo.st_mtime);
 # endif
 
+         _hardLinkCount = statInfo.st_nlink;
+
          struct stat lstatInfo;
          if ((lstat(optFilePath, &lstatInfo)==0)&&(S_ISLNK(lstatInfo.st_mode))) _flags.SetBit(FPI_FLAG_ISSYMLINK);
       }
@@ -109,6 +113,7 @@ void FilePathInfo :: Reset()
    _atime = 0;
    _ctime = 0;
    _mtime = 0;
+   _hardLinkCount = 0;
 }
 
 #ifdef WIN32

@@ -11,14 +11,10 @@ using namespace muscle;
 
 static const char * GetBoolString(bool b) {return b ? "YES" : "NO";}
 
-// This program exercises the FilePathInfo class.
-int main(int argc, char ** argv)
+static void PrintFilePathInfo(const char * inFileName)
 {
-   CompleteSetupSystem css;
-
-   const char * inFileName = ((argc<2)||(strcmp(argv[1], "fromscript")==0)) ? argv[0] : argv[1];
-
    FilePathInfo fpi(inFileName);
+   printf("\n");
    printf("FilePathInfo for [%s]:\n", inFileName);
    printf("Exists:\t\t\t%s\n", GetBoolString(fpi.Exists()));
    printf("IsRegularFile:\t\t%s\n", GetBoolString(fpi.IsRegularFile()));
@@ -28,8 +24,18 @@ int main(int argc, char ** argv)
    printf("AccessTime:\t\t" UINT64_FORMAT_SPEC " (%s)\n", fpi.GetAccessTime(), GetHumanReadableTimeString(fpi.GetAccessTime())());
    printf("ModificationTime:\t" UINT64_FORMAT_SPEC " (%s)\n", fpi.GetModificationTime(), GetHumanReadableTimeString(fpi.GetModificationTime())());
    printf("CreationTime:\t\t" UINT64_FORMAT_SPEC " (%s)\n", fpi.GetCreationTime(), GetHumanReadableTimeString(fpi.GetCreationTime())());
+   printf("HardLinkCount:\t\t" UINT32_FORMAT_SPEC "\n", fpi.GetHardLinkCount());
+}
 
-   const FilePathInfo fpi2 = fpi;
-   printf("Test == operator (%i), hash code " UINT32_FORMAT_SPEC "\n", (fpi==fpi2), fpi.HashCode());
+// This program exercises the FilePathInfo class.
+int main(int argc, char ** argv)
+{
+   CompleteSetupSystem css;
+
+   const char * inFileName = ((argc<2)||(strcmp(argv[1], "fromscript")==0)) ? argv[0] : argv[1];
+
+   PrintFilePathInfo(inFileName);
+   for (int i=2; i<argc; i++) PrintFilePathInfo(argv[i]);
+
    return 0;
 }
