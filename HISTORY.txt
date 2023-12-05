@@ -15,6 +15,9 @@ key:  - new feature
    o Modified IsRegexToken() to return false for '-', since
      hyphens aren't meaningful except in the context of
      "character class" regex tokens (which will get escaped anyway).
+   o Replaced the IsHosed() and SetHosed() methods of the
+     AbstractMessageIOGateway class with more descriptive methods
+     GetUnrecoverableErrorStatus() and SetUnrecoverableErrorStatus().
 
 9.33 - Released 10/30/2023
    - Added FromHexString() and FromBinaryString() methods to the

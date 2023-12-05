@@ -32,7 +32,7 @@ public:
     * @param messageRef A reference to the Message to send out through the gateway.
     * @return B_NO_ERROR on success, or B_BAD_OBJECT if this gateway is out of commision, or B_OUT_OF_MEMORY.
     */
-   virtual status_t AddOutgoingMessage(const MessageRef & messageRef) {return _hosed ? B_BAD_OBJECT : _outgoingMessages.AddTail(messageRef);}
+   virtual status_t AddOutgoingMessage(const MessageRef & messageRef) {return _unrecoverableErrorStatus.IsError() ? B_BAD_OBJECT : _outgoingMessages.AddTail(messageRef);}
 
    /**
     * Writes some of our outgoing message bytes to the wire.
@@ -101,7 +101,7 @@ public:
    /** This method must resets the gateway's encoding and decoding state to its default state.
     *  Any partially completed sends and receives should be cleared, so that the gateway
     *  is ready to send and receive fresh data streams.
-    *  Default implementation clears the "hosed" flag and clears the outgoing-Messages queue.
+    *  Default implementation clears the unrecoverable-status flag and clears the outgoing-Messages queue.
     *  Subclasses should override this to reset their parse-state variables appropriately too.
     */
    virtual void Reset();
@@ -156,8 +156,14 @@ public:
      */
    MUSCLE_NODISCARD bool GetPacketRemoteLocationTaggingEnabled() const {return _packetRemoteLocationTaggingEnabled;}
 
-   /** Returns true iff we are hosed--that is, we've experienced an unrecoverable error. */
-   MUSCLE_NODISCARD bool IsHosed() const {return _hosed;}
+   /** Returns B_NO_ERROR if we are okay, or some other error value if we have experienced an unrecoverable error. */
+   MUSCLE_NODISCARD status_t GetUnrecoverableErrorStatus() const {return _unrecoverableErrorStatus;}
+
+   /** Call this method to flag this gateway as hosed--that is, to say that an unrecoverable error has occurred.
+     * @param unrecoverableErrorStatus an error code indicating the nature of the unrecoverable error that occurred.
+     * @note that this method cannot be used to clear the unrecoverable-error state (since that would make it recoverable)
+     */
+   void SetUnrecoverableErrorStatus(status_t unrecoverableErrorStatus) {_unrecoverableErrorStatus |= unrecoverableErrorStatus;}
 
    /** This is a convenience method for when you want to do simple synchronous
      * (RPC-style) communications.  This method will run its own little event loop and not
@@ -211,9 +217,6 @@ protected:
     */
    virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT) = 0;
 
-   /** Call this method to flag this gateway as hosed--that is, to say that an unrecoverable error has occurred. */
-   void SetHosed() {_hosed = true;}
-
    /** Called by ExecuteSynchronousMessaging() to see if we are still awaiting our reply Messages.  Default implementation calls HasBytesToOutput() and returns that value. */
    MUSCLE_NODISCARD virtual bool IsStillAwaitingSynchronousMessagingReply() const {return HasBytesToOutput();}
 
@@ -260,7 +263,7 @@ private:
    PacketDataIO * _packetDataIO;  // non-NULL only if (_ioRef()) actually is a PacketDataIO
    uint32 _mtuSize;  // set whenever _ioRef changes
 
-   bool _hosed;  // set true on error
+   status_t _unrecoverableErrorStatus;  // B_NO_ERROR unless we have experienced an unrecoverable error
    bool _flushOnEmpty;
    bool _packetRemoteLocationTaggingEnabled;
 

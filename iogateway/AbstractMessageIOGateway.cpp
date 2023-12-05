@@ -9,7 +9,6 @@ namespace muscle {
 AbstractMessageIOGateway :: AbstractMessageIOGateway()
    : _packetDataIO(NULL)
    , _mtuSize(0)
-   , _hosed(false)
    , _flushOnEmpty(true)
    , _packetRemoteLocationTaggingEnabled(true)
 {
@@ -54,7 +53,7 @@ AbstractMessageIOGateway ::
 Reset()
 {
    _outgoingMessages.Clear();
-   _hosed = false;
+   _unrecoverableErrorStatus = B_NO_ERROR;
 }
 
 void

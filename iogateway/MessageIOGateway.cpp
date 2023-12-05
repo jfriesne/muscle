@@ -69,7 +69,7 @@ PopNextOutgoingMessage(MessageRef & retMsg)
 }
 
 // For this method, B_NO_ERROR means "keep sending", and B_ERROR means "stop sending for now", and isn't fatal to the stream
-// If there is a fatal error in the stream it will call SetHosed() to indicate that.
+// If there is a fatal error in the stream it will call SetUnrecoverableErrorStatus() to indicate that.
 status_t
 MessageIOGateway :: SendMoreData(uint32 & sentBytes, uint32 & maxBytes)
 {
@@ -84,7 +84,7 @@ MessageIOGateway :: SendMoreData(uint32 & sentBytes, uint32 & maxBytes)
       sentBytes           += numBytesSent.GetByteCount();
       _sendBuffer._offset += numBytesSent.GetByteCount();
    }
-   else SetHosed();
+   else SetUnrecoverableErrorStatus(numBytesSent.GetStatus() | B_IO_ERROR);
 
    return (numBytesSent.GetByteCount() < attemptSize) ? B_ERROR : B_NO_ERROR;
 }
@@ -98,7 +98,7 @@ DoOutputImplementation(uint32 maxBytes)
    const uint32 mtuSize = GetMaximumPacketSize();
 
    uint32 sentBytes = 0;
-   while((maxBytes > 0)&&(IsHosed() == false))
+   while((maxBytes > 0)&&(GetUnrecoverableErrorStatus().IsOK()))
    {
       // First, make sure our outgoing byte-buffer has data.  If it doesn't, fill it with the next outgoing message.
       if (_sendBuffer._buffer() == NULL)
@@ -129,7 +129,7 @@ DoOutputImplementation(uint32 maxBytes)
                // Restore the PR_NAME_PACKET_REMOTE_LOCATION field, since we're not supposed to be modifying any Messages
                if (movedPRL) (void) _scratchPacketMessage.MoveName(PR_NAME_PACKET_REMOTE_LOCATION, *nextRef());
 
-               if (_sendBuffer._buffer() == NULL) {SetHosed(); return B_OUT_OF_MEMORY;}
+               if (_sendBuffer._buffer() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); return B_OUT_OF_MEMORY;}
 
                if (_flattenedCallback) (void) _flattenedCallback(nextRef, _flattenedCallbackData);
 
@@ -146,7 +146,7 @@ DoOutputImplementation(uint32 maxBytes)
                break;  // now go on to the sending phase
             }
          }
-         if (IsHosed()) break;  // in case our callbacks called SetHosed()
+         if (GetUnrecoverableErrorStatus().IsError()) break;  // in case our callbacks called SetUnrecoverableErrorStatus()
       }
 
       // At this point, _sendBuffer._buffer() is guaranteed not to be NULL!
@@ -163,7 +163,7 @@ DoOutputImplementation(uint32 maxBytes)
             sentBytes += numBytesSent.GetByteCount();
             _sendBuffer.Reset();
          }
-         else if (numBytesSent.GetByteCount() < 0) SetHosed();
+         else if (numBytesSent.GetByteCount() < 0) SetUnrecoverableErrorStatus(numBytesSent.GetStatus() | B_IO_ERROR);
          else break;
       }
       else
@@ -172,7 +172,7 @@ DoOutputImplementation(uint32 maxBytes)
          if (_sendBuffer._offset == _sendBuffer._buffer()->GetNumBytes()) _sendBuffer.Reset();
       }
    }
-   return ((sentBytes == 0)&&(IsHosed())) ? io_status_t(B_BAD_OBJECT) : io_status_t(sentBytes);
+   return ((sentBytes == 0)&&(GetUnrecoverableErrorStatus().IsError())) ? io_status_t(GetUnrecoverableErrorStatus()) : io_status_t(sentBytes);
 }
 
 ByteBufferRef
@@ -209,7 +209,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
    const uint32 hs = GetHeaderSize();
    bool firstTime = true;  // always go at least once, to avoid live-lock
    uint32 readBytes = 0;
-   while((maxBytes > 0)&&(IsHosed() == false)&&((firstTime)||(IsSuggestedTimeSliceExpired() == false)))
+   while((maxBytes > 0)&&(GetUnrecoverableErrorStatus().IsOK())&&((firstTime)||(IsSuggestedTimeSliceExpired() == false)))
    {
       firstTime = false;
 
@@ -219,16 +219,16 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          if (_recvBuffer._buffer() == NULL)
          {
             ByteBufferRef scratchBuf = GetScratchReceiveBuffer();
-            if (scratchBuf() == NULL) {SetHosed(); break;}  // out of memory?
+            if (scratchBuf() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); break;}  // out of memory?
 
             _recvBuffer._offset = 0;
             _recvBuffer._buffer = (mtuSize<=scratchBuf()->GetNumBytes()) ? scratchBuf : GetByteBufferFromPool(mtuSize);
-            if (_recvBuffer._buffer() == NULL) {SetHosed(); break;}  // out of memory?
+            if (_recvBuffer._buffer() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); break;}  // out of memory?
          }
 
          IPAddressAndPort sourceIAP;
          const io_status_t numBytesRead = GetPacketDataIO()->ReadFrom(_recvBuffer._buffer()->GetBuffer(), mtuSize, sourceIAP);
-              if (numBytesRead.IsError()) {SetHosed(); break;}
+              if (numBytesRead.IsError()) {SetUnrecoverableErrorStatus(numBytesRead.GetStatus()); break;}
          else if (numBytesRead.GetByteCount() > 0)
          {
             readBytes += numBytesRead.GetByteCount();
@@ -257,11 +257,11 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          if (_recvBuffer._buffer() == NULL)
          {
             ByteBufferRef scratchBuf = GetScratchReceiveBuffer();
-            if (scratchBuf() == NULL) {SetHosed(); break;}  // out of memory?
+            if (scratchBuf() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); break;}  // out of memory?
 
             _recvBuffer._offset = 0;
             _recvBuffer._buffer = (hs<=scratchBuf()->GetNumBytes()) ? scratchBuf : GetByteBufferFromPool(hs);
-            if (_recvBuffer._buffer() == NULL) {SetHosed(); break;}  // out of memory?
+            if (_recvBuffer._buffer() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); break;}  // out of memory?
          }
 
          ByteBuffer * bb = _recvBuffer._buffer();  // guaranteed not to be NULL, if we got here!
@@ -281,7 +281,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                   {
                      // Oops, the Message body is greater than our buffer has bytes to store!  We're going to need a bigger buffer!
                      ByteBufferRef bigBuf = GetByteBufferFromPool(hs+bodySize);
-                     if (bigBuf() == NULL) {SetHosed(); break;}
+                     if (bigBuf() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); break;}
                      memcpy(bigBuf()->GetBuffer(), bb->GetBuffer(), hs);  // copy over the received header bytes to the big buffer now
                      _recvBuffer._buffer = bigBuf;
                      bb = bigBuf();
@@ -290,7 +290,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                else
                {
                   LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  bodySize " INT32_FORMAT_SPEC " is out of range, limit is " UINT32_FORMAT_SPEC "\n", this, bodySize, _maxIncomingMessageSize);
-                  SetHosed();
+                  SetUnrecoverableErrorStatus(B_BAD_DATA);
                   break;
                }
             }
@@ -306,18 +306,18 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                _recvBuffer.Reset();  // reset our state for the next one!
                ForgetScratchReceiveBufferIfSubclassIsStillUsingIt();
 
-               if (msg() == NULL) {SetHosed(); break;}
+               if (msg() == NULL) {SetUnrecoverableErrorStatus(msg.GetStatus() | B_BAD_DATA); break;}
                if (_unflattenedCallback) MRETURN_ON_ERROR(_unflattenedCallback(msg, _unflattenedCallbackData));
                receiver.CallMessageReceivedFromGateway(msg);
             }
          }
       }
    }
-   return ((readBytes==0)&&(IsHosed())) ? io_status_t(B_IO_ERROR) : io_status_t(readBytes);
+   return ((readBytes==0)&&(GetUnrecoverableErrorStatus().IsError())) ? io_status_t(GetUnrecoverableErrorStatus()) : io_status_t(readBytes);
 }
 
 // For this method, B_NO_ERROR means "We got all the data we had room for", and B_ERROR
-// means "short read".  A real network error will also cause SetHosed() to be called.
+// means "short read".  A real network error will also cause SetUnrecoverableErrorStatus() to be called.
 status_t
 MessageIOGateway :: ReceiveMoreData(uint32 & readBytes, uint32 & maxBytes, uint32 maxArraySize)
 {
@@ -331,7 +331,7 @@ MessageIOGateway :: ReceiveMoreData(uint32 & readBytes, uint32 & maxBytes, uint3
       readBytes           += numBytesRead.GetByteCount();
       _recvBuffer._offset += numBytesRead.GetByteCount();
    }
-   else SetHosed();
+   else SetUnrecoverableErrorStatus(numBytesRead.GetStatus());
 
    return (numBytesRead.GetByteCount() < attemptSize) ? B_ERROR : B_NO_ERROR;
 }
@@ -495,7 +495,7 @@ bool
 MessageIOGateway ::
 HasBytesToOutput() const
 {
-   return ((IsHosed() == false)&&((_sendBuffer._buffer())||(GetOutgoingMessageQueue().HasItems())));
+   return ((GetUnrecoverableErrorStatus().IsOK())&&((_sendBuffer._buffer())||(GetOutgoingMessageQueue().HasItems())));
 }
 
 void
