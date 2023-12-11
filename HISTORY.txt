@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added an optional localnicip=local.nic.ip.address argument
+     to hexterm, to better support sending IPv4 multicast packets.
    - Added a B_SHUTTING_DOWN error code, useful for returning
      from Thread::MessageReceivedFromOwner() overrides if there
      isn't any real error but the internal thread is exiting on

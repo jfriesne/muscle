@@ -298,7 +298,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
    }
 }
 
-static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticastGroup, int optBindPort, bool forceSharePort)
+static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticastGroup, int optBindPort, bool forceSharePort, const IPAddress & optExplicitLocalIP)
 {
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    if ((_useGZip)||(_useZLibDataIO)) LogTime(MUSCLE_LOG_WARNING, "%s keyword has no effect when hexterm is running in UDP mode!\n", _useGZip?"gzip":"zlib");
@@ -349,8 +349,20 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
             {
                LogTime(MUSCLE_LOG_INFO, "Bound UDP socket to port %u\n", boundPort);
 
+               IPAddress useLocalIP;
+               if (optExplicitLocalIP.IsValid())
+               {
+                  if (ip.IsIPv4())
+                  {
+                     useLocalIP = optExplicitLocalIP;
+                     LogTime(MUSCLE_LOG_INFO, "Passing local IPv4 NIC address [%s] to the second argument of AddSocketToMulticastGroup(%s)\n", useLocalIP.ToString()(), ip.ToString()());
+                  }
+                  else LogTime(MUSCLE_LOG_WARNING, "Ignoring localnicip arg [%s], as it isn't necessary for IPv6 multicast.\n", optExplicitLocalIP.ToString()());
+               }
+               else if (ip.IsIPv4()) LogTime(MUSCLE_LOG_WARNING, "Specifying localnicip=local.nic.ip.address may be necessary before sending IPv4 multicast UDP packets will work.\n");
+
                     if (joinMulticastGroup == false) LogTime(MUSCLE_LOG_INFO, "Not joining to multicast group [%s] since nojoin was specified as a command line argument.\n", Inet_NtoA(ip)());
-               else if (AddSocketToMulticastGroup(ss, ip).IsOK(ret))
+               else if (AddSocketToMulticastGroup(ss, ip, useLocalIP).IsOK(ret))
                {
                   LogTime(MUSCLE_LOG_INFO, "Added UDP socket to multicast group %s!\n", Inet_NtoA(ip)());
 #ifdef DISALLOW_MULTICAST_TO_SELF
@@ -361,6 +373,7 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
             }
             else LogTime(MUSCLE_LOG_ERROR, "Error [%s] binding multicast socket to port %u\n", ret(), port);
          }
+         else if (optExplicitLocalIP.IsValid()) LogTime(MUSCLE_LOG_WARNING, "Ignoring localnicip arg [%s], as it isn't necessary for non-multicast UDP.\n", optExplicitLocalIP.ToString()());
 #endif
 
          status_t ret;
@@ -423,6 +436,7 @@ static void LogUsage(const char * argv0)
    LogPlain(MUSCLE_LOG_INFO, "                spamrate=<Hz>            (Specify number of automatic-spam-transmissions to send per second)\n");
    LogPlain(MUSCLE_LOG_INFO, "                spamsize=<bytes>         (Specify size of each automatic-spam-transmission; defaults to 1024)\n");
    LogPlain(MUSCLE_LOG_INFO, "                printchecksums           (print checksums for incoming and sent data)\n");
+   LogPlain(MUSCLE_LOG_INFO, "                localnicip=<ipaddress>   (for IPv4 multicast, the IP of a local NIC to bind to)\n");
    LogPlain(MUSCLE_LOG_INFO, "                help                     (print this help text)\n");
 }
 
@@ -506,6 +520,8 @@ int hextermmain(const char * argv0, const Message & args)
 
    if (forceSharePort) LogTime(MUSCLE_LOG_INFO, "shareport arg specified:  UDP sockets will enable SO_REUSEADDRESS\n");
 
+   const IPAddress localNicIP = IPAddress(args.GetString("localnicip"));
+ 
    status_t ret;
 
    String arg;
@@ -625,9 +641,9 @@ int hextermmain(const char * argv0, const Message & args)
       const String argStr = args.GetString("udp");
       const int32 lastUnderbar = argStr.LastIndexOf('_');
       if (lastUnderbar >= 0) optBindPort = atoi(argStr()+lastUnderbar+1);
-      DoUDPSession(host, port, joinMulticastGroup, optBindPort, forceSharePort);
+      DoUDPSession(host, port, joinMulticastGroup, optBindPort, forceSharePort, localNicIP);
    }
-   else if (ParsePortArg(args, "udp", port).IsOK()) DoUDPSession("", port, joinMulticastGroup, -1, forceSharePort);
+   else if (ParsePortArg(args, "udp", port).IsOK()) DoUDPSession("", port, joinMulticastGroup, -1, forceSharePort, localNicIP);
    else LogUsage(argv0);
 
    return 0;
