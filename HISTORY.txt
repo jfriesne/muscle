@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-9.34 - Released 1/18/2023
+9.34 - Released 12/18/2023
    - Added an optional localnicip=local.nic.ip.address argument
      to hexterm, to better support sending IPv4 multicast packets.
    - Added a B_SHUTTING_DOWN error code, useful for returning
