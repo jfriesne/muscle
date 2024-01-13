@@ -100,6 +100,15 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
    launchFlags.ClearBit(CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY);   // no sense trying to use pseudo-terminals if they were forbidden at compile time
 #endif
 
+   if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_RUN_AS_NOBODY))
+   {
+#if defined(WIN32)
+      return B_UNIMPLEMENTED;  // run-as-nobody isn't implemented on Windows, sorry
+#else
+      if (getuid() != 0) return B_ACCESS_DENIED;  // we gotta be root in order for our child to change his user-identity!
+#endif
+   }
+
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    SECURITY_ATTRIBUTES saAttr;
    {
@@ -344,6 +353,14 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       if (optEnvironmentVariables)
       {
          for (HashtableIterator<String,String> iter(*optEnvironmentVariables); iter.HasData(); iter++) (void) setenv(iter.GetKey()(), iter.GetValue()(), 1);
+      }
+
+      if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_RUN_AS_NOBODY))
+      {
+         // Note: setting UID/GID requires root privileges, so if you don't call setgid() first, you won't be able to call it at all.
+         const int nobodyID = 65534;
+         if (setgid(nobodyID)!=0) {perror("setgid() failed to set nonroot GID"); ExitWithoutCleanup(18);}
+         if (setuid(nobodyID)!=0) {perror("setuid() failed to set nonroot UID"); ExitWithoutCleanup(19);}
       }
 
       if (ChildProcessReadyToRun().IsOK(ret))

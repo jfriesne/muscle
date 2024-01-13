@@ -20,6 +20,7 @@ enum {
    CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR,  /**< if set, we won't capture and return output from the child process's stderr (supported by fork() implementation only, for now) */
    CHILD_PROCESS_LAUNCH_FLAG_WIN32_HIDE_GUI,  /**< Windows only:  if set, the child process's GUI windows will be hidden */
    CHILD_PROCESS_LAUNCH_FLAG_INHERIT_FDS,     /**< If set, we will allow the child process to inherit file descriptors from this process. */
+   CHILD_PROCESS_LAUNCH_FLAG_RUN_AS_NOBODY,   /**< Mac/Linux only:  if set, the child process will run as user "nobody" to reduce its privileges.  (Requires parent process to be running as root) */
    NUM_CHILD_PROCESS_LAUNCH_FLAGS             /**< Guard value */
 };
 DECLARE_BITCHORD_FLAGS_TYPE(ChildProcessLaunchFlags, NUM_CHILD_PROCESS_LAUNCH_FLAGS);

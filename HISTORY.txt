@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added CHILD_PROCESS_LAUNCH_FLAG_RUN_AS_NOBODY to the
+     ChildProcessDataIO class.
+
 9.34 - Released 12/18/2023
    - Added an optional localnicip=local.nic.ip.address argument
      to hexterm, to better support sending IPv4 multicast packets.
