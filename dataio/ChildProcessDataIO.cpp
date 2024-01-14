@@ -23,8 +23,9 @@
 #  endif
 # endif
 # include <termios.h>
-# include <signal.h>  // for SIGHUP, etc
+# include <signal.h>    // for SIGHUP, etc
 # include <sys/wait.h>  // for waitpid()
+# include <pwd.h>       // for getpwnam()
 #endif
 
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
