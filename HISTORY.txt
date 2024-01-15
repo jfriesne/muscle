@@ -5,8 +5,12 @@ key:  - new feature
       * bug fixed
       o other
 
-   - Added CHILD_PROCESS_LAUNCH_FLAG_RUN_AS_NOBODY to the
+   - Added CHILD_PROCESS_LAUNCH_FLAG_RUN_UNPRIVILEGED to the
      ChildProcessDataIO class.
+   - Added a GetUnprivilegedAccountName() virtual method to the
+     ChildProcessDataIO class (returns "nobody" by default)
+   o Changed ChildProcessDataIO::ChildProcessReadyToRun() to
+     be protected instead of public.
 
 9.34 - Released 12/18/2023
    - Added an optional localnicip=local.nic.ip.address argument

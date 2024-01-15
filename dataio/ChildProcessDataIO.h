@@ -14,14 +14,14 @@ namespace muscle {
 
 // Flags that can be passed as a bit-chord to LaunchChildProcess()
 enum {
-   CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY = 0, /**< if set, we'll use forkpty() instead of fork() (ignored under Windows) */
-   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN,   /**< if set, we won't redirect from the child process's stdin (supported by fork() implementation only, for now) */
-   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT,  /**< if set, we won't capture and return output from the child process's stdout (supported by fork() implementation only, for now) */
-   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR,  /**< if set, we won't capture and return output from the child process's stderr (supported by fork() implementation only, for now) */
-   CHILD_PROCESS_LAUNCH_FLAG_WIN32_HIDE_GUI,  /**< Windows only:  if set, the child process's GUI windows will be hidden */
-   CHILD_PROCESS_LAUNCH_FLAG_INHERIT_FDS,     /**< If set, we will allow the child process to inherit file descriptors from this process. */
-   CHILD_PROCESS_LAUNCH_FLAG_RUN_AS_NOBODY,   /**< Mac/Linux only:  if set, the child process will run as user "nobody" to reduce its privileges.  (Requires parent process to be running as root) */
-   NUM_CHILD_PROCESS_LAUNCH_FLAGS             /**< Guard value */
+   CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY = 0,  /**< if set, we'll use forkpty() instead of fork() (ignored under Windows) */
+   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN,    /**< if set, we won't redirect from the child process's stdin (supported by fork() implementation only, for now) */
+   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT,   /**< if set, we won't capture and return output from the child process's stdout (supported by fork() implementation only, for now) */
+   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR,   /**< if set, we won't capture and return output from the child process's stderr (supported by fork() implementation only, for now) */
+   CHILD_PROCESS_LAUNCH_FLAG_WIN32_HIDE_GUI,   /**< Windows only:  if set, the child process's GUI windows will be hidden */
+   CHILD_PROCESS_LAUNCH_FLAG_INHERIT_FDS,      /**< If set, we will allow the child process to inherit file descriptors from this process. */
+   CHILD_PROCESS_LAUNCH_FLAG_RUN_UNPRIVILEGED, /**< Mac/Linux only:  if set, the child process will run as user "nobody" to reduce its privileges.  (Requires parent process to be running as root) */
+   NUM_CHILD_PROCESS_LAUNCH_FLAGS              /**< Guard value */
 };
 DECLARE_BITCHORD_FLAGS_TYPE(ChildProcessLaunchFlags, NUM_CHILD_PROCESS_LAUNCH_FLAGS);
 
@@ -150,14 +150,6 @@ public:
      * kill the child (with no signal sent and no wait time elapsed).
      */
    void SetChildProcessShutdownBehavior(bool okayToKillChild, int sendSignalNumber = -1, uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER);
-
-   /** Called within the child process, just before the child process's
-     * executable image is loaded in.  Default implementation is a no-op
-     * that always just returns B_NO_ERROR.
-     * @note This method is not called when running under Windows!
-     * @return B_NO_ERROR on success, or an error code on failure (in which case the child process will not execute, but rather just exit immediately)
-     */
-   virtual status_t ChildProcessReadyToRun();
 
    /** Returns the process ID of the child process. */
 #if defined(WIN32) || defined(CYGWIN)
@@ -309,6 +301,20 @@ public:
      * @returns B_NO_ERROR if the child process was launched, or an error code if the child process could not be launched.
      */
    static status_t LaunchIndependentChildProcess(const char * cmdLine, const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(), const Hashtable<String,String> * optEnvironmentVariables = NULL);
+
+protected:
+   /** Called within the child process, just before the child process's
+     * executable image is loaded in.  Default implementation is a no-op
+     * that always just returns B_NO_ERROR.
+     * @note This method is not called when running under Windows!
+     * @return B_NO_ERROR on success, or an error code on failure (in which case the child process will not execute, but rather just exit immediately)
+     */
+   virtual status_t ChildProcessReadyToRun();
+
+   /** Returns the account name a child process should run under, if the CHILD_PROCESS_LAUNCH_FLAG_RUN_UNPRIVILEGED flag is set.
+     * Default implementation returns "nobody".
+     */
+   virtual const char * GetUnprivilegedAccountName() const {return "nobody";}
 
 private:
    void Close();

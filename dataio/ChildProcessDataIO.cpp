@@ -104,14 +104,14 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 #if !defined(WIN32)
    int nobodyGID = 0, nobodyUID = 0;
 #endif
-   if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_RUN_AS_NOBODY))
+   if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_RUN_UNPRIVILEGED))
    {
 #if defined(WIN32)
       return B_UNIMPLEMENTED;  // run-as-nobody isn't implemented on Windows, sorry
 #else
       if (getuid() != 0) return B_ACCESS_DENIED;  // we gotta be root in order for our child to change his user-identity!
 
-      const struct passwd * nobodyInfo = getpwnam("nobody");
+      const struct passwd * nobodyInfo = getpwnam(GetUnprivilegedAccountName());
       if (nobodyInfo == NULL) return B_DATA_NOT_FOUND;  // can't run as "nobody" if there is no "nobody" account
 
       nobodyGID = nobodyInfo->pw_gid;
@@ -365,7 +365,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
          for (HashtableIterator<String,String> iter(*optEnvironmentVariables); iter.HasData(); iter++) (void) setenv(iter.GetKey()(), iter.GetValue()(), 1);
       }
 
-      if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_RUN_AS_NOBODY))
+      if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_RUN_UNPRIVILEGED))
       {
          // Note:  we must call setgid() first, because as soon as we call setuid() we will be "nobody" and we won't have permission to call setgid()
          if (setgid(nobodyGID)!=0) {perror("setgid()"); ExitWithoutCleanup(18);}
