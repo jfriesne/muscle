@@ -26,6 +26,7 @@
 # include <signal.h>    // for SIGHUP, etc
 # include <sys/wait.h>  // for waitpid()
 # include <pwd.h>       // for getpwnam()
+# include <grp.h>       // for getgrouplist()
 #endif
 
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
@@ -102,8 +103,10 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 #endif
 
 #if !defined(WIN32)
-   int accountGID = 0, accountUID = 0;
+   int accountUID = 0;
+   Queue<gid_t> groupList;
 #endif
+
    if (optRunAsUser)
    {
 #if defined(WIN32)
@@ -114,8 +117,14 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       const struct passwd * accountInfo = getpwnam(optRunAsUser);
       if (accountInfo == NULL) return B_DATA_NOT_FOUND;
 
-      accountGID = accountInfo->pw_gid;
       accountUID = accountInfo->pw_uid;
+
+      int numGroupsInList = 0;
+      (void) getgrouplist(optRunAsUser, accountInfo->pw_gid, NULL, &numGroupsInList);  // this call is just to set (numGroupsInList)
+      MRETURN_ON_ERROR(groupList.EnsureSize(numGroupsInList, true));  // allocate an array of the necessary length
+
+      // This call is to populate the groups-list with the appropriate group IDs for (optRunAsUser)
+      if (getgrouplist(optRunAsUser, accountInfo->pw_gid, groupList.HeadPointer(), &numGroupsInList) < 0) return B_ERRNO;
 #endif
    }
 
@@ -326,7 +335,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
            if (pid > 0) _handle = masterSock;
       else if (pid == 0)
       {
-         int fd = slaveSock()->GetFileDescriptor();
+         const int fd = slaveSock()->GetFileDescriptor();
          if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN)  == false)&&(dup2(fd, STDIN_FILENO)  < 0)) ExitWithoutCleanup(20);
          if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT) == false)&&(dup2(fd, STDOUT_FILENO) < 0)) ExitWithoutCleanup(20);
          if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR) == false)&&(dup2(fd, STDERR_FILENO) < 0)) ExitWithoutCleanup(20);
@@ -367,8 +376,8 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 
       if (optRunAsUser)
       {
-         // Note:  we must call setgid() first, because as soon as we call setuid() we might no longer have permission to call setgid() anymore
-         if (setgid(accountGID)!=0) {perror("setgid()"); ExitWithoutCleanup(18);}
+         // Note:  we must call setgrouplist() first, because as soon as we call setuid() we might no longer have permission to call setgroups() anymore
+         if (setgroups(groupList.GetNumItems(), groupList.HeadPointer())!=0) {perror("setgroups()"); ExitWithoutCleanup(18);}
          if (setuid(accountUID)!=0) {perror("setuid()"); ExitWithoutCleanup(19);}
       }
 
