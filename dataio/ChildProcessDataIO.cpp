@@ -69,7 +69,7 @@ static void SafeCloseHandle(::HANDLE & h)
 }
 #endif
 
-status_t ChildProcessDataIO :: LaunchChildProcess(const Queue<String> & argq, ChildProcessLaunchFlags launchFlags, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables)
+status_t ChildProcessDataIO :: LaunchChildProcess(const Queue<String> & argq, ChildProcessLaunchFlags launchFlags, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables, const char * optRunAsUser)
 {
    const uint32 numItems = argq.GetNumItems();
    if (numItems == 0) return B_BAD_ARGUMENT;
@@ -78,7 +78,7 @@ status_t ChildProcessDataIO :: LaunchChildProcess(const Queue<String> & argq, Ch
    MRETURN_OOM_ON_NULL(argv);
    for (uint32 i=0; i<numItems; i++) argv[i] = argq[i]();
    argv[numItems] = NULL;
-   const status_t ret = LaunchChildProcess(numItems, argv, launchFlags, optDirectory, optEnvironmentVariables);
+   const status_t ret = LaunchChildProcess(numItems, argv, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser);
    delete [] argv;
    return ret;
 }
@@ -90,7 +90,7 @@ void ChildProcessDataIO :: SetChildProcessShutdownBehavior(bool okayToKillChild,
    _maxChildWaitTime = maxChildWaitTime;
 }
 
-status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args, ChildProcessLaunchFlags launchFlags, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables)
+status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args, ChildProcessLaunchFlags launchFlags, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables, const char * optRunAsUser)
 {
    TCHECKPOINT;
 
@@ -102,20 +102,20 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 #endif
 
 #if !defined(WIN32)
-   int nobodyGID = 0, nobodyUID = 0;
+   int accountGID = 0, accountUID = 0;
 #endif
-   if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_RUN_UNPRIVILEGED))
+   if (optRunAsUser)
    {
 #if defined(WIN32)
-      return B_UNIMPLEMENTED;  // run-as-nobody isn't implemented on Windows, sorry
+      return B_UNIMPLEMENTED;  // run-as-account isn't implemented on Windows, sorry
 #else
       if (getuid() != 0) return B_ACCESS_DENIED;  // we gotta be root in order for our child to change his user-identity!
 
-      const struct passwd * nobodyInfo = getpwnam(GetUnprivilegedAccountName());
-      if (nobodyInfo == NULL) return B_DATA_NOT_FOUND;  // can't run as "nobody" if there is no "nobody" account
+      const struct passwd * accountInfo = getpwnam(optRunAsUser);
+      if (accountInfo == NULL) return B_DATA_NOT_FOUND;
 
-      nobodyGID = nobodyInfo->pw_gid;
-      nobodyUID = nobodyInfo->pw_uid;
+      accountGID = accountInfo->pw_gid;
+      accountUID = accountInfo->pw_uid;
 #endif
    }
 
@@ -365,11 +365,11 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
          for (HashtableIterator<String,String> iter(*optEnvironmentVariables); iter.HasData(); iter++) (void) setenv(iter.GetKey()(), iter.GetValue()(), 1);
       }
 
-      if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_RUN_UNPRIVILEGED))
+      if (optRunAsUser)
       {
-         // Note:  we must call setgid() first, because as soon as we call setuid() we will be "nobody" and we won't have permission to call setgid()
-         if (setgid(nobodyGID)!=0) {perror("setgid()"); ExitWithoutCleanup(18);}
-         if (setuid(nobodyUID)!=0) {perror("setuid()"); ExitWithoutCleanup(19);}
+         // Note:  we must call setgid() first, because as soon as we call setuid() we might no longer have permission to call setgid() anymore
+         if (setgid(accountGID)!=0) {perror("setgid()"); ExitWithoutCleanup(18);}
+         if (setuid(accountUID)!=0) {perror("setuid()"); ExitWithoutCleanup(19);}
       }
 
       if (ChildProcessReadyToRun().IsOK(ret))
@@ -864,15 +864,15 @@ void ChildProcessDataIO :: IOThreadEntry()
 }
 #endif
 
-status_t ChildProcessDataIO :: System(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables)
+status_t ChildProcessDataIO :: System(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables, const char * optRunAsUser)
 {
    ChildProcessDataIO cpdio(false);
-   MRETURN_ON_ERROR(cpdio.LaunchChildProcess(argc, argv, launchFlags, optDirectory, optEnvironmentVariables));
+   MRETURN_ON_ERROR(cpdio.LaunchChildProcess(argc, argv, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser));
    (void) cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
    return B_NO_ERROR;
 }
 
-status_t ChildProcessDataIO :: System(const Queue<String> & argq, ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables)
+status_t ChildProcessDataIO :: System(const Queue<String> & argq, ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables, const char * optRunAsUser)
 {
    const uint32 numItems = argq.GetNumItems();
    if (numItems == 0) return B_BAD_ARGUMENT;
@@ -881,41 +881,41 @@ status_t ChildProcessDataIO :: System(const Queue<String> & argq, ChildProcessLa
    MRETURN_OOM_ON_NULL(argv);
    for (uint32 i=0; i<numItems; i++) argv[i] = argq[i]();
    argv[numItems] = NULL;
-   const status_t ret = System(numItems, argv, launchFlags, maxWaitTimeMicros, optDirectory, optEnvironmentVariables);
+   const status_t ret = System(numItems, argv, launchFlags, maxWaitTimeMicros, optDirectory, optEnvironmentVariables, optRunAsUser);
    delete [] argv;
    return ret;
 }
 
-status_t ChildProcessDataIO :: System(const char * cmdLine, ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables)
+status_t ChildProcessDataIO :: System(const char * cmdLine, ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables, const char * optRunAsUser)
 {
    ChildProcessDataIO cpdio(false);
-   MRETURN_ON_ERROR(cpdio.LaunchChildProcess(cmdLine, launchFlags, optDirectory, optEnvironmentVariables));
+   MRETURN_ON_ERROR(cpdio.LaunchChildProcess(cmdLine, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser));
    (void) cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
    return B_NO_ERROR;
 }
 
-status_t ChildProcessDataIO :: LaunchIndependentChildProcess(int argc, const char * argv[], const char * optDirectory, ChildProcessLaunchFlags launchFlags, const Hashtable<String, String> * optEnvironmentVariables)
+status_t ChildProcessDataIO :: LaunchIndependentChildProcess(int argc, const char * argv[], const char * optDirectory, ChildProcessLaunchFlags launchFlags, const Hashtable<String, String> * optEnvironmentVariables, const char * optRunAsUser)
 {
    ChildProcessDataIO cpdio(true);
    cpdio._childProcessIsIndependent = true;  // so the cpdio dtor won't block waiting for the child to exit
    cpdio.SetChildProcessShutdownBehavior(false);
-   return cpdio.LaunchChildProcess(argc, argv, launchFlags, optDirectory, optEnvironmentVariables);
+   return cpdio.LaunchChildProcess(argc, argv, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser);
 }
 
-status_t ChildProcessDataIO :: LaunchIndependentChildProcess(const char * cmdLine, const char * optDirectory, ChildProcessLaunchFlags launchFlags, const Hashtable<String, String> * optEnvironmentVariables)
+status_t ChildProcessDataIO :: LaunchIndependentChildProcess(const char * cmdLine, const char * optDirectory, ChildProcessLaunchFlags launchFlags, const Hashtable<String, String> * optEnvironmentVariables, const char * optRunAsUser)
 {
    ChildProcessDataIO cpdio(true);
    cpdio._childProcessIsIndependent = true;  // so the cpdio dtor won't block waiting for the child to exit
    cpdio.SetChildProcessShutdownBehavior(false);
-   return cpdio.LaunchChildProcess(cmdLine, launchFlags, optDirectory, optEnvironmentVariables);
+   return cpdio.LaunchChildProcess(cmdLine, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser);
 }
 
-status_t ChildProcessDataIO :: LaunchIndependentChildProcess(const Queue<String> & argv, const char * optDirectory, ChildProcessLaunchFlags launchFlags, const Hashtable<String, String> * optEnvironmentVariables)
+status_t ChildProcessDataIO :: LaunchIndependentChildProcess(const Queue<String> & argv, const char * optDirectory, ChildProcessLaunchFlags launchFlags, const Hashtable<String, String> * optEnvironmentVariables, const char * optRunAsUser)
 {
    ChildProcessDataIO cpdio(true);
    cpdio._childProcessIsIndependent = true;  // so the cpdio dtor won't block waiting for the child to exit
    cpdio.SetChildProcessShutdownBehavior(false);
-   return cpdio.LaunchChildProcess(argv, launchFlags, optDirectory, optEnvironmentVariables);
+   return cpdio.LaunchChildProcess(argv, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser);
 }
 
 } // end namespace muscle

@@ -20,7 +20,6 @@ enum {
    CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR,   /**< if set, we won't capture and return output from the child process's stderr (supported by fork() implementation only, for now) */
    CHILD_PROCESS_LAUNCH_FLAG_WIN32_HIDE_GUI,   /**< Windows only:  if set, the child process's GUI windows will be hidden */
    CHILD_PROCESS_LAUNCH_FLAG_INHERIT_FDS,      /**< If set, we will allow the child process to inherit file descriptors from this process. */
-   CHILD_PROCESS_LAUNCH_FLAG_RUN_UNPRIVILEGED, /**< Mac/Linux only:  if set, the child process will run as user "nobody" to reduce its privileges.  (Requires parent process to be running as root) */
    NUM_CHILD_PROCESS_LAUNCH_FLAGS              /**< Guard value */
 };
 DECLARE_BITCHORD_FLAGS_TYPE(ChildProcessLaunchFlags, NUM_CHILD_PROCESS_LAUNCH_FLAGS);
@@ -56,10 +55,12 @@ public:
      * @param optDirectory Optional directory path to set the child process's current directory to.
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
-                           variables in the child process.
+     *                     variables in the child process.
+     * @param optRunAsUser if non-NULL, child process will change its user to this account.
+     *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
      * @return B_NO_ERROR on success, or an error code if the launch failed.
      */
-   status_t LaunchChildProcess(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL) {return LaunchChildProcessAux(muscleMax(0,argc), argv, launchFlags, optDirectory, optEnvironmentVariables);}
+   status_t LaunchChildProcess(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL) {return LaunchChildProcessAux(muscleMax(0,argc), argv, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser);}
 
    /** As above, but the program name and all arguments are specified as a single string.
      * @param cmd String to launch the child process with
@@ -67,10 +68,12 @@ public:
      * @param optDirectory Optional directory path to set the child process's current directory to.
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
-                           variables in the child process.
+     *                     variables in the child process.
+     * @param optRunAsUser if non-NULL, child process will change its user to this account.
+     *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
      * @return B_NO_ERROR on success, or an error code if the launch failed.
      */
-   status_t LaunchChildProcess(const char * cmd, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL) {return LaunchChildProcessAux(-1, cmd, launchFlags, optDirectory, optEnvironmentVariables);}
+   status_t LaunchChildProcess(const char * cmd, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL) {return LaunchChildProcessAux(-1, cmd, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser);}
 
    /** Convenience method.  Launches a child process using an (argc,argv) that is constructed from the passed in argument list.
      * @param argv A list of strings to construct the (argc,argv) from.  The first string should be the executable name, the second string
@@ -79,10 +82,12 @@ public:
      * @param optDirectory Optional directory path to set the child process's current directory to.
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
-                           variables in the child process.
+     *                     variables in the child process.
+     * @param optRunAsUser if non-NULL, child process will change its user to this account.
+     *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
      * @return B_NO_ERROR on success, or an error code if the launch failed.
      */
-   status_t LaunchChildProcess(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL);
+   status_t LaunchChildProcess(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL);
 
    /** Read data from the child process's stdout stream.
      * @param buffer The read bytes will be placed here
@@ -224,10 +229,12 @@ public:
      * @param optDirectory Optional directory path to set the child process's current directory to.
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
-                           variables in the child process.
+     *                     variables in the child process.
+     * @param optRunAsUser if non-NULL, child process will change its user to this account.
+     *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
      * @returns B_NO_ERROR if the child process was launched, or an error code if the child process could not be launched.
      */
-   static status_t System(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL);
+   static status_t System(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL);
 
    /** Convenience method:  acts similar to the POSIX system() call, but
      * implemented internally via a ChildProcessDataIO object.  In particular,
@@ -243,10 +250,12 @@ public:
      * @param optDirectory Optional directory path to set the child process's current directory to.
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
-                           variables in the child process.
+     *                     variables in the child process.
+     * @param optRunAsUser if non-NULL, child process will change its user to this account.
+     *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
      * @return B_NO_ERROR on success, or an error code if the launch failed.
      */
-   static status_t System(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL);
+   static status_t System(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL);
 
    /** Convenience method:  acts similar to the POSIX system() call, but
      * implemented internally via a ChildProcessDataIO object.  In particular,
@@ -263,9 +272,11 @@ public:
      * @param optDirectory Optional directory path to set the child process's current directory to.
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
-                           variables in the child process.
+     *                     variables in the child process.
+     * @param optRunAsUser if non-NULL, child process will change its user to this account.
+     *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
      */
-   static status_t System(const char * cmdLine, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL);
+   static status_t System(const char * cmdLine, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL);
 
    /** Convenience method:  launches a child process that will be completely independent of the current process.
      * @param argc Number of items in the (argv) array
@@ -274,10 +285,12 @@ public:
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.  Defaults to no-flags-set.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
-                                      variables in the child process.
+     *                                variables in the child process.
+     * @param optRunAsUser if non-NULL, child process will change its user to this account.
+     *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
      * @returns B_NO_ERROR if the child process was launched, or an error code if the child process could not be launched.
      */
-   static status_t LaunchIndependentChildProcess(int argc, const char * argv[], const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(), const Hashtable<String,String> * optEnvironmentVariables = NULL);
+   static status_t LaunchIndependentChildProcess(int argc, const char * argv[], const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(), const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL);
 
    /** Convenience method:  launches a child process that will be completely independent of the current process.
      * @param argv A list of strings to construct the (argc,argv) from.  The first string should be the executable name, the second string
@@ -286,10 +299,12 @@ public:
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.  Defaults to no-flags-set.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
-                                      variables in the child process.
+     *                                variables in the child process.
+     * @param optRunAsUser if non-NULL, child process will change its user to this account.
+     *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
      * @return B_NO_ERROR on success, or an error code if the launch failed.
      */
-   static status_t LaunchIndependentChildProcess(const Queue<String> & argv, const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(), const Hashtable<String,String> * optEnvironmentVariables = NULL);
+   static status_t LaunchIndependentChildProcess(const Queue<String> & argv, const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(), const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL);
 
    /** Convenience method:  launches a child process that will be completely independent of the current process.
      * @param cmdLine The command string to launch (as if typed into a shell)
@@ -297,10 +312,12 @@ public:
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.  Defaults to no-flags-set.
      * @param optEnvironmentVariables if non-NULL, these key/value pairs will be placed as environment
-                                      variables in the child process.
+     *                                variables in the child process.
+     * @param optRunAsUser if non-NULL, child process will change its user to this account.
+     *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
      * @returns B_NO_ERROR if the child process was launched, or an error code if the child process could not be launched.
      */
-   static status_t LaunchIndependentChildProcess(const char * cmdLine, const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(), const Hashtable<String,String> * optEnvironmentVariables = NULL);
+   static status_t LaunchIndependentChildProcess(const char * cmdLine, const char * optDirectory = NULL, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(), const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL);
 
 protected:
    /** Called within the child process, just before the child process's
@@ -311,14 +328,9 @@ protected:
      */
    virtual status_t ChildProcessReadyToRun();
 
-   /** Returns the account name a child process should run under, if the CHILD_PROCESS_LAUNCH_FLAG_RUN_UNPRIVILEGED flag is set.
-     * Default implementation returns "nobody".
-     */
-   virtual const char * GetUnprivilegedAccountName() const {return "nobody";}
-
 private:
    void Close();
-   status_t LaunchChildProcessAux(int argc, const void * argv, ChildProcessLaunchFlags launchFlags, const char * optDirectory, const Hashtable<String,String> * optEnvironmentVariables);
+   status_t LaunchChildProcessAux(int argc, const void * argv, ChildProcessLaunchFlags launchFlags, const char * optDirectory, const Hashtable<String,String> * optEnvironmentVariables, const char * optRunAsUser);
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
    status_t LaunchPrivilegedChildProcess(const char ** argv);
 #endif
