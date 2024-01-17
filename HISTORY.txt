@@ -9,6 +9,9 @@ key:  - new feature
      process launch methods in ChildProcessDataIO.
    o Changed ChildProcessDataIO::ChildProcessReadyToRun() to
      be protected instead of public.
+   * Updated TarFileWriter to handle it a little more elegantly
+     when a file's length changes while the tar data is being written
+     out to a non-seekable DataIO.
 
 9.34 - Released 12/18/2023
    - Added an optional localnicip=local.nic.ip.address argument

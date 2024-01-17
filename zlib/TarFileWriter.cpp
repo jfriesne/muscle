@@ -131,10 +131,23 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
          MRETURN_ON_ERROR(_seekableWriterIO()->Seek(0, SeekableDataIO::IO_SEEK_END));
          _currentSeekPosition = _seekableWriterIO()->GetLength();
       }
-      else if (_prestatedFileSize != currentFileLength)
+      else if (currentFileLength > _prestatedFileSize)
       {
-         LogTime(MUSCLE_LOG_ERROR, "TarFileWriter::FinishCurrentFileDataBlock():  DataIO isn't seekable, and the file-length (" UINT64_FORMAT_SPEC ") of the current entry [%s] doesn't match the prestated file-length (" UINT64_FORMAT_SPEC ")!  Can't update the tar entry header!\n", currentFileLength, _currentHeaderBytes, _prestatedFileSize);
-         return B_BAD_ARGUMENT;
+         LogTime(MUSCLE_LOG_ERROR, "TarFileWriter::FinishCurrentFileDataBlock():  DataIO isn't seekable, and the file-length (" UINT64_FORMAT_SPEC ") of the current entry [%s] is larger than the prestated file-length (" UINT64_FORMAT_SPEC ")!  Can't update the tar entry header!\n", currentFileLength, _currentHeaderBytes, _prestatedFileSize);
+         return B_LOGIC_ERROR;  // should never happen since WriteFileData() will truncate before we get here
+      }
+      else if (currentFileLength < _prestatedFileSize)
+      {
+         uint64 numBytesToPad = (_prestatedFileSize-currentFileLength);
+         LogTime(MUSCLE_LOG_ERROR, "TarFileWriter::FinishCurrentFileDataBlock():  Writing " UINT64_FORMAT_SPEC " zero-pad-bytes to match non-seekable file-size-header (" UINT64_FORMAT_SPEC ") of [%s]\n", numBytesToPad, _prestatedFileSize, (const char *) _currentHeaderBytes);
+
+         uint8 padBuf[1024]; memset(padBuf, 0, sizeof(padBuf));
+         while(numBytesToPad > 0)
+         {
+            const uint32 numPadBytesToWrite = muscleMin(numBytesToPad, (uint64) sizeof(padBuf));
+            MRETURN_ON_ERROR(_writerIO()->WriteFully(padBuf, numPadBytesToWrite));
+            numBytesToPad -= numPadBytesToWrite;
+         }
       }
 
       _currentHeaderOffset = -1;
@@ -164,7 +177,8 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
    if (secondsSince1970 != 0) WriteOctalASCII(&_currentHeaderBytes[136], secondsSince1970, 12);
 
    _currentHeaderBytes[156] = (uint8) (linkIndicator+'0');
-   if (linkedFileName) muscleStrncpy((char *)(&_currentHeaderBytes[157]), linkedFileName, sizeof(_currentHeaderBytes)-157);
+   if (linkedFileName) muscleStrncpy((char *)(&_currentHeaderBytes[157]), linkedFileName, sizeof(_currentHeaderBytes)-(157+1));
+   _currentHeaderBytes[sizeof(_currentHeaderBytes)-1] = '\0';  // just in case muscleStrncpy() didn't terminate the string
 
    UpdateCurrentHeaderChecksum();
 
@@ -180,8 +194,21 @@ status_t TarFileWriter :: WriteFileData(const uint8 * fileData, uint32 numBytes)
 {
    if ((_writerIO() == NULL)||(_currentHeaderOffset < 0)) return B_BAD_OBJECT;
 
-   MRETURN_ON_ERROR(_writerIO()->WriteFully(fileData, numBytes));
-   _currentSeekPosition += numBytes;
+   uint32 effectiveNumBytes = numBytes;
+   if (_seekableWriterIO() == NULL)
+   {
+      // Don't write more bytes than we promised in the header that we would write, since we can't seek back to modify the header now
+      const uint64 currentFileLength = _currentSeekPosition-(_currentHeaderOffset+TAR_BLOCK_SIZE);
+      const int64 spaceLeftWithoutModifyingHeader = _prestatedFileSize-currentFileLength;
+      if (((int64)numBytes) > spaceLeftWithoutModifyingHeader)
+      {
+         effectiveNumBytes = muscleMin(numBytes, (uint32) spaceLeftWithoutModifyingHeader);
+         LogTime(MUSCLE_LOG_WARNING, "TarFileWriter::WriteFileData:   Dropping " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " file-bytes from write to respect the fixed header-size value (" UINT64_FORMAT_SPEC ") for [%s]\n", (numBytes-effectiveNumBytes), numBytes, _prestatedFileSize, (const char *)_currentHeaderBytes);
+      }
+   }
+
+   MRETURN_ON_ERROR(_writerIO()->WriteFully(fileData, effectiveNumBytes));
+   _currentSeekPosition += effectiveNumBytes;
    return B_NO_ERROR;
 }
 
