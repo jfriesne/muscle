@@ -26,7 +26,7 @@
 # include <signal.h>    // for SIGHUP, etc
 # include <sys/wait.h>  // for waitpid()
 # include <pwd.h>       // for getpwnam()
-# include <grp.h>       // for getgrouplist()
+# include <grp.h>       // for initgroups()
 #endif
 
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
@@ -103,8 +103,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 #endif
 
 #if !defined(WIN32)
-   int accountUID = 0;
-   Queue<gid_t> groupList;
+   int accountUID = -1, accountGID = -1;
 #endif
 
    if (optRunAsUser)
@@ -118,13 +117,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       if (accountInfo == NULL) return B_DATA_NOT_FOUND;
 
       accountUID = accountInfo->pw_uid;
-
-      int numGroupsInList = 0;
-      (void) getgrouplist(optRunAsUser, accountInfo->pw_gid, NULL, &numGroupsInList);  // this call is just to set (numGroupsInList)
-      MRETURN_ON_ERROR(groupList.EnsureSize(numGroupsInList, true));  // allocate an array of the necessary length
-
-      // This call is to populate the groups-list with the appropriate group IDs for (optRunAsUser)
-      if (getgrouplist(optRunAsUser, accountInfo->pw_gid, groupList.HeadPointer(), &numGroupsInList) < 0) return B_ERRNO;
+      accountGID = accountInfo->pw_gid;
 #endif
    }
 
@@ -374,15 +367,15 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
          for (HashtableIterator<String,String> iter(*optEnvironmentVariables); iter.HasData(); iter++) (void) setenv(iter.GetKey()(), iter.GetValue()(), 1);
       }
 
-      if (optRunAsUser)
-      {
-         // Note:  we must call setgrouplist() first, because as soon as we call setuid() we might no longer have permission to call setgroups() anymore
-         if (setgroups(groupList.GetNumItems(), groupList.HeadPointer())!=0) {perror("setgroups()"); ExitWithoutCleanup(18);}
-         if (setuid(accountUID)!=0) {perror("setuid()"); ExitWithoutCleanup(19);}
-      }
-
       if (ChildProcessReadyToRun().IsOK(ret))
       {
+         if (optRunAsUser)
+         {
+            // Note:  we must call initgroups() first, because as soon as we call setuid() we might no longer have permission to call initgroups() anymore
+            if (initgroups(optRunAsUser, accountGID) != 0) {perror("initgroups()"); ExitWithoutCleanup(18);}
+            if (setuid(accountUID)                   != 0) {perror("setuid()");     ExitWithoutCleanup(19);}
+         }
+
          if (execvp(zargv0, const_cast<char **>(zargv)) < 0) perror("ChildProcessDataIO::execvp");  // execvp() should never return
       }
       else LogTime(MUSCLE_LOG_ERROR, "ChildProcessDataIO:  ChildProcessReadyToRun() returned [%s], not running child process!\n", ret());
