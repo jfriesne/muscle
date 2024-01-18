@@ -329,9 +329,9 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       else if (pid == 0)
       {
          const int fd = slaveSock()->GetFileDescriptor();
-         if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN)  == false)&&(dup2(fd, STDIN_FILENO)  < 0)) ExitWithoutCleanup(20);
-         if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT) == false)&&(dup2(fd, STDOUT_FILENO) < 0)) ExitWithoutCleanup(20);
-         if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR) == false)&&(dup2(fd, STDERR_FILENO) < 0)) ExitWithoutCleanup(20);
+         if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN)  == false)&&(dup2(fd, STDIN_FILENO)  < 0)) ExitWithoutCleanup(14);
+         if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT) == false)&&(dup2(fd, STDOUT_FILENO) < 0)) ExitWithoutCleanup(15);
+         if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR) == false)&&(dup2(fd, STDERR_FILENO) < 0)) ExitWithoutCleanup(16);
       }
    }
 
@@ -372,7 +372,8 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
          if (optRunAsUser)
          {
             // Note:  we must call initgroups() first, because as soon as we call setuid() we might no longer have permission to call initgroups() anymore
-            if (initgroups(optRunAsUser, accountGID) != 0) {perror("initgroups()"); ExitWithoutCleanup(18);}
+            if (setgid(accountGID)                   != 0) {perror("setgid()");     ExitWithoutCleanup(17);} // to remove old groups
+            if (initgroups(optRunAsUser, accountGID) != 0) {perror("initgroups()"); ExitWithoutCleanup(18);} // to add new groups
             if (setuid(accountUID)                   != 0) {perror("setuid()");     ExitWithoutCleanup(19);}
          }
 
