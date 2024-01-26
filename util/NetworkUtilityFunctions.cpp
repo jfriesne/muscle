@@ -109,6 +109,7 @@ static void GET_SOCKADDR_IP_IPV6(const struct sockaddr_in6 & sockAddr, IPAddress
       break;
   }
 }
+
 static void SET_SOCKADDR_IP_IPV6(struct sockaddr_in6 & sockAddr, const IPAddress & ipAddr)
 {
    uint32 tmp;  // MacOS/X uses __uint32_t, which isn't quite the same somehow
@@ -147,7 +148,19 @@ static void InitializeSockAddr6(struct sockaddr_in6 & addr, const IPAddress * op
    if (port)    SET_SOCKADDR_PORT_IPV6(addr, port);
 }
 # define DECLARE_SOCKADDR_IPV6(addr, ip, port) struct sockaddr_in6 addr; InitializeSockAddr6(addr, ip, port);
-#endif
+
+IPAddressAndPort :: IPAddressAndPort(const struct sockaddr_in6 & sockAddr6)
+{
+   GET_SOCKADDR_IP_IPV6(sockAddr6, _ip);
+   _port = GET_SOCKADDR_PORT_IPV6(sockAddr6);
+}
+
+void IPAddressAndPort :: WriteToSockAddrIn6(struct sockaddr_in6 & writeToMe) const
+{
+   InitializeSockAddr6(writeToMe, &_ip, _port);
+}
+
+#endif   // !MUSCLE_AVOID_IPV6
 
 static void GET_SOCKADDR_IP_IPV4(const struct sockaddr_in & sockAddr, IPAddress & ipAddr) {ipAddr.SetIPv4AddressFromUint32(ntohl(sockAddr.sin_addr.s_addr));}
 static void SET_SOCKADDR_IP_IPV4(struct sockaddr_in & sockAddr, const IPAddress & ipAddr) {sockAddr.sin_addr.s_addr = htonl(ipAddr.GetIPv4AddressAsUint32());}
@@ -163,6 +176,17 @@ static void InitializeSockAddr4(struct sockaddr_in & addr, const IPAddress * opt
    if (port) SET_SOCKADDR_PORT_IPV4(addr, port);
 }
 #define DECLARE_SOCKADDR_IPV4(addr, ip, port) struct sockaddr_in addr; InitializeSockAddr4(addr, ip, port);
+
+IPAddressAndPort :: IPAddressAndPort(const struct sockaddr_in & sockAddr)
+{
+   GET_SOCKADDR_IP_IPV4(sockAddr, _ip);
+   _port = GET_SOCKADDR_PORT_IPV4(sockAddr);
+}
+
+void IPAddressAndPort :: WriteToSockAddrIn(struct sockaddr_in & writeToMe) const
+{
+   InitializeSockAddr4(writeToMe, &_ip, _port);
+}
 
 static GlobalSocketCallback * _globalSocketCallback = NULL;
 void SetGlobalSocketCallback(GlobalSocketCallback * cb) {_globalSocketCallback = cb;}

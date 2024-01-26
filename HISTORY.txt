@@ -7,8 +7,13 @@ key:  - new feature
 
    - Added an optional (optRunAsUser) argument to the various
      process launch methods in ChildProcessDataIO.
+   - Added convenience constructors to the IPAddressAndPort class
+     that take a sockaddr_in or sockaddr_in6 as an argument.
+   - Added WriteToSockAddrIn() and WriteToSockAddrIn6()
+     convenience methods to the IPAddressAndPort class.
    o Changed ChildProcessDataIO::ChildProcessReadyToRun() to
      be protected instead of public.
+   o Removed ip_address typedef; use IPAddress instead.
    * Updated TarFileWriter to handle it a little more elegantly
      when a file's length changes while the tar data is being written
      out to a non-seekable DataIO.

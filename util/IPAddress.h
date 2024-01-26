@@ -3,6 +3,11 @@
 #ifndef IPAddress_h
 #define IPAddress_h
 
+extern "C" {
+struct sockaddr_in;   // forward declaration
+struct sockaddr_in6;  // forward declaration
+};
+
 #include "support/PseudoFlattenable.h"
 #include "util/String.h"
 
@@ -277,7 +282,6 @@ private:
    uint64 _highBits;
    uint32 _interfaceIndex;  // will be set to MUSCLE_NO_LIMIT if the interface-index value is invalid
 };
-typedef IPAddress ip_address;  // for backwards compatibility with old code
 
 /** Numeric representation of a all-zeroes invalid/guard address (same for both IPv4 and IPv6) */
 const IPAddress invalidIP(0x00);
@@ -331,6 +335,18 @@ public:
      * @param port The port number to represent
      */
    MUSCLE_CONSTEXPR IPAddressAndPort(const IPAddress & ip, uint16 port) : _ip(ip), _port(port) {/* empty */}
+
+   /** Convenience constructor.  Create an IPAddressAndPort based on the contents of the given sockaddr_in object.
+     * @param sockAddr an IPv4 address expressed as a BSD Sockets API's sockaddr_in
+     */
+   IPAddressAndPort(const struct sockaddr_in & sockAddr);
+
+#ifndef MUSCLE_AVOID_IPV6
+   /** Convenience constructor.  Create an IPAddressAndPort based on the contents of the given sockaddr_in6 object.
+     * @param sockAddr6 an IPv6 address expressed as a BSD Sockets API's sockaddr_in
+     */
+   IPAddressAndPort(const struct sockaddr_in6 & sockAddr6);
+#endif
 
    /** Convenience constructor.  Calling this is equivalent to creating an IPAddressAndPort
      * object and then calling SetFromString() on it with the given arguments.
@@ -427,6 +443,20 @@ public:
      *                                      Defaults to true.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
      */
    String ToString(bool includePort = true, bool printIPv4AddressesInIPv4Style = true) const;
+
+   /** Convenience method:  Writes our current state out to (writeToSockAddrIn), if possible.
+     * @param writeToSockAddrIn on return, this object's fields will be filled out based on our state.
+     * @note a sockaddr_in cannot hold an IPv6 address, only an IPv4 address, so calling this method on an
+     *                     IPAddressAndPort object that contains an IPv6 address will not produce a usable result.
+     */
+   void WriteToSockAddrIn(struct sockaddr_in & writeToSockAddrIn) const;
+
+#ifndef MUSCLE_AVOID_IPV6
+   /** Convenience method:  Writes our current state out to (writeToSockAddrIn6), if possible.
+     * @param writeToSockAddrIn6 on return, this object's fields will be filled out based on our state.
+     */
+   void WriteToSockAddrIn6(struct sockaddr_in6 & writeToSockAddrIn6) const;
+#endif
 
    /** Part of the Flattenable pseudo-interface:  Returns true */
    MUSCLE_NODISCARD static MUSCLE_CONSTEXPR bool IsFixedSize() {return true;}
