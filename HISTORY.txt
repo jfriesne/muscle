@@ -11,6 +11,9 @@ key:  - new feature
      that take a sockaddr_in or sockaddr_in6 as an argument.
    - Added WriteToSockAddrIn() and WriteToSockAddrIn6()
      convenience methods to the IPAddressAndPort class.
+   - Added convenience overloads of the SendDataUDP() and
+     ReceiveDataUDP() functions that take an IPAddressAndPort
+     as their source/destination argument.
    o Changed ChildProcessDataIO::ChildProcessReadyToRun() to
      be protected instead of public.
    o Removed ip_address typedef; use IPAddress instead.

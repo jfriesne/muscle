@@ -217,6 +217,25 @@ io_status_t ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 buffe
  */
 io_status_t ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode, IPAddress * optRetFromIP = NULL, uint16 * optRetFromPort = NULL);
 
+/** Convenience function.  Same as the ReceiveDataUDP() above, except that the returned IP address and port number
+  * are placed into an IPAddressAndPort object instead of into separate arguments.
+ *  @param sock The socket to read from.
+ *  @param buffer Location to place the received bytes into.
+ *  @param bufferSizeBytes Number of bytes available at the location indicated by (buffer).
+ *  @param socketIsInBlockingIOMode Pass in true if the given socket is set to use blocking I/O, or false otherwise.
+ *  @param retFromIAP On success, the source of the received packet is written into this object.
+ *  @return The number of bytes read into (buffer), or an error code if there was an error.
+ *          Note that this value may be smaller than (bufferSizeBytes).
+ */
+static inline io_status_t ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode, IPAddressAndPort & retFromIAP)
+{
+   IPAddress ip;
+   uint16 port;
+   const io_status_t ret = ReceiveDataUDP(sock, buffer, bufferSizeBytes, socketIsInBlockingIOMode, &ip, &port);
+   if (ret.IsOK()) retFromIAP.Set(ip, port);
+   return ret;
+}
+
 /** Similar to ReceiveData(), except that it will call read() instead of recv().
  *  This is the function to use if (fd) is referencing a file descriptor instead of a socket.
  *  @param fd The file descriptor to read from.
@@ -251,6 +270,21 @@ io_status_t SendData(const ConstSocketRef & sock, const void * buffer, uint32 bu
  *          Note that this value may be smaller than (bufferSizeBytes).
  */
 io_status_t SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode, const IPAddress & optDestIP = invalidIP, uint16 destPort = 0);
+
+/** Convenience function.  Same as the function above, except that destination IP address and port are specified
+ *  via a single IPAddressAndPort argument instead of as separate arguments.
+ *  @param sock The socket to transmit over.
+ *  @param buffer Buffer to read the outgoing bytes from.
+ *  @param bufferSizeBytes Number of bytes to send.
+ *  @param socketIsInBlockingIOMode Pass in true if the given socket is set to use blocking I/O, or false otherwise.
+ *  @param destIAP the IP address and port to send the outgoing packet to.
+ *  @return The number of bytes sent from (buffer), or an error code if there was an error.
+ *          Note that this value may be smaller than (bufferSizeBytes).
+ */
+static inline io_status_t SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 bufferSizeBytes, bool socketIsInBlockingIOMode, const IPAddressAndPort & destIAP)
+{
+   return SendDataUDP(sock, buffer, bufferSizeBytes, socketIsInBlockingIOMode, destIAP.GetIPAddress(), destIAP.GetPort());
+}
 
 /** Similar to SendData(), except that the implementation calls write() instead of send().  This
  *  is the function to use when (fd) refers to a file descriptor instead of a socket.
