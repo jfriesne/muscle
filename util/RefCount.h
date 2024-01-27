@@ -507,7 +507,7 @@ private:
    void SetStatusAux(status_t errorStatus)
    {
       // Gotta pass in the char-pointer's low bit separately, because PointerAndBits thinks it's a data-bit
-      uintptr pVal = (uintptr) errorStatus();
+      uintptr pVal = (uintptr) (errorStatus.IsOK() ? NULL : errorStatus());
       const bool isLowBitSet = ((pVal % 2) != 0);
       pVal &= ~((uintptr) 0x1);  // clear the low bit from our "pointer"
       _item.SetPointerAndBits((const char *)pVal, BooleansToBitChord(false, isLowBitSet));
