@@ -7,8 +7,12 @@ key:  - new feature
 
    - Added an optional (optRunAsUser) argument to the various
      process launch methods in ChildProcessDataIO.
+   - Added convenience constructors to the IPAddress class
+     that take an in_addr or in6_addr as an argument.
    - Added convenience constructors to the IPAddressAndPort class
      that take a sockaddr_in or sockaddr_in6 as an argument.
+   - Added WriteToInAddr() and WriteToIn6Addr() convenience
+     methods to the IPAddress class.
    - Added WriteToSockAddrIn() and WriteToSockAddrIn6()
      convenience methods to the IPAddressAndPort class.
    - Added convenience overloads of the SendDataUDP() and

@@ -5,7 +5,11 @@
 
 extern "C" {
 struct sockaddr_in;   // forward declaration
+struct in_addr;       // forward declaration
+#ifndef MUSCLE_AVOID_IPV6
 struct sockaddr_in6;  // forward declaration
+struct in6_addr;      // forward declaration
+#endif
 };
 
 #include "support/PseudoFlattenable.h"
@@ -36,6 +40,21 @@ public:
      * @param s an IPAddress to parse (eg "127.0.0.1" or "ff12::02@3")
      */
    explicit IPAddress(const String & s) : _lowBits(0), _highBits(0), _interfaceIndex(MUSCLE_NO_LIMIT) {(void) SetFromString(s);}
+
+   /** Convenience constructor.  Create this IPAddress based on the contents of the given in_addr struct.
+     * @param sockAddr an IPv4 address expressed as a BSD Sockets API's in_addr
+     */
+   IPAddress(const struct in_addr & ip4Address);
+
+#ifndef MUSCLE_AVOID_IPV6
+   /** Convenience constructor.  Initializes this IPAddress based on the contents of the given sockaddr_in6 struct.
+     * @param sockAddr6 an IPv6 address expressed as a BSD Sockets API's in6_addr
+     * @param optInterfaceIndex if set to a value other than MUSCLE_NO_LIMIT, then this will be used as the local
+     *                          IPv6 scope (aka network interface index) for this IP address.
+     *                          For IPv4 addresses this should always be left as MUSCLE_NO_LIMIT.
+     */
+   IPAddress(const struct in6_addr & ipv6Address, uint32 optInterfaceIndex = MUSCLE_NO_LIMIT);
+#endif
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    MUSCLE_CONSTEXPR IPAddress(const IPAddress & rhs) : _lowBits(rhs._lowBits), _highBits(rhs._highBits), _interfaceIndex(rhs._interfaceIndex) {/* empty */}
@@ -143,35 +162,50 @@ public:
    /** @copydoc DoxyTemplate::HashCode() const */
    MUSCLE_NODISCARD uint32 HashCode() const {return CalculateHashCode(_interfaceIndex)+CalculateHashCode(_lowBits)+CalculateHashCode(_highBits);}
 
+   /** Convenience method:  Writes our current state out to (writeToInAddr), if possible.
+     * @param writeToInAddr on return, this object's fields will be filled out based on our state.
+     * @note a sockaddr_in cannot hold an IPv6 address, only an IPv4 address, so calling this method on an
+     *                     IPAddress object that contains an IPv6 address will not produce a usable result.
+     */
+   void WriteToInAddr(struct in_addr & writeToInAddr) const;
+
+#ifndef MUSCLE_AVOID_IPV6
+   /** Convenience method:  Writes our current state out to (writeToInAddr6), if possible.
+     * @param writeToInAddr6 on return, this object's fields will be filled out based on our state.
+     * @param optWriteInterfaceIndex if non-NULL, we'll copy our network-interface-index into the value this argument points to.
+     */
+   void WriteToIn6Addr(struct in6_addr & writeToInAddr6, uint32 * optWriteInterfaceIndex = NULL) const;
+#endif
+
    /** Writes our address into the specified uint8 array, in the required network-friendly order.
      * @param networkBuf If non-NULL, the 16-byte network-array to write to.  Typically you would pass in
      *                   mySockAddr_in6.sin6_addr.s6_addr as the argument to this function.
-     * @param optInterfaceIndex If non-NULL, this value will receive a copy of our interface index.  Typically
+     * @param optWriteInterfaceIndex If non-NULL, this value will receive a copy of our interface index.  Typically
      *                          you would pass a pointer to mySockAddr_in6.sin6_addr.sin6_scope_id here.
      */
-   void WriteToNetworkArray(uint8 * networkBuf, uint32 * optInterfaceIndex) const
+   void WriteToNetworkArray(uint8 * networkBuf, uint32 * optWriteInterfaceIndex) const
    {
       if (networkBuf)
       {
          WriteToNetworkArrayAux(&networkBuf[0*sizeof(uint64)], _highBits);
          WriteToNetworkArrayAux(&networkBuf[1*sizeof(uint64)], _lowBits);
       }
-      if (optInterfaceIndex) *optInterfaceIndex = GetInterfaceIndex();
+      if (optWriteInterfaceIndex) *optWriteInterfaceIndex = GetInterfaceIndex();
    }
 
    /** Reads our address in from the specified uint8 array, in the required network-friendly order.
      * @param networkBuf If non-NULL, a 16-byte network-endian-array to read from.  Typically you would pass in
      *                    mySockAddr_in6.sin6_addr.s6_addr as the argument to this function.
-     * @param optInterfaceIndex If non-NULL, this value will be passed to SetInterfaceIndex() to set this object's interface-index value.
+     * @param optReadInterfaceIndex If non-NULL, this value will be passed to SetInterfaceIndex() to set this object's interface-index value.
      */
-   void ReadFromNetworkArray(const uint8 * networkBuf, const uint32 * optInterfaceIndex)
+   void ReadFromNetworkArray(const uint8 * networkBuf, const uint32 * optReadInterfaceIndex)
    {
       if (networkBuf)
       {
          ReadFromNetworkArrayAux(&networkBuf[0*sizeof(uint64)], _highBits);
          ReadFromNetworkArrayAux(&networkBuf[1*sizeof(uint64)], _lowBits);
       }
-      if (optInterfaceIndex) SetInterfaceIndex(*optInterfaceIndex);
+      if (optReadInterfaceIndex) SetInterfaceIndex(*optReadInterfaceIndex);
    }
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns true */
@@ -336,13 +370,13 @@ public:
      */
    MUSCLE_CONSTEXPR IPAddressAndPort(const IPAddress & ip, uint16 port) : _ip(ip), _port(port) {/* empty */}
 
-   /** Convenience constructor.  Create an IPAddressAndPort based on the contents of the given sockaddr_in object.
+   /** Convenience constructor.  Initializes this IPAddressAndPort based on the contents of the given sockaddr_in struct.
      * @param sockAddr an IPv4 address expressed as a BSD Sockets API's sockaddr_in
      */
    IPAddressAndPort(const struct sockaddr_in & sockAddr);
 
 #ifndef MUSCLE_AVOID_IPV6
-   /** Convenience constructor.  Create an IPAddressAndPort based on the contents of the given sockaddr_in6 object.
+   /** Convenience constructor.  Initializes this IPAddressAndPort based on the contents of the given sockaddr_in6 struct.
      * @param sockAddr6 an IPv6 address expressed as a BSD Sockets API's sockaddr_in
      */
    IPAddressAndPort(const struct sockaddr_in6 & sockAddr6);
@@ -485,12 +519,7 @@ public:
      * except that the included IPAddress has its interface index field set to the specified value.
      * @param interfaceIndex The new interface index value to use in the returned object (or MUSCLE_NO_LIMIT to specify an invalid index)
      */
-   IPAddressAndPort WithInterfaceIndex(uint32 interfaceIndex) const
-   {
-      IPAddress addr = _ip;
-      addr.SetInterfaceIndex(interfaceIndex);
-      return IPAddressAndPort(addr, _port);
-   }
+   IPAddressAndPort WithInterfaceIndex(uint32 interfaceIndex) const {return IPAddressAndPort(_ip.WithInterfaceIndex(interfaceIndex), _port);}
 
    /** Convenience method:  Returns an IPAddressAndPort object identical to this one, but with the interface-index field unset. */
    IPAddressAndPort WithoutInterfaceIndex() const {return WithInterfaceIndex(MUSCLE_NO_LIMIT);}

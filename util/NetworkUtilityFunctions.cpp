@@ -87,41 +87,38 @@ static bool _automaticIPv4AddressMappingEnabled = true;   // if true, we automat
 void SetAutomaticIPv4AddressMappingEnabled(bool e) {_automaticIPv4AddressMappingEnabled = e;}
 bool GetAutomaticIPv4AddressMappingEnabled()       {return _automaticIPv4AddressMappingEnabled;}
 
+IPAddress :: IPAddress(const struct in6_addr & in6Addr, uint32 optInterfaceIndex)
+{
+   ReadFromNetworkArray(in6Addr.s6_addr, &optInterfaceIndex);
+   if ((_automaticIPv4AddressMappingEnabled)&&(*this != localhostIP)&&(IsValid())&&(IsIPv4())) SetLowBits(GetLowBits() & ((uint64)0xFFFFFFFF));  // remove IPv4-mapped-IPv6-bits
+}
+
+void IPAddress :: WriteToIn6Addr(struct in6_addr & writeToInAddr6, uint32 * optWriteInterfaceIndex) const
+{
+   if ((_automaticIPv4AddressMappingEnabled)&&(*this != localhostIP)&&(IsValid())&&(IsIPv4()))
+   {
+      IPAddress tmpAddr = *this;
+      tmpAddr.SetLowBits(tmpAddr.GetLowBits() | (((uint64)0xFFFF)<<32));  // add IPv4-mapped-IPv6-bits
+      tmpAddr.WriteToNetworkArray(writeToInAddr6.s6_addr, optWriteInterfaceIndex);
+   }
+   else WriteToNetworkArray(writeToInAddr6.s6_addr, optWriteInterfaceIndex);
+}
+
 static void GET_SOCKADDR_IP_IPV6(const struct sockaddr_in6 & sockAddr, IPAddress & ipAddr)
 {
    switch(sockAddr.sin6_family)
    {
-      case AF_INET6:
-      {
-         ipAddr.UnsetInterfaceIndex();
-         const uint32 tmp = sockAddr.sin6_scope_id;  // MacOS/X uses __uint32_t, which isn't quite the same somehow
-         ipAddr.ReadFromNetworkArray(sockAddr.sin6_addr.s6_addr, tmp ? &tmp : NULL);
-         if ((_automaticIPv4AddressMappingEnabled)&&(ipAddr != localhostIP)&&(ipAddr.IsValid())&&(ipAddr.IsIPv4())) ipAddr.SetLowBits(ipAddr.GetLowBits() & ((uint64)0xFFFFFFFF));  // remove IPv4-mapped-IPv6-bits
-      }
-      break;
-
-      case AF_INET:
-         ipAddr.SetIPv4AddressFromUint32(ntohl(((const struct sockaddr_in &)sockAddr).sin_addr.s_addr));
-      break;
-
-      default:
-         // empty
-      break;
-  }
+      case AF_INET6: ipAddr = IPAddress(sockAddr.sin6_addr, sockAddr.sin6_scope_id);      break;
+      case AF_INET:  ipAddr = IPAddress(((const struct sockaddr_in &)sockAddr).sin_addr); break;  // shouldn't ever happen, but just in case
+      default:       /* empty */                                                          break;
+   }
 }
 
 static void SET_SOCKADDR_IP_IPV6(struct sockaddr_in6 & sockAddr, const IPAddress & ipAddr)
 {
-   uint32 tmp;  // MacOS/X uses __uint32_t, which isn't quite the same somehow
-   if ((_automaticIPv4AddressMappingEnabled)&&(ipAddr != localhostIP)&&(ipAddr.IsValid())&&(ipAddr.IsIPv4()))
-   {
-      IPAddress tmpAddr = ipAddr;
-      tmpAddr.SetLowBits(tmpAddr.GetLowBits() | (((uint64)0xFFFF)<<32));  // add IPv4-mapped-IPv6-bits
-      tmpAddr.WriteToNetworkArray(sockAddr.sin6_addr.s6_addr, &tmp);
-   }
-   else ipAddr.WriteToNetworkArray(sockAddr.sin6_addr.s6_addr, &tmp);
-
-   sockAddr.sin6_scope_id = tmp;
+   uint32 temp = 0;  // just because MacOS/X likes to use a slightly different type
+   ipAddr.WriteToIn6Addr(sockAddr.sin6_addr, &temp);
+   sockAddr.sin6_scope_id = temp;
 }
 
 static uint16 GET_SOCKADDR_PORT_IPV6(const struct sockaddr_in6 & addr)
@@ -176,6 +173,16 @@ static void InitializeSockAddr4(struct sockaddr_in & addr, const IPAddress * opt
    if (port) SET_SOCKADDR_PORT_IPV4(addr, port);
 }
 #define DECLARE_SOCKADDR_IPV4(addr, ip, port) struct sockaddr_in addr; InitializeSockAddr4(addr, ip, port);
+
+IPAddress :: IPAddress(const struct in_addr & inAddr)
+{
+   SetIPv4AddressFromUint32(ntohl(inAddr.s_addr));
+}
+
+void IPAddress :: WriteToInAddr(struct in_addr & writeToMe) const
+{
+   writeToMe.s_addr = htonl(GetIPv4AddressAsUint32());
+}
 
 IPAddressAndPort :: IPAddressAndPort(const struct sockaddr_in & sockAddr)
 {
@@ -1484,16 +1491,17 @@ static IPAddress SockAddrToIPAddr(const struct sockaddr * a)
    {
       switch(a->sa_family)
       {
-         case AF_INET:  return IPAddress(ntohl(((struct sockaddr_in *)a)->sin_addr.s_addr));
+         case AF_INET:
+         {
+            const struct sockaddr_in & a4 = *(reinterpret_cast<const struct sockaddr_in *>(a));
+            return IPAddress(a4.sin_addr);
+         }
 
 #ifndef MUSCLE_AVOID_IPV6
          case AF_INET6:
          {
-            struct sockaddr_in6 * sin6 = (struct sockaddr_in6 *) a;
-            IPAddress ret;
-            const uint32 tmp = sin6->sin6_scope_id;  // MacOS/X uses __uint32_t, which isn't quite the same somehow
-            ret.ReadFromNetworkArray(sin6->sin6_addr.s6_addr, tmp ? &tmp : NULL);
-            return ret;
+            const struct sockaddr_in6 & a6 = *(reinterpret_cast<const struct sockaddr_in6 *>(a));
+            return IPAddress(a6.sin6_addr, a6.sin6_scope_id);
          }
 #endif
       }

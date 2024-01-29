@@ -361,7 +361,10 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
                }
                else if (ip.IsIPv4()) LogTime(MUSCLE_LOG_WARNING, "Specifying localnicip=local.nic.ip.address may be necessary before sending IPv4 multicast UDP packets will work.\n");
 
-                    if (joinMulticastGroup == false) LogTime(MUSCLE_LOG_INFO, "Not joining to multicast group [%s] since nojoin was specified as a command line argument.\n", Inet_NtoA(ip)());
+               if (joinMulticastGroup == false)
+               {
+                  LogTime(MUSCLE_LOG_INFO, "Not joining to multicast group [%s] since nojoin was specified as a command line argument.\n", Inet_NtoA(ip)());
+               }
                else if (AddSocketToMulticastGroup(ss, ip, useLocalIP).IsOK(ret))
                {
                   LogTime(MUSCLE_LOG_INFO, "Added UDP socket to multicast group %s!\n", Inet_NtoA(ip)());
