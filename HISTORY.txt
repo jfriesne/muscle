@@ -26,6 +26,7 @@ key:  - new feature
      out to a non-seekable DataIO.
    * Fixed a bug in the Ref class that would cause a NULL Ref's
      status-string to be returned as "OK" rather than "NULL Ref"
+   * BitChord::SetByte()'s second argument was the wrong type.  Fixed.
 
 9.34 - Released 12/18/2023
    - Added an optional localnicip=local.nic.ip.address argument

@@ -599,7 +599,7 @@ public:
      * @param whichByte index of the 8-bit byte to set
      * @param byteValue the new value for the specified byte.
      */
-   void SetByte(uint32 whichByte, uint32 byteValue)
+   void SetByte(uint32 whichByte, uint8 byteValue)
    {
       MASSERT(whichByte < NUM_BYTES, "BitChord::SetByte:  whichByte was out of range!\n");
 
