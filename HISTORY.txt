@@ -18,6 +18,7 @@ key:  - new feature
    - Added convenience overloads of the SendDataUDP() and
      ReceiveDataUDP() functions that take an IPAddressAndPort
      as their source/destination argument.
+   - Added method IPAddress::IsIPv6LinkLocal().
    o Changed ChildProcessDataIO::ChildProcessReadyToRun() to
      be protected instead of public.
    o Removed ip_address typedef; use IPAddress instead.

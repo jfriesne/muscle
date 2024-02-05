@@ -49,9 +49,10 @@ public:
 #ifndef MUSCLE_AVOID_IPV6
    /** Convenience constructor.  Initializes this IPAddress based on the contents of the given sockaddr_in6 struct.
      * @param sockAddr6 an IPv6 address expressed as a BSD Sockets API's in6_addr
-     * @param optInterfaceIndex if set to a value other than MUSCLE_NO_LIMIT, then this will be used as the local
-     *                          IPv6 scope (aka network interface index) for this IP address.
-     *                          For IPv4 addresses this should always be left as MUSCLE_NO_LIMIT.
+     * @param optInterfaceIndex if set to a value other than MUSCLE_NO_LIMIT, AND (ipv6Address) is a link-local
+     *                          IPv6 address, then this will be used as the local IPv6 scope (aka network interface index)
+     *                          for this IP address.
+     *                          For IPv4 addresses and non-link-local addresses, this argument will be ignored.
      */
    IPAddress(const struct in6_addr & ipv6Address, uint32 optInterfaceIndex = MUSCLE_NO_LIMIT);
 #endif
@@ -263,6 +264,9 @@ public:
 
    /** Returns true iff this address qualifies as an IPv6 link-local multicast address.  */
    MUSCLE_NODISCARD bool IsIPv6LinkLocalMulticast() const {return IsIPv6LocalMulticast(0x02);}
+
+   /** Returns true iff this address is IPv6-link-local (i.e. it can use the network-interface-index field) */
+   MUSCLE_NODISCARD bool IsIPv6LinkLocal() const;
 
    /** Returns true iff this address qualifies as a standard loopback-device address (eg 127.0.0.1 or ::1 or fe80::1) */
    MUSCLE_NODISCARD bool IsStandardLoopbackDeviceAddress() const;

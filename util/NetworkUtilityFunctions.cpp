@@ -90,6 +90,7 @@ bool GetAutomaticIPv4AddressMappingEnabled()       {return _automaticIPv4Address
 IPAddress :: IPAddress(const struct in6_addr & in6Addr, uint32 optInterfaceIndex)
 {
    ReadFromNetworkArray(in6Addr.s6_addr, &optInterfaceIndex);
+   if (IsIPv6LinkLocal() == false) UnsetInterfaceIndex();  // no point keeping an interface-index for an IP address that doesn't support that anyway
    if ((_automaticIPv4AddressMappingEnabled)&&(*this != localhostIP)&&(IsValid())&&(IsIPv4())) SetLowBits(GetLowBits() & ((uint64)0xFFFFFFFF));  // remove IPv4-mapped-IPv6-bits
 }
 
@@ -1555,6 +1556,16 @@ bool IPAddress :: IsMulticast() const
 bool IPAddress :: IsBroadcast() const
 {
    return ((IsIPv4())&&((GetLowBits() & 0xFF) == 0xFF));
+}
+
+bool IPAddress :: IsIPv6LinkLocal() const
+{
+   if (IsIPv4()) return false;
+
+   const uint16 highestShort = (uint16) ((GetHighBits()>>48) & 0xFFFF);
+   if (highestShort == 0xFE80) return true;  // link-local unicast address!
+   if (((highestShort&0xFF00) == 0xFF00)&&((highestShort & 0x0F) == 0x02)) return true;  // link-local multicast address!
+   return false;  // all others don't need/want a sin6_scope_id
 }
 
 bool IPAddress :: IsIPv6LocalMulticast(uint8 scope) const
