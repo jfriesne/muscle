@@ -2062,7 +2062,8 @@ status_t GetNetworkInterfaceAddresses(Queue<IPAddress> & results, GNIIFlags incl
 
 static void Inet4_NtoA(uint32 addr, char * buf)
 {
-   muscleSnprintf(buf, 16, INT32_FORMAT_SPEC "." INT32_FORMAT_SPEC "." INT32_FORMAT_SPEC "." INT32_FORMAT_SPEC, (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
+   if (addr) muscleSnprintf(buf, 16, INT32_FORMAT_SPEC "." INT32_FORMAT_SPEC "." INT32_FORMAT_SPEC "." INT32_FORMAT_SPEC, (addr>>24)&0xFF, (addr>>16)&0xFF, (addr>>8)&0xFF, (addr>>0)&0xFF);
+        else *buf = '\0';  // return an invalid IPv4 address as ""
 }
 
 void Inet_NtoA(const IPAddress & addr, char * ipbuf, bool preferIPv4)
@@ -2071,7 +2072,7 @@ void Inet_NtoA(const IPAddress & addr, char * ipbuf, bool preferIPv4)
    (void) preferIPv4;
    Inet4_NtoA(addr.GetIPv4AddressAsUint32(), ipbuf);
 #else
-   if ((preferIPv4)&&(addr.IsIPv4())) Inet4_NtoA(addr.GetLowBits()&0xFFFFFFFF, ipbuf);
+   if ((preferIPv4)&&((addr.IsValid() == false)||(addr.IsIPv4()))) Inet4_NtoA((uint32)(addr.GetLowBits()&0xFFFFFFFF), ipbuf);
    else
    {
       const int MIN_IPBUF_LENGTH = 64;

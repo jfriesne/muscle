@@ -275,8 +275,8 @@ public:
    MUSCLE_NODISCARD bool IsSelfAssigned() const;
 
    /** Returns a human-readable string equivalent to this IPAddress object.  Behaves the same as Inet_NtoA(*this, printIPv4AddressesInIPv4Style).
-     *  @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
-     *                                       Defaults to true.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
+     * @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
+     *                                      Defaults to true.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
      */
    String ToString(bool printIPv4AddressesInIPv4Style = true) const;
 

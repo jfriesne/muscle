@@ -22,6 +22,9 @@ key:  - new feature
    o Changed ChildProcessDataIO::ChildProcessReadyToRun() to
      be protected instead of public.
    o Removed ip_address typedef; use IPAddress instead.
+   o Tweaked Inet_NtoA() so that when called with the (preferIPv4)
+     flag, it will return the invalid/all-zeroes IP address string
+     as "" rather than "::".
    * Updated TarFileWriter to handle it a little more elegantly
      when a file's length changes while the tar data is being written
      out to a non-seekable DataIO.
