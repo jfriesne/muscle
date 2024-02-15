@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   o Tweaked zlib/zlib/zconf.h so that the gzlib files can build
+     successfully even if ./configure wasn't called in the
+     zlib/zlib folder first.
    * Updated build instructions to specify cmake instead of
      Visual Studio
 

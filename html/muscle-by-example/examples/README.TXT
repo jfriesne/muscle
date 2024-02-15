@@ -11,6 +11,5 @@ in the muscle/_build/html/muscle-by-example/examples/* sub-folders.
 
 MacOS/X and Linux users who don't want to deal with cmake can alternatively just run "make -j8"
 inside this examples folder, and make will compile all of the example programs in this folder.
-(if you get errors while compiling gzlib.c, you may need to run "cd muscle/zlib/zlib; ./configure" first)
 
 -Jeremy

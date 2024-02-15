@@ -12,9 +12,6 @@ How to build a muscle server ("muscled")
 Alternatively, on MacOS/X and Linux systems you can build muscle the old-fashioned way:
 
 - Simply cd to the 'server' folder and type 'make'.
-  Note that if zlib headers aren't installed on your system, you may 
-  need to go into the 'zlib/zlib' folder and do a "./configure;make"
-  first.
 
 When the compile finishes, you will have an executable named
 'muscled' (or 'muscled.exe' under Windows).  To start the server,
