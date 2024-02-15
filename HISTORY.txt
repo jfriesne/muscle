@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.35 - Released 2/14/2024
    - Added an optional (optRunAsUser) argument to the various
      process launch methods in ChildProcessDataIO.
    - Added convenience constructors to the IPAddress class

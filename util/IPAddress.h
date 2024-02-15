@@ -23,7 +23,8 @@ enum {
 };
 
 /** This class represents an IPv6 network address, including the 128-bit IP
-  * address and the interface index field (necessary for connecting to link-local addresses)
+  * address and the interface index field (necessary for connecting to link-local addresses).
+  * It can also be used to represent an IPv4 network address.
   */
 class MUSCLE_NODISCARD IPAddress MUSCLE_FINAL_CLASS : public PseudoFlattenable<IPAddress>
 {
@@ -42,13 +43,13 @@ public:
    explicit IPAddress(const String & s) : _lowBits(0), _highBits(0), _interfaceIndex(MUSCLE_NO_LIMIT) {(void) SetFromString(s);}
 
    /** Convenience constructor.  Create this IPAddress based on the contents of the given in_addr struct.
-     * @param sockAddr an IPv4 address expressed as a BSD Sockets API's in_addr
+     * @param ip4Address an IPv4 address expressed as a BSD Sockets API's in_addr
      */
    IPAddress(const struct in_addr & ip4Address);
 
 #ifndef MUSCLE_AVOID_IPV6
    /** Convenience constructor.  Initializes this IPAddress based on the contents of the given sockaddr_in6 struct.
-     * @param sockAddr6 an IPv6 address expressed as a BSD Sockets API's in6_addr
+     * @param ipv6Address an IPv6 address expressed as a BSD Sockets API's in6_addr
      * @param optInterfaceIndex if set to a value other than MUSCLE_NO_LIMIT, AND (ipv6Address) is a link-local
      *                          IPv6 address, then this will be used as the local IPv6 scope (aka network interface index)
      *                          for this IP address.
