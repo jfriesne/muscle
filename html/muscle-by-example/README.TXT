@@ -23,14 +23,9 @@ are included to compile them will work under Linux and MacOS/X (and possibly
 other POSIX-y OS's too).  Alternatively you can compile everything (including
 the example programs) using cmake:
 
-    cd muscle
-    mkdir _build
-    cd _build
-    cmake ..
-    make -j4
-
-(Note that under Windows you'd replace the "make -j4" line with building from
-the generated ALL_RUN.vcxproj file)
+   cd muscle
+   cmake -B _build -S .
+   cmake --build _build --parallel 8
 
 If you'd like to generate your own HTML from the Markdown files in the "docs" folder,
 you can do so by installing the MkDocs python package (per the instructions at

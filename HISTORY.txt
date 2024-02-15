@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Updated build instructions to specify cmake instead of
+     Visual Studio
+
 9.35 - Released 2/14/2024
    - Added an optional (optRunAsUser) argument to the various
      process launch methods in ChildProcessDataIO.

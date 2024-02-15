@@ -1,23 +1,16 @@
 This folder contains the "toy example" programs for the "MUSCLE by Example" self-guided tour.
 
-MacOS/X and Linux users:
+CMake can be used to compile all of these examples under any OS, e.g.:
 
-To compile the examples, you can either compile them all at once by typing "make" while in this 
-folder, or you can cd to the individual sub-directory you are interested in and enter "make" from 
-there, if you'd prefer just to compile the examples in that directory.
+   cd muscle
+   cmake -B _build -S .
+   cmake --build _build --parallel 8
 
-Windows users:
+When the compilation finishes, the binaries of the muscle-by-example programs will be found
+in the muscle/_build/html/muscle-by-example/examples/* sub-folders.
 
-Assuming you have Visual Studio 2015 (or later) installed, you can compile
-the all of the examples from the DOS prompt by cd'ing into the vc++14 
-sub-directory and entering this command:
-
-   BUILD_ALL.bat
-
-... or alternatively you can open VisualStudio and compile the following
-.sln files (in the listed order!) from the GUI:
-
-   muscle\vc++14\muscle.sln
-   muscle\html\muscle-by-example\examples\vc++14\MuscleByExample.sln
+MacOS/X and Linux users who don't want to deal with cmake can alternatively just run "make -j8"
+inside this examples folder, and make will compile all of the example programs in this folder.
+(if you get errors while compiling gzlib.c, you may need to run "cd muscle/zlib/zlib; ./configure" first)
 
 -Jeremy
