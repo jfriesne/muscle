@@ -19,6 +19,9 @@ key:  - new feature
      AbstractReflectSession class to support more-useful debug output.
    - Added a GetSocketBindAddress() function to NetworkUtilityFunctions.h
      for querying where a socket is bound to on the local machine.
+   o Renamed GetPeerIPAddress() to GetPeerAddress(), and changed it
+     to return an IPAddressAndPort instead of returning an IPAddress
+     and also using a separate (optPort) argument.
    o Tweaked zlib/zlib/zconf.h so that the gzlib files can build
      successfully even if ./configure wasn't called in the
      zlib/zlib folder first.

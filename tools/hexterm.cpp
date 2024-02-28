@@ -627,7 +627,7 @@ int hextermmain(const char * argv0, const Message & args)
             ConstSocketRef ss = Accept(as, &acceptedFromIP);
             if (ss())
             {
-               char cbuf[64]; Inet_NtoA(GetPeerIPAddress(ss, true), cbuf);
+               char cbuf[64]; Inet_NtoA(GetPeerAddress(ss, true).GetIPAddress(), cbuf);
                char hbuf[64]; Inet_NtoA(acceptedFromIP, hbuf);
                LogTime(MUSCLE_LOG_INFO, "Accepted TCP connection from %s on interface %s, awaiting data...\n", cbuf, hbuf);
                TCPSocketDataIO io(ss, false);

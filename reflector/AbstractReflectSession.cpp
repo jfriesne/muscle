@@ -333,11 +333,10 @@ GetSessionDescriptionString() const
    const uint16 port = _ipAddressAndPort.GetPort();
 
    String ret = GetTypeName();
-   ret += " ";
+   ret += ' ';
    ret += GetSessionIDString();
-   ret += (port>0)?" at [":" to [";
+   ret += (port>0)?" at ":" to ";
    ret += GetClientDescriptionString();
-   ret += ']';
    return ret;
 }
 
@@ -353,7 +352,11 @@ GetClientDescriptionString() const
          char buf[64]; muscleSprintf(buf, ":%u", (port>0)?port:_asyncConnectDest.GetPort());
          return _hostName + buf;
       }
-      else return GetSocketBindAddress(GetSessionReadSelectSocket()).ToString(); // See if we can find out what port the socket is bound to and report that
+      else
+      {
+         const IPAddressAndPort iap = GetSocketBindAddress(GetSessionReadSelectSocket());
+         return iap.IsValid() ? iap.ToString() : ((iap.GetPort() > 0) ? String("port %1").Arg(iap.GetPort()) : "???");
+      }
    }
    else return "nowhere";
 }
@@ -505,7 +508,7 @@ PrintFactoriesInfo() const
    for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
    {
       const ReflectSessionFactory & f = *iter.GetValue()();
-      printf("   %s #" UINT32_FORMAT_SPEC " is listening at [%s] (%sAcceptCount=" UINT32_FORMAT_SPEC, f.GetTypeName(), f.GetFactoryID(), iter.GetKey().ToString()(), f.IsReadyToAcceptSessions()?"ReadyToAcceptSessions, ":"", f.GetAcceptCount());
+      printf("   %s #" UINT32_FORMAT_SPEC " is listening at %s (%sAcceptCount=" UINT32_FORMAT_SPEC, f.GetTypeName(), f.GetFactoryID(), iter.GetKey().ToString()(), f.IsReadyToAcceptSessions()?"ReadyToAcceptSessions, ":"", f.GetAcceptCount());
 
       const uint64 ts = f.GetMostRecentAcceptTimeStamp();
       if (ts != MUSCLE_TIME_NEVER) printf(" LastAccept: %s ago)\n", GetHumanReadableTimeIntervalString(now-ts, 1)());

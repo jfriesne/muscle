@@ -1180,9 +1180,11 @@ IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock)
    return IPAddressAndPort(); // failure
 }
 
-IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort)
+IPAddressAndPort GetPeerAddress(const ConstSocketRef & sock, bool expandLocalhost)
 {
-   IPAddress ipAddress = invalidIP;
+   IPAddress ipAddress;
+   uint16 port = 0;
+
    const int fd = sock.GetFileDescriptor();
    if (fd >= 0)
    {
@@ -1195,7 +1197,7 @@ IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, ui
             if ((getpeername(fd, (struct sockaddr *)&saTempAdd, &length) == 0)&&(GET_SOCKADDR_FAMILY_IPV4(saTempAdd) == AF_INET))
             {
                GET_SOCKADDR_IP_IPV4(saTempAdd, ipAddress);
-               if (optRetPort) *optRetPort = GET_SOCKADDR_PORT_IPV4(saTempAdd);
+               port = GET_SOCKADDR_PORT_IPV4(saTempAdd);
                if (expandLocalhost) ExpandLocalhostAddress(ipAddress);
             }
          }
@@ -1209,7 +1211,7 @@ IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, ui
             if ((getpeername(fd, (struct sockaddr *)&saTempAdd, &length) == 0)&&(GET_SOCKADDR_FAMILY_IPV6(saTempAdd) == AF_INET6))
             {
                GET_SOCKADDR_IP_IPV6(saTempAdd, ipAddress);
-               if (optRetPort) *optRetPort = GET_SOCKADDR_PORT_IPV6(saTempAdd);
+               port = GET_SOCKADDR_PORT_IPV6(saTempAdd);
                if (expandLocalhost) ExpandLocalhostAddress(ipAddress);
             }
          }
@@ -1221,7 +1223,8 @@ IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, ui
          break;
       }
    }
-   return ipAddress;
+
+   return IPAddressAndPort(ipAddress, port);
 }
 
 /* See the header file for description of what this does */

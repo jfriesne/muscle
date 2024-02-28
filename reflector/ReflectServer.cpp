@@ -121,7 +121,7 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
       const ConstSocketRef & sock = newSession->GetSessionReadSelectSocket();
       if (sock.GetFileDescriptor() >= 0)
       {
-         const IPAddress ip = GetPeerIPAddress(sock, true);
+         const IPAddress ip = GetPeerAddress(sock, true).GetIPAddress();
          const String * remapString = _remapIPs.Get(ip);
          char ipbuf[64]; Inet_NtoA(ip, ipbuf);
 
@@ -853,11 +853,11 @@ status_t ReflectServer :: DoAccept(const IPAddressAndPort & iap, const ConstSock
 
       NestCountGuard ncg(_inDoAccept);
       const IPAddressAndPort nip(acceptedFromIP, iap.GetPort());
-      const IPAddress remoteIP = GetPeerIPAddress(newSocket, true);
+      const IPAddress remoteIP = GetPeerAddress(newSocket, true).GetIPAddress();
       if (remoteIP == invalidIP)
       {
-         LogAcceptFailed(MUSCLE_LOG_DEBUG, "GetPeerIPAddress() failed", NULL, nip);
-         return B_ERROR("GetPeerIPAddress() failed");
+         LogAcceptFailed(MUSCLE_LOG_DEBUG, "GetPeerAddress() failed", NULL, nip);
+         return B_ERROR("GetPeerAddress() failed");
       }
       else
       {
@@ -1167,7 +1167,7 @@ SetComputerIsAboutToSleep(bool isAboutToSleep)
          const TCPSocketDataIO * tcpIO = dynamic_cast<TCPSocketDataIO *>(s()->GetDataIO()());
          if (tcpIO)
          {
-            const IPAddress peerIP = GetPeerIPAddress(tcpIO->GetReadSelectSocket(), false);
+            const IPAddress peerIP = GetPeerAddress(tcpIO->GetReadSelectSocket(), false).GetIPAddress();
             if ((peerIP.IsValid())&&(peerIP.IsStandardLoopbackDeviceAddress() == false))
             {
                disconnectCount++;

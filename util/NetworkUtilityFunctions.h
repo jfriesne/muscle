@@ -381,16 +381,15 @@ IPAddress Inet_AtoN(const char * buf);
 /** Returns a string that is the local host's primary host name. */
 String GetLocalHostName();
 
-/** Returns the IP address that the given socket is connected to.
+/** Returns the IP address and port that the given socket is connected to.
  *  @param sock The socket to find out info about.
  *  @param expandLocalhost If true, then if the peer's ip address is reported as 127.0.0.1, this
  *                         function will attempt to determine the host machine's actual primary IP
  *                         address and return that instead.  Otherwise, 127.0.0.1 will be
  *                         returned in this case.
- *  @param optRetPort if non-NULL, the port we are connected to on the remote peer will be written here.  Defaults to NULL.
- *  @return The IP address on success, or invalidIP on failure (such as if the socket isn't valid and connected).
+ *  @return The IPAddressAndPort on success, or an invalid IPAddressAndPort on failure (such as if the socket isn't valid and connected).
  */
-IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort = NULL);
+IPAddressAndPort GetPeerAddress(const ConstSocketRef & sock, bool expandLocalhost);
 
 /** Returns the IP address and port that the given socket is bound to on this local machine.
   * @param sock The socket to find out info about.
@@ -584,7 +583,7 @@ status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMax
 
 #endif
 
-/** Set a user-specified IP address to return from GetHostByName() and GetPeerIPAddress() instead of 127.0.0.1.
+/** Set a user-specified IP address to return from GetHostByName() and GetPeerAddress() instead of 127.0.0.1.
   * Note that this function <b>does not</b> change the computer's IP address -- it merely changes what
   * the aforementioned functions will report.
   * @param ip New IP address to return instead of 127.0.0.1, or invalidIP to disable this override.
