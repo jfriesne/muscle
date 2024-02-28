@@ -168,7 +168,11 @@ private:
                                                  else return PollRegisterNewSocket(fd, whichSet);
 #else
 # ifndef WIN32  // Window supports file descriptors that are greater than FD_SETSIZE!  Other OS's do not
-         if (fd >= FD_SETSIZE) return B_BAD_ARGUMENT;
+         if (fd >= FD_SETSIZE)
+         {
+            LogTime(MUSCLE_LOG_ERROR, "SocketMultiplexer::RegisterSocket(%i):  file descriptor %i is too large for select() to support!  Maybe compile with -DMUSCLE_USE_POLL instead?\n", whichSet, fd);
+            return B_BAD_ARGUMENT;
+         }
 # endif
          FD_SET(fd, &_fdSets[whichSet]);
          _maxFD[whichSet] = muscleMax(_maxFD[whichSet], fd);

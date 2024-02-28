@@ -8,6 +8,8 @@ key:  - new feature
    o Tweaked zlib/zlib/zconf.h so that the gzlib files can build
      successfully even if ./configure wasn't called in the
      zlib/zlib folder first.
+   o SocketMultiplexer::RegisterSocket() now emits an error message
+     to the log if a file descriptor is too large to pass to FD_SET().
    * Updated build instructions to specify cmake instead of
      Visual Studio
 
