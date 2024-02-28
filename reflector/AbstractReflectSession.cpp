@@ -336,11 +336,23 @@ GetSessionDescriptionString() const
    ret += " ";
    ret += GetSessionIDString();
    ret += (port>0)?" at [":" to [";
-   ret += _hostName;
-   char buf[64]; muscleSprintf(buf, ":%u]", (port>0)?port:_asyncConnectDest.GetPort()); ret += buf;
+   ret += GetClientDescriptionString();
+   ret += ']';
    return ret;
 }
 
+String
+AbstractReflectSession ::
+GetClientDescriptionString() const
+{
+   if (GetDataIO()())
+   {
+      const uint16 port = _ipAddressAndPort.GetPort();
+      char buf[64]; muscleSprintf(buf, ":%u", (port>0)?port:_asyncConnectDest.GetPort());
+      return _hostName + buf;
+   }
+   else return "nowhere";
+}
 
 bool
 AbstractReflectSession ::

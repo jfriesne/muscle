@@ -15,6 +15,8 @@ key:  - new feature
    - PrintFactoriesInfo() now includes text describing how recently
      each factory has accepted an incoming TCP connection, and how
      many connections the factory has received so far.
+   - Added a GetClientDescriptionString() virtual method to the
+     AbstractReflectSession class to support more-useful debug output.
    o Tweaked zlib/zlib/zconf.h so that the gzlib files can build
      successfully even if ./configure wasn't called in the
      zlib/zlib folder first.

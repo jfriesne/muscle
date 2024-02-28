@@ -329,6 +329,14 @@ public:
     */
    String GetSessionDescriptionString() const;
 
+   /** Returns a description of the client this session is associated with.
+     * Default implementation returns the hostname/IP address and port number
+     * of the client, but subclasses could override this to return something
+     * else that is more descriptive.
+     * @note this method is called by GetSessionDescriptionString() to help it form its return value.
+     */
+   virtual String GetClientDescriptionString() const;
+
    /** Returns the destination we connected to asynchronously. */
    MUSCLE_NODISCARD const IPAddressAndPort & GetAsyncConnectDestination() const {return _asyncConnectDest;}
 

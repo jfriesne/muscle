@@ -21,6 +21,8 @@ public:
    /** Destructor. */
    virtual ~SignalHandlerSession() {/* empty */}
 
+   virtual String GetClientDescriptionString() const {return "signal handler";}
+
    virtual ConstSocketRef CreateDefaultSocket();
    virtual io_status_t DoInput(AbstractGatewayMessageReceiver &, uint32);
    virtual void MessageReceivedFromGateway(const MessageRef &, void *) {/* empty */}
