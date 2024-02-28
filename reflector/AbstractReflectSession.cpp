@@ -348,8 +348,12 @@ GetClientDescriptionString() const
    if (GetDataIO()())
    {
       const uint16 port = _ipAddressAndPort.GetPort();
-      char buf[64]; muscleSprintf(buf, ":%u", (port>0)?port:_asyncConnectDest.GetPort());
-      return _hostName + buf;
+      if (port > 0)
+      {
+         char buf[64]; muscleSprintf(buf, ":%u", (port>0)?port:_asyncConnectDest.GetPort());
+         return _hostName + buf;
+      }
+      else return GetSocketBindAddress(GetSessionReadSelectSocket()).ToString(); // See if we can find out what port the socket is bound to and report that
    }
    else return "nowhere";
 }

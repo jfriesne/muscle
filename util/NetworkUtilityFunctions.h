@@ -381,7 +381,7 @@ IPAddress Inet_AtoN(const char * buf);
 /** Returns a string that is the local host's primary host name. */
 String GetLocalHostName();
 
-/** Reurns the IP address that the given socket is connected to.
+/** Returns the IP address that the given socket is connected to.
  *  @param sock The socket to find out info about.
  *  @param expandLocalhost If true, then if the peer's ip address is reported as 127.0.0.1, this
  *                         function will attempt to determine the host machine's actual primary IP
@@ -391,6 +391,14 @@ String GetLocalHostName();
  *  @return The IP address on success, or invalidIP on failure (such as if the socket isn't valid and connected).
  */
 IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort = NULL);
+
+/** Returns the IP address and port that the given socket is bound to on this local machine.
+  * @param sock The socket to find out info about.
+  * @returns The IPAddressAndPort representing where the socket is bound to locally.  The IP address
+  *          portion may be all-zeroes if the socket isn't bound to any particular network interface.
+  * @note on failure this function will return an invalid IPAddressAndPort object.
+  */
+IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock);
 
 /** Creates and returns a pair of stream-oriented sockets that are connected to each other, so that any bytes
  *  you write into one socket come out as bytes to read from the other socket.

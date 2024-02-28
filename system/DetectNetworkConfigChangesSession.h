@@ -45,6 +45,8 @@ public:
 
    virtual void MessageReceivedFromGateway(const MessageRef & /*msg*/, void * /*userData*/) {/* empty */}
 
+   virtual String GetClientDescriptionString() const {return "Network monitor";}
+
    virtual ConstSocketRef CreateDefaultSocket();
    MUSCLE_NODISCARD virtual uint64 GetPulseTime(const PulseArgs & args) {return muscleMin(_callbackTime, AbstractReflectSession::GetPulseTime(args));}
    virtual void Pulse(const PulseArgs & args);

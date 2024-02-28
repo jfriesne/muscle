@@ -1150,6 +1150,36 @@ ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
    else return B_ERRNO;
 }
 
+IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock)
+{
+   switch(sock.GetSocketFamily())
+   {
+      case SOCKET_FAMILY_IPV4:
+      {
+         struct sockaddr_in saSocket;
+         muscle_socklen_t len = sizeof(saSocket);
+         if (getsockname(sock.GetFileDescriptor(), (struct sockaddr *)&saSocket, &len) == 0) return IPAddressAndPort(saSocket);
+      }
+      break;
+
+#ifndef MUSCLE_AVOID_IPV6
+      case SOCKET_FAMILY_IPV6:
+      {
+         struct sockaddr_in6 saSocket;
+         muscle_socklen_t len = sizeof(saSocket);
+         if (getsockname(sock.GetFileDescriptor(), (struct sockaddr *)&saSocket, &len) == 0) return IPAddressAndPort(saSocket);
+      }
+      break;
+#endif
+
+      default:
+         // empty
+      break;
+   }
+
+   return IPAddressAndPort(); // failure
+}
+
 IPAddress GetPeerIPAddress(const ConstSocketRef & sock, bool expandLocalhost, uint16 * optRetPort)
 {
    IPAddress ipAddress = invalidIP;
