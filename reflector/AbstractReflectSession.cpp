@@ -34,7 +34,10 @@ static uint32 GetNextGlobalID(uint32 & counter)
 ReflectSessionFactory :: ReflectSessionFactory()
 {
    TCHECKPOINT;
-   _id = GetNextGlobalID(_factoryIDCounter);
+
+   _id                        = GetNextGlobalID(_factoryIDCounter);
+   _mostRecentAcceptTimeStamp = MUSCLE_TIME_NEVER;
+   _acceptCount               = 0;
 }
 
 status_t ProxySessionFactory :: AttachedToServer()
@@ -81,6 +84,8 @@ AbstractReflectSession()
    , _reconnectTime(MUSCLE_TIME_NEVER)
    , _wasConnected(false)
    , _isExpendable(false)
+   , _mostRecentInputTimeStamp(MUSCLE_TIME_NEVER)
+   , _mostRecentOutputTimeStamp(MUSCLE_TIME_NEVER)
 {
    char buf[64]; muscleSprintf(buf, UINT32_FORMAT_SPEC, _sessionID);
    _idString = buf;
@@ -480,10 +485,15 @@ AbstractReflectSession ::
 PrintFactoriesInfo() const
 {
    printf("There are " UINT32_FORMAT_SPEC " factories attached:\n", GetFactories().GetNumItems());
+   const uint64 now = GetRunTime64();
    for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
    {
       const ReflectSessionFactory & f = *iter.GetValue()();
-      printf("   %s [%p] is listening at [%s] (%sid=" UINT32_FORMAT_SPEC ").\n", f.GetTypeName(), &f, iter.GetKey().ToString()(), f.IsReadyToAcceptSessions()?"ReadyToAcceptSessions, ":"", f.GetFactoryID());
+      printf("   %s #" UINT32_FORMAT_SPEC " is listening at [%s] (%sAcceptCount=" UINT32_FORMAT_SPEC, f.GetTypeName(), f.GetFactoryID(), iter.GetKey().ToString()(), f.IsReadyToAcceptSessions()?"ReadyToAcceptSessions, ":"", f.GetAcceptCount());
+
+      const uint64 ts = f.GetMostRecentAcceptTimeStamp();
+      if (ts != MUSCLE_TIME_NEVER) printf(" LastAccept: %s ago)\n", GetHumanReadableTimeIntervalString(now-ts, 1)());
+                              else printf(")\n");
    }
 }
 
@@ -508,6 +518,7 @@ PrintSessionsInfo() const
 
    printf("There are " UINT32_FORMAT_SPEC " sessions attached, and " UINT32_FORMAT_SPEC " subscriber-tables cached:\n", t.GetNumItems(), numCachedSubscribersTables);
 
+   const uint64 now = GetRunTime64();
    uint32 totalNumOutMessages = 0, totalNumOutBytes = 0, totalNumNodes = 0, totalNumNodeBytes = 0;
    for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(t); iter.HasData(); iter++)
    {
@@ -528,7 +539,10 @@ PrintSessionsInfo() const
       if (ars->IsReadyForInput()) stateStr = stateStr.WithAppendedWord("IsReadyForInput", ", ");
       if (ars->HasBytesToOutput()) stateStr = stateStr.WithAppendedWord("HasBytesToOutput", ", ");
       if (ars->WasConnected()) stateStr = stateStr.WithAppendedWord("WasConnected", ", ");
+      if (ars->GetMostRecentInputTimeStamp() != MUSCLE_TIME_NEVER) stateStr = stateStr.WithAppendedWord(String("LastInput: %1 ago").Arg(GetHumanReadableTimeIntervalString(now-ars->GetMostRecentInputTimeStamp(), 1)), ", ");
+      if (ars->GetMostRecentOutputTimeStamp() != MUSCLE_TIME_NEVER) stateStr = stateStr.WithAppendedWord(String("LastOutput: %1 ago").Arg(GetHumanReadableTimeIntervalString(now-ars->GetMostRecentOutputTimeStamp(), 1)), ", ");
       if (stateStr.HasChars()) stateStr = stateStr.WithPrepend(", ");
+
       printf("  Session [%s] (rfd=%i,wfd=%i) is [%s]:  (" UINT32_FORMAT_SPEC " outgoing Messages, " UINT32_FORMAT_SPEC " Message-bytes, " UINT32_FORMAT_SPEC " nodes, " UINT32_FORMAT_SPEC " node-bytes%s)\n", iter.GetKey()->Cstr(), ars->GetSessionReadSelectSocket().GetFileDescriptor(), ars->GetSessionWriteSelectSocket().GetFileDescriptor(), ars->GetSessionDescriptionString()(), numOutMessages, numOutBytes, numNodes, numNodeBytes, stateStr());
       totalNumOutMessages += numOutMessages;
       totalNumOutBytes    += numOutBytes;

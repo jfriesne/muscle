@@ -5,6 +5,16 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added GetMostRecentInputTimeStamp() and GetMostRecentOutputTimeStamp()
+     methods to the AbstractReflectSession class
+   - Added a GetMostRecentAcceptTimeStamp() method to the
+     ReflectSessionFactory class.
+   - Added a GetAcceptCount() method to the ReflectSessionFactory class.
+   - PrintSessionsInfo() now includes text describing how recently
+     each session has sent or received data.
+   - PrintFactoriesInfo() now includes text describing how recently
+     each factory has accepted an incoming TCP connection, and how
+     many connections the factory has received so far.
    o Tweaked zlib/zlib/zconf.h so that the gzlib files can build
      successfully even if ./configure wasn't called in the
      zlib/zlib folder first.

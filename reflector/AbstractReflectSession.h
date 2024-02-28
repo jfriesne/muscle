@@ -48,6 +48,17 @@ public:
     */
    MUSCLE_NODISCARD uint32 GetFactoryID() const {return _id;}
 
+   /** Returns the GetRunTime64()-style timestamp of the time at which an incoming TCP connection was most recently
+     * considered, or MUSCLE_TIME_NEVER if nobody has ever tried to connect to this factory's port.
+     * @note this timestamp is updated even if the factory decides not to create a session object for the TCP session.
+     */
+   MUSCLE_NODISCARD uint64 GetMostRecentAcceptTimeStamp() const {return _mostRecentAcceptTimeStamp;}
+
+   /** Returns the number of times a TCP connection has been accepted by this factory.
+     * @note this count increments even if the factory decides not to create a session object for the TCP session.
+     */
+   MUSCLE_NODISCARD uint32 GetAcceptCount() const {return _acceptCount;}
+
 protected:
    /**
     * Convenience method:  Calls MessageReceivedFromFactory() on all session
@@ -86,7 +97,11 @@ protected:
    void BroadcastToAllFactories(const MessageRef & msgRef, void * userData = NULL, bool includeSelf = true);
 
 private:
+   friend class ReflectServer;
+
    uint32 _id;
+   uint64 _mostRecentAcceptTimeStamp;
+   uint32 _acceptCount;
 
    DECLARE_COUNTED_OBJECT(ReflectSessionFactory);
 };
@@ -470,6 +485,16 @@ public:
      */
    void PrintFactoriesInfo() const;
 
+   /** Returns the GetRunTime64()-style timestamp of the when this session most recently received data,
+     * or MUSCLE_TIME_NEVER if has never received any data.
+     */
+   MUSCLE_NODISCARD uint64 GetMostRecentInputTimeStamp() const {return _mostRecentInputTimeStamp;}
+
+   /** Returns the GetRunTime64()-style timestamp of the when this session most recently sent data,
+     * or MUSCLE_TIME_NEVER if has never sent any data.
+     */
+   MUSCLE_NODISCARD uint64 GetMostRecentOutputTimeStamp() const {return _mostRecentOutputTimeStamp;}
+
 protected:
    /** Set by StorageReflectSession::AttachedToServer()
      * @param p the new session-root-path for us to use (eg "/127.0.0.1/12345")
@@ -531,6 +556,9 @@ private:
    bool _wasConnected;
 
    TamperEvidentValue<bool> _isExpendable;
+
+   uint64 _mostRecentInputTimeStamp;
+   uint64 _mostRecentOutputTimeStamp;
 
    DECLARE_COUNTED_OBJECT(AbstractReflectSession);
 };

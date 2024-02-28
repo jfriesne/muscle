@@ -634,9 +634,13 @@ ServerProcessLoop()
                   if (_multiplexer.IsSocketReadyForRead(readSock))
                   {
                      readBytes = session->DoInput(*session, session->_maxInputChunk);  // session->MessageReceivedFromGateway() gets called here
+                     if (readBytes.IsOK())
+                     {
+                        session->_mostRecentInputTimeStamp = GetCycleStartTime();
 
-                     AbstractSessionIOPolicy * p = session->GetInputPolicy()();
-                     if ((p)&&(readBytes.IsOK())) p->BytesTransferred(PolicyHolder(session, true), readBytes.GetByteCount());
+                        AbstractSessionIOPolicy * p = session->GetInputPolicy()();
+                        if (p) p->BytesTransferred(PolicyHolder(session, true), readBytes.GetByteCount());
+                     }
                   }
 
                   TCHECKPOINT;
@@ -672,9 +676,13 @@ ServerProcessLoop()
                         }
 
                         wroteBytes = session->DoOutput(session->_maxOutputChunk);
+                        if (wroteBytes.IsOK())
+                        {
+                           session->_mostRecentOutputTimeStamp = GetCycleStartTime();
 
-                        AbstractSessionIOPolicy * p = session->GetOutputPolicy()();
-                        if ((p)&&(wroteBytes.IsOK())) p->BytesTransferred(PolicyHolder(session, false), wroteBytes.GetByteCount());
+                           AbstractSessionIOPolicy * p = session->GetOutputPolicy()();
+                           if (p) p->BytesTransferred(PolicyHolder(session, false), wroteBytes.GetByteCount());
+                        }
                      }
                   }
 #if defined(WIN32)
@@ -837,6 +845,12 @@ status_t ReflectServer :: DoAccept(const IPAddressAndPort & iap, const ConstSock
    ConstSocketRef newSocket = Accept(acceptSocket, &acceptedFromIP);
    if (newSocket())
    {
+      if (optFactory)
+      {
+         optFactory->_mostRecentAcceptTimeStamp = GetCycleStartTime();
+         optFactory->_acceptCount++;
+      }
+
       NestCountGuard ncg(_inDoAccept);
       const IPAddressAndPort nip(acceptedFromIP, iap.GetPort());
       const IPAddress remoteIP = GetPeerIPAddress(newSocket, true);
