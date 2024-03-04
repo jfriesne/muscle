@@ -213,7 +213,7 @@ status_t SocketMultiplexer :: FDState :: PollRegisterNewSocket(int fd, uint32 wh
       p->events  = GetPollBitsForFDSet(whichSet, true);
       p->revents = 0;
       if (_pollFDToArrayIndex.Put(fd, _pollFDArray.GetNumItems()-1).IsOK()) return B_NO_ERROR;
-                                                                       else _pollFDArray.RemoveTail();  // roll back!
+                                                                       else (void) _pollFDArray.RemoveTail();  // roll back!
    }
    return B_OUT_OF_MEMORY;
 }
