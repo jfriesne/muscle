@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.36 - Released 3/6/2024
    - Added GetMostRecentInputTimeStamp() and GetMostRecentOutputTimeStamp()
      methods to the AbstractReflectSession class
    - Added a GetMostRecentAcceptTimeStamp() method to the

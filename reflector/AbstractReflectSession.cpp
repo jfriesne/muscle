@@ -330,12 +330,10 @@ String
 AbstractReflectSession ::
 GetSessionDescriptionString() const
 {
-   const uint16 port = _ipAddressAndPort.GetPort();
-
    String ret = GetTypeName();
    ret += ' ';
    ret += GetSessionIDString();
-   ret += (port>0)?" at ":" to ";
+   ret += (_ipAddressAndPort.GetPort()>0)?" at ":" to ";
    ret += GetClientDescriptionString();
    return ret;
 }

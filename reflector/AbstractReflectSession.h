@@ -325,11 +325,12 @@ public:
    virtual void Pulse(const PulseArgs &);
 
    /** Convenience method -- returns a human-readable string describing our
-    *  type, our hostname, our session ID, and what port we are connected to.
+    *  session-type, our session ID, and the client we are connected to (
+    *  as returned by GetClientDescriptionString()).
     */
    String GetSessionDescriptionString() const;
 
-   /** Returns a description of the client this session is associated with.
+   /** Returns a human-readable description of the client this session is associated with.
      * Default implementation returns the hostname/IP address and port number
      * of the client, but subclasses could override this to return something
      * else that is more descriptive.
