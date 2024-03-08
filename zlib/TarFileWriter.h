@@ -75,7 +75,7 @@ public:
      *                 the correct value into the file's header-bytes after it knows how many bytes have been written.
      * @returns B_NO_ERROR on success, or an error code on failure.
      */
-   status_t WriteFileHeader(const char * fileName, uint32 fileMode, uint32 ownerID, uint32 groupID, uint64 modificationTime, int linkIndicator, const char * linkedFileName, uint64 optFileSize);
+   status_t WriteFileHeader(const char * fileName, uint32 fileMode, uint32 ownerID, uint32 groupID, uint64 modificationTime, int linkIndicator, const char * linkedFileName, uint64 optFileSize) {return WriteFileHeaderAux(fileName, fileMode, ownerID, groupID, modificationTime, linkIndicator, linkedFileName, optFileSize, false);}
 
    /** Writes (numBytes) of data into the currently active file-block.
      * Three must be a file-header currently active for this call to succeed.
@@ -115,6 +115,8 @@ private:
    enum {TAR_BLOCK_SIZE=512};
 
    void UpdateCurrentHeaderChecksum();
+   status_t WriteFileHeaderAux(const char * fileName, uint32 fileMode, uint32 ownerID, uint32 groupID, uint64 modificationTime, int linkIndicator, const char * linkedFileName, uint64 optFileSize, bool isPax);
+   status_t AppendToPaxExtendedHeader(char * paxBuf, uint32 paxBufSize, const char * key, const char * value, size_t valueStrlen) const;
 
    DataIORef _writerIO;
    SeekableDataIORef _seekableWriterIO;  // pre-downcast reference, for convenience.  Will be NULL if our DataIO isn't a SeekableDataIO!

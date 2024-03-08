@@ -184,7 +184,7 @@ static size_t ComputeCommonPathPrefixLength(const char * fileName, const char * 
    }
 }
 
-status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode, uint32 ownerID, uint32 groupID, uint64 modificationTime, int linkIndicator, const char * linkedFileName, uint64 prestatedFileSize)
+status_t TarFileWriter :: WriteFileHeaderAux(const char * fileName, uint32 fileMode, uint32 ownerID, uint32 groupID, uint64 modificationTime, int linkIndicator, const char * linkName, uint64 prestatedFileSize, bool isPax)
 {
    const size_t basicFormatMaxLen = 100;  // the original tar format supports only file paths up to this length
    const size_t ustarFormatMaxLen = 256;  // the ustar extension allows file paths up to this length
@@ -192,30 +192,58 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
    const size_t fileNameLen = strlen(fileName);
    if (fileNameLen > ustarFormatMaxLen) return B_ERROR("File Entry name too long for .tar format");
 
-   const size_t linkedFileNameLen = linkedFileName ? strlen(linkedFileName) : 0;
-   if (linkedFileNameLen > ustarFormatMaxLen) return B_ERROR("Linked File name too long for .tar format");
+   const size_t linkNameLen = linkName ? strlen(linkName) : 0;
+   if (linkNameLen > ustarFormatMaxLen) return B_ERROR("Linked File name too long for .tar format");
 
-   size_t ustarPathPrefixLength = 0;
-   if ((fileNameLen > basicFormatMaxLen)||(linkedFileNameLen > basicFormatMaxLen))
+   size_t ustarPathPrefixLen = 0;
+   if ((fileNameLen > basicFormatMaxLen)||(linkNameLen > basicFormatMaxLen))
    {
-      ustarPathPrefixLength = ComputeCommonPathPrefixLength(fileName, linkedFileName);
-      if (ustarPathPrefixLength > _maxPrefixLength) return B_ERROR("Couldn't compute a valid common prefix!");
+      ustarPathPrefixLen = ComputeCommonPathPrefixLength(fileName, linkName);
+      if ((ustarPathPrefixLen > _maxPrefixLength)||((fileNameLen-ustarPathPrefixLen)>basicFormatMaxLen)||((linkName)&&((linkNameLen-ustarPathPrefixLen)>basicFormatMaxLen)))
+      {
+         ustarPathPrefixLen = 0;
+         isPax = !isPax;  // avoid infinite recursion
+      }
    }
 
    MRETURN_ON_ERROR(FinishCurrentFileDataBlock());  // should pad out position out to a multiple of 512, if necessary
 
    if ((_currentSeekPosition%TAR_BLOCK_SIZE) != 0) return B_BAD_OBJECT;
 
+   if (isPax)
+   {
+      const uint32 paxFileNameLen = (fileNameLen > basicFormatMaxLen) ? (uint32)fileNameLen : 0;
+      const uint32 paxLinkNameLen = (linkNameLen > basicFormatMaxLen) ? (uint32)linkNameLen : 0;
+
+      const uint32 tempBufLen = paxFileNameLen + paxLinkNameLen + 128;   // 128 should be plenty to cover the "%d %s=" overhead for two fields
+      char * tempBuf = (char *) newnothrow char[tempBufLen];
+      if (tempBuf)
+      {
+         memset(tempBuf, 0, tempBufLen);
+         const status_t r1 = (paxFileNameLen > 0) ? AppendToPaxExtendedHeader(tempBuf, tempBufLen, "path",     fileName, paxFileNameLen) : B_NO_ERROR;
+         const status_t r2 = (paxLinkNameLen > 0) ? AppendToPaxExtendedHeader(tempBuf, tempBufLen, "linkpath", linkName, paxLinkNameLen) : B_NO_ERROR;
+
+         const uint32 tempBufStrlen = (uint32) strlen(tempBuf);
+         const status_t r3 = ((r1.IsOK())&&(r2.IsOK())) ? WriteFileHeaderAux(fileName, fileMode, ownerID, groupID, modificationTime, -1, linkName, tempBufStrlen, isPax) : (r1|r2);
+         const status_t r4 = r3.IsOK() ? WriteFileData(reinterpret_cast<const uint8 *>(tempBuf), tempBufStrlen) : r3;
+         const status_t r5 = r4.IsOK() ? FinishCurrentFileDataBlock() : r4;
+
+         delete [] tempBuf;
+         MRETURN_ON_ERROR(r5);
+      }
+      else MRETURN_OUT_OF_MEMORY;
+   }
+
    _currentHeaderOffset = _currentSeekPosition;
    memset(_currentHeaderBytes, 0, sizeof(_currentHeaderBytes));
 
-   if (ustarPathPrefixLength == 0) muscleStrncpy((char *)(&_currentHeaderBytes[0]), fileName, 100);
+   if (ustarPathPrefixLen == 0) muscleStrncpy((char *)(&_currentHeaderBytes[0]), fileName, basicFormatMaxLen);
    else
    {
-      memcpy(&_currentHeaderBytes[257], "ustar\0", 6);  /// enable magic ustar extension
-      muscleStrncpy((char *)(&_currentHeaderBytes[345]), fileName, ustarPathPrefixLength+1);       // common path-prefix goes here
-      if (ustarPathPrefixLength < _maxPrefixLength) _currentHeaderBytes[345+ustarPathPrefixLength] = '\0';  // NUL-terminate if there's room to do it
-      muscleStrncpy((char *)(&_currentHeaderBytes[0]),   fileName+ustarPathPrefixLength+1, 100);   // remainder of filename goes here
+      memcpy(&_currentHeaderBytes[257], "ustar\0", 6);  // enable magic ustar extension
+      muscleStrncpy((char *)(&_currentHeaderBytes[345]), fileName, ustarPathPrefixLen+1);       // common path-prefix goes here
+      if (ustarPathPrefixLen < _maxPrefixLength) _currentHeaderBytes[345+ustarPathPrefixLen] = '\0';  // NUL-terminate if there's room to do it
+      muscleStrncpy((char *)(&_currentHeaderBytes[0]),   fileName+ustarPathPrefixLen+1, basicFormatMaxLen);   // remainder of filename goes here
    }
 
    WriteOctalASCII(&_currentHeaderBytes[100], fileMode, 8);
@@ -226,14 +254,14 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
    const uint64 secondsSince1970 = MicrosToSeconds(modificationTime);
    if (secondsSince1970 != 0) WriteOctalASCII(&_currentHeaderBytes[136], secondsSince1970, 12);
 
-   _currentHeaderBytes[156] = (uint8) (linkIndicator+'0');
-   if (linkedFileName)
+   _currentHeaderBytes[156] = (uint8) ((linkIndicator >= 0) ? (linkIndicator+'0') : 'x');  // we use a linkIndicator -1 to indicate we're writing a PAX extended header here
+   if (linkName)
    {
-      if (ustarPathPrefixLength == 0) muscleStrncpy((char *)(&_currentHeaderBytes[157]), linkedFileName, 100);
+      if (ustarPathPrefixLen == 0) muscleStrncpy((char *)(&_currentHeaderBytes[157]), linkName, basicFormatMaxLen);
       else
       {
          // prefix field will already have been filled out above
-         muscleStrncpy((char *)(&_currentHeaderBytes[157]), linkedFileName+ustarPathPrefixLength+1, 100); // remainder of link_path goes here
+         muscleStrncpy((char *)(&_currentHeaderBytes[157]), linkName+ustarPathPrefixLen+1, basicFormatMaxLen); // remainder of link_path goes here
       }
    }
    _currentHeaderBytes[sizeof(_currentHeaderBytes)-1] = '\0';  // just in case muscleStrncpy() didn't terminate the string
@@ -245,6 +273,28 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
    MRETURN_ON_ERROR(_writerIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes)));
    _currentSeekPosition += sizeof(_currentHeaderBytes);
    _prestatedFileSize = prestatedFileSize;
+   return B_NO_ERROR;
+}
+
+status_t TarFileWriter :: AppendToPaxExtendedHeader(char * paxBuf, uint32 paxBufSize, const char * key, const char * value, size_t valueStrlen) const
+{
+   int32 nulPos = -1;
+   for (uint32 i=0; i<paxBufSize; i++) if (paxBuf[i] == '\0') {nulPos = i; break;}
+   if ((nulPos < 0)||((nulPos+64) > (int32)paxBufSize)) return B_ERROR("Insufficient space in pax header for attribute");
+
+   const size_t restOfFieldSize = sizeof(char) + strlen(key) + sizeof(char) + valueStrlen + 1;  // includes the space char, the key-string, the equal sign, the value-string, and the newline char
+
+   // This stupidity is necessary because the length-prefix is for the entire line, including the length-prefix itself
+   size_t fieldSize = 0;
+   while(1)
+   {
+      char numberBuf[32]; muscleSprintf(numberBuf, "%d", (int) fieldSize);
+      const size_t newEstimate = strlen(numberBuf) + restOfFieldSize;
+      if (newEstimate > fieldSize) fieldSize = newEstimate;
+                              else break;
+   }
+
+   muscleSnprintf(&paxBuf[nulPos], paxBufSize-nulPos, "%d %s=%s\n", (int)fieldSize, key, value);   // per the Pax specification
    return B_NO_ERROR;
 }
 
