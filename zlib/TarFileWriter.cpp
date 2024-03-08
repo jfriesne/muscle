@@ -156,9 +156,51 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
    return B_NO_ERROR;
 }
 
+static const size_t _maxPrefixLength = 155;
+
+// Returns the offset to the slash character that should mark the end of the prefix field's content
+static size_t ComputeCommonPathPrefixLength(const char * fileName, const char * optLinkedFileName)
+{
+   if (optLinkedFileName)
+   {
+      // Find the common prefix of the two strings
+      const char * s1 = fileName;
+      const char * s2 = optLinkedFileName;
+      while((*s1)&&(*s2)&&(*s1 == *s2)&&(((size_t)(s1-fileName))<_maxPrefixLength)) {s1++; s2++;}
+
+      // Then back it up to the most recent slash
+      while((s1>fileName)&&(*s1 != '/')) s1--;
+      return (size_t)(s1-fileName);
+   }
+   else
+   {
+      const char * slash = strchr(fileName, '/');
+      if (slash == NULL) return 0;
+
+      const char * nextSlash;
+      while(((nextSlash = strchr(slash+1, '/')) != NULL)&&(((size_t)(nextSlash-fileName)) <= _maxPrefixLength)) slash = nextSlash;
+
+      return (size_t)(slash-fileName);
+   }
+}
+
 status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode, uint32 ownerID, uint32 groupID, uint64 modificationTime, int linkIndicator, const char * linkedFileName, uint64 prestatedFileSize)
 {
-   if ((strlen(fileName) > 100)||((linkedFileName)&&(strlen(linkedFileName)>100))) return B_ERROR("File Entry name too long for .tar format");  // string fields are only 100 chars long!
+   const size_t basicFormatMaxLen = 100;  // the original tar format supports only file paths up to this length
+   const size_t ustarFormatMaxLen = 256;  // the ustar extension allows file paths up to this length
+
+   const size_t fileNameLen = strlen(fileName);
+   if (fileNameLen > ustarFormatMaxLen) return B_ERROR("File Entry name too long for .tar format");
+
+   const size_t linkedFileNameLen = linkedFileName ? strlen(linkedFileName) : 0;
+   if (linkedFileNameLen > ustarFormatMaxLen) return B_ERROR("Linked File name too long for .tar format");
+
+   size_t ustarPathPrefixLength = 0;
+   if ((fileNameLen > basicFormatMaxLen)||(linkedFileNameLen > basicFormatMaxLen))
+   {
+      ustarPathPrefixLength = ComputeCommonPathPrefixLength(fileName, linkedFileName);
+      if (ustarPathPrefixLength > _maxPrefixLength) return B_ERROR("Couldn't compute a valid common prefix!");
+   }
 
    MRETURN_ON_ERROR(FinishCurrentFileDataBlock());  // should pad out position out to a multiple of 512, if necessary
 
@@ -166,7 +208,15 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
 
    _currentHeaderOffset = _currentSeekPosition;
    memset(_currentHeaderBytes, 0, sizeof(_currentHeaderBytes));
-   muscleStrncpy((char *)(&_currentHeaderBytes[0]), fileName, sizeof(_currentHeaderBytes)-1);
+
+   if (ustarPathPrefixLength == 0) muscleStrncpy((char *)(&_currentHeaderBytes[0]), fileName, 100);
+   else
+   {
+      memcpy(&_currentHeaderBytes[257], "ustar\0", 6);  /// enable magic ustar extension
+      muscleStrncpy((char *)(&_currentHeaderBytes[345]), fileName, ustarPathPrefixLength+1);       // common path-prefix goes here
+      if (ustarPathPrefixLength < _maxPrefixLength) _currentHeaderBytes[345+ustarPathPrefixLength] = '\0';  // NUL-terminate if there's room to do it
+      muscleStrncpy((char *)(&_currentHeaderBytes[0]),   fileName+ustarPathPrefixLength+1, 100);   // remainder of filename goes here
+   }
 
    WriteOctalASCII(&_currentHeaderBytes[100], fileMode, 8);
    WriteOctalASCII(&_currentHeaderBytes[108], ownerID, 8);
@@ -177,7 +227,15 @@ status_t TarFileWriter :: WriteFileHeader(const char * fileName, uint32 fileMode
    if (secondsSince1970 != 0) WriteOctalASCII(&_currentHeaderBytes[136], secondsSince1970, 12);
 
    _currentHeaderBytes[156] = (uint8) (linkIndicator+'0');
-   if (linkedFileName) muscleStrncpy((char *)(&_currentHeaderBytes[157]), linkedFileName, sizeof(_currentHeaderBytes)-(157+1));
+   if (linkedFileName)
+   {
+      if (ustarPathPrefixLength == 0) muscleStrncpy((char *)(&_currentHeaderBytes[157]), linkedFileName, 100);
+      else
+      {
+         // prefix field will already have been filled out above
+         muscleStrncpy((char *)(&_currentHeaderBytes[157]), linkedFileName+ustarPathPrefixLength+1, 100); // remainder of link_path goes here
+      }
+   }
    _currentHeaderBytes[sizeof(_currentHeaderBytes)-1] = '\0';  // just in case muscleStrncpy() didn't terminate the string
 
    UpdateCurrentHeaderChecksum();

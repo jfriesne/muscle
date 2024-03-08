@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Implemented the ustar extension in TarFileWriter to allow file paths
+     up to 256 characters in length.
+
 9.36 - Released 3/6/2024
    - Added GetMostRecentInputTimeStamp() and GetMostRecentOutputTimeStamp()
      methods to the AbstractReflectSession class
