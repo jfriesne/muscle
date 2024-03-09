@@ -9,6 +9,10 @@ key:  - new feature
      and linked-file paths up to 256 characters in length.
    - Implemented the pax extension in TarFileWriter to support file paths
      and linked-file paths of unlimited length.
+   o Updated the Python2 and Python3 message.py classes so that GetFieldItem()
+     and the Get*() methods now take an optional (defaultValue) argument that
+     specifies what should be returned if the requested item is not present
+     in the Message.
 
 9.36 - Released 3/6/2024
    - Added GetMostRecentInputTimeStamp() and GetMostRecentOutputTimeStamp()

@@ -106,27 +106,31 @@ class Message:
       else:
          return defaultValue
 
-   def GetFieldItem(self, fieldName, fieldTypeCode=B_ANY_TYPE, index=0):
-      """Returns the (index)th item of an existing field in this message (if any).
+   def GetFieldItem(self, fieldName, fieldTypeCode=B_ANY_TYPE, defaultValue=None, index=0):
+      """Returns the (index)'th item of an existing field in this message (if any).
 
       (fieldName) should be a string representing the unique name of the field.
       (fieldTypeCode) may specify the only type code we want.  If not specified,
                       the default value, B_ANY_TYPE, means that any field found
                       under the given field name will be returned, regardless of type.
-      (index) specifies which item from the given field's list we want.
-              Defaults to zero (the first item in the list).
-      Returns the (index)th item of the given field's contents, or None if
+      (defaultValue) what should be returned if the requested item does not exist.
+                     Defaults to None.
+      (index) specifies which item from the given field's items-list we want.
+              Defaults to zero (the first item in the list).  If negative, this
+              value indicates an item via its position relative to the end of the list.
+      Returns the (index)'th item of the given field's contents, or (defaultValue) if
       the field doesn't exist or is of the wrong type, or if the index isn't
       a valid one for that list.
       """
-      ret = self.GetFieldContents(fieldName, fieldTypeCode)
-      if ret is not None:
-         num = len(ret)
+      fc = self.GetFieldContents(fieldName, fieldTypeCode)
+      if fc is not None:
+         num = len(fc)
          if index < -num or index >= num:
-            ret = None
+            return defaultValue
          else:
-            ret = ret[index]
-      return ret
+            return fc[index]
+      else:
+         return defaultValue
 
    def GetFieldType(self, fieldName):
       """Returns the type code of the given field, or None if the field doesn't exist.
@@ -419,101 +423,101 @@ class Message:
       if fieldName in self.__fields:
          del self.__fields[fieldName]
 
-   def GetStrings(self, fieldName):
-      """Convenience method; returns a list of all strings under the given name, or [] if there are none."""
-      return self.GetFieldContents(fieldName, B_STRING_TYPE, [])
+   def GetStrings(self, fieldName, defaultValue=[]):
+      """Convenience method; returns a list of all strings under the given name, or (defaultValue/[]) if there are none."""
+      return self.GetFieldContents(fieldName, B_STRING_TYPE, defaultValue)
 
-   def GetInt8s(self, fieldName):
-      """Convenience method; returns a list of all int8s under the given name, or [] if there are none."""
-      return self.GetFieldContents(fieldName, B_INT8_TYPE, [])
+   def GetInt8s(self, fieldName, defaultValue=[]):
+      """Convenience method; returns a list of all int8s under the given name, or (defaultValue/[]) if there are none."""
+      return self.GetFieldContents(fieldName, B_INT8_TYPE, defaultValue)
 
-   def GetInt16s(self, fieldName):
-      """Convenience method; returns a list of all int16s under the given name, or [] if there are none."""
-      return self.GetFieldContents(fieldName, B_INT16_TYPE, [])
+   def GetInt16s(self, fieldName, defaultValue=[]):
+      """Convenience method; returns a list of all int16s under the given name, or (defaultValue/[]) if there are none."""
+      return self.GetFieldContents(fieldName, B_INT16_TYPE, defaultValue)
 
-   def GetInt32s(self, fieldName):
-      """Convenience method; returns a list of all int32s under the given name, or [] if there are none."""
-      return self.GetFieldContents(fieldName, B_INT32_TYPE, [])
+   def GetInt32s(self, fieldName, defaultValue=[]):
+      """Convenience method; returns a list of all int32s under the given name, or (defaultValue/[]) if there are none."""
+      return self.GetFieldContents(fieldName, B_INT32_TYPE, defaultValue)
 
-   def GetInt64s(self, fieldName):
-      """Convenience method; returns a list of all int64s under the given name, or [] if there are none."""
-      return self.GetFieldContents(fieldName, B_INT64_TYPE, [])
+   def GetInt64s(self, fieldName, defaultValue=[]):
+      """Convenience method; returns a list of all int64s under the given name, or (defaultValue/[]) if there are none."""
+      return self.GetFieldContents(fieldName, B_INT64_TYPE, defaultValue)
 
-   def GetBools(self, fieldName):
-      """Convenience method; returns a list of all bools under the given name, or [] if there are none."""
-      return self.GetFieldContents(fieldName, B_BOOL_TYPE, [])
+   def GetBools(self, fieldName, defaultValue=[]):
+      """Convenience method; returns a list of all bools under the given name, or (defaultValue/[]) if there are none."""
+      return self.GetFieldContents(fieldName, B_BOOL_TYPE, defaultValue)
 
-   def GetFloats(self, fieldName):
-      """Convenience method; returns a list of all floats under the given name, or [] if there are none."""
-      return self.GetFieldContents(fieldName, B_FLOAT_TYPE, [])
+   def GetFloats(self, fieldName, defaultValue=[]):
+      """Convenience method; returns a list of all floats under the given name, or (defaultValue/[]) if there are none."""
+      return self.GetFieldContents(fieldName, B_FLOAT_TYPE, defaultValue)
 
-   def GetDoubles(self, fieldName):
-      """Convenience method; returns a list of all doubles under the given name, or [] if there are none."""
-      return self.GetFieldContents(fieldName, B_DOUBLE_TYPE, [])
+   def GetDoubles(self, fieldName, defaultValue=[]):
+      """Convenience method; returns a list of all doubles under the given name, or (defaultValue/[]) if there are none."""
+      return self.GetFieldContents(fieldName, B_DOUBLE_TYPE, defaultValue)
 
-   def GetMessages(self, fieldName):
-      """Convenience method; returns a list of all messages under the given name, or [] if there are none."""
-      return self.GetFieldContents(fieldName, B_MESSAGE_TYPE, [])
+   def GetMessages(self, fieldName, defaultValue=[]):
+      """Convenience method; returns a list of all messages under the given name, or (defaultValue/[]) if there are none."""
+      return self.GetFieldContents(fieldName, B_MESSAGE_TYPE, defaultValue)
 
-   def GetPoints(self, fieldName):
-      """Convenience method; returns a list of all points under the given name, or [] if there are none."""
-      return self.GetFieldContents(fieldName, B_POINT_TYPE, [])
+   def GetPoints(self, fieldName, defaultValue=[]):
+      """Convenience method; returns a list of all points under the given name, or (defaultValue/[]) if there are none."""
+      return self.GetFieldContents(fieldName, B_POINT_TYPE, defaultValue)
 
-   def GetRects(self, fieldName):
-      """Convenience method; returns a list of all rects under the given name, or [] if there are none."""
-      return self.GetFieldContents(fieldName, B_RECT_TYPE, [])
+   def GetRects(self, fieldName, defaultValue=[]):
+      """Convenience method; returns a list of all rects under the given name, or (defaultValue/[]) if there are none."""
+      return self.GetFieldContents(fieldName, B_RECT_TYPE, defaultValue)
 
-   def GetString(self, fieldName, index=0):
-      """Convenience method; returns the (index)th String item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_STRING_TYPE, index)
+   def GetString(self, fieldName, defaultValue="", index=0):
+      """Convenience method; returns the (index)'th String item under (fieldName), or (defaultValue/"") if the requested string isn't present."""
+      return self.GetFieldItem(fieldName, B_STRING_TYPE, defaultValue, index)
 
-   def GetInt8(self, fieldName, index=0):
-      """Convenience method; returns the (index)th Int8 item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_INT8_TYPE, index)
+   def GetInt8(self, fieldName, defaultValue=0, index=0):
+      """Convenience method; returns the (index)'th Int8 item under (fieldName), or (defaultValue/0) if the requested int8 isn't present."""
+      return self.GetFieldItem(fieldName, B_INT8_TYPE, defaultValue, index)
 
-   def GetInt16(self, fieldName, index=0):
-      """Convenience method; returns the (index)th Int16 item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_INT16_TYPE, index)
+   def GetInt16(self, fieldName, defaultValue=0, index=0):
+      """Convenience method; returns the (index)'th Int16 item under (fieldName), or (defaultValue/0) if the requested int16 isn't present."""
+      return self.GetFieldItem(fieldName, B_INT16_TYPE, defaultValue, index)
 
-   def GetInt32(self, fieldName, index=0):
-      """Convenience method; returns the (index)th Int32 item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_INT32_TYPE, index)
+   def GetInt32(self, fieldName, defaultValue=0, index=0):
+      """Convenience method; returns the (index)'th Int32 item under (fieldName), or (defaultValue/0) if the requested int32 isn't present."""
+      return self.GetFieldItem(fieldName, B_INT32_TYPE, defaultValue, index)
 
-   def GetInt64(self, fieldName, index=0):
-      """Convenience method; returns the (index)th Int64 item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_INT64_TYPE, index)
+   def GetInt64(self, fieldName, defaultValue=0, index=0):
+      """Convenience method; returns the (index)'th Int64 item under (fieldName), or (defaultValue/0) if the requested int64 isn't present."""
+      return self.GetFieldItem(fieldName, B_INT64_TYPE, defaultValue, index)
 
-   def GetBool(self, fieldName, index=0):
-      """Convenience method; returns the (index)th Bool item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_BOOL_TYPE, index)
+   def GetBool(self, fieldName, defaultValue=False, index=0):
+      """Convenience method; returns the (index)'th Bool item under (fieldName), or (defaultValue/False) if the requested boolean isn't present."""
+      return self.GetFieldItem(fieldName, B_BOOL_TYPE, defaultValue, index)
 
-   def GetFlat(self, fieldName, flattenableObject, index=0):
-      """Convenience method; Unflattens the the (index)th Flattenable item under (fieldName) into (flattenableObject) and then return it, or None."""
-      blob = self.GetFieldItem(fieldName, flattenableObject.TypeCode(), index)
+   def GetFlat(self, fieldName, flattenableObject, defaultValue=None, index=0):
+      """Convenience method; Unflattens the the (index)'th Flattenable item under (fieldName) into (flattenableObject) and then returns it, or (defaultValue/None) if the requested object isn't present."""
+      blob = self.GetFieldItem(fieldName, flattenableObject.TypeCode(), defaultValue, index)
       if (blob is not None):
          flattenableObject.Unflatten(io.BytesIO(blob))
          return flattenableObject
-      return None
+      return defaultValue
 
-   def GetFloat(self, fieldName, index=0):
-      """Convenience method; returns the (index)th Float item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_FLOAT_TYPE, index)
+   def GetFloat(self, fieldName, defaultValue=0.0, index=0):
+      """Convenience method; returns the (index)'th Float item under (fieldName), or (defaultValue/0.0) if the requested float isn't present."""
+      return self.GetFieldItem(fieldName, B_FLOAT_TYPE, defaultValue, index)
 
-   def GetDouble(self, fieldName, index=0):
-      """Convenience method; returns the (index)th Double item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_DOUBLE_TYPE, index)
+   def GetDouble(self, fieldName, defaultValue=0.0, index=0):
+      """Convenience method; returns the (index)'th Double item under (fieldName), or (defaultValue/0.0) if the requested double isn't present."""
+      return self.GetFieldItem(fieldName, B_DOUBLE_TYPE, defaultValue, index)
 
-   def GetMessage(self, fieldName, index=0):
-      """Convenience method; returns the (index)th Message item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_MESSAGE_TYPE, index)
+   def GetMessage(self, fieldName, defaultValue=None, index=0):
+      """Convenience method; returns the (index)'th Message item under (fieldName), or (defaultValue/None) if the requested Message isn't present."""
+      return self.GetFieldItem(fieldName, B_MESSAGE_TYPE, defaultValue, index)
 
-   def GetPoint(self, fieldName, index=0):
-      """Convenience method; returns the (index)th Point item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_POINT_TYPE, index)
+   def GetPoint(self, fieldName, defaultValue=[0.0,0.0], index=0):
+      """Convenience method; returns the (index)'th Point item under (fieldName), or (defaultValue/[0.0,0.0]) if the requested Point isn't present."""
+      return self.GetFieldItem(fieldName, B_POINT_TYPE, defaultValue, index)
 
-   def GetRect(self, fieldName, index=0):
-      """Convenience method; returns the (index)th Rect item under (fieldName), or None."""
-      return self.GetFieldItem(fieldName, B_RECT_TYPE, index)
+   def GetRect(self, fieldName, defaultValue=[0.0,0.0,0.0,0.0], index=0):
+      """Convenience method; returns the (index)'th Rect item under (fieldName), or (defaultValue/[0.0,0.0,0.0,0.0]) if the requested Rect isn't present."""
+      return self.GetFieldItem(fieldName, B_RECT_TYPE, defaultValue, index)
 
    def __writeUtf8StringWithHeader(self, outFile, s):
       utf8s = s.encode()
