@@ -519,12 +519,81 @@ class Message:
       """Convenience method; returns the (index)'th Rect item under (fieldName), or (defaultValue/[0.0,0.0,0.0,0.0]) if the requested Rect isn't present."""
       return self.GetFieldItem(fieldName, B_RECT_TYPE, defaultValue, index)
 
+   def CPutString(self, fieldName, fieldContents, defaultValue=""):
+      """Convenience method; Calls PutString() but only if (fieldContents) is not equal to (defaultValue/"")"""
+      if (fieldContents == defaultValue):
+         return None
+      else:
+         return self.PutString(fieldName, fieldContents)
+
+   def CPutInt8(self, fieldName, fieldContents, defaultValue=0):
+      """Convenience method; Calls PutInt8() but only if (fieldContents) is not equal to (defaultValue/0)"""
+      if (fieldContents == defaultValue):
+         return None
+      else:
+         return self.PutInt8(fieldName, fieldContents)
+
+   def CPutInt16(self, fieldName, fieldContents, defaultValue=0):
+      """Convenience method; Calls PutInt16() but only if (fieldContents) is not equal to (defaultValue/0)"""
+      if (fieldContents == defaultValue):
+         return None
+      else:
+         return self.PutInt16(fieldName, fieldContents)
+
+   def CPutInt32(self, fieldName, fieldContents, defaultValue=0):
+      """Convenience method; Calls PutInt32() but only if (fieldContents) is not equal to (defaultValue/0)"""
+      if (fieldContents == defaultValue):
+         return None
+      else:
+         return self.PutInt32(fieldName, fieldContents)
+
+   def CPutInt64(self, fieldName, fieldContents, defaultValue=0):
+      """Convenience method; Calls PutInt64() but only if (fieldContents) is not equal to (defaultValue/0)"""
+      if (fieldContents == defaultValue):
+         return None
+      else:
+         return self.PutInt64(fieldName, fieldContents)
+
+   def CPutBool(self, fieldName, fieldContents, defaultValue=False):
+      """Convenience method; Calls PutBool() but only if (fieldContents) is not equal to (defaultValue/False)"""
+      if (fieldContents == defaultValue):
+         return None
+      else:
+         return self.PutBool(fieldName, fieldContents)
+
+   def CPutFloat(self, fieldName, fieldContents, defaultValue=0.0):
+      """Convenience method; Calls PutFloat() but only if (fieldContents) is not equal to (defaultValue/0.0)"""
+      if (fieldContents == defaultValue):
+         return None
+      else:
+         return self.PutFloat(fieldName, fieldContents)
+
+   def CPutDouble(self, fieldName, fieldContents, defaultValue=0.0):
+      """Convenience method; Calls PutDouble() but only if (fieldContents) is not equal to (defaultValue/0.0)"""
+      if (fieldContents == defaultValue):
+         return None
+      else:
+         return self.PutDouble(fieldName, fieldContents)
+
+   def CPutPoint(self, fieldName, fieldContents, defaultValue=(0.0,0.0)):
+      """Convenience method; Calls PutPoint() but only if (fieldContents) is not equal to (defaultValue/(0.0,0.0))"""
+      if (fieldContents == defaultValue):
+         return None
+      else:
+         return self.PutPoint(fieldName, fieldContents)
+
+   def CPutRect(self, fieldName, fieldContents, defaultValue=(0.0,0.0,0.0,0.0)):
+      """Convenience method; Calls PutRect() but only if (fieldContents) is not equal to (defaultValue/(0.0,0.0,0.0,0.0))"""
+      if (fieldContents == defaultValue):
+         return None
+      else:
+         return self.PutRect(fieldName, fieldContents)
+
    def __writeUtf8StringWithHeader(self, outFile, s):
       utf8s = s.encode()
       outFile.write(struct.pack("<L", len(utf8s)+1))
       outFile.write(utf8s)
       outFile.write(bytes([0]))
-
 
 # --------------------------------------------------------------------------------------------
 
@@ -542,6 +611,13 @@ if __name__ == "__main__":
    tm.PutPoint("point", [(6.5, 7.5), (9,10), (11,15)])
    tm.PutRect("rect", [(9.1,10,11,12.5), (1,2,3,4), (2,3,4,5)])
    tm.PutFieldContents("data", 555, ["testing...", "stuff", "out"])
+   tm.CPutBool("cbooltrue", True)
+   tm.CPutBool("cboolfalse", False)
+   tm.CPutString("cstring", "")
+   tm.CPutString("cstring2", "ok")
+   tm.CPutPoint("cpoint", (0.0,0.0))
+   tm.CPutRect("crect", (0.0,0.0,0.0,0.0))
+   tm.CPutRect("crect2", (0.0,0.0,0.0,1.0))
    subMsg = Message(777)
    subMsg.PutString("hola", "senor")
    tm.PutMessage("submsg", subMsg)
