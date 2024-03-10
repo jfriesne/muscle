@@ -511,12 +511,12 @@ class Message:
       """Convenience method; returns the (index)'th Message item under (fieldName), or (defaultValue/None) if the requested Message isn't present."""
       return self.GetFieldItem(fieldName, B_MESSAGE_TYPE, defaultValue, index)
 
-   def GetPoint(self, fieldName, defaultValue=[0.0,0.0], index=0):
-      """Convenience method; returns the (index)'th Point item under (fieldName), or (defaultValue/[0.0,0.0]) if the requested Point isn't present."""
+   def GetPoint(self, fieldName, defaultValue=(0.0,0.0), index=0):
+      """Convenience method; returns the (index)'th Point item under (fieldName), or (defaultValue/(0.0,0.0)) if the requested Point isn't present."""
       return self.GetFieldItem(fieldName, B_POINT_TYPE, defaultValue, index)
 
-   def GetRect(self, fieldName, defaultValue=[0.0,0.0,0.0,0.0], index=0):
-      """Convenience method; returns the (index)'th Rect item under (fieldName), or (defaultValue/[0.0,0.0,0.0,0.0]) if the requested Rect isn't present."""
+   def GetRect(self, fieldName, defaultValue=(0.0,0.0,0.0,0.0), index=0):
+      """Convenience method; returns the (index)'th Rect item under (fieldName), or (defaultValue/(0.0,0.0,0.0,0.0)) if the requested Rect isn't present."""
       return self.GetFieldItem(fieldName, B_RECT_TYPE, defaultValue, index)
 
    def CPutString(self, fieldName, fieldContents, defaultValue=""):
