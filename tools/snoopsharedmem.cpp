@@ -14,23 +14,27 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
    uint32 maxBytesToPrint = MUSCLE_NO_LIMIT;
 
-   if (argc < 2)
+   Message args;
+   (void) ParseArgs(argc, argv, args);
+
+   const char * shmemName = args.GetCstr("region");
+   if (shmemName == NULL)
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Usage:  ./snoopsharedmem shared_memory_region_name [maxBytesToPrint]\n");
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Usage:  ./snoopsharedmem region=shared_memory_region_name [head=N] [clear] [delay=100mS]\n");
       return 0;
    }
 
-   const char * shmemName = argv[1];
 
-   if (argc > 2)
-   {
-      const uint32 numBytes = atol(argv[2]);
-      if (numBytes > 0)
-      {
-         LogTime(MUSCLE_LOG_INFO, "Limiting printouts to the first " UINT32_FORMAT_SPEC " bytes of the shared memory area.\n", numBytes);
-         maxBytesToPrint = numBytes;
-      }
-   }
+   const char * maxBytesStr = args.GetCstr("head");
+   const uint32 maxBytes    = maxBytesStr ? atol(maxBytesStr) : MUSCLE_NO_LIMIT;
+   if (maxBytes != MUSCLE_NO_LIMIT) LogTime(MUSCLE_LOG_INFO, "Limiting printouts to the first " UINT32_FORMAT_SPEC " bytes of the shared memory area.\n", maxBytes);
+
+   const bool isClear = args.HasName("clear");
+   if (isClear) LogTime(MUSCLE_LOG_INFO, "Will zero out the shared memory region after printing it\n");
+
+   const char * delayStr = args.GetCstr("delay");
+   const uint64 delayMicros = delayStr ? ParseHumanReadableTimeIntervalString(delayStr) : MillisToMicros(100);
+   if (delayStr) LogTime(MUSCLE_LOG_INFO, "Using loop-delay of:  %s\n", GetHumanReadableTimeIntervalString(delayMicros)());
 
    status_t ret;
    SharedMemory m;
@@ -42,8 +46,9 @@ int main(int argc, char ** argv)
 
       while(1)
       {
-         (void) Snooze64(MillisToMicros(100));
+         (void) Snooze64(delayMicros);
          PrintHexBytes(a, muscleMin(memSize, maxBytesToPrint));
+         if (isClear) memset(a, 0, memSize);
       }
    }
    else LogTime(MUSCLE_LOG_ERROR, "SetArea(%s) failed, exiting! [%s]\n", shmemName, ret());

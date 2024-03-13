@@ -10,6 +10,8 @@ key:  - new feature
    - Implemented the pax extension in TarFileWriter to support file paths
      and linked-file paths of unlimited length.
    - Added CPut*() convenience methods to the Python Message class.
+   - Updated the snoopsharedmem to use more sophisticated argument parsing.
+   - Updated the snoopsharedmem to have "delay=N" and "clear" options.
    o Updated the Python2 and Python3 message.py classes so that GetFieldItem()
      and the Get*() methods now take an optional (defaultValue) argument that
      specifies what should be returned if the requested item is not present
