@@ -9,13 +9,10 @@ using namespace muscle;
 
 // This program just repeatedly prints out the contents of the SharedMemory region with the specified name
 // Useful if you want to watch what some other program is doing with a region of shared memory!
-int main(int argc, char ** argv)
+int snoopsharedmemmain(const Message & args)
 {
    CompleteSetupSystem css;
    uint32 maxBytesToPrint = MUSCLE_NO_LIMIT;
-
-   Message args;
-   (void) ParseArgs(argc, argv, args);
 
    const char * shmemName = args.GetCstr("region");
    if (shmemName == NULL)
@@ -55,3 +52,15 @@ int main(int argc, char ** argv)
 
    return 0;
 }
+
+#ifndef UNIFIED_DAEMON
+int main(int argc, char ** argv)
+{
+   CompleteSetupSystem css;
+
+   Message args; (void) ParseArgs(argc, argv, args);
+   (void) HandleStandardDaemonArgs(args);
+
+   return snoopsharedmemmain(args);
+}
+#endif
