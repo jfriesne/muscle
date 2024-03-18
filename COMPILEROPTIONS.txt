@@ -264,6 +264,9 @@ of your Makefile to alter muscle's behaviour:
    If set, calls to the CHECK_THREAD_STACK_USAGE macro will be
    converted into no-ops.
 
+-DMUSCLE_AVOID_THREAD_PRIORITIES
+   If set, calls to Thread::SetThreadPriority() will converted into no-ops.
+
 -DMUSCLE_ENABLE_OBJECT_COUNTING
    If defined, the CountedObject<> class will be enabled, so that
    PrintCountedObjectInfo() will print out tallies of the numbers

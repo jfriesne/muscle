@@ -12,6 +12,9 @@ key:  - new feature
    - Added CPut*() convenience methods to the Python Message class.
    - Updated the snoopsharedmem to use more sophisticated argument parsing.
    - Updated the snoopsharedmem to have "delay=N" and "clear" options.
+   - Added a GetThreadPriorityName() convenience-method to the Thread class.
+   - Added a MUSCLE_AVOID_THREAD_PRIORITIES flag that can be added to the
+     compile-line to turn all set-thread-priority calls into no-ops.
    o Updated the Python2 and Python3 message.py classes so that GetFieldItem()
      and the Get*() methods now take an optional (defaultValue) argument that
      specifies what should be returned if the requested item is not present

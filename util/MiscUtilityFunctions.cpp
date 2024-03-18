@@ -471,11 +471,16 @@ LONG Win32FaultHandler(struct _EXCEPTION_POINTERS * ExInfo)
 #ifdef __linux__
 static status_t SetRealTimePriority(const char * priStr, bool useFifo)
 {
-   struct sched_param schedparam; memset(&schedparam, 0, sizeof(schedparam));
+   const char * desc = useFifo ? "SCHED_FIFO" : "SCHED_RR";
    const int pri = (strlen(priStr) > 0) ? atoi(priStr) : 11;
+
+#ifdef MUSCLE_AVOID_THREAD_PRIORITIES
+   LogTime(MUSCLE_LOG_WARNING, "SetRealTimePriority:  Ignoring command to set scheduler to [%s/%i] because -DMUSCLE_AVOID_THREAD_PRIORITIES was specified.\n", desc, pri);
+   return B_NO_ERROR;
+#else
+   struct sched_param schedparam; memset(&schedparam, 0, sizeof(schedparam));
    schedparam.sched_priority = pri;
 
-   const char * desc = useFifo ? "SCHED_FIFO" : "SCHED_RR";
    if (sched_setscheduler(0, useFifo?SCHED_FIFO:SCHED_RR, &schedparam) == 0)
    {
       LogTime(MUSCLE_LOG_INFO, "Set process to real-time (%s) priority %i\n", desc, pri);
@@ -486,6 +491,7 @@ static status_t SetRealTimePriority(const char * priStr, bool useFifo)
       LogTime(MUSCLE_LOG_ERROR, "Could not invoke real time (%s) scheduling priority %i [%s]\n", desc, pri, B_ERRNO());
       return B_ACCESS_DENIED;
    }
+#endif
 }
 #endif
 

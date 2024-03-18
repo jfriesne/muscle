@@ -309,6 +309,12 @@ public:
       NUM_PRIORITIES              /**< guard value         */
    };
 
+   /** Convenience method:  Given a PRIORITY_* value, returns a corresponding human-readable string (e.g. "High" or "Higher")
+     * @param priority a PRIORITY_* value
+     * @note Negative values will return "Unspecified", and values greater than or equal to NUM_PRIORITIES will return "???"
+     */
+   static const char * GetThreadPriorityName(int priority);
+
 #if defined(MUSCLE_USE_QT_THREADS)
    /** Returns a pointer to the QThread object being used to implement our internal thread.
      * Note that this method is only available when the MUSCLE_USE_QT_THREADS preprocessor macro is defined,
