@@ -3,6 +3,10 @@
 #ifndef MuscleThread_h
 #define MuscleThread_h
 
+#if defined(MUSCLE_USE_PTHREADS) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
+# include <atomic>
+#endif
+
 #include "support/NotCopyable.h"
 #include "system/Mutex.h"
 #include "system/WaitCondition.h"
@@ -315,6 +319,34 @@ public:
      */
    static const char * GetThreadPriorityName(int priority);
 
+   /** Sets the scheduler this thread should be scheduled by.
+     * If the thread is currently running, the change will take place immediately; otherwise
+     * the scheduler will be set when the thread is started.
+     * @param newScheduler a SCHEDULER_* value indicating the scheduler this thread should be scheduled by.
+     * @returns B_NO_ERROR on success, or an error code on failure.
+     */
+   status_t SetThreadScheduler(int newScheduler);
+
+   /** Returns a SCHEDULER_* value indicating this thread's current scheduler (as specified
+     * by a previous call to SetThreadScheduler()), or SCHDULER_UNSPECIFIED if no thread scheduler
+     * has been specified.
+     */
+   MUSCLE_NODISCARD int GetThreadScheduler() const {return _threadScheduler;}
+
+   /** Values to pass in to Thread::SetThreadScheduler() to specify the scheduler a thread should be scheduled by */
+   enum {
+      SCHEDULER_UNSPECIFIED = -1,  /**< we'll just use whatever scheduler the OS gives us by default */
+      SCHEDULER_NONREALTIME,       /**< we want to be scheduled by the OS's non-real-time scheduler */
+      SCHEDULER_REALTIME,          /**< we want to be scheduled by the OS's real-time scheduler */
+      NUM_SCHEDULERS               /**< Guard value */
+   };
+
+   /** Convenience method:  Given a SCHEDULER_* value, returns a corresponding human-readable string (e.g. "Real Time" or "Non Real Time")
+     * @param sched a SCHEDULER_* value
+     * @note Negative values will return "Unspecified", and values greater than or equal to NUM_SCHEDULERS will return "???"
+     */
+   static const char * GetThreadSchedulerName(int sched);
+
 #if defined(MUSCLE_USE_QT_THREADS)
    /** Returns a pointer to the QThread object being used to implement our internal thread.
      * Note that this method is only available when the MUSCLE_USE_QT_THREADS preprocessor macro is defined,
@@ -521,7 +553,7 @@ private:
    status_t SendMessageAux(int whichQueue, const MessageRef & ref);
    void SignalAux(int whichSocket);
    void InternalThreadEntryAux();
-   status_t SetThreadPriorityAux(int newPriority, bool calledFromInternalThread);
+   status_t SetThreadSchedulerAndPriorityAux(int newSched, int newPriority, bool calledFromInternalThread);
 
    enum {
       MESSAGE_THREAD_INTERNAL = 0,  // internal thread's (input queue, socket to block on)
@@ -569,6 +601,14 @@ private:
 #endif
 
 private:
+#ifdef MUSCLE_USE_PTHREADS
+   pthread_t GetPthreadID( bool calledFromInternalThread) const;
+   pid_t     GetThreadPIDT(bool calledFromInternalThread) const;
+#endif
+#if defined(WIN32)
+   HANDLE GetNativeThreadHandle(bool calledFromInternalThread) const;
+#endif
+
 #if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
    typedef std::thread::id muscle_thread_key;
 #elif defined(MUSCLE_USE_PTHREADS)
@@ -585,6 +625,15 @@ private:
    uint32 _suggestedStackSize;
    const uint32 * _threadStackBase;
    int _threadPriority;
+   int _threadScheduler;
+
+#if defined(MUSCLE_USE_PTHREADS)
+# if defined(MUSCLE_AVOID_CPLUSPLUS11)
+#  volatile pid_t _threadTid;
+# else
+   std::atomic<pid_t> _threadTid;  // there must be a better way to handle this
+# endif
+#endif
 
    DECLARE_COUNTED_OBJECT(Thread);
 };

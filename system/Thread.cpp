@@ -2,6 +2,7 @@
 
 #if defined(MUSCLE_USE_PTHREADS)
 # include <pthread.h>  // in case both MUSCLE_USE_CPLUSPLUS11_THREADS and MUSCLE_USE_PTHREADS are defined at once, e.g. for better SetThreadPriority() support
+# include <sys/resource.h>  // for PRIO_PROCESS
 #endif
 
 #include "system/Thread.h"
@@ -31,6 +32,10 @@ Thread :: Thread(bool useMessagingSockets, ICallbackMechanism * optCallbackMecha
    , _suggestedStackSize(0)
    , _threadStackBase(NULL)
    , _threadPriority(PRIORITY_UNSPECIFIED)
+   , _threadScheduler(SCHEDULER_UNSPECIFIED)
+#if defined(MUSCLE_USE_PTHREADS)
+   , _threadTid(0)
+#endif
 {
 #if defined(MUSCLE_USE_QT_THREADS)
    _thread.SetOwner(this);
@@ -416,6 +421,10 @@ Thread * Thread :: GetCurrentThread()
 // This method is here to 'wrap' the internal thread's virtual method call with some standard setup/tear-down code of our own
 void Thread::InternalThreadEntryAux()
 {
+#if defined(MUSCLE_USE_PTHREADS)
+   _threadTid = gettid();
+#endif
+
    const uint32 threadStackBase = 0;  // only here so we can get its address below
    _threadStackBase = &threadStackBase;  // remember this stack location so GetCurrentStackUsage() can reference it later on
 
@@ -427,9 +436,9 @@ void Thread::InternalThreadEntryAux()
    }
 
    status_t ret;
-   if ((_threadPriority != PRIORITY_UNSPECIFIED)&&(SetThreadPriorityAux(_threadPriority, true).IsError(ret)))  // true is hard-coded here to avoid race conditions with _thread.native_handle()
+   if (SetThreadSchedulerAndPriorityAux(_threadScheduler, _threadPriority, true).IsError(ret))
    {
-      LogTime(MUSCLE_LOG_ERROR, "Thread %p:  Unable to set thread priority to %s [%s]\n", this, GetThreadPriorityName(_threadPriority), ret());
+      LogTime(MUSCLE_LOG_ERROR, "Thread %p:  Unable to set thread priority to (%s/%s) [%s]\n", this, GetThreadSchedulerName(_threadScheduler), GetThreadPriorityName(_threadPriority), ret());
    }
 
    if (_threadData[MESSAGE_THREAD_OWNER]._messages.HasItems()) SignalOwner();
@@ -488,7 +497,7 @@ uint32 Thread :: GetCurrentStackUsage() const
 
 status_t Thread :: SetThreadPriority(int newPriority)
 {
-   if (IsInternalThreadRunning()) MRETURN_ON_ERROR(SetThreadPriorityAux(newPriority, IsCallerInternalThread()));
+   if (IsInternalThreadRunning()) MRETURN_ON_ERROR(SetThreadSchedulerAndPriorityAux(_threadScheduler, newPriority, IsCallerInternalThread()));
    _threadPriority = newPriority;  // just remember the setting for now; when we actually launch the thread we'll set the thread's priority
    return B_NO_ERROR;
 }
@@ -548,55 +557,136 @@ const char * Thread :: GetThreadPriorityName(int priority)
    return "???";
 }
 
-status_t Thread :: SetThreadPriorityAux(int newPriority, bool calledFromInternalThread)
+#if defined(MUSCLE_USE_PTHREADS)
+static int ThreadSchedulerToSchedPolicy(int scheduler)
 {
-   if (newPriority == PRIORITY_UNSPECIFIED) return B_NO_ERROR;  // sure, unspecified is easy, anything goes
+   switch(scheduler)
+   {
+      case Thread::SCHEDULER_NONREALTIME: return SCHED_OTHER;
+      case Thread::SCHEDULER_REALTIME:    return SCHED_FIFO;  // maybe also support SCHED_RR someday, if there's any need for it
+      default:                            return SCHED_OTHER;
+   }
+}
 
+static int ThreadPriorityToNiceLevel(int pri)
+{
+   switch(pri)
+   {
+      case Thread::PRIORITY_IDLE:         return 19;
+      case Thread::PRIORITY_LOWEST:       return 15;
+      case Thread::PRIORITY_LOWER:        return 10;
+      case Thread::PRIORITY_LOW:          return 5;
+      case Thread::PRIORITY_NORMAL:       return 0;
+      case Thread::PRIORITY_HIGH:         return -5;
+      case Thread::PRIORITY_HIGHER:       return -10;
+      case Thread::PRIORITY_HIGHEST:      return -15;
+      case Thread::PRIORITY_TIMECRITICAL: return -20;
+      default:                            return 0;
+   }
+}
+#endif
+
+#ifdef MUSCLE_USE_PTHREADS
+pthread_t Thread :: GetPthreadID(bool calledFromInternalThread) const
+{
+   if (calledFromInternalThread) return pthread_self();
+
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+   return _thread.native_handle();
+# else
+   return _thread;
+# endif
+}
+
+pid_t Thread :: GetThreadPIDT(bool calledFromInternalThread) const
+{
+   if (calledFromInternalThread) return gettid();
+
+#if defined(MUSCLE_AVOID_CPLUSPLUS11)
+   return _threadTid;
+#else
+   return _threadTid.load();
+#endif
+}
+#endif
+
+#ifdef WIN32
+HANDLE Thread :: GetNativeThreadHandle(bool calledFromInternalThread) const
+{
+   if (calledFromInternalThread) return ::GetCurrentThread();
+
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+   return _thread.native_handle();
+# else
+   return _thread;
+# endif
+}
+#endif
+
+status_t Thread :: SetThreadSchedulerAndPriorityAux(int32 newSched, int newPriority, bool calledFromInternalThread)
+{
+   if ((newSched == SCHEDULER_UNSPECIFIED)&&(newPriority == PRIORITY_UNSPECIFIED)) return B_NO_ERROR;  // sure, unspecified is easy, anything goes
+
+   (void) newSched;                  // just to inhibit compiler warnings
+   (void) newPriority;               // just to inhibit compiler warnings
    (void) calledFromInternalThread;  // just to inhibit compiler warnings
 
 #if defined(MUSCLE_AVOID_THREAD_PRIORITIES)
-   LogTime(MUSCLE_LOG_WARNING, "Thread %p:  Ignoring request to set thread priority to [%s] because code was compiled with -DMUSCLE_AVOID_THREAD_PRIORITIES\n", this, GetThreadPriorityName(newPriority));
+   LogTime(MUSCLE_LOG_WARNING, "Thread %p:  Ignoring request to set thread priority to [%s/%s] because code was compiled with -DMUSCLE_AVOID_THREAD_PRIORITIES\n", this, GetThreadSchedulerName(newSched), GetThreadPriorityName(newPriority));
    return B_NO_ERROR;
 #else
 # if defined(MUSCLE_USE_PTHREADS)
    int schedPolicy;
    sched_param param;
-#  if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-   const int pret = pthread_getschedparam(calledFromInternalThread ? pthread_self() : _thread.native_handle(), &schedPolicy, &param);
-#  else
-   const int pret = pthread_getschedparam(calledFromInternalThread ? pthread_self() : _thread,                 &schedPolicy, &param);
-#  endif
+   const int pret = pthread_getschedparam(GetPthreadID(calledFromInternalThread), &schedPolicy, &param);
    if (pret != 0) return B_ERRNUM(pret);
 
-   const int minPrio = sched_get_priority_min(schedPolicy);
-   const int maxPrio = sched_get_priority_max(schedPolicy);
-   if ((minPrio == -1)||(maxPrio == -1)) return B_UNIMPLEMENTED;
+   if (newSched    != SCHEDULER_UNSPECIFIED) schedPolicy = ThreadSchedulerToSchedPolicy(newSched);
+   if (newPriority != PRIORITY_UNSPECIFIED)
+   {
+      const int minPrio = sched_get_priority_min(schedPolicy);
+      const int maxPrio = sched_get_priority_max(schedPolicy);
+      if ((minPrio == -1)||(maxPrio == -1)) return B_UNIMPLEMENTED;
+      param.sched_priority = muscleClamp(((newPriority*(maxPrio-minPrio))/(NUM_PRIORITIES-1))+minPrio, minPrio, maxPrio);
 
-   param.sched_priority = muscleClamp(((newPriority*(maxPrio-minPrio))/(NUM_PRIORITIES-1))+minPrio, minPrio, maxPrio);
-#  if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-   return B_ERRNUM(pthread_setschedparam(calledFromInternalThread ? pthread_self() : _thread.native_handle(), schedPolicy, &param));
-#  else
-   return B_ERRNUM(pthread_setschedparam(calledFromInternalThread ? pthread_self() : _thread,                 schedPolicy, &param));
-#  endif
+      if ((minPrio == maxPrio)&&(schedPolicy == SCHED_OTHER))
+      {
+         // SCHED_OTHER doesn't support priorities, but we can fake it by making the thread nicer or meaner
+         // yes, PRIO_PROCESS is correct, it will still apply only to the current thread
+         if (setpriority(PRIO_PROCESS, GetThreadPIDT(calledFromInternalThread), ThreadPriorityToNiceLevel(newPriority)) != 0) return B_ERRNO;
+      }
+   }
+   return B_ERRNUM(pthread_setschedparam(GetPthreadID(calledFromInternalThread), schedPolicy, &param));
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-#  if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-   return ::SetThreadPriority(calledFromInternalThread ? ::GetCurrentThread() : _thread.native_handle(), MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
-#  else
-   return ::SetThreadPriority(calledFromInternalThread ? ::GetCurrentThread() : _thread,                 MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
-#  endif
+   return ::SetThreadPriority(GetNativeThreadHandle(calledFromInternalThread), MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
 # elif defined(MUSCLE_USE_QT_THREADS)
    _thread.setPriority(MuscleThreadPriorityToQtThreadPriority(newPriority));
    return B_NO_ERROR;
 # elif defined(WIN32)
-#  if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-   return ::SetThreadPriority(calledFromInternalThread ? ::GetCurrentThread() :_thread.native_handle(), MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
-#  else
-   return ::SetThreadPriority(calledFromInternalThread ? ::GetCurrentThread() :_thread,                 MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
-#  endif
+   return ::SetThreadPriority(GetNativeThreadHandle(calledFromInternalThread), MuscleThreadPriorityToWindowsThreadPriority(newPriority)) ? B_NO_ERROR : B_ERRNO;
 # else
    return B_UNIMPLEMENTED;  // dunno how to set thread priorities on this platform
 # endif
 #endif
+}
+
+status_t Thread :: SetThreadScheduler(int newSched)
+{
+   if (IsInternalThreadRunning()) MRETURN_ON_ERROR(SetThreadSchedulerAndPriorityAux(newSched, _threadPriority, IsCallerInternalThread()));
+   _threadScheduler = newSched;  // just remember the setting for now; when we actually launch the thread we'll set the thread's scheduler
+   return B_NO_ERROR;
+}
+
+static const char * _threadSchedulerNames[Thread::NUM_SCHEDULERS] = {
+   "Non Real Time",  // SCHEDULER_NONREALTIME
+   "Real Time",      // SCHEDULER_REALTIME
+};
+
+const char * Thread :: GetThreadSchedulerName(int sched)
+{
+   if (sched < 0)              return "Unspecified";
+   if (sched < NUM_SCHEDULERS) return _threadSchedulerNames[sched];
+   return "???";
 }
 
 void CheckThreadStackUsage(const char * fileName, uint32 line)
