@@ -22,6 +22,10 @@
 # error "You're not allowed use the Thread class if you have the MUSCLE_SINGLE_THREAD_ONLY compiler constant defined!"
 #endif
 
+#ifdef __APPLE__
+extern int pthread_threadid_np(pthread_t _Nullable,__uint64_t* _Nullable);
+#endif
+
 namespace muscle {
 
 Thread :: Thread(bool useMessagingSockets, ICallbackMechanism * optCallbackMechanism)
@@ -33,7 +37,7 @@ Thread :: Thread(bool useMessagingSockets, ICallbackMechanism * optCallbackMecha
    , _threadStackBase(NULL)
    , _threadPriority(PRIORITY_UNSPECIFIED)
    , _threadScheduler(SCHEDULER_UNSPECIFIED)
-#if defined(MUSCLE_USE_PTHREADS)
+#ifdef __linux__
    , _threadTid(0)
 #endif
 {
@@ -421,7 +425,7 @@ Thread * Thread :: GetCurrentThread()
 // This method is here to 'wrap' the internal thread's virtual method call with some standard setup/tear-down code of our own
 void Thread::InternalThreadEntryAux()
 {
-#if defined(MUSCLE_USE_PTHREADS)
+#if defined(__linux__)
    _threadTid = gettid();
 #endif
 
@@ -600,14 +604,22 @@ pthread_t Thread :: GetPthreadID(bool calledFromInternalThread) const
 
 pid_t Thread :: GetThreadPIDT(bool calledFromInternalThread) const
 {
-   if (calledFromInternalThread) return gettid();
+   if (calledFromInternalThread) return 0;  // "A zero value of who denotes the current process"
 
-#if defined(MUSCLE_AVOID_CPLUSPLUS11)
+# if defined(__linux__)
+#  if defined(MUSCLE_AVOID_CPLUSPLUS11)
    return _threadTid;
-#else
+#  else
    return _threadTid.load();
+#  endif
+# elif defined(__APPLE__)
+   uint64_t tid;
+   return (pthread_threadid_np(GetPthreadID(calledFromInternalThread), &tid) == 0) ? ((pid_t)tid) : ((pid_t)-1);
+# else
+   return (pid_t) -1;  // just to cause an error, since 0 has a valid value
 #endif
 }
+
 #endif
 
 #ifdef WIN32
@@ -649,12 +661,14 @@ status_t Thread :: SetThreadSchedulerAndPriorityAux(int32 newSched, int newPrior
       if ((minPrio == -1)||(maxPrio == -1)) return B_UNIMPLEMENTED;
       param.sched_priority = muscleClamp(((newPriority*(maxPrio-minPrio))/(NUM_PRIORITIES-1))+minPrio, minPrio, maxPrio);
 
+#if defined(__linux__) || defined(__APPLE__)
       if ((minPrio == maxPrio)&&(schedPolicy == SCHED_OTHER))
       {
-         // SCHED_OTHER doesn't support priorities, but we can fake it by making the thread nicer or meaner
-         // yes, PRIO_PROCESS is correct, it will still apply only to the current thread
+         // Linux's SCHED_OTHER doesn't support priorities, but we can fake it by making the thread nicer or meaner
+         // yes, PRIO_PROCESS is correct, under Linux it will still apply only to the current thread
          if (setpriority(PRIO_PROCESS, GetThreadPIDT(calledFromInternalThread), ThreadPriorityToNiceLevel(newPriority)) != 0) return B_ERRNO;
       }
+#endif
    }
    return B_ERRNUM(pthread_setschedparam(GetPthreadID(calledFromInternalThread), schedPolicy, &param));
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)

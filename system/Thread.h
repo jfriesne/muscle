@@ -627,7 +627,7 @@ private:
    int _threadPriority;
    int _threadScheduler;
 
-#if defined(MUSCLE_USE_PTHREADS)
+#if defined(__linux__)
 # if defined(MUSCLE_AVOID_CPLUSPLUS11)
 #  volatile pid_t _threadTid;
 # else
