@@ -623,7 +623,7 @@ pid_t Thread :: GetThreadPIDT(bool calledFromInternalThread) const
 #endif
 
 #ifdef WIN32
-HANDLE Thread :: GetNativeThreadHandle(bool calledFromInternalThread) const
+HANDLE Thread :: GetNativeThreadHandle(bool calledFromInternalThread) // deliberately not tagged const because native_handle() isn't const
 {
    if (calledFromInternalThread) return ::GetCurrentThread();
 

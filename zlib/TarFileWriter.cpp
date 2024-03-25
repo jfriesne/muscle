@@ -144,7 +144,7 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
          uint8 padBuf[1024]; memset(padBuf, 0, sizeof(padBuf));
          while(numBytesToPad > 0)
          {
-            const uint32 numPadBytesToWrite = muscleMin(numBytesToPad, (uint64) sizeof(padBuf));
+            const uint32 numPadBytesToWrite = (uint32) muscleMin(numBytesToPad, (uint64) sizeof(padBuf));
             MRETURN_ON_ERROR(_writerIO()->WriteFully(padBuf, numPadBytesToWrite));
             numBytesToPad -= numPadBytesToWrite;
          }

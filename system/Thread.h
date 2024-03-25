@@ -606,7 +606,7 @@ private:
    pid_t     GetThreadPIDT(bool calledFromInternalThread) const;
 #endif
 #if defined(WIN32)
-   HANDLE GetNativeThreadHandle(bool calledFromInternalThread) const;
+   HANDLE GetNativeThreadHandle(bool calledFromInternalThread);  // deliberately not tagged const
 #endif
 
 #if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
