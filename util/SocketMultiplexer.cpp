@@ -142,7 +142,7 @@ io_status_t SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTim
 #elif defined(MUSCLE_USE_EPOLL)
       MRETURN_ON_ERROR(ComputeStateBitsChangeRequests());
 
-      const int r = epoll_wait(_kernelFD, _scratchEvents.HeadPointer(), _scratchEvents.GetNumItems(), (waitTimeMicros==MUSCLE_TIME_NEVER)?-1:(int)(muscleMin(MicrosToMillis(waitTimeMicros), (int64)INT_MAX)));
+      const int r = epoll_wait(_kernelFD, _scratchEvents.HeadPointer(), _scratchEvents.GetNumItems(), (waitTimeMicros==MUSCLE_TIME_NEVER)?-1:(int)(muscleMin(MicrosToMillisRoundUp(waitTimeMicros), (int64)INT_MAX)));
       if (r >= 0)
       {
          // Now go through our _scratchEvents list and set bits for any flagged events, for quick lookup by the user
@@ -159,7 +159,7 @@ io_status_t SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTim
          }
       }
 #elif defined(MUSCLE_USE_POLL)
-      const int timeoutMillis = (waitTimeMicros == MUSCLE_TIME_NEVER) ? -1 : ((int) muscleMin(MicrosToMillis(waitTimeMicros), (int64)(INT_MAX)));
+      const int timeoutMillis = (waitTimeMicros == MUSCLE_TIME_NEVER) ? -1 : ((int) muscleMin(MicrosToMillisRoundUp(waitTimeMicros), (int64)(INT_MAX)));
 # ifdef WIN32
       const int r = WSAPoll(_pollFDArray.GetItemAt(0), _pollFDArray.GetNumItems(), timeoutMillis);
 # else

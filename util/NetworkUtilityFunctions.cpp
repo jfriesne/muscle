@@ -8,6 +8,7 @@
 #include "util/Hashtable.h"
 #include "util/ICallbackSubscriber.h"
 #include "util/SocketCallbackMechanism.h"
+#include "util/TimeUnitConversionFunctions.h"
 
 #ifdef __APPLE__
 # include <CoreFoundation/CoreFoundation.h>
@@ -2401,24 +2402,19 @@ IPAddress GetLocalHostIPOverride() {return _customLocalhostIP;}
 
 #ifndef MUSCLE_DISABLE_KEEPALIVE_API
 
-#ifdef __linux__
-static int KeepAliveMicrosToSeconds(uint64 micros) {return ((micros+(MICROS_PER_SECOND-1))/MICROS_PER_SECOND);}  // round up to the nearest second!
-static uint64 KeepAliveSecondsToMicros(int second) {return (second*MICROS_PER_SECOND);}
-#endif
-
 status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbeCount, uint64 idleTime, uint64 retransmitTime)
 {
 #ifdef __linux__
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   int arg = KeepAliveMicrosToSeconds(idleTime);
+   int arg = MicrosToSecondsRoundUp(idleTime);
    if (setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &arg, sizeof(arg)) != 0) return B_ERRNO;
 
    arg = (int) maxProbeCount;
    if (setsockopt(fd, SOL_TCP, TCP_KEEPCNT, &arg, sizeof(arg)) != 0) return B_ERRNO;
 
-   arg = KeepAliveMicrosToSeconds(retransmitTime);
+   arg = MicrosToSecondsRoundUp(retransmitTime);
    if (setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, &arg, sizeof(arg)) != 0) return B_ERRNO;
 
    arg = (maxProbeCount>0);  // true iff we want keepalive enabled
@@ -2457,13 +2453,13 @@ status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMax
    if (retIdleTime)
    {
       valLen = sizeof(val); if (getsockopt(fd, SOL_TCP, TCP_KEEPIDLE, (sockopt_arg *) &val, &valLen) != 0) return B_ERRNO;
-      *retIdleTime = KeepAliveSecondsToMicros(val);
+      *retIdleTime = SecondsToMicros(val);
    }
 
    if (retRetransmitTime)
    {
       valLen = sizeof(val); if (getsockopt(fd, SOL_TCP, TCP_KEEPINTVL, (sockopt_arg *) &val, &valLen) != 0) return B_ERRNO;
-      *retRetransmitTime = KeepAliveSecondsToMicros(val);
+      *retRetransmitTime = SecondsToMicros(val);
    }
 
    return B_NO_ERROR;

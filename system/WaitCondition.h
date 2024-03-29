@@ -223,7 +223,6 @@ private:
 #endif
       return ret;
    }
-
    status_t WaitUntilAux(uint64 wakeupTime, uint32 & retNotificationsCount) const
    {
       int64 timeDeltaMicros = wakeupTime-GetRunTime64();  // how far in the future the wakeup-time is, in microseconds
@@ -263,7 +262,7 @@ private:
       while(_pendingNotificationsCount == 0)
       {
          timeDeltaMicros = wakeupTime-GetRunTime64();  // how far in the future the wakeup-time is, in microseconds
-         if ((timeDeltaMicros <= 0)||(SleepConditionVariableCS(&_conditionVariable, &_conditionMutex, (DWORD) MicrosToMillis(timeDeltaMicros)) == false))
+         if ((timeDeltaMicros <= 0)||(SleepConditionVariableCS(&_conditionVariable, &_conditionMutex, (DWORD) MicrosToMillisRoundUp(timeDeltaMicros)) == false))
          {
             ret = (GetLastError() == ERROR_TIMEOUT) ? B_TIMED_OUT : B_ERRNO;  // timeout shouldn't ever happen, but just for form's sake
             break;
@@ -276,7 +275,7 @@ private:
       while(_pendingNotificationsCount == 0)
       {
          timeDeltaMicros = wakeupTime-GetRunTime64();  // how far in the future the wakeup-time is, in microseconds
-         if ((timeDeltaMicros <= 0)||(_conditionVariable.wait(&_conditionMutex, (unsigned long) MicrosToMillis(timeDeltaMicros)) == false))
+         if ((timeDeltaMicros <= 0)||(_conditionVariable.wait(&_conditionMutex, (unsigned long) MicrosToMillisRoundUp(timeDeltaMicros)) == false))
          {
             ret = B_TIMED_OUT;
             break;

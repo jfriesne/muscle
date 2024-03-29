@@ -324,6 +324,53 @@ inline void Convert64ToTimeVal(uint64 val, struct timeval & retStruct)
    retStruct.tv_usec = (int32)(val % MICROS_PER_SECOND);
 }
 
+#define MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(smallUnits, bigUnits)                                     \
+   MUSCLE_NODISCARD inline int64 bigUnits##To##smallUnits##RoundUp(int64 bigUnitsArg)                       \
+   {                                                                                                        \
+      return muscle::bigUnits##To##smallUnits(bigUnitsArg); /* when multiplying there's never truncation */ \
+   }                                                                                                        \
+   MUSCLE_NODISCARD inline int64 smallUnits##To##bigUnits##RoundUp(int64 smallUnitsArg)                     \
+   {                                                                                                        \
+      const int64 bigUnitsTruncated  = muscle::smallUnits##To##bigUnits(smallUnitsArg);                     \
+      const int64 smallUnitsRestored = muscle::bigUnits##To##smallUnits(bigUnitsTruncated);                 \
+      return bigUnitsTruncated+((smallUnitsArg>smallUnitsRestored)?1:0); /* round up on non-zero modulo */  \
+   }
+
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Nanos,   Micros);  // defines int64 NanosToMicrosRoundUp(int64 nanos)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Nanos,   Millis);  // defines int64 NanosToMillisRoundUp(int64 nanos)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Nanos,   Seconds); // defines int64 NanosToSecondsRoundUp(int64 nanos)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Nanos,   Minutes); // defines int64 NanosToMinutesRoundUp(int64 nanos)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Nanos,   Hours);   // defines int64 NanosToHoursRoundUp(int64 nanos)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Nanos,   Days);    // defines int64 NanosToDaysRoundUp(int64 nanos)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Nanos,   Weeks);   // defines int64 NanosToWeeksRoundUp(int64 nanos)
+
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Micros,  Millis);  // defines int64 MicrosToMillisRoundUp(int64 micros)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Micros,  Seconds); // defines int64 MicrosToSecondsRoundUp(int64 micros)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Micros,  Minutes); // defines int64 MicrosToMinutesRoundUp(int64 micros)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Micros,  Hours);   // defines int64 MicrosToHoursRoundUp(int64 micros)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Micros,  Days);    // defines int64 MicrosToDaysRoundUp(int64 micros)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Micros,  Weeks);   // defines int64 MicrosToWeeksRoundUp(int64 micros)
+
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Millis,  Seconds); // defines int64 MillisToSecondsRoundUp(int64 millis)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Millis,  Minutes); // defines int64 MillisToMinutesRoundUp(int64 millis)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Millis,  Hours);   // defines int64 MillisToHoursRoundUp(int64 millis)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Millis,  Days);    // defines int64 MillisToDaysRoundUp(int64 millis)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Millis,  Weeks);   // defines int64 MillisToWeeksRoundUp(int64 millis)
+
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Seconds, Minutes); // defines int64 SecondsToMinutesRoundUp(int64 seconds)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Seconds, Hours);   // defines int64 SecondsToHoursRoundUp(int64 seconds)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Seconds, Days);    // defines int64 SecondsToDaysRoundUp(int64 seconds)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Seconds, Weeks);   // defines int64 SecondsToWeeksRoundUp(int64 seconds)
+
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Minutes, Hours);   // defines int64 MinutesToHoursRoundUp(int64 minutes)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Minutes, Days);    // defines int64 MinutesToDaysRoundUp(int64 minutes)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Minutes, Weeks);   // defines int64 MinutesToWeeksRoundUp(int64 minutes)
+
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Hours,   Days);    // defines int64 HoursToDaysRoundUp(int64 hours)
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Hours,   Weeks);   // defines int64 HoursToWeeksRoundUp(int64 hours)
+
+MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Days,    Weeks);   // defines int64 DaysToWeeksRoundUp(int64 days)
+
 /** @} */ // end of timeunitconversionfunctions doxygen group
 
 } // end namespace muscle

@@ -246,7 +246,7 @@ ClientConnectionClosed()
    if (_autoReconnectDelay == MUSCLE_TIME_NEVER) return true;  // true == okay to remove this session
    else
    {
-      if (_wasConnected) LogTime(MUSCLE_LOG_DEBUG, "%s:  Connection severed, will auto-reconnect in " UINT64_FORMAT_SPEC "mS\n", GetSessionDescriptionString()(), MicrosToMillis(_autoReconnectDelay));
+      if (_wasConnected) LogTime(MUSCLE_LOG_DEBUG, "%s:  Connection severed, will auto-reconnect in [%s]\n", GetSessionDescriptionString()(), GetHumanReadableTimeIntervalString(_autoReconnectDelay)());
       PlanForReconnect();
       return false;
    }
