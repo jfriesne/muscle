@@ -5,6 +5,10 @@
 # include <sys/resource.h>  // for PRIO_PROCESS
 #endif
 
+#ifdef __linux__
+# include <sys/syscall.h>
+#endif
+
 #include "system/Thread.h"
 #include "util/NetworkUtilityFunctions.h"
 #include "dataio/TCPSocketDataIO.h"  // to get the proper #includes for recv()'ing
@@ -426,7 +430,7 @@ Thread * Thread :: GetCurrentThread()
 void Thread::InternalThreadEntryAux()
 {
 #if defined(__linux__)
-   _threadTid = gettid();
+   _threadTid = syscall(SYS_gettid);  // was: gettid(), but some versions of libc didn't define that properly
 #endif
 
    const uint32 threadStackBase = 0;  // only here so we can get its address below
