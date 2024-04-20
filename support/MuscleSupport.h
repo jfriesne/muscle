@@ -123,7 +123,7 @@
 
 #ifndef MUSCLE_AVOID_NODISCARD
 # ifdef __cplusplus
-#  if defined(MUSCLE_USE_CPLUSPLUS17)
+#  if (__cplusplus >= 201703L) || defined(__clang__)
 #   define MUSCLE_NODISCARD [[nodiscard]]
 #  elif defined(_MSC_VER) && (_MSC_VER >= 1700)
 #   define MUSCLE_NODISCARD _Check_return_
