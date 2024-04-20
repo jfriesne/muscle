@@ -21,6 +21,10 @@ key:  - new feature
      and the Get*() methods now take an optional (defaultValue) argument that
      specifies what should be returned if the requested item is not present
      in the Message.
+   o Removed the option for MUSCLE_NODISCARD macro to expand to
+     __attribute__((warn_unused_result)) under pre-C++17 codebases,
+     as that implementation warns even when an explicit (void) cast
+     is employed, causing too much visual noise to be useful.
    - Added RoundUp() versions of all the TimeUnitConversion functions
      (e.g. added MicrosToMillisRoundUp() to complement MicrosToMillis())
    * Modified the MUSCLE_USE_POLL and MUSCLE_USE_EPOLL implementations of
