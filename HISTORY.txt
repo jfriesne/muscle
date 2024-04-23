@@ -25,6 +25,9 @@ key:  - new feature
      __attribute__((warn_unused_result)) under pre-C++17 codebases,
      as that implementation warns even when an explicit (void) cast
      is employed, causing too much visual noise to be useful.
+   o Replaced calls to newnothrow with calls to new, to simplify the
+     code given fact that in modern OS's newnothrow's successful return
+     doesn't actually mean the RAM is available anyway.
    - Added RoundUp() versions of all the TimeUnitConversion functions
      (e.g. added MicrosToMillisRoundUp() to complement MicrosToMillis())
    * Modified the MUSCLE_USE_POLL and MUSCLE_USE_EPOLL implementations of

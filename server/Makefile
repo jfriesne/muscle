@@ -66,11 +66,6 @@ ifeq ($(OSTYPE),Darwin)
    endif
 endif
 
-# IRIX may report itself as IRIX or as IRIX64.  They are both the same to us.
-ifeq ($(OSTYPE),IRIX64)
-  OSTYPE = IRIX
-endif
-
 ifeq ($(OSTYPE),Haiku)
    LIBS = -lbe -lnetwork -lroot
    CXXFLAGS  += -DMUSCLE_AVOID_IPV6
@@ -80,6 +75,7 @@ ifeq ($(OSTYPE),Linux)
    CFLAGS   += -I../zlib/zlib -pthread
    LIBS     += -lutil -pthread
 endif
+
 ifeq ($(OSTYPE),linux)
    CFLAGS   += -I../zlib/zlib -pthread
    LIBS     += -lutil -pthread
@@ -97,24 +93,6 @@ endif
 
 ifeq ($(OSTYPE),DragonFly)
    # void
-endif
-
-ifeq ($(OSTYPE),IRIX)
-   CXXFLAGS += -DSGI -DMIPS
-   ifneq (,$(findstring g++,$(CXX))) # if we are using SGI's CC compiler, we gotta change a few things
-      CXX = CC
-      CCFLAGS = -g2 -n32 -LANG:std -woff 1110,1174,1552,1460,3303
-      LFLAGS  = -g2 -n32
-      CXXFLAGS += -DNEW_H_NOT_AVAILABLE
-   endif
-endif
-
-ifeq ($(OSTYPE), SunOS)
-    CXXFLAGS += -DSUN
-    ifneq ($(CXX),$(findstring g++,$(CXX))) # if we are using the SunPro compilers, we have to change some things
-	CXX = CC
-    endif
-    LIBS = -lsocket -lnsl
 endif
 
 ifneq (,$(findstring MUSCLE_ENABLE_SSL,$(CXXFLAGS))) # Add OpenSSL-specific files only if OpenSSL is enabled

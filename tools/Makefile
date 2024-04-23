@@ -55,11 +55,6 @@ ifeq ($(OSTYPE),)
   OSTYPE = $(strip $(shell uname))
 endif
 
-# IRIX may report itself as IRIX or as IRIX64.  They are both the same to us.
-ifeq ($(OSTYPE),IRIX64)
-  OSTYPE = IRIX
-endif
-
 ifneq (,$(findstring g++,$(CXX)))
     CXXFLAGS += $(GCCFLAGS) $(CCOPTFLAGS)
 else
@@ -85,27 +80,12 @@ ifeq ($(OSTYPE),Darwin)
    endif
 endif
 
-ifeq ($(OSTYPE),linux)
-   LIBS += -lutil
-endif
-
 ifeq ($(OSTYPE),Linux)
    LIBS += -lutil
 endif
 
-ifeq ($(OSTYPE),IRIX)
-   CXXFLAGS += -DSGI -DMIPS
-   ifneq (,$(findstring g++,$(CXX))) # if we are using SGI's CC compiler, we gotta change a few things
-      CXX = CC
-      CCFLAGS = -g2 -n32 -LANG:std -woff 1110,1174,1552,1460,3303
-      LFLAGS  = -g2 -n32
-      CXXFLAGS += -DNEW_H_NOT_AVAILABLE
-      MEMORY_TRACKING_SUPPORTED = no # SGI CC can't handle it correctly :^(
-   endif
-endif
-
-ifeq ($(MEMORY_TRACKING_SUPPORTED),yes)
-   CXXFLAGS += -DMUSCLE_ENABLE_MEMORY_TRACKING
+ifeq ($(OSTYPE),linux)
+   LIBS += -lutil
 endif
 
 SSLOBJS =

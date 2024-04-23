@@ -311,9 +311,9 @@ int main(int argc, char ** argv)
    FunctionCallback fcb(AbstractObjectRecycler::GlobalFlushAllCachedObjects);
    MemoryAllocatorRef nullRef;
    AutoCleanupProxyMemoryAllocator cleanupAllocator(nullRef);
-   cleanupAllocator.GetCallbacksQueue().AddTail(DummyGenericCallbackRef(fcb));
+   (void) cleanupAllocator.GetCallbacksQueue().AddTail(DummyGenericCallbackRef(fcb));
 
-   UsageLimitProxyMemoryAllocator usageLimitAllocator(DummyMemoryAllocatorRef(cleanupAllocator));
+   UsageLimitProxyMemoryAllocator usageLimitAllocator((DummyMemoryAllocatorRef(cleanupAllocator)));  // extra parens here to avoid most-vexing-parse problem
 
    SetCPlusPlusGlobalMemoryAllocator(DummyMemoryAllocatorRef(usageLimitAllocator));
    const int ret = muscledmainAux(argc, argv, &usageLimitAllocator);
