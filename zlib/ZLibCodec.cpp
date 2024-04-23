@@ -326,9 +326,9 @@ private:
 };
 
 ZLibCodec :: ZLibCodec(int compressionLevel)
-   : _imp(newnothrow ZLibCodecImp(compressionLevel))
+   : _imp(new ZLibCodecImp(compressionLevel))
 {
-   if (_imp == NULL) MWARN_OUT_OF_MEMORY;
+   // empty
 }
 
 ZLibCodec :: ~ZLibCodec()

@@ -67,36 +67,31 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
                if (((_inDoAccept.IsInBatch())||(_inDoConnect.IsInBatch()))&&(((_publicKey())||(_privateKey())||(_pskUserName.HasChars()))&&(dynamic_cast<TCPSocketDataIO *>(io()) != NULL)))
                {
 #ifdef MUSCLE_ENABLE_SSL
-                  SSLSocketDataIORef sslIORef(newnothrow SSLSocketDataIO(s, false, _inDoAccept.IsInBatch()));
-                  if (sslIORef())
+                  SSLSocketDataIORef sslIORef(new SSLSocketDataIO(s, false, _inDoAccept.IsInBatch()));
+                  const char * desc = _inDoAccept.IsInBatch() ? "incoming" : "outgoing";
+
+                  ConstByteBufferRef effectivePrivateKey = _privateKey;
+                  ConstByteBufferRef effectivePublicKey  = _publicKey;
+                  if ((_inDoAccept.IsInBatch())&&(effectivePrivateKey() != NULL)&&(effectivePublicKey() == NULL)) effectivePublicKey = effectivePrivateKey;  // private key file contains public key also
+
+                  if ((effectivePublicKey())&&(sslIORef()->SetPublicKeyCertificate(effectivePublicKey).IsError(ret)))
                   {
-                     const char * desc = _inDoAccept.IsInBatch() ? "incoming" : "outgoing";
-
-                     ConstByteBufferRef effectivePrivateKey = _privateKey;
-                     ConstByteBufferRef effectivePublicKey  = _publicKey;
-                     if ((_inDoAccept.IsInBatch())&&(effectivePrivateKey() != NULL)&&(effectivePublicKey() == NULL)) effectivePublicKey = effectivePrivateKey;  // private key file contains public key also
-
-                     if ((effectivePublicKey())&&(sslIORef()->SetPublicKeyCertificate(effectivePublicKey).IsError(ret)))
-                     {
-                        LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use public key data, %s session aborted!  (Bad .pem data?) [%s]\n", desc, ret());
-                        newSession->SetOwner(NULL);
-                        return ret;
-                     }
-
-                     if ((effectivePrivateKey())&&(sslIORef()->SetPrivateKey(effectivePrivateKey).IsError(ret)))
-                     {
-                        LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use private key data, %s session aborted!  (Bad .pem data?) [%s]\n", desc, ret());
-                        newSession->SetOwner(NULL);
-                        return ret;
-                     }
-
-                     if (_pskUserName.HasChars()) sslIORef()->SetPreSharedKeyLoginInfo(_pskUserName, _pskPassword);
-
-                     io = sslIORef;
-                     gatewayRef.SetRef(newnothrow SSLSocketAdapterGateway(gatewayRef));
-                     if (gatewayRef() == NULL) {newSession->SetOwner(NULL); MRETURN_OUT_OF_MEMORY;}
+                     LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use public key data, %s session aborted!  (Bad .pem data?) [%s]\n", desc, ret());
+                     newSession->SetOwner(NULL);
+                     return ret;
                   }
-                  else {newSession->SetOwner(NULL); MRETURN_OUT_OF_MEMORY;}
+
+                  if ((effectivePrivateKey())&&(sslIORef()->SetPrivateKey(effectivePrivateKey).IsError(ret)))
+                  {
+                     LogTime(MUSCLE_LOG_ERROR, "AddNewSession:  Unable to use private key data, %s session aborted!  (Bad .pem data?) [%s]\n", desc, ret());
+                     newSession->SetOwner(NULL);
+                     return ret;
+                  }
+
+                  if (_pskUserName.HasChars()) sslIORef()->SetPreSharedKeyLoginInfo(_pskUserName, _pskPassword);
+
+                  io = sslIORef;
+                  gatewayRef.SetRef(new SSLSocketAdapterGateway(gatewayRef));
 #else
                   if (_publicKey())            return ComplainAboutNoSSL("SetPublicKeyCertificate()");
                   if (_privateKey())           return ComplainAboutNoSSL("SetPrivateKey()");
@@ -398,8 +393,7 @@ ServerProcessLoop()
 #ifndef MUSCLE_AVOID_SIGNAL_HANDLING
    if ((_mainReflectServerCatchSignals)&&(IsCurrentThreadMainThread()))
    {
-      SignalHandlerSessionRef shs(newnothrow SignalHandlerSession);
-      MRETURN_OOM_ON_NULL(shs());
+      SignalHandlerSessionRef shs(new SignalHandlerSession);
       if (AddNewSession(shs).IsError(ret))
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::ReadyToRun:  Could not install SignalHandlerSession!\n");

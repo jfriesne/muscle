@@ -75,11 +75,7 @@ io_status_t MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMe
             {
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
                // Payload-chunks are compressed!  Gotta zlib-inflate them first
-               if (_codec() == NULL)
-               {
-                  _codec.SetRef(newnothrow ZLibCodec(3));  // compression-level doesn't really matter for inflation step
-                  if (_codec() == NULL) MWARN_OUT_OF_MEMORY;
-               }
+               if (_codec() == NULL) _codec.SetRef(new ZLibCodec(3));  // compression-level doesn't really matter for inflation step
                infBuf = _codec() ? static_cast<ZLibCodec *>(_codec())->Inflate(unflat.GetCurrentReadPointer(), unflat.GetNumBytesAvailable()) : ByteBufferRef();
                if (infBuf()) unflat.SetBuffer(*infBuf());  // code below will read from the inflated-data buffer instead
                else
@@ -175,23 +171,19 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          if (_sendCompressionLevel > 0)
          {
             ZLibCodec * codec = static_cast<ZLibCodec *>(_codec());
-            if ((codec == NULL)||(codec->GetCompressionLevel() != _sendCompressionLevel)) _codec.SetRef(codec = newnothrow ZLibCodec(_sendCompressionLevel));
-            if (codec)
+            if ((codec == NULL)||(codec->GetCompressionLevel() != _sendCompressionLevel)) _codec.SetRef(codec = new ZLibCodec(_sendCompressionLevel));
+            defBuf = codec->Deflate(_outputPacketBuffer.GetBuffer()+PACKET_HEADER_SIZE, flat.GetNumBytesWritten()-PACKET_HEADER_SIZE, true, PACKET_HEADER_SIZE);
+            if (defBuf())
             {
-               defBuf = codec->Deflate(_outputPacketBuffer.GetBuffer()+PACKET_HEADER_SIZE, flat.GetNumBytesWritten()-PACKET_HEADER_SIZE, true, PACKET_HEADER_SIZE);
-               if (defBuf())
+               if (defBuf()->GetNumBytes() < writeSize)  // no sense sending deflated data if it didn't actually change anything!
                {
-                  if (defBuf()->GetNumBytes() < writeSize)  // no sense sending deflated data if it didn't actually change anything!
-                  {
-                     memcpy(defBuf()->GetBuffer(), writeBuf, PACKET_HEADER_SIZE);
-                     writeBuf  = defBuf()->GetBuffer();
-                     writeSize = defBuf()->GetNumBytes();
-                  }
-                  else defBuf.Reset();
+                  memcpy(defBuf()->GetBuffer(), writeBuf, PACKET_HEADER_SIZE);
+                  writeBuf  = defBuf()->GetBuffer();
+                  writeSize = defBuf()->GetNumBytes();
                }
-               else LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutputImplementation():  Deflate() failed!\n");
+               else defBuf.Reset();
             }
-            else MWARN_OUT_OF_MEMORY;
+            else LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutputImplementation():  Deflate() failed!\n");
 
             if (defBuf() == NULL)
             {

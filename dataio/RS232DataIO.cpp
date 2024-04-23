@@ -376,8 +376,8 @@ static void ProcessReadBytes(Queue<SerialBuffer *> & inQueue, const char * inByt
    else
    {
       // Oops, not enough room.  We'll allocate a new SerialBuffer object instead.
-      buf = newnothrow SerialBuffer;
-      if ((buf)&&(inQueue.AddTail(buf).IsOK()))
+      buf = new SerialBuffer;
+      if (inQueue.AddTail(buf).IsOK())
       {
          memcpy(&buf->_buf, inBytes, numBytesRead);
          buf->_length = numBytesRead;

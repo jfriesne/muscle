@@ -112,8 +112,7 @@ UDPSocketDataIORef SimulatedMulticastDataIO :: CreateMulticastUDPDataIO(const IP
       return errRet;
    }
 
-   UDPSocketDataIORef ret(newnothrow UDPSocketDataIO(udpSock, false));
-   MRETURN_OOM_ON_NULL(ret());
+   UDPSocketDataIORef ret(new UDPSocketDataIO(udpSock, false));
    (void) ret()->SetPacketSendDestination(iap);
    return ret;
 }
@@ -123,10 +122,7 @@ static UDPSocketDataIORef CreateUnicastUDPDataIO(uint16 & retPort)
    ConstSocketRef udpSock = CreateUDPSocket();
    MRETURN_ON_ERROR(udpSock);
    MRETURN_ON_ERROR(BindUDPSocket(udpSock, 0, &retPort));
-
-   UDPSocketDataIORef ret(newnothrow UDPSocketDataIO(udpSock, false));
-   MRETURN_OOM_ON_NULL(ret());
-   return ret;
+   return UDPSocketDataIORef(new UDPSocketDataIO(udpSock, false));
 }
 
 status_t SimulatedMulticastDataIO :: ReadPacket(DataIO & dio, ByteBufferRef & retBuf)

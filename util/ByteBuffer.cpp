@@ -79,7 +79,7 @@ status_t ByteBuffer :: AppendBytes(const uint8 * bytes, uint32 numBytes, bool al
    {
       // Oh dear, caller wants us to add a copy of some of our own bytes to ourself, AND we'll need to perform a reallocation to do it!
       // So to avoid freeing (bytes) before we read from them, we're going to copy them over to a temporary buffer first.
-      uint8 * tmpBuf = newnothrow uint8[numBytes];
+      uint8 * tmpBuf = newnothrow_array(uint8,numBytes);
       MRETURN_OOM_ON_NULL(tmpBuf);
       memcpy(tmpBuf, bytes, numBytes);
 

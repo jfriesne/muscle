@@ -35,7 +35,7 @@ MUSCLE_NODISCARD size_t GetNumAllocatedBytes();
  *  The only time you should need to call this directly is from C code where
  *  you want to use the global memory allocators but don't want to replace all
  *  the calls to malloc() and free() with new and delete.  For C++ programs, you
- *  can just use newnothrow and delete as usual and ignore this function.
+ *  can just use new/newnothrow/delete as usual and ignore this function.
  *  @param numBytes Number of bytes to attempt to allocate
  *  @param retryOnFailure This argument governs muscleAlloc's behaviour when
  *                        an out-of-memory condition occurs.  If true, muscleAlloc()

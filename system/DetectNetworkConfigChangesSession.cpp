@@ -686,11 +686,7 @@ static status_t RegisterWithSingletonThread(DetectNetworkConfigChangesSession * 
 {
    DECLARE_MUTEXGUARD(_singletonThreadMutex);
 
-   if (_singletonThread == NULL)
-   {
-      _singletonThread = newnothrow DetectNetworkConfigChangesThread;
-      MRETURN_OOM_ON_NULL(_singletonThread);
-   }
+   if (_singletonThread == NULL) _singletonThread = new DetectNetworkConfigChangesThread;
 
    status_t ret;
    if ((_singletonThread->RegisterSession(s).IsError(ret))&&(_singletonThread->HasRegisteredSessions() == false))

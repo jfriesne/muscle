@@ -236,36 +236,21 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    AbstractSessionIOPolicyRef inputPolicyRef, outputPolicyRef;
    if (maxCombinedRate != MUSCLE_NO_LIMIT)
    {
-      inputPolicyRef.SetRef(newnothrow RateLimitSessionIOPolicy(maxCombinedRate));
+      inputPolicyRef.SetRef(new RateLimitSessionIOPolicy(maxCombinedRate));
       outputPolicyRef = inputPolicyRef;
-      if (inputPolicyRef()) LogTime(MUSCLE_LOG_INFO, "Limiting aggregate I/O bandwidth to %.02f kilobytes/second.\n", ((float)maxCombinedRate/1024.0f));
-      else
-      {
-         MWARN_OUT_OF_MEMORY;
-         ret = B_OUT_OF_MEMORY;
-      }
+      LogTime(MUSCLE_LOG_INFO, "Limiting aggregate I/O bandwidth to %.02f kilobytes/second.\n", ((float)maxCombinedRate/1024.0f));
    }
    else
    {
       if (maxReceiveRate != MUSCLE_NO_LIMIT)
       {
-         inputPolicyRef.SetRef(newnothrow RateLimitSessionIOPolicy(maxReceiveRate));
-         if (inputPolicyRef()) LogTime(MUSCLE_LOG_INFO, "Limiting aggregate receive bandwidth to %.02f kilobytes/second.\n", ((float)maxReceiveRate/1024.0f));
-         else
-         {
-            MWARN_OUT_OF_MEMORY;
-            ret = B_OUT_OF_MEMORY;
-         }
+         inputPolicyRef.SetRef(new RateLimitSessionIOPolicy(maxReceiveRate));
+         LogTime(MUSCLE_LOG_INFO, "Limiting aggregate receive bandwidth to %.02f kilobytes/second.\n", ((float)maxReceiveRate/1024.0f));
       }
       if (maxSendRate != MUSCLE_NO_LIMIT)
       {
-         outputPolicyRef.SetRef(newnothrow RateLimitSessionIOPolicy(maxSendRate));
-         if (outputPolicyRef()) LogTime(MUSCLE_LOG_INFO, "Limiting aggregate send bandwidth to %.02f kilobytes/second.\n", ((float)maxSendRate/1024.0f));
-         else
-         {
-            MWARN_OUT_OF_MEMORY;
-            ret = B_OUT_OF_MEMORY;
-         }
+         outputPolicyRef.SetRef(new RateLimitSessionIOPolicy(maxSendRate));
+         LogTime(MUSCLE_LOG_INFO, "Limiting aggregate send bandwidth to %.02f kilobytes/second.\n", ((float)maxSendRate/1024.0f));
       }
    }
 

@@ -52,11 +52,7 @@ status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const Stri
 {
    TCHECKPOINT;
 
-   if (_orderedIndex == NULL)
-   {
-      _orderedIndex = newnothrow Queue<DataNodeRef>;
-      MRETURN_OOM_ON_NULL(_orderedIndex);
-   }
+   if (_orderedIndex == NULL) _orderedIndex = new Queue<DataNodeRef>;
 
    // Find a unique ID string for our new kid
    String temp;  // must be declared out here!
@@ -127,11 +123,7 @@ status_t DataNode :: InsertIndexEntryAt(uint32 insertIndex, StorageReflectSessio
    DataNodeRef childNode;
    MRETURN_ON_ERROR(_children->Get(&key, childNode));
 
-   if (_orderedIndex == NULL)
-   {
-      _orderedIndex = newnothrow Queue<DataNodeRef>;
-      MRETURN_OOM_ON_NULL(_orderedIndex);
-   }
+   if (_orderedIndex == NULL) _orderedIndex = new Queue<DataNodeRef>;
    MRETURN_ON_ERROR(_orderedIndex->InsertItemAt(insertIndex, childNode));
 
    // Notify anyone monitoring this node that the ordered-index has been updated
@@ -178,11 +170,7 @@ status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * 
    DataNode * child = node();
    if (child == NULL) return B_BAD_ARGUMENT;
 
-   if (_children == NULL)
-   {
-      _children = newnothrow Hashtable<const String *, DataNodeRef>;
-      MRETURN_OOM_ON_NULL(_children);
-   }
+   if (_children == NULL) _children = new Hashtable<const String *, DataNodeRef>;
 
    MRETURN_ON_ERROR(child->SetParent(this, optNotifyWithOnSetParent));
 

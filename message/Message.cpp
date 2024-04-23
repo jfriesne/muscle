@@ -26,7 +26,7 @@ const ConstMessageRef & GetEmptyMessageRef() {return _emptyMsgRef;}
    }
 
 #ifdef MUSCLE_DISABLE_MESSAGE_FIELD_POOLS
-# define NEWFIELD(X)  newnothrow X
+# define NEWFIELD(X)  new X
 # define DECLAREFIELDTYPE(X) DECLARECLONE(X)
 #else
 # define NEWFIELD(X)  _pool##X.ObtainObject()

@@ -168,8 +168,7 @@ void ThreadPool :: DispatchPendingMessagesUnsafe()
          if ((_availableThreads.IsEmpty())&&(_activeThreads.GetNumItems() < _maxThreadCount))
          {
             // demand-allocate a new Thread for us to use
-            ThreadPoolThreadRef tRef(newnothrow ThreadPoolThread(this, _threadIDCounter++));
-            if (tRef() == NULL) {MWARN_OUT_OF_MEMORY; break;}
+            ThreadPoolThreadRef tRef(new ThreadPoolThread(this, _threadIDCounter++));
 
             status_t ret;
             if (StartInternalThread(*tRef()).IsError(ret)) {LogTime(MUSCLE_LOG_ERROR, "ThreadPool:  Error launching thread! [%s]\n", ret()); break;}

@@ -32,8 +32,7 @@ public:
 
    virtual ThreadWorkerSessionRef CreateThreadWorkerSession(const String & loc, const IPAddressAndPort & iap)
    {
-      AdvancedThreadWorkerSession * ret = newnothrow AdvancedThreadWorkerSession();
-      MRETURN_OOM_ON_NULL(ret);
+      AdvancedThreadWorkerSession * ret = new AdvancedThreadWorkerSession();
       printf("AdvancedThreadWorkerSessionFactory created AdvancedThreadWorkerSession %p for client at loc=[%s] iap=[%s]\n", ret, loc(), iap.ToString()());
       return ThreadWorkerSessionRef(ret);
    }
@@ -46,7 +45,7 @@ AdvancedQMessageTransceiverThread :: AdvancedQMessageTransceiverThread()
    SetForwardAllIncomingMessagesToSupervisor(false);
 
    // Set up a factory to accept incoming TCP connections on our port, for remote sessions to use to connect to us
-   if (PutAcceptFactory(ADVANCED_EXAMPLE_PORT, ThreadWorkerSessionFactoryRef(newnothrow AdvancedThreadWorkerSessionFactory)).IsError()) printf("AdvancedQMessageTransceiverThread ctor:  Error, couldn't create accept-factory on port %i!\n", ADVANCED_EXAMPLE_PORT);
+   if (PutAcceptFactory(ADVANCED_EXAMPLE_PORT, ThreadWorkerSessionFactoryRef(new AdvancedThreadWorkerSessionFactory)).IsError()) printf("AdvancedQMessageTransceiverThread ctor:  Error, couldn't create accept-factory on port %i!\n", ADVANCED_EXAMPLE_PORT);
 }
 
 status_t AdvancedQMessageTransceiverThread :: AddNewThreadedInternalSession(const MessageRef & args)

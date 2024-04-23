@@ -25,9 +25,7 @@ public:
       // SignalMessageIOGateway because the main thread doesn't actually serialize Message objects
       // over the main<->child notification socket; rather it just appends the MessageRefs to a Queue
       // and then sends a single byte to let the child thread know when to check the queue.
-      SignalMessageIOGatewayRef gwRef(newnothrow SignalMessageIOGateway);
-      MRETURN_OOM_ON_NULL(gwRef());
-      return gwRef;
+      return SignalMessageIOGatewayRef(new SignalMessageIOGateway);
    }
 
    // Called when the wakeup-signal-byte is received from the main thread

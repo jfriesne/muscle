@@ -72,8 +72,7 @@ status_t MessageTransceiverThread :: EnsureServerAllocated()
 
 ReflectServerRef MessageTransceiverThread :: CreateReflectServer()
 {
-   ReflectServer * rs = newnothrow ReflectServer;
-   MRETURN_OOM_ON_NULL(rs);
+   ReflectServer * rs = new ReflectServer;
    rs->SetDoLogging(false);  // so that adding/removing client-side sessions won't show up in the log
    return ReflectServerRef(rs);
 }
@@ -306,15 +305,11 @@ status_t MessageTransceiverThread :: RequestOutputQueuesDrainedNotification(cons
 
    MRETURN_ON_ERROR(replyRef()->CAddMessage(MTT_NAME_MESSAGE, notifyRef));
 
-   DrainTagRef drainTagRef(optDrainTag ? optDrainTag : newnothrow DrainTag);
-   if (drainTagRef())
-   {
-       drainTagRef()->SetReplyMessage(replyRef);
-
-       MRETURN_ON_ERROR(commandRef()->CAddString(MTT_NAME_PATH, optDistPath));
-       MRETURN_ON_ERROR(commandRef()->AddTag(MTT_NAME_DRAIN_TAG, drainTagRef));
-       return SendMessageToInternalThread(commandRef);
-   }
+   DrainTagRef drainTagRef(optDrainTag ? optDrainTag : new DrainTag);
+   drainTagRef()->SetReplyMessage(replyRef);
+   MRETURN_ON_ERROR(commandRef()->CAddString(MTT_NAME_PATH, optDistPath));
+   MRETURN_ON_ERROR(commandRef()->AddTag(MTT_NAME_DRAIN_TAG, drainTagRef));
+   return SendMessageToInternalThread(commandRef);
 
    // User keeps ownership of his custom DrainTag on error, so we don't delete it.
    if ((drainTagRef())&&(drainTagRef() == optDrainTag))
@@ -380,23 +375,17 @@ void MessageTransceiverThread :: Reset()
 
 ThreadSupervisorSessionRef MessageTransceiverThread :: CreateSupervisorSession()
 {
-   ThreadSupervisorSession * ret = newnothrow ThreadSupervisorSession();
-   MRETURN_OOM_ON_NULL(ret);
-   return ThreadSupervisorSessionRef(ret);
+   return ThreadSupervisorSessionRef(new ThreadSupervisorSession);
 }
 
 ThreadWorkerSessionRef MessageTransceiverThread :: CreateDefaultWorkerSession()
 {
-   ThreadWorkerSession * ret = newnothrow ThreadWorkerSession();
-   MRETURN_OOM_ON_NULL(ret);
-   return ThreadWorkerSessionRef(ret);
+   return ThreadWorkerSessionRef(new ThreadWorkerSession);
 }
 
 ThreadWorkerSessionFactoryRef MessageTransceiverThread :: CreateDefaultSessionFactory()
 {
-   ThreadWorkerSessionFactory * ret = newnothrow ThreadWorkerSessionFactory();
-   MRETURN_OOM_ON_NULL(ret);
-   return ThreadWorkerSessionFactoryRef(ret);
+   return ThreadWorkerSessionFactoryRef(new ThreadWorkerSessionFactory);
 }
 
 ThreadWorkerSessionFactory :: ThreadWorkerSessionFactory()
@@ -437,9 +426,7 @@ void ThreadWorkerSessionFactory :: SetForwardAllIncomingMessagesToSupervisorIfNo
 
 ThreadWorkerSessionRef ThreadWorkerSessionFactory :: CreateThreadWorkerSession(const String &, const IPAddressAndPort &)
 {
-   ThreadWorkerSession * ret = newnothrow ThreadWorkerSession();
-   MRETURN_OOM_ON_NULL(ret);
-   return ThreadWorkerSessionRef(ret);
+   return ThreadWorkerSessionRef(new ThreadWorkerSession);
 }
 
 AbstractReflectSessionRef ThreadWorkerSessionFactory :: CreateSession(const String & clientHostIP, const IPAddressAndPort & iap)
@@ -650,9 +637,7 @@ void ThreadSupervisorSession :: DrainTagIsBeingDeleted(DrainTag * tag)
 
 AbstractMessageIOGatewayRef ThreadSupervisorSession :: CreateGateway()
 {
-   AbstractMessageIOGateway * gw = newnothrow SignalMessageIOGateway();
-   MRETURN_OOM_ON_NULL(gw);
-   return AbstractMessageIOGatewayRef(gw);
+   return AbstractMessageIOGatewayRef(new SignalMessageIOGateway);
 }
 
 void ThreadSupervisorSession :: MessageReceivedFromGateway(const MessageRef &, void *)

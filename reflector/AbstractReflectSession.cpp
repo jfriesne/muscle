@@ -182,16 +182,10 @@ Reconnect()
    // auto-wrap the user's gateway and socket in the necessary SSL adapters!
    if ((publicKey())&&(optSock())&&(dynamic_cast<TCPSocketDataIO *>(io()) != NULL))
    {
-      SSLSocketDataIO * ssio = newnothrow SSLSocketDataIO(optSock, false, false);
-      MRETURN_OOM_ON_NULL(ssio);
+      SSLSocketDataIO * ssio = new SSLSocketDataIO(optSock, false, false);
       io.SetRef(ssio);
       MRETURN_ON_ERROR(ssio->SetPublicKeyCertificate(publicKey));
-
-      if (dynamic_cast<SSLSocketAdapterGateway *>(_gateway()) == NULL)
-      {
-         _gateway.SetRef(newnothrow SSLSocketAdapterGateway(_gateway));
-         MRETURN_OOM_ON_NULL(_gateway());
-      }
+      if (dynamic_cast<SSLSocketAdapterGateway *>(_gateway()) == NULL) _gateway.SetRef(new SSLSocketAdapterGateway(_gateway));
    }
 #endif
 
@@ -221,9 +215,7 @@ DataIORef
 AbstractReflectSession ::
 CreateDataIO(const ConstSocketRef & socket)
 {
-   TCPSocketDataIORef dio(newnothrow TCPSocketDataIO(socket, false));
-   MRETURN_OOM_ON_NULL(dio());
-   return dio;
+   return TCPSocketDataIORef(new TCPSocketDataIO(socket, false));
 }
 
 AbstractMessageIOGatewayRef
@@ -231,12 +223,10 @@ AbstractReflectSession ::
 CreateGateway()
 {
 #ifdef MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
-   MessageIOGatewayRef ret(newnothrow TemplatingMessageIOGateway());
+   return MessageIOGatewayRef(new TemplatingMessageIOGateway());
 #else
-   MessageIOGatewayRef ret(newnothrow MessageIOGateway());
+   return MessageIOGatewayRef(new MessageIOGateway());
 #endif
-   MRETURN_OOM_ON_NULL(ret());
-   return ret;
 }
 
 bool

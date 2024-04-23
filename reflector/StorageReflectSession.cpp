@@ -23,8 +23,7 @@ AbstractReflectSessionRef StorageReflectSessionFactory :: CreateSession(const St
 {
    TCHECKPOINT;
 
-   StorageReflectSessionRef srs(newnothrow StorageReflectSession);
-   MRETURN_OOM_ON_NULL(srs());
+   StorageReflectSessionRef srs(new StorageReflectSession);
    MRETURN_ON_ERROR(SetMaxIncomingMessageSizeFor(srs()));
    return srs;
 }
@@ -80,13 +79,9 @@ InitSharedData()
    DataNodeRef globalRoot = GetNewDataNode("", GetEmptyMessageRef());
    if (globalRoot())
    {
-      sd = newnothrow StorageReflectSessionSharedData(globalRoot);
-      if (sd)
-      {
-         if (state.ReplacePointer(true, SRS_SHARED_DATA, sd).IsOK()) return sd;
-         delete sd;
-      }
-      else MWARN_OUT_OF_MEMORY;
+      sd = new StorageReflectSessionSharedData(globalRoot);
+      if (state.ReplacePointer(true, SRS_SHARED_DATA, sd).IsOK()) return sd;
+                                                             else delete sd;
    }
    return NULL;
 }

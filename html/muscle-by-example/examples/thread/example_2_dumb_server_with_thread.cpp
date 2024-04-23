@@ -117,11 +117,8 @@ private:
       const ConstSocketRef & sock = GetOwnerWakeupSocket();  // the socket we will read a byte on when the internal thread has a reply Message ready for us
       if (sock() == NULL) return B_BAD_OBJECT;
 
-      DataIORef dataIORef(newnothrow TCPSocketDataIO(sock, false));
-      MRETURN_OOM_ON_NULL(dataIORef());
-
-      AbstractMessageIOGatewayRef gw(newnothrow SignalMessageIOGateway());
-      MRETURN_OOM_ON_NULL(gw());
+      DataIORef dataIORef(new TCPSocketDataIO(sock, false));
+      AbstractMessageIOGatewayRef gw(new SignalMessageIOGateway());
 
       gw()->SetDataIO(dataIORef);
       SetGateway(gw);

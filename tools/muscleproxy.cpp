@@ -64,9 +64,7 @@ public:
       MRETURN_ON_ERROR(AbstractReflectSession::AttachedToServer());
 
       // Launch our connection to the upstream server that we will forward our client's data to
-      _upstreamSession.SetRef(newnothrow UpstreamSession(this));
-      MRETURN_OOM_ON_NULL(_upstreamSession());
-
+      _upstreamSession.SetRef(new UpstreamSession(this));
       return AddNewConnectSession(_upstreamSession, _upstreamLocation);
    }
 
@@ -77,12 +75,7 @@ public:
    }
 
 #ifdef PLAIN_TEXT_CLIENT_DEMO_MODE
-   virtual AbstractMessageIOGatewayRef CreateGateway()
-   {
-      AbstractMessageIOGatewayRef ret(newnothrow PlainTextMessageIOGateway);
-      MRETURN_OOM_ON_NULL(ret());
-      return ret;
-   }
+   virtual AbstractMessageIOGatewayRef CreateGateway() {return AbstractMessageIOGatewayRef(new PlainTextMessageIOGateway);}
 #endif
 
    // When we receive a Message from our downstream client via TCP, pass it on to our UpstreamSession to send to the upstream server
@@ -108,10 +101,7 @@ public:
    virtual AbstractReflectSessionRef CreateSession(const String & clientAddress, const IPAddressAndPort & factoryInfo)
    {
       LogTime(MUSCLE_LOG_INFO, "DownstreamSessionFactory received incoming TCP connection from [%s] on [%s]\n", clientAddress(), factoryInfo.ToString()());
-
-      AbstractReflectSessionRef ret(newnothrow DownstreamSession(_upstreamLocation));
-      MRETURN_OOM_ON_NULL(ret());
-      return ret;
+      return AbstractReflectSessionRef(new DownstreamSession(_upstreamLocation));
    }
 
 private:

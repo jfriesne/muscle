@@ -58,14 +58,10 @@ status_t TarFileWriter :: SetFile(const char * outputFileName, bool append)
       FILE * fpOut = muscleFopen(outputFileName, append?"ab":"wb");
       if (fpOut)
       {
-         FileDataIORef ioRef(newnothrow FileDataIO(fpOut));
-         if (ioRef())
-         {
-            SetFile(ioRef);
-            if (append) _currentSeekPosition = ioRef()->GetLength();
-            return B_NO_ERROR;
-         }
-         else {fclose(fpOut); MWARN_OUT_OF_MEMORY;}
+         FileDataIORef ioRef(new FileDataIO(fpOut));
+         SetFile(ioRef);
+         if (append) _currentSeekPosition = ioRef()->GetLength();
+         return B_NO_ERROR;
       }
       return B_ERRNO;
    }
@@ -216,7 +212,7 @@ status_t TarFileWriter :: WriteFileHeaderAux(const char * fileName, uint32 fileM
       const uint32 paxLinkNameLen = (linkNameLen > basicFormatMaxLen) ? (uint32)linkNameLen : 0;
 
       const uint32 tempBufLen = paxFileNameLen + paxLinkNameLen + 128;   // 128 should be plenty to cover the "%d %s=" overhead for two fields
-      char * tempBuf = (char *) newnothrow char[tempBufLen];
+      char * tempBuf = (char *) newnothrow_array(char, tempBufLen);
       if (tempBuf)
       {
          memset(tempBuf, 0, tempBufLen);

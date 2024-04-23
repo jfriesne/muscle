@@ -92,9 +92,7 @@ public:
       if (ret) return ret;
 
       // If we got here, we'll auto-create an object to return
-      ret = newnothrow ObjType;
-      if (ret == NULL) {MWARN_OUT_OF_MEMORY; return NULL;}
-
+      ret = new ObjType;
       if (SetThreadLocalObject(ret).IsOK()) return ret;
       else
       {

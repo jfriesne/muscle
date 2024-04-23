@@ -35,8 +35,7 @@ public:
    // This session's "client" will be a child process
    virtual DataIORef CreateDataIO(const ConstSocketRef &)
    {
-      ChildProcessDataIORef cpioRef(newnothrow ChildProcessDataIO(false));
-      if (cpioRef() == NULL) return DataIORef();
+      ChildProcessDataIORef cpioRef(new ChildProcessDataIO(false));
 
       // When shutting down, we'll give the child process three seconds to clean up,
       // and if it hasn't exited by then, we'll nuke it from orbit.
@@ -60,12 +59,7 @@ public:
    }
 
    // We'll be communicating with the child process via its stdin and stout file handles, and we'll use lines of Plain ASCII text as our communication language
-   virtual AbstractMessageIOGatewayRef CreateGateway()
-   {
-      AbstractMessageIOGateway * gw = newnothrow PlainTextMessageIOGateway;
-      MRETURN_OOM_ON_NULL(gw);
-      return AbstractMessageIOGatewayRef(gw);
-   }
+   virtual AbstractMessageIOGatewayRef CreateGateway() {return AbstractMessageIOGatewayRef(new PlainTextMessageIOGateway);}
 
    // Called when our child process sent text to its stdout.  We'll just display that text
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * /*ptr*/)
@@ -117,19 +111,8 @@ public:
    /** This is overridden to force CreateDataIO() to be called, even though no Socket was passed in to AddNewSession() */
    virtual ConstSocketRef CreateDefaultSocket() {return GetInvalidSocket();}
 
-   virtual DataIORef CreateDataIO(const ConstSocketRef &)
-   {
-      DataIO * dio = newnothrow StdinDataIO(false);
-      MRETURN_OOM_ON_NULL(dio);
-      return DataIORef(dio);
-   }
-
-   virtual AbstractMessageIOGatewayRef CreateGateway()
-   {
-      AbstractMessageIOGateway * gw = newnothrow PlainTextMessageIOGateway;
-      MRETURN_OOM_ON_NULL(gw);
-      return AbstractMessageIOGatewayRef(gw);
-   }
+   virtual DataIORef CreateDataIO(const ConstSocketRef &) {return DataIORef(new StdinDataIO(false));}
+   virtual AbstractMessageIOGatewayRef CreateGateway() {return AbstractMessageIOGatewayRef(new PlainTextMessageIOGateway);}
 
    virtual bool ClientConnectionClosed()
    {
@@ -278,9 +261,8 @@ int main(int argc, char ** argv)
          (void) childArgv.AddTail(argv[0]);
          (void) childArgv.AddTail(String("subprocess=%1").Arg(childProcessLabel));
 
-         AbstractReflectSessionRef childSessionRef(newnothrow ChildProcessSession(childProcessLabel, childArgv));
-              if (childSessionRef() == NULL) MWARN_OUT_OF_MEMORY;
-         else if (server.AddNewSession(childSessionRef).IsError(ret))
+         AbstractReflectSessionRef childSessionRef(new ChildProcessSession(childProcessLabel, childArgv));
+         if (server.AddNewSession(childSessionRef).IsError(ret))
          {
             LogTime(MUSCLE_LOG_ERROR, "daemonsitter:  Couldn't add child process #" UINT32_FORMAT_SPEC " [%s]\n", i, ret());
          }

@@ -1921,7 +1921,7 @@ template<class T> inline MessageRef GetArchiveMessageFromPool(const T & objectTo
   */
 template<class T> inline Ref<T> CreateObjectFromArchiveMessage(const Message & msg)
 {
-   Ref<T> newObjRef(newnothrow T);
+   Ref<T> newObjRef(new T);
    MRETURN_OOM_ON_NULL(newObjRef());
    MRETURN_ON_ERROR(newObjRef()->SetFromArchive(msg));
    return newObjRef;

@@ -57,9 +57,7 @@ protected:
 #define DECLARE_STANDARD_CLONE_METHOD(class_name)        \
    MUSCLE_NODISCARD virtual Cloneable * CloneImp() const \
    {                                                     \
-      Cloneable * r = newnothrow class_name(*this);      \
-      if (r == NULL) MWARN_OUT_OF_MEMORY;                \
-      return r;                                          \
+      return new class_name(*this);                      \
    }
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
@@ -115,13 +113,7 @@ MUSCLE_NODISCARD
 typename std::enable_if<!std::is_base_of<Cloneable, T>::value, T*>::type
 CloneObject(const T& item)
 {
-   T * newItem = newnothrow T(item);
-   if (newItem) return newItem;
-   else
-   {
-      MWARN_OUT_OF_MEMORY;
-      return NULL;
-   }
+   return new T(item);
 }
 
 #endif

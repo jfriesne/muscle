@@ -204,7 +204,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                   uint32 newBlockSize = 1;  // this represents the final NUL terminator (after the last string)
                   for (HashtableIterator<String, String> iter(curEnvVars); iter.HasData(); iter++) newBlockSize += iter.GetKey().FlattenedSize()+iter.GetValue().FlattenedSize();  // includes NUL terminators
 
-                  newBlock = newnothrow uint8[newBlockSize];
+                  newBlock = newnothrow_array(uint8, newBlockSize);
                   if (newBlock)
                   {
                      DataFlattener flat(newBlock, newBlockSize);

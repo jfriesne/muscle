@@ -67,11 +67,7 @@ static ZLibCodec * GetZLibCodec(int level)
 {
 #ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
    level = muscleClamp(level, 0, 9);
-   if (_codecs[level] == NULL)
-   {
-      _codecs[level] = newnothrow ZLibCodec(level);  // demand-allocate
-      if (_codecs[level] == NULL) MWARN_OUT_OF_MEMORY;
-   }
+   if (_codecs[level] == NULL) _codecs[level] = new ZLibCodec(level);  // demand-allocate
    return _codecs[level];
 #else
    return muscleInRange(level, 0, 9) ? _codecs[level].GetOrCreateThreadLocalObject() : NULL;

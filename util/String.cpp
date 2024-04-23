@@ -1183,10 +1183,10 @@ static uint32 GetLevenshteinDistanceAux(const char *shortString, uint32 shortStr
 
    const uint32 allocLen = shortStringLen+1;
 #ifdef __clang_analyzer__
-   uint32 * columns = newnothrow uint32[allocLen];  // ClangSA doesn't like my tempBuf trick
+   uint32 * columns = newnothrow_array(uint32,allocLen);  // ClangSA doesn't like my tempBuf trick
 #else
    uint32 tempBuf[256];  // We'll try to avoid using the heap for small strings
-   uint32 * columns = (allocLen > ARRAYITEMS(tempBuf)) ? newnothrow uint32[allocLen] : tempBuf;
+   uint32 * columns = (allocLen > ARRAYITEMS(tempBuf)) ? newnothrow_array(uint32,allocLen) : tempBuf;
 #endif
    if (columns == NULL)
    {

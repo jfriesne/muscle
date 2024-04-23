@@ -177,11 +177,10 @@ protected:
 #ifdef _UNICODE
       {
          size_t len;
-         (void)wcstombs_s(&len, NULL, 0, szText, wcslen(szText));
-         char *buf = newnothrow char[len];
+         (void) wcstombs_s(&len, NULL, 0, szText, wcslen(szText));
+         char * buf = new char[len];
          (void) wcstombs_s(&len, buf, len, szText, wcslen(szText));
-         if (len > 0)
-           (*this->m_outString) += buf;
+         if (len > 0) (*this->m_outString) += buf;
          delete [] buf;
       }
 #else
@@ -1069,13 +1068,7 @@ BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *
   memset(&Module, 0, sizeof(Module));
   Module.SizeOfStruct = sizeof(Module);
 
-  CallstackEntry *csEntry = newnothrow CallstackEntry;
-  if (csEntry == NULL)
-  {
-    MWARN_OUT_OF_MEMORY;
-    goto cleanup;
-  }
-
+  CallstackEntry *csEntry = new CallstackEntry;
   for (uint32 frameNum=0; frameNum<maxDepth; frameNum++)
   {
     // get next stack frame (StackWalk64(), SymFunctionTableAccess64(), SymGetModuleBase64())
@@ -1428,15 +1421,8 @@ void UpdateAllocationStackTrace(bool isAllocation, String * & s)
 {
    if (isAllocation)
    {
-      if (s == NULL)
-      {
-         s = newnothrow String;
-         if (s == NULL) MWARN_OUT_OF_MEMORY;
-      }
-      if (s)
-      {
-         if (GetStackTrace(*s).IsError()) s->SetCstr("(no stack trace available)");
-      }
+      if (s == NULL) s = new String;
+      if (GetStackTrace(*s).IsError()) s->SetCstr("(no stack trace available)");
    }
    else
    {
@@ -1685,24 +1671,20 @@ void DefaultFileLogger :: CloseLogFile()
                bool ok = true;
 
                const uint32 bufSize = 128*1024;
-               char * buf = newnothrow char[bufSize];
-               if (buf)
+               char * buf = new char[bufSize];
+               while(1)
                {
-                  while(1)
-                  {
-                     const int32 bytesRead = inIO.Read(buf, bufSize).GetByteCount();
-                     if (bytesRead < 0) break;  // EOF
+                  const int32 bytesRead = inIO.Read(buf, bufSize).GetByteCount();
+                  if (bytesRead < 0) break;  // EOF
 
-                     const int bytesWritten = gzwrite(gzOut, buf, bytesRead);
-                     if (bytesWritten <= 0)
-                     {
-                        ok = false;  // write error, oh dear
-                        break;
-                     }
+                  const int bytesWritten = gzwrite(gzOut, buf, bytesRead);
+                  if (bytesWritten <= 0)
+                  {
+                     ok = false;  // write error, oh dear
+                     break;
                   }
-                  delete [] buf;
                }
-               else MWARN_OUT_OF_MEMORY;
+               delete [] buf;
 
                gzclose(gzOut);
 

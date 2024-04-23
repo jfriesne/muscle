@@ -171,9 +171,8 @@ public:
    MUSCLE_NODISCARD Object * ObtainObject()
    {
 #ifdef DISABLE_OBJECT_POOLING
-      Object * ret = newnothrow Object;
-      if (ret) ret->SetManager(this);
-          else MWARN_OUT_OF_MEMORY;
+      Object * ret = new Object;
+      ret->SetManager(this);
       return ret;
 #else
       Object * ret = NULL;
@@ -356,7 +355,7 @@ public:
          Object ** arrayPtr = stackArray;
          if (numToAllocate > stackArraySize)
          {
-            arrayPtr = newnothrow Object *[numToAllocate];  // but sometimes it isn't possible
+            arrayPtr = newnothrow_array(Object *, numToAllocate);  // but sometimes it isn't possible
             if (arrayPtr == NULL)
             {
                MWARN_OUT_OF_MEMORY;
@@ -685,15 +684,11 @@ private:
       else
       {
          // Hmm, we must have run out out of non-full slabs.  Create a new slab and use it.
-         ObjectSlab * slab = newnothrow ObjectSlab(this);
-         if (slab)
-         {
-            ret = &slab->ObtainObjectNode()->GetObject();  // guaranteed not to fail, since slab is new
-            if (slab->HasAvailableNodes()) slab->PrependToSlabList();
-                                      else slab->AppendToSlabList();  // could happen, if NUM_OBJECTS_PER_SLAB==1
-            _curPoolSize += NUM_OBJECTS_PER_SLAB;
-         }
-         // we'll do the MWARN_OUT_OF_MEMORY below, outside the mutex lock
+         ObjectSlab * slab = new ObjectSlab(this);
+         ret = &slab->ObtainObjectNode()->GetObject();  // guaranteed not to fail, since slab is new
+         if (slab->HasAvailableNodes()) slab->PrependToSlabList();
+                                   else slab->AppendToSlabList();  // could happen, if NUM_OBJECTS_PER_SLAB==1
+         _curPoolSize += NUM_OBJECTS_PER_SLAB;
       }
       if (ret) --_curPoolSize;
       return ret;

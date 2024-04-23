@@ -162,10 +162,9 @@ static void DoSession(DataIORef io, bool allowRead = true)
    if (_useZLibDataIO)
    {
       ZLibDataIORef zlibIO;
-      if (_useGZip) zlibIO.SetRef(newnothrow GZLibDataIO(io));
-               else zlibIO.SetRef(newnothrow  ZLibDataIO(io));
-      if (zlibIO()) io = zlibIO;
-               else MWARN_OUT_OF_MEMORY;
+      if (_useGZip) zlibIO.SetRef(new GZLibDataIO(io));
+               else zlibIO.SetRef(new  ZLibDataIO(io));
+      io = zlibIO;
    }
 #endif
 

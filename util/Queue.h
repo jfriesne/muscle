@@ -1955,7 +1955,7 @@ Queue<ItemType>::ReleaseRawDataArray(uint32 * optRetArrayLen)
    {
       // Oops, we don't have a dynamically-created array to release!  So we'll create one
       // to return, just so the user doesn't have to worry about handling a special-case.
-      ret = newnothrow ItemType[_queueSize];
+      ret = newnothrow_array(ItemType, _queueSize);
       if (ret)
       {
          for (uint32 i=0; i<_itemCount; i++) ret[i] = (*this)[i];

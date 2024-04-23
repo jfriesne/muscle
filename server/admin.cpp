@@ -91,8 +91,7 @@ int main(int argc, char ** argv)
    }
 
    MessageIOGateway gw;
-   gw.SetDataIO(DataIORef(newnothrow TCPSocketDataIO(s, false)));
-   if (gw.GetDataIO()() == NULL) return 10;
+   gw.SetDataIO(DataIORef(new TCPSocketDataIO(s, false)));
 
    // Now generate all commands...
    for (int j=1; j<argc; j++)

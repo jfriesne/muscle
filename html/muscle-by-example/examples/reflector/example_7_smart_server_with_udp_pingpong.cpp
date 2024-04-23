@@ -52,17 +52,13 @@ public:
    // We want our DataIO to be a UDPSocketDataIO
    virtual DataIORef CreateDataIO(const ConstSocketRef & socket)
    {
-      DataIORef ret(newnothrow UDPSocketDataIO(socket, false));
-      MRETURN_OOM_ON_NULL(ret());
-      return ret;
+      return DataIORef(new UDPSocketDataIO(socket, false));
    }
 
    // We want our gateway to be a RawDataMessageIOGateway
    virtual AbstractMessageIOGatewayRef CreateGateway()
    {
-      AbstractMessageIOGatewayRef ret(newnothrow RawDataMessageIOGateway);
-      MRETURN_OOM_ON_NULL(ret());
-      return ret;
+      return AbstractMessageIOGatewayRef(new RawDataMessageIOGateway);
    }
 
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData)

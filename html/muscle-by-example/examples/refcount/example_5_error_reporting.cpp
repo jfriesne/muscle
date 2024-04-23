@@ -26,9 +26,7 @@ MyClassRef MyFactoryFunction()
 {
    if ((rand()%2) == 0)
    {
-      MyClassRef ret(newnothrow MyClass);
-      MRETURN_OOM_ON_NULL(ret());  // print an error message and return B_OUT_OF_MEMORY if ret() is NULL
-      return ret;  // success!
+      return MyClassRef(new MyClass);
    }
    else return B_ACCESS_DENIED;  // simulate some kind of problem that prevents us from returning a valid/non-NULL Ref
 }

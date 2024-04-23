@@ -45,12 +45,11 @@ static const uint32 QMTT_SIGNAL_EVENT = QEvent::User+14837;  // why yes, this is
 void QMessageTransceiverThread :: SignalOwner()
 {
 #if QT_VERSION >= 0x040000
-   QEvent * evt = newnothrow QEvent((QEvent::Type)QMTT_SIGNAL_EVENT);
+   QEvent * evt = new QEvent((QEvent::Type)QMTT_SIGNAL_EVENT);
 #else
-   QCustomEvent * evt = newnothrow QCustomEvent(QMTT_SIGNAL_EVENT);
+   QCustomEvent * evt = new QCustomEvent(QMTT_SIGNAL_EVENT);
 #endif
-   if (evt) QCoreApplication::postEvent(this, evt);
-       else MWARN_OUT_OF_MEMORY;
+   QCoreApplication::postEvent(this, evt);
 }
 
 bool QMessageTransceiverThread :: event(QEvent * event)
@@ -210,9 +209,7 @@ void QMessageTransceiverThreadPool :: ShutdownAllThreads()
 
 QMessageTransceiverThread * QMessageTransceiverThreadPool :: CreateThread()
 {
-   QMessageTransceiverThread * newThread = newnothrow QMessageTransceiverThread;
-   if (newThread == NULL) MWARN_OUT_OF_MEMORY;
-   return newThread;
+   return new QMessageTransceiverThread;
 }
 
 QMessageTransceiverThread * QMessageTransceiverThreadPool :: ObtainThread()

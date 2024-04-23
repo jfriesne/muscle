@@ -178,12 +178,8 @@ status_t ThreadedInternalSession :: SetupNotifierGateway()
    // We don't send the actual Messages over it, we only use it to wake up the other thread by sending
    // a single byte across the TCP connection.  This makes the messaging efficient even when the Messages
    // are large, because (once created) the Messages never need to be copied or flattened/unflattened.
-   DataIORef dataIORef(newnothrow TCPSocketDataIO(socket, false));
-   MRETURN_OOM_ON_NULL(dataIORef());
-
-   AbstractMessageIOGatewayRef gw(newnothrow SignalMessageIOGateway());
-   MRETURN_OOM_ON_NULL(gw());
-
+   DataIORef dataIORef(new TCPSocketDataIO(socket, false));
+   AbstractMessageIOGatewayRef gw(new SignalMessageIOGateway());
    gw()->SetDataIO(dataIORef);
    SetGateway(gw);
    return B_NO_ERROR;

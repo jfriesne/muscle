@@ -175,12 +175,7 @@ int main(int argc, char ** argv)
       }
 #endif
 
-      UDPSocketDataIO * dio = newnothrow UDPSocketDataIO(udpSock, false);
-      if (dio == NULL)
-      {
-         MWARN_OUT_OF_MEMORY;
-         return 10;
-      }
+      UDPSocketDataIO * dio = new UDPSocketDataIO(udpSock, false);
       (void) dio->SetPacketSendDestination(targets[i]);
       udpIOs[i].SetRef(dio);
    }

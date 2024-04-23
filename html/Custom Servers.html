@@ -103,9 +103,7 @@ public:
    // Note that (clientAddress) and (serverAddress) are ignored, we don't care about them for now */
    virtual AbstractReflectSessionRef CreateSession(const String & clientAddress, const IPAddressAndPort & serverAddress)
    {
-      AbstractReflectSessionRef ret(newnothrow MyReflectSessionSubclass());
-      if (ret == NULL) WARN_OUT_OF_MEMORY;
-      return ret;
+      return AbstractReflectSessionRef(new MyReflectSessionSubclass());
    }
 };
 
@@ -169,9 +167,7 @@ To get your IO gateway subclass to actually be used in the server, you will need
 MyReflectSession ::
 CreateGateway()
 {
-   AbstractMessageIOGatewayRef ret(newnothrow MyGateway);  // My custom I/O gateway!
-   if (ret() == NULL) WARN_OUT_OF_MEMORY;
-   return ret;
+   return AbstractMessageIOGatewayRef(new MyGateway);  // My custom I/O gateway!
 }
 </pre><p>
 
@@ -331,16 +327,12 @@ ReadyToRun()
    status_t ret = ReflectServer::ReadyToRun();
    if (ret.IsError()) return ret;
 
-   FakeSession * fakeSession = newnothrow FakeSession();
-   if (fakeSession)
+   // Note that I'm passing ConstSocketRef() for the socket argument, meaning there is no client for this session.
+   if (AddNewSession(AbstractReflectSessionRef(new FakeSession()), ConstSocketRef()).IsOK(ret))
    {
-      // Note that I'm passing ConstSocketRef() for the socket argument, meaning there is no client for this session.
-      if (AddNewSession(AbstractReflectSessionRef(fakeSession), ConstSocketRef()).IsOK(ret))
-      {
-         return B_NO_ERROR;  // success!
-      }            
+      return B_NO_ERROR;  // success!
    }
-   else WARN_OUT_OF_MEMORY;
+   else LogTime(MUSCLE_LOG_ERROR, "AddNewSession failed [%s]\n", ret());
 
    return ret;
 }
@@ -362,37 +354,6 @@ This call would cause a log entry like this to be generated:
 The letter in the second column indicates the log level, followed by the date and time, and finally the log message.  Note that the carriage return should be included in your messages text.  This is so that you can assemble a log message from several log calls if you wish.  Log() is the same as LogTime(), except that the bracketed level/time/date header isn't printed.
 <p>
 You may, in some cases, wish to do other things with the log message besides printing it to stdout or to a log file.  In that case, you can use AddLogCallback() to install your own LogCallback object.  This object's Log() method will be called whenever a message is logged, and you can then handle it as you wish.
-
-
-<h2>Handling Out-of-Memory Conditions</h2>
-
-Handling out-of-memory errors well is a very tricky problem, to the extent that many programs don't attempt to handle out-of-memory conditions at all; they just assume that problem won't happen, and crash if it does.  This methodology may be okay for games, or client programs where a crash isn't catastrophic, but if a central program like a muscled server crashes, it can inconvenience many people (or in LCS's case, stop a musical in mid-chorus!), so it is very important that the server not crash, no matter what.  Because of this, muscled is designed to handle out-of-memory conditions without crashing; if you want, your extension code can too.  
-<p>
-MUSCLE code doesn't use C++ exceptions.  This is because I'm not comfortable with the way exceptions integrate into C++; it's far too easy to get a memory leak or other unexpected result when an exception is thrown.  Instead, MUSCLE uses the classic C-style method of handling errors--error codes are returned, and manually propogated up to the code that can handle them.  (yes, it's a bit tedious.  Yes, I still like it better than C++ exceptions.  No whining!  ;^))
-<p>
-The standard C++ new operator throws a bad_alloc exception when it cannot allocate the requested amount of memory.  To avoid this, MUSCLE code uses the new (nothrow) operator instead.  To make things a little more flexible and easier to key in, MUSCLE #defines a synonym, "newnothrow", which means the same thing.  The canonical MUSCLE style of dynamically allocating something is this:
-
-<pre>Something * thing = newnothrow Something();
-if (thing)
-{
-   DoStuffWith(thing);
-   [...]
-   delete thing;  // now that we're done with it
-}
-else WARN_OUT_OF_MEMORY;
-</pre><p>
-
-The WARN_OUT_OF_MEMORY macro simply logs a message like this:
-
-<pre>[C 11/27 15:03:33] ERROR--OUT OF MEMORY (MyCode.cpp:396)
-</pre><p>
-
-So later on, when you are trying to figure out why your code didn't get executed, you will know there was a problem allocating memory.  
-<p>
-Another feature that MUSCLE offers (via the MemoryAllocator classes) is automatic memory-usage tracking and out-of-memory callbacks.  The memory-usage-tracking allows you to place an upper limit on dynamic memory allocation, either to guarantee that your server won't overtax the machine it is running on, or just to test your out-of-memory handling code.  See the code at the beginning of main() in muscled.cpp for an example of how to set up memory tracking/limiting.  (Note that malloc/free calls aren't tracked--but you should always use new/delete for all your allocations anyway).
-<p>
-Out-of-memory callbacks let you free up unecessary memory in the event of a memory shortage.  For example, MUSCLE uses ObjectPools to reduce the number of memory allocations and deletions that must be done on a regular basis.  As such, MUSCLE may have several hundred unused objects lying around, awaiting reuse.  When the new operator detects a shortage, however, it calls an out-of-memory callback that knows how to drain these pools, thus freeing up some extra memory and allowing the server a little more breathing room.  You can use a AutoCleanupProxyMemoryAllocator and some OutOfMemoryCallback objects to configure this behaviour (again, see the beginning of muscle.cpp's main() function for an example).
-<p>
 
 <h2>Conclusion</h2>
 

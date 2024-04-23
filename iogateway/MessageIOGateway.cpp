@@ -29,10 +29,7 @@ status_t OptimizeMessageForTransmissionToMultipleGateways(const MessageRef & msg
 {
    if (msg() == NULL) return B_BAD_ARGUMENT;
    if (IsMessageOptimizedForTransmissionToMultipleGateways(msg)) return B_NO_ERROR;  // it's already tagged!
-
-   MessageReuseTagRef tagRef(newnothrow MessageReuseTag);
-   MRETURN_OOM_ON_NULL(tagRef());
-   return msg()->AddTag(PR_NAME_MESSAGE_REUSE_TAG, tagRef);
+   return msg()->AddTag(PR_NAME_MESSAGE_REUSE_TAG, MessageReuseTagRef(new MessageReuseTag));
 }
 
 MessageIOGateway :: MessageIOGateway(int32 encoding)
@@ -349,8 +346,7 @@ GetCodec(int32 newEncoding, ZLibCodec * & setCodec) const
       if ((setCodec == NULL)||(newLevel != setCodec->GetCompressionLevel()))
       {
          delete setCodec;  // oops, encoding change!  Throw out the old codec, if any
-         setCodec = newnothrow ZLibCodec(newLevel);
-         if (setCodec == NULL) MWARN_OUT_OF_MEMORY;
+         setCodec = new ZLibCodec(newLevel);
       }
       return setCodec;
    }

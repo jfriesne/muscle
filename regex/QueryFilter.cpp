@@ -281,13 +281,11 @@ bool StringQueryFilter :: DoMatch(const String & s) const
       switch(_op)
       {
          case OP_SIMPLE_WILDCARD_MATCH:
-            _matcher = newnothrow StringMatcher(_value, true);
-            if (_matcher == NULL) MWARN_OUT_OF_MEMORY;
+            _matcher = new StringMatcher(_value, true);
          break;
 
          case OP_REGULAR_EXPRESSION_MATCH:
-            _matcher = newnothrow StringMatcher(_value, false);
-            if (_matcher == NULL) MWARN_OUT_OF_MEMORY;
+            _matcher = new StringMatcher(_value, false);
          break;
       }
    }
@@ -428,28 +426,27 @@ QueryFilterRef MuscleQueryFilterFactory :: CreateQueryFilter(uint32 typeCode) co
    QueryFilter * f = NULL;
    switch(typeCode)
    {
-      case QUERY_FILTER_TYPE_WHATCODE:    f = newnothrow WhatCodeQueryFilter;    break;
-      case QUERY_FILTER_TYPE_VALUEEXISTS: f = newnothrow ValueExistsQueryFilter; break;
-      case QUERY_FILTER_TYPE_BOOL:        f = newnothrow BoolQueryFilter;        break;
-      case QUERY_FILTER_TYPE_DOUBLE:      f = newnothrow DoubleQueryFilter;      break;
-      case QUERY_FILTER_TYPE_FLOAT:       f = newnothrow FloatQueryFilter;       break;
-      case QUERY_FILTER_TYPE_INT64:       f = newnothrow Int64QueryFilter;       break;
-      case QUERY_FILTER_TYPE_INT32:       f = newnothrow Int32QueryFilter;       break;
-      case QUERY_FILTER_TYPE_INT16:       f = newnothrow Int16QueryFilter;       break;
-      case QUERY_FILTER_TYPE_INT8:        f = newnothrow Int8QueryFilter;        break;
-      case QUERY_FILTER_TYPE_POINT:       f = newnothrow PointQueryFilter;       break;
-      case QUERY_FILTER_TYPE_RECT:        f = newnothrow RectQueryFilter;        break;
-      case QUERY_FILTER_TYPE_STRING:      f = newnothrow StringQueryFilter;      break;
-      case QUERY_FILTER_TYPE_MESSAGE:     f = newnothrow MessageQueryFilter;     break;
-      case QUERY_FILTER_TYPE_RAWDATA:     f = newnothrow RawDataQueryFilter;     break;
-      case QUERY_FILTER_TYPE_MAXMATCH:    f = newnothrow MaximumThresholdQueryFilter(0); break;
-      case QUERY_FILTER_TYPE_MINMATCH:    f = newnothrow MinimumThresholdQueryFilter(0); break;
-      case QUERY_FILTER_TYPE_XOR:         f = newnothrow XorQueryFilter;         break;
-      case QUERY_FILTER_TYPE_CHILDCOUNT:  f = newnothrow ChildCountQueryFilter;  break;
-      case QUERY_FILTER_TYPE_NODENAME:    f = newnothrow NodeNameQueryFilter;    break;
+      case QUERY_FILTER_TYPE_WHATCODE:    f = new WhatCodeQueryFilter;    break;
+      case QUERY_FILTER_TYPE_VALUEEXISTS: f = new ValueExistsQueryFilter; break;
+      case QUERY_FILTER_TYPE_BOOL:        f = new BoolQueryFilter;        break;
+      case QUERY_FILTER_TYPE_DOUBLE:      f = new DoubleQueryFilter;      break;
+      case QUERY_FILTER_TYPE_FLOAT:       f = new FloatQueryFilter;       break;
+      case QUERY_FILTER_TYPE_INT64:       f = new Int64QueryFilter;       break;
+      case QUERY_FILTER_TYPE_INT32:       f = new Int32QueryFilter;       break;
+      case QUERY_FILTER_TYPE_INT16:       f = new Int16QueryFilter;       break;
+      case QUERY_FILTER_TYPE_INT8:        f = new Int8QueryFilter;        break;
+      case QUERY_FILTER_TYPE_POINT:       f = new PointQueryFilter;       break;
+      case QUERY_FILTER_TYPE_RECT:        f = new RectQueryFilter;        break;
+      case QUERY_FILTER_TYPE_STRING:      f = new StringQueryFilter;      break;
+      case QUERY_FILTER_TYPE_MESSAGE:     f = new MessageQueryFilter;     break;
+      case QUERY_FILTER_TYPE_RAWDATA:     f = new RawDataQueryFilter;     break;
+      case QUERY_FILTER_TYPE_MAXMATCH:    f = new MaximumThresholdQueryFilter(0); break;
+      case QUERY_FILTER_TYPE_MINMATCH:    f = new MinimumThresholdQueryFilter(0); break;
+      case QUERY_FILTER_TYPE_XOR:         f = new XorQueryFilter;         break;
+      case QUERY_FILTER_TYPE_CHILDCOUNT:  f = new ChildCountQueryFilter;  break;
+      case QUERY_FILTER_TYPE_NODENAME:    f = new NodeNameQueryFilter;    break;
       default:                            return B_UNIMPLEMENTED;  /* unknown type code! */
    }
-   MRETURN_OOM_ON_NULL(f);
    return QueryFilterRef(f);
 }
 
