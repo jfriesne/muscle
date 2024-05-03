@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.37 - Released 5/2/2024
    - Implemented the ustar extension in TarFileWriter to support file paths
      and linked-file paths up to 256 characters in length.
    - Implemented the pax extension in TarFileWriter to support file paths
