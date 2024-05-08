@@ -138,6 +138,24 @@ public:
      */
    inline void OffsetBy(const Point & p) {OffsetBy(p.x(), p.y());}
 
+   /** Returns the point at the center of this Rect */
+   inline Point GetCenter() const {return Point((left()+right())/2.0f, (top()+bottom())/2.0f);}
+
+   /** Translates the rectangle so that the rectangle's center will be at the given location.
+     * @param cx how far to the right to move our left and right edges
+     * @param cy how far down to move our top and bottom edges
+     */
+   inline void CenterTo(float cx, float cy)
+   {
+      const float w2 = Width()/2.0f;
+      left()   = cx-w2;
+      right()  = cx+w2;
+
+      const float h2 = Height()/2.0f;
+      top()    = cy-h2;
+      bottom() = cy+h2;
+   }
+
    /** Translates the rectangle by the amount specified in both the x and y dimensions
      * @param dx how far to the right to move our left and right edges
      * @param dy how far down to move our top and bottom edges
@@ -194,6 +212,11 @@ public:
       return ret;
    }
 
+   /** Returns a rectangle whose area is a superset of the union of this rectangle's and (p)'s
+     * @param p the Point to unify with this rectangle
+     */
+   inline Rect operator|(const Point & p) const {return (*this | Rect(p.x(), p.y(), p.x(), p.y()));}
+
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    inline Rect & operator = (const Rect & rhs) {Set(rhs.left(), rhs.top(), rhs.right(), rhs.bottom()); return *this;}
 
@@ -201,6 +224,11 @@ public:
      * @param rhs the rectangle to unify with this one
      */
    inline Rect & operator |= (const Rect & rhs) {(*this) = (*this) | rhs; return *this;}
+
+   /** Causes this rectangle to be come the union of itself and (rhs).
+     * @param rhs the point to unify with this one
+     */
+   inline Rect & operator |= (const Point & rhs) {(*this) = (*this) | rhs; return *this;}
 
    /** Causes this rectangle to be come the intersection of itself and (rhs).
      * @param rhs the rectangle to intersect with this one

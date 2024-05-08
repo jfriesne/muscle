@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added GetCenter() and CenterTo() methods to the Rect class.
+   - Added | operators to the Rect class that take a Point as an argument.
+
 9.37 - Released 5/2/2024
    - Implemented the ustar extension in TarFileWriter to support file paths
      and linked-file paths up to 256 characters in length.
