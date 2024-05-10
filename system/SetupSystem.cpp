@@ -1065,8 +1065,13 @@ static uint64 GetRunTime64Aux()
       }
    }
 #elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK)
+# if defined(MUSCLE_AVOID_CLOCK_MONOTONIC_RAW)
+   const clockid_t clkid = CLOCK_MONOTONIC;
+# else
+   const clockid_t clkid = CLOCK_MONOTONIC_RAW;
+# endif
    struct timespec ts;
-   return (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) ? (SecondsToMicros(ts.tv_sec)+NanosToMicros(ts.tv_nsec)) : 0;
+   return (clock_gettime(clkid, &ts) == 0) ? (SecondsToMicros(ts.tv_sec)+NanosToMicros(ts.tv_nsec)) : 0;
 #else
    // default implementation:  use POSIX API
    if (_posixTicksPerSecond <= 0) InitClockFrequency();  // in case we got called before main()
@@ -1117,7 +1122,7 @@ status_t Snooze64(uint64 micros)
    return B_NO_ERROR;
 #elif defined(__linux__)
    const struct timespec ts = {(time_t) MicrosToSeconds(micros), (time_t) MicrosToNanos(micros%MICROS_PER_SECOND)};
-   return (clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL) == 0) ? B_NO_ERROR : B_ERRNO;  // DO NOT specify CLOCK_MONOTONIC_RAW here, it won't work!
 #elif defined(MUSCLE_USE_LIBRT)
    const struct timespec ts = {(time_t) MicrosToSeconds(micros), (long) MicrosToNanos(micros%MICROS_PER_SECOND)};
    return (nanosleep(&ts, NULL) == 0) ? B_NO_ERROR : B_ERRNO;
