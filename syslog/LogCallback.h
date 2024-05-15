@@ -244,6 +244,7 @@ public:
 
 private:
    FILE * GetConsoleOutputStream() const {return _logToStderr ? stderr : stdout;}
+   bool _firstCall;
    bool _logToStderr;
 };
 DECLARE_REFTYPES(DefaultConsoleLogger);

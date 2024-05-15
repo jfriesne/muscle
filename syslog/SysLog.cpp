@@ -1471,6 +1471,7 @@ std::atomic<int> _maxLogThreshold(MUSCLE_LOG_INFO);
 
 DefaultConsoleLogger :: DefaultConsoleLogger(int defaultLogThreshold)
    : LogCallback(defaultLogThreshold)
+   , _firstCall(true)
    , _logToStderr(false)
 {
     // empty
@@ -1478,6 +1479,17 @@ DefaultConsoleLogger :: DefaultConsoleLogger(int defaultLogThreshold)
 
 void DefaultConsoleLogger :: Log(const LogCallbackArgs & a)
 {
+   if (_firstCall)
+   {
+      _firstCall = false;
+
+      // Useful for cases where we can't wait for the logtostderr
+      // command line argument to get parsed, because by then some
+      // output has already gone to stdout and e.g. our .tgz file now
+      // has some ASCII text where its tar-file headers should be :/
+      if (getenv("MUSCLE_LOG_TO_STDERR") != NULL) _logToStderr = true;
+   }
+
    FILE * fpOut = GetConsoleOutputStream();
    vfprintf(fpOut, a.GetText(), *a.GetArgList());
    fflush(fpOut);

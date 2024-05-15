@@ -7,6 +7,11 @@ key:  - new feature
 
    - Added GetCenter() and CenterTo() methods to the Rect class.
    - Added | operators to the Rect class that take a Point as an argument.
+   - DefaultConsoleLogger now checks for a MUSCLE_LOG_TO_STDERR environment
+     variable on startup, and if one is present, it will force all Log()
+     and LogTime() output to stderr.  This is useful in cases where the
+     parsing of the "logtostderr" command line argument doesn't happen
+     soon enough to prevent all output to stdout.
 
 9.37 - Released 5/2/2024
    - Implemented the ustar extension in TarFileWriter to support file paths
