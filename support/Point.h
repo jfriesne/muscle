@@ -36,23 +36,33 @@ public:
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    MUSCLE_CONSTEXPR_17 Point(const Point & rhs) : Tuple<2,float>(rhs) {/* empty */}
 
-   /** convenience method to set the x value of this Point */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float & x()       {return (*this)[0];}
+   /** Convenience method to get the x value of this Point */
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float GetX() const {return (*this)[0];}
 
-   /** convenience method to get the x value of this Point */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float   x() const {return (*this)[0];}
+   /** Synonym for GetX() */
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float x() const {return GetX();}
 
-   /** convenience method to set the y value of this Point */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float & y()       {return (*this)[1];}
+   /** Sets a new value for our X-coordinate.
+     * @param x the new X value
+     */
+   MUSCLE_CONSTEXPR_17 void SetX(float x) {(*this)[0] = x;}
 
-   /** convenience method to get the y value of this Point */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float   y() const {return (*this)[1];}
+   /** Convenience method to get the y value of this Point */
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float GetY() const {return (*this)[1];}
+
+   /** Synonym for GetY() */
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float y() const {return GetY();}
+
+   /** Sets a new value for our Y-coordinate.
+     * @param y the new Y value
+     */
+   MUSCLE_CONSTEXPR_17 void SetY(float y) {(*this)[1] = y;}
 
    /** Sets a new value for the point.
     *  @param ax The new x value
     *  @param ay The new y value
     */
-   MUSCLE_CONSTEXPR_17 void Set(float ax, float ay) {x() = ax; y() = ay;}
+   MUSCLE_CONSTEXPR_17 void Set(float ax, float ay) {SetX(ax); SetY(ay);}
 
    /** If the point is outside the rectangle specified by the two arguments,
     *  it will be moved horizontally and/or vertically until it falls inside the rectangle.
@@ -61,10 +71,10 @@ public:
     */
    void ConstrainTo(Point topLeft, Point bottomRight)
    {
-      if (x() < topLeft.x())     x() = topLeft.x();
-      if (y() < topLeft.y())     y() = topLeft.y();
-      if (x() > bottomRight.x()) x() = bottomRight.x();
-      if (y() > bottomRight.y()) y() = bottomRight.y();
+      if (x() < topLeft.x())     SetX(topLeft.x());
+      if (y() < topLeft.y())     SetY(topLeft.y());
+      if (x() > bottomRight.x()) SetX(bottomRight.x());
+      if (y() > bottomRight.y()) SetY(bottomRight.y());
    }
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */

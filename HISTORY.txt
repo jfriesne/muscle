@@ -5,13 +5,21 @@ key:  - new feature
       * bug fixed
       o other
 
-   - Added GetCenter() and CenterTo() methods to the Rect class.
-   - Added | operators to the Rect class that take a Point as an argument.
    - DefaultConsoleLogger now checks for a MUSCLE_LOG_TO_STDERR environment
      variable on startup, and if one is present, it will force all Log()
      and LogTime() output to stderr.  This is useful in cases where the
      parsing of the "logtostderr" command line argument doesn't happen
      soon enough to prevent all output to stdout.
+   - Added GetCenter() and CenterTo() methods to the Rect class.
+   - Added | operators to the Rect class that take a Point as an argument.
+   - Added a Rect::IsRational() method.
+   o Renamed the non-const x() and y() methods of the Point class to
+     SetX()/SetY(), to better match the style of the other classes.
+   o Added GetX() and GetY() methods to the point class, for consistency.
+   o Renamed Rect::Width() to Rect::GetWidth()
+   o Renamed Rect::Height() to Rect::GetHeight()
+   o Renamed Rect::IntegerWidth() to Rect::GetWidthAsInteger()
+   o Renamed Rect::IntegerHeight() to Rect::GetHeightAsInteger()
 
 9.37 - Released 5/2/2024
    - Implemented the ustar extension in TarFileWriter to support file paths

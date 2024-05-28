@@ -27,10 +27,10 @@ public:
    MUSCLE_CONSTEXPR_17 Rect() {Set(0.0f,0.0f,-1.0f,-1.0f);}
 
    /** Constructor where you specify the left, top, right, and bottom coordinates
-     * @param l the left-edge coordinate
-     * @param t the top-edge coordinate
-     * @param r the right-edge coordinate
-     * @param b the bottom-edge coordinate
+     * @param l the left-edge X coordinate
+     * @param t the top-edge Y coordinate
+     * @param r the right-edge X coordinate
+     * @param b the bottom-edge Y coordinate
      */
    MUSCLE_CONSTEXPR_17 Rect(float l, float t, float r, float b) {Set(l,t,r,b);}
 
@@ -43,29 +43,49 @@ public:
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    MUSCLE_CONSTEXPR_17 Rect(const Rect & rhs) : Tuple<4,float>(rhs) {/* empty */}
 
-   /** convenience method to get the left edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float   left()   const {return (*this)[0];}
+   /** Returns the X coordinate of the left edge of this Rect */
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float GetLeft() const {return (*this)[0];}
 
-   /** convenience method to set the left edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float & left()         {return (*this)[0];}
+   /** Synonym for GetLeft() */
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float left() const {return GetLeft();}
 
-   /** convenience method to get the top edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float   top()    const {return (*this)[1];}
+   /** Sets the X coordinate of the left edge of this Rect
+     * @param x new coordinate value for the left edge
+     */
+   MUSCLE_CONSTEXPR_17 void SetLeft(float x) {(*this)[0] = x;}
 
-   /** convenience method to set the top edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float & top()          {return (*this)[1];}
+   /** Returns the Y coordinate of the top edge of this Rect */
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float GetTop() const {return (*this)[1];}
 
-   /** convenience method to get the right edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float   right()  const {return (*this)[2];}
+   /** Synonym for GetTop() */
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float top() const {return GetTop();}
 
-   /** convenience method to set the right edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float & right()        {return (*this)[2];}
+   /** Sets the Y coordinate of the top edge of this Rect
+     * @param y new coordinate value for the top edge
+     */
+   MUSCLE_CONSTEXPR_17 void SetTop(float y) {(*this)[1] = y;}
 
-   /** convenience method to get the bottom edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float   bottom() const {return (*this)[3];}
+   /** Returns the X coordinate of the right edge of this Rect */
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float GetRight() const {return (*this)[2];}
 
-   /** convenience method to set the bottom edge of this Rect */
-   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float & bottom()       {return (*this)[3];}
+   /** Synonym for GetRight() */
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float right() const {return GetRight();}
+
+   /** Sets the X coordinate of the right edge of this Rect
+     * @param x new coordinate value for the right edge
+     */
+   MUSCLE_CONSTEXPR_17 void SetRight(float x) {(*this)[2] = x;}
+
+   /** Returns the Y coordinate of the bottom edge of this Rect */
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float GetBottom() const {return (*this)[3];}
+
+   /** Synonym for GetBottom() */
+   MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float bottom() const {return GetBottom();}
+
+   /** Sets the Y position of the bottom edge of this Rect
+     * @param y new coordinate value for the bottom edge
+     */
+   MUSCLE_CONSTEXPR_17 void SetBottom(float y) {(*this)[3] = y;}
 
    /** Set a new position for the rectangle.
      * @param l the new left-edge coordinate
@@ -73,12 +93,12 @@ public:
      * @param r the new right-edge coordinate
      * @param b the new bottom-edge coordinate
      */
-   inline MUSCLE_CONSTEXPR_17 void Set(float l, float t, float r, float b)
+   MUSCLE_CONSTEXPR_17 void Set(float l, float t, float r, float b)
    {
-      left()   = l;
-      top()    = t;
-      right()  = r;
-      bottom() = b;
+      SetLeft(l);
+      SetTop(t);
+      SetRight(r);
+      SetBottom(b);
    }
 
    /** Print debug information about this rectangle to stdout or to a file you specify.
@@ -105,22 +125,22 @@ public:
    /** Set the left top corner of the rectangle.
      * @param p the new left/top corner for this Rect
      */
-   inline MUSCLE_CONSTEXPR_17 void SetLeftTop(const Point & p) {left() = p.x(); top() = p.y();}
+   inline MUSCLE_CONSTEXPR_17 void SetLeftTop(const Point & p) {SetLeft(p.x()); SetTop(p.y());}
 
    /** Set the right bottom corner of the rectangle.
      * @param p the new right/bottom corner for this Rect
      */
-   inline MUSCLE_CONSTEXPR_17 void SetRightBottom(const Point & p) {right() = p.x(); bottom() = p.y();}
+   inline MUSCLE_CONSTEXPR_17 void SetRightBottom(const Point & p) {SetRight(p.x()); SetBottom(p.y());}
 
    /** Set the left bottom corner of the rectangle.
      * @param p the new left/bottom corner for this Rect
      */
-   inline MUSCLE_CONSTEXPR_17 void SetLeftBottom(const Point & p) {left() = p.x(); bottom() = p.y();}
+   inline MUSCLE_CONSTEXPR_17 void SetLeftBottom(const Point & p) {SetLeft(p.x()); SetBottom(p.y());}
 
    /** Set the right top corner of the rectangle.
      * @param p the new right/top corner for this Rect
      */
-   inline MUSCLE_CONSTEXPR_17 void SetRightTop(const Point & p) {right() = p.x(); top() = p.y();}
+   inline MUSCLE_CONSTEXPR_17 void SetRightTop(const Point & p) {SetRight(p.x()); SetTop(p.y());}
 
    /** Makes the rectangle smaller by the amount specified in both the x and y dimensions
      * @param p a Point whose dimensions indicate how much smaller to make our x and y dimensions on each edge, respectively
@@ -131,7 +151,7 @@ public:
      * @param dx the number of pixels right to move the left edge; and the number of pixels left to move the right edge
      * @param dy the number of pixels down to move the top edge; and the number of pixels up to move the bottom edge
      */
-   inline void InsetBy(float dx, float dy) {left() += dx; top() += dy; right() -= dx; bottom() -= dy;}
+   inline void InsetBy(float dx, float dy) {SetLeft(left()+dx); SetTop(top()+dy); SetRight(right()-dx); SetBottom(bottom()-dy);}
 
    /** Translates the rectangle by the amount specified in both the x and y dimensions
      * @param p a Point whose dimensions indicate how far to translate this Rect in each direction
@@ -147,20 +167,20 @@ public:
      */
    inline void CenterTo(float cx, float cy)
    {
-      const float w2 = Width()/2.0f;
-      left()   = cx-w2;
-      right()  = cx+w2;
+      const float w2 = GetWidth()/2.0f;
+      SetLeft( cx-w2);
+      SetRight(cx+w2);
 
-      const float h2 = Height()/2.0f;
-      top()    = cy-h2;
-      bottom() = cy+h2;
+      const float h2 = GetHeight()/2.0f;
+      SetTop(   cy-h2);
+      SetBottom(cy+h2);
    }
 
    /** Translates the rectangle by the amount specified in both the x and y dimensions
      * @param dx how far to the right to move our left and right edges
      * @param dy how far down to move our top and bottom edges
      */
-   inline void OffsetBy(float dx, float dy) {left() += dx; top() += dy; right() += dx; bottom() += dy;}
+   inline void OffsetBy(float dx, float dy) {SetLeft(left()+dx); SetTop(top()+dy); SetRight(right()+dx); SetBottom(bottom()+dy);}
 
    /** Translates the rectangle so that its top left corner is at the point specified.
      * @param p the new upper-left corner for this rectangle
@@ -171,14 +191,17 @@ public:
      * @param x the new left edge for this Rectangle
      * @param y the new top edge for this Rectangle
      */
-   inline void OffsetTo(float x, float y) {right() = x + Width(); bottom() = y + Height(); left() = x; top() = y;}
+   inline void OffsetTo(float x, float y) {SetRight(x+GetWidth()); SetBottom(y + GetHeight()); SetLeft(x); SetTop(y);}
 
    /** If this Rect has negative width or height, modifies it to have positive width and height.   */
    void Rationalize()
    {
-      if (left() > right()) {float t = left(); left() = right(); right() = t;}
-      if (top() > bottom()) {float t = top(); top() = bottom(); bottom() = t;}
+      if (left() > right()) {const float t = left(); SetLeft(right()); SetRight(t);}
+      if (top() > bottom()) {const float t = top();  SetTop(bottom()); SetBottom(t);}
    }
+
+   /** Returns true iff this Rect's height and width are both non-negative */
+   bool IsRational() const {return ((GetWidth()>=0.0f)&&(GetHeight()>=0.0f));}
 
    /** Returns a rectangle whose area is the intersecting subset of this rectangle's and (r)'s
      * @param r the Rect to intersect with this rectangle
@@ -188,10 +211,10 @@ public:
       Rect ret(*this);
       if (this != &r)
       {
-         if (ret.left()   < r.left())   ret.left()   = r.left();
-         if (ret.right()  > r.right())  ret.right()  = r.right();
-         if (ret.top()    < r.top())    ret.top()    = r.top();
-         if (ret.bottom() > r.bottom()) ret.bottom() = r.bottom();
+         if (ret.left()   < r.left())   ret.SetLeft(   r.left());
+         if (ret.right()  > r.right())  ret.SetRight(  r.right());
+         if (ret.top()    < r.top())    ret.SetTop(    r.top());
+         if (ret.bottom() > r.bottom()) ret.SetBottom( r.bottom());
       }
       return ret;
    }
@@ -204,10 +227,10 @@ public:
       Rect ret(*this);
       if (this != &r)
       {
-         if (r.left()   < ret.left())   ret.left()   = r.left();
-         if (r.right()  > ret.right())  ret.right()  = r.right();
-         if (r.top()    < ret.top())    ret.top()    = r.top();
-         if (r.bottom() > ret.bottom()) ret.bottom() = r.bottom();
+         if (r.left()   < ret.left())   ret.SetLeft(  r.left());
+         if (r.right()  > ret.right())  ret.SetRight( r.right());
+         if (r.top()    < ret.top())    ret.SetTop(   r.top());
+         if (r.bottom() > ret.bottom()) ret.SetBottom(r.bottom());
       }
       return ret;
    }
@@ -240,23 +263,23 @@ public:
      */
    MUSCLE_NODISCARD inline bool Intersects(const Rect & r) const {return (r&(*this)).IsValid();}
 
-   /** Returns true iff this rectangle's area is non imaginary (ie Width() and Height()) are both non-negative) */
-   MUSCLE_NODISCARD inline bool IsValid() const {return ((Width() >= 0.0f)&&(Height() >= 0.0f));}
+   /** Returns true iff this rectangle's area is non imaginary (ie GetWidth() and GetHeight()) are both non-negative) */
+   MUSCLE_NODISCARD inline bool IsValid() const {return ((GetWidth() >= 0.0f)&&(GetHeight() >= 0.0f));}
 
    /** Returns the area of this rectangle. */
-   MUSCLE_NODISCARD inline float Area() const {return IsValid() ? (Width()*Height()) : 0.0f;}
+   MUSCLE_NODISCARD inline float Area() const {return IsValid() ? (GetWidth()*GetHeight()) : 0.0f;}
 
    /** Returns the width of this rectangle. */
-   MUSCLE_NODISCARD inline float Width() const {return right() - left();}
+   MUSCLE_NODISCARD inline float GetWidth() const {return right() - left();}
 
    /** Returns the width of this rectangle, rounded up to the nearest integer. */
-   MUSCLE_NODISCARD inline int32 IntegerWidth() const {return (int32)ceil(Width());}
+   MUSCLE_NODISCARD inline int32 GetWidthAsInteger() const {return (int32)ceil(GetWidth());}
 
    /** Returns the height of this rectangle. */
-   MUSCLE_NODISCARD inline float Height() const {return bottom()-top();}
+   MUSCLE_NODISCARD inline float GetHeight() const {return bottom()-top();}
 
    /** Returns the height of this rectangle, rounded up to the nearest integer. */
-   MUSCLE_NODISCARD inline int32 IntegerHeight() const {return (int32)ceil(Height());}
+   MUSCLE_NODISCARD inline int32 GetHeightAsInteger() const {return (int32)ceil(GetHeight());}
 
    /** Returns true iff this rectangle contains the specified point.
      * @param p the Point to check to see if it falls within this Rectangle's area

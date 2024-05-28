@@ -97,7 +97,7 @@ template<class EndianConverter> status_t TestHelpers()
    printf("string2=[%s]\n",                   unflat.ReadCString());
 
    const Point p = unflat.template ReadFlat<Point>(); printf("Point=%f,%f\n", p.x(), p.y());
-   const Rect  r = unflat.template ReadFlat<Rect>();  printf("Rect=%f,%f,%f,%f\n", r.left(), r.top(), r.Width(), r.Height());
+   const Rect  r = unflat.template ReadFlat<Rect>();  printf("Rect=%f,%f,%f,%f\n", r.left(), r.top(), r.GetWidth(), r.GetHeight());
 
    TestFlattenable tf;
    MRETURN_ON_ERROR(unflat.template ReadFlat<TestFlattenable>(tf));
