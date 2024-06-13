@@ -111,7 +111,8 @@ private:
       FPI_FLAG_ISSYMLINK,
       NUM_FPI_FLAGS
    };
-   DECLARE_BITCHORD_FLAGS_TYPE(FPIFlags, NUM_FPI_FLAGS);
+   static const char * _fpiFlagLabels[];
+   DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(FPIFlags, NUM_FPI_FLAGS, _fpiFlagLabels);
 
    FPIFlags _flags;
    uint64 _size;   // file size

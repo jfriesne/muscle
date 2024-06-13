@@ -11,8 +11,8 @@
 /
 *******************************************************************************/
 
-#define MUSCLE_VERSION_STRING "9.37" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
-#define MUSCLE_VERSION        93700  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
+#define MUSCLE_VERSION_STRING "9.40" /**< The current version of the MUSCLE distribution, expressed as an ASCII string */
+#define MUSCLE_VERSION        94000  /**< Current version, expressed as decimal Mmmbb, where (M) is the number before the decimal point, (mm) is the number after the decimal point, and (bb) is reserved */
 
 #ifndef DOXYGEN_AVOID_MUSCLE_MAINPAGE_TAG
 
@@ -759,6 +759,11 @@ enum {
 template<typename T, size_t size> MUSCLE_CONSTEXPR uint32 ARRAYITEMS(T(&)[size]) {return (uint32) size;}  /**< Returns # of items in the 1D array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
 template<typename T, size_t rows, size_t cols> MUSCLE_CONSTEXPR uint32 ARRAYROWS(T(&)[rows][cols]) {return (uint32) rows;} /**< Returns # of "rows", along the first axis of the 2D array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
 template<typename T, size_t rows, size_t cols> MUSCLE_CONSTEXPR uint32 ARRAYCOLS(T(&)[rows][cols]) {return (uint32) cols;} /**< Returns # of "columns", along the second axis of the 2D array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
+# if defined(MUSCLE_AVOID_CPLUSPLUS11)
+#  define MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(theArray, expectedNumItems)
+# else
+#  define MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(theArray, expectedNumItems) static_assert(ARRAYITEMS(theArray)==expectedNumItems, "array declares the wrong number of values!");
+# endif
 #else
 # define ARRAYITEMS(x) (sizeof(x)/sizeof(x[0]))  /**< Returns # of items in the array.  This primitive C-compatible implementation will return an incorrect value if called with a pointer as an argument. */
 #endif

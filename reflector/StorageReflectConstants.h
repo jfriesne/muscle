@@ -114,7 +114,8 @@ enum {
    NUM_SETDATANODE_FLAGS                 ///< Guard value
 };
 #ifdef __cplusplus
-DECLARE_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS);
+extern const char * _setDataNodeFlagLabels[];
+DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS, _setDataNodeFlagLabels);
 #endif
 
 // Recognized message field names

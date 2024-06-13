@@ -5,12 +5,17 @@
 
 namespace muscle {
 
+const char * DataNode :: _setDataFlagsLabels[] = {
+   "IsBeingCreated",
+   "EnableSupercede"
+};
+
 DataNode :: DataNode()
    : _children(NULL)
    , _orderedIndex(NULL)
    , _orderedCounter(0L)
 {
-   // empty
+   MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(DataNode::_setDataFlagsLabels, NUM_SET_DATA_FLAGS);  // placed here only to get around privacy restrictions
 }
 
 DataNode :: ~DataNode()

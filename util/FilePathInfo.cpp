@@ -10,6 +10,13 @@
 
 namespace muscle {
 
+const char * FilePathInfo :: _fpiFlagLabels[] = {
+   "Exists",
+   "IsRegularFile",
+   "IsDirectory",
+   "IsSymlink"
+};
+
 FilePathInfo :: FilePathInfo(bool exists, bool isRegularFile, bool isDir, bool isSymlink, uint64 fileSizeBytes, uint64 aTime, uint64 cTime, uint64 mTime, uint32 hardLinkCount)
    : _size(fileSizeBytes)
    , _atime(aTime)
@@ -17,6 +24,8 @@ FilePathInfo :: FilePathInfo(bool exists, bool isRegularFile, bool isDir, bool i
    , _mtime(mTime)
    , _hardLinkCount(hardLinkCount)
 {
+   MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(FilePathInfo::_fpiFlagLabels, NUM_FPI_FLAGS);  // declared here only to get around privacy restrictions
+
    if (exists)        _flags.SetBit(FPI_FLAG_EXISTS);
    if (isRegularFile) _flags.SetBit(FPI_FLAG_ISREGULARFILE);
    if (isDir)         _flags.SetBit(FPI_FLAG_ISDIRECTORY);

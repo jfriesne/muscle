@@ -156,7 +156,8 @@ public:
       SET_DATA_FLAG_ENABLESUPERCEDE,    ///< if set, the user has specified that this node-update should implicitly cancel any currently-queued earlier updates regarding this node
       NUM_SET_DATA_FLAGS                ///< Guard value
    };
-   DECLARE_BITCHORD_FLAGS_TYPE(SetDataFlags, NUM_SET_DATA_FLAGS);
+   static const char * _setDataFlagsLabels[];
+   DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(SetDataFlags, NUM_SET_DATA_FLAGS, _setDataFlagsLabels);
 
    /** Replaces this node's payload message with that of (data).
     *  @param data the new Message to associate with this node.

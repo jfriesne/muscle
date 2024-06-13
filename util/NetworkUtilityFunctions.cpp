@@ -1519,6 +1519,18 @@ uint32 NetworkInterfaceInfo :: HashCode() const
    return _name.HashCode() + _desc.HashCode() + _hardwareType + _ip.HashCode() + _netmask.HashCode() + _broadcastIP.HashCode() + CalculateHashCode(_macAddress) +_enabled + _copper + _mtu;
 }
 
+const char * _gniiFlagLabels[] = {
+   "IncludeIPv4",
+   "IncludeIPv6",
+   "IncludeLoopback",
+   "IncludeNonLoopback",
+   "IncludeEnabled",
+   "IncludeDisabled",
+   "IncludeLoopbackOnlyAsLastResort",
+   "IncludeUnaddressed",
+};
+MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_gniiFlagLabels, NUM_GNII_FLAGS);
+
 #if defined(USE_GETIFADDRS) || defined(WIN32)
 static IPAddress SockAddrToIPAddr(const struct sockaddr * a)
 {

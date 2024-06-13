@@ -5,6 +5,13 @@ key:  - new feature
       * bug fixed
       o other
 
+9.40 -
+   - Added a MUSCLE_STATIC_ASSERT_ARRAY_LENGTH macro to support/MuscleSupport.h
+     so that array declarations can error out at compile time if they don't
+     contain the expected number of values.
+   - Added a DECLARE_LABELLED_BITCHORD_FLAGS_TYPE macro to support/BitChord.h
+     so that BitChord::ToString() can return human-readable bit-labels if desired.
+   - Added GetBitLabel() and ParseBitLabel() methods to the BitChord class.
    - DefaultConsoleLogger now checks for a MUSCLE_LOG_TO_STDERR environment
      variable on startup, and if one is present, it will force all Log()
      and LogTime() output to stderr.  This is useful in cases where the

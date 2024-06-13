@@ -22,7 +22,8 @@ enum {
    CHILD_PROCESS_LAUNCH_FLAG_INHERIT_FDS,      /**< If set, we will allow the child process to inherit file descriptors from this process. */
    NUM_CHILD_PROCESS_LAUNCH_FLAGS              /**< Guard value */
 };
-DECLARE_BITCHORD_FLAGS_TYPE(ChildProcessLaunchFlags, NUM_CHILD_PROCESS_LAUNCH_FLAGS);
+extern const char * _childProcessLaunchFlagLabels[];
+DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(ChildProcessLaunchFlags, NUM_CHILD_PROCESS_LAUNCH_FLAGS, _childProcessLaunchFlagLabels);
 
 #ifndef MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS
 /** The default value of (launchFlags) that will be suppplied to LaunchChildProcess(), if no value is explicitly supplied.  Defaults to CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY unless overridden at compile time via eg -DMUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS=CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY,CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR or etc. */

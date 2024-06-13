@@ -19,8 +19,18 @@ StringMatcherRef GetStringMatcherFromPool(const String & matchString, bool isSim
    return ret;
 }
 
+const char * StringMatcher :: _stringMatcherFlagLabels[] = {
+   "RegexValid",
+   "Negate",
+   "CanMatchMultipleValues",
+   "Simple",
+   "UVList"
+};
+
 void StringMatcher :: Reset()
 {
+   MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_stringMatcherFlagLabels, NUM_STRINGMATCHER_FLAGS);  // placed here only to get around privacy restrictions
+
    if (_flags.IsBitSet(STRINGMATCHER_FLAG_REGEXVALID)) regfree(&_regExp);
    _flags.ClearAllBits();
    _ranges.Clear();

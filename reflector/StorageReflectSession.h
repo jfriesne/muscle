@@ -116,7 +116,8 @@ protected:
       NODE_CHANGE_FLAG_ENABLESUPERCEDE,    ///< if set, the user has specified that this node-update should implicitly cancel any currently-queued earlier updates regarding this node
       NUM_NODE_CHANGE_FLAGS                ///< Guard value
    };
-   DECLARE_BITCHORD_FLAGS_TYPE(NodeChangeFlags, NUM_NODE_CHANGE_FLAGS);
+   static const char * _nodeChangeFlagLabels[];
+   DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(NodeChangeFlags, NUM_NODE_CHANGE_FLAGS, _nodeChangeFlagLabels);
 
    /**
     * Create or Set the value of a data node.

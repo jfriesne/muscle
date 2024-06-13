@@ -145,7 +145,8 @@ private:
       STRINGMATCHER_FLAG_UVLIST,
       NUM_STRINGMATCHER_FLAGS
    };
-   DECLARE_BITCHORD_FLAGS_TYPE(StringMatcherFlags, NUM_STRINGMATCHER_FLAGS);
+   static const char * _stringMatcherFlagLabels[];
+   DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(StringMatcherFlags, NUM_STRINGMATCHER_FLAGS, _stringMatcherFlagLabels);
 
    class IDRange
    {

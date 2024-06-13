@@ -47,12 +47,30 @@ enum {
    OPTION_9,
    NUM_OPTIONS
 };
-
 DECLARE_BITCHORD_FLAGS_TYPE(TestOptionBits, NUM_OPTIONS);
+
+enum {
+   FRUIT_APPLE=0,
+   FRUIT_BANANA,
+   FRUIT_CHERRY,
+   FRUIT_GRAPE,
+   NUM_FRUITS
+};
+const char * _fruitBitsLabels[] = {
+   "Apple",
+   "Banana",
+   "Cherry",
+   "Grape",
+};
+MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_fruitBitsLabels, NUM_FRUITS);
+DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(FruitBits, NUM_FRUITS, _fruitBitsLabels);
 
 // This program exercises the String class.
 int main(void)
 {
+   FruitBits fruits = FruitBits::WithAllBitsSet();
+   printf("fruits=[%s]\n", fruits.ToString()());
+
    TestOptionBits val(OPTION_J, OPTION_E, OPTION_R, OPTION_E, OPTION_M, OPTION_Y);
    printf("X01 [%s]\n", val.ToHexString()());
 

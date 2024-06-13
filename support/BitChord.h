@@ -7,6 +7,7 @@
 #include "support/MuscleSupport.h"
 #include "support/PseudoFlattenable.h"
 #include "util/String.h"
+#include "util/StringTokenizer.h"
 
 namespace muscle {
 
@@ -24,8 +25,10 @@ namespace muscle {
   *       to help make unrelated BitChords' template-instantiations unique and not-implicitly-convertible
   *       to each other, even if they happen to specify the same value for the NumBits template-parameter.
   *       See the DECLARE_BITCHORD_FLAGS_TYPE macro at the bottom of BitChord.h for more information.
+  * @tparam optLabelArray if non-NULL, this should be an array of (NumBits) human-readable strings that describe each
+  *                       bit in the array.  Used by the ToString() method.
   */
-template <uint32 NumBits, class TagClass=Void> class MUSCLE_NODISCARD BitChord : public PseudoFlattenable<BitChord<NumBits, TagClass> >
+template <uint32 NumBits, class TagClass=Void, const char * optLabelArray[NumBits]=nullptr> class MUSCLE_NODISCARD BitChord : public PseudoFlattenable<BitChord<NumBits, TagClass, optLabelArray> >
 {
 public:
    /** Default constructor */
@@ -472,24 +475,89 @@ public:
    /** Returns the number of 32-bit-words that are represented by this bit-chord */
    MUSCLE_NODISCARD static MUSCLE_CONSTEXPR uint32 GetNumWordsInBitChord() {return NUM_WORDS;}
 
+   /** Returns the human-readable label of the (whichBit)'th bit in the bit-chord, if valid and known.
+     * Otherwise, returns (defaultString), which defaults to "???"
+     * @param whichBit a bit-index number
+     * @param defaultString the string to return if the name of the bit isn't known
+     */
+   MUSCLE_NODISCARD static const char * GetBitLabel(uint32 whichBit, const char * defaultString = "???") {return ((optLabelArray != NULL)&&(whichBit < NumBits)) ? optLabelArray[whichBit] : defaultString;}
+
+   /** Returns the bit-index that corresponds to the passed-in string, or -1 if none matches
+     * @param bitName the string to parse (as returned by GetBitLabel()).  Parse will be case-insensitive
+     */
+   MUSCLE_NODISCARD static int32 ParseBitLabel(const char * bitName)
+   {
+      if (optLabelArray != NULL)
+      {
+         for (uint32 i=0; i<NumBits; i++)
+         {
+            const char * bn = optLabelArray[i];
+            if ((bn)&&(Strcasecmp(bitName, bn) == 0)) return i;
+         }
+      }
+      return -1;
+   }
+
+   /** Parses a BitChord of our type from the passed-in string (which should be of the format
+     * returned by ToString(), aka comma-separated), and returns it.
+     * @param s the string to parse
+     */
+   MUSCLE_NODISCARD static BitChord FromString(const char * s)
+   {
+      BitChord ret;
+      if (s)
+      {
+         StringTokenizer tok(s, ",");
+         const char * t;
+         while((t = tok()) != NULL)
+         {
+            const int32 whichBit = ParseBitLabel(t);
+                 if (whichBit >= 0)                    ret.SetBit(whichBit);
+            else if (Strcasecmp(t, "AllBitsSet") == 0) return WithAllBitsSet();
+
+         }
+      }
+      return ret;
+   }
+
    /** Returns a human-readable String listing the bit-indices that are currently set.
-     * For example, if bits #0, #3, #4, #5, and #7 are set, the returned String would
-     * be "0,3-5,7".
+     * If a labels-array was specified (e.g. via the DECLARE_LABELLED_BITCHORD_FLAGS_TYPE macro),
+     * then this will be a list of human-readable bit-label strings corresponding to the set bits
+     * (e.g. "Foo,Bar,Baz").  Otherwise the returned String will be numeric in nature; e.g. if
+     * bits #0, #3, #4, #5, and #7 are set, the returned String would be "0,3-5,7".
      */
    String ToString() const
    {
+      if (AreAllBitsSet()) return "AllBitsSet";
+
       String ret;
-      int32 runStart = -1, runEnd = -1;
-      for (uint32 i=0; i<NumBits; i++)
+      if (optLabelArray != NULL)
       {
-         if (IsBitSet(i))
+         for (uint32 i=0; i<NumBits; i++)
          {
-            if (runStart < 0) runStart = i;
-            runEnd = i;
+            if (IsBitSet(i))
+            {
+               if (ret.HasChars()) ret += ',';
+               const char * s = optLabelArray[i];
+               if (s) ret += s;
+                 else ret += String("%1").Arg(i);
+            }
          }
-         else FlushStringClause(ret, runStart, runEnd);
       }
-      FlushStringClause(ret, runStart, runEnd);
+      else
+      {
+         int32 runStart = -1, runEnd = -1;
+         for (uint32 i=0; i<NumBits; i++)
+         {
+            if (IsBitSet(i))
+            {
+               if (runStart < 0) runStart = i;
+               runEnd = i;
+            }
+            else FlushStringClause(ret, runStart, runEnd);
+         }
+         FlushStringClause(ret, runStart, runEnd);
+      }
       return ret;
    }
 
@@ -871,28 +939,40 @@ public:
   * @param rhs The first BitChord object to OR together
   * @returns a BitChord whose bits are the union of the bits of the two arguments
   */
-template<uint32 NumBits, class TagClass> const BitChord<NumBits,TagClass> operator | (const BitChord<NumBits,TagClass> & lhs, const BitChord<NumBits,TagClass> & rhs) {BitChord<NumBits,TagClass> ret(lhs); ret |= rhs; return ret;}
+template<uint32 NumBits, class TagClass, const char * optLabelArray[NumBits]> const BitChord<NumBits,TagClass,optLabelArray> operator | (const BitChord<NumBits,TagClass,optLabelArray> & lhs, const BitChord<NumBits,TagClass,optLabelArray> & rhs) {BitChord<NumBits,TagClass,optLabelArray> ret(lhs); ret |= rhs; return ret;}
 
 /** Binary bitwise-AND operator for two BitChord objects
   * @param lhs The first BitChord object to AND together
   * @param rhs The first BitChord object to AND together
   * @returns a BitChord whose bits are the intersection of the bits of the two arguments
   */
-template<uint32 NumBits, class TagClass> const BitChord<NumBits,TagClass> operator & (const BitChord<NumBits,TagClass> & lhs, const BitChord<NumBits,TagClass> & rhs) {BitChord<NumBits,TagClass> ret(lhs); ret &= rhs; return ret;}
+template<uint32 NumBits, class TagClass, const char * optLabelArray[NumBits]> const BitChord<NumBits,TagClass,optLabelArray> operator & (const BitChord<NumBits,TagClass,optLabelArray> & lhs, const BitChord<NumBits,TagClass,optLabelArray> & rhs) {BitChord<NumBits,TagClass,optLabelArray> ret(lhs); ret &= rhs; return ret;}
 
 /** Binary bitwise-XOR operator for two BitChord objects
   * @param lhs The first BitChord object to XOR together
   * @param rhs The first BitChord object to XOR together
   * @returns a BitChord whose bits are the XOR of the bits of the two arguments
   */
-template<uint32 NumBits, class TagClass> const BitChord<NumBits,TagClass> operator ^ (const BitChord<NumBits,TagClass> & lhs, const BitChord<NumBits,TagClass> & rhs) {BitChord<NumBits,TagClass> ret(lhs); ret ^= rhs; return ret;}
+template<uint32 NumBits, class TagClass, const char * optLabelArray[NumBits]> const BitChord<NumBits,TagClass,optLabelArray> operator ^ (const BitChord<NumBits,TagClass,optLabelArray> & lhs, const BitChord<NumBits,TagClass,optLabelArray> & rhs) {BitChord<NumBits,TagClass,optLabelArray> ret(lhs); ret ^= rhs; return ret;}
 
 /** This macros declares a unique BitChord-type with a specified number of bits.
   * @param typeName the name of the new type eg (MySpecialFlags)
   * @param numBitsInType the number of bits a BitChord of this type will represent
   * @note Example usage:  enum {OPTION_A=0, OPTION_B, OPTION_C, NUM_OPTIONS}; DECLARE_BITCHORD_FLAGS_TYPE(MyOptionFlags, NUM_OPTIONS);
   */
-#define DECLARE_BITCHORD_FLAGS_TYPE(typeName, numBitsInType) struct _bitchord_tag_class_##typeName##_##numBitsInType {}; typedef BitChord<numBitsInType, _bitchord_tag_class_##typeName##_##numBitsInType> typeName;
+#define DECLARE_BITCHORD_FLAGS_TYPE(typeName, numBitsInType)   \
+   struct _bitchord_tag_class_##typeName##_##numBitsInType {}; \
+   typedef BitChord<numBitsInType, _bitchord_tag_class_##typeName##_##numBitsInType> typeName;
+
+/** This macros declares a unique BitChord-type with a specified number of bits.
+  * @param typeName the name of the new type eg (MySpecialFlags)
+  * @param numBitsInType the number of bits a BitChord of this type will represent
+  * @param labelsArray an array of (numBitsInType) human-readable strings, describing each bit in this bit-chord.
+  * @note Example usage:  enum {OPTION_A=0, OPTION_B, OPTION_C, NUM_OPTIONS}; DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(MyOptionFlags, NUM_OPTIONS, _myOptionFlagLabels);
+  */
+#define DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(typeName, numBitsInType, labelsArray) \
+   struct _bitchord_tag_class_##typeName##_##numBitsInType {};                     \
+   typedef BitChord<numBitsInType, _bitchord_tag_class_##typeName##_##numBitsInType, labelsArray> typeName;
 
 } // end namespace muscle
 

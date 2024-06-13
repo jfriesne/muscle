@@ -39,4 +39,11 @@ MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg
    if ((&from == this)||(IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY))) (void) AddOutgoingMessage(msg);
 }
 
+const char * _routingFlagLabels[] = {
+   "ReflectToSelf",
+   "GatewayToNeighbors",
+   "NeighborsToGateway",
+};
+MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_routingFlagLabels, NUM_MUSCLE_ROUTING_FLAGS);
+
 } // end namespace muscle

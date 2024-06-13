@@ -921,4 +921,14 @@ status_t ChildProcessDataIO :: LaunchIndependentChildProcess(const Queue<String>
    return cpdio.LaunchChildProcess(argv, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser);
 }
 
+const char * _childProcessLaunchFlagLabels[] = {
+   "UseForkPty",
+   "ExcludeStdin",
+   "ExcludeStdout",
+   "ExcludeStderr",
+   "Win32HideGUI",
+   "InheritFDs",
+};
+MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_childProcessLaunchFlagLabels, NUM_CHILD_PROCESS_LAUNCH_FLAGS);
+
 } // end namespace muscle

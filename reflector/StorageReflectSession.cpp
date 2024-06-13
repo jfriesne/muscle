@@ -40,6 +40,11 @@ status_t StorageReflectSessionFactory :: SetMaxIncomingMessageSizeFor(AbstractRe
    return B_NO_ERROR;
 }
 
+const char * StorageReflectSession :: _nodeChangeFlagLabels[] = {
+   "IsBeingRemoved",
+   "EnableSupercede",
+};
+
 StorageReflectSession ::
 StorageReflectSession() :
    _parameters(PR_RESULT_PARAMETERS),
@@ -52,7 +57,7 @@ StorageReflectSession() :
    _keepAliveIntervalSeconds(0),
    _nextKeepAliveSendTimeStamp(MUSCLE_TIME_NEVER)
 {
-   // empty
+   MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(StorageReflectSession::_nodeChangeFlagLabels, NUM_NODE_CHANGE_FLAGS);  // placed here only to get around privacy restrictions
 }
 
 StorageReflectSession ::
@@ -2006,6 +2011,15 @@ void StorageReflectSession :: ScheduleNextKeepAliveSend(uint64 now)
       InvalidatePulseTime();
    }
 }
+
+const char * _setDataNodeFlagLabels[] = {
+   "DontCreateNode",
+   "DontOverwriteData",
+   "Quiet",
+   "AddToIndex",
+   "EnableSupercede",
+};
+MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_setDataNodeFlagLabels, NUM_SETDATANODE_FLAGS);
 
 } // end namespace muscle
 

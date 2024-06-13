@@ -54,7 +54,8 @@ enum {
    GNII_FLAG_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_FLAG_INCLUDE_IPV6_INTERFACES, /**< If set, IPv4-specific or IPv6-specific interfaces will be returned (depending on whether MUSCLE_AVOID_IPV6 was specified during compilation) */
 #endif
 };
-DECLARE_BITCHORD_FLAGS_TYPE(GNIIFlags, NUM_GNII_FLAGS);
+extern const char * _gniiFlagLabels[];
+DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(GNIIFlags, NUM_GNII_FLAGS, _gniiFlagLabels);
 
 #define GNII_FLAGS_INCLUDE_ALL_INTERFACES (GNIIFlags::WithAllBitsSet())  /**< If set, all interfaces will be returned */
 #define GNII_FLAGS_INCLUDE_ALL_ADDRESSED_INTERFACES (GNIIFlags::WithAllBitsSetExceptThese(GNII_FLAG_INCLUDE_UNADDRESSED_INTERFACES))  /**< default setting -- all interfaces that currently have an IP address will be returned */

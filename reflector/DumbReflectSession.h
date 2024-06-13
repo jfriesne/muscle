@@ -25,7 +25,8 @@ enum {
    MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY, /**< If this bit is set, unrecognized Messages received by this session's neighbors will be forwarded to this session's gateway. */
    NUM_MUSCLE_ROUTING_FLAGS                  /**< Guard value */
 };
-DECLARE_BITCHORD_FLAGS_TYPE(MuscleRoutingFlags, NUM_MUSCLE_ROUTING_FLAGS);
+extern const char * _routingFlagLabels[];
+DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(MuscleRoutingFlags, NUM_MUSCLE_ROUTING_FLAGS, _routingFlagLabels);
 
 /** This class represents a single TCP connection between a muscled server and a client program.
  *  This class implements a simple "reflect-all-messages-to-all-clients"
