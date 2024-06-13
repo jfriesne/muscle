@@ -946,21 +946,21 @@ public:
   * @param rhs The first BitChord object to OR together
   * @returns a BitChord whose bits are the union of the bits of the two arguments
   */
-template<uint32 NumBits, class TagClass, const char * optLabelArray[NumBits]> const BitChord<NumBits,TagClass,optLabelArray> operator | (const BitChord<NumBits,TagClass,optLabelArray> & lhs, const BitChord<NumBits,TagClass,optLabelArray> & rhs) {BitChord<NumBits,TagClass,optLabelArray> ret(lhs); ret |= rhs; return ret;}
+template<uint32 NumBits, class TagClass, const char * optLabelArray[]> const BitChord<NumBits,TagClass,optLabelArray> operator | (const BitChord<NumBits,TagClass,optLabelArray> & lhs, const BitChord<NumBits,TagClass,optLabelArray> & rhs) {BitChord<NumBits,TagClass,optLabelArray> ret(lhs); ret |= rhs; return ret;}
 
 /** Binary bitwise-AND operator for two BitChord objects
   * @param lhs The first BitChord object to AND together
   * @param rhs The first BitChord object to AND together
   * @returns a BitChord whose bits are the intersection of the bits of the two arguments
   */
-template<uint32 NumBits, class TagClass, const char * optLabelArray[NumBits]> const BitChord<NumBits,TagClass,optLabelArray> operator & (const BitChord<NumBits,TagClass,optLabelArray> & lhs, const BitChord<NumBits,TagClass,optLabelArray> & rhs) {BitChord<NumBits,TagClass,optLabelArray> ret(lhs); ret &= rhs; return ret;}
+template<uint32 NumBits, class TagClass, const char * optLabelArray[]> const BitChord<NumBits,TagClass,optLabelArray> operator & (const BitChord<NumBits,TagClass,optLabelArray> & lhs, const BitChord<NumBits,TagClass,optLabelArray> & rhs) {BitChord<NumBits,TagClass,optLabelArray> ret(lhs); ret &= rhs; return ret;}
 
 /** Binary bitwise-XOR operator for two BitChord objects
   * @param lhs The first BitChord object to XOR together
   * @param rhs The first BitChord object to XOR together
   * @returns a BitChord whose bits are the XOR of the bits of the two arguments
   */
-template<uint32 NumBits, class TagClass, const char * optLabelArray[NumBits]> const BitChord<NumBits,TagClass,optLabelArray> operator ^ (const BitChord<NumBits,TagClass,optLabelArray> & lhs, const BitChord<NumBits,TagClass,optLabelArray> & rhs) {BitChord<NumBits,TagClass,optLabelArray> ret(lhs); ret ^= rhs; return ret;}
+template<uint32 NumBits, class TagClass, const char * optLabelArray[]> const BitChord<NumBits,TagClass,optLabelArray> operator ^ (const BitChord<NumBits,TagClass,optLabelArray> & lhs, const BitChord<NumBits,TagClass,optLabelArray> & rhs) {BitChord<NumBits,TagClass,optLabelArray> ret(lhs); ret ^= rhs; return ret;}
 
 /** This macros declares a unique BitChord-type with a specified number of bits.
   * @param typeName the name of the new type eg (MySpecialFlags)
