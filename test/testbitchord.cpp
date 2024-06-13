@@ -68,7 +68,7 @@ DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(FruitBits, NUM_FRUITS, _fruitBitsLabels);
 // This program exercises the String class.
 int main(void)
 {
-   FruitBits fruits = FruitBits::WithAllBitsSet();
+   FruitBits fruits = FruitBits::WithAllBitsSet().WithoutBit(FRUIT_GRAPE);
    printf("fruits=[%s]\n", fruits.ToString()());
 
    TestOptionBits val(OPTION_J, OPTION_E, OPTION_R, OPTION_E, OPTION_M, OPTION_Y);

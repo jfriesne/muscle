@@ -172,7 +172,12 @@ static void CheckOp(uint32 numBytes, const void * orig, const void * swapOne, co
    if ((origTwo)&&(memcmp(orig, origTwo, numBytes)))      GoInsane(why, "(origTwo)");
 }
 
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+namespace muscle_private
+{
+   const char * fake_nullptr[0] = {};  // dummy nullptr, solely for the use of the C++03 hack-around in BitChord.h
+}
+#else
 template<typename T> void VerifyTypeIsTrivial()
 {
    if (std::is_trivial<T>::value == false)

@@ -11,8 +11,15 @@
 
 namespace muscle {
 
-#if defined(MUSCLE_AVOID_CPLUSPLUS11) && !defined (MUSCLE_AVOID_CPLUSPLUS11_BITCHORD)
-# define MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
+#if defined(MUSCLE_AVOID_CPLUSPLUS11)
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11_BITCHORD)
+#  define MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
+# endif
+// hack work-around for C++03 not having a nullptr keyword
+namespace muscle_private {extern const char * fake_nullptr[0];}
+# define MUSCLE_BITCHORD_NULLPTR muscle_private::fake_nullptr
+#else
+# define MUSCLE_BITCHORD_NULLPTR nullptr
 #endif
 
 /** A templated class for implement an N-bit-long bit-chord.  Useful for doing efficient parallel boolean operations
@@ -28,7 +35,7 @@ namespace muscle {
   * @tparam optLabelArray if non-NULL, this should be an array of (NumBits) human-readable strings that describe each
   *                       bit in the array.  Used by the ToString() method.
   */
-template <uint32 NumBits, class TagClass=Void, const char * optLabelArray[NumBits]=nullptr> class MUSCLE_NODISCARD BitChord : public PseudoFlattenable<BitChord<NumBits, TagClass, optLabelArray> >
+template <uint32 NumBits, class TagClass=Void, const char * optLabelArray[NumBits]=MUSCLE_BITCHORD_NULLPTR> class MUSCLE_NODISCARD BitChord : public PseudoFlattenable<BitChord<NumBits, TagClass, optLabelArray> >
 {
 public:
    /** Default constructor */
@@ -480,14 +487,14 @@ public:
      * @param whichBit a bit-index number
      * @param defaultString the string to return if the name of the bit isn't known
      */
-   MUSCLE_NODISCARD static const char * GetBitLabel(uint32 whichBit, const char * defaultString = "???") {return ((optLabelArray != NULL)&&(whichBit < NumBits)) ? optLabelArray[whichBit] : defaultString;}
+   MUSCLE_NODISCARD static const char * GetBitLabel(uint32 whichBit, const char * defaultString = "???") {return ((optLabelArray != MUSCLE_BITCHORD_NULLPTR)&&(whichBit < NumBits)) ? optLabelArray[whichBit] : defaultString;}
 
    /** Returns the bit-index that corresponds to the passed-in string, or -1 if none matches
      * @param bitName the string to parse (as returned by GetBitLabel()).  Parse will be case-insensitive
      */
    MUSCLE_NODISCARD static int32 ParseBitLabel(const char * bitName)
    {
-      if (optLabelArray != NULL)
+      if (optLabelArray != MUSCLE_BITCHORD_NULLPTR)
       {
          for (uint32 i=0; i<NumBits; i++)
          {
@@ -531,7 +538,7 @@ public:
       if (AreAllBitsSet()) return "AllBitsSet";
 
       String ret;
-      if (optLabelArray != NULL)
+      if (optLabelArray != MUSCLE_BITCHORD_NULLPTR)
       {
          for (uint32 i=0; i<NumBits; i++)
          {
