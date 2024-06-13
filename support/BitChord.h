@@ -521,7 +521,13 @@ public:
             const int32 whichBit = ParseBitLabel(t);
                  if (whichBit >= 0)                    ret.SetBit(whichBit);
             else if (Strcasecmp(t, "AllBitsSet") == 0) return WithAllBitsSet();
-
+            else if (muscleInRange(t[0], '0', '9'))
+            {
+               const uint32 startIdx = muscleClamp((uint32) atoi(t), (uint32)0, NumBits);
+               const char * dash = strrchr(t, '-');
+               const uint32 endIdx = dash ? muscleClamp((uint32) (atoi(dash+1)+1), startIdx, NumBits) : muscleMin(startIdx+1, NumBits);
+               for (uint32 i=startIdx; i<endIdx; i++) ret.SetBit(i);
+            }
          }
       }
       return ret;

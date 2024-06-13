@@ -59,7 +59,7 @@ enum {
 const char * _fruitBitsLabels[] = {
    "Apple",
    "Banana",
-   "Cherry",
+   NULL,  // just to make sure we can handle a NULL entry gracefully
    "Grape",
 };
 MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_fruitBitsLabels, NUM_FRUITS);
@@ -71,29 +71,31 @@ int main(void)
    FruitBits fruits = FruitBits::WithAllBitsSet().WithoutBit(FRUIT_GRAPE);
    printf("fruits=[%s]\n", fruits.ToString()());
 
-   TestOptionBits val(OPTION_J, OPTION_E, OPTION_R, OPTION_E, OPTION_M, OPTION_Y);
-   printf("X01 [%s]\n", val.ToHexString()());
+   TestOptionBits val(OPTION_J, OPTION_E, OPTION_R, OPTION_E, OPTION_M, OPTION_Y, OPTION_Z);
+   const String t = val.ToString();
+   const TestOptionBits t2 = TestOptionBits::FromString(t());
+   printf("X01 [%s] [%s] -> [%s]\n", val.ToHexString()(), t(), t2.ToString()());
 
    val.SetBit(OPTION_X);
-   printf("X02 [%s]\n", val.ToHexString()());
+   printf("X02 [%s] [%s]\n", val.ToHexString()(), val.ToString()());
 
    val.SetBits(OPTION_Y, OPTION_Z, OPTION_9);
-   printf("X03 [%s]\n", val.ToHexString()());
+   printf("X03 [%s] [%s]\n", val.ToHexString()(), val.ToString()());
 
    val.ToggleBit(OPTION_Z);
-   printf("X04 [%s]\n", val.ToHexString()());
+   printf("X04 [%s] [%s]\n", val.ToHexString()(), val.ToString()());
 
    val.ToggleBits(OPTION_F, OPTION_R, OPTION_I, OPTION_E, OPTION_S, OPTION_N, OPTION_E, OPTION_R);
-   printf("X05 [%s]\n", val.ToHexString()());
+   printf("X05 [%s] [%s]\n", val.ToHexString()(), val.ToString()());
 
    val.ClearBit(OPTION_Y);
-   printf("X06 [%s]\n", val.ToHexString()());
+   printf("X06 [%s] [%s]\n", val.ToHexString()(), val.ToString()());
 
    val.ClearBits(OPTION_J, OPTION_E, OPTION_R, OPTION_E, OPTION_M, OPTION_Y);
-   printf("X07 [%s] ***\n", val.ToHexString()());
+   printf("X07 [%s] [%s]\n", val.ToHexString()(), val.ToString()());
 
    const TestOptionBits v2(val);
-   printf("X08 [%s]\n", v2.ToHexString()());
+   printf("X08 [%s] [%s]\n", v2.ToHexString()(), val.ToString()());
 
    printf("X09 [%s]\n", val.WithBit(OPTION_Q).ToHexString()());
    printf("X10 [%s]\n", val.WithoutBit(OPTION_S).ToHexString()());
