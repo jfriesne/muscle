@@ -11,12 +11,16 @@
 # endif
 #endif
 
-#ifndef MUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS
-# if defined(MUSCLE_64_BIT_PLATFORM) && defined(ANDROID)
+#if defined(MUSCLE_64_BIT_PLATFORM)
+# if defined(ANDROID) && !defined(MUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS)
 #  define MUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS 16  // Android uses ARM's MTE feature, which reserves the 16 most-significant bits of a pointer for its own use.
-# else
-#  define MUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS 0   // On other OS's we will assume that the most-significant-bit of a pointer is free for us to (ab)use.
 # endif
+#elif !defined(MUSCLE_AVOID_TAGGED_POINTERS)
+#  define MUSCLE_AVOID_TAGGED_POINTERS  // 32-bit systems don't reliably have any bits to spare (at least not for 1-byte-aligned pointers)
+#endif
+
+#if !defined(MUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS)
+# define MUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS 0
 #endif
 
 namespace muscle {

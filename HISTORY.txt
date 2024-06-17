@@ -27,6 +27,9 @@ key:  - new feature
    o Renamed Rect::Height() to Rect::GetHeight()
    o Renamed Rect::IntegerWidth() to Rect::GetWidthAsInteger()
    o Renamed Rect::IntegerHeight() to Rect::GetHeightAsInteger()
+   * Updated PointerAndBits.h to disable tagged-pointers on 32-bit systems,
+     since we can't guarantee that a heap-pointer's high bit won't be
+     legitimately set for heap objects on those systems.
 
 9.37 - Released 5/2/2024
    - Implemented the ustar extension in TarFileWriter to support file paths
