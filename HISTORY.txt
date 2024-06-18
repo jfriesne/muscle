@@ -30,6 +30,13 @@ key:  - new feature
    * Updated PointerAndBits.h to disable tagged-pointers on 32-bit systems,
      since we can't guarantee that a heap-pointer's high bit won't be
      legitimately set for heap objects on those systems.
+   * Changed the windows implementation of muscleSprintf() to use the
+     templated inline function used on other OS's, as the old macro-based
+     implementation wasn't playing nice with explicit namespaces prefixes.
+   * Changed the implementation of muscleFopen() to use inline functions
+     instead of macros for better namespace behavior.
+   * Changed the implementation of muscleStrcpy() to use templates
+     to enforce memory-safery, instead of just being a macro.
 
 9.37 - Released 5/2/2024
    - Implemented the ustar extension in TarFileWriter to support file paths

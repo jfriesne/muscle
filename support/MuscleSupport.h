@@ -1168,39 +1168,15 @@ template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleSgn(T ar
 #endif
 
 # if (_MSC_VER >= 1400)
-/** For MSVC, we provide CRT-friendly versions of these functions to avoid security warnings */
-# define muscleStrcpy   strcpy_s   /* Ooh, template magic! */
-# define muscleSprintf  sprintf_s  /* Ooh, template magic! */
+/** For MSVC, we provide CRT-friendly implementations of these functions to avoid security warnings */
 static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * fp; return (fopen_s(&fp, path, mode) == 0) ? fp : NULL;}
 # else
-/** Other OS's can use the usual functions instead. */
-# define muscleStrcpy   strcpy    /**< On Windows, this expands to strcpy_s to avoid security warnings; on other OS's it expands to plain old strcpy */
-# define muscleFopen    fopen     /**< On Windows, this expands to fopen_s to avoid security warnings; on other OS's it expands to plain old fopen */
-
-namespace muscle {
-
-/** A safer implementation of sprintf().
-  * @param buf The buffer to write characters into
-  * @param format the printf-style format-string to use when writing characters into (buf)
-  * @returns the number of characters written into (buf), not including the NUL terminator byte.
-  */
-template<size_t size>
-MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
-inline int muscleSprintf(char (&buf)[size], const char * format, ...)
-{
-   va_list args;
-   va_start(args, format);
-   const int ret = vsnprintf(buf, size, format, args);
-   va_end(args);
-   return muscleMin(ret, (int)(size-1));
-}
-
-};  // end namespace muscle
-
+/** Other OS's can use the vanilla implementations instead. */
+static inline FILE * muscleFopen(const char * path, const char * mode) {return fopen(path, mode);}
 # endif
 #else  // begin !defined(__cplusplus)
-# define muscleStrcpy   strcpy    /**< On Windows, this expands to strcpy_s to avoid security warnings; on other OS's it expands to plain old strcpy */
-# define muscleFopen    fopen     /**< On Windows, this expands to fopen_s to avoid security warnings; on other OS's it expands to plain old fopen */
+# define muscleStrcpy   strcpy
+# define muscleFopen    fopen
 # define muscleSprintf  sprintf
 #endif  // end !defined(__cplusplus)
 
@@ -1208,7 +1184,29 @@ inline int muscleSprintf(char (&buf)[size], const char * format, ...)
 namespace muscle {
 #endif
 
-/** Same as strncpy(), except this version ensures that the destination buffer is NUL-terminated in all cases.
+/** Similar to strcpy(), except this version ensures that it won't write past the end of the destination buffer,
+  * and that the destination buffer will be NUL-terminated in all cases.
+  * @param dst The buffer to write characters into
+  * @param src the buffer to read characters from
+  * @returns the number of characters written into (dst), not including the NUL terminator byte.
+  * @note template magic is used to determine the size of the destination buffer, so this function won't
+  *       compile if you pass a plain (non-array) pointer as its first argument.
+  */
+template<size_t size> inline char * muscleStrcpy(char (&dst)[size], const char * src)
+{
+#ifdef _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4996 )
+#endif
+   char * ret = strncpy(dst, src, size);
+#ifdef _MSC_VER
+# pragma warning( pop )
+#endif
+   if (size > 0) ret[size-1] = '\0';  // ensure NUL termination no matter what
+   return ret;
+}
+
+/** Similar to strncpy(), except this version ensures that the destination buffer is NUL-terminated in all cases.
  *  @param dst buffer to copy characters into
  *  @param src buffer to copy characters from
  *  @param dstLen How many bytes of writeable storage (dst) points to
@@ -1228,28 +1226,45 @@ static inline char * muscleStrncpy(char * dst, const char * src, size_t dstLen)
    return ret;
 }
 
-#if defined(_MSC_VER) && (_MSC_VER < 1900)
+/** A safer implementation of sprintf().
+  * @param buf The buffer to write characters into
+  * @param format the printf-style format-string to use when writing characters into (buf)
+  * @returns the number of characters written into (buf), not including the NUL terminator byte.
+  */
+template<size_t size>
+MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
+inline int muscleSprintf(char (&buf)[size], const char * format, ...)
+{
+   va_list args;
+   va_start(args, format);
+   const int ret = vsnprintf(buf, size, format, args);
+   va_end(args);
+   return muscleMin(ret, (int)(size-1));
+}
+
 /** Work-around for older versions of MSVC (pre-MSVC2015) that don't provide a proper vsnprintf() implementation
   * @param buf buffer to write into
   * @param bufLen how many bytes of writable space (buf) should point to
   * @param format printf()-style format string
-  * @returns the number of chars written
+  * @returns the number of chars written into (buf), not including the NUL terminator byte.
   */
+MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(3,4)
 static inline int muscleSnprintf(char * buf, size_t bufLen, const char * format, ...)
 {
    va_list va;
    va_start(va, format);
+#if defined(_MSC_VER) && (_MSC_VER < 1900)
 # pragma warning( push )
 # pragma warning( disable: 4996 )
    const int ret = _vsnprintf(buf, bufLen, format, va); // _vsnprintf() doesn't insert a NUL terminator if it fills the buffer entirely
 # pragma warning( pop )
+#else
+   const int ret = vsnprintf(buf, bufLen, format, va);  // vsnprintf() doesn't insert a NUL terminator if it fills the buffer entirely
+#endif
    if (bufLen > 0) buf[bufLen-1] = '\0';                // so we'll manually place a NUL byte just to make sure (buf) is terminated in all cases
    va_end(va);
-   return ret;
+   return muscleMin(ret, (int)(bufLen-1));
 }
-#else
-# define muscleSnprintf snprintf /**< On new Windows and non-Windows platforms, muscleSnprintf() is just a synonym for snprintf() */
-#endif
 
 #ifdef __cplusplus
 }; // end namespace muscle
