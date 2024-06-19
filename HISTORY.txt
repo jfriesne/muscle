@@ -37,6 +37,8 @@ key:  - new feature
      instead of macros for better namespace behavior.
    * Changed the implementation of muscleStrcpy() to use templates
      to enforce memory-safery, instead of just being a macro.
+   * Added a work-around to Hashtable.h to avoid a spurious compile-time
+     error regarding std::atomic under MSVC2017 and earlier.
 
 9.37 - Released 5/2/2024
    - Implemented the ustar extension in TarFileWriter to support file paths

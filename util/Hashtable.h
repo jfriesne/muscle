@@ -1065,7 +1065,13 @@ private:
       , _iterTailIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX)
       , _freeHeadIdx(MUSCLE_HASHTABLE_INVALID_SLOT_INDEX)
       , _table(NULL)
-      , _iterList(NULL) {/* empty */}
+      , _iterList(NULL)
+#if !defined(MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS) && !defined(MUSCLE_AVOID_CPLUSPLUS11) && defined(_MSC_VER) && (_MSC_VER < 1920)
+      , _iteratorThreadID(muscle_thread_id())  // workaround for spurious compile-time error in MSVC2017
+#endif
+   {
+      // empty
+   }
 
    ~HashtableBase() {Clear(true);}
 
