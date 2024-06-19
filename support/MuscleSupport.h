@@ -1182,7 +1182,6 @@ static inline FILE * muscleFopen(const char * path, const char * mode) {return f
 
 #ifdef __cplusplus
 namespace muscle {
-#endif
 
 /** Similar to strcpy(), except this version ensures that it won't write past the end of the destination buffer,
   * and that the destination buffer will be NUL-terminated in all cases.
@@ -1266,7 +1265,6 @@ static inline int muscleSnprintf(char * buf, size_t bufLen, const char * format,
    return muscleMin(ret, (int)(bufLen-1));
 }
 
-#ifdef __cplusplus
 }; // end namespace muscle
 #endif
 
