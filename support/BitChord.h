@@ -16,7 +16,7 @@ namespace muscle {
 #  define MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
 # endif
 // hack work-around for C++03 not having a nullptr keyword
-namespace muscle_private {extern const char * fake_nullptr[0];}
+namespace muscle_private {extern const char * fake_nullptr[1];}
 # define MUSCLE_BITCHORD_NULLPTR muscle_private::fake_nullptr
 #else
 # define MUSCLE_BITCHORD_NULLPTR nullptr

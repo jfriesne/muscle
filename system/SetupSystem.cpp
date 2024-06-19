@@ -175,7 +175,7 @@ static void CheckOp(uint32 numBytes, const void * orig, const void * swapOne, co
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
 namespace muscle_private
 {
-   const char * fake_nullptr[0] = {};  // dummy nullptr, solely for the use of the C++03 hack-around in BitChord.h
+   const char * fake_nullptr[1] = {NULL};  // dummy nullptr, solely for the use of the C++03 hack-around in BitChord.h
 }
 #else
 template<typename T> void VerifyTypeIsTrivial()
