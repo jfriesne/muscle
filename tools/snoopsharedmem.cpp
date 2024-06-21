@@ -23,8 +23,12 @@ int snoopsharedmemmain(const Message & args)
 
 
    const char * maxBytesStr = args.GetCstr("head");
-   const uint32 maxBytes    = maxBytesStr ? atol(maxBytesStr) : MUSCLE_NO_LIMIT;
-   if (maxBytes != MUSCLE_NO_LIMIT) LogTime(MUSCLE_LOG_INFO, "Limiting printouts to the first " UINT32_FORMAT_SPEC " bytes of the shared memory area.\n", maxBytes);
+   const uint32 maxBytesArg = maxBytesStr ? atol(maxBytesStr) : MUSCLE_NO_LIMIT;
+   if (maxBytesArg != MUSCLE_NO_LIMIT)
+   {
+      maxBytesToPrint = muscleMin(maxBytesToPrint, maxBytesArg);
+      LogTime(MUSCLE_LOG_INFO, "Limiting printouts to the first " UINT32_FORMAT_SPEC " bytes of the shared memory area.\n", maxBytesToPrint);
+   }
 
    const bool isClear = args.HasName("clear");
    if (isClear) LogTime(MUSCLE_LOG_INFO, "Will zero out the shared memory region after printing it\n");
