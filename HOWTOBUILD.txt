@@ -2,10 +2,8 @@ How to build a muscle server ("muscled")
 
 - If you wish to compile muscle.lib and muscled using cmake, do these commands (on any platform):
      cd muscle
-     mkdir _build
-     cd _build
-     cmake ..
-     cmake --build . --parallel 8
+     cmake -B _build -S .
+     cmake --build _build --parallel 8
 
 Alternatively, on MacOS/X and Linux systems you can build muscle the old-fashioned way:
      cd muscle/server
