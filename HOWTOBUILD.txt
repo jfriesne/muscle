@@ -5,13 +5,11 @@ How to build a muscle server ("muscled")
      mkdir _build
      cd _build
      cmake ..
-     make
-
-  (Under Windows, replace the "make" command above with "devenv /Build Release ALL_BUILD.vcxproj")
+     cmake --build . -j8
 
 Alternatively, on MacOS/X and Linux systems you can build muscle the old-fashioned way:
-
-- Simply cd to the 'server' folder and type 'make'.
+     cd muscle/server
+     make -j8
 
 When the compile finishes, you will have an executable named
 'muscled' (or 'muscled.exe' under Windows).  To start the server,
