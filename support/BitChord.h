@@ -22,8 +22,8 @@ namespace muscle_private {extern const char * fake_nullptr[1];}
 # define MUSCLE_BITCHORD_NULLPTR nullptr
 #endif
 
-/** A templated class for implement an N-bit-long bit-chord.  Useful for doing efficient parallel boolean operations
-  * on bits-strings of lengths that can't fit in any of the standard integer types, and also for holding bit-shifted
+/** A templated class that implements an N-bit-long bit-chord.  Useful for doing efficient parallel boolean operations
+  * on bits-strings of lengths that can't fit in any of the standard integer types, and also for holding enumerated
   * boolean flags in a "safe" container so that you can query or manipulate the flags via human-readable method-calls
   * instead of easy-to-get-wrong bit-shifting operators.
   *
@@ -38,7 +38,7 @@ namespace muscle_private {extern const char * fake_nullptr[1];}
 template <uint32 NumBits, class TagClass=Void, const char * optLabelArray[NumBits]=MUSCLE_BITCHORD_NULLPTR> class MUSCLE_NODISCARD BitChord : public PseudoFlattenable<BitChord<NumBits, TagClass, optLabelArray> >
 {
 public:
-   /** Default constructor */
+   /** Default constructor - Sets all bits to zero */
    MUSCLE_CONSTEXPR_17 BitChord() {ClearAllBits();}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11_BITCHORD

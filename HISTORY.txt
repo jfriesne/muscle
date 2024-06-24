@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-9.40 -
+9.40 - Released 6/24/2024
    - Added a MUSCLE_STATIC_ASSERT_ARRAY_LENGTH macro to support/MuscleSupport.h
      so that array declarations can error out at compile time if they don't
      contain the expected number of values.
