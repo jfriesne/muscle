@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a MUSCLE_NEVER_RETURNS_NULL macro that can be used to tag functions
+     or methods that will never return a NULL pointer under any circumstances
+     (to enable a compiler warning when their caller tests against NULL)
+
 9.40 - Released 6/24/2024
    - Added a MUSCLE_STATIC_ASSERT_ARRAY_LENGTH macro to support/MuscleSupport.h
      so that array declarations can error out at compile time if they don't

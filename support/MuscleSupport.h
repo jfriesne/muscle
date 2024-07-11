@@ -136,6 +136,17 @@
 # define MUSCLE_NODISCARD
 #endif
 
+#ifndef MUSCLE_NEVER_RETURNS_NULL
+#  if defined(__clang__) || defined(__GNUC__)
+#   define MUSCLE_NEVER_RETURNS_NULL __attribute__((returns_nonnull))
+# endif
+#endif
+
+// If all else fails, we'll just make it a no-op
+#ifndef MUSCLE_NEVER_RETURNS_NULL
+# define MUSCLE_NEVER_RETURNS_NULL
+#endif
+
 #if !defined(MUSCLE_AVOID_STDINT) && (defined(MUSCLE_AVOID_CPLUSPLUS11) || (defined(_MSC_VER) && (_MSC_VER < 1800)))
 # define MUSCLE_AVOID_STDINT  // No sense trying to use cstdint on older compilers that we know do not provide it
 #endif
