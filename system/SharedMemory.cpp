@@ -75,8 +75,8 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
 #elif defined(WIN32)
    if (keyString == NULL)
    {
-      char buf[64];
-      muscleSprintf(buf, INT32_FORMAT_SPEC, GetTickCount());  // No user-supplied name?  We'll pick an arbitrary name then
+      char buf[128];
+      muscleSprintf(buf, UINT64_FORMAT_SPEC, GetTickCount64());  // No user-supplied name?  We'll pick an arbitrary name then
       keyString = buf;
    }
    _areaName = keyString;
