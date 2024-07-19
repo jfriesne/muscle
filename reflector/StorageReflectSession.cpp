@@ -1762,9 +1762,7 @@ StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const Strin
    {
       // Note that we don't deal with the index-cloning here; we do it separately (below) instead, for efficiency
       SetDataNodeFlags subFlags = flags;
-      subFlags.SetBit(SETDATANODE_FLAG_DONTOVERWRITEDATA);
-      subFlags.ClearBit(SETDATANODE_FLAG_DONTCREATENODE);
-      subFlags.ClearBit(SETDATANODE_FLAG_ADDTOINDEX);
+      subFlags.ClearBits(SETDATANODE_FLAG_DONTCREATENODE, SETDATANODE_FLAG_ADDTOINDEX);
       if (iter.GetValue()()) MRETURN_ON_ERROR(CloneDataNodeSubtree(*iter.GetValue()(), destPath+'/'+(*iter.GetKey()), subFlags, NULL, optPruner));
    }
 

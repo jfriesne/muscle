@@ -360,8 +360,8 @@ protected:
     * @param sourceNode Reference to a DataNode to clone.
     * @param destPath Path of where the newly created node subtree will appear.  Should be relative to our home node.
     * @param flags optional bit-chord of SETDATANODE_FLAG_* flags to modify our behavior.  Defaults to no-flags-set.
-    * @param optInsertBefore If (addToTargetIndex) is true, this argument will be passed on to InsertOrderedChild().
-    *                        Otherwise, this argument is ignored.
+    * @param optInsertBefore If the SETDATANODE_FLAG_ADDTOINDEX flag is set, this argument will be passed on to
+    *                        InsertOrderedChild().  Otherwise, this argument is ignored.
     * @param optPruner If non-NULL, this object can be used as a callback to prune the traversal or filter the MessageRefs cloned.
     * @return B_NO_ERROR on success, or an error code on failure (may leave a partially cloned subtree on failure)
     */

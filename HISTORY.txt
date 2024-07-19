@@ -8,6 +8,10 @@ key:  - new feature
    - Added a MUSCLE_NEVER_RETURNS_NULL macro that can be used to tag functions
      or methods that will never return a NULL pointer under any circumstances
      (to enable a compiler warning when their caller tests against NULL)
+   o Modified StorageReflectSession::CloneDataNodeSubtree() to no longer set
+     the SETDATANODE_FLAG_DONTOVERWRITEDATA flag when recursing to children.
+     That way, it can be used to update existing subtrees as well as create
+     new ones.
 
 9.40 - Released 6/24/2024
    - Added a MUSCLE_STATIC_ASSERT_ARRAY_LENGTH macro to support/MuscleSupport.h
