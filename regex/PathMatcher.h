@@ -3,6 +3,7 @@
 #ifndef MusclePathMatcher_h
 #define MusclePathMatcher_h
 
+#include "util/CountedObject.h"
 #include "util/Queue.h"
 #include "regex/QueryFilter.h"
 #include "regex/StringMatcher.h"
@@ -30,6 +31,8 @@ public:
 
 private:
    Queue<StringMatcherRef> _queue;
+
+   DECLARE_COUNTED_OBJECT(StringMatcherQueue);
 };
 DECLARE_REFTYPES(StringMatcherQueue);
 
@@ -82,6 +85,8 @@ public:
 private:
    StringMatcherQueueRef _parser;
    ConstQueryFilterRef _filter;
+
+   DECLARE_COUNTED_OBJECT(PathMatcherEntry);
 };
 
 /** This class is used to do efficient regex-pattern-matching of one or more query strings (eg ".*./.*./j*remy/fries*")
@@ -189,6 +194,8 @@ public:
 private:
    Hashtable<uint32, Hashtable<String, PathMatcherEntry> > _entries;
    uint32 _numFilters;  // count how many filters are installed; so we can optimize when there are none
+
+   DECLARE_COUNTED_OBJECT(PathMatcherEntry);
 };
 DECLARE_REFTYPES(PathMatcher);
 

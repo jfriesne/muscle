@@ -5,6 +5,7 @@
 
 #include <sys/types.h>
 #include "support/BitChord.h"
+#include "util/CountedObject.h"
 #include "util/Queue.h"
 #include "util/RefCount.h"
 #include "util/String.h"
@@ -166,6 +167,8 @@ private:
    String _pattern;
    regex_t _regExp;
    Queue<IDRange> _ranges;
+
+   DECLARE_COUNTED_OBJECT(StringMatcher);
 };
 DECLARE_REFTYPES(StringMatcher);
 

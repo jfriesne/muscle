@@ -281,6 +281,8 @@ protected:
       MUSCLE_NODISCARD bool DoDirectChildLookup(TraversalContext & data, const DataNode & node, const String & key, int32 entryIdx, Hashtable<DataNode *, Void> & alreadyDid, int & depth);
       MUSCLE_NODISCARD bool PathMatches(DataNode & node, ConstMessageRef & optData, const PathMatcherEntry & entry, int rootDepth) const;
       MUSCLE_NODISCARD bool CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optKnownMatchingEntryIndex, int & depth);
+
+      DECLARE_COUNTED_OBJECT(NodePathMatcher);
    };
 
    friend class DataNode;
