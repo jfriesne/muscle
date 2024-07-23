@@ -12,6 +12,11 @@ key:  - new feature
      the SETDATANODE_FLAG_DONTOVERWRITEDATA flag when recursing to children.
      That way, it can be used to update existing subtrees as well as create
      new ones.
+   o Rewrote the PathMatcher class so that it now stores patterns of
+     different lengths in separate tables, rather than all together in a
+     single table.  That way it's possible to efficiently access only the
+     patterns that are relevant for a given node-depth, without having to
+     iterate past all of the irrelevant ones every time.
 
 9.40 - Released 6/24/2024
    - Added a MUSCLE_STATIC_ASSERT_ARRAY_LENGTH macro to support/MuscleSupport.h

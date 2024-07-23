@@ -26,9 +26,12 @@ void PathMatcher :: AdjustStringPrefix(String & path, const char * optPrepend) c
 status_t PathMatcher :: RemovePathString(const String & wildpath)
 {
    PathMatcherEntry temp;
-   if (_entries.Remove(wildpath, temp).IsOK())
+   const uint32 depth = GetPathDepth(wildpath());
+   Hashtable<String, PathMatcherEntry> * subTable = _entries.Get(depth);
+   if ((subTable)&&(subTable->Remove(wildpath, temp).IsOK()))
    {
       if (temp.GetFilter()()) _numFilters--;
+      if (subTable->IsEmpty()) (void) _entries.Remove(depth);
       return B_NO_ERROR;
    }
    return B_DATA_NOT_FOUND;
@@ -64,11 +67,19 @@ status_t PathMatcher :: PutPathString(const String & path, const ConstQueryFilte
             MRETURN_ON_ERROR(newQ->GetStringMatchers().AddTail(smRef));
             lastSlashPos = slashPos;
          }
-         if (_entries.Put(path, PathMatcherEntry(qRef, filter)).IsOK(ret))
+
+         const uint32 depth = newQ->GetStringMatchers().GetNumItems();
+         Hashtable<String, PathMatcherEntry> * subTable = _entries.GetOrPut(depth);
+         if (subTable == NULL) MRETURN_OUT_OF_MEMORY;
+
+         const PathMatcherEntry * oldPME = subTable->Get(path);
+         const bool alreadyHadFilter = ((oldPME)&&(oldPME->GetFilter()() != NULL));
+         if (subTable->Put(path, PathMatcherEntry(qRef, filter)).IsOK(ret))
          {
-            if (filter()) _numFilters++;
+            if ((alreadyHadFilter == false)&&(filter())) _numFilters++;
             return B_NO_ERROR;
          }
+         else if (subTable->IsEmpty()) (void) _entries.Remove(depth);
       }
    }
    return ret;
@@ -96,7 +107,8 @@ status_t PathMatcher :: PutPathsFromMessage(const char * pathFieldName, const ch
 
 status_t PathMatcher :: SetFilterForEntry(const String & path, const ConstQueryFilterRef & newFilter)
 {
-   PathMatcherEntry * pme = _entries.Get(path);
+   Hashtable<String, PathMatcherEntry> * subTable = _entries.Get(GetPathDepth(path()));
+   PathMatcherEntry * pme = subTable ? subTable->Get(path) : NULL;
    if (pme == NULL) return B_DATA_NOT_FOUND;
 
    if ((newFilter() != NULL) != (pme->GetFilter()() != NULL)) _numFilters += ((newFilter() != NULL) ? 1 : -1);  // FogBugz #5803
@@ -113,16 +125,25 @@ status_t PathMatcher :: PutPathFromString(const String & str, const ConstQueryFi
 
 status_t PathMatcher :: PutPathsFromMatcher(const PathMatcher & matcher)
 {
-   TCHECKPOINT;
-
    status_t ret;
-   for (HashtableIterator<String, PathMatcherEntry> iter(matcher.GetEntries(), HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+   for (HashtableIterator<uint32, Hashtable<String, PathMatcherEntry> > iter(matcher.GetEntries(), HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
-      if (_entries.Put(iter.GetKey(), iter.GetValue()).IsOK(ret))
+      for (HashtableIterator<String, PathMatcherEntry> subIter(iter.GetValue(), HTIT_FLAG_NOREGISTER); subIter.HasData(); subIter++)
       {
-         if (iter.GetValue().GetFilter()()) _numFilters++;
+         const String & pathStr = subIter.GetKey();
+         Hashtable<String, PathMatcherEntry> * subTable = _entries.GetOrPut(iter.GetKey());
+         const PathMatcherEntry * prevVal = subTable ? subTable->Get(pathStr) : NULL;
+         const bool alreadyHadFilter = ((prevVal)&&(prevVal->GetFilter()() != NULL));
+         if ((subTable)&&(subTable->Put(pathStr, subIter.GetValue()).IsOK(ret)))
+         {
+            if ((alreadyHadFilter == false)&&(subIter.GetValue().GetFilter()())) _numFilters++;
+         }
+         else
+         {
+            if ((subTable)&&(subTable->IsEmpty())) (void) _entries.Remove(iter.GetKey()); // roll back!
+            break;
+         }
       }
-      else break;
    }
    return ret;
 }
@@ -132,10 +153,10 @@ bool PathMatcher :: MatchesPath(const char * path, const Message * optMessage, c
    TCHECKPOINT;
 
    const uint32 numClauses = GetPathDepth(path);
-   for (HashtableIterator<String, PathMatcherEntry> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+   for (HashtableIterator<String, PathMatcherEntry> iter(_entries[numClauses], HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const StringMatcherQueue * nextSubscription = iter.GetValue().GetParser()();
-      if ((nextSubscription)&&(nextSubscription->GetStringMatchers().GetNumItems() == numClauses))
+      if (nextSubscription)
       {
          bool matched = true;  // default
 

@@ -7,8 +7,8 @@
 
 namespace muscle {
 
-#define DEFAULT_PATH_PREFIX "*/*"  // when we get a path name without a leading '/', prepend this
-#define DEFAULT_MAX_SUBSCRIPTION_MESSAGE_SIZE   50   // no more than 50 items/update message, please
+#define DEFAULT_PATH_PREFIX "*/*"                // when we get a node-path without a leading '/', prepend this
+#define DEFAULT_MAX_SUBSCRIPTION_MESSAGE_SIZE 50 // no more than this-many items per update-message, please
 
 // field under which we file our shared data in the central-state message
 static const String SRS_SHARED_DATA = "srs_shared";
@@ -646,7 +646,8 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
 
                   const String path = fn.Substring(_subscribePrefix.Length());
                   String fixPath(path); _subscriptions.AdjustStringPrefix(fixPath, DEFAULT_PATH_PREFIX);
-                  const PathMatcherEntry * e = _subscriptions.GetEntries().Get(fixPath);
+                  const uint32 depth = GetPathDepth(fixPath());
+                  const PathMatcherEntry * e = _subscriptions.GetEntries()[depth].Get(fixPath);
                   if (e)
                   {
                      const QueryFilter * subscriptionFilter = e->GetFilter()();
@@ -1421,7 +1422,10 @@ bool
 StorageReflectSession :: NodePathMatcher ::
 MatchesNode(DataNode & node, ConstMessageRef & optData, int rootDepth) const
 {
-   for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()); iter.HasData(); iter++) if (PathMatches(node, optData, iter.GetValue(), rootDepth)) return true;
+   const int32 relativeDepth = ((int32)node.GetDepth())-rootDepth;
+   if (relativeDepth >= 0)
+      for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()[relativeDepth]); iter.HasData(); iter++)
+         if (PathMatches(node, optData, iter.GetValue(), rootDepth)) return true;
    return false;
 }
 
@@ -1429,11 +1433,13 @@ uint32
 StorageReflectSession :: NodePathMatcher ::
 GetMatchCount(DataNode & node, const Message * optData, int rootDepth) const
 {
-   TCHECKPOINT;
-
    uint32 matchCount = 0;
-   DummyConstMessageRef fakeRef(optData);
-   for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()); iter.HasData(); iter++) if (PathMatches(node, fakeRef, iter.GetValue(), rootDepth)) matchCount++;
+   const int32 relativeDepth = ((int32)node.GetDepth())-rootDepth;
+   if (relativeDepth >= 0)
+   {
+      DummyConstMessageRef fakeRef(optData);
+      for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()[relativeDepth]); iter.HasData(); iter++) if (PathMatches(node, fakeRef, iter.GetValue(), rootDepth)) matchCount++;
+   }
    return matchCount;
 }
 
@@ -1470,20 +1476,28 @@ DoTraversalAux(TraversalContext & data, DataNode & node)
 {
    TCHECKPOINT;
 
-   int depth = node.GetDepth();
+   int depth = node.GetDepth();  // deliberately non-const here
    bool parsersHaveWildcards = false;  // optimistic default
    {
+      const int32 relativeDepth = depth-data.GetRootDepth();
+
       // If none of our parsers are using wildcarding at our current level, we can use direct hash lookups (faster)
-      for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()); iter.HasData(); iter++)
+      for (HashtableIterator<uint32, Hashtable<String, PathMatcherEntry> > iter(GetEntries()); ((parsersHaveWildcards == false)&&(iter.HasData())); iter++)
       {
-         const StringMatcherQueue * nextQueue = iter.GetValue().GetParser()();
-         if ((nextQueue)&&((int)nextQueue->GetStringMatchers().GetNumItems() > depth-data.GetRootDepth()))
+         if ((int32)iter.GetKey() <= relativeDepth) continue;
+
+         for (HashtableIterator<String, PathMatcherEntry> subIter(iter.GetValue()); subIter.HasData(); subIter++)
          {
-            const StringMatcher * nextMatcher = nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
-            if ((nextMatcher == NULL)||((nextMatcher->IsPatternUnique() == false)&&(nextMatcher->IsPatternListOfUniqueValues() == false)))
+            const StringMatcherQueue * nextQueue = subIter.GetValue().GetParser()();
+            if (nextQueue)
             {
-               parsersHaveWildcards = true;  // Oops, there will be some pattern matching involved, gotta iterate
-               break;
+               // (relativeDepth) is guaranteed to be a valid index, because otherwise we would have continued at the first line of our outer loop, above
+               const StringMatcher * nextMatcher = nextQueue->GetStringMatchers().GetItemAt(relativeDepth)->GetItemPointer();
+               if ((nextMatcher == NULL)||((nextMatcher->IsPatternUnique() == false)&&(nextMatcher->IsPatternListOfUniqueValues() == false)))
+               {
+                  parsersHaveWildcards = true;  // Oops, there will be some pattern matching involved, gotta iterate
+                  break;
+               }
             }
          }
       }
@@ -1501,44 +1515,51 @@ DoTraversalAux(TraversalContext & data, DataNode & node)
       String scratchStr;
       Hashtable<DataNode *, Void> alreadyDid;  // To make sure we don't do the same child twice (could happen if two matchers are the same)
       int32 entryIdx = 0;
-      for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()); iter.HasData(); iter++)
+      const int32 relativeDepth = depth-data.GetRootDepth();
+      for (HashtableIterator<uint32, Hashtable<String, PathMatcherEntry> > iter(GetEntries()); iter.HasData(); iter++)
       {
-         scratchStr.Clear();  // otherwise we might get leftover data from the previous PathMatcherEntry in the iteration
+         if ((int32)iter.GetKey() <= relativeDepth) continue;
 
-         const StringMatcherQueue * nextQueue = iter.GetValue().GetParser()();
-         if ((nextQueue)&&((int)nextQueue->GetStringMatchers().GetNumItems() > depth-data.GetRootDepth()))
+         for (HashtableIterator<String, PathMatcherEntry> subIter(iter.GetValue()); subIter.HasData(); subIter++)
          {
-            const StringMatcher * nextMatcher = nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
-            const String & key = nextMatcher->GetPattern();
-            if (nextMatcher->IsPatternListOfUniqueValues())
+            scratchStr.Clear();  // otherwise we might get leftover data from the previous PathMatcherEntry in the iteration
+
+            const StringMatcherQueue * nextQueue = subIter.GetValue().GetParser()();
+            if (nextQueue)
             {
-               // comma-separated-list-of-unique-values case
-               bool prevCharWasEscape = false;
-               const char * k = key();
-               while(*k)
+               // (relativeDepth) is guaranteed to be a valid index, because otherwise we would have continued at the first line of our outer loop, above
+               const StringMatcher * nextMatcher = nextQueue->GetStringMatchers().GetItemAt(relativeDepth)->GetItemPointer();
+               const String & key = nextMatcher->GetPattern();
+               if (nextMatcher->IsPatternListOfUniqueValues())
                {
-                  const char c = *k;
-                  const bool curCharIsEscape = ((c == '\\')&&(prevCharWasEscape == false));
-                  if (curCharIsEscape == false)
+                  // comma-separated-list-of-unique-values case
+                  bool prevCharWasEscape = false;
+                  const char * k = key();
+                  while(*k)
                   {
-                          if ((prevCharWasEscape)||(c != ',')) scratchStr += c;
-                     else if (scratchStr.HasChars())
+                     const char c = *k;
+                     const bool curCharIsEscape = ((c == '\\')&&(prevCharWasEscape == false));
+                     if (curCharIsEscape == false)
                      {
-                        if (DoDirectChildLookup(data, node, scratchStr, entryIdx, alreadyDid, depth)) return depth;
-                        scratchStr.Clear();
+                             if ((prevCharWasEscape)||(c != ',')) scratchStr += c;
+                        else if (scratchStr.HasChars())
+                        {
+                           if (DoDirectChildLookup(data, node, scratchStr, entryIdx, alreadyDid, depth)) return depth;
+                           scratchStr.Clear();
+                        }
                      }
+                     prevCharWasEscape = curCharIsEscape;
+                     k++;
                   }
-                  prevCharWasEscape = curCharIsEscape;
-                  k++;
+                  if (scratchStr.HasChars())
+                  {
+                     if (DoDirectChildLookup(data, node, scratchStr, entryIdx, alreadyDid, depth)) return depth;
+                  }
                }
-               if (scratchStr.HasChars())
-               {
-                  if (DoDirectChildLookup(data, node, scratchStr, entryIdx, alreadyDid, depth)) return depth;
-               }
+               else if (DoDirectChildLookup(data, node, key, entryIdx, alreadyDid, depth)) return depth;  // single-value-lookup case (most efficient)
             }
-            else if (DoDirectChildLookup(data, node, key, entryIdx, alreadyDid, depth)) return depth;  // single-value-lookup case (most efficient)
+            entryIdx++;
          }
-         entryIdx++;
       }
    }
 
@@ -1573,79 +1594,85 @@ CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optK
 
       // Try all parsers and see if any of them match at this level
       int32 entryIdx = 0;
-      for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()); iter.HasData(); iter++)
+      const int32 relativeDepth = depth-data.GetRootDepth();
+      for (HashtableIterator<uint32, Hashtable<String, PathMatcherEntry> > iter(GetEntries()); iter.HasData(); iter++)
       {
-         const StringMatcherQueue * nextQueue = iter.GetValue().GetParser()();
-         if (nextQueue)
-         {
-            const int numClausesInParser = nextQueue->GetStringMatchers().GetNumItems();
-            if (numClausesInParser > depth-data.GetRootDepth())
-            {
-               const StringMatcher * nextMatcher = (entryIdx==optKnownMatchingEntryIdx) ? NULL : nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
-               if ((nextMatcher == NULL)||(nextMatcher->Match(nextChildName())))
-               {
-                  // A match!  Now, depending on whether this match is the
-                  // last clause in the path or not, we either do the callback or descend.
-                  // But we make sure not to do either of these things more than once per node.
-                  if (depth == data.GetRootDepth()+numClausesInParser-1)
-                  {
-                     if (matched == false)
-                     {
-                        // when there is more than one string being used to match,
-                        // it's possible that two or more strings can "conspire"
-                        // to match a node even though any given string doesn't match it.
-                        // For example, if we have the match-strings:
-                        //    /j*/k*
-                        //    /k*/j*
-                        // The node /jeremy/jenny would match, even though it isn't
-                        // specified by any of the subscription strings.  This is bad.
-                        // So for multiple match-strings, we do an additional check
-                        // to make sure there is a NodePathMatcher for this node.
-                        ConstMessageRef constDataRef;
-                        if (data.IsUseFiltersOkay()) constDataRef = nextChild->GetData();
-                        if (((GetEntries().GetNumItems() == 1)&&((data.IsUseFiltersOkay() == false)||(iter.GetValue().GetFilter()() == NULL)))||(MatchesNode(*nextChild, constDataRef, data.GetRootDepth())))
-                        {
-                           int nextDepth;
-                           if ((constDataRef() == NULL)||(constDataRef() == nextChild->GetData()())) nextDepth = data.CallCallbackMethod(*nextChild);  // the usual/simple case
-                           else
-                           {
-                              // Hey, the QueryFilter retargetted the ConstMessageRef!  So we need the callback to see the modified Message, not the original one.
-                              // We'll do that the sneaky way, by temporarily swapping out (nextChild)'s MessageRef, and then swapping it back in afterwards.
-                              ConstMessageRef origNodeMsg = nextChild->GetData();
-                              nextChild->SetData(constDataRef, NULL, DataNode::SetDataFlags());
-                              nextDepth = data.CallCallbackMethod(*nextChild);
-                              nextChild->SetData(origNodeMsg, NULL, DataNode::SetDataFlags());
-                           }
+         if ((int32)iter.GetKey() <= relativeDepth) continue;
 
+         for (HashtableIterator<String, PathMatcherEntry> subIter(iter.GetValue()); subIter.HasData(); subIter++)
+         {
+            const StringMatcherQueue * nextQueue = subIter.GetValue().GetParser()();
+            if (nextQueue)
+            {
+               const uint32 numClausesInParser = nextQueue->GetStringMatchers().GetNumItems();
+               if ((int32)numClausesInParser > relativeDepth)
+               {
+                  const StringMatcher * nextMatcher = (entryIdx==optKnownMatchingEntryIdx) ? NULL : nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
+                  if ((nextMatcher == NULL)||(nextMatcher->Match(nextChildName())))
+                  {
+                     // A match!  Now, depending on whether this match is the
+                     // last clause in the path or not, we either do the callback or descend.
+                     // But we make sure not to do either of these things more than once per node.
+                     if (depth == (int32)(data.GetRootDepth()+numClausesInParser-1))
+                     {
+                        if (matched == false)
+                        {
+                           // when there is more than one string being used to match,
+                           // it's possible that two or more strings can "conspire"
+                           // to match a node even though any given string doesn't match it.
+                           // For example, if we have the match-strings:
+                           //    /j*/k*
+                           //    /k*/j*
+                           // The node /jeremy/jenny would match, even though it isn't
+                           // specified by any of the subscription strings.  This is bad.
+                           // So for multiple match-strings, we do an additional check
+                           // to make sure there is a NodePathMatcher for this node.
+                           ConstMessageRef constDataRef;
+                           if (data.IsUseFiltersOkay()) constDataRef = nextChild->GetData();
+                           if (((GetEntries().GetNumItems() == 1)&&((data.IsUseFiltersOkay() == false)||(subIter.GetValue().GetFilter()() == NULL)))||(MatchesNode(*nextChild, constDataRef, data.GetRootDepth())))
+                           {
+                              int nextDepth;
+                              if ((constDataRef() == NULL)||(constDataRef() == nextChild->GetData()())) nextDepth = data.CallCallbackMethod(*nextChild);  // the usual/simple case
+                              else
+                              {
+                                 // Hey, the QueryFilter retargetted the ConstMessageRef!  So we need the callback to see the modified Message, not the original one.
+                                 // We'll do that the sneaky way, by temporarily swapping out (nextChild)'s MessageRef, and then swapping it back in afterwards.
+                                 ConstMessageRef origNodeMsg = nextChild->GetData();
+                                 nextChild->SetData(constDataRef, NULL, DataNode::SetDataFlags());
+                                 nextDepth = data.CallCallbackMethod(*nextChild);
+                                 nextChild->SetData(origNodeMsg, NULL, DataNode::SetDataFlags());
+                              }
+
+                              if (nextDepth < ((int)nextChild->GetDepth())-1)
+                              {
+                                 depth = nextDepth;
+                                 return true;
+                              }
+                              matched = true;
+                              if (recursed) break;  // done both possible actions, so be lazy
+                           }
+                        }
+                     }
+                     else
+                     {
+                        if (recursed == false)
+                        {
+                           // If we match a non-terminal clause in the path, recurse to the child.
+                           const int nextDepth = DoTraversalAux(data, *nextChild);
                            if (nextDepth < ((int)nextChild->GetDepth())-1)
                            {
                               depth = nextDepth;
                               return true;
                            }
-                           matched = true;
-                           if (recursed) break;  // done both possible actions, so be lazy
+                           recursed = true;
+                           if (matched) break;  // done both possible actions, so be lazy
                         }
-                     }
-                  }
-                  else
-                  {
-                     if (recursed == false)
-                     {
-                        // If we match a non-terminal clause in the path, recurse to the child.
-                        const int nextDepth = DoTraversalAux(data, *nextChild);
-                        if (nextDepth < ((int)nextChild->GetDepth())-1)
-                        {
-                           depth = nextDepth;
-                           return true;
-                        }
-                        recursed = true;
-                        if (matched) break;  // done both possible actions, so be lazy
                      }
                   }
                }
             }
+            entryIdx++;
          }
-         entryIdx++;
       }
    }
    return false;

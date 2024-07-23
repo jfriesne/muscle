@@ -177,14 +177,17 @@ public:
      */
    status_t SetFilterForEntry(const String & path, const ConstQueryFilterRef & newFilter);
 
-   /** Returns a read-only reference to our table of PathMatcherEntries. */
-   MUSCLE_NODISCARD const Hashtable<String, PathMatcherEntry> & GetEntries() const {return _entries;}
+   /** Returns a read-only reference to our table of PathMatcherEntries.
+     * @note the keys in the returned table are the number-of-clauses-in-a-paths that corresponding patterns match against.
+     *       Values in the table are sub-tables of (pattern-strings to their corresponding PathMatcherEntry objects).
+     */
+   MUSCLE_NODISCARD const Hashtable<uint32, Hashtable<String, PathMatcherEntry> > & GetEntries() const {return _entries;}
 
    /** Returns the number of QueryFilters we are currently using. */
    MUSCLE_NODISCARD uint32 GetNumFilters() const {return _numFilters;}
 
 private:
-   Hashtable<String, PathMatcherEntry> _entries;
+   Hashtable<uint32, Hashtable<String, PathMatcherEntry> > _entries;
    uint32 _numFilters;  // count how many filters are installed; so we can optimize when there are none
 };
 DECLARE_REFTYPES(PathMatcher);
