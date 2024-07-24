@@ -11,9 +11,13 @@ const char * DataNode :: _setDataFlagsLabels[] = {
 };
 
 DataNode :: DataNode()
-   : _children(NULL)
+   : _parent(NULL)
+   , _cachedDataChecksum(0)
+   , _children(NULL)
    , _orderedIndex(NULL)
-   , _orderedCounter(0L)
+   , _orderedCounter(0)
+   , _depth(0)
+   , _maxChildIDHint(0)
 {
    MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(DataNode::_setDataFlagsLabels, NUM_SET_DATA_FLAGS);  // placed here only to get around privacy restrictions
 }
