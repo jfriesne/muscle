@@ -74,14 +74,13 @@ InitSharedData()
 
    Message & state = GetCentralState();
 
-   void * sp = NULL; (void) state.FindPointer(SRS_SHARED_DATA, sp);
-   StorageReflectSession::StorageReflectSessionSharedData * sd = (StorageReflectSession::StorageReflectSessionSharedData *) sp;
+   StorageReflectSession::StorageReflectSessionSharedData * sd = reinterpret_cast<StorageReflectSession::StorageReflectSessionSharedData *>(state.GetPointer(SRS_SHARED_DATA));
    if (sd) return sd;
 
    // oops, there's no shared data object!  We must be the first session.
    // So we'll create the root node and the shared data object, and
    // add it to the central-state Message ourself.
-   DataNodeRef globalRoot = GetNewDataNode("", GetEmptyMessageRef());
+   DataNodeRef globalRoot = GetNewDataNode(GetEmptyString(), GetEmptyMessageRef());
    if (globalRoot())
    {
       sd = new StorageReflectSessionSharedData(globalRoot);
@@ -103,7 +102,7 @@ AttachedToServer()
    if (_sharedData == NULL) return B_OUT_OF_MEMORY;
 
    Message & state = GetCentralState();
-   const String & hostname = GetHostName();
+   const String & hostname  = GetHostName();
    const String & sessionid = GetSessionIDString();
 
    // Is there already a node for our hostname?
@@ -142,7 +141,7 @@ AttachedToServer()
       {
          char temp[32]; muscleSprintf(temp, "priv%i", p);
          const String * privPattern;
-         for (int q=0; (state.FindString(temp, q, &privPattern).IsOK()); q++)
+         for (int32 q=0; (state.FindString(temp, q, &privPattern).IsOK()); q++)
          {
             if (StringMatcher(*privPattern).Match(matchHostname()))
             {
@@ -570,12 +569,10 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
             {
                if (msg.HasName(PR_NAME_KEYS, B_STRING_TYPE))
                {
-                  int32 maxDepth = -1;  (void) msg.FindInt32(PR_NAME_MAXDEPTH, maxDepth);
-
                   NodePathMatcher matcher;
                   (void) matcher.PutPathsFromMessage(PR_NAME_KEYS, PR_NAME_FILTERS, msg, DEFAULT_PATH_PREFIX);
 
-                  GetSubtreesCallbackArgs args(reply(), maxDepth);
+                  GetSubtreesCallbackArgs args(reply(), msg.GetInt32(PR_NAME_MAXDEPTH, -1));
                   (void) matcher.DoTraversal((PathMatchCallback)GetSubtreesCallbackFunc, this, GetGlobalRoot(), true, &args);
                }
                MessageReceivedFromSession(*this, reply, NULL);  // send the result back to our client
@@ -765,8 +762,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
             if (msg.FindFlat<SetDataNodeFlags>(PR_NAME_FLAGS, flags).IsError())
             {
                uint32 cStyleFlags = 0;
-                    if (msg.FindInt32(PR_NAME_FLAGS, cStyleFlags).IsOK()) flags.SetWord(0, cStyleFlags);  // Since C-based clients might find it difficult to flatten a BitChord
-               else if (msg.HasName(PR_NAME_SET_QUIETLY))                 flags.SetBit(SETDATANODE_FLAG_QUIET);
+               if (msg.FindInt32(PR_NAME_FLAGS, cStyleFlags).IsOK()) flags.SetWord(0, cStyleFlags);  // Since C-based clients might find it difficult to flatten a BitChord
             }
 
             for (MessageFieldNameIterator it = msg.GetFieldNameIterator(B_MESSAGE_TYPE); it.HasData(); it++)
@@ -1607,7 +1603,7 @@ CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optK
                const uint32 numClausesInParser = nextQueue->GetStringMatchers().GetNumItems();
                if ((int32)numClausesInParser > relativeDepth)
                {
-                  const StringMatcher * nextMatcher = (entryIdx==optKnownMatchingEntryIdx) ? NULL : nextQueue->GetStringMatchers().GetItemAt(depth-data.GetRootDepth())->GetItemPointer();
+                  const StringMatcher * nextMatcher = (entryIdx==optKnownMatchingEntryIdx) ? NULL : nextQueue->GetStringMatchers().GetItemAt(relativeDepth)->GetItemPointer();
                   if ((nextMatcher == NULL)||(nextMatcher->Match(nextChildName())))
                   {
                      // A match!  Now, depending on whether this match is the
@@ -1708,7 +1704,7 @@ JettisonOutgoingSubtrees(const String * optMatchString)
             if ((msg)&&(msg->what == PR_RESULT_DATATREES))
             {
                bool removeIt = false;
-               const char * batchID = NULL; (void) msg->FindString(PR_NAME_TREE_REQUEST_ID, &batchID);
+               const char * batchID = msg->GetCstr(PR_NAME_TREE_REQUEST_ID);
                if (optMatchString)
                {
                   if ((batchID)&&(sm.Match(batchID))) removeIt = true;

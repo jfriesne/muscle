@@ -22,6 +22,8 @@ key:  - new feature
    o Updated DataNode ctor to default-initialize member-variables rather
      than relying on Init() to do that (since other methods could get called
      before Init() gets called, in some cases)
+   o Removed the deprecated constant PR_NAME_SET_QUIETLY.  (Use the
+     SETDATANODE_FLAG_QUIET SetDataNodeFlag instead)
 
 9.40 - Released 6/24/2024
    - Added a MUSCLE_STATIC_ASSERT_ARRAY_LENGTH macro to support/MuscleSupport.h
