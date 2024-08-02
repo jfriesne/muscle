@@ -3715,11 +3715,11 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator()
    , _currentKey(NULL)
    , _currentVal(NULL)
    , _flags(0)
+   , _prevIter(NULL)  // just to keep clang-tidy happy
+   , _nextIter(NULL)  // just to keep clang-tidy happy
    , _owner(NULL)
    , _scratchSpace(NULL)  // just to keep clang-tidy happy
    , _okayToUnsetThreadID(false)
-   , _prevIter(NULL)  // just to keep clang-tidy happy
-   , _nextIter(NULL)  // just to keep clang-tidy happy
 {
    // empty
 }
@@ -3727,11 +3727,11 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator()
 template <class KeyType, class ValueType, class HashFunctorType>
 HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableIterator & rhs)
    : _flags(0)
+   , _prevIter(NULL)  // just to keep clang-tidy happy
+   , _nextIter(NULL)  // just to keep clang-tidy happy
    , _owner(NULL)
    , _scratchSpace(NULL)  // just to keep clang-tidy happy
    , _okayToUnsetThreadID(false)
-   , _prevIter(NULL)  // just to keep clang-tidy happy
-   , _nextIter(NULL)  // just to keep clang-tidy happy
 {
    *this = rhs;
 }
@@ -3739,11 +3739,11 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const 
 template <class KeyType, class ValueType, class HashFunctorType>
 HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, uint32 flags)
    : _flags(flags)
+   , _prevIter(NULL)  // just to keep clang-tidy happy
+   , _nextIter(NULL)  // just to keep clang-tidy happy
    , _owner(&table)
    , _scratchSpace(NULL)  // just to keep clang-tidy happy
    , _okayToUnsetThreadID(false)
-   , _prevIter(NULL)  // just to keep clang-tidy happy
-   , _nextIter(NULL)  // just to keep clang-tidy happy
 {
    table.InitializeIterator(*this);
 }
@@ -3752,11 +3752,11 @@ template <class KeyType, class ValueType, class HashFunctorType>
 HT_UniversalSinkKeyRef
 HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, HT_SinkKeyParam startAt, uint32 flags)
    : _flags(flags)
+   , _prevIter(NULL)  // just to keep clang-tidy happy
+   , _nextIter(NULL)  // just to keep clang-tidy happy
    , _owner(&table)
    , _scratchSpace(NULL)  // just to keep clang-tidy happy
    , _okayToUnsetThreadID(false)
-   , _prevIter(NULL)  // just to keep clang-tidy happy
-   , _nextIter(NULL)  // just to keep clang-tidy happy
 {
    table.InitializeIteratorAt(*this, HT_ForwardKey(startAt));
 }
