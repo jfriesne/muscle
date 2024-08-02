@@ -21,7 +21,7 @@ public:
    virtual void Log(const LogCallbackArgs & a)
    {
       char temp[1024];
-      vsnprintf(temp, sizeof(temp), a.GetText(), a.GetArgList());
+      vsnprintf(temp, sizeof(temp), a.GetText(), a.GetArgList());  // NOLINT -- clang-tidy thinks tehe arg list is uninitialized by it's ok
       fprintf(stderr, "MyLogCallback::Log():  Got a severity-%i callback for text [%s]\n", a.GetLogLevel(), temp);
    }
 

@@ -1872,115 +1872,97 @@ int GetConsoleLogLevel()
    return _dcl.GetLogLevelThreshold();
 }
 
-status_t SetFileLogName(const String & logName)
+void SetFileLogName(const String & logName)
 {
-   MRETURN_ON_ERROR(LockLog());
-
+   MutexGuard mg(_logMutex);
    _dfl.SetLogFileName(logName);
    LogTime(MUSCLE_LOG_DEBUG, "File log name set to: %s\n", logName());
-   return UnlockLog();
 }
 
-status_t SetOldLogFilesPattern(const String & pattern)
+void SetOldLogFilesPattern(const String & pattern)
 {
-   MRETURN_ON_ERROR(LockLog());
+   MutexGuard mg(_logMutex);
 
    const uint32 numAdded = _dfl.AddPreExistingLogFiles(pattern);
    LogTime(MUSCLE_LOG_DEBUG, "Old Log Files pattern set to: [%s] (" UINT32_FORMAT_SPEC " files matched)\n", pattern(), numAdded);
-   return UnlockLog();
 }
 
-status_t SetFileLogMaximumSize(uint32 maxSizeBytes)
+void SetFileLogMaximumSize(uint32 maxSizeBytes)
 {
-   MRETURN_ON_ERROR(LockLog());
+   MutexGuard mg(_logMutex);
 
    _dfl.SetMaxLogFileSize(maxSizeBytes);
    if (maxSizeBytes == MUSCLE_NO_LIMIT) LogTime(MUSCLE_LOG_DEBUG, "File log maximum size set to: (unlimited).\n");
                                    else LogTime(MUSCLE_LOG_DEBUG, "File log maximum size set to: " UINT32_FORMAT_SPEC " bytes.\n", maxSizeBytes);
-   return UnlockLog();
 }
 
-status_t SetMaxNumLogFiles(uint32 maxNumLogFiles)
+void SetMaxNumLogFiles(uint32 maxNumLogFiles)
 {
-   MRETURN_ON_ERROR(LockLog());
+   MutexGuard mg(_logMutex);
 
    _dfl.SetMaxNumLogFiles(maxNumLogFiles);
    if (maxNumLogFiles == MUSCLE_NO_LIMIT) LogTime(MUSCLE_LOG_DEBUG, "Maximum number of log files set to: (unlimited).\n");
                                      else LogTime(MUSCLE_LOG_DEBUG, "Maximum number of log files to: " UINT32_FORMAT_SPEC "\n", maxNumLogFiles);
-   return UnlockLog();
 }
 
-status_t SetFileLogCompressionEnabled(bool enable)
+void SetFileLogCompressionEnabled(bool enable)
 {
-#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-   MRETURN_ON_ERROR(LockLog());
+   MutexGuard mg(_logMutex);
 
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    _dfl.SetFileCompressionEnabled(enable);
    LogTime(MUSCLE_LOG_DEBUG, "File log compression %s.\n", enable?"enabled":"disabled");
-   return UnlockLog();
 #else
-   if (enable)
-   {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Can not enable log file compression, MUSCLE was compiled without MUSCLE_ENABLE_ZLIB_ENCODING specified!\n");
-      return B_UNIMPLEMENTED;
-   }
-   else return B_NO_ERROR;
+   if (enable) LogTime(MUSCLE_LOG_CRITICALERROR, "Can not enable log file compression, MUSCLE was compiled without MUSCLE_ENABLE_ZLIB_ENCODING specified!\n");
 #endif
 }
 
 void CloseCurrentLogFile()
 {
-   status_t ret;
-   if (LockLog().IsOK(ret))
-   {
-      _dfl.CloseLogFile();
-      (void) UnlockLog();
-   }
+   MutexGuard mg(_logMutex);
+   _dfl.CloseLogFile();
 }
 
 // Note that the LogLock must be locked when this method is called!
 static void UpdateMaxLogLevel()
 {
    int maxLogThreshold = muscleMax(_dfl.GetLogLevelThreshold(), _dcl.GetLogLevelThreshold());
-   for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++)
+   for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const LogCallback * cb = iter.GetKey()();
       if (cb) maxLogThreshold = muscleMax(maxLogThreshold, cb->GetLogLevelThreshold());
    }
 
-   muscle_private::_maxLogThreshold = maxLogThreshold;
+   muscle_private::_maxLogThreshold = maxLogThreshold;  // NOLINT (otherwise clang-tidy complains about iter still being registered with _logCallbacks, which it isn't)
 }
 
-status_t SetFileLogLevel(int logLevel)
+void SetFileLogLevel(int logLevel)
 {
-   MRETURN_ON_ERROR(_dfl.SetLogLevelThreshold(logLevel));
+   MutexGuard mg(_logMutex);
+   _dfl.SetLogLevelThreshold(logLevel);
    LogTime(MUSCLE_LOG_DEBUG, "File logging level set to: %s\n", GetLogLevelName(logLevel));
-   return B_NO_ERROR;
 }
 
-status_t SetConsoleLogLevel(int logLevel)
+void SetConsoleLogLevel(int logLevel)
 {
-   MRETURN_ON_ERROR(_dcl.SetLogLevelThreshold(logLevel));
+   MutexGuard mg(_logMutex);
+   _dcl.SetLogLevelThreshold(logLevel);
    LogTime(MUSCLE_LOG_DEBUG, "Console logging level set to: %s\n", GetLogLevelName(logLevel));
-   return B_NO_ERROR;
 }
 
-status_t SetConsoleLogToStderr(bool toStderr)
+void SetConsoleLogToStderr(bool toStderr)
 {
-   MRETURN_ON_ERROR(LockLog());
+   MutexGuard mg(_logMutex);
 
    _dcl.SetConsoleLogToStderr(toStderr);
    LogTime(MUSCLE_LOG_DEBUG, "Console logging target set to: %s\n", _dcl.GetConsoleLogToStderr()?"stderr":"stdout");
-   return UnlockLog();
 }
 
-status_t LogCallback :: SetLogLevelThreshold(int logLevel)
+void LogCallback :: SetLogLevelThreshold(int logLevel)
 {
-   MRETURN_ON_ERROR(LockLog());
-
+   MutexGuard mg(_logMutex);
    _logLevelThreshold = logLevel;
    UpdateMaxLogLevel();
-   return UnlockLog();
 }
 
 void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & a)
@@ -2046,7 +2028,7 @@ status_t LogTimeAux(const char * sourceFile, const char * sourceFunction, int so
 status_t LogTimeAux(int ll, const char * fmt, ...)
 #endif
 {
-   const status_t lockRet = LockLog();
+   MutexGuard mg(_logMutex);
    if (_inWarnOutOfMemory.GetCount() < 2)  // avoid potential infinite recursion (while still allowing the first Out-of-memory message to attempt to get into the log)
    {
       // First, log the preamble
@@ -2074,21 +2056,20 @@ status_t LogTimeAux(int ll, const char * fmt, ...)
       }
 
       // Then log the actual message as supplied by the user
-      if (lockRet.IsOK()) DO_LOGGING_CALLBACKS(ll);
+      DO_LOGGING_CALLBACKS(ll);
    }
-   if (lockRet.IsOK()) (void) UnlockLog();
-   return lockRet;
+   return B_NO_ERROR;  // NOLINT (otherwise clang-tidy will complain that my HashtableIterator is still registered, which it isn't AFAICT)
 }
 
-status_t LogFlush()
+void LogFlush()
 {
-   TCHECKPOINT;
-
-   MRETURN_ON_ERROR(LockLog());
-
-   for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++) if (iter.GetKey()()) iter.GetKey()()->Flush();
-   return UnlockLog();
-}
+   MutexGuard mg(_logMutex);
+   for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++)
+   {
+      const LogCallbackRef & lcr = iter.GetKey();
+      if (lcr()) lcr()->Flush();
+   }
+} // NOLINT (otherwise clang-tidy will complain that my HashtableIterator is still registered, which it isn't AFAICT)
 
 status_t LogStackTrace(int ll, uint32 maxDepth)
 {
@@ -2116,7 +2097,7 @@ status_t LogStackTrace(int ll, uint32 maxDepth)
 
 status_t LogPlainAux(int ll, const char * fmt, ...)
 {
-   const status_t lockRet = LockLog();
+   MutexGuard mg(_logMutex);
    {
       // No way to get these, since #define Log() as a macro causes
       // nasty namespace collisions with other methods/functions named Log()
@@ -2127,34 +2108,32 @@ status_t LogPlainAux(int ll, const char * fmt, ...)
       const time_t when = time(NULL);
       if (ll <= _dfl.GetLogLevelThreshold()) DO_LOGGING_CALLBACK(_dfl);
       if (ll <= _dcl.GetLogLevelThreshold()) DO_LOGGING_CALLBACK(_dcl);
-      if (lockRet.IsOK()) DO_LOGGING_CALLBACKS(ll);
+      DO_LOGGING_CALLBACKS(ll);
    }
-   if (lockRet.IsOK()) (void) UnlockLog();
-   return lockRet;
+   return B_NO_ERROR;
 }
 
 status_t PutLogCallback(const LogCallbackRef & cb)
 {
-   MRETURN_ON_ERROR(LockLog());
+   MutexGuard mg(_logMutex);
    const status_t ret = _logCallbacks.PutWithDefault(cb);
    UpdateMaxLogLevel();
-   return ret | UnlockLog();
+   return ret;
 }
 
-status_t ClearLogCallbacks()
+void ClearLogCallbacks()
 {
-   MRETURN_ON_ERROR(LockLog());
+   MutexGuard mg(_logMutex);
    _logCallbacks.Clear();
    UpdateMaxLogLevel();
-   return UnlockLog();
 }
 
 status_t RemoveLogCallback(const LogCallbackRef & cb)
 {
-   MRETURN_ON_ERROR(LockLog());
+   MutexGuard mg(_logMutex);
    const status_t ret = _logCallbacks.Remove(cb);
    UpdateMaxLogLevel();
-   return ret | UnlockLog();
+   return ret;
 }
 
 #endif  // end !MUSCLE_INLINE_LOGGING section

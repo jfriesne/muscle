@@ -133,9 +133,9 @@ static int DoInteractiveTest()
 
          // For extra fun, let's put a half-way-done iterator here to see what happens
          printf("Concurrent: ");
-         HashtableIterator<int, String> iter(table);
          bool first = true;
-         if (table.HasItems())
+         HashtableIterator<int, String> iter(table);
+         if (iter.HasData())
          {
             const int32 offset = table.GetNumItems()/2;
             for (int i=offset-1; i>=0; i--)

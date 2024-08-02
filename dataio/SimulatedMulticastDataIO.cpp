@@ -217,7 +217,7 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
    DataFlattener flat(pingBuf, sizeof(pingBuf));  // trust, but verify
    flat.WriteInt64(SIMULATED_MULTICAST_CONTROL_MAGIC);
    flat.WriteInt32(whatCode);
-   if ((whatCode == SMDIO_COMMAND_PONG)&&(destIAP != _localAddressAndPort))  // no point telling myself about what I know
+   if ((_knownMembers.HasItems())&&(whatCode == SMDIO_COMMAND_PONG)&&(destIAP != _localAddressAndPort))  // no point telling myself about what I know
    {
       // Include the next (n) member-IAPs (not including our own) to the PONG's data so that the
       // receiver can add them all, even if he doesn't get all of the PONGs directly from everyone
@@ -227,7 +227,9 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
       for (uint32 count = 0; count < _knownMembers.GetNumItems(); count++)
       {
          // Go to next entry, wrapping around if necessary;
-         iter++; if (iter.HasData() == false) iter = _knownMembers.GetIterator();
+         iter++;
+         if (iter.HasData() == false) iter = _knownMembers.GetIterator();
+         if (iter.HasData() == false) continue;  // shouldn't be necessary, but otherwise clang-tidy complains
 
          // We don't want to send out our own IPAddressAndPort, since the receiver can get
          // that information from the UDP packet headers diretctly.

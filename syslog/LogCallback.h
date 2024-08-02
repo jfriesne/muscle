@@ -120,7 +120,7 @@ public:
      * @returns B_NO_ERROR on success, or an error value on failure.
      * Logging calls whose severity-value is greater than this value will not be passed to this callback.
      */
-   status_t SetLogLevelThreshold(int logLevelThreshold);
+   void SetLogLevelThreshold(int logLevelThreshold);
 
    /** Returns our current MUSCLE_LOG_* log level threshold.
      * Logging calls whose severity-value is greater than this value will not be passed to this callback.
@@ -191,10 +191,8 @@ status_t PutLogCallback(const LogCallbackRef & cbRef);
  */
 status_t RemoveLogCallback(const LogCallbackRef & cbRef);
 
-/** Removes all log callbacks from the callback set
- *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log-lock couldn't be locked.
- */
-status_t ClearLogCallbacks();
+/** Removes all custom log callbacks from the callback-set */
+void ClearLogCallbacks();
 
 /** This class is used to send log information to stdout.  An object of this class is instantiated
   * and used internally by MUSCLE, so typically you don't need to instantiate one yourself, but the class

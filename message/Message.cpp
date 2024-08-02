@@ -2945,11 +2945,12 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
       DefaultEndianConverter::Export(numItemsInTemplateField, buf); buf += sizeof(uint32);
       for (uint32 i=0; i<numItemsInTemplateField; i++)
       {
-         const Message * templateSubMsg   = static_cast<const Message *>(GetItemAtAsRefCountableRef(i)());
-         const Message * optPayloadSubMsg = (i<numItemsInPayloadField)?static_cast<const Message *>(optPayloadField->GetItemAtAsRefCountableRef(i)()):NULL;
-         const Message * srcMsg           = optPayloadSubMsg?optPayloadSubMsg:templateSubMsg;
-
-         const uint32 subMsgSize = srcMsg->TemplatedFlattenedSize(*templateSubMsg);
+         const ConstRefCountableRef tmpSMRef = GetItemAtAsRefCountableRef(i);  // kept separate here to make clang-tidy happy
+         const Message * templateSubMsg      = static_cast<const Message *>(tmpSMRef());
+         const ConstRefCountableRef tmpPYRef = (i<numItemsInPayloadField) ? optPayloadField->GetItemAtAsRefCountableRef(i) : ConstRefCountableRef();
+         const Message * optPayloadSubMsg    = static_cast<const Message *>(tmpPYRef());
+         const Message * srcMsg              = optPayloadSubMsg ? optPayloadSubMsg : templateSubMsg;
+         const uint32 subMsgSize             = srcMsg->TemplatedFlattenedSize(*templateSubMsg);
          DefaultEndianConverter::Export(subMsgSize, buf); buf += sizeof(uint32);
 
          srcMsg->TemplatedFlatten(*templateSubMsg, DataFlattener(buf, subMsgSize));

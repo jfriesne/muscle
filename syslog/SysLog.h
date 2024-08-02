@@ -122,15 +122,15 @@ MUSCLE_NODISCARD inline uint32 GetMaxNumLogFiles()                     {return M
 MUSCLE_NODISCARD inline bool GetFileLogCompressionEnabled()            {return false;}
 MUSCLE_NODISCARD inline int GetConsoleLogLevel()                       {return MUSCLE_LOG_INFO;}
 MUSCLE_NODISCARD inline int GetMaxLogLevel()                           {return MUSCLE_LOG_INFO;}
-inline status_t SetFileLogLevel(int)                  {return B_NO_ERROR;}
-inline status_t SetFileLogName(const String &)        {return B_NO_ERROR;}
-inline status_t SetFileLogMaximumSize(uint32)         {return B_NO_ERROR;}
-inline status_t SetOldLogFilesPattern(const String &) {return B_NO_ERROR;}
-inline status_t SetMaxNumLogFiles(uint32)             {return B_NO_ERROR;}
-inline status_t SetFileLogCompressionEnabled(bool)    {return B_NO_ERROR;}
-inline status_t SetConsoleLogLevel(int)               {return B_NO_ERROR;}
-inline status_t SetConsoleLogToStderr(bool)           {return B_NO_ERROR;}
-inline void CloseCurrentLogFile()                     {/* empty */}
+inline void SetFileLogLevel(int)                                       {/* empty */}
+inline void SetFileLogName(const String &)                             {/* empty */}
+inline void SetFileLogMaximumSize(uint32)                              {/* empty */}
+inline void SetOldLogFilesPattern(const String &)                      {/* empty */}
+inline void SetMaxNumLogFiles(uint32)                                  {/* empty */}
+inline void SetFileLogCompressionEnabled(bool)                         {/* empty */}
+inline void SetConsoleLogLevel(int)                                    {/* empty */}
+inline void SetConsoleLogToStderr(bool)                                {/* empty */}
+inline void CloseCurrentLogFile()                                      {/* empty */}
 
 #else
 
@@ -202,9 +202,8 @@ MUSCLE_NODISCARD static inline int GetMaxLogLevel()
  *  Any calls to Log*() that specify a log level greater than (loglevel)
  *  will be suppressed.  Default level is MUSCLE_LOG_NONE (ie no file logging is done)
  *  @param loglevel The MUSCLE_LOG_* value to use in determining which log messages to save to disk.
- *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
-status_t SetFileLogLevel(int loglevel);
+void SetFileLogLevel(int loglevel);
 
 /** Forces the file logger to close any log file that it currently has open. */
 void CloseCurrentLogFile();
@@ -215,9 +214,8 @@ void CloseCurrentLogFile();
  *                 Note that this string can contain any of the special tokens described by the
  *                 HumanReadableTimeValues::ExpandTokens() method, and these values will be expanded
  *                 out when the log file is opened.
- *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
-status_t SetFileLogName(const String & logName);
+void SetFileLogName(const String & logName);
 
 /** Sets a user-specified maximum size (in bytes) for the log file.  Once a log file has reached this size,
   * it will be closed and a new log file opened (note that the new log file's name will be the same
@@ -225,54 +223,49 @@ status_t SetFileLogName(const String & logName);
   * that will expand out differently).
   * Default state is no limit on log file size.  (aka MUSCLE_NO_LIMIT)
   * @param maxSizeBytes The maximum allowable log file size, or MUSCLE_NO_LIMIT to allow any size log file.
-  * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
   */
-status_t SetFileLogMaximumSize(uint32 maxSizeBytes);
+void SetFileLogMaximumSize(uint32 maxSizeBytes);
 
 /** Sets the path-pattern of files that the logger is allowed to assume are old log files, and therefore
   * is allowed to delete.
   * @param pattern The pattern to match against (eg "/var/log/mylogfiles-*.txt").  The matching will
   *                be done immediately/synchronously inside this call.
-  * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
   */
-status_t SetOldLogFilesPattern(const String & pattern);
+void SetOldLogFilesPattern(const String & pattern);
 
 /** Sets a user-specified maximum number of log files that should be written out before
   * the oldest log files start to be deleted.  This can help keep the filesystem
   * space taken up by log files limited to a finite amount.
   * Default state is no limit on the number of log files.  (aka MUSCLE_NO_LIMIT)
   * @param maxNumLogFiles The maximum allowable number of log files, or MUSCLE_NO_LIMIT to allow any number of log files.
-  * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
   */
-status_t SetMaxNumLogFiles(uint32 maxNumLogFiles);
+void SetMaxNumLogFiles(uint32 maxNumLogFiles);
 
 /** Set this to true if you want log files to be compressed when they are closed (and given a .gz extension).
   * or false if they should be left in raw text form.
   * @param enable True to enable log file compression; false otherwise.
-  * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
   */
-status_t SetFileLogCompressionEnabled(bool enable);
+void SetFileLogCompressionEnabled(bool enable);
 
 /** Sets the log filter level for logging to stdout.
  *  Any calls to Log*() that specify a log level greater than (loglevel)
  *  will be suppressed.  Default level is MUSCLE_LOG_INFO.
  *  @param loglevel The MUSCLE_LOG_* value to use in determining which log messages to print to stdout.
- *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
-status_t SetConsoleLogLevel(int loglevel);
+void SetConsoleLogLevel(int loglevel);
 
 /** Sets a flag so that our log output goes to stderr instead of stdout.
   * @param toStderr true if you want log output to go to stderr rather than stdout; false to set it
   *                 back to going to stdout again.
   */
-status_t SetConsoleLogToStderr(bool toStderr);
+void SetConsoleLogToStderr(bool toStderr);
 
 /** LogPlainAux() works the same as LogTimeAux(), except LogPlainAux() doesn't emit a time/date/severity preamble before
  *  the caller-specified text.  Typically called indirectly, via the LogPlain() macro.
  *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.  This call will generate
  *                  log text only if (logLevel) is less than or equal to the value returned by GetMaxLogLevel().
  *  @param fmt A printf-style format string (eg "hello %s\n").  Note that \n is NOT added for you.
- *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
+ *  @returns B_NO_ERROR on success, or another value if something went wrong.
  *  @note LogPlain() is implemented as a macro, so the arguments you pass to it will not be evaluated or passed to
  *        LogPlainAux() if the log-level you specified is not severe enough to pass the log-threshold (as specified
  *        by GetMaxLogLevel().  Therefore you should be careful that the arguments you pass to LogPlain() don't have
@@ -309,7 +302,7 @@ status_t LogTimeAux(const char * sourceFile, const char * optSourceFunction, int
  *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.  This call will generate
  *                  log text only if (logLevel) is less than or equal to the value returned by GetMaxLogLevel().
  *  @param fmt A printf-style format string (eg "hello %s\n").  Note that \n is NOT added for you.
- *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
+ *  @returns B_NO_ERROR on success, or another value if something went wrong.
  *  @note LogTime() is implemented as a macro, so the arguments you pass to it will not be evaluated or passed to LogTimeAux()
  *        if the log-level you specified is not severe enough to pass the log-threshold (as specified by GetMaxLogLevel().
  *        Therefore you should be careful that the arguments you pass to LogTime() don't have side effects that your
@@ -323,9 +316,8 @@ status_t LogTimeAux(int logLevel, const char * fmt, ...);
 
 /** Ensures that all previously logged output is actually sent.  That is, it simply
  *  calls fflush() on any streams that we are logging to.
- *  @returns B_NO_ERROR on success, or B_LOCK_FAILED if the log lock couldn't be locked for some reason.
  */
-status_t LogFlush();
+void LogFlush();
 
 /** Attempts to lock the Mutex that is used to serialize LogCallback calls.
   * Typically you won't need to call this function, as it is called for you
@@ -352,7 +344,7 @@ status_t UnlockLog();
   * @param maxDepth The maximum number of levels of stack trace that we should print out.  Defaults to
   *                 64.  The absolute maximum is 256; if you specify a value higher than that, you will still get 256.
   * @note This function is currently only implemented under Linux and MacOS/X Leopard; for other OS's, this function is a no-op.
-  * @returns B_NO_ERROR on success, or B_LOCK_FAILED on failure.
+  * @returns B_NO_ERROR on success, or another value on failure.
   */
 status_t PrintStackTrace(FILE * optFile = NULL, uint32 maxDepth = 64);
 

@@ -1083,29 +1083,28 @@ void ClearHostNameResolvers() {_hostNameResolvers.Clear();}
 
 IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6)
 {
+   IPAddress ret;
    if (_hostNameResolvers.HasItems())
    {
       for (HashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
       {
          if (iter.GetValue() < 0) break;  // we'll do any negative-priority callbacks only after our built-in functionality has failed
-
-         IPAddress ret;
-         if (iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret).IsOK()) return ret;
+         if (iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret).IsOK()) break;  // returning here bothers clang-tidy
       }
    }
+   if (ret.IsValid()) return ret;
 
-   IPAddress ret = GetHostByNameNative(name, expandLocalhost, preferIPv6);
+   ret = GetHostByNameNative(name, expandLocalhost, preferIPv6);
    if (ret.IsValid()) return ret;
 
    if (_hostNameResolvers.HasItems())
    {
       for (HashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
       {
-         if ((iter.GetValue() < 0)&&(iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret).IsOK())) return ret;
+         if ((iter.GetValue() < 0)&&(iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret).IsOK())) break;  // returning here bothers clang-tidy
       }
    }
-
-   return IPAddress();
+   return ret;
 }
 
 ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)

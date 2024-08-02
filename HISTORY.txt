@@ -33,6 +33,7 @@ key:  - new feature
    o Modified LogCallbackArgs::GetArgList() to return a reference rather than
      a pointer, so that callers don't have to worry about how to handle NULL.
    o Removed all setter methods from LogCallbackArgs class to make it immutable.
+   o Changed the Set*() methods in SysLog.h to return void instead of status_t.
    * Fixed a number of warnings reported by clang-tidy.
 
 9.40 - Released 6/24/2024

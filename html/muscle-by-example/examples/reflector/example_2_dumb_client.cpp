@@ -91,7 +91,7 @@ int main(int argc, char ** argv)
    PrintExampleDescription();
 
    // Let's enable a bit of debug-output, just to see what the client is doing
-   (void) SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
+   SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
 
    // This object contains our client program's event loop.
    // (Yes, even though it says 'Server'.  It's a general-purpose event loop)

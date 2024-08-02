@@ -20,7 +20,7 @@ int main(int argc, char ** argv)
 
    PrintExampleDescription();
 
-   (void) SetConsoleLogLevel(MUSCLE_LOG_TRACE); // log any messages of MUSCLE_LOG_TRACE or higher to stdout (i.e. log everything)
+   SetConsoleLogLevel(MUSCLE_LOG_TRACE); // log any messages of MUSCLE_LOG_TRACE or higher to stdout (i.e. log everything)
 
    (void) Directory::MakeDirectory("rotated_logs", true);  // make sure our logs-folder exists, otherwise we can't put logs there
 

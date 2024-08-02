@@ -56,7 +56,7 @@ int main(int argc, char ** argv)
    PrintExampleDescription();
 
    // Let's enable a bit of debug-output, just to see what the server is doing
-   (void) SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
+   SetConsoleLogLevel(MUSCLE_LOG_DEBUG);
 
    // This object contains our server's event loop.
    ReflectServer reflectServer;

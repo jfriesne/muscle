@@ -420,7 +420,7 @@ int32 String :: ReplaceAux(const Hashtable<String, String> & beforeToAfter, uint
 
    Queue<const String *> beforeStrs;
    if (beforeStrs.EnsureSize(beforeToAfter.GetNumItems()).IsError()) return -1;
-   for (HashtableIterator<String, String> iter(beforeToAfter); iter.HasData(); iter++) if (iter.GetKey().HasChars()) (void) beforeStrs.AddTail(&iter.GetKey());
+   for (HashtableIterator<String, String> iter(beforeToAfter); iter.HasData(); iter++) if ((iter.GetKey().HasChars())&&(beforeStrs.AddTail(&iter.GetKey()).IsError())) return -1;  // AddTail() won't fail, but clang-tidy doesn't know that
 
    // Build up a map of what substrings to replace at what offsets into the original-string
    Hashtable<uint32, uint32> sourceOffsetToPairIndex;
