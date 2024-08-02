@@ -170,7 +170,7 @@ public:
    ~String()
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_DTOR);
-      if (IsArrayDynamicallyAllocated()) muscleFree(_strData._bigBuffer);
+      if (IsArrayDynamicallyAllocated()) muscleFree(_strData._bigBuffer);  // NOLINT (clang-tidy doesn't understand unions?)
    }
 
    /** Assignment Operator.
@@ -1342,7 +1342,7 @@ private:
 #else
    union ShortStringOptimizationData {
 #endif
-      char * _bigBuffer;                                // Pointer to allocated array.  Valid iff (_bufferLen >  sizeof(_smallBuffer))
+      char * _bigBuffer;                                // Pointer to allocated array.  Valid iff (_bufferLen >  sizeof(_smallBuffer))  NOLINT
       char _smallBuffer[SMALL_MUSCLE_STRING_LENGTH+1];  // inline character array.      Valid iff (_bufferLen <= sizeof(_smallBuffer))
    } _strData;
 

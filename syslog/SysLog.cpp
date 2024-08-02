@@ -1491,7 +1491,7 @@ void DefaultConsoleLogger :: Log(const LogCallbackArgs & a)
    }
 
    FILE * fpOut = GetConsoleOutputStream();
-   vfprintf(fpOut, a.GetText(), *a.GetArgList());
+   vfprintf(fpOut, a.GetText(), a.GetArgList());
    fflush(fpOut);
 }
 
@@ -1522,7 +1522,7 @@ void DefaultFileLogger :: Log(const LogCallbackArgs & a)
 {
    if (EnsureLogFileCreated(a).IsOK())
    {
-      vfprintf(_logFile.GetFile(), a.GetText(), *a.GetArgList());
+      vfprintf(_logFile.GetFile(), a.GetText(), a.GetArgList());
       _logFile.FlushOutput();
 
 #ifdef WIN32
@@ -1732,32 +1732,37 @@ LogLineCallback :: ~LogLineCallback()
    // empty
 }
 
-void LogLineCallback :: Log(const LogCallbackArgs & a)
+void LogLineCallback :: LogAux(const LogCallbackArgs & a, const char * dummyFmt, ...)
 {
    TCHECKPOINT;
 
    // Generate the new text
+   const size_t sizeOfBuffer = (sizeof(_buf)-1)-(_writeTo-_buf);  // the -1 is for the guaranteed NUL terminator
 #if __STDC_WANT_SECURE_LIB__
-   const int bytesAttempted = _vsnprintf_s(_writeTo, (sizeof(_buf)-1)-(_writeTo-_buf), _TRUNCATE, a.GetText(), *a.GetArgList());  // the -1 is for the guaranteed NUL terminator
+   const int bytesAttempted = _vsnprintf_s(_writeTo, sizeOfBuffer, _TRUNCATE, a.GetText(), a.GetArgList());  // NOLINT (clang-tidy is being lame)
 #elif WIN32
-   const int bytesAttempted = _vsnprintf(_writeTo, (sizeof(_buf)-1)-(_writeTo-_buf), a.GetText(), *a.GetArgList());  // the -1 is for the guaranteed NUL terminator
+   const int bytesAttempted =   _vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            a.GetArgList());  // NOLINT (clang-tidy is being lame)
 #else
-   const int bytesAttempted = vsnprintf(_writeTo, (sizeof(_buf)-1)-(_writeTo-_buf), a.GetText(), *a.GetArgList());  // the -1 is for the guaranteed NUL terminator
+   const int bytesAttempted =    vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            a.GetArgList());  // NOLINT (clang-tidy is being lame)
 #endif
+
    const bool wasTruncated = (bytesAttempted != (int)strlen(_writeTo));  // do not combine with above line!
 
    // Log any newly completed lines
    char * logFrom  = _buf;
    char * searchAt = _writeTo;
-   LogCallbackArgs tmp(a);
    while(true)
    {
       char * nextReturn = strchr(searchAt, '\n');
       if (nextReturn)
       {
          *nextReturn = '\0';  // terminate the string
-         tmp.SetText(logFrom);
-         LogLine(tmp);
+
+         va_list va;
+         va_start(va, dummyFmt);
+         LogLine(LogCallbackArgs(a, logFrom, va));
+         va_end(va);
+
          searchAt = logFrom = nextReturn+1;
       }
       else
@@ -1766,8 +1771,11 @@ void LogLineCallback :: Log(const LogCallbackArgs & a)
          // then we need to just dump what we have and move on, there's nothing else we can do
          if (wasTruncated)
          {
-            tmp.SetText(logFrom);
-            LogLine(tmp);
+            va_list va;
+            va_start(va, dummyFmt);
+            LogLine(LogCallbackArgs(a, logFrom, va));
+            va_end(va);
+
             _buf[0] = '\0';
             _writeTo = searchAt = logFrom = _buf;
          }
@@ -1787,14 +1795,17 @@ void LogLineCallback :: Log(const LogCallbackArgs & a)
    _lastLog = a;
 }
 
-void LogLineCallback :: Flush()
+void LogLineCallback :: FlushAux(const char * dummyFmt, ...)
 {
    TCHECKPOINT;
 
    if (_writeTo > _buf)
    {
-      _lastLog.SetText(_buf);
-      LogLine(_lastLog);
+      va_list va;
+      va_start(va, dummyFmt);
+      LogLine(LogCallbackArgs(_lastLog, _buf, va));
+      va_end(va);
+
       _writeTo = _buf;
       _buf[0] = '\0';
    }
@@ -2008,9 +2019,8 @@ static NestCount _inWarnOutOfMemory;  // avoid potential infinite recursion if w
    NestCountGuard g(_inLogPreamble);       \
    va_list dummyList;                      \
    va_start(dummyList, fmt);               \
-   LogCallbackArgs lca(when, ll, sourceFile, sourceFunction, sourceLine, buf, &dummyList); \
+   const LogCallbackArgs lca(when, ll, sourceFile, sourceFunction, sourceLine, buf, dummyList); \
    GetStandardLogLinePreamble(buf, lca);   \
-   lca.SetText(buf);                       \
    cb.Log(lca);                            \
    va_end(dummyList);                      \
 }
@@ -2026,7 +2036,7 @@ static NestCount _inWarnOutOfMemory;  // avoid potential infinite recursion if w
 {                               \
    va_list argList;             \
    va_start(argList, fmt);      \
-   cb.Log(LogCallbackArgs(when, ll, sourceFile, sourceFunction, sourceLine, fmt, &argList)); \
+   cb.Log(LogCallbackArgs(when, ll, sourceFile, sourceFunction, sourceLine, fmt, argList)); \
    va_end(argList);             \
 }
 

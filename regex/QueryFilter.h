@@ -914,7 +914,7 @@ public:
    void SetChildFilter(const ConstQueryFilterRef & childFilter) {_childFilter = childFilter;}
 
    /** Returns our current sub-filter as set in our constructor or in SetChildFilter() */
-   ConstQueryFilterRef GetChildFilter() const {return _childFilter;}
+   const ConstQueryFilterRef & GetChildFilter() const {return _childFilter;}
 
 private:
    ConstQueryFilterRef _childFilter;
@@ -1120,7 +1120,7 @@ public:
    MUSCLE_NODISCARD uint32 GetTypeCode() const {return _typeCode;}
 
    /** Returns the currently specified value, as specified in the constructor or in SetValue() */
-   ConstByteBufferRef GetValue() const {return _value;}
+   const ConstByteBufferRef & GetValue() const {return _value;}
 
    /** Enumeration of operators that may be used by the RawDataQueryFilter */
    enum {
@@ -1206,7 +1206,7 @@ DECLARE_REFTYPES(MuscleQueryFilterFactory);
   * will fall back to returning a reference to a MuscleQueryFilterFactory
   * object (which is also what it does by default).
   */
-MUSCLE_NODISCARD QueryFilterFactoryRef GetGlobalQueryFilterFactory();
+MUSCLE_NODISCARD const QueryFilterFactoryRef & GetGlobalQueryFilterFactory();
 
 /** Call this method if you want to install a custom QueryFilterFactory
   * object as the global QueryFilterFactory.  Calling this method with

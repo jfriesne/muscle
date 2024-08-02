@@ -234,7 +234,6 @@ private:
       }
    }
 
-   void * _scratchSpace;         // ignore this; it's temp scratch space used by EnsureSize().
    void * _iterCookie;           // points to the HashtableEntryBase object that we are currently associated with
    const KeyType * _currentKey;  // cached result, so that GetKey() can be a branch-free inline method
    ValueType * _currentVal;      // cached result, so that GetValue() can be a branch-free inline method
@@ -243,6 +242,7 @@ private:
    HashtableIterator * _prevIter; // for the doubly linked list so that the table can notify us if it is modified
    HashtableIterator * _nextIter; // for the doubly linked list so that the table can notify us if it is modified
    const HashtableType * _owner;  // table that we are associated with
+   void * _scratchSpace;         // ignore this; it's temp scratch space used by EnsureSize().
 
    // Used for emergency storage of scratch values
    class KeyAndValue
@@ -3716,7 +3716,10 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator()
    , _currentVal(NULL)
    , _flags(0)
    , _owner(NULL)
+   , _scratchSpace(NULL)  // just to keep clang-tidy happy
    , _okayToUnsetThreadID(false)
+   , _prevIter(NULL)  // just to keep clang-tidy happy
+   , _nextIter(NULL)  // just to keep clang-tidy happy
 {
    // empty
 }
@@ -3725,7 +3728,10 @@ template <class KeyType, class ValueType, class HashFunctorType>
 HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableIterator & rhs)
    : _flags(0)
    , _owner(NULL)
+   , _scratchSpace(NULL)  // just to keep clang-tidy happy
    , _okayToUnsetThreadID(false)
+   , _prevIter(NULL)  // just to keep clang-tidy happy
+   , _nextIter(NULL)  // just to keep clang-tidy happy
 {
    *this = rhs;
 }
@@ -3734,7 +3740,10 @@ template <class KeyType, class ValueType, class HashFunctorType>
 HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, uint32 flags)
    : _flags(flags)
    , _owner(&table)
+   , _scratchSpace(NULL)  // just to keep clang-tidy happy
    , _okayToUnsetThreadID(false)
+   , _prevIter(NULL)  // just to keep clang-tidy happy
+   , _nextIter(NULL)  // just to keep clang-tidy happy
 {
    table.InitializeIterator(*this);
 }
@@ -3744,7 +3753,10 @@ HT_UniversalSinkKeyRef
 HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, HT_SinkKeyParam startAt, uint32 flags)
    : _flags(flags)
    , _owner(&table)
+   , _scratchSpace(NULL)  // just to keep clang-tidy happy
    , _okayToUnsetThreadID(false)
+   , _prevIter(NULL)  // just to keep clang-tidy happy
+   , _nextIter(NULL)  // just to keep clang-tidy happy
 {
    table.InitializeIteratorAt(*this, HT_ForwardKey(startAt));
 }

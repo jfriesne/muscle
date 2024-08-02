@@ -451,12 +451,13 @@ QueryFilterRef MuscleQueryFilterFactory :: CreateQueryFilter(uint32 typeCode) co
 }
 
 static MuscleQueryFilterFactory _defaultQueryFilterFactory;
+static const DummyQueryFilterFactoryRef _defaultQueryFactoryRef(_defaultQueryFilterFactory);
 static QueryFilterFactoryRef _customQueryFilterFactoryRef;
 
-QueryFilterFactoryRef GetGlobalQueryFilterFactory()
+const QueryFilterFactoryRef & GetGlobalQueryFilterFactory()
 {
    if (_customQueryFilterFactoryRef()) return _customQueryFilterFactoryRef;
-                                  else return DummyQueryFilterFactoryRef(_defaultQueryFilterFactory);
+   return _defaultQueryFactoryRef;  // don't combine these two lines, they return different types so ternary operator won't work
 }
 
 void SetGlobalQueryFilterFactory(const QueryFilterFactoryRef & newFactory)

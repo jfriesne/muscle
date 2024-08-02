@@ -242,14 +242,14 @@ protected:
     * @param id The ID of the session you are looking for.
     * @return A reference to the session with the given session ID, or a NULL reference on failure.
     */
-   AbstractReflectSessionRef GetSession(uint32 id) const;
+   const AbstractReflectSessionRef & GetSession(uint32 id) const;
 
    /**
     * Looks up a session connected to our ReflectServer via its session ID string.
     * @param idStr The ID string of the session you are looking for.
     * @return A reference to the session with the given session ID, or a NULL reference on failure.
     */
-   AbstractReflectSessionRef GetSession(const String & idStr) const;
+   const AbstractReflectSessionRef & GetSession(const String & idStr) const;
 
    /** Convenience method:  Returns a pointer to the first session of the specified type.  Returns NULL if no session of the specified type is found.
      * @tparam SessionType the type of session object you want to find and return a pointer to.
@@ -293,7 +293,7 @@ protected:
 
    /** Given a port number, returns a reference to the factory of that port, or a NULL reference if no
 such factory exists. */
-   ReflectSessionFactoryRef GetFactory(uint16) const;
+   const ReflectSessionFactoryRef & GetFactory(uint16) const;
 
 private:
    ReflectServer * _owner;

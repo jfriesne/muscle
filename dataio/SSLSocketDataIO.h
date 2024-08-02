@@ -63,7 +63,7 @@ public:
    status_t SetPublicKeyCertificate(const ConstByteBufferRef & publicKeyFile);
 
    /** Contents of our current public key file */
-   ConstByteBufferRef GetPublicKeyCertificate() const {return _publicKey;}
+   const ConstByteBufferRef & GetPublicKeyCertificate() const {return _publicKey;}
 
    /** Adds a private key to use for this session.
      * @param privateKeyFilePath File path of the private key file to use.

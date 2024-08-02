@@ -321,7 +321,7 @@ ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, SeekableDataI
 MUSCLE_NODISCARD const ByteBuffer & GetEmptyByteBuffer();
 
 /** Convenience method:  returns a read-only reference to a ByteBuffer that contains no data. */
-ConstByteBufferRef GetEmptyByteBufferRef();
+const ConstByteBufferRef & GetEmptyByteBufferRef();
 
 /** This interface is used to represent any object that knows how to allocate, reallocate, and free memory in a special way. */
 class IMemoryAllocationStrategy

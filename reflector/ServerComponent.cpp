@@ -87,7 +87,7 @@ GetSessionsByIDNumber() const
    return _owner->GetSessionsByIDNumber();
 }
 
-AbstractReflectSessionRef
+const AbstractReflectSessionRef &
 ServerComponent ::
 GetSession(uint32 id) const
 {
@@ -95,7 +95,7 @@ GetSession(uint32 id) const
    return _owner->GetSession(id);
 }
 
-AbstractReflectSessionRef
+const AbstractReflectSessionRef &
 ServerComponent ::
 GetSession(const String & id) const
 {
@@ -111,7 +111,7 @@ GetFactories() const
    return _owner->GetFactories();
 }
 
-ReflectSessionFactoryRef
+const ReflectSessionFactoryRef &
 ServerComponent ::
 GetFactory(uint16 port) const
 {

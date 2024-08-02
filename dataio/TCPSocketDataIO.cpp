@@ -11,7 +11,7 @@ TCPSocketDataIO :: TCPSocketDataIO(const ConstSocketRef & sock, bool blocking) :
 
 TCPSocketDataIO :: ~TCPSocketDataIO()
 {
-   Shutdown();
+   // empty
 }
 
 void TCPSocketDataIO :: FlushOutput()

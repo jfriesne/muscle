@@ -172,18 +172,13 @@ DoOutputImplementation(uint32 maxBytes)
    return ((sentBytes == 0)&&(GetUnrecoverableErrorStatus().IsError())) ? io_status_t(GetUnrecoverableErrorStatus()) : io_status_t(sentBytes);
 }
 
-ByteBufferRef
+const ByteBufferRef &
 MessageIOGateway ::
 GetScratchReceiveBuffer()
 {
    static const uint32 _scratchRecvBufferSizeBytes = 2048;  // seems like a reasonable upper limit for "small" Messages, no?
-
-   if ((_scratchRecvBuffer())&&(_scratchRecvBuffer()->SetNumBytes(_scratchRecvBufferSizeBytes, false).IsOK())) return _scratchRecvBuffer;
-   else
-   {
-      _scratchRecvBuffer = GetByteBufferFromPool(_scratchRecvBufferSizeBytes);  // demand-allocation
-      return _scratchRecvBuffer;
-   }
+   if ((_scratchRecvBuffer() == NULL)||(_scratchRecvBuffer()->SetNumBytes(_scratchRecvBufferSizeBytes, false).IsError())) _scratchRecvBuffer = GetByteBufferFromPool(_scratchRecvBufferSizeBytes);  // demand-allocation
+   return _scratchRecvBuffer;
 }
 
 void

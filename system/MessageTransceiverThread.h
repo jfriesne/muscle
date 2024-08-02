@@ -89,7 +89,7 @@ private:
    friend class MessageTransceiverThread;
 
    void SetNotify(ThreadSupervisorSession * notify) {_notify = notify;}
-   MessageRef GetReplyMessage() const {return _replyRef;}
+   const MessageRef & GetReplyMessage() const {return _replyRef;}
    void SetReplyMessage(const MessageRef & ref) {_replyRef = ref;}
 
    ThreadSupervisorSession * _notify;

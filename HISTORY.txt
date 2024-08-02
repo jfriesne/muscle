@@ -8,6 +8,7 @@ key:  - new feature
    - Added a MUSCLE_NEVER_RETURNS_NULL macro that can be used to tag functions
      or methods that will never return a NULL pointer under any circumstances
      (to enable a compiler warning when their caller tests against NULL)
+   - Added a WITH_TAGGED_POINTERS option to the CMakeLists.txt.  Defaults to ON.
    o Modified StorageReflectSession::CloneDataNodeSubtree() to no longer set
      the SETDATANODE_FLAG_DONTOVERWRITEDATA flag when recursing to children.
      That way, it can be used to update existing subtrees as well as create
@@ -24,6 +25,15 @@ key:  - new feature
      before Init() gets called, in some cases)
    o Removed the deprecated constant PR_NAME_SET_QUIETLY.  (Use the
      SETDATANODE_FLAG_QUIET SetDataNodeFlag instead)
+   o Modified a number of Ref-returning methods to return (const Ref &)
+     instead, for better performance and so that they can be called inline
+     without causing clang-tidy to worry about potential use-and-free issues.
+   o Modified the PointerAndBits class to hold a real pointer and not a
+     uintptr when the -DMUSCLE_AVOID_TAGGED_POINTERS compiler-flag is set.
+   o Modified LogCallbackArgs::GetArgList() to return a reference rather than
+     a pointer, so that callers don't have to worry about how to handle NULL.
+   o Removed all setter methods from LogCallbackArgs class to make it immutable.
+   * Fixed a number of warnings reported by clang-tidy.
 
 9.40 - Released 6/24/2024
    - Added a MUSCLE_STATIC_ASSERT_ARRAY_LENGTH macro to support/MuscleSupport.h

@@ -32,7 +32,7 @@ public:
      * call select() (or some equivalent) on it.  When this socket selects-as-ready-for-read,
      * you should call DispatchCallbacks() on this object.
      */
-   ConstSocketRef GetDispatchThreadNotifierSocket() {return _dispatchThreadSock;}
+   const ConstSocketRef & GetDispatchThreadNotifierSocket() {return _dispatchThreadSock;}
 
 protected:
    /** Overridden to send a byte on the thread-side of the socketpair */

@@ -59,10 +59,10 @@ public:
    PathMatcherEntry(const StringMatcherQueueRef & parser, const ConstQueryFilterRef & filter) : _parser(parser), _filter(filter) {/* empty */}
 
    /** Returns a reference to our list of StringMatchers. */
-   StringMatcherQueueRef GetParser() const {return _parser;}
+   const StringMatcherQueueRef & GetParser() const {return _parser;}
 
    /** Returns a reference to our QueryFilter object.  May be a NULL reference. */
-   ConstQueryFilterRef GetFilter() const {return _filter;}
+   const ConstQueryFilterRef & GetFilter() const {return _filter;}
 
    /** Sets our QueryFilter object to the specified reference.  Pass in a NULL reference to remove any existing QueryFilter.
      * @param filter read-only reference to the QueryFilter to use, or a NULL reference.

@@ -223,7 +223,7 @@ public:
    /** Returns a reference to the current input policy for this session.
      * May be a NULL reference, if there is no input policy installed (which is the default state)
      */
-   AbstractSessionIOPolicyRef GetInputPolicy() const {return _inputPolicyRef;}
+   const AbstractSessionIOPolicyRef & GetInputPolicy() const {return _inputPolicyRef;}
 
    /**
     * Set a new output I/O policy for this session.
@@ -235,7 +235,7 @@ public:
    /** Returns a reference to the current output policy for this session.  May be a NULL reference.
      * May be a NULL reference, if there is no output policy installed (which is the default state)
      */
-   AbstractSessionIOPolicyRef GetOutputPolicy() const {return _outputPolicyRef;}
+   const AbstractSessionIOPolicyRef & GetOutputPolicy() const {return _outputPolicyRef;}
 
    /** Installs the given AbstractMessageIOGateway as the gateway we should use for I/O.
      * If this method isn't called, the ReflectServer will call our CreateGateway() method

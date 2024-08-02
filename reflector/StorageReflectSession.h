@@ -518,7 +518,7 @@ protected:
    void JettisonOutgoingSubtrees(const String * optMatchString);
 
    /** Returns a reference to our session node */
-   DataNodeRef GetSessionNode() const {return _sessionDir;}
+   const DataNodeRef & GetSessionNode() const {return _sessionDir;}
 
    /** Returns a reference to our parameters message */
    MUSCLE_NODISCARD Message & GetParameters() {return _parameters;}

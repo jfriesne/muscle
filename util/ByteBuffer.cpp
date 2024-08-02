@@ -188,7 +188,7 @@ ByteBufferRef::ItemPool * GetByteBufferPool() {return &_bufferPool;}
 const ByteBuffer & GetEmptyByteBuffer() {return _bufferPool.GetDefaultObject();}
 
 static const DummyConstByteBufferRef _emptyBufRef(_bufferPool.GetDefaultObject());
-ConstByteBufferRef GetEmptyByteBufferRef() {return _emptyBufRef;}
+const ConstByteBufferRef & GetEmptyByteBufferRef() {return _emptyBufRef;}
 
 ByteBufferRef GetByteBufferFromPool(uint32 numBytes, const uint8 * optBuffer) {return GetByteBufferFromPool(_bufferPool, numBytes, optBuffer);}
 ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, uint32 numBytes, const uint8 * optBuffer)

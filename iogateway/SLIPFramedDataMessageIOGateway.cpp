@@ -29,7 +29,7 @@ io_status_t SLIPFramedDataMessageIOGateway :: DoInputImplementation(AbstractGate
 
 void SLIPFramedDataMessageIOGateway :: Reset()
 {
-   AbstractMessageIOGateway::Reset();
+   RawDataMessageIOGateway::Reset();
    _lastReceivedCharWasEscape = false;
    _pendingBuffer.Reset();
    _pendingMessage.Reset();

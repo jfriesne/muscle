@@ -76,9 +76,9 @@ public:
    MUSCLE_NODISCARD T * GetPointer() const
    {
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
-      return (T*) _pointer;
+      return _pointer;  // NOLINT (avoid clang-tidy warnings that come from clang-tidy not understanding the logic of reference-counting)
 #else
-      return (T*) (_pointer & ~_allDataBitsMask);
+      return reinterpret_cast<T*>(_pointer & ~_allDataBitsMask);
 #endif
    }
 
@@ -122,11 +122,11 @@ public:
       const uintptr internalBits = InternalizeBits(dataBits);
       CheckInternalBits(internalBits);
 
-      const uintptr pVal = (uintptr) pointer;
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
-      _pointer  = pVal;
+      _pointer  = pointer;
       _dataBits = internalBits;
 #else
+      const uintptr pVal = reinterpret_cast<uintptr>(pointer);
       MASSERT(((pVal & _allDataBitsMask) == 0), "SetPointerAndBits():  Unaligned pointer detected!  PointerAndBits' bit-stuffing code can't handle that.  Either align your pointers so the low bits are always zero, or recompile with -DMUSCLE_AVOID_TAGGED_POINTERS.");
       _pointer = pVal | internalBits;
 #endif
@@ -165,11 +165,11 @@ public:
    /** Returns a hash code for this object */
    MUSCLE_NODISCARD uint32 HashCode() const
    {
-      uint32 ret = CalculateHashCode(_pointer);
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
-      ret += CalculateHashCode(_dataBits);
+      return CalculateHashCode(reinterpret_cast<uintptr>(_pointer) + _dataBits);
+#else
+      return CalculateHashCode(_pointer);
 #endif
-      return ret;
    }
 
 private:
@@ -236,9 +236,11 @@ private:
 #endif
    }
 
-   uintptr _pointer;
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
+   T * _pointer;
    uintptr _dataBits;
+#else
+   uintptr _pointer;
 #endif
 };
 

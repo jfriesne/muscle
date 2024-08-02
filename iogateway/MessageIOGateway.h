@@ -310,7 +310,7 @@ private:
    status_t SendMoreData(uint32 & sentBytes, uint32 & maxBytes);
    status_t ReceiveMoreData(uint32 & readBytes, uint32 & maxBytes, uint32 maxArraySize);
 
-   ByteBufferRef GetScratchReceiveBuffer();
+   const ByteBufferRef & GetScratchReceiveBuffer();
    void ForgetScratchReceiveBufferIfSubclassIsStillUsingIt();
 
    TransferBuffer _sendBuffer;

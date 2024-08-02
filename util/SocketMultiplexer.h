@@ -182,6 +182,8 @@ private:
 
       MUSCLE_NODISCARD inline bool IsSocketReady(int fd, int whichSet) const
       {
+         if (fd < 0) return false;
+
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
          return ((_bits.GetWithDefault(fd) & (1<<(whichSet+8))) != 0);
 #elif defined(MUSCLE_USE_POLL)
@@ -197,8 +199,11 @@ private:
 #if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
       void NotifySocketClosed(int fd)
       {
-         DECLARE_MUTEXGUARD(_closedSocketsMutex);
-         (void) _closedSockets.PutWithDefault(fd);
+         if (fd >= 0)
+         {
+            DECLARE_MUTEXGUARD(_closedSocketsMutex);
+            (void) _closedSockets.PutWithDefault(fd);
+         }
       }
 #endif
 

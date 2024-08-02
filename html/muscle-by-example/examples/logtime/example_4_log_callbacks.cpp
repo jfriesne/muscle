@@ -21,8 +21,7 @@ public:
    virtual void Log(const LogCallbackArgs & a)
    {
       char temp[1024];
-      vsnprintf(temp, sizeof(temp), a.GetText(), *a.GetArgList());
-
+      vsnprintf(temp, sizeof(temp), a.GetText(), a.GetArgList());
       fprintf(stderr, "MyLogCallback::Log():  Got a severity-%i callback for text [%s]\n", a.GetLogLevel(), temp);
    }
 
@@ -44,10 +43,7 @@ public:
 
    virtual void LogLine(const LogCallbackArgs & a)
    {
-      char temp[1024];
-      vsnprintf(temp, sizeof(temp), a.GetText(), *a.GetArgList());
-
-      fprintf(stderr, "MyLogLineCallback::LogLine():  Got a severity-%i callback for text [%s]\n", a.GetLogLevel(), temp);
+      fprintf(stderr, "MyLogLineCallback::LogLine():  Got a severity-%i callback for text [%s]\n", a.GetLogLevel(), a.GetText());
    }
 };
 

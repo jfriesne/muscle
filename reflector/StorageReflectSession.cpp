@@ -1030,7 +1030,8 @@ public:
 int StorageReflectSession :: FindNodesCallback(DataNode & node, void * userData)
 {
    FindMatchingNodesData * data = static_cast<FindMatchingNodesData *>(userData);
-   if (data->_results.AddTail(DataNodeRef(&node)).IsError(data->_ret))
+   DataNodeRef dnr(&node);  // do not combine this, doing so makes clang-tidy nervous
+   if (data->_results.AddTail(dnr).IsError(data->_ret))
    {
       return -1;  // abort now
    }

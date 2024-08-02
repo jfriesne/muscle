@@ -32,7 +32,7 @@ public:
    MUSCLE_NODISCARD virtual bool HasBytesToOutput() const {return false;}
 
    /** Returns a reference to our current signal message */
-   MessageRef GetSignalMessage() const {return _signalMessage;}
+   const MessageRef & GetSignalMessage() const {return _signalMessage;}
 
    /** Sets our current signal message reference.
      * @param r the new Message to send to the AbstractGatewayMessageReceiver whenever we receive some bytes from the socket

@@ -70,6 +70,14 @@ if (WITH_THREAD_SANITIZER)
    add_link_options(-fsanitize=thread)
 endif()
 
+option(WITH_TAGGED_POINTERS "Enable Tagged Pointers" ON)
+if (WITH_THREAD_SANITIZER)
+   # empty
+else()
+   message("Note:   -DWITH_TAGGED_POINTERS=OFF argument was specified:  PointerAndBits class will use separate fields instead")
+   add_definitions(-DMUSCLE_AVOID_TAGGED_POINTERS)
+endif()
+
 option(WITH_DEADLOCKFINDER "Enable building with MUSCLE's potential-deadlock-detection logic enabled" OFF)
 if (WITH_DEADLOCKFINDER)
    message("Note:  -DWITH_DEADLOCKFINDER=ON argument was specified:  MUSCLE will include expensive run-time debug-checks for potential deadlock conditions when locking Mutexes.")

@@ -164,12 +164,12 @@ public:
    /** Convenience method:  Given a session ID string, returns a reference to the session, or a NULL reference if no such session exists.
      * @param sessionName the session ID string of the session we are trying to look up (same as its numeric session ID, but in string form)
      */
-   AbstractReflectSessionRef GetSession(const String & sessionName) const {return _sessions[&sessionName];}
+   const AbstractReflectSessionRef & GetSession(const String & sessionName) const {return _sessions[&sessionName];}
 
    /** Convenience method:  Given a session ID number, returns a reference to the session, or a NULL reference if no such session exists.
      * @param sessionID the numeric session ID of the session we are trying to look up
      */
-   AbstractReflectSessionRef GetSession(uint32 sessionID) const {return _sessionsByIDNumber[sessionID];}
+   const AbstractReflectSessionRef & GetSession(uint32 sessionID) const {return _sessionsByIDNumber[sessionID];}
 
    /** Convenience method:  Returns a pointer to the first session of the specified type.  Returns NULL if no session of the specified type is found.
      * @tparam SessionType the type of session object you want to find and return a pointer to.
@@ -218,7 +218,7 @@ public:
      *                       (when it was passed in to PutAcceptFactory()), then specify that address again here.
      *                       Defaults to (invalidIP), indicating a factory that listens on all local network interfaces.
      */
-   ReflectSessionFactoryRef GetFactory(uint16 port, const IPAddress & optInterfaceIP = invalidIP) const {return _factories[IPAddressAndPort(optInterfaceIP, port)];}
+   const ReflectSessionFactoryRef & GetFactory(uint16 port, const IPAddress & optInterfaceIP = invalidIP) const {return _factories[IPAddressAndPort(optInterfaceIP, port)];}
 
    /** Call this and the server will quit ASAP */
    void EndServer();
