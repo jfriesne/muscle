@@ -1874,14 +1874,14 @@ int GetConsoleLogLevel()
 
 void SetFileLogName(const String & logName)
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
    _dfl.SetLogFileName(logName);
    LogTime(MUSCLE_LOG_DEBUG, "File log name set to: %s\n", logName());
 }
 
 void SetOldLogFilesPattern(const String & pattern)
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
 
    const uint32 numAdded = _dfl.AddPreExistingLogFiles(pattern);
    LogTime(MUSCLE_LOG_DEBUG, "Old Log Files pattern set to: [%s] (" UINT32_FORMAT_SPEC " files matched)\n", pattern(), numAdded);
@@ -1889,7 +1889,7 @@ void SetOldLogFilesPattern(const String & pattern)
 
 void SetFileLogMaximumSize(uint32 maxSizeBytes)
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
 
    _dfl.SetMaxLogFileSize(maxSizeBytes);
    if (maxSizeBytes == MUSCLE_NO_LIMIT) LogTime(MUSCLE_LOG_DEBUG, "File log maximum size set to: (unlimited).\n");
@@ -1898,7 +1898,7 @@ void SetFileLogMaximumSize(uint32 maxSizeBytes)
 
 void SetMaxNumLogFiles(uint32 maxNumLogFiles)
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
 
    _dfl.SetMaxNumLogFiles(maxNumLogFiles);
    if (maxNumLogFiles == MUSCLE_NO_LIMIT) LogTime(MUSCLE_LOG_DEBUG, "Maximum number of log files set to: (unlimited).\n");
@@ -1907,7 +1907,7 @@ void SetMaxNumLogFiles(uint32 maxNumLogFiles)
 
 void SetFileLogCompressionEnabled(bool enable)
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    _dfl.SetFileCompressionEnabled(enable);
@@ -1919,7 +1919,7 @@ void SetFileLogCompressionEnabled(bool enable)
 
 void CloseCurrentLogFile()
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
    _dfl.CloseLogFile();
 }
 
@@ -1938,21 +1938,21 @@ static void UpdateMaxLogLevel()
 
 void SetFileLogLevel(int logLevel)
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
    _dfl.SetLogLevelThreshold(logLevel);
    LogTime(MUSCLE_LOG_DEBUG, "File logging level set to: %s\n", GetLogLevelName(logLevel));
 }
 
 void SetConsoleLogLevel(int logLevel)
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
    _dcl.SetLogLevelThreshold(logLevel);
    LogTime(MUSCLE_LOG_DEBUG, "Console logging level set to: %s\n", GetLogLevelName(logLevel));
 }
 
 void SetConsoleLogToStderr(bool toStderr)
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
 
    _dcl.SetConsoleLogToStderr(toStderr);
    LogTime(MUSCLE_LOG_DEBUG, "Console logging target set to: %s\n", _dcl.GetConsoleLogToStderr()?"stderr":"stdout");
@@ -1960,7 +1960,7 @@ void SetConsoleLogToStderr(bool toStderr)
 
 void LogCallback :: SetLogLevelThreshold(int logLevel)
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
    _logLevelThreshold = logLevel;
    UpdateMaxLogLevel();
 }
@@ -2028,7 +2028,7 @@ status_t LogTimeAux(const char * sourceFile, const char * sourceFunction, int so
 status_t LogTimeAux(int ll, const char * fmt, ...)
 #endif
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
    if (_inWarnOutOfMemory.GetCount() < 2)  // avoid potential infinite recursion (while still allowing the first Out-of-memory message to attempt to get into the log)
    {
       // First, log the preamble
@@ -2063,7 +2063,7 @@ status_t LogTimeAux(int ll, const char * fmt, ...)
 
 void LogFlush()
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
    for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++)
    {
       const LogCallbackRef & lcr = iter.GetKey();
@@ -2097,7 +2097,7 @@ status_t LogStackTrace(int ll, uint32 maxDepth)
 
 status_t LogPlainAux(int ll, const char * fmt, ...)
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
    {
       // No way to get these, since #define Log() as a macro causes
       // nasty namespace collisions with other methods/functions named Log()
@@ -2115,7 +2115,7 @@ status_t LogPlainAux(int ll, const char * fmt, ...)
 
 status_t PutLogCallback(const LogCallbackRef & cb)
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
    const status_t ret = _logCallbacks.PutWithDefault(cb);
    UpdateMaxLogLevel();
    return ret;
@@ -2123,14 +2123,14 @@ status_t PutLogCallback(const LogCallbackRef & cb)
 
 void ClearLogCallbacks()
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
    _logCallbacks.Clear();
    UpdateMaxLogLevel();
 }
 
 status_t RemoveLogCallback(const LogCallbackRef & cb)
 {
-   MutexGuard mg(_logMutex);
+   DECLARE_MUTEXGUARD(_logMutex);
    const status_t ret = _logCallbacks.Remove(cb);
    UpdateMaxLogLevel();
    return ret;
