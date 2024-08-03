@@ -71,7 +71,7 @@ if (WITH_THREAD_SANITIZER)
 endif()
 
 option(WITH_TAGGED_POINTERS "Enable Tagged Pointers" ON)
-if (WITH_THREAD_SANITIZER)
+if (WITH_TAGGED_POINTERS)
    # empty
 else()
    message("Note:   -DWITH_TAGGED_POINTERS=OFF argument was specified:  PointerAndBits class will use separate fields instead")

@@ -93,3 +93,8 @@ command.  Here is a list of flags that the CMakeLists.txt file recognizes:
 -DWITH_EXAMPLES "Enable building of muscle examples" (defaults to ON)
    Enable building of the example programs that go with the "MUSCLE by example"
    HTML guide/tutorial.
+
+-DWITH_TAGGED_POINTERS "Enable Tagged Pointers" (defaults to ON)
+   Enable tagged pointers support (i.e. the use of otherwise-always-zero bits
+   in the pointers held by the PointerAndBools class to hold boolean values)
+   This reduces memory usage but could potentially cause problems on some platforms.
