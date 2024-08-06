@@ -98,3 +98,12 @@ command.  Here is a list of flags that the CMakeLists.txt file recognizes:
    Enable tagged pointers support (i.e. the use of otherwise-always-zero bits
    in the pointers held by the PointerAndBools class to hold boolean values)
    This reduces memory usage but could potentially cause problems on some platforms.
+
+-DWITH_OBJECT_COUNTING "Object Counting Instrumentation" (defaults to OFF)
+   Enable CountedObject support.  Specifying this will make the CountedObject
+   class not be a no-op, so that you can (in exchange for a slight cost in
+   run-time efficiency) call PrintCountedObjectInfo() at any time to get a
+   count of the number of objects of each type that are currently present
+   in this process's RAM.  This is can be useful when investigating the
+   nature of problems causing excessive memory usage.
+

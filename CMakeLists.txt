@@ -78,6 +78,14 @@ else()
    add_definitions(-DMUSCLE_AVOID_TAGGED_POINTERS)
 endif()
 
+option(WITH_OBJECT_COUNTING "Object Counting Instrumentation" OFF)
+if (WITH_OBJECT_COUNTING)
+   message("Note:   -DWITH_OBJECT_COUNTING=ON argument was specified:  Classes containing a CountedObject will be tracked and a census available via PrintCountedObjectInfo()")
+   add_definitions(-DMUSCLE_ENABLE_OBJECT_COUNTING)
+else()
+   # empty
+endif()
+
 option(WITH_DEADLOCKFINDER "Enable building with MUSCLE's potential-deadlock-detection logic enabled" OFF)
 if (WITH_DEADLOCKFINDER)
    message("Note:  -DWITH_DEADLOCKFINDER=ON argument was specified:  MUSCLE will include expensive run-time debug-checks for potential deadlock conditions when locking Mutexes.")

@@ -9,6 +9,7 @@ key:  - new feature
      or methods that will never return a NULL pointer under any circumstances
      (to enable a compiler warning when their caller tests against NULL)
    - Added a WITH_TAGGED_POINTERS option to the CMakeLists.txt.  Defaults to ON.
+   - Added support for -DWITH_OBJECT_COUNTING=ON to the CMakeLists.txt.
    o Modified StorageReflectSession::CloneDataNodeSubtree() to no longer set
      the SETDATANODE_FLAG_DONTOVERWRITEDATA flag when recursing to children.
      That way, it can be used to update existing subtrees as well as create
