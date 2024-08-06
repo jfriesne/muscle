@@ -170,7 +170,7 @@ public:
    ~String()
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_DTOR);
-      if (IsArrayDynamicallyAllocated()) muscleFree(_strData._bigBuffer);  // NOLINT (clang-tidy doesn't understand unions?)
+      if (IsArrayDynamicallyAllocated()) muscleFree(_strData._bigBuffer);
    }
 
    /** Assignment Operator.
@@ -1333,7 +1333,13 @@ private:
    String ArgAux(const char * buf) const;
    MUSCLE_NODISCARD bool IsArrayDynamicallyAllocated() const {return (_bufferLen>sizeof(_strData._smallBuffer));}
    MUSCLE_NODISCARD char * GetBuffer() {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
-   void ClearSmallBuffer() {memset(_strData._smallBuffer, 0, sizeof(_strData._smallBuffer));}
+   void ClearSmallBuffer()
+   {
+      memset(_strData._smallBuffer, 0, sizeof(_strData._smallBuffer));
+#ifdef __clang_analyzer__
+      _strData._bigBuffer = NULL;  // just to avoid an unitialized-value warning from clang-tidy
+#endif
+   }
    void WriteNULTerminatorByte() {GetBuffer()[_length] = '\0';}
    MUSCLE_NODISCARD int32 ReplaceAux(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount, String & writeTo) const;
 
@@ -1342,7 +1348,7 @@ private:
 #else
    union ShortStringOptimizationData {
 #endif
-      char * _bigBuffer;                                // Pointer to allocated array.  Valid iff (_bufferLen >  sizeof(_smallBuffer))  NOLINT
+      char * _bigBuffer;                                // Pointer to allocated array.  Valid iff (_bufferLen >  sizeof(_smallBuffer))
       char _smallBuffer[SMALL_MUSCLE_STRING_LENGTH+1];  // inline character array.      Valid iff (_bufferLen <= sizeof(_smallBuffer))
    } _strData;
 

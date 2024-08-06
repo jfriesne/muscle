@@ -1739,11 +1739,11 @@ void LogLineCallback :: LogAux(const LogCallbackArgs & a, const char * dummyFmt,
    // Generate the new text
    const size_t sizeOfBuffer = (sizeof(_buf)-1)-(_writeTo-_buf);  // the -1 is for the guaranteed NUL terminator
 #if __STDC_WANT_SECURE_LIB__
-   const int bytesAttempted = _vsnprintf_s(_writeTo, sizeOfBuffer, _TRUNCATE, a.GetText(), a.GetArgList());  // NOLINT (clang-tidy is being lame)
+   const int bytesAttempted = _vsnprintf_s(_writeTo, sizeOfBuffer, _TRUNCATE, a.GetText(), a.GetArgList());
 #elif WIN32
-   const int bytesAttempted =   _vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            a.GetArgList());  // NOLINT (clang-tidy is being lame)
+   const int bytesAttempted =   _vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            a.GetArgList());
 #else
-   const int bytesAttempted =    vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            a.GetArgList());  // NOLINT (clang-tidy is being lame)
+   const int bytesAttempted =    vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            a.GetArgList());
 #endif
 
    const bool wasTruncated = (bytesAttempted != (int)strlen(_writeTo));  // do not combine with above line!
@@ -1933,7 +1933,7 @@ static void UpdateMaxLogLevel()
       if (cb) maxLogThreshold = muscleMax(maxLogThreshold, cb->GetLogLevelThreshold());
    }
 
-   muscle_private::_maxLogThreshold = maxLogThreshold;  // NOLINT (otherwise clang-tidy complains about iter still being registered with _logCallbacks, which it isn't)
+   muscle_private::_maxLogThreshold = maxLogThreshold;
 }
 
 void SetFileLogLevel(int logLevel)
@@ -2058,7 +2058,7 @@ status_t LogTimeAux(int ll, const char * fmt, ...)
       // Then log the actual message as supplied by the user
       DO_LOGGING_CALLBACKS(ll);
    }
-   return B_NO_ERROR;  // NOLINT (otherwise clang-tidy will complain that my HashtableIterator is still registered, which it isn't AFAICT)
+   return B_NO_ERROR;
 }
 
 void LogFlush()
@@ -2069,7 +2069,7 @@ void LogFlush()
       const LogCallbackRef & lcr = iter.GetKey();
       if (lcr()) lcr()->Flush();
    }
-} // NOLINT (otherwise clang-tidy will complain that my HashtableIterator is still registered, which it isn't AFAICT)
+}
 
 status_t LogStackTrace(int ll, uint32 maxDepth)
 {

@@ -427,7 +427,7 @@ int32 String :: ReplaceAux(const Hashtable<String, String> & beforeToAfter, uint
    {
       Queue<const char *> states;
       if (states.EnsureSize(numPairs, true).IsError()) return -1; // so we won't have to worry about reallocs below
-      for (uint32 i=0; i<numPairs; i++) states[i] = beforeStrs[i]->Cstr();
+      for (uint32 i=0; i<numPairs; i++) states[i] = beforeStrs[i]->Cstr();  // NOLINT (I can't figure out why clang-tidy is worried about this, so I'll tape over it for now)
 
       for (uint32 i=0; i<origStrLength; i++)
       {

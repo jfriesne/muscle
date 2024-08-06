@@ -76,7 +76,7 @@ public:
    MUSCLE_NODISCARD T * GetPointer() const
    {
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
-      return _pointer;  // NOLINT (avoid clang-tidy warnings that come from clang-tidy not understanding the logic of reference-counting)
+      return _pointer;  // NOLINT <-- here as workaround for the bug described at https://github.com/llvm/llvm-project/issues/39646
 #else
       return reinterpret_cast<T*>(_pointer & ~_allDataBitsMask);
 #endif
