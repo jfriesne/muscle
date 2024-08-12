@@ -55,7 +55,7 @@ public:
    LogCallbackArgs(const time_t & when, int logLevel, const char * sourceFile, const char * sourceFunction, int sourceLine, const char * formatString, va_list & argList) : _when(when), _logLevel(logLevel), _sourceFile(sourceFile), _sourceFunction(sourceFunction), _sourceLine(sourceLine), _text(formatString), _argList(&argList), _dummyArgListInitialized(false) {/* empty */}
 
    /** Destructor */
-   ~LogCallbackArgs() {if (_dummyArgListInitialized) va_end(_dummyArgList);}
+   ~LogCallbackArgs() {DeinitializeDummyArgList();}
 
    /** Returns the timestamp indicating when this message was generated, in (seconds since 1970) format. */
    MUSCLE_NODISCARD const time_t & GetWhen() const {return _when;}
@@ -84,6 +84,23 @@ public:
      */
    MUSCLE_NODISCARD va_list & GetArgList() const {return _argList ? *_argList : GetDummyArgList("");}
 
+   /** Assignment operator
+     * @param rhs the object that we should make this object equivalent to
+     */
+   LogCallbackArgs & operator = (const LogCallbackArgs & rhs)
+   {
+      DeinitializeDummyArgList();
+
+      _when           = rhs._when;
+      _logLevel       = rhs._logLevel;
+      _sourceFile     = rhs._sourceFile;
+      _sourceFunction = rhs._sourceFunction;
+      _sourceLine     = rhs._sourceLine;
+      _text           = rhs._text;
+      _argList        = rhs._argList;
+      return *this;
+   }
+
 private:
    friend class LogLineCallback;
 
@@ -97,6 +114,15 @@ private:
          _dummyArgListInitialized = true;
       }
       return _dummyArgList;
+   }
+
+   void DeinitializeDummyArgList()
+   {
+      if (_dummyArgListInitialized)
+      {
+         va_end(_dummyArgList);
+         _dummyArgListInitialized = false;
+      }
    }
 
    time_t _when;
