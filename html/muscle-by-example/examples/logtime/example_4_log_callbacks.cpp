@@ -22,7 +22,7 @@ public:
    {
       char temp[1024];
       vsnprintf(temp, sizeof(temp), a.GetText(), a.GetArgList());
-      fprintf(stderr, "MyLogCallback::Log():  Got a severity-%i callback for text [%s]\n", a.GetLogLevel(), temp);
+      fprintf(stderr, "MyLogCallback::Log():  Got a sev-%i/%s callback for text [%s]\n", a.GetLogLevel(), GetLogLevelKeyword(a.GetLogLevel()), temp);
    }
 
    virtual void Flush()
@@ -43,7 +43,7 @@ public:
 
    virtual void LogLine(const LogCallbackArgs & a)
    {
-      fprintf(stderr, "MyLogLineCallback::LogLine():  Got a severity-%i callback for text [%s]\n", a.GetLogLevel(), a.GetText());
+      fprintf(stderr, "MyLogLineCallback::LogLine():  Got a sev-%i/%s callback for text [%s]\n", a.GetLogLevel(), GetLogLevelKeyword(a.GetLogLevel()), a.GetText());
    }
 };
 

@@ -1732,7 +1732,7 @@ LogLineCallback :: ~LogLineCallback()
    // empty
 }
 
-void LogLineCallback :: LogAux(const LogCallbackArgs & a, const char * dummyFmt, ...)
+void LogLineCallback :: LogAux(const LogCallbackArgs & a)
 {
    TCHECKPOINT;
 
@@ -1758,10 +1758,7 @@ void LogLineCallback :: LogAux(const LogCallbackArgs & a, const char * dummyFmt,
       {
          *nextReturn = '\0';  // terminate the string
 
-         va_list va;
-         va_start(va, dummyFmt);
-         LogLine(LogCallbackArgs(a, logFrom, va));
-         va_end(va);
+         LogLine(LogCallbackArgs(a, logFrom));
 
          searchAt = logFrom = nextReturn+1;
       }
@@ -1771,10 +1768,7 @@ void LogLineCallback :: LogAux(const LogCallbackArgs & a, const char * dummyFmt,
          // then we need to just dump what we have and move on, there's nothing else we can do
          if (wasTruncated)
          {
-            va_list va;
-            va_start(va, dummyFmt);
-            LogLine(LogCallbackArgs(a, logFrom, va));
-            va_end(va);
+            LogLine(LogCallbackArgs(a, logFrom));
 
             _buf[0] = '\0';
             _writeTo = searchAt = logFrom = _buf;
@@ -1795,17 +1789,13 @@ void LogLineCallback :: LogAux(const LogCallbackArgs & a, const char * dummyFmt,
    _lastLog = a;
 }
 
-void LogLineCallback :: FlushAux(const char * dummyFmt, ...)
+void LogLineCallback :: Flush()
 {
    TCHECKPOINT;
 
    if (_writeTo > _buf)
    {
-      va_list va;
-      va_start(va, dummyFmt);
-      LogLine(LogCallbackArgs(_lastLog, _buf, va));
-      va_end(va);
-
+      LogLine(LogCallbackArgs(_lastLog, _buf));
       _writeTo = _buf;
       _buf[0] = '\0';
    }
@@ -1996,15 +1986,15 @@ void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & a)
 
 static NestCount _inWarnOutOfMemory;  // avoid potential infinite recursion if we are logging out-of-memory errors but our LogCallbacks try to allocate memory to do the log operation :^P
 
-#define DO_LOGGING_PREAMBLE(cb)            \
-{                                          \
-   NestCountGuard g(_inLogPreamble);       \
-   va_list dummyList;                      \
-   va_start(dummyList, fmt);               \
-   const LogCallbackArgs lca(when, ll, sourceFile, sourceFunction, sourceLine, buf, dummyList); \
-   GetStandardLogLinePreamble(buf, lca);   \
-   cb.Log(lca);                            \
-   va_end(dummyList);                      \
+#define DO_LOGGING_PREAMBLE(cb)          \
+{                                        \
+   NestCountGuard g(_inLogPreamble);     \
+   va_list argList;                      \
+   va_start(argList, fmt);               \
+   const LogCallbackArgs lca(when, ll, sourceFile, sourceFunction, sourceLine, buf, argList); \
+   GetStandardLogLinePreamble(buf, lca); \
+   cb.Log(lca);                          \
+   va_end(argList);                      \
 }
 
 #define DO_LOGGING_CALLBACKS(ll)                                                             \

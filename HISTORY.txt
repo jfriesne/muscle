@@ -28,7 +28,7 @@ key:  - new feature
      SETDATANODE_FLAG_QUIET SetDataNodeFlag instead)
    o Modified a number of Ref-returning methods to return (const Ref &)
      instead, for better performance and so that they can be called inline
-     without causing clang-tidy to worry about potential use-and-free issues.
+     without causing clang-tidy to worry about potential use-after-free issues.
    o Modified the PointerAndBits class to hold a real pointer and not a
      uintptr when the -DMUSCLE_AVOID_TAGGED_POINTERS compiler-flag is set.
    o Modified LogCallbackArgs::GetArgList() to return a reference rather than
