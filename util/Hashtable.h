@@ -1159,7 +1159,7 @@ private:
       /** Allocates and returns an array of (size) HashtableEntry objects. */
       MUSCLE_NODISCARD static HashtableEntryBase * CreateEntriesArray(uint32 size)
       {
-         HashtableEntry * ret = newnothrow_array(HashtableEntry,size);
+         HashtableEntry * ret = (size>0) ? newnothrow_array(HashtableEntry,size) : NULL;  // size is guaranteed to always be greater than 0 but clang++ needs reassurance
          if (ret)
          {
             for (uint32 i=0; i<size; i++)
