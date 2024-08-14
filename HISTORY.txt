@@ -31,8 +31,9 @@ key:  - new feature
      without causing clang-tidy to worry about potential use-after-free issues.
    o Modified the PointerAndBits class to hold a real pointer and not a
      uintptr when the -DMUSCLE_AVOID_TAGGED_POINTERS compiler-flag is set.
-   o Modified LogCallbackArgs::GetArgList() to return a reference rather than
-     a pointer, so that callers don't have to worry about how to handle NULL.
+   o Moved the va_list property out of the LogCallbackArgs class and into
+     a separate argument to LogCallback::Log(), so that we don't have to
+     deal with va_list's weird restrictions regarding object-lifetimes.
    o Removed all setter methods from LogCallbackArgs class to make it immutable.
    o Changed the Set*() methods in SysLog.h to return void instead of status_t.
    * Fixed a number of warnings reported by clang-tidy.

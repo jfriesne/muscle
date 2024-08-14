@@ -18,10 +18,10 @@ class MyLogCallback : public LogCallback
 public:
    MyLogCallback() {/* empty */}
 
-   virtual void Log(const LogCallbackArgs & a)
+   virtual void Log(const LogCallbackArgs & a, va_list & argList)
    {
       char temp[1024];
-      vsnprintf(temp, sizeof(temp), a.GetText(), a.GetArgList());
+      vsnprintf(temp, sizeof(temp), a.GetText(), argList);
       fprintf(stderr, "MyLogCallback::Log():  Got a sev-%i/%s callback for text [%s]\n", a.GetLogLevel(), GetLogLevelKeyword(a.GetLogLevel()), temp);
    }
 

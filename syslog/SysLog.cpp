@@ -1477,7 +1477,7 @@ DefaultConsoleLogger :: DefaultConsoleLogger(int defaultLogThreshold)
     // empty
 }
 
-void DefaultConsoleLogger :: Log(const LogCallbackArgs & a)
+void DefaultConsoleLogger :: Log(const LogCallbackArgs & a, va_list & argList)
 {
    if (_firstCall)
    {
@@ -1491,7 +1491,7 @@ void DefaultConsoleLogger :: Log(const LogCallbackArgs & a)
    }
 
    FILE * fpOut = GetConsoleOutputStream();
-   vfprintf(fpOut, a.GetText(), a.GetArgList());
+   vfprintf(fpOut, a.GetText(), argList);
    fflush(fpOut);
 }
 
@@ -1518,11 +1518,11 @@ DefaultFileLogger :: ~DefaultFileLogger()
    CloseLogFile();
 }
 
-void DefaultFileLogger :: Log(const LogCallbackArgs & a)
+void DefaultFileLogger :: Log(const LogCallbackArgs & a, va_list & argList)
 {
    if (EnsureLogFileCreated(a).IsOK())
    {
-      vfprintf(_logFile.GetFile(), a.GetText(), a.GetArgList());
+      vfprintf(_logFile.GetFile(), a.GetText(), argList);
       _logFile.FlushOutput();
 
 #ifdef WIN32
@@ -1732,18 +1732,18 @@ LogLineCallback :: ~LogLineCallback()
    // empty
 }
 
-void LogLineCallback :: LogAux(const LogCallbackArgs & a)
+void LogLineCallback :: LogAux(const LogCallbackArgs & a, va_list & argList)
 {
    TCHECKPOINT;
 
    // Generate the new text
    const size_t sizeOfBuffer = (sizeof(_buf)-1)-(_writeTo-_buf);  // the -1 is for the guaranteed NUL terminator
 #if __STDC_WANT_SECURE_LIB__
-   const int bytesAttempted = _vsnprintf_s(_writeTo, sizeOfBuffer, _TRUNCATE, a.GetText(), a.GetArgList());
+   const int bytesAttempted = _vsnprintf_s(_writeTo, sizeOfBuffer, _TRUNCATE, a.GetText(), argList);
 #elif WIN32
-   const int bytesAttempted =   _vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            a.GetArgList());
+   const int bytesAttempted =   _vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            argList);
 #else
-   const int bytesAttempted =    vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            a.GetArgList());
+   const int bytesAttempted =    vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            argList);
 #endif
 
    const bool wasTruncated = (bytesAttempted != (int)strlen(_writeTo));  // do not combine with above line!
@@ -1991,9 +1991,9 @@ static NestCount _inWarnOutOfMemory;  // avoid potential infinite recursion if w
    NestCountGuard g(_inLogPreamble);     \
    va_list argList;                      \
    va_start(argList, fmt);               \
-   const LogCallbackArgs lca(when, ll, sourceFile, sourceFunction, sourceLine, buf, argList); \
+   const LogCallbackArgs lca(when, ll, sourceFile, sourceFunction, sourceLine, buf); \
    GetStandardLogLinePreamble(buf, lca); \
-   cb.Log(lca);                          \
+   cb.Log(lca, argList);                 \
    va_end(argList);                      \
 }
 
@@ -2008,7 +2008,7 @@ static NestCount _inWarnOutOfMemory;  // avoid potential infinite recursion if w
 {                               \
    va_list argList;             \
    va_start(argList, fmt);      \
-   cb.Log(LogCallbackArgs(when, ll, sourceFile, sourceFunction, sourceLine, fmt, argList)); \
+   cb.Log(LogCallbackArgs(when, ll, sourceFile, sourceFunction, sourceLine, fmt), argList); \
    va_end(argList);             \
 }
 

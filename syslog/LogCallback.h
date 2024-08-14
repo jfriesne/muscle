@@ -18,7 +18,7 @@ class LogCallbackArgs MUSCLE_FINAL_CLASS
 {
 public:
    /** Default Constructor */
-   LogCallbackArgs() : _when(0), _logLevel(MUSCLE_LOG_INFO), _sourceFile(""), _sourceFunction(""), _sourceLine(0), _text(""), _argList(NULL), _dummyArgListInitialized(false) {/* empty */}
+   LogCallbackArgs() : _when(0), _logLevel(MUSCLE_LOG_INFO), _sourceFile(""), _sourceFunction(""), _sourceLine(0), _text("") {/* empty */}
 
    /** Constructor
      * @param when Timestamp for this log message, in (seconds past 1970) format.
@@ -32,30 +32,12 @@ public:
      * @param sourceLine The line number of the LogLine() call that generated this callback.
      *                   Note that this parameter will only be valid if -DMUSCLE_INCLUDE_SOURCE_CODE_LOCATION_IN_LOGTIME
      *                   was defined when muscle was compiled.  Otherwise this value may be passed as -1.
-     * @param literalText A literal/exact text string to log.
+     * @param logText The text string to log (with or without printf-style format-specifiers)
      */
-   LogCallbackArgs(const time_t & when, int logLevel, const char * sourceFile, const char * sourceFunction, int sourceLine, const char * literalText) : _when(when), _logLevel(logLevel), _sourceFile(sourceFile), _sourceFunction(sourceFunction), _sourceLine(sourceLine), _text(literalText), _argList(NULL), _dummyArgListInitialized(false) {/* empty */}
-
-   /** Constructor
-     * @param when Timestamp for this log message, in (seconds past 1970) format.
-     * @param logLevel The MUSCLE_LOG_* severity level of this log message
-     * @param sourceFile The name of the source code file that contains the LogLine() call that generated this callback.
-     *                   Note that this parameter will only be valid if -DMUSCLE_INCLUDE_SOURCE_CODE_LOCATION_IN_LOGTIME
-     *                   was defined when muscle was compiled.  Otherwise this value may be passed as "".
-     * @param sourceFunction The name of the source code function that contains the LogLine() call that generated this callback.
-     *                   Note that this parameter will only be valid if -DMUSCLE_INCLUDE_SOURCE_CODE_LOCATION_IN_LOGTIME
-     *                   was defined when muscle was compiled.  Otherwise this value may be passed as "".
-     * @param sourceLine The line number of the LogLine() call that generated this callback.
-     *                   Note that this parameter will only be valid if -DMUSCLE_INCLUDE_SOURCE_CODE_LOCATION_IN_LOGTIME
-     *                   was defined when muscle was compiled.  Otherwise this value may be passed as -1.
-     * @param formatString A printf-style text-format-specifier string.  May contain percent-tokens such as
-                               "%s" and "%i" that will be expanded according to the provided va_list, before the text is logged.
-     * @param argList Reference to a va_list object that will be used to expand (formatString).
-     */
-   LogCallbackArgs(const time_t & when, int logLevel, const char * sourceFile, const char * sourceFunction, int sourceLine, const char * formatString, va_list & argList) : _when(when), _logLevel(logLevel), _sourceFile(sourceFile), _sourceFunction(sourceFunction), _sourceLine(sourceLine), _text(formatString), _argList(&argList), _dummyArgListInitialized(false) {/* empty */}
+   LogCallbackArgs(const time_t & when, int logLevel, const char * sourceFile, const char * sourceFunction, int sourceLine, const char * logText) : _when(when), _logLevel(logLevel), _sourceFile(sourceFile), _sourceFunction(sourceFunction), _sourceLine(sourceLine), _text(logText) {/* empty */}
 
    /** Destructor */
-   ~LogCallbackArgs() {DeinitializeDummyArgList();}
+   ~LogCallbackArgs() {/* empty */}
 
    /** Returns the timestamp indicating when this message was generated, in (seconds since 1970) format. */
    MUSCLE_NODISCARD const time_t & GetWhen() const {return _when;}
@@ -79,51 +61,10 @@ public:
      */
    MUSCLE_NODISCARD const char * GetText() const {return _text;}
 
-   /** In a Log() callback, this returns a reference to a va_list object that can be used to expand (text).
-     * In a LogLine() callback, this method should not be called as it isn't useful for anything in that context.
-     */
-   MUSCLE_NODISCARD va_list & GetArgList() const {return _argList ? *_argList : GetDummyArgList("");}
-
-   /** Assignment operator
-     * @param rhs the object that we should make this object equivalent to
-     */
-   LogCallbackArgs & operator = (const LogCallbackArgs & rhs)
-   {
-      DeinitializeDummyArgList();
-
-      _when           = rhs._when;
-      _logLevel       = rhs._logLevel;
-      _sourceFile     = rhs._sourceFile;
-      _sourceFunction = rhs._sourceFunction;
-      _sourceLine     = rhs._sourceLine;
-      _text           = rhs._text;
-      _argList        = rhs._argList;
-      return *this;
-   }
-
 private:
    friend class LogLineCallback;
 
-   LogCallbackArgs(const LogCallbackArgs & copyMe, const char * optNewLiteralText) : _when(copyMe._when), _logLevel(copyMe._logLevel), _sourceFile(copyMe._sourceFile), _sourceFunction(copyMe._sourceFunction), _sourceLine(copyMe._sourceLine), _text(optNewLiteralText ? optNewLiteralText : copyMe._text), _argList(NULL), _dummyArgListInitialized(false) {/* empty */}
-
-   MUSCLE_NODISCARD va_list & GetDummyArgList(const char * dummyFormat, ...) const
-   {
-      if (_dummyArgListInitialized == false)
-      {
-         va_start(_dummyArgList, dummyFormat);
-         _dummyArgListInitialized = true;
-      }
-      return _dummyArgList;
-   }
-
-   void DeinitializeDummyArgList()
-   {
-      if (_dummyArgListInitialized)
-      {
-         va_end(_dummyArgList);
-         _dummyArgListInitialized = false;
-      }
-   }
+   LogCallbackArgs(const LogCallbackArgs & copyMe, const char * optNewLiteralText) : _when(copyMe._when), _logLevel(copyMe._logLevel), _sourceFile(copyMe._sourceFile), _sourceFunction(copyMe._sourceFunction), _sourceLine(copyMe._sourceLine), _text(optNewLiteralText ? optNewLiteralText : copyMe._text) {/* empty */}
 
    time_t _when;
    int _logLevel;
@@ -131,10 +72,6 @@ private:
    const char * _sourceFunction;
    int _sourceLine;
    const char * _text;
-   va_list * _argList;
-
-   mutable va_list _dummyArgList;
-   mutable bool _dummyArgListInitialized;
 };
 
 /** Callback object that can be added with PutLogCallback()
@@ -159,8 +96,9 @@ public:
 
    /** Callback method.  Called whenever a message is logged with Log() or LogTime().
     *  @param a LogCallbackArgs object containing all the arguments to this method.
+    *  @param argList the stdargs arguments-list to use to expand any printf-style argument-specifiers in the log text.
     */
-   virtual void Log(const LogCallbackArgs & a) = 0;
+   virtual void Log(const LogCallbackArgs & a, va_list & argList) = 0;
 
    /** Callback method.  When this method is called, the callback should flush any
      * held buffers out.  (ie call fflush() or whatever)
@@ -169,7 +107,6 @@ public:
 
    /** Sets our current MUSCLE_LOG_* log level threshold to a different value.
      * @param logLevelThreshold the new MUSCLE_LOG_* log level threshold to use.
-     * @returns B_NO_ERROR on success, or an error value on failure.
      * Logging calls whose severity-value is greater than this value will not be passed to this callback.
      */
    void SetLogLevelThreshold(int logLevelThreshold);
@@ -204,8 +141,9 @@ public:
 
    /** Implemented to call LogLine() when appropriate
      * @param a all of the information about this log call (severity, text, etc)
+    *  @param argList the stdargs arguments-list to use to expand any printf-style argument-specifiers in the log text.
      */
-   virtual void Log(const LogCallbackArgs & a) {return LogAux(a);}
+   virtual void Log(const LogCallbackArgs & a, va_list & argList) {return LogAux(a, argList);}
 
    /** Implemented to call LogLine() when appropriate */
    virtual void Flush();
@@ -219,7 +157,7 @@ protected:
    virtual void LogLine(const LogCallbackArgs & a) = 0;
 
 private:
-   void LogAux(const LogCallbackArgs & a);
+   void LogAux(const LogCallbackArgs & a, va_list & argList);
 
    LogCallbackArgs _lastLog; // stored for use by Flush()
    char * _writeTo;     // points to the next spot in (_buf) to muscleSprintf() into
@@ -259,7 +197,7 @@ public:
      */
    DefaultConsoleLogger(int defaultLogLevelThreshold = MUSCLE_LOG_INFO);
 
-   virtual void Log(const LogCallbackArgs & a);
+   virtual void Log(const LogCallbackArgs & a, va_list & argList);
    virtual void Flush();
 
    /** Sets whether we should log to stderr instead of stdout.
@@ -295,8 +233,7 @@ public:
 
    virtual ~DefaultFileLogger();
 
-   virtual void Log(const LogCallbackArgs & a);
-
+   virtual void Log(const LogCallbackArgs & a, va_list & argList);
    virtual void Flush();
 
    /** Specify a pattern of already-existing log files to include in our log-file-history.
