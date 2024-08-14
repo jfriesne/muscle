@@ -25,6 +25,26 @@
 #include "util/Directory.h"
 #include "util/FilePathInfo.h"
 
+#if defined(__linux__) || defined(__APPLE__)
+extern "C" {  // necessary for the OS's signal-handler-callback to call us legally
+void MUSCLECrashSignalHandler(int sig)  // deliberately not declared static
+{
+   // Uninstall this handler, to avoid the possibility of an infinite regress
+   signal(SIGSEGV, SIG_DFL);
+   signal(SIGBUS,  SIG_DFL);
+   signal(SIGILL,  SIG_DFL);
+   signal(SIGABRT, SIG_DFL);
+   signal(SIGFPE,  SIG_DFL);
+
+   printf("MUSCLECrashSignalHandler called with signal %i... I'm going to print a stack trace, then kill the process.\n", sig);
+   (void) muscle::PrintStackTrace();  // NOLINT(bugprone-signal-handler)
+   printf("MUSCLECrashSignalHandler:  Crashed process aborting now.... bye!\n");
+   fflush(stdout);
+   abort();
+}
+};
+#endif
+
 namespace muscle {
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
@@ -414,24 +434,6 @@ status_t ParsePortArg(const Message & args, const String & fn, uint16 & retPort,
    return B_NO_ERROR;
 }
 
-#if defined(__linux__) || defined(__APPLE__)
-static void CrashSignalHandler(int sig)
-{
-   // Uninstall this handler, to avoid the possibility of an infinite regress
-   signal(SIGSEGV, SIG_DFL);
-   signal(SIGBUS,  SIG_DFL);
-   signal(SIGILL,  SIG_DFL);
-   signal(SIGABRT, SIG_DFL);
-   signal(SIGFPE,  SIG_DFL);
-
-   printf("MUSCLE CrashSignalHandler called with signal %i... I'm going to print a stack trace, then kill the process.\n", sig);
-   (void) PrintStackTrace();
-   printf("CrashSignalHandler:  Crashed process aborting now.... bye!\n");
-   fflush(stdout);
-   abort();
-}
-#endif
-
 #if defined(MUSCLE_USE_MSVC_STACKWALKER) && !defined(MUSCLE_INLINE_LOGGING)
 extern void _Win32PrintStackTraceForContext(FILE * outFile, CONTEXT * context, uint32 maxDepth);
 
@@ -608,11 +610,11 @@ void HandleStandardDaemonArgs(const Message & args)
    {
 #if defined(__linux__) || defined(__APPLE__)
       LogTime(MUSCLE_LOG_INFO, "Enabling stack-trace printing when a crash occurs.\n");
-      signal(SIGSEGV, CrashSignalHandler);
-      signal(SIGBUS,  CrashSignalHandler);
-      signal(SIGILL,  CrashSignalHandler);
-      signal(SIGABRT, CrashSignalHandler);
-      signal(SIGFPE,  CrashSignalHandler);
+      signal(SIGSEGV, MUSCLECrashSignalHandler);
+      signal(SIGBUS,  MUSCLECrashSignalHandler);
+      signal(SIGILL,  MUSCLECrashSignalHandler);
+      signal(SIGABRT, MUSCLECrashSignalHandler);
+      signal(SIGFPE,  MUSCLECrashSignalHandler);
 #elif MUSCLE_USE_MSVC_STACKWALKER
 # ifndef MUSCLE_INLINE_LOGGING
       LogTime(MUSCLE_LOG_INFO, "Enabling stack-trace printing when a crash occurs.\n");
@@ -944,6 +946,7 @@ ByteBufferRef ParseHexBytes(const char * buf)
                   case '\'': c = 0x27; break;
                   case '"':  c = 0x22; break;
                   case '?':  c = 0x3F; break;
+                  default:   /* empty */ break;
                }
                b[count++] = c;
             }

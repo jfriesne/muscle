@@ -53,7 +53,7 @@ static MessageRef GenerateChatMessage(const char * targetSessionID, const char *
       MRETURN_ON_ERROR(chatMessage()->AddString(PR_NAME_KEYS, toString.Cstr()));
       MRETURN_ON_ERROR(chatMessage()->AddString("session", "blah"));  // will be set by server
       MRETURN_ON_ERROR(chatMessage()->AddString("text", messageText));
-      if (strcmp(targetSessionID, "*")) MRETURN_ON_ERROR(chatMessage()->AddBool("private", true));
+      if (strcmp(targetSessionID, "*") != 0) MRETURN_ON_ERROR(chatMessage()->AddBool("private", true));
    }
    return chatMessage;
 }
@@ -281,15 +281,10 @@ int main(int argc, char ** argv)
                         String sessionID = GetPathClause(SESSION_ID_DEPTH, nodepath.Cstr());
                         sessionID = sessionID.Substring(0, sessionID.IndexOf('/'));
 
-                        switch(GetPathDepth(nodepath.Cstr()))
+                        if ((GetPathDepth(nodepath.Cstr()) == USER_NAME_DEPTH)&&(strncmp(GetPathClause(USER_NAME_DEPTH, nodepath.Cstr()), "name", 4) == 0))
                         {
-                           case USER_NAME_DEPTH:
-                           if (strncmp(GetPathClause(USER_NAME_DEPTH, nodepath.Cstr()), "name", 4) == 0)
-                           {
-                              String userNameString = GetUserName(_users, sessionID);
-                              if (_users.Remove(sessionID).IsOK()) LogTime(MUSCLE_LOG_INFO, "User [%s] has disconnected.\n", userNameString());
-                           }
-                           break;
+                           String userNameString = GetUserName(_users, sessionID);
+                           if (_users.Remove(sessionID).IsOK()) LogTime(MUSCLE_LOG_INFO, "User [%s] has disconnected.\n", userNameString());
                         }
                      }
                   }
@@ -298,8 +293,7 @@ int main(int argc, char ** argv)
                   for (MessageFieldNameIterator iter = msg()->GetFieldNameIterator(B_MESSAGE_TYPE); iter.HasData(); iter++)
                   {
                      const String & np = iter.GetFieldName();
-                     const int pathDepth = GetPathDepth(np());
-                     if (pathDepth == USER_NAME_DEPTH)
+                     if (GetPathDepth(np()) == USER_NAME_DEPTH)
                      {
                         ConstMessageRef tempRef;
                         if (msg()->FindMessage(np, tempRef).IsOK())
@@ -307,36 +301,34 @@ int main(int argc, char ** argv)
                            const Message * pmsg = tempRef();
                            String sessionID = GetPathClause(SESSION_ID_DEPTH, np());
                            sessionID = sessionID.Substring(0, sessionID.IndexOf('/'));
-                           switch(pathDepth)
-                           {
-                              case USER_NAME_DEPTH:
-                              {
-                                 String hostNameString = GetPathClause(HOST_NAME_DEPTH, np());
-                                 hostNameString = hostNameString.Substring(0, hostNameString.IndexOf('/'));
 
-                                 const char * nodeName = GetPathClause(USER_NAME_DEPTH, np());
-                                 if (strncmp(nodeName, "name", 4) == 0)
-                                 {
-                                    const char * name;
-                                    if (pmsg->FindString("name", &name).IsOK())
-                                    {
-                                       if (_users.ContainsKey(sessionID) == false) LogTime(MUSCLE_LOG_INFO, "User #%s has connected\n", sessionID());
-                                       (void) _users.Put(sessionID, name);
-                                       LogTime(MUSCLE_LOG_INFO, "User #%s is now known as %s\n", sessionID(), name);
-                                    }
-                                 }
-                                 else if (strncmp(nodeName, "userstatus", 10) == 0)
-                                 {
-                                    const char * status;
-                                    if (pmsg->FindString("userstatus", &status).IsOK()) LogTime(MUSCLE_LOG_INFO, "%s is now [%s]\n", GetUserName(_users, sessionID)(), status);
-                                 }
+                           String hostNameString = GetPathClause(HOST_NAME_DEPTH, np());
+                           hostNameString = hostNameString.Substring(0, hostNameString.IndexOf('/'));
+
+                           const char * nodeName = GetPathClause(USER_NAME_DEPTH, np());
+                           if (strncmp(nodeName, "name", 4) == 0)
+                           {
+                              const char * name;
+                              if (pmsg->FindString("name", &name).IsOK())
+                              {
+                                 if (_users.ContainsKey(sessionID) == false) LogTime(MUSCLE_LOG_INFO, "User #%s has connected\n", sessionID());
+                                 (void) _users.Put(sessionID, name);
+                                 LogTime(MUSCLE_LOG_INFO, "User #%s is now known as %s\n", sessionID(), name);
                               }
-                              break;
+                           }
+                           else if (strncmp(nodeName, "userstatus", 10) == 0)
+                           {
+                              const char * status;
+                              if (pmsg->FindString("userstatus", &status).IsOK()) LogTime(MUSCLE_LOG_INFO, "%s is now [%s]\n", GetUserName(_users, sessionID)(), status);
                            }
                         }
                      }
                   }
                }
+               break;
+
+               default:
+                  LogTime(MUSCLE_LOG_WARNING, "Received unknown incoming Message what-code " UINT32_FORMAT_SPEC "\n", msg()->what);
                break;
             }
          }

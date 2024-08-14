@@ -320,6 +320,7 @@ FilterInputBuffer(char * buf, uint32 & bufLen, uint32 /*maxLen*/)
          case IAC: _commandBytesLeft = 3;                            break;
          case SB:  _inSubnegotiation = true;                         break;
          case SE:  _inSubnegotiation = false; _commandBytesLeft = 0; break;
+         default:  /* empty */                                       break;
       }
       if (_commandBytesLeft > 0) {--_commandBytesLeft; keepChar = false;}
       if (_inSubnegotiation) keepChar = false;

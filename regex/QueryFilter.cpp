@@ -287,6 +287,9 @@ bool StringQueryFilter :: DoMatch(const String & s) const
          case OP_REGULAR_EXPRESSION_MATCH:
             _matcher = new StringMatcher(_value, false);
          break;
+
+         default:
+            return false;
       }
    }
    return _matcher ? _matcher->Match(s()) : false;

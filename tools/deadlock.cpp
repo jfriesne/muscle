@@ -7,8 +7,8 @@
 
 using namespace muscle;
 
-static Mutex _mutexA;
-static Mutex _mutexB;
+static Mutex g_mutexA;
+static Mutex g_mutexB;
 
 class TestThread : public Thread
 {
@@ -21,8 +21,8 @@ public:
       for (uint32 i=0; i<numIterations; i++)
       {
          const bool reverseOrder = ((rand()%2) == 0);
-         Mutex * m1 = reverseOrder ? &_mutexB : &_mutexA;
-         Mutex * m2 = reverseOrder ? &_mutexA : &_mutexB;
+         Mutex * m1 = reverseOrder ? &g_mutexB : &g_mutexA;
+         Mutex * m2 = reverseOrder ? &g_mutexA : &g_mutexB;
          DECLARE_MUTEXGUARD(*m1);  // using the macro allows the deadlock-finder to find this line-location, rather than the line in Mutex.h
          DECLARE_MUTEXGUARD(*m1);  // doing it a second time just to make sure that recursive-locking is handled as expected
          if (m2->Lock().IsError()) printf("Error, couldn't lock second Mutex!  (this should never happen!)\n");

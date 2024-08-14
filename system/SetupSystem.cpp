@@ -168,8 +168,8 @@ static void CheckOp(uint32 numBytes, const void * orig, const void * swapOne, co
 {
    if ((swapOne)&&(swap_memcmp(orig, swapOne, numBytes))) GoInsane(why, "(swapOne)");
    if ((swapTwo)&&(swap_memcmp(orig, swapTwo, numBytes))) GoInsane(why, "(swapTwo)");
-   if ((origOne)&&(memcmp(orig, origOne, numBytes)))      GoInsane(why, "(origOne)");
-   if ((origTwo)&&(memcmp(orig, origTwo, numBytes)))      GoInsane(why, "(origTwo)");
+   if ((origOne)&&(memcmp(orig, origOne, numBytes) != 0)) GoInsane(why, "(origOne)");
+   if ((origTwo)&&(memcmp(orig, origTwo, numBytes) != 0)) GoInsane(why, "(origTwo)");
 }
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
@@ -2205,7 +2205,7 @@ bool IsCurrentThreadMainThread()
 
 uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
 {
-#define MURMUR2_MIX(h,k,m) { k *= m; k ^= k >> r; k *= m; h *= m; h ^= k; }
+#define MURMUR2_MIX(h,k,m) { (k) *= (m); (k) ^= (k) >> (r); (k) *= (m); (h) *= (m); (h) ^= (k); }
    const uint32 m = 0x5bd1e995;
    const int32  r = 24;
 
@@ -2221,6 +2221,7 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
          case 1: t |= data[2] << 16;  // fall through!
          case 2: t |= data[1] << 8;   // fall through!
          case 3: t |= data[0];        // fall through!
+         default: /* empty */ break;
       }
 
       t <<= (8 * align);
@@ -2253,6 +2254,7 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
             case 3: d |= data[2] << 16;  // fall through
             case 2: d |= data[1] << 8;   // fall through
             case 1: d |= data[0];        // fall through
+            default: /* empty */ break;
          }
 
          uint32 k = (t >> sr) | (d << sl);
@@ -2269,6 +2271,7 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
             case 2: h ^= data[1] << 8;  // fall through!
             case 1: h ^= data[0];       // fall through!
                     h *= m;
+            default: /* empty */  break;
          };
       }
       else
@@ -2280,6 +2283,7 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
             case 1: d |= data[0];        // fall through!
             case 0: h ^= (t >> sr) | (d << sl);
                     h *= m;
+            default: /* empty */  break;
          }
       }
 
@@ -2308,6 +2312,7 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
          case 2: h ^= data[1] << 8;  // fall through!
          case 1: h ^= data[0];       // fall through!
                  h *= m;
+         default: /* empty */ break;
       };
 
       h ^= h >> 13;
@@ -2349,6 +2354,7 @@ uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int
       case 2: h ^= uint64(data2[1]) << 8;  // fall through!
       case 1: h ^= uint64(data2[0]);       // fall through!
               h *= m;
+      default:  /* empty */ break;
    }
 
    h ^= h >> r;

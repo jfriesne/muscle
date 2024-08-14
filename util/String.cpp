@@ -665,7 +665,7 @@ String String :: WithPrepend(const char * str, uint32 count) const
          {
             for (uint32 i=0; i<count; i++)
             {
-               memcpy(b, str, sLen);
+               memcpy(b, str, sLen);  // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
                b += sLen;
             }
          }
@@ -736,7 +736,7 @@ String String :: WithAppend(const char * str, uint32 count) const
          {
             for (uint32 i=0; i<count; i++)
             {
-               memcpy(b, str, sLen);
+               memcpy(b, str, sLen);  // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
                b += sLen;
             }
          }

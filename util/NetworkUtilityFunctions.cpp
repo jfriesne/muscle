@@ -1045,6 +1045,10 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
                   ret6.ReadFromNetworkArray(sin6->sin6_addr.s6_addr, tmp ? &tmp : NULL);
                }
             break;
+
+            default:
+               // empty
+            break;
          }
          next = next->ai_next;
       }
@@ -1550,6 +1554,10 @@ static IPAddress SockAddrToIPAddr(const struct sockaddr * a)
             return IPAddress(a6.sin6_addr, a6.sin6_scope_id);
          }
 #endif
+
+         default:
+            /* empty */
+         break;
       }
    }
    return invalidIP;

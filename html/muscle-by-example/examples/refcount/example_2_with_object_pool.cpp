@@ -11,7 +11,7 @@ static void PrintExampleDescription()
    printf("\n");
 }
 
-static int _myClassCounter = 0;  // let's keep track of how many MyClass objects there are
+static int g_myClassCounter = 0;  // let's keep track of how many MyClass objects there are
 
 /** An example of a class we want to allocate objects of from the heap,
   * but still avoid any risk of memory leaks.
@@ -21,18 +21,18 @@ class MyClass : public RefCountable
 public:
    MyClass()
    {
-      printf("MyClass default-constructor called, this=%p, _myClassCounter=%i\n", this, ++_myClassCounter);
+      printf("MyClass default-constructor called, this=%p, g_myClassCounter=%i\n", this, ++g_myClassCounter);
    }
 
-   MyClass(const MyClass & rhs)
+   MyClass(const MyClass & rhs) : RefCountable(rhs)
    {
-      printf("MyClass copy-constructor called, this=%p, rhs=%p, _myClassCounter=%i\n", this, &rhs, ++_myClassCounter);
+      printf("MyClass copy-constructor called, this=%p, rhs=%p, g_myClassCounter=%i\n", this, &rhs, ++g_myClassCounter);
    }
 
    ~MyClass()
    {
-      printf("MyClass destructor called, this=%p, _myClassCounter=%i\n", this, --_myClassCounter);
-      if (_myClassCounter == 0) printf("\nAll MyClass objects have been destroyed, yay!\n");
+      printf("MyClass destructor called, this=%p, g_myClassCounter=%i\n", this, --g_myClassCounter);
+      if (g_myClassCounter == 0) printf("\nAll MyClass objects have been destroyed, yay!\n");
    }
 };
 DECLARE_REFTYPES(MyClass);  // defines MyClassRef and ConstMyClassRef
@@ -41,7 +41,7 @@ DECLARE_REFTYPES(MyClass);  // defines MyClassRef and ConstMyClassRef
 // Note that ObjectPool uses a slab-allocator, so it will allocate a bunch of objects at
 // once when necessary (enough objects to fill up one 4KB page of RAM) and then dole them
 // out as the program needs them.
-static ObjectPool<MyClass> _myClassPool;
+static ObjectPool<MyClass> g_myClassPool;
 
 int main(int argc, char ** argv)
 {
@@ -54,8 +54,8 @@ int main(int argc, char ** argv)
 
    // Give ownership of new MyClass objects to a MyClassRef immediately
    // As soon as you've done that, you don't have to worry about leaks anymore
-   MyClassRef mc1(_myClassPool.ObtainObject());
-   MyClassRef mc2(_myClassPool.ObtainObject());
+   MyClassRef mc1(g_myClassPool.ObtainObject());
+   MyClassRef mc2(g_myClassPool.ObtainObject());
 
    printf("\n");
 
@@ -64,7 +64,7 @@ int main(int argc, char ** argv)
    {
       // Grab a number of MyClass objects from the ObjectPool for our use here
       Queue<MyClassRef> q;
-      for (int j=0; j<i; j++) (void) q.AddTail(MyClassRef(_myClassPool.ObtainObject()));
+      for (int j=0; j<i; j++) (void) q.AddTail(MyClassRef(g_myClassPool.ObtainObject()));
 
       printf("   Iteration %i of the loop is (pretending to use) %i MyClass objects\n", i, i);
       q.Clear();  // not strictly necessary since (q) is about to go out of scope anyway

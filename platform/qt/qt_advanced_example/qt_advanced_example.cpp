@@ -233,6 +233,10 @@ void AdvancedExampleWindow :: MessageReceivedFromServer(const MessageRef & msg, 
          }
       }
       break;
+
+      default:
+         // empty
+      break;
    }
 }
 

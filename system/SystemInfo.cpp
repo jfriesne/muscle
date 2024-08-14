@@ -222,6 +222,9 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
 #endif
       }
       break;
+
+      default:
+         return B_BAD_ARGUMENT;
    }
 
    // Make sure the path name ends in a slash
@@ -231,7 +234,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
       if (outStr.EndsWith(c) == false) outStr += c;
    }
 
-   return found ? B_NO_ERROR : B_BAD_ARGUMENT;
+   return found ? B_NO_ERROR : B_DATA_NOT_FOUND;
 };
 
 status_t GetNumberOfProcessors(uint32 & retNumProcessors)

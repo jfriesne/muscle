@@ -17,6 +17,7 @@ MessageRef::ItemPool * GetMessagePool() {return &_messagePool;}
 static DummyConstMessageRef _emptyMsgRef(_messagePool.GetDefaultObject());
 const ConstMessageRef & GetEmptyMessageRef() {return _emptyMsgRef;}
 
+// NOLINTBEGIN -- avoid clang-tidy warnings about X not being in parentheses
 #define DECLARECLONE(X)                             \
    AbstractDataArrayRef X :: Clone() const          \
    {                                                \
@@ -24,6 +25,7 @@ const ConstMessageRef & GetEmptyMessageRef() {return _emptyMsgRef;}
       if (ref()) *(static_cast<X*>(ref())) = *this; \
       return ref;                                   \
    }
+// NOLINTEND
 
 #ifdef MUSCLE_DISABLE_MESSAGE_FIELD_POOLS
 # define NEWFIELD(X)  new X
@@ -2154,8 +2156,8 @@ status_t Message :: TemplatedUnflatten(const Message & templateMsg, DataUnflatte
    return B_NO_ERROR;
 }
 
-#define CONSTRUCT_DATA_TYPE(TheType) {(void) new (_union._data) TheType();}
-#define  DESTRUCT_DATA_TYPE(TheType) {TheType * MUSCLE_MAY_ALIAS p = reinterpret_cast<TheType *>(_union._data); p->~TheType();}
+#define CONSTRUCT_DATA_TYPE(TheType) {(void) new (_union._data) TheType();}  // NOLINT
+#define  DESTRUCT_DATA_TYPE(TheType) {TheType * MUSCLE_MAY_ALIAS p = reinterpret_cast<TheType *>(_union._data); p->~TheType();}  // NOLINT
 
 void MessageField :: ChangeType(uint8 newType)
 {
@@ -2682,6 +2684,10 @@ MessageField & MessageField :: operator = (const MessageField & rhs)
       case FIELD_STATE_ARRAY:
          _state = FIELD_STATE_ARRAY;
          SetInlineItemAsRefCountableRef(rhs.GetInlineItemAsRefCountableRef());   // note array is ref-shared at this point!
+      break;
+
+      default:
+         MCRASH("MessageField: Unknown field state!");
       break;
    }
    return *this;

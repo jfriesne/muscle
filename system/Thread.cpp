@@ -184,6 +184,7 @@ status_t Thread :: SendMessageAux(int whichQueue, const MessageRef & replyRef)
       {
          case MESSAGE_THREAD_INTERNAL: SignalInternalThread(); break;
          case MESSAGE_THREAD_OWNER:    SignalOwner();          break;
+         default:                      MCRASH("Thread::SendMessageAux():  Unknown Queue!");  break;
       }
    }
    return B_NO_ERROR;

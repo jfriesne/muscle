@@ -6,7 +6,7 @@
 
 #if defined(__linux__)
 # ifndef _FILE_OFFSET_BITS
-#  define _FILE_OFFSET_BITS  64 //make sure it's using large file access
+#  define _FILE_OFFSET_BITS  64 // NOLINT - make sure it's using large file access
 # endif
 # include <sys/types.h>
 # include <unistd.h>

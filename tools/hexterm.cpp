@@ -27,21 +27,21 @@
 using namespace muscle;
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-static bool _useZLibDataIO      = false;
-static bool _useGZip            = false;
+static bool g_useZLibDataIO      = false;
+static bool g_useGZip            = false;
 #endif
 
-static bool _useHex             = true;
-static bool _printChecksums     = false;
-static bool _decorateOutput     = true;
-static bool _wifiModeEnabled    = false;
-static bool _printReceivedBytes = true;
-static bool _quietSend          = false;
-static bool _verifySpam         = false;
-static uint32 _spamsPerSecond   = 0;
-static uint32 _spamSize         = 1024;
-static uint64 _prevReceiveTime  = 0;
-static uint64 _postSendDelay    = 0;
+static bool g_useHex             = true;
+static bool g_printChecksums     = false;
+static bool g_decorateOutput     = true;
+static bool g_wifiModeEnabled    = false;
+static bool g_printReceivedBytes = true;
+static bool g_quietSend          = false;
+static bool g_verifySpam         = false;
+static uint32 g_spamsPerSecond   = 0;
+static uint32 g_spamSize         = 1024;
+static uint64 g_prevReceiveTime  = 0;
+static uint64 g_postSendDelay    = 0;
 
 static uint32 Calculate32BitChecksum(const uint8 * bytes, uint32 numBytes)
 {
@@ -66,14 +66,14 @@ static void LogChecksum(const uint8 * buf, uint32 numBytes)
 
 static void LogBytes(const uint8 * buf, uint32 numBytes, const char * optDesc)
 {
-   if (_useHex)
+   if (g_useHex)
    {
-      if (!_quietSend) LogHexBytes(MUSCLE_LOG_INFO, buf, numBytes, optDesc);
-      if (_printChecksums) LogChecksum(buf, numBytes);
+      if (!g_quietSend) LogHexBytes(MUSCLE_LOG_INFO, buf, numBytes, optDesc);
+      if (g_printChecksums) LogChecksum(buf, numBytes);
    }
    else
    {
-      if (_decorateOutput)
+      if (g_decorateOutput)
       {
          LogTime(MUSCLE_LOG_INFO, "/-----------Begin " UINT32_FORMAT_SPEC " bytes of %s%sAscii Data-----------\\\n", numBytes, optDesc?optDesc:"", optDesc?" ":"");
 
@@ -92,8 +92,8 @@ static void LogBytes(const uint8 * buf, uint32 numBytes, const char * optDesc)
          LogPlain(MUSCLE_LOG_INFO, "\n");
       }
       else for (uint32 i=0; i<numBytes; i++) putchar(buf[i]);
-      if (_printChecksums) LogChecksum(buf, numBytes);
-      if (_decorateOutput) LogTime(MUSCLE_LOG_INFO, "\\-----------End " UINT32_FORMAT_SPEC " bytes of %s%sAscii Data-------------/\n", numBytes, optDesc?optDesc:"", optDesc?" ":"");
+      if (g_printChecksums) LogChecksum(buf, numBytes);
+      if (g_decorateOutput) LogTime(MUSCLE_LOG_INFO, "\\-----------End " UINT32_FORMAT_SPEC " bytes of %s%sAscii Data-------------/\n", numBytes, optDesc?optDesc:"", optDesc?" ":"");
    }
 }
 
@@ -137,14 +137,14 @@ static status_t FlushOutBuffer(uint64 & writeCounter, const ByteBufferRef & outB
       writeCounter++;
       if (wfRet.IsOK())
       {
-         if (_decorateOutput) LogBytes(outBuf()->GetBuffer(), outBuf()->GetNumBytes(), "Sent");
+         if (g_decorateOutput) LogBytes(outBuf()->GetBuffer(), outBuf()->GetNumBytes(), "Sent");
       }
       else
       {
          LogTime(MUSCLE_LOG_ERROR, "Error [%s] writing " UINT32_FORMAT_SPEC " bytes... aborting!\n", wfRet(), outBuf()->GetNumBytes());
          return B_IO_ERROR;
       }
-      if (_postSendDelay > 0) (void) Snooze64(_postSendDelay);
+      if (g_postSendDelay > 0) (void) Snooze64(g_postSendDelay);
    }
    return B_NO_ERROR;
 }
@@ -154,16 +154,16 @@ static void DoSession(DataIORef io, bool allowRead = true)
    StdinDataIO stdinIO(false);
    PlainTextMessageIOGateway stdinGateway; stdinGateway.SetDataIO(DummyDataIORef(stdinIO));
    QueueGatewayMessageReceiver receiver;
-   ByteBufferRef spamBuf;  if (_spamsPerSecond > 0) spamBuf = GetByteBufferFromPool(_spamSize);
+   ByteBufferRef spamBuf;  if (g_spamsPerSecond > 0) spamBuf = GetByteBufferFromPool(g_spamSize);
 
    String scratchString, sinceString;
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-   if (_useZLibDataIO)
+   if (g_useZLibDataIO)
    {
       ZLibDataIORef zlibIO;
-      if (_useGZip) zlibIO.SetRef(new GZLibDataIO(io));
-               else zlibIO.SetRef(new  ZLibDataIO(io));
+      if (g_useGZip) zlibIO.SetRef(new GZLibDataIO(io));
+                else zlibIO.SetRef(new  ZLibDataIO(io));
       io = zlibIO;
    }
 #endif
@@ -171,7 +171,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
    SocketMultiplexer multiplexer;
 
    uint64 readCounter = 0, writeCounter = 0;
-   uint64 spamTime = ((_spamsPerSecond > 0)&&(_spamsPerSecond != MUSCLE_NO_LIMIT)) ? GetRunTime64() : MUSCLE_TIME_NEVER;
+   uint64 spamTime = ((g_spamsPerSecond > 0)&&(g_spamsPerSecond != MUSCLE_NO_LIMIT)) ? GetRunTime64() : MUSCLE_TIME_NEVER;
    bool keepGoing = true;
    while(keepGoing)
    {
@@ -180,24 +180,24 @@ static void DoSession(DataIORef io, bool allowRead = true)
       int stdinFD       = stdinIO.GetReadSelectSocket().GetFileDescriptor();
 
       if (allowRead) (void) multiplexer.RegisterSocketForReadReady(readFD);
-      if (_spamsPerSecond == MUSCLE_NO_LIMIT) (void) multiplexer.RegisterSocketForWriteReady(writeFD);
+      if (g_spamsPerSecond == MUSCLE_NO_LIMIT) (void) multiplexer.RegisterSocketForWriteReady(writeFD);
       (void) multiplexer.RegisterSocketForReadReady(stdinFD);
 
       if (multiplexer.WaitForEvents(spamTime).IsOK())
       {
-         if (((_spamsPerSecond == MUSCLE_NO_LIMIT)&&(multiplexer.IsSocketReadyForWrite(writeFD)))||(GetRunTime64() >= spamTime))
+         if (((g_spamsPerSecond == MUSCLE_NO_LIMIT)&&(multiplexer.IsSocketReadyForWrite(writeFD)))||(GetRunTime64() >= spamTime))
          {
             int32 spamBytesSent = 0;
             uint8 * b = spamBuf() ? spamBuf()->GetBuffer() : NULL;
             if (b)
             {
                uint8 v = (uint8)(spamTime%256);
-               for (uint32 i=0; i<_spamSize; i++) b[i] = v++;  // just some nice arbitrary data
-               if (_spamSize >= sizeof(uint32)) DefaultEndianConverter::Export(_spamSize, b);  // so we can verify that packets aren't getting truncated on reception
-               spamBytesSent = io()->WriteFully(b, _spamSize).IsOK() ? _spamSize : 0;
+               for (uint32 i=0; i<g_spamSize; i++) b[i] = v++;  // just some nice arbitrary data
+               if (g_spamSize >= sizeof(uint32)) DefaultEndianConverter::Export(g_spamSize, b);  // so we can verify that packets aren't getting truncated on reception
+               spamBytesSent = io()->WriteFully(b, g_spamSize).IsOK() ? g_spamSize : 0;
             }
-            if ((!_quietSend)&&(_decorateOutput)) LogTime(MUSCLE_LOG_ERROR, "Sent " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of spam!\n", spamBytesSent, _spamSize);
-            spamTime += (1000000/_spamsPerSecond);
+            if ((!g_quietSend)&&(g_decorateOutput)) LogTime(MUSCLE_LOG_ERROR, "Sent " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of spam!\n", spamBytesSent, g_spamSize);
+            spamTime += (1000000/g_spamsPerSecond);
          }
 
          if (multiplexer.IsSocketReadyForRead(readFD))
@@ -209,13 +209,13 @@ static void DoSession(DataIORef io, bool allowRead = true)
                readCounter++;
 
                const uint64 now = GetCurrentTime64();  // I'm using GetCurrentTime64() rather than GetRunTime64() because I think it will give me better precision under Windows --jaf
-               if (_prevReceiveTime == 0) _prevReceiveTime = now;
-               const int64 timeSince = (now-_prevReceiveTime);
+               if (g_prevReceiveTime == 0) g_prevReceiveTime = now;
+               const int64 timeSince = (now-g_prevReceiveTime);
                if (timeSince < 1000) sinceString = "<1 millisecond";
-                                else sinceString = GetHumanReadableTimeIntervalString(now-_prevReceiveTime, 1);
+                                else sinceString = GetHumanReadableTimeIntervalString(now-g_prevReceiveTime, 1);
 
-               if (_verifySpam) SanityCheckSpamPacket(buf, ret.GetByteCount());
-               if (_printReceivedBytes)
+               if (g_verifySpam) SanityCheckSpamPacket(buf, ret.GetByteCount());
+               if (g_printReceivedBytes)
                {
                   const PacketDataIO * packetDataIO = dynamic_cast<const PacketDataIO *>(io());
                   const IPAddressAndPort & fromIAP = packetDataIO ? packetDataIO->GetSourceOfLastReadPacket() : GetDefaultObjectForType<IPAddressAndPort>();
@@ -225,7 +225,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
                }
                else LogTime(MUSCLE_LOG_DEBUG, "Read #" UINT64_FORMAT_SPEC ": Received " INT32_FORMAT_SPEC "/%zu bytes of data (%s since prev).\n", readCounter, ret.GetByteCount(), sizeof(buf), sinceString());
 
-               _prevReceiveTime = now;
+               g_prevReceiveTime = now;
             }
             else if (ret.IsError())
             {
@@ -262,7 +262,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
                      if (outBuf() == NULL) outBuf = GetByteBufferFromPool();
 
                      ByteBufferRef nextBuf;
-                     if (_useHex) nextBuf = ParseHexBytes(b());
+                     if (g_useHex) nextBuf = ParseHexBytes(b());
                      else
                      {
                         nextBuf = GetByteBufferFromPool(b.FlattenedSize(), (const uint8 *) b());
@@ -300,11 +300,11 @@ static void DoSession(DataIORef io, bool allowRead = true)
 static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticastGroup, int optBindPort, bool forceSharePort, const IPAddress & optExplicitLocalIP)
 {
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-   if ((_useGZip)||(_useZLibDataIO)) LogTime(MUSCLE_LOG_WARNING, "%s keyword has no effect when hexterm is running in UDP mode!\n", _useGZip?"gzip":"zlib");
+   if ((g_useGZip)||(g_useZLibDataIO)) LogTime(MUSCLE_LOG_WARNING, "%s keyword has no effect when hexterm is running in UDP mode!\n", g_useGZip?"gzip":"zlib");
 #endif
 
 #ifndef MUSCLE_AVOID_MULTICAST_API
-   if (_wifiModeEnabled)
+   if (g_wifiModeEnabled)
    {
       const IPAddress ip = GetHostByName(optHost(), false);
       if (ip != invalidIP)
@@ -445,8 +445,8 @@ static void LogUsage(const char * argv0)
 // Secondary entry point, used when embedding hexterm in a unified daemon
 int hextermmain(const char * argv0, const Message & args)
 {
-   _printChecksums = args.HasName("printchecksums");
-   if (_printChecksums) LogTime(MUSCLE_LOG_INFO, "Checksum printing enabled.\n");
+   g_printChecksums = args.HasName("printchecksums");
+   if (g_printChecksums) LogTime(MUSCLE_LOG_INFO, "Checksum printing enabled.\n");
 
    if (args.HasName("help"))
    {
@@ -456,14 +456,14 @@ int hextermmain(const char * argv0, const Message & args)
    if (args.HasName("ascii"))
    {
       LogTime(MUSCLE_LOG_INFO, "ASCII mode activated!\n");
-      _useHex = false;
+      g_useHex = false;
    }
 
    if (args.HasName("gzip"))
    {
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
       LogTime(MUSCLE_LOG_INFO, "GZip mode activated!\n");
-      _useGZip = _useZLibDataIO = true;
+      g_useGZip = g_useZLibDataIO = true;
 #else
       LogTime(MUSCLE_LOG_ERROR, "GZip mode not activated -- MUSCLE_ENABLE_ZLIB_ENCODING wasn't defined when compiling!\n");
 #endif
@@ -472,7 +472,7 @@ int hextermmain(const char * argv0, const Message & args)
    {
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
       LogTime(MUSCLE_LOG_INFO, "ZLib mode activated!\n");
-      _useZLibDataIO = true;
+      g_useZLibDataIO = true;
 #else
       LogTime(MUSCLE_LOG_ERROR, "ZLib mode not activated -- MUSCLE_ENABLE_ZLIB_ENCODING wasn't defined when compiling!\n");
 #endif
@@ -481,36 +481,36 @@ int hextermmain(const char * argv0, const Message & args)
    if (args.HasName("plain"))
    {
       LogTime(MUSCLE_LOG_INFO, "Decorative output characters will be suppressed.\n");
-      _decorateOutput = false;
+      g_decorateOutput = false;
    }
 #ifndef MUSCLE_AVOID_MULTICAST_API
    if (args.HasName("wifi"))
    {
       LogTime(MUSCLE_LOG_INFO, "Enabled simulated-multicast mode for better performance over WiFi networks.\n");
-      _wifiModeEnabled = true;
+      g_wifiModeEnabled = true;
    }
 #endif
    if (args.HasName("delay"))
    {
-      _postSendDelay = ParseHumanReadableTimeIntervalString(args.GetString("delay"));
-      LogTime(MUSCLE_LOG_INFO, "Setting post-send delay to %s\n", GetHumanReadableTimeIntervalString(_postSendDelay)());
+      g_postSendDelay = ParseHumanReadableTimeIntervalString(args.GetString("delay"));
+      LogTime(MUSCLE_LOG_INFO, "Setting post-send delay to %s\n", GetHumanReadableTimeIntervalString(g_postSendDelay)());
    }
 
-   _printReceivedBytes = (args.HasName("quietreceive") == false);
-   _quietSend = args.HasName("quietsend");
+   g_printReceivedBytes = (args.HasName("quietreceive") == false);
+   g_quietSend = args.HasName("quietsend");
 
    if (args.HasName("spamspersecond"))
    {
       const char * sizeStr = args.GetCstr("spamsize");
-      if (sizeStr) _spamSize = atol(sizeStr);
+      if (sizeStr) g_spamSize = atol(sizeStr);
 
-      _spamsPerSecond = atoi(args.GetCstr("spamspersecond"));
-      LogTime(MUSCLE_LOG_INFO, "Will generate and send " UINT32_FORMAT_SPEC " " UINT32_FORMAT_SPEC "-byte spam-transmissions per second.\n", _spamsPerSecond, _spamSize);
+      g_spamsPerSecond = atoi(args.GetCstr("spamspersecond"));
+      LogTime(MUSCLE_LOG_INFO, "Will generate and send " UINT32_FORMAT_SPEC " " UINT32_FORMAT_SPEC "-byte spam-transmissions per second.\n", g_spamsPerSecond, g_spamSize);
    }
 
    if (args.HasName("verifyspam"))
    {
-      _verifySpam = true;
+      g_verifySpam = true;
       LogTime(MUSCLE_LOG_INFO, "Automatic sanity-checking of incoming spam packets has been enabled\n");
    }
 

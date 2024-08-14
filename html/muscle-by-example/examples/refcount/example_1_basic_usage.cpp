@@ -10,7 +10,7 @@ static void PrintExampleDescription()
    printf("\n");
 }
 
-static int _myClassCounter = 0;  // this will keep track of how many MyClass objects currently exist
+static int g_myClassCounter = 0;  // this will keep track of how many MyClass objects currently exist
 
 /** An example of a class we want to allocate objects of from the heap,
   * but still avoid any risk of memory leaks.
@@ -20,12 +20,12 @@ class MyClass : public RefCountable
 public:
    MyClass()
    {
-      printf("MyClass default-constructor called, this=%p, _myClassCounter=%i\n", this, ++_myClassCounter);
+      printf("MyClass default-constructor called, this=%p, g_myClassCounter=%i\n", this, ++g_myClassCounter);
    }
 
-   MyClass(const MyClass & rhs)
+   MyClass(const MyClass & rhs) : RefCountable(rhs)
    {
-      printf("MyClass copy-constructor called, this=%p, rhs=%p, _myClassCounter=%i\n", this, &rhs, ++_myClassCounter);
+      printf("MyClass copy-constructor called, this=%p, rhs=%p, g_myClassCounter=%i\n", this, &rhs, ++g_myClassCounter);
    }
 
    void SayHello()
@@ -35,8 +35,8 @@ public:
 
    ~MyClass()
    {
-      printf("MyClass destructor called, this=%p, _myClassCounter=%i\n", this, --_myClassCounter);
-      if (_myClassCounter == 0) printf("\nAll MyClass objects have been destroyed, yay!\n");
+      printf("MyClass destructor called, this=%p, g_myClassCounter=%i\n", this, --g_myClassCounter);
+      if (g_myClassCounter == 0) printf("\nAll MyClass objects have been destroyed, yay!\n");
    }
 };
 DECLARE_REFTYPES(MyClass);  // defines MyClassRef and ConstMyClassRef

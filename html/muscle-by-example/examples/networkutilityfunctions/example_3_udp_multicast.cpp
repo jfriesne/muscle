@@ -112,10 +112,10 @@ int main(int argc, char ** argv)
          if (sm.IsSocketReadyForRead(iter.GetKey().GetFileDescriptor()))
          {
             char recvBuf[1024];
-            int numBytesReceived;
             IPAddress sourceIP;
             uint16 sourcePort;
-            if ((numBytesReceived = ReceiveDataUDP(iter.GetKey(), recvBuf, sizeof(recvBuf)-1, true, &sourceIP, &sourcePort).GetByteCount()) >= 0)
+            const int numBytesReceived = ReceiveDataUDP(iter.GetKey(), recvBuf, sizeof(recvBuf)-1, true, &sourceIP, &sourcePort).GetByteCount();
+            if (numBytesReceived >= 0)
             {
                const IPAddressAndPort fromIAP(sourceIP, sourcePort);  // just for convenience
 

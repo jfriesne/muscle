@@ -58,7 +58,7 @@ status_t PathMatcher :: PutPathString(const String & path, const ConstQueryFilte
             slashPos = path.IndexOf('/', lastSlashPos+1);
             temp = path.Substring(lastSlashPos+1, (slashPos >= 0) ? slashPos : (int32)path.Length());
             StringMatcherRef smRef;
-            if (strcmp(temp(), "*"))
+            if (strcmp(temp(), "*") != 0)
             {
                smRef.SetRef(smPool->ObtainObject());
                MRETURN_OOM_ON_NULL(smRef());

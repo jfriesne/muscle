@@ -296,6 +296,10 @@ void BrowserWindow :: MessageReceivedFromServer(const MessageRef & msg)
          }
       }
       break;
+
+      default:
+         // empty
+      break;
    }
 }
 

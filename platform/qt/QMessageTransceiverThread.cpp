@@ -370,6 +370,7 @@ void QMessageTransceiverHandler :: HandleIncomingEvent(uint32 code, const Messag
       case MTT_EVENT_SESSION_DISCONNECTED:  emit SessionDisconnected();    break;
       case MTT_EVENT_SESSION_DETACHED:      emit SessionDetached();        break;
       case MTT_EVENT_OUTPUT_QUEUES_DRAINED: emit OutputQueueDrained(next); break;
+      default:                              /* empty */                    break;
    }
    emit InternalHandlerEvent(code, next);  // these get emitted for any event
 }

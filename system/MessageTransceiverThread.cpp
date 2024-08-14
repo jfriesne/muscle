@@ -590,9 +590,13 @@ void ThreadWorkerSession :: MessageReceivedFromSession(AbstractReflectSession & 
             case MTT_COMMAND_REMOVE_SESSIONS:
                EndSession();
             break;
+
+            default:
+               LogTime(MUSCLE_LOG_ERROR, "ThreadWorkerSession::MessageReceivedFromSession:  Unhandled what-code " UINT32_FORMAT_SPEC "\n", msg->what);
+            break;
          }
       }
-      else if ((msg->what >= MTT_EVENT_INCOMING_MESSAGE)&&(msg->what <= MTT_LAST_EVENT))
+      else if (muscleInRange(msg->what, (uint32)MTT_EVENT_INCOMING_MESSAGE, (uint32)MTT_LAST_EVENT))
       {
          // ignore these; we don't care about silly MTT_EVENTS, those are for the supervisor and the user
       }

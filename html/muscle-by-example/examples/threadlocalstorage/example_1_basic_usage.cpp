@@ -8,12 +8,12 @@ static void PrintExampleDescription()
 {
    printf("\n");
    printf("This program demonstrates basic usage of the muscle::ThreadLocalStorage class\n");
-   printf("Note that although each thread is accessing the same global _perThreadVariable,\n");
+   printf("Note that although each thread is accessing the same global g_perThreadVariable,\n");
    printf("each thread is \"seeing\" a different value from the others.\n");
    printf("\n");
 }
 
-static ThreadLocalStorage<int> _perThreadVariable;
+static ThreadLocalStorage<int> g_perThreadVariable;
 
 /** Thread class to demonstrate the per-thread behavior of a ThreadLocalStorage<T> object */
 class MyThread : public Thread
@@ -24,7 +24,7 @@ public:
 protected:
    virtual void InternalThreadEntry()
    {
-      int * myInt = _perThreadVariable.GetOrCreateThreadLocalObject();
+      int * myInt = g_perThreadVariable.GetOrCreateThreadLocalObject();
       if (myInt == NULL)
       {
          printf("Thread %p:  Couldn't get a pointer to my thread-local value!  Aborting!\n", this);
@@ -32,7 +32,7 @@ protected:
       }
 
       const int myVal = muscleAbs(((int)((uintptr)this))%10000);  // pick a value that is per-thread unique
-      printf("Thread %p setting my _perThreadVariable value to %i\n", this, myVal);
+      printf("Thread %p setting my g_perThreadVariable value to %i\n", this, myVal);
       *myInt = myVal;
 
       while(1)

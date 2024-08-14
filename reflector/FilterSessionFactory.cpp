@@ -99,6 +99,9 @@ void FilterSessionFactory :: MessageReceivedFromSession(AbstractReflectSession &
             case PR_COMMAND_ADDREQUIRES:    (void) PutRequirePattern(*s);             break;
             case PR_COMMAND_REMOVEBANS:            RemoveMatchingBanPatterns(*s);     break;
             case PR_COMMAND_REMOVEREQUIRES:        RemoveMatchingRequirePatterns(*s); break;
+            default:
+               LogTime(MUSCLE_LOG_WARNING, "FilterSessionFactory " UINT32_FORMAT_SPEC ":  Unhandled message " UINT32_FORMAT_SPEC " from session [%s]\n", GetFactoryID(), msg->what, from.GetSessionDescriptionString()());
+            break;
          }
       }
       _tempLogFor = NULL;

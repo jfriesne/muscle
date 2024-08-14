@@ -1993,7 +1993,7 @@ static NestCount _inWarnOutOfMemory;  // avoid potential infinite recursion if w
    va_start(argList, fmt);               \
    const LogCallbackArgs lca(when, ll, sourceFile, sourceFunction, sourceLine, buf); \
    GetStandardLogLinePreamble(buf, lca); \
-   cb.Log(lca, argList);                 \
+   (cb).Log(lca, argList);               \
    va_end(argList);                      \
 }
 
@@ -2001,14 +2001,14 @@ static NestCount _inWarnOutOfMemory;  // avoid potential infinite recursion if w
    for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++) \
    {                                                                                         \
       LogCallback * cb = iter.GetKey()();                                                    \
-      if ((cb)&&(ll <= cb->GetLogLevelThreshold())) DO_LOGGING_CALLBACK((*cb));              \
+      if ((cb)&&((ll) <= cb->GetLogLevelThreshold())) DO_LOGGING_CALLBACK((*cb));            \
    }
 
 #define DO_LOGGING_CALLBACK(cb) \
 {                               \
    va_list argList;             \
    va_start(argList, fmt);      \
-   cb.Log(LogCallbackArgs(when, ll, sourceFile, sourceFunction, sourceLine, fmt), argList); \
+   (cb).Log(LogCallbackArgs(when, ll, sourceFile, sourceFunction, sourceLine, fmt), argList); \
    va_end(argList);             \
 }
 

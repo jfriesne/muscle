@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -155,7 +156,7 @@ Point ExampleWidget :: QtCoordsToNormalized(const QPoint & pt) const
 
 QPoint ExampleWidget :: NormalizedToQtCoords(const Point & pt) const
 {
-   return QPoint((int)((pt.x()*width())+0.5f), (int)((pt.y()*height())+0.5f));
+   return QPoint((int) lround(pt.x()*width()), (int) lround(pt.y()*height()));
 }
 
 static QColor GetRandomBrightColor()
@@ -427,6 +428,10 @@ void ExampleWindow :: MessageReceived(const MessageRef & msg)
             }
          }
       }
+      break;
+
+      default:
+         LogTime(MUSCLE_LOG_WARNING, "ExampleWindow %p got unhandled Message " UINT32_FORMAT_SPEC " from I/O thread\n", this, msg()->what);
       break;
    }
 }

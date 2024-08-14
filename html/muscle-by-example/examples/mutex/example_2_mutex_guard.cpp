@@ -11,7 +11,7 @@ static void PrintExampleDescription()
    printf("\n");
 }
 
-static Mutex _theMutex;  // will be used by all threads
+static Mutex g_theMutex;  // will be used by all threads
 
 class ThreadThatUsesAMutex : public Thread
 {
@@ -25,7 +25,7 @@ protected:
       {
          // The lifetime of the MutexGuard object will define our critical section!
          {
-            DECLARE_MUTEXGUARD(_theMutex);  // or we could do:  MutexGuard mg(_theMutex);  but that isn't as safe since we might forget to type the mg
+            DECLARE_MUTEXGUARD(g_theMutex);  // or we could do:  MutexGuard mg(g_theMutex);  but that isn't as safe since we might forget to type the mg
 
             // Do some thready little task
             const int max = 10;

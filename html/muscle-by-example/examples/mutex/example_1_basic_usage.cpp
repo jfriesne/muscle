@@ -11,7 +11,7 @@ static void PrintExampleDescription()
    printf("\n");
 }
 
-static Mutex _theMutex;  // will be used by all threads
+static Mutex g_theMutex;  // will be used by all threads
 
 class ThreadThatUsesAMutex : public Thread
 {
@@ -23,14 +23,14 @@ protected:
    {
       while(1)
       {
-         if (_theMutex.Lock().IsOK())
+         if (g_theMutex.Lock().IsOK())
          {
             // Do some thready little task
             const int max = 10;
             for (int i=0; i<max; i++) printf("SYNCHRONIZED Thread %p:  i=%i/%i\n", this, i+1, max);
             printf("\n");
 
-            (void) _theMutex.Unlock();
+            (void) g_theMutex.Unlock();
          }
 
          // See if it is time for us to go away yet

@@ -115,6 +115,10 @@ static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Messa
             }
          }
          break;
+
+         default:
+            // empty
+         break;
       }
    }
    return B_NO_ERROR;

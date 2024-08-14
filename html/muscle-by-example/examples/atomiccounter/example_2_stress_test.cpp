@@ -16,11 +16,11 @@ static void PrintExampleDescription()
 }
 
 // This will be modified by all threads without any synchronization (okay to do!)
-static AtomicCounter _theAtomicCounter;
+static AtomicCounter g_theAtomicCounter;
 
 // This will also be used by all the threads without any synchronization (RACE CONDITION!)
 // (the volatile keyword is necessary here, otherwise the C++ optimizer hides the problem)
-static volatile int _nonAtomicCounter = 0;
+static volatile int g_nonAtomicCounter = 0;
 
 class ThreadThatUsesAtomicCounter : public Thread
 {
@@ -34,8 +34,8 @@ protected:
       {
          // Play with the atomic counter
          const int max = 100000;
-         for (int i=0; i<max; i++) _theAtomicCounter.AtomicIncrement();
-         for (int i=0; i<max; i++) _theAtomicCounter.AtomicDecrement();
+         for (int i=0; i<max; i++) g_theAtomicCounter.AtomicIncrement();
+         for (int i=0; i<max; i++) g_theAtomicCounter.AtomicDecrement();
 
          // See if it is time for us to go away yet
          MessageRef msg;
@@ -59,8 +59,8 @@ protected:
       {
          // Play with the nonatomic counter
          const int max = 100000;
-         for (int i=0; i<max; i++) _nonAtomicCounter++;
-         for (int i=0; i<max; i++) _nonAtomicCounter--;
+         for (int i=0; i<max; i++) g_nonAtomicCounter++;
+         for (int i=0; i<max; i++) g_nonAtomicCounter--;
 
          // See if it is time for us to go away yet
          MessageRef msg;
@@ -89,7 +89,7 @@ int main(int argc, char ** argv)
       for (uint32 i=0; i<ARRAYITEMS(threads); i++) (void) threads[i].ShutdownInternalThread();
    }
 
-   printf("After shutting down the threads, the final value of the AtomicCounter is %i (should be 0)\n", _theAtomicCounter.GetCount());
+   printf("After shutting down the threads, the final value of the AtomicCounter is %i (should be 0)\n", g_theAtomicCounter.GetCount());
    printf("\n");
 
    printf("Now we'll spawn %i more threads, except this time they'll use a plain int instead of an AtomicCounter.  This introduces a race condition!\n", NUM_THREADS);
@@ -100,7 +100,7 @@ int main(int argc, char ** argv)
       for (uint32 i=0; i<ARRAYITEMS(threads); i++) (void) threads[i].ShutdownInternalThread();
    }
 
-   printf("After shutting down the threads, the final value of the int is %i (ideally should be 0, but likely won't be, due to the race condition!)\n", _nonAtomicCounter);
+   printf("After shutting down the threads, the final value of the int is %i (ideally should be 0, but likely won't be, due to the race condition!)\n", g_nonAtomicCounter);
    printf("\n");
 
    return 0;

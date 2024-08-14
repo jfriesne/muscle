@@ -132,6 +132,7 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
                      case '*':  regexPattern += '.';  break;  // hmmm.
                      case '?':  c = '.';              break;  // question marks mean any-single-char
                      case '\\': escapeMode = true;    break;  // don't transform the next character!
+                     default:   /* empty */           break;
                   }
                }
                regexPattern += c;
