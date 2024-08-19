@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.41 - Released 8/19/2024
    - Added a MUSCLE_NEVER_RETURNS_NULL macro that can be used to tag functions
      or methods that will never return a NULL pointer under any circumstances
      (to enable a compiler warning when their caller tests against NULL)
