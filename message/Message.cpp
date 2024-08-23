@@ -3,7 +3,6 @@
 #include "util/ByteBuffer.h"
 #include "util/Queue.h"
 #include "message/Message.h"
-#include "util/MiscUtilityFunctions.h"  // TEMP REMOVE THIS
 
 namespace muscle {
 
