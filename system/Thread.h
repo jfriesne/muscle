@@ -629,7 +629,7 @@ private:
 
 #if defined(__linux__)
 # if defined(MUSCLE_AVOID_CPLUSPLUS11)
-#  volatile pid_t _threadTid;
+   volatile pid_t _threadTid;
 # else
    std::atomic<pid_t> _threadTid;  // there must be a better way to handle this
 # endif
