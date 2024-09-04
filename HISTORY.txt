@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Under MacOS, GetNetworkInterfaceInfos() will now populate the
+     NetworkInterfaceInfo class's description field with the String
+     returned by SCNetworkInterfaceGetLocalizedDisplayName(), if possible.
    * Fixed typo in Thread.h that would break pre-C++11 builds.
 
 9.41 - Released 8/19/2024

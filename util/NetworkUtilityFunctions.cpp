@@ -1811,7 +1811,8 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
    if (getifaddrs(&ifap) == 0)
    {
 #if defined(__FreeBSD__) || defined(BSD) || defined(__APPLE__)
-      Hashtable<String, uint32> inameToType;  // e.g. "en0" -> NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET
+      Hashtable<String, uint32> inameToType;         // e.g. "en0" -> NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET
+      Hashtable<String, String> inameToDescription;  // e.g. "en0" -> "Ethernet"
       {
 # if defined(__APPLE__) && !(TARGET_OS_IPHONE)
          CFArrayRef interfaces = SCNetworkInterfaceCopyAll();  // we can use this to get network interface hardware types later
@@ -1823,8 +1824,15 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                SCNetworkInterfaceRef ifRef = (SCNetworkInterfaceRef)CFArrayGetValueAtIndex(interfaces, i);
                if (ifRef)
                {
-                  const uint32 typeVal = ParseAppleInterfaceTypeString(SCNetworkInterfaceGetInterfaceType(ifRef));
-                  if (typeVal != NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN) (void) inameToType.Put(String(SCNetworkInterfaceGetBSDName(ifRef)), typeVal);
+                  const String iName(SCNetworkInterfaceGetBSDName(ifRef));
+                  if (iName.HasChars()) // paranoia
+                  {
+                     const uint32 typeVal = ParseAppleInterfaceTypeString(SCNetworkInterfaceGetInterfaceType(ifRef));
+                     if (typeVal != NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN) (void) inameToType.Put(iName, typeVal);
+
+                     const String desc(SCNetworkInterfaceGetLocalizedDisplayName(ifRef));
+                     if (desc.HasChars()) (void) inameToDescription.Put(iName, desc);
+                  }
                }
             }
             CFRelease(interfaces);
@@ -1918,8 +1926,10 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
             const bool hasCopper    = ((p->ifa_flags & IFF_RUNNING) != 0);
             uint32 hardwareType     = NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN;  // default
 
+            const String * ifDesc = NULL;  // may be set below
 #if defined(__APPLE__)
             hardwareType = inameToType.GetWithDefault(iname, NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN);
+            ifDesc = inameToDescription.Get(iname);
 #elif defined(__linux__) && !defined(MUSCLE_AVOID_LINUX_DETECT_NETWORK_HARDWARE_TYPES)
             if (dummySocket() == NULL) dummySocket = GetConstSocketRefFromPool(socket(AF_UNIX, SOCK_DGRAM, 0));
             if (dummySocket())
@@ -1941,7 +1951,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                if (unicastIP.IsIPv4() == false) unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignored by the TCP stack
 #endif
 
-               if (results.AddTail(NetworkInterfaceInfo(iname, "", unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType, GetNetworkInterfaceMTU(dummySocket, iname))).IsOK(ret))  // MAC address will be set later
+               if (results.AddTail(NetworkInterfaceInfo(iname, ifDesc?*ifDesc:GetEmptyString(), unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType, GetNetworkInterfaceMTU(dummySocket, iname))).IsOK(ret))  // MAC address will be set later
                {
                   DECLARE_MUTEXGUARD(_cachedLocalhostAddressLock);
                   if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;
