@@ -372,7 +372,7 @@ private:
   *       non-obvious run-time error where your Mutex only gets locked momentarily rather than until the end-of-scope)
   *       Using the DECLARE_MUTEXGUARD(theMutex) macro will also allow MUSCLE's deadlock-finder functionality (enabled
   *       via -DWITH_DEADLOCK_FINDER=ON in CMake, or via -DMUSCLE_ENABLE_DEADLOCK_FINDER as compiler argument)
-  *       to give you more useful debugging information about deadlocks that could happen (even if they didn't this time)
+  *       to give you more useful debugging information about deadlocks that could happen (even if they didn't happen this time)
   */
 class MUSCLE_NODISCARD MutexGuard MUSCLE_FINAL_CLASS
 {
