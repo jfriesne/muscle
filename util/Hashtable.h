@@ -125,6 +125,11 @@ public:
      */
    HashtableIterator(const HashtableType & table, uint32 flags = 0);
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** This constructor is declared deleted to keep HashtableIterators from being accidentally associated with temporary objects */
+   HashtableIterator(HashtableType && table, uint32 flags = 0) = delete;
+#endif
+
    /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIteratorAt().
      * @param table the Hashtable to iterate over.
      * @param startAt the first key that should be returned by the iteration.  If (startAt) is not in the table,
