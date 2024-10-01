@@ -14,6 +14,8 @@ key:  - new feature
      ReaderWriteMutex class is functionally equivalent to the vanilla
      Mutex class (i.e. it does exclusive locking in all cases) but I
      will remedy that shortly.
+   - Added a testreaderwritermutex.cpp test to the tests folder to
+     unit-test the new ReaderWriterMutex class.
    * Fixed typo in Thread.h that would break pre-C++11 builds.
 
 9.41 - Released 8/19/2024

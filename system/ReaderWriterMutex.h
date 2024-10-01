@@ -54,7 +54,8 @@ namespace muscle {
 # define TryLockReadOnly()  DeadlockFinderTryLockReadOnlyWrapper (__FILE__, __LINE__)
 # define LockReadWrite()    DeadlockFinderLockReadWriteWrapper   (__FILE__, __LINE__)
 # define TryLockReadWrite() DeadlockFinderTryLockReadWriteWrapper(__FILE__, __LINE__)
-# define Unlock()           DeadlockFinderUnlockWrapper          (__FILE__, __LINE__)
+# define UnlockReadOnly()   DeadlockFinderUnlockReadOnlyWrapper  (__FILE__, __LINE__)
+# define UnlockReadWrite()  DeadlockFinderUnlockReadWriteWrapper (__FILE__, __LINE__)
 #endif
 
 class ReadOnlyMutexGuard;  // forward declaration
@@ -116,7 +117,7 @@ public:
      * Any thread that tries to LockReadOnly() this object while it is already locked-for-read+write access
      * by another thread will block until the writer-thread unlocks the lock.  The lock is recursive, however;
      * if a given thread calls LockReadOnly() twice in a row it won't deadlock itself (although it will
-     * need to call Unlock() twice in a row in order to truly unlock the lock)
+     * need to call UnlockReadOnly() twice in a row in order to truly unlock the lock)
      * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the lock could not be locked for some reason.
      */
    status_t LockReadOnly() const
@@ -155,7 +156,7 @@ public:
      * Any thread that tries to LockReadWrite() this object while it is already locked by another thread
      * until after all threads have unlocked the lock.  The lock is recursive, however;
      * if a given thread calls LockReadWrite() twice in a row it won't deadlock itself (although it will
-     * need to call Unlock() twice in a row in order to truly unlock the lock)
+     * need to call UnlockReadWrite() twice in a row in order to truly unlock the lock)
      * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the lock could not be locked for some reason.
      */
    status_t LockReadWrite() const
@@ -188,14 +189,14 @@ public:
    }
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   status_t DeadlockFinderUnlockWrapper(const char * fileName, int fileLine) const
+   status_t DeadlockFinderUnlockReadOnlyWrapper(const char * fileName, int fileLine) const
 #else
-   /** Unlocks the lock.  Once this is done, any other thread that is blocked in the Lock()
-     * method will gain ownership of the lock and return.
+   /** Unlocks the a read-only-locked lock.  Once this is done, any other thread that is blocked in the Lock()
+     * methods will gain ownership of the lock and return.
      * @returns B_NO_ERROR on success, or B_LOCK_FAILED on failure (perhaps you tried to unlock a lock
      *          that wasn't locked?  This method should never fail in typical usage)
      */
-   status_t Unlock() const
+   status_t UnlockReadOnly() const
 #endif
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
@@ -203,7 +204,26 @@ public:
       LogDeadlockFinderEvent(false, fileName, fileLine);
 #endif
 
-      return UnlockAux();
+      return UnlockReadOnlyAux();
+   }
+
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+   status_t DeadlockFinderUnlockReadWriteWrapper(const char * fileName, int fileLine) const
+#else
+   /** Unlocks the a read-write-locked lock.  Once this is done, any other thread that is blocked in the Lock()
+     * methods will gain ownership of the lock and return.
+     * @returns B_NO_ERROR on success, or B_LOCK_FAILED on failure (perhaps you tried to unlock a lock
+     *          that wasn't locked?  This method should never fail in typical usage)
+     */
+   status_t UnlockReadWrite() const
+#endif
+   {
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+      // We gotta do the logging while we are still are locked, otherwise our counter can suffer from race conditions
+      LogDeadlockFinderEvent(false, fileName, fileLine);
+#endif
+
+      return UnlockReadWriteAux();
    }
 
    /** Turns this ReaderWriterMutex into a no-op object.  Irreversible! */
@@ -401,10 +421,38 @@ private:
 #endif
    }
 
-   status_t UnlockAux() const
+   status_t UnlockReadOnlyAux() const
    {
 #ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
-      CheckForLockingViolation("Unlock");
+      CheckForLockingViolation("UnlockReadOnly");
+#endif
+
+#ifndef MUSCLE_SINGLE_THREAD_ONLY
+      if (_isEnabled == false) return B_NO_ERROR;
+#endif
+
+#ifdef MUSCLE_SINGLE_THREAD_ONLY
+      return B_NO_ERROR;
+#elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
+      _locker.unlock();
+      return B_NO_ERROR;
+#elif defined(MUSCLE_USE_PTHREADS)
+      return B_ERRNUM(pthread_mutex_unlock(&_locker));
+#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+      LeaveCriticalSection(&_locker);
+      return B_NO_ERROR;
+#elif defined(MUSCLE_QT_HAS_THREADS)
+      _locker.unlock();
+      return B_NO_ERROR;
+#else
+      return B_UNIMPLEMENTED;
+#endif
+   }
+
+   status_t UnlockReadWriteAux() const
+   {
+#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
+      CheckForLockingViolation("UnlockReadWrite");
 #endif
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
@@ -471,7 +519,7 @@ class MUSCLE_NODISCARD ReadOnlyMutexGuard MUSCLE_FINAL_CLASS
 {
 public:
    /** Constructor.  Locks the specified ReaderWriterMutex for read-only/shared access.
-     * @param m The ReaderWriterMutex to on which we will call LockReadOnly() and Unlock().
+     * @param m The ReaderWriterMutex to on which we will call LockReadOnly() and UnlockReadOnly().
      */
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    ReadOnlyMutexGuard(const ReaderWriterMutex & m, const char * optFileName = NULL, int fileLine = 0) : _mutex(m), _optFileName(optFileName), _fileLine(fileLine)
@@ -492,9 +540,9 @@ public:
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       _mutex.LogDeadlockFinderEvent(false, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
-      if (_mutex.UnlockAux().IsError()) MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex Unlock() failed!\n");
+      if (_mutex.UnlockReadOnlyAux().IsError()) MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex UnlockReadOnly() failed!\n");
 #else
-      if (_mutex.Unlock().IsError())    MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex Unlock() failed!\n");
+      if (_mutex.UnlockReadOnly().IsError())    MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex UnlockReadOnly() failed!\n");
 #endif
    }
 
@@ -522,7 +570,7 @@ class MUSCLE_NODISCARD ReadWriteMutexGuard MUSCLE_FINAL_CLASS
 {
 public:
    /** Constructor.  Locks the specified ReaderWriterMutex for read-write/exclusive access.
-     * @param m The ReaderWriterMutex to on which we will call LockReadWrite() and Unlock().
+     * @param m The ReaderWriterMutex to on which we will call LockReadWrite() and UnlockReadWrite().
      */
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    ReadWriteMutexGuard(const ReaderWriterMutex & m, const char * optFileName = NULL, int fileLine = 0) : _mutex(m), _optFileName(optFileName), _fileLine(fileLine)
@@ -543,9 +591,9 @@ public:
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       _mutex.LogDeadlockFinderEvent(false, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
-      if (_mutex.UnlockAux().IsError()) MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex Unlock() failed!\n");
+      if (_mutex.UnlockReadWriteAux().IsError()) MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex UnlockReadWrite() failed!\n");
 #else
-      if (_mutex.Unlock().IsError())    MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex Unlock() failed!\n");
+      if (_mutex.UnlockReadWrite().IsError())    MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex UnlockReadWrite() failed!\n");
 #endif
    }
 

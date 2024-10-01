@@ -48,7 +48,7 @@ LIBS =  -lpthread
 #CXXFLAGS += -fsanitize=address,undefined -g
 #LFLAGS   += -fsanitize=address,undefined
 
-EXECUTABLES = testhashtable testmini testfilepathinfo testmicro testmessage testclone testzip testtar testrefcount testqueue teststringtokenizer testtuple testgateway testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions testendian testsysteminfo testregex testnagle testresponse testqueryfilter testtypedefs testserial testpulsenode testnetconfigdetect testnetutil testpool testatomicvalue testbatchguard testthread testserverthread testthreadpool testobjectpool testchildprocess testsharedmem
+EXECUTABLES = testhashtable testmini testfilepathinfo testmicro testmessage testclone testzip testtar testrefcount testqueue teststringtokenizer testtuple testgateway testudp testsocketmultiplexer testpackettunnel testpacketio teststatus teststring testbitchord testhashcodes testbytebuffer testmatchfiles testparsefile testtime testtimeunitconversions testendian testsysteminfo testregex testnagle testresponse testqueryfilter testtypedefs testserial testpulsenode testnetconfigdetect testnetutil testpool testatomicvalue testbatchguard testthread testserverthread testreaderwritermutex testthreadpool testobjectpool testchildprocess testsharedmem
 
 REGEXOBJS =
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
@@ -130,6 +130,9 @@ testthread : $(STDOBJS) testthread.o SetupSystem.o Message.o String.o ByteBuffer
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testserverthread : $(STDOBJS) testserverthread.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o AbstractReflectSession.o AbstractMessageIOGateway.o MessageIOGateway.o TemplatingMessageIOGateway.o PulseNode.o ServerComponent.o ReflectServer.o ZLibCodec.o
+	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
+
+testreaderwritermutex : $(STDOBJS) testreaderwritermutex.o SetupSystem.o Message.o MiscUtilityFunctions.o String.o ByteBuffer.o SysLog.o Thread.o AbstractReflectSession.o AbstractMessageIOGateway.o MessageIOGateway.o TemplatingMessageIOGateway.o PulseNode.o ServerComponent.o ReflectServer.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testthreadpool : $(STDOBJS) testthreadpool.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o ThreadPool.o

@@ -152,6 +152,10 @@ if (WITH_TESTS)
    target_link_libraries(testserverthread muscle)
    add_test(testserverthread testserverthread fromscript)
 
+   add_executable(testreaderwritermutex testreaderwritermutex.cpp)
+   target_link_libraries(testreaderwritermutex muscle)
+   add_test(testreaderwritermutex testreaderwritermutex fromscript)
+
    add_executable(testsharedmem testsharedmem.cpp)
    target_link_libraries(testsharedmem muscle)
    add_test(testsharedmem testsharedmem fromscript)
