@@ -3,42 +3,10 @@
 #ifndef MuscleReaderWriterMutex_h
 #define MuscleReaderWriterMutex_h
 
+#include "util/Hashtable.h"
+#include "util/ObjectPool.h"
 #include "system/Mutex.h"   // for the deadlock-finder stuff
-
-#ifndef MUSCLE_SINGLE_THREAD_ONLY
-# if defined(QT_CORE_LIB)  // is Qt4 available?
-#  include <Qt>  // to bring in the proper value of QT_VERSION
-# endif
-# if defined(QT_THREAD_SUPPORT) || (QT_VERSION >= 0x040000)
-#  define MUSCLE_QT_HAS_THREADS 1
-# endif
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
-#  include <mutex>
-# else
-#  if defined(WIN32)
-#   if defined(MUSCLE_QT_HAS_THREADS) && defined(MUSCLE_PREFER_QT_OVER_WIN32)
-    /* empty - we don't have to do anything for this case. */
-#   else
-#    ifndef MUSCLE_PREFER_WIN32_OVER_QT
-#     define MUSCLE_PREFER_WIN32_OVER_QT
-#    endif
-#   endif
-#  endif
-#  if defined(MUSCLE_USE_PTHREADS)
-#   include <pthread.h>
-#  elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-#   // empty
-#  elif defined(MUSCLE_QT_HAS_THREADS)
-#   if (QT_VERSION >= 0x040000)
-#    include <QReaderWriterMutex>
-#   else
-#    include <qthread.h>
-#   endif
-#  else
-#   error "ReaderWriterMutex:  threading support not implemented for this platform.  You'll need to add code to the MUSCLE ReaderWriterMutex class for your platform, or add -DMUSCLE_SINGLE_THREAD_ONLY to your build line if your program is single-threaded or for some other reason does not need to worry about locking"
-#  endif
-# endif
-#endif
+#include "system/WaitCondition.h"
 
 #ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
 // Should be defined elsewhere to return true iff it's considered okay to call the given method on the given
@@ -61,10 +29,12 @@ namespace muscle {
 class ReadOnlyMutexGuard;  // forward declaration
 class ReadWriteMutexGuard;  // forward declaration
 
-/** This class is a platform-independent API for a recursive mutual exclusion semaphore (a.k.a mutex).
+/** This class is a platform-independent API for a recursive reader/writer lock (a.k.a mutex).
   * Typically used to serialize the execution of critical sections in a multithreaded API
-  * (eg the MUSCLE ObjectPool or Thread classes)
-  * When compiling with the MUSCLE_SINGLE_THREAD_ONLY preprocessor flag defined, this class becomes a no-op.
+  * This class allows multiple threads to hold the read-only lock simultaneously, but guarantees that
+  * only one thread can hold the read/write lock * at any given time (and that no read-only threads
+  * will hold any lock while a thread holds the read/write lock).  When compiling with the
+  * MUSCLE_SINGLE_THREAD_ONLY preprocessor flag defined, this class becomes a no-op.
   */
 class ReaderWriterMutex MUSCLE_FINAL_CLASS : public NotCopyable
 {
@@ -72,43 +42,16 @@ public:
    /** Constructor */
    ReaderWriterMutex()
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
-      : _isEnabled(_muscleSingleThreadOnly == false)
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
-      // empty
-# elif defined(MUSCLE_USE_PTHREADS)
-      // empty
-# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-      // empty
-# elif defined(MUSCLE_QT_HAS_THREADS)
-#  if (QT_VERSION >= 0x040000)
-      , _locker(QReaderWriterMutex::Recursive)
-#  else
-      , _locker(true)
-#  endif
-# endif
+      : _totalReadWriteRecurseCount(0)
 #endif
    {
-#ifndef MUSCLE_SINGLE_THREAD_ONLY
-      if (_isEnabled)
-      {
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
-	 // empty
-# elif defined(MUSCLE_USE_PTHREADS)
-         pthread_mutexattr_t mutexattr;
-         pthread_mutexattr_init(&mutexattr);                              // Note:  If this code doesn't compile, then
-         pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_RECURSIVE);  // you may need to add -D_GNU_SOURCE to your
-         pthread_mutex_init(&_locker, &mutexattr);                        // Linux Makefile to enable it properly.
-# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-         InitializeCriticalSection(&_locker);
-# endif
-      }
-#endif
+      // empty
    }
 
    /** Destructor.  If a ReaderWriterMutex is destroyed while another thread is blocking in its LockReadOnly()
-     * or LockReadWrite() method, the results are undefined.
+     * or LockReadWrite() methods, the results are undefined.
      */
-   ~ReaderWriterMutex() {Cleanup();}
+   ~ReaderWriterMutex() {/* empty */}
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    status_t DeadlockFinderLockReadOnlyWrapper(const char * fileName, int fileLine) const
@@ -118,30 +61,16 @@ public:
      * by another thread will block until the writer-thread unlocks the lock.  The lock is recursive, however;
      * if a given thread calls LockReadOnly() twice in a row it won't deadlock itself (although it will
      * need to call UnlockReadOnly() twice in a row in order to truly unlock the lock)
+     * @param optTimeoutAt timestamp at which we should give up and return B_TIMED_OUT if we still haven't
+     *                     been able to acquire the lock.  Pass 0 for a guaranteed non-blocking/instantaneous call,
+     *                     or a timestamp value (e.g. GetRunTime64()+SecondsToMicros(1)) for a finite timeout,
+     *                     or pass MUSCLE_TIME_NEVER (the default value) to have no timeout.
      * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the lock could not be locked for some reason.
      */
-   status_t LockReadOnly() const
+   status_t LockReadOnly(uint64 optTimeoutAt = MUSCLE_TIME_NEVER) const
 #endif
    {
-      const status_t ret = LockReadOnlyAux();
-#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
-      if (ret.IsOK()) LogDeadlockFinderEvent(true, fileName, fileLine);
-#endif
-      return ret;
-   }
-
-#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   status_t DeadlockFinderTryLockReadOnlyWrapper(const char * fileName, int fileLine) const
-#else
-   /** Similar to LockReadOnly(), except this method is guaranteed to always return immediately (ie never blocks).
-     * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the lock could not be locked (eg because it is
-     *          already locked by a writer thread)
-     */
-   status_t TryLockReadOnly() const
-#endif
-   {
-      const status_t ret = TryLockReadOnlyAux();
+      const status_t ret = LockReadOnlyAux(optTimeoutAt);
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
       if (ret.IsOK()) LogDeadlockFinderEvent(true, fileName, fileLine);
@@ -157,30 +86,16 @@ public:
      * until after all threads have unlocked the lock.  The lock is recursive, however;
      * if a given thread calls LockReadWrite() twice in a row it won't deadlock itself (although it will
      * need to call UnlockReadWrite() twice in a row in order to truly unlock the lock)
+     * @param optTimeoutAt timestamp at which we should give up and return B_TIMED_OUT if we still haven't
+     *                     been able to acquire the lock.  Pass 0 for a guaranteed non-blocking/instantaneous call,
+     *                     or a timestamp value (e.g. GetRunTime64()+SecondsToMicros(1)) for a finite timeout,
+     *                     or pass MUSCLE_TIME_NEVER (the default value) to have no timeout.
      * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the lock could not be locked for some reason.
      */
-   status_t LockReadWrite() const
+   status_t LockReadWrite(uint64 optTimeoutAt = MUSCLE_TIME_NEVER) const
 #endif
    {
-      const status_t ret = LockReadWriteAux();
-#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
-      if (ret.IsOK()) LogDeadlockFinderEvent(true, fileName, fileLine);
-#endif
-      return ret;
-   }
-
-#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   status_t DeadlockFinderTryLockReadWriteWrapper(const char * fileName, int fileLine) const
-#else
-   /** Similar to LockReadWrite(), except this method is guaranteed to always return immediately (ie never blocks).
-     * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the lock could not be locked (eg because it is
-     *          already locked by another thread)
-     */
-   status_t TryLockReadWrite() const
-#endif
-   {
-      const status_t ret = TryLockReadWriteAux();
+      const status_t ret = LockReadWriteAux(optTimeoutAt);
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
       if (ret.IsOK()) LogDeadlockFinderEvent(true, fileName, fileLine);
@@ -226,25 +141,6 @@ public:
       return UnlockReadWriteAux();
    }
 
-   /** Turns this ReaderWriterMutex into a no-op object.  Irreversible! */
-   void Neuter() {Cleanup();}
-
-#ifndef MUSCLE_SINGLE_THREAD_ONLY
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
-   /** Returns a reference to our back-end mutex implementation object.  Don't call this method from code that is meant to remain portable! */
-   std::recursive_mutex & GetNativeReaderWriterMutexImplementation() const {return _locker;}
-# elif defined(MUSCLE_USE_PTHREADS)
-   /** Returns a reference to our back-end mutex implementation object.  Don't call this method from code that is meant to remain portable! */
-   pthread_mutex_t & GetNativeReaderWriterMutexImplementation() const {return _locker;}
-# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-   /** Returns a reference to our back-end mutex implementation object.  Don't call this method from code that is meant to remain portable! */
-   CRITICAL_SECTION & GetNativeReaderWriterMutexImplementation() const {return _locker;}
-# elif defined(MUSCLE_QT_HAS_THREADS)
-   /** Returns a reference to our back-end mutex implementation object.  Don't call this method from code that is meant to remain portable! */
-   QReaderWriterMutex & GetNativeReaderWriterMutexImplementation() const {return _locker;}
-# endif
-#endif
-
    /** If MUSCLE_ENABLE_DEADLOCK_FINDER is defined, this method disables mutex-callback-logging on this ReaderWriterMutex,
      * and returns true on the outermost nested call (ie if we've just entered the disabled-logging state).
      * Otherwise this method is a no-op and returns false.
@@ -275,25 +171,8 @@ private:
    friend class ReadOnlyMutexGuard;
    friend class ReadWriteMutexGuard;
 
-   void Cleanup()
-   {
-#ifndef MUSCLE_SINGLE_THREAD_ONLY
-      if (_isEnabled)
-      {
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
-         // dunno of a way to do this with a std::mutex
-# elif defined(MUSCLE_USE_PTHREADS)
-         (void) pthread_mutex_destroy(&_locker);
-# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-         DeleteCriticalSection(&_locker);
-# elif defined(MUSCLE_QT_HAS_THREADS)
-         // do nothing
-# endif
-         _isEnabled = false;
-      }
-#endif
-   }
-
+   void Cleanup();
+   
 #ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
    void CheckForLockingViolation(const char * methodName) const
    {
@@ -301,181 +180,10 @@ private:
    }
 #endif
 
-   status_t LockReadOnlyAux() const
-   {
-#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
-      CheckForLockingViolation("LockReadOnly");
-#endif
-
-#ifndef MUSCLE_SINGLE_THREAD_ONLY
-      if (_isEnabled == false) return B_NO_ERROR;
-#endif
-
-#ifdef MUSCLE_SINGLE_THREAD_ONLY
-      return B_NO_ERROR;
-#elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
-# if !defined(MUSCLE_NO_EXCEPTIONS)
-      try {
-# endif
-         _locker.lock();
-# if !defined(MUSCLE_NO_EXCEPTIONS)
-      } catch(...) {return B_LOCK_FAILED;}
-# endif
-      return B_NO_ERROR;
-#elif defined(MUSCLE_USE_PTHREADS)
-      return B_ERRNUM(pthread_mutex_lock(&_locker));
-#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-      EnterCriticalSection(&_locker);
-      return B_NO_ERROR;
-#elif defined(MUSCLE_QT_HAS_THREADS)
-      _locker.lock();
-      return B_NO_ERROR;
-#else
-      return B_UNIMPLEMENTED;
-#endif
-   }
-
-   status_t TryLockReadOnlyAux() const
-   {
-#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
-      CheckForLockingViolation("TryLockReadOnly");
-#endif
-
-#ifndef MUSCLE_SINGLE_THREAD_ONLY
-      if (_isEnabled == false) return B_NO_ERROR;
-#endif
-
-#ifdef MUSCLE_SINGLE_THREAD_ONLY
-      return B_NO_ERROR;
-#elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
-      return _locker.try_lock() ? B_NO_ERROR : B_LOCK_FAILED;
-#elif defined(MUSCLE_USE_PTHREADS)
-      const int pret = pthread_mutex_trylock(&_locker);
-      return (pret == EBUSY) ? B_LOCK_FAILED : B_ERRNUM(pret);
-#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-      return TryEnterCriticalSection(&_locker) ? B_NO_ERROR : B_LOCK_FAILED;
-#elif defined(MUSCLE_QT_HAS_THREADS)
-      return _locker.tryLock() ? B_NO_ERROR : B_LOCK_FAILED;
-#else
-      return B_UNIMPLEMENTED;
-#endif
-   }
-
-   status_t LockReadWriteAux() const
-   {
-#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
-      CheckForLockingViolation("LockReadWrite");
-#endif
-
-#ifndef MUSCLE_SINGLE_THREAD_ONLY
-      if (_isEnabled == false) return B_NO_ERROR;
-#endif
-
-#ifdef MUSCLE_SINGLE_THREAD_ONLY
-      return B_NO_ERROR;
-#elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
-# if !defined(MUSCLE_NO_EXCEPTIONS)
-      try {
-# endif
-         _locker.lock();
-# if !defined(MUSCLE_NO_EXCEPTIONS)
-      } catch(...) {return B_LOCK_FAILED;}
-# endif
-      return B_NO_ERROR;
-#elif defined(MUSCLE_USE_PTHREADS)
-      return B_ERRNUM(pthread_mutex_lock(&_locker));
-#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-      EnterCriticalSection(&_locker);
-      return B_NO_ERROR;
-#elif defined(MUSCLE_QT_HAS_THREADS)
-      _locker.lock();
-      return B_NO_ERROR;
-#else
-      return B_UNIMPLEMENTED;
-#endif
-   }
-
-   status_t TryLockReadWriteAux() const
-   {
-#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
-      CheckForLockingViolation("TryLockReadWrite");
-#endif
-
-#ifndef MUSCLE_SINGLE_THREAD_ONLY
-      if (_isEnabled == false) return B_NO_ERROR;
-#endif
-
-#ifdef MUSCLE_SINGLE_THREAD_ONLY
-      return B_NO_ERROR;
-#elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
-      return _locker.try_lock() ? B_NO_ERROR : B_LOCK_FAILED;
-#elif defined(MUSCLE_USE_PTHREADS)
-      const int pret = pthread_mutex_trylock(&_locker);
-      return (pret == EBUSY) ? B_LOCK_FAILED : B_ERRNUM(pret);
-#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-      return TryEnterCriticalSection(&_locker) ? B_NO_ERROR : B_LOCK_FAILED;
-#elif defined(MUSCLE_QT_HAS_THREADS)
-      return _locker.tryLock() ? B_NO_ERROR : B_LOCK_FAILED;
-#else
-      return B_UNIMPLEMENTED;
-#endif
-   }
-
-   status_t UnlockReadOnlyAux() const
-   {
-#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
-      CheckForLockingViolation("UnlockReadOnly");
-#endif
-
-#ifndef MUSCLE_SINGLE_THREAD_ONLY
-      if (_isEnabled == false) return B_NO_ERROR;
-#endif
-
-#ifdef MUSCLE_SINGLE_THREAD_ONLY
-      return B_NO_ERROR;
-#elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
-      _locker.unlock();
-      return B_NO_ERROR;
-#elif defined(MUSCLE_USE_PTHREADS)
-      return B_ERRNUM(pthread_mutex_unlock(&_locker));
-#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-      LeaveCriticalSection(&_locker);
-      return B_NO_ERROR;
-#elif defined(MUSCLE_QT_HAS_THREADS)
-      _locker.unlock();
-      return B_NO_ERROR;
-#else
-      return B_UNIMPLEMENTED;
-#endif
-   }
-
-   status_t UnlockReadWriteAux() const
-   {
-#ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
-      CheckForLockingViolation("UnlockReadWrite");
-#endif
-
-#ifndef MUSCLE_SINGLE_THREAD_ONLY
-      if (_isEnabled == false) return B_NO_ERROR;
-#endif
-
-#ifdef MUSCLE_SINGLE_THREAD_ONLY
-      return B_NO_ERROR;
-#elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
-      _locker.unlock();
-      return B_NO_ERROR;
-#elif defined(MUSCLE_USE_PTHREADS)
-      return B_ERRNUM(pthread_mutex_unlock(&_locker));
-#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-      LeaveCriticalSection(&_locker);
-      return B_NO_ERROR;
-#elif defined(MUSCLE_QT_HAS_THREADS)
-      _locker.unlock();
-      return B_NO_ERROR;
-#else
-      return B_UNIMPLEMENTED;
-#endif
-   }
+   status_t LockReadOnlyAux(uint64 optTimeoutTimestamp) const;
+   status_t LockReadWriteAux(uint64 optTimeoutTimestamp) const;
+   status_t UnlockReadOnlyAux() const;
+   status_t UnlockReadWriteAux() const;
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    void LogDeadlockFinderEvent(bool isLock, const char * fileName, int fileLine) const
@@ -486,23 +194,45 @@ private:
          DeadlockFinder_LogEvent(isLock, this, fileName, fileLine);
       }
    }
+
+   mutable NestCount _inDeadlockFinderCallback;
 #endif
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
-   bool _isEnabled;  // if false, this ReaderWriterMutex is a no-op
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11)
-   mutable std::recursive_mutex _locker;
-# elif defined(MUSCLE_USE_PTHREADS)
-   mutable pthread_mutex_t _locker;
-# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-   mutable CRITICAL_SECTION _locker;
-# elif defined(MUSCLE_QT_HAS_THREADS)
-   mutable QReaderWriterMutex _locker;
-# endif
-#endif
+   class RefCountableWaitCondition : public RefCountable
+   {
+   public:
+      RefCountableWaitCondition() {/* empty */}
 
-#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   mutable NestCount _inDeadlockFinderCallback;
+      RefCountableWaitCondition & operator = (const RefCountableWaitCondition &) {/* deliberate no-op! */ return *this;}
+
+      WaitCondition _waitCondition;
+   };
+   DECLARE_REFTYPES(RefCountableWaitCondition);
+
+   class ThreadState
+   {
+   public:
+      ThreadState() : _readOnlyRecurseCount(0), _readWriteRecurseCount(0) {/* empty */}
+
+      uint32 _readOnlyRecurseCount;   // how many times this thread has already locked the read-only lock
+      uint32 _readWriteRecurseCount;  // how many times this thread has already locked the read-only lock
+      RefCountableWaitConditionRef _waitConditionRef;  // used to wake up the sleeping thread when it's time for him to run again
+   };
+
+   // Assumes _stateMutex is already locked
+   ThreadState * GetOrAllocateThreadState(Hashtable<muscle_thread_id, ThreadState> & table, muscle_thread_id tid, const RefCountableWaitConditionRef & optWCRef) const;
+
+   // experimental
+   Mutex _stateMutex;   // serialize access to our member-variables below
+
+   mutable ObjectPool<RefCountableWaitCondition> _waitConditionPool;
+
+   mutable Hashtable<muscle_thread_id, ThreadState> _waitingReaderThreads;  // threads waiting for read-only access
+   mutable Hashtable<muscle_thread_id, ThreadState> _waitingWriterThreads;  // threads waiting for read/write access
+   mutable uint32 _totalReadWriteRecurseCount;   // current sum of all _readWriteRecurseCount values
+
+   mutable Hashtable<muscle_thread_id, ThreadState> _executingThreads; // threads that currently have either read-only or read/write access
 #endif
 };
 
