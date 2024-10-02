@@ -194,6 +194,10 @@ private:
    status_t NotifyNextWriterThread() const;
    status_t NotifyAllReaderThreads() const;
 
+   // Assumes _stateMutex is already locked
+   bool IsOkayForReaderThreadsToExecuteNow() const {return ((_totalReadWriteRecurseCount == 0)&&((_preferWriters == false)||(_waitingWriterThreads.IsEmpty())));}
+   bool IsOkayForWriterThreadToExecuteNow(muscle_thread_id tid) const {return ((_executingThreads.IsEmpty())&&((_waitingWriterThreads.IsEmpty())||((*_waitingWriterThreads.GetFirstKey() == tid))));}
+
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    void LogDeadlockFinderEvent(bool isLock, const char * fileName, int fileLine) const
    {

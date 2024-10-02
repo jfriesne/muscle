@@ -9,8 +9,6 @@
 
 using namespace muscle;
 
-static ReaderWriterMutex _rwMutex;
-
 static Mutex _statsMutex;
 static uint32 _activeThreadsCount = 0;
 static Hashtable<muscle_thread_id, uint32> _readOnlyOwnerToRecurseCount;
@@ -34,82 +32,37 @@ static void AdjustStat(Hashtable<muscle_thread_id, uint32> & table, int32 delta)
    }
 }
 
-class TestThread;
-
-// Should only be called when the calling thread has acquired a lock squawks if it sees any problems
-static void VerifyExpectedConditions(const TestThread * caller)
-{
-   DECLARE_MUTEXGUARD(_statsMutex);
-
-   uint32 roCount = _readOnlyOwnerToRecurseCount.GetNumItems();
-   uint32 rwCount = _readWriteOwnerToRecurseCount.GetNumItems();
-   for (HashtableIterator<muscle_thread_id, uint32> iter(_readWriteOwnerToRecurseCount); iter.HasData(); iter++)
-   {
-      const muscle_thread_id tid = iter.GetKey();
-      if (_readOnlyOwnerToRecurseCount.ContainsKey(tid)) roCount--;  // if it's a read/write owner that also has a read-only lock, that's okay
-   }
-   LogTime(MUSCLE_LOG_DEBUG, " caller=%p roOwnersTableSize=" INT32_FORMAT_SPEC " rwOwnersTableSize=" INT32_FORMAT_SPEC "\n", caller, roCount, rwCount);
-
-   switch(rwCount)
-   {
-      case 1:
-      {
-         // If someone has a read/write lock, then nobody else should have a read-only lock
-         if (roCount > 0)
-         {
-            LogTime(MUSCLE_LOG_CRITICALERROR, "ERROR, SOMEONE HAS A READ-ONLY LOCK SIMULTANEOUSLY WITH A READ/WRITE LOCK!?!?! (caller=%p, roCount=" INT32_FORMAT_SPEC ")\n", caller, roCount);
-
-            char tempBuf[20];
-
-            printf("ReadOnlyTable:\n");
-            for (HashtableIterator<muscle_thread_id, uint32> iter(_readOnlyOwnerToRecurseCount); iter.HasData(); iter++) printf("  %s -> " UINT32_FORMAT_SPEC "\n", iter.GetKey().ToString(tempBuf), iter.GetValue());
-            printf("ReadWriteTable:\n");
-            for (HashtableIterator<muscle_thread_id, uint32> iter(_readWriteOwnerToRecurseCount); iter.HasData(); iter++) printf("  %s -> " UINT32_FORMAT_SPEC "\n", iter.GetKey().ToString(tempBuf), iter.GetValue());
-
-            MCRASH("Doh! A");
-         }
-      }
-      break;
-
-      case 0:
-         // with no read/write locks held, any number of read-only counts is fine
-      break;
-
-      default:
-         LogTime(MUSCLE_LOG_CRITICALERROR, "ERROR, MULTIPLE READ/WRITE LOCK HOLDERS!?!?  (caller=%p, rwCount=" INT32_FORMAT_SPEC ")\n", caller, rwCount);
-         MCRASH("Doh! B");
-      break;
-   }
-}
-
 class TestThread : public Thread, public RefCountable
 {
 public:
-   TestThread(bool isWriter) : _isWriter(isWriter) {/* empty */}
+   TestThread(ReaderWriterMutex & rwMutex, bool isWriter, uint32 numIterations) : _isWriter(isWriter), _numIterations(numIterations), _rwMutex(rwMutex) {/* empty */}
 
 protected:
    virtual void InternalThreadEntry()
    {
-      LogTime(MUSCLE_LOG_TRACE, "%s Child thread %p begins!\n", _isWriter?"WRITER":"Reader", this);
+      char desc[128];
+      muscleSprintf(desc, "(%s %p)", _isWriter ? "WRITER" : "Reader", this);
+
+      LogTime(MUSCLE_LOG_TRACE, "%s launched, starting " UINT32_FORMAT_SPEC " iterations!\n", desc, _numIterations);
 
       {
          DECLARE_MUTEXGUARD(_statsMutex);
          _activeThreadsCount++;
       }
 
-      for (int i=0; i<1000; i++)
+      for (uint32 i=0; i<_numIterations; i++)
       {
          if (_isWriter)
          {
-            LogTime(MUSCLE_LOG_TRACE, "   %p:  About to lock mutex for writing!\n", this);
+            LogTime(MUSCLE_LOG_TRACE, "   %s step=" UINT32_FORMAT_SPEC ":  About to lock mutex for writing!\n", desc, i);
 
             DECLARE_READWRITE_MUTEXGUARD(_rwMutex);
 
             {
                DECLARE_MUTEXGUARD(_statsMutex);
                AdjustStat(_readWriteOwnerToRecurseCount, 1);
-               LogTime(MUSCLE_LOG_TRACE, "     %p:  Mutex is locked for exclusive access!\n", this);
-               VerifyExpectedConditions(this);
+               LogTime(MUSCLE_LOG_TRACE, "     %s: step=#" UINT32_FORMAT_SPEC "  Mutex is locked for exclusive access!\n", desc, i);
+               VerifyExpectedConditions(desc, i);
             }
 
             (void) Snooze64(MillisToMicros(rand()%20));
@@ -119,15 +72,15 @@ protected:
          }
          else
          {
-            LogTime(MUSCLE_LOG_TRACE, "   %p:  About to lock mutex for read-only!\n", this);
+            LogTime(MUSCLE_LOG_TRACE, "   %s: step=#" UINT32_FORMAT_SPEC "  About to lock mutex for read-only!\n", desc, i);
 
             DECLARE_READONLY_MUTEXGUARD(_rwMutex);
 
             {
                DECLARE_MUTEXGUARD(_statsMutex);
                AdjustStat(_readOnlyOwnerToRecurseCount, 1);
-               LogTime(MUSCLE_LOG_TRACE, "     %p:  Mutex is locked read-only!\n", this);
-               VerifyExpectedConditions(this);
+               LogTime(MUSCLE_LOG_TRACE, "     %s: step=#" UINT32_FORMAT_SPEC "  Mutex is locked read-only!\n", desc, i);
+               VerifyExpectedConditions(desc, i);
             }
 
             (void) Snooze64(MillisToMicros(rand()%20));
@@ -136,10 +89,10 @@ protected:
             AdjustStat(_readOnlyOwnerToRecurseCount, -1);
          }
 
-         LogTime(MUSCLE_LOG_TRACE, "   %p:  At this point, the mutex is unlocked again.\n", this);
+         LogTime(MUSCLE_LOG_TRACE, "   %s: step=#" UINT32_FORMAT_SPEC "  At this point, the mutex is unlocked again.\n", desc, i);
       }
 
-      LogTime(MUSCLE_LOG_TRACE, "%s Child thread %p ends!\n", _isWriter?"WRITER":"Reader", this);
+      LogTime(MUSCLE_LOG_TRACE, "%s completed, exiting\n", desc);
 
       DECLARE_MUTEXGUARD(_statsMutex);
       _activeThreadsCount--;
@@ -147,6 +100,54 @@ protected:
 
 private:
    const bool _isWriter;
+   const uint32 _numIterations;
+
+   ReaderWriterMutex & _rwMutex;
+
+   void VerifyExpectedConditions(const char * desc, uint32 step) const
+   {
+      DECLARE_MUTEXGUARD(_statsMutex);
+
+      uint32 roCount = _readOnlyOwnerToRecurseCount.GetNumItems();
+      uint32 rwCount = _readWriteOwnerToRecurseCount.GetNumItems();
+      for (HashtableIterator<muscle_thread_id, uint32> iter(_readWriteOwnerToRecurseCount); iter.HasData(); iter++)
+      {
+         const muscle_thread_id tid = iter.GetKey();
+         if (_readOnlyOwnerToRecurseCount.ContainsKey(tid)) roCount--;  // if it's a read/write owner that also has a read-only lock, that's okay
+      }
+      LogTime(MUSCLE_LOG_DEBUG, " %s step=" UINT32_FORMAT_SPEC " roOwnersTableSize=" INT32_FORMAT_SPEC " rwOwnersTableSize=" INT32_FORMAT_SPEC "\n", desc, step, roCount, rwCount);
+
+      switch(rwCount)
+      {
+         case 1:
+         {
+            // If someone has a read/write lock, then nobody else should have a read-only lock
+            if (roCount > 0)
+            {
+               LogTime(MUSCLE_LOG_CRITICALERROR, "ERROR, SOMEONE HAS A READ-ONLY LOCK SIMULTANEOUSLY WITH A READ/WRITE LOCK!?!?! (%s, roCount=" INT32_FORMAT_SPEC ")\n", desc, roCount);
+
+               char tempBuf[20];
+
+               printf("ReadOnlyTable:\n");
+               for (HashtableIterator<muscle_thread_id, uint32> iter(_readOnlyOwnerToRecurseCount); iter.HasData(); iter++) printf("  %s -> " UINT32_FORMAT_SPEC "\n", iter.GetKey().ToString(tempBuf), iter.GetValue());
+               printf("ReadWriteTable:\n");
+               for (HashtableIterator<muscle_thread_id, uint32> iter(_readWriteOwnerToRecurseCount); iter.HasData(); iter++) printf("  %s -> " UINT32_FORMAT_SPEC "\n", iter.GetKey().ToString(tempBuf), iter.GetValue());
+
+               MCRASH("Doh! A");
+            }
+         }
+         break;
+
+         case 0:
+            // with no read/write locks held, any number of read-only counts is fine
+         break;
+
+         default:
+            LogTime(MUSCLE_LOG_CRITICALERROR, "ERROR, MULTIPLE READ/WRITE LOCK HOLDERS!?!?  (%s, rwCount=" INT32_FORMAT_SPEC ")\n", desc, rwCount);
+            MCRASH("Doh! B");
+         break;
+      }
+   }
 };
 DECLARE_REFTYPES(TestThread);
 
@@ -166,13 +167,19 @@ int main(int argc, char ** argv)
 
    status_t ret;
 
-   const uint32 numThreads = 20;
-   LogTime(MUSCLE_LOG_INFO, "Spawning " UINT32_FORMAT_SPEC " threads...\n", numThreads);
+   const uint32 numIters         = muscleMax((uint32) atoi(args.GetCstr("iterations", "1000")), (uint32)1);
+   const uint32 numReaderThreads = atoi(args.GetCstr("readerthreads", "20"));
+   const uint32 numWriterThreads = atoi(args.GetCstr("writerthreads", "2"));
+   const uint32 numThreads       = numReaderThreads+numWriterThreads;
+   const bool preferWriters      = !args.HasName("preferreaders");
+   LogTime(MUSCLE_LOG_INFO, "Spawning " UINT32_FORMAT_SPEC " reader threads, " UINT32_FORMAT_SPEC " writer threads at " UINT32_FORMAT_SPEC " iterations/thread... (prefer %s)\n", numReaderThreads, numWriterThreads, numIters, preferWriters?"writers":"readers");
+
+   ReaderWriterMutex _rwMutex(preferWriters);
 
    Queue<TestThreadRef> testThreads;
    for (uint32 i=0; i<numThreads; i++)
    {
-      TestThreadRef ttRef(new TestThread((i%10)==0));
+      TestThreadRef ttRef(new TestThread(_rwMutex, i<numWriterThreads, numIters));
       if ((ttRef()->StartInternalThread().IsError(ret))||(testThreads.AddTail(ttRef).IsError(ret)))
       {
          LogTime(MUSCLE_LOG_ERROR, "Couldn't spawn child thread!  [%s]\n", ret());
