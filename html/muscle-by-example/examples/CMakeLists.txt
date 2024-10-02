@@ -162,6 +162,12 @@ if (WITH_EXAMPLES)
    add_executable(mutex_example_2_mutex_guard mutex/example_2_mutex_guard.cpp)
    target_link_libraries(mutex_example_2_mutex_guard muscle)
 
+   add_executable(readerwritermutex_example_1_basic_usage readerwritermutex/example_1_basic_usage.cpp)
+   target_link_libraries(readerwritermutex_example_1_basic_usage muscle)
+
+   add_executable(readerwritermutex_example_2_mutex_guard readerwritermutex/example_2_mutex_guard.cpp)
+   target_link_libraries(readerwritermutex_example_2_mutex_guard muscle)
+
    add_executable(nestcount_example_1_basic_usage nestcount/example_1_basic_usage.cpp)
    target_link_libraries(nestcount_example_1_basic_usage muscle)
 

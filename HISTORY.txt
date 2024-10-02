@@ -16,6 +16,8 @@ key:  - new feature
    - Added a deleted move-constructor to the HashtableIterator class
      so that creation of a HashtableIterator bound to a temporary
      object now becomes a compile-time error under C++11 or later.
+   - Added muscle-by-example documentation and examples for the new
+     ReadOnlyMutexGuard classes.
    * Fixed typo in Thread.h that would break pre-C++11 builds.
 
 9.41 - Released 8/19/2024
