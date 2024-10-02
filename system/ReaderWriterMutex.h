@@ -18,12 +18,15 @@ extern bool IsOkayToAccessMuscleReaderWriterMutex(const muscle::ReaderWriterMute
 namespace muscle {
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-# define LockReadOnly()     DeadlockFinderLockReadOnlyWrapper    (__FILE__, __LINE__)
-# define TryLockReadOnly()  DeadlockFinderTryLockReadOnlyWrapper (__FILE__, __LINE__)
-# define LockReadWrite()    DeadlockFinderLockReadWriteWrapper   (__FILE__, __LINE__)
-# define TryLockReadWrite() DeadlockFinderTryLockReadWriteWrapper(__FILE__, __LINE__)
-# define UnlockReadOnly()   DeadlockFinderUnlockReadOnlyWrapper  (__FILE__, __LINE__)
-# define UnlockReadWrite()  DeadlockFinderUnlockReadWriteWrapper (__FILE__, __LINE__)
+# define LockSelectMacro(_1,_2,NAME,...) NAME
+# define LockReadOnly1(junk)     DeadlockFinderLockReadOnlyWrapper   (__FILE__, __LINE__)
+# define LockReadOnly2(junk,ts)  DeadlockFinderLockReadOnlyWrapper   (__FILE__, __LINE__, ts)
+# define LockReadOnly(...)       LockSelectMacro(__VA_ARGS__,LockReadOnly2,LockReadOnly1)(__VA_ARGS__)
+# define LockReadWrite1(junk)    DeadlockFinderLockReadWriteWrapper  (__FILE__, __LINE__)
+# define LockReadWrite2(junk,ts) DeadlockFinderLockReadWriteWrapper  (__FILE__, __LINE__, ts)
+# define LockReadWrite(...)      LockSelectMacro(__VA_ARGS__,LockReadWrite2,LockReadWrite1)(__VA_ARGS__)
+# define UnlockReadOnly()        DeadlockFinderUnlockReadOnlyWrapper  (__FILE__, __LINE__)
+# define UnlockReadWrite()       DeadlockFinderUnlockReadWriteWrapper (__FILE__, __LINE__)
 #endif
 
 class ReadOnlyMutexGuard;  // forward declaration

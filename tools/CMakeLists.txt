@@ -42,6 +42,9 @@ if (WITH_TOOLS)
    add_executable(deadlock deadlock.cpp)
    target_link_libraries(deadlock muscle)
 
+   add_executable(rwdeadlock rwdeadlock.cpp)
+   target_link_libraries(rwdeadlock muscle)
+
    add_executable(erasesharedmem erasesharedmem.cpp)
    target_link_libraries(erasesharedmem muscle)
 

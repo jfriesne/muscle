@@ -41,7 +41,7 @@ CXXFLAGS += -std=c++11 -W -Wall
 
 LFLAGS =
 LIBS =  -lpthread
-EXECUTABLES = microchatclient microreflectclient minireflectclient minichatclient calctypecode printtypecode singlethreadedreflectclient multithreadedreflectclient muscleproxy portscan striphextermoutput deadlock portableplaintextclient uploadstress bandwidthtester readmessage daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations chatclient snoopsharedmem erasesharedmem
+EXECUTABLES = microchatclient microreflectclient minireflectclient minichatclient calctypecode printtypecode singlethreadedreflectclient multithreadedreflectclient muscleproxy portscan striphextermoutput deadlock rwdeadlock portableplaintextclient uploadstress bandwidthtester readmessage daemonsitter hexterm udpproxy serialproxy printsourcelocations findsourcelocations chatclient snoopsharedmem erasesharedmem
 
 REGEXOBJS =
 ZLIBOBJS = adler32.o deflate.o trees.o zutil.o inflate.o inftrees.o inffast.o crc32.o compress.o gzclose.o gzread.o gzwrite.o gzlib.o
@@ -180,6 +180,9 @@ erasesharedmem: $(STDOBJS) SysLog.o SharedMemory.o erasesharedmem.o String.o Mis
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 deadlock: $(STDOBJS) deadlock.o SysLog.o String.o SetupSystem.o Thread.o Message.o ByteBuffer.o
+	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
+
+rwdeadlock: $(STDOBJS) rwdeadlock.o SysLog.o String.o SetupSystem.o Thread.o Message.o ByteBuffer.o ReaderWriterMutex.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 clean :

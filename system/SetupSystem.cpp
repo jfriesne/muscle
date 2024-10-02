@@ -725,11 +725,11 @@ void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fi
       if (mel)
       {
          mel->Initialize(muscle_thread_id::GetCurrentThreadID());
-         _mutexEventsLog.SetThreadLocalObject(mel);
+         (void) _mutexEventsLog.SetThreadLocalObject(mel);
          if (_mutexLogTableMutex.Lock().IsOK())
          {
-            _mutexLogTable.AddTail(mel);
-            _mutexLogTableMutex.Unlock();
+            (void) _mutexLogTable.AddTail(mel);
+            (void) _mutexLogTableMutex.Unlock();
          }
       }
    }
@@ -772,7 +772,7 @@ static void PrintSequenceReport(const char * desc, const Queue<const void *> & s
    printf("  %s: [%s] was executed by " UINT32_FORMAT_SPEC " threads:\n", desc, LockSequenceToString(seq)(), detailsTable.GetNumItems());
 
    Hashtable<Queue<String>, Queue<muscle_thread_id> > detailsToThreads;
-   for (HashtableIterator<muscle_thread_id, Queue<String> > iter(detailsTable); iter.HasData(); iter++) detailsToThreads.GetOrPut(iter.GetValue())->AddTailIfNotAlreadyPresent(iter.GetKey());
+   for (HashtableIterator<muscle_thread_id, Queue<String> > iter(detailsTable); iter.HasData(); iter++) (void) detailsToThreads.GetOrPut(iter.GetValue())->AddTailIfNotAlreadyPresent(iter.GetKey());
 
    for (HashtableIterator<Queue<String>, Queue<muscle_thread_id> > iter(detailsToThreads); iter.HasData(); iter++)
    {
