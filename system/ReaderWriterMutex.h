@@ -230,7 +230,7 @@ private:
    };
 
    // Assumes _stateMutex is already locked
-   ThreadState * GetOrAllocateThreadState(Hashtable<muscle_thread_id, ThreadState> & table, muscle_thread_id tid, const RefCountableWaitConditionRef & optWCRef) const;
+   ThreadState * GetOrAllocateThreadState(Hashtable<muscle_thread_id, ThreadState> & table, muscle_thread_id tid, bool okayToAllocateWC) const;
 
    // experimental
    Mutex _stateMutex;   // serialize access to our member-variables below
