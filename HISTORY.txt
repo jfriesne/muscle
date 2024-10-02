@@ -10,10 +10,7 @@ key:  - new feature
      returned by SCNetworkInterfaceGetLocalizedDisplayName(), if possible.
    - Added a (returnAllBitsSet) optional parameter to BitChord::ToString().
    - Added a ReaderWriterMutex class and associated ReadOnlyMutexGuard
-     and ReadWriteMutexGuard RAII-helper-classes.  Currently the
-     ReaderWriteMutex class is functionally equivalent to the vanilla
-     Mutex class (i.e. it does exclusive locking in all cases) but I
-     will remedy that shortly.
+     and ReadWriteMutexGuard RAII-helper-classes.
    - Added a testreaderwritermutex.cpp test to the tests folder to
      unit-test the new ReaderWriterMutex class.
    - Added a deleted move-constructor to the HashtableIterator class
