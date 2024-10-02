@@ -59,7 +59,7 @@ public:
    ~ReaderWriterMutex() {/* empty */}
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   status_t DeadlockFinderLockReadOnlyWrapper(const char * fileName, int fileLine) const
+   status_t DeadlockFinderLockReadOnlyWrapper(const char * fileName, int fileLine, uint64 optTimeoutAt = MUSCLE_TIME_NEVER) const
 #else
    /** Attempts to lock the mutex for shared/read-only access.
      * Any thread that tries to LockReadOnly() this object while it is already locked-for-read+write access
@@ -84,7 +84,7 @@ public:
    }
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   status_t DeadlockFinderLockReadWriteWrapper(const char * fileName, int fileLine) const
+   status_t DeadlockFinderLockReadWriteWrapper(const char * fileName, int fileLine, uint64 optTimeoutAt = MUSCLE_TIME_NEVER) const
 #else
    /** Attempts to lock the lock for exclusive/read-write access.
      * Any thread that tries to LockReadWrite() this object while it is already locked by another thread
@@ -273,7 +273,7 @@ public:
 #endif
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      if (_mutex.LockReadOnlyAux().IsError()) MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex LockReadOnly() failed!\n");
+      if (_mutex.LockReadOnlyAux(MUSCLE_TIME_NEVER).IsError()) MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex LockReadOnly() failed!\n");
       _mutex.LogDeadlockFinderEvent(true, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
 #else
       if (_mutex.LockReadOnly().IsError())    MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex LockReadOnly() failed!\n");
@@ -324,7 +324,7 @@ public:
 #endif
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      if (_mutex.LockReadWriteAux().IsError()) MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex LockReadWrite() failed!\n");
+      if (_mutex.LockReadWriteAux(MUSCLE_TIME_NEVER).IsError()) MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex LockReadWrite() failed!\n");
       _mutex.LogDeadlockFinderEvent(true, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
 #else
       if (_mutex.LockReadWrite().IsError())    MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex LockReadWrite() failed!\n");
