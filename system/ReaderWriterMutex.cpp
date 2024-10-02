@@ -87,11 +87,14 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
 
    MRETURN_ON_ERROR(_stateMutex.Lock());  // can't use RAII here because we may need to Wait() below
 
+printf("LockReadWriteAux A\n");
    ThreadState * ts = _executingThreads.Get(tid); // threads that currently have either read-only or read/write access
    if (ts)
    {
+printf("LockReadWriteAux B\n");
       if ((ts->_readWriteRecurseCount > 0)||(_executingThreads.GetNumItems() == 1))
       {
+printf("LockReadWriteAux C\n");
          // Easy cases:  just increment the read-write-recurse-counts and we're done
          ts->_readWriteRecurseCount++;
          _totalReadWriteRecurseCount++;
@@ -100,6 +103,7 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
       }
       else
       {
+printf("LockReadWriteAux D\n");
          // tricky case:  we already have read-only access and we want to upgrade to read/write access
          // but there are other read-only threads executing so we need to Wait() until they are done
          // To avoid potential deadlocks, I'm going to just release all of our read-only locks and then re-lock everything
@@ -110,11 +114,13 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
          for (uint32 i=0; i<readOnlyRecurseCount; i++) (void) UnlockReadOnly();
          MRETURN_ON_ERROR(LockReadWriteAux(optTimeoutTimestamp));
          for (uint32 i=0; i<readOnlyRecurseCount; i++) (void) LockReadOnly();  // safe because at this point we know we're the sole writer
+printf("LockReadWriteAux E\n");
          return B_NO_ERROR; 
       }
    }
    else if (_executingThreads.HasItems())
    {
+printf("LockReadWriteAux F\n");
       if (optTimeoutTimestamp == 0)
       {
          // No point Wait()-ing if we know it's going to fail anyway
@@ -123,6 +129,7 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
       }
 
       // Oops, some other threads are executing, so we'll have to Wait() until they have all gone away
+printf("LockReadWriteAux G\n");
       ts = GetOrAllocateThreadState(_waitingWriterThreads, tid, RefCountableWaitConditionRef());
       if (ts)
       {
@@ -133,10 +140,12 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
 
          DECLARE_MUTEXGUARD(_stateMutex);  // gotta re-lock now, so we can safely update our state tables
 
+printf("LockReadWriteAux H\n");
          // Register our thread into the executing-threads table
          ThreadState * exTS = ret.IsOK() ? GetOrAllocateThreadState(_executingThreads, tid, tempWCRef) : NULL;
          if (exTS)
          {
+printf("LockReadWriteAux I\n");
             exTS->_readOnlyRecurseCount  = ts->_readOnlyRecurseCount;
             exTS->_readWriteRecurseCount = ts->_readWriteRecurseCount+1;
             _totalReadWriteRecurseCount++;
@@ -150,16 +159,19 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
       }
       else
       {
+printf("LockReadWriteAux J\n");
          (void) _stateMutex.Unlock();
          return B_OUT_OF_MEMORY;
       }
    }
    else
    {
+printf("LockReadWriteAux K\n");
       // Nobody is currently holding any locks, so we can just register and start executing immediately
       ts = GetOrAllocateThreadState(_executingThreads, tid, RefCountableWaitConditionRef());
       if (ts)
       {
+printf("LockReadWriteAux L\n");
          ts->_readWriteRecurseCount++;
          _totalReadWriteRecurseCount++;
       }
@@ -179,7 +191,19 @@ status_t ReaderWriterMutex :: UnlockReadOnlyAux() const
 #ifdef MUSCLE_SINGLE_THREAD_ONLY
    return B_NO_ERROR;
 #else
-   return B_UNIMPLEMENTED;  // TODO
+   const muscle_thread_id tid = muscle_thread_id::GetCurrentThreadID();
+
+   DECLARE_MUTEXGUARD(_stateMutex);
+
+   ThreadState * ts = _executingThreads.Get(tid); // threads that currently have either read-only or read/write access
+   if ((ts == NULL)||(ts->_readOnlyRecurseCount == 0)) return B_LOCK_FAILED;  // can't release a read-only lock if our thread doesn't have one!
+
+   if ((--ts->_readOnlyRecurseCount == 0)&&(ts->_readWriteRecurseCount == 0))
+   {
+      (void) _executingThreads.Remove(tid);  // invalidates (ts)
+      if ((_totalReadWriteRecurseCount == 0)&&(_executingThreads.IsEmpty())) (void) NotifySomeWaitingThreads();
+   }
+   return B_NO_ERROR;
 #endif
 }
 
@@ -192,8 +216,54 @@ status_t ReaderWriterMutex :: UnlockReadWriteAux() const
 #ifdef MUSCLE_SINGLE_THREAD_ONLY
    return B_NO_ERROR;
 #else
-   return B_UNIMPLEMENTED;  // TODO
+   const muscle_thread_id tid = muscle_thread_id::GetCurrentThreadID();
+
+   DECLARE_MUTEXGUARD(_stateMutex);
+
+   ThreadState * ts = _executingThreads.Get(tid); // threads that currently have either read-only or read/write access
+   if ((ts == NULL)||(ts->_readWriteRecurseCount == 0)) return B_LOCK_FAILED;  // can't release a read-write lock if our thread doesn't have one!
+
+   MASSERT(_totalReadWriteRecurseCount > 0, "ReaderWriterMutex::UnlockReadWriteAux():  _totalReadWriteRecurseCount was already zero!?");
+
+   if ((--ts->_readWriteRecurseCount == 0)&&(ts->_readOnlyRecurseCount == 0)) (void) _executingThreads.Remove(tid);  // invalidates (ts)
+   if ((--_totalReadWriteRecurseCount == 0)&&(_executingThreads.IsEmpty())) (void) NotifySomeWaitingThreads();
+   return B_NO_ERROR;
 #endif
+}
+
+// Assumes _stateMutex is already locked
+status_t ReaderWriterMutex :: NotifySomeWaitingThreads() const
+{
+   MASSERT(_totalReadWriteRecurseCount == 0, "ReaderWriterMutex::NotifySomeWaitingThreads:  _totalReadWriteRecurseCount is non-zero!");
+   MASSERT(_executingThreads.IsEmpty(),      "ReaderWriterMutex::NotifySomeWaitingThreads:  some threads are still executing!");
+
+   const bool writersWaiting = _waitingWriterThreads.HasItems();
+   const bool readersWaiting = _waitingReaderThreads.HasItems();
+
+        if ((readersWaiting)&&(writersWaiting)) return _preferWriters ? NotifyNextWriterThread() : NotifyAllReaderThreads();
+   else if (readersWaiting)                     return NotifyAllReaderThreads();
+   else if (writersWaiting)                     return NotifyNextWriterThread();
+   else                                         return B_NO_ERROR;
+}
+
+// Assumes _stateMutex is already locked
+status_t ReaderWriterMutex :: NotifyNextWriterThread() const
+{
+   ThreadState * ts = _waitingWriterThreads.GetFirstValue();
+   RefCountableWaitCondition * wc = ts ? ts->_waitConditionRef() : NULL;
+   return wc ? wc->_waitCondition.Notify() : B_BAD_OBJECT;
+}
+
+// Assumes _stateMutex is already locked
+status_t ReaderWriterMutex :: NotifyAllReaderThreads() const
+{
+   status_t ret = B_NO_ERROR;
+   for (HashtableIterator<muscle_thread_id, ThreadState> iter(_waitingReaderThreads); iter.HasData(); iter++)
+   {
+      RefCountableWaitCondition * wc = iter.GetValue()._waitConditionRef();
+      if (wc) ret |= wc->_waitCondition.Notify();
+   }
+   return ret;
 }
 
 // Assumes _stateMutex is already locked

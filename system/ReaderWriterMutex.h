@@ -39,10 +39,15 @@ class ReadWriteMutexGuard;  // forward declaration
 class ReaderWriterMutex MUSCLE_FINAL_CLASS : public NotCopyable
 {
 public:
-   /** Constructor */
-   ReaderWriterMutex()
+   /** Constructor
+     * @param preferWriters if true, and we have a choice between waking up a blocked writer-thread or
+     *                      waking up one or more blocked reader-threads, we'll wake up the writer-thread.
+     *                      If false, we'll wake up the reader-threads instead.  Defaults to true.
+     */
+   ReaderWriterMutex(bool preferWriters = true)
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
-      : _totalReadWriteRecurseCount(0)
+      : _preferWriters(preferWriters)
+      , _totalReadWriteRecurseCount(0)
 #endif
    {
       // empty
@@ -109,7 +114,7 @@ public:
    /** Unlocks the a read-only-locked lock.  Once this is done, any other thread that is blocked in the Lock()
      * methods will gain ownership of the lock and return.
      * @returns B_NO_ERROR on success, or B_LOCK_FAILED on failure (perhaps you tried to unlock a lock
-     *          that wasn't locked?  This method should never fail in typical usage)
+     *          that you didn't currently have locked-read-only?  This method should never fail in typical usage)
      */
    status_t UnlockReadOnly() const
 #endif
@@ -128,7 +133,7 @@ public:
    /** Unlocks the a read-write-locked lock.  Once this is done, any other thread that is blocked in the Lock()
      * methods will gain ownership of the lock and return.
      * @returns B_NO_ERROR on success, or B_LOCK_FAILED on failure (perhaps you tried to unlock a lock
-     *          that wasn't locked?  This method should never fail in typical usage)
+     *          that you didn't currently have locked-read-write?  This method should never fail in typical usage)
      */
    status_t UnlockReadWrite() const
 #endif
@@ -185,6 +190,10 @@ private:
    status_t UnlockReadOnlyAux() const;
    status_t UnlockReadWriteAux() const;
 
+   status_t NotifySomeWaitingThreads() const;
+   status_t NotifyNextWriterThread() const;
+   status_t NotifyAllReaderThreads() const;
+
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    void LogDeadlockFinderEvent(bool isLock, const char * fileName, int fileLine) const
    {
@@ -230,6 +239,8 @@ private:
 
    mutable Hashtable<muscle_thread_id, ThreadState> _waitingReaderThreads;  // threads waiting for read-only access
    mutable Hashtable<muscle_thread_id, ThreadState> _waitingWriterThreads;  // threads waiting for read/write access
+
+   const bool _preferWriters;
    mutable uint32 _totalReadWriteRecurseCount;   // current sum of all _readWriteRecurseCount values
 
    mutable Hashtable<muscle_thread_id, ThreadState> _executingThreads; // threads that currently have either read-only or read/write access

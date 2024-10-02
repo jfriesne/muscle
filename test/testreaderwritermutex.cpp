@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 
-#include "system/AtomicCounter.h"
 #include "system/Thread.h"
 #include "system/ReaderWriterMutex.h"
 #include "system/SetupSystem.h"
@@ -10,10 +9,30 @@
 
 using namespace muscle;
 
-static ReaderWriterMutex _mutex;
-static AtomicCounter _activeThreadsCount;
-static AtomicCounter _numThreadsOwningReadOnlyLock;  // should only be >1 if nobody has a write-lock
-static AtomicCounter _numThreadsOwningReadWriteLock; // should never be >1
+static ReaderWriterMutex _rwMutex;
+
+static Mutex _statsMutex;
+static uint32 _activeThreadsCount = 0;
+static Hashtable<muscle_thread_id, uint32> _readOnlyOwnerToRecurseCount;
+static Hashtable<muscle_thread_id, uint32> _readWriteOwnerToRecurseCount;
+
+static void AdjustStat(Hashtable<muscle_thread_id, uint32> & table, int32 delta)
+{
+   const muscle_thread_id tid = muscle_thread_id::GetCurrentThreadID();
+   DECLARE_MUTEXGUARD(_statsMutex);
+
+   if (delta > 0)
+   {
+      uint32 * v = table.GetOrPut(tid, 0);
+      if (v) (*v)++;
+   }
+   else if (delta < 0)
+   {
+      uint32 * v = table.Get(tid);
+      if ((v==NULL)||(*v == 0)) MCRASH("Expected stat not in table!\n");
+      if ((--(*v)) == 0) (void) table.Remove(tid);
+   }
+}
 
 class TestThread;
 
@@ -21,9 +40,11 @@ class TestThread;
 // squawks if it sees any problems
 static void VerifyExpectedConditions(const TestThread * caller)
 {
-   const int32 roCount = _numThreadsOwningReadOnlyLock.GetCount();
-   const int32 rwCount = _numThreadsOwningReadWriteLock.GetCount();
-   LogTime(MUSCLE_LOG_DEBUG, " caller=%p roCount=" INT32_FORMAT_SPEC " rwCount=" INT32_FORMAT_SPEC "\n", caller, roCount, rwCount);
+   DECLARE_MUTEXGUARD(_statsMutex);
+
+   const uint32 roCount = _readOnlyOwnerToRecurseCount.GetNumItems();
+   const uint32 rwCount = _readWriteOwnerToRecurseCount.GetNumItems();
+   LogTime(MUSCLE_LOG_DEBUG, " caller=%p roOwnersTableSize=" INT32_FORMAT_SPEC " rwOwnersTableSize=" INT32_FORMAT_SPEC "\n", caller, roCount, rwCount);
 
    switch(rwCount)
    {
@@ -61,7 +82,10 @@ protected:
    {
       LogTime(MUSCLE_LOG_TRACE, "%s Child thread %p begins!\n", _isWriter?"WRITER":"Reader", this);
 
-      _activeThreadsCount.AtomicIncrement();
+      {
+         DECLARE_MUTEXGUARD(_statsMutex);
+         _activeThreadsCount++;
+      }
 
       for (int i=0; i<1000; i++)
       {
@@ -69,28 +93,30 @@ protected:
          {
             LogTime(MUSCLE_LOG_TRACE, "   %p:  About to lock mutex for writing!\n", this);
 
-            DECLARE_READWRITE_MUTEXGUARD(_mutex);
-            _numThreadsOwningReadWriteLock.AtomicIncrement();
+            DECLARE_READWRITE_MUTEXGUARD(_rwMutex);
+            AdjustStat(_readWriteOwnerToRecurseCount, 1);
             LogTime(MUSCLE_LOG_TRACE, "     %p:  Mutex is locked for exclusive access!\n", this);
             VerifyExpectedConditions(this);
-            _numThreadsOwningReadWriteLock.AtomicDecrement();
+            AdjustStat(_readWriteOwnerToRecurseCount, -1);
          }
          else
          {
             LogTime(MUSCLE_LOG_TRACE, "   %p:  About to lock mutex for read-only!\n", this);
 
-            DECLARE_READONLY_MUTEXGUARD(_mutex);
-            _numThreadsOwningReadOnlyLock.AtomicIncrement();
+            DECLARE_READONLY_MUTEXGUARD(_rwMutex);
+            AdjustStat(_readOnlyOwnerToRecurseCount, 1);
             LogTime(MUSCLE_LOG_TRACE, "     %p:  Mutex is locked read-only!\n", this);
             VerifyExpectedConditions(this);
-            _numThreadsOwningReadOnlyLock.AtomicDecrement();
+            AdjustStat(_readOnlyOwnerToRecurseCount, -1);
          }
 
          LogTime(MUSCLE_LOG_TRACE, "   %p:  At this point, the mutex is unlocked again.\n", this);
       }
 
       LogTime(MUSCLE_LOG_TRACE, "%s Child thread %p ends!\n", _isWriter?"WRITER":"Reader", this);
-      _activeThreadsCount.AtomicDecrement();
+
+      DECLARE_MUTEXGUARD(_statsMutex);
+      _activeThreadsCount--;
    }
 
 private:
@@ -133,10 +159,9 @@ int main(int argc, char ** argv)
    {
       (void) Snooze64(MillisToMicros(200));
 
-      const uint32 threadCount = _activeThreadsCount.GetCount();
-      LogTime(MUSCLE_LOG_INFO, UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " threads are still active.\n", threadCount, numThreads);
-
-      if (threadCount == 0) break;
+      DECLARE_MUTEXGUARD(_statsMutex);
+      LogTime(MUSCLE_LOG_INFO, UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " threads are still active.\n", _activeThreadsCount, numThreads);
+      if (_activeThreadsCount == 0) break;
    }
 
    // Make sure everyone has actually gone away
