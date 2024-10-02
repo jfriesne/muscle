@@ -36,8 +36,7 @@ static void AdjustStat(Hashtable<muscle_thread_id, uint32> & table, int32 delta)
 
 class TestThread;
 
-// Should only be called when the calling thread has acquired a lock
-// squawks if it sees any problems
+// Should only be called when the calling thread has acquired a lock squawks if it sees any problems
 static void VerifyExpectedConditions(const TestThread * caller)
 {
    DECLARE_MUTEXGUARD(_statsMutex);
@@ -81,8 +80,6 @@ static void VerifyExpectedConditions(const TestThread * caller)
          MCRASH("Doh! B");
       break;
    }
-
-   (void) Snooze64(MillisToMicros(rand()%5));
 }
 
 class TestThread : public Thread, public RefCountable
@@ -108,10 +105,16 @@ protected:
 
             DECLARE_READWRITE_MUTEXGUARD(_rwMutex);
 
+            {
+               DECLARE_MUTEXGUARD(_statsMutex);
+               AdjustStat(_readWriteOwnerToRecurseCount, 1);
+               LogTime(MUSCLE_LOG_TRACE, "     %p:  Mutex is locked for exclusive access!\n", this);
+               VerifyExpectedConditions(this);
+            }
+
+            (void) Snooze64(MillisToMicros(rand()%20));
+
             DECLARE_MUTEXGUARD(_statsMutex);
-            AdjustStat(_readWriteOwnerToRecurseCount, 1);
-            LogTime(MUSCLE_LOG_TRACE, "     %p:  Mutex is locked for exclusive access!\n", this);
-            VerifyExpectedConditions(this);
             AdjustStat(_readWriteOwnerToRecurseCount, -1);
          }
          else
@@ -120,10 +123,16 @@ protected:
 
             DECLARE_READONLY_MUTEXGUARD(_rwMutex);
 
+            {
+               DECLARE_MUTEXGUARD(_statsMutex);
+               AdjustStat(_readOnlyOwnerToRecurseCount, 1);
+               LogTime(MUSCLE_LOG_TRACE, "     %p:  Mutex is locked read-only!\n", this);
+               VerifyExpectedConditions(this);
+            }
+
+            (void) Snooze64(MillisToMicros(rand()%20));
+
             DECLARE_MUTEXGUARD(_statsMutex);
-            AdjustStat(_readOnlyOwnerToRecurseCount, 1);
-            LogTime(MUSCLE_LOG_TRACE, "     %p:  Mutex is locked read-only!\n", this);
-            VerifyExpectedConditions(this);
             AdjustStat(_readOnlyOwnerToRecurseCount, -1);
          }
 
@@ -157,7 +166,7 @@ int main(int argc, char ** argv)
 
    status_t ret;
 
-   const uint32 numThreads = 5;
+   const uint32 numThreads = 20;
    LogTime(MUSCLE_LOG_INFO, "Spawning " UINT32_FORMAT_SPEC " threads...\n", numThreads);
 
    Queue<TestThreadRef> testThreads;

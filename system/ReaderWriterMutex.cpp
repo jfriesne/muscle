@@ -23,7 +23,7 @@ status_t ReaderWriterMutex :: LockReadOnlyAux(uint64 optTimeoutTimestamp) const
       (void) _stateMutex.Unlock();
       return B_NO_ERROR;
    }
-   else if (_totalReadWriteRecurseCount > 0)
+   else if ((_totalReadWriteRecurseCount > 0)||((_preferWriters)&&(_waitingWriterThreads.HasItems())))
    {
       if (optTimeoutTimestamp == 0)
       {
