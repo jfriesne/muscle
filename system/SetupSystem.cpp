@@ -468,9 +468,9 @@ public:
 
    void Initialize(const muscle_thread_id & id) {_threadID = id; _headMLSRecord = _tailMLSRecord = NULL; _numHeldLocks = 0;}
 
-   void AddEvent(bool isLock, const void * mutexPtr, const char * fileName, int fileLine)
+   void AddEvent(uint32 lockActionType, const void * mutexPtr, const char * fileName, int fileLine)
    {
-      if (isLock)
+      if (lockActionType != LOCK_ACTION_UNLOCK)
       {
          if (_numHeldLocks >= ARRAYITEMS(_heldLocks))
          {
@@ -479,7 +479,7 @@ public:
          }
          else
          {
-            _heldLocks[_numHeldLocks++].Set(mutexPtr, fileName, fileLine);
+            _heldLocks[_numHeldLocks++].Set(mutexPtr, fileName, fileLine, lockActionType);
 
             if ((ContainsSequence(_heldLocks, _numHeldLocks) == false)&&((_tailMLSRecord == NULL)||(_tailMLSRecord->AddLockSequence(_heldLocks, _numHeldLocks).IsError())))
             {
@@ -530,13 +530,14 @@ private:
    class MutexLockRecord
    {
    public:
-      MutexLockRecord() {Set(NULL, NULL, 0);}
-      MutexLockRecord(const void * mutexPtr, const char * fileName, uint32 fileLine) {Set(mutexPtr, fileName, fileLine);}
+      MutexLockRecord() {Set(NULL, NULL, 0, NUM_LOCK_ACTIONS);}
+      MutexLockRecord(const void * mutexPtr, const char * fileName, uint32 fileLine, uint32 lockActionType) {Set(mutexPtr, fileName, fileLine, lockActionType);}
 
-      void Set(const void * mutexPtr, const char * fileName, uint32 fileLine)
+      void Set(const void * mutexPtr, const char * fileName, uint32 fileLine, uint32 lockActionType)
       {
-         _fileLine = fileLine;
-         _mutexPtr = mutexPtr;
+         _fileLine       = fileLine;
+         _mutexPtr       = mutexPtr;
+         _lockActionType = lockActionType;
 
          if (fileName)
          {
@@ -549,18 +550,27 @@ private:
          else _fileName[0] = '\0';
       }
 
-      String GetDetails() const {return String("mutex %1 @ %2:%3").Arg(_mutexPtr).Arg(_fileName).Arg(_fileLine);}
+      String GetDetails() const {return String("mutex %1 @ %2:%3 %4").Arg(_mutexPtr).Arg(_fileName).Arg(_fileLine).Arg(GetLockActionTypeString(_lockActionType));}
 
-      bool operator == (const MutexLockRecord & rhs) const {return ((_fileLine == rhs._fileLine)&&(_mutexPtr == rhs._mutexPtr)&&(strcmp(_fileName, rhs._fileName)==0));}
+      bool operator == (const MutexLockRecord & rhs) const {return ((_fileLine == rhs._fileLine)&&(_mutexPtr == rhs._mutexPtr)&&(_lockActionType == rhs._lockActionType)&&(strcmp(_fileName, rhs._fileName)==0));}
       bool operator != (const MutexLockRecord & rhs) const {return !(*this==rhs);}
 
       uint32 GetFileLine()           const {return _fileLine;}
+      uint32 GetLockActionType()     const {return _lockActionType;}
       const void * GetMutexPointer() const {return _mutexPtr;}
       const char * GetFileName()     const {return _fileName;}
 
    private:
+      static const char * GetLockActionTypeString(uint32 lockActionType)
+      {
+         static const char * _strs[] = {"Unlock", "Lock", "TryLock"};
+         MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_strs, NUM_LOCK_ACTIONS);
+         return (lockActionType < ARRAYITEMS(_strs)) ? _strs[lockActionType] : "???";
+      }
+
       const void * _mutexPtr;
       uint32 _fileLine;
+      uint32 _lockActionType;
       char _fileName[48];
    };
 
@@ -601,8 +611,11 @@ private:
                for (uint32 j=sequenceStartIdx; j<afterSequenceEndIndex; j++)
                {
                   const MutexLockRecord & mlr = _events[j];
-                  (void) q.AddTail(mlr.GetMutexPointer());  // guaranteed not to fail
-                  (void) details.AddTail(mlr.GetDetails()); // guaranteed not to fail
+                  if (mlr.GetLockActionType() == LOCK_ACTION_LOCK)  // LOCK_ACTION_TRYLOCK actions can't cause a deadlock since they will time out instead
+                  {
+                     (void) q.AddTail(mlr.GetMutexPointer());  // guaranteed not to fail
+                     (void) details.AddTail(mlr.GetDetails()); // guaranteed not to fail
+                  }
                }
 
                RemoveDuplicateItemsFromSequence(q);
@@ -687,7 +700,7 @@ private:
    void RemoveHeldLockInstanceAt(uint32 idx)
    {
       for (uint32 i=idx; (i+1)<_numHeldLocks; i++) _heldLocks[i] = _heldLocks[i+1];
-      _heldLocks[--_numHeldLocks].Set(NULL, NULL, 0);  // paranoia
+      _heldLocks[--_numHeldLocks].Set(NULL, NULL, 0, NUM_LOCK_ACTIONS);  // paranoia
    }
 
    bool ContainsSequence(const MutexLockRecord * lockSequence, uint32 seqLen) const
@@ -716,7 +729,7 @@ static ThreadLocalStorage<MutexLockRecordLog> _mutexEventsLog(false);  // false 
 static Mutex _mutexLogTableMutex;
 static Queue<MutexLockRecordLog *> _mutexLogTable;  // read at process-shutdown time (I use a Queue rather than a Hashtable because muscle_thread_id isn't usable as a Hashtable key)
 
-void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fileName, int fileLine)
+void DeadlockFinder_LogEvent(uint32 lockActionType, const void * mutexPtr, const char * fileName, int fileLine)
 {
    MutexLockRecordLog * mel = _mutexEventsLog.GetThreadLocalObject();
    if (mel == NULL)
@@ -733,7 +746,7 @@ void DeadlockFinder_LogEvent(bool isLock, const void * mutexPtr, const char * fi
          }
       }
    }
-   if (mel) mel->AddEvent(isLock, mutexPtr, fileName, fileLine);
+   if (mel) mel->AddEvent(lockActionType, mutexPtr, fileName, fileLine);
        else printf("DeadlockFinder_LogEvent:  malloc of MutexLockRecordLog failed!?\n");  // we can't even call MWARN_OUT_OF_MEMORY here
 }
 

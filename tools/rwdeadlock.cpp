@@ -28,8 +28,12 @@ public:
          ReaderWriterMutex * m2 = reverseOrder ? &g_mutexA : &g_mutexB;
          DECLARE_READWRITE_MUTEXGUARD(*m1);  // using the macro allows the deadlock-finder to find this line-location, rather than the line in ReadWriteMutex.h
          DECLARE_READWRITE_MUTEXGUARD(*m1);  // doing it a second time just to make sure that recursive-locking is handled as expected
-         if (m2->LockReadWrite().IsError()) printf("Error, couldn't lock second ReaderWriterMutex!  (this should never happen!)\n");
-         if (m2->UnlockReadWrite().IsError()) printf("Error, couldn't unlock second ReaderWriterMutex!  (this should never happen!)\n");
+
+         const status_t r1 = m2->LockReadWrite();
+         if (r1.IsError()) printf("Error, couldn't lock second ReaderWriterMutex!  (this should never happen!) [%s]\n", r1());
+
+         const status_t r2 = m2->UnlockReadWrite();
+         if (r2.IsError()) printf("Error, couldn't unlock second ReaderWriterMutex!  (this should never happen!) [%s]\n", r2());
       }
    }
 };

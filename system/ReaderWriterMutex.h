@@ -3,6 +3,10 @@
 #ifndef MuscleReaderWriterMutex_h
 #define MuscleReaderWriterMutex_h
 
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+# include "util/overloaded_preprocessor_macro.h"
+#endif
+
 #include "util/Hashtable.h"
 #include "util/ObjectPool.h"
 #include "system/Mutex.h"   // for the deadlock-finder stuff
@@ -18,13 +22,12 @@ extern bool IsOkayToAccessMuscleReaderWriterMutex(const muscle::ReaderWriterMute
 namespace muscle {
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-# define LockSelectMacro(_1,_2,NAME,...) NAME
-# define LockReadOnly1(junk)     DeadlockFinderLockReadOnlyWrapper   (__FILE__, __LINE__)
-# define LockReadOnly2(junk,ts)  DeadlockFinderLockReadOnlyWrapper   (__FILE__, __LINE__, ts)
-# define LockReadOnly(...)       LockSelectMacro(__VA_ARGS__,LockReadOnly2,LockReadOnly1)(__VA_ARGS__)
-# define LockReadWrite1(junk)    DeadlockFinderLockReadWriteWrapper  (__FILE__, __LINE__)
-# define LockReadWrite2(junk,ts) DeadlockFinderLockReadWriteWrapper  (__FILE__, __LINE__, ts)
-# define LockReadWrite(...)      LockSelectMacro(__VA_ARGS__,LockReadWrite2,LockReadWrite1)(__VA_ARGS__)
+# define LockReadOnly(...)       OVERLOADED_PREPROCESSOR_MACRO(LockReadOnly, __VA_ARGS__)
+# define LockReadOnly0()         DeadlockFinderLockReadOnlyWrapper(__FILE__, __LINE__, MUSCLE_TIME_NEVER)
+# define LockReadOnly1(ts)       DeadlockFinderLockReadOnlyWrapper(__FILE__, __LINE__, ts)
+# define LockReadWrite(...)      OVERLOADED_PREPROCESSOR_MACRO(LockReadWrite, __VA_ARGS__)
+# define LockReadWrite0()        DeadlockFinderLockReadWriteWrapper(__FILE__, __LINE__, MUSCLE_TIME_NEVER)
+# define LockReadWrite1(ts)      DeadlockFinderLockReadWriteWrapper(__FILE__, __LINE__, ts)
 # define UnlockReadOnly()        DeadlockFinderUnlockReadOnlyWrapper  (__FILE__, __LINE__)
 # define UnlockReadWrite()       DeadlockFinderUnlockReadWriteWrapper (__FILE__, __LINE__)
 #endif
@@ -62,7 +65,7 @@ public:
    ~ReaderWriterMutex() {/* empty */}
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   status_t DeadlockFinderLockReadOnlyWrapper(const char * fileName, int fileLine, uint64 optTimeoutAt = MUSCLE_TIME_NEVER) const
+   status_t DeadlockFinderLockReadOnlyWrapper(const char * fileName, int fileLine, uint64 optTimeoutAt) const
 #else
    /** Attempts to lock the mutex for shared/read-only access.
      * Any thread that tries to LockReadOnly() this object while it is already locked-for-read+write access
@@ -81,13 +84,13 @@ public:
       const status_t ret = LockReadOnlyAux(optTimeoutAt);
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
-      if (ret.IsOK()) LogDeadlockFinderEvent(true, fileName, fileLine);
+      if (ret.IsOK()) LogDeadlockFinderEvent((optTimeoutAt==MUSCLE_TIME_NEVER)?LOCK_ACTION_LOCK:LOCK_ACTION_TRYLOCK, fileName, fileLine);
 #endif
       return ret;
    }
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   status_t DeadlockFinderLockReadWriteWrapper(const char * fileName, int fileLine, uint64 optTimeoutAt = MUSCLE_TIME_NEVER) const
+   status_t DeadlockFinderLockReadWriteWrapper(const char * fileName, int fileLine, uint64 optTimeoutAt) const
 #else
    /** Attempts to lock the lock for exclusive/read-write access.
      * Any thread that tries to LockReadWrite() this object while it is already locked by another thread
@@ -106,7 +109,7 @@ public:
       const status_t ret = LockReadWriteAux(optTimeoutAt);
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
-      if (ret.IsOK()) LogDeadlockFinderEvent(true, fileName, fileLine);
+      if (ret.IsOK()) LogDeadlockFinderEvent((optTimeoutAt==MUSCLE_TIME_NEVER)?LOCK_ACTION_LOCK:LOCK_ACTION_TRYLOCK, fileName, fileLine);
 #endif
       return ret;
    }
@@ -124,7 +127,7 @@ public:
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging while we are still are locked, otherwise our counter can suffer from race conditions
-      LogDeadlockFinderEvent(false, fileName, fileLine);
+      LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK, fileName, fileLine);
 #endif
 
       return UnlockReadOnlyAux();
@@ -143,7 +146,7 @@ public:
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging while we are still are locked, otherwise our counter can suffer from race conditions
-      LogDeadlockFinderEvent(false, fileName, fileLine);
+      LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK, fileName, fileLine);
 #endif
 
       return UnlockReadWriteAux();
@@ -202,12 +205,12 @@ private:
    bool IsOkayForWriterThreadToExecuteNow(muscle_thread_id tid) const {return ((_executingThreads.IsEmpty())&&((_waitingWriterThreads.IsEmpty())||((*_waitingWriterThreads.GetFirstKey() == tid))));}
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   void LogDeadlockFinderEvent(bool isLock, const char * fileName, int fileLine) const
+   void LogDeadlockFinderEvent(uint32 lockActionType, const char * fileName, int fileLine) const
    {
       if ((_enableDeadlockFinderPrints)&&(!_inDeadlockFinderCallback.IsInBatch()))
       {
          NestCountGuard ncg(_inDeadlockFinderCallback);
-         DeadlockFinder_LogEvent(isLock, this, fileName, fileLine);
+         DeadlockFinder_LogEvent(lockActionType, this, fileName, fileLine);
       }
    }
 
@@ -277,7 +280,7 @@ public:
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       if (_mutex.LockReadOnlyAux(MUSCLE_TIME_NEVER).IsError()) MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex LockReadOnly() failed!\n");
-      _mutex.LogDeadlockFinderEvent(true, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
+      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_LOCK, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
 #else
       if (_mutex.LockReadOnly().IsError())    MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex LockReadOnly() failed!\n");
 #endif
@@ -287,7 +290,7 @@ public:
    ~ReadOnlyMutexGuard()
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      _mutex.LogDeadlockFinderEvent(false, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
+      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
       if (_mutex.UnlockReadOnlyAux().IsError()) MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex UnlockReadOnly() failed!\n");
 #else
       if (_mutex.UnlockReadOnly().IsError())    MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex UnlockReadOnly() failed!\n");
@@ -328,7 +331,7 @@ public:
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       if (_mutex.LockReadWriteAux(MUSCLE_TIME_NEVER).IsError()) MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex LockReadWrite() failed!\n");
-      _mutex.LogDeadlockFinderEvent(true, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
+      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_LOCK, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
 #else
       if (_mutex.LockReadWrite().IsError())    MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex LockReadWrite() failed!\n");
 #endif
@@ -338,7 +341,7 @@ public:
    ~ReadWriteMutexGuard()
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      _mutex.LogDeadlockFinderEvent(false, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
+      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
       if (_mutex.UnlockReadWriteAux().IsError()) MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex UnlockReadWrite() failed!\n");
 #else
       if (_mutex.UnlockReadWrite().IsError())    MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex UnlockReadWrite() failed!\n");
