@@ -70,7 +70,7 @@ nav:
 - Multithreading API:
    - Thread: 'thread.md'
    - Mutex/MutexGuard: 'mutex.md'
-   - ReaderWriterMutex/ReadOnlyMutexGuard/ReadWriteMutexGuard: 'readerwritermutex.md'
+   - ReaderWriterMutex/MutexGuard: 'readerwritermutex.md'
    - WaitCondition: 'waitcondition.md'
    - AtomicCounter: 'atomiccounter.md'
    - ThreadLocalStorage: 'threadlocalstorage.md'

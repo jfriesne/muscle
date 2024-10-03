@@ -9,6 +9,7 @@ status_t ReaderWriterMutex :: LockReadOnlyAux(uint64 optTimeoutTimestamp) const
 #endif
 
 #ifdef MUSCLE_SINGLE_THREAD_ONLY
+   (void) optTimeoutTimestamp;
    return B_NO_ERROR;
 #else
    const muscle_thread_id tid = muscle_thread_id::GetCurrentThreadID();
@@ -83,6 +84,7 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
 #endif
 
 #ifdef MUSCLE_SINGLE_THREAD_ONLY
+   (void) optTimeoutTimestamp;
    return B_NO_ERROR;
 #else
    const muscle_thread_id tid = muscle_thread_id::GetCurrentThreadID();
@@ -223,6 +225,7 @@ status_t ReaderWriterMutex :: UnlockReadWriteAux() const
 #endif
 }
 
+#ifndef MUSCLE_SINGLE_THREAD_ONLY
 // Assumes _stateMutex is already locked
 status_t ReaderWriterMutex :: NotifySomeWaitingThreads() const
 {
@@ -278,5 +281,7 @@ ReaderWriterMutex::ThreadState * ReaderWriterMutex :: GetOrAllocateThreadState(H
    }
    return ts;
 }
+
+#endif // MUSCLE_SINGLE_THREAD_ONLY
          
 } // end namespace muscle

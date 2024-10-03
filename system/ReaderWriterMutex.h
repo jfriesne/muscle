@@ -3,14 +3,19 @@
 #ifndef MuscleReaderWriterMutex_h
 #define MuscleReaderWriterMutex_h
 
+#ifndef MUSCLE_SINGLE_THREAD_ONLY
+# include "util/Hashtable.h"
+# include "util/ObjectPool.h"
+# include "system/Mutex.h"   // for the deadlock-finder stuff
+# include "system/WaitCondition.h"
+#endif
+
+#include "support/NotCopyable.h"
+#include "util/TimeUtilityFunctions.h"  // for MUSCLE_TIME_NEVER
+
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
 # include "util/overloaded_preprocessor_macro.h"
 #endif
-
-#include "util/Hashtable.h"
-#include "util/ObjectPool.h"
-#include "system/Mutex.h"   // for the deadlock-finder stuff
-#include "system/WaitCondition.h"
 
 #ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
 // Should be defined elsewhere to return true iff it's considered okay to call the given method on the given
@@ -56,7 +61,9 @@ public:
       , _totalReadWriteRecurseCount(0)
 #endif
    {
-      // empty
+#ifdef MUSCLE_SINGLE_THREAD_ONLY
+      (void) preferWriters;
+#endif
    }
 
    /** Destructor.  If a ReaderWriterMutex is destroyed while another thread is blocking in its LockReadOnly()
@@ -200,9 +207,11 @@ private:
    status_t NotifyNextWriterThread() const;
    status_t NotifyAllReaderThreads() const;
 
+#ifndef MUSCLE_SINGLE_THREAD_ONLY
    // Assumes _stateMutex is already locked
    bool IsOkayForReaderThreadsToExecuteNow() const {return ((_totalReadWriteRecurseCount == 0)&&((_preferWriters == false)||(_waitingWriterThreads.IsEmpty())));}
    bool IsOkayForWriterThreadToExecuteNow(muscle_thread_id tid) const {return ((_executingThreads.IsEmpty())&&((_waitingWriterThreads.IsEmpty())||((*_waitingWriterThreads.GetFirstKey() == tid))));}
+#endif
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    void LogDeadlockFinderEvent(uint32 lockActionType, const char * fileName, int fileLine) const
