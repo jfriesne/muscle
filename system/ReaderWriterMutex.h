@@ -96,6 +96,12 @@ public:
       return ret;
    }
 
+   /** Attempts to lock the mutex for shared/read-only access without blocking.
+     * If access cannot be obtained immediately, then this call will return B_TIMED_OUT right away.
+     * @note calling this method is equivalent to calling LockReadOnly(0)
+     */
+   status_t TryLockReadOnly() const {return LockReadOnly(0);}
+
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    status_t DeadlockFinderLockReadWriteWrapper(const char * fileName, int fileLine, uint64 optTimeoutAt) const
 #else
@@ -120,6 +126,12 @@ public:
 #endif
       return ret;
    }
+
+   /** Attempts to lock the mutex for exclusive/read-write access without blocking.
+     * If access cannot be obtained immediately, then this call will return B_TIMED_OUT right away.
+     * @note calling this method is equivalent to calling LockReadWrite(0)
+     */
+   status_t TryLockReadWrite() const {return LockReadWrite(0);}
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    status_t DeadlockFinderUnlockReadOnlyWrapper(const char * fileName, int fileLine) const

@@ -30,10 +30,10 @@ public:
          DECLARE_READWRITE_MUTEXGUARD(*m1);  // doing it a second time just to make sure that recursive-locking is handled as expected
 
          const status_t r1 = m2->LockReadWrite();
-         if (r1.IsError()) printf("Error, couldn't lock second ReaderWriterMutex!  (this should never happen!) [%s]\n", r1());
+         if (r1.IsError()) printf("Error, couldn't read/write-lock second ReaderWriterMutex!  (this should never happen!) [%s]\n", r1());
 
          const status_t r2 = m2->UnlockReadWrite();
-         if (r2.IsError()) printf("Error, couldn't unlock second ReaderWriterMutex!  (this should never happen!) [%s]\n", r2());
+         if (r2.IsError()) printf("Error, couldn't read/write-unlock second ReaderWriterMutex!  (this should never happen!) [%s]\n", r2());
       }
    }
 };
