@@ -178,6 +178,7 @@ public:
    bool BeginAvoidFindDeadlockCallbacks()
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+      DECLARE_MUTEXGUARD(_deadlockFinderMutex);
       return _inDeadlockFinderCallback.Increment();
 #else
       return false;
@@ -191,6 +192,7 @@ public:
    bool EndAvoidFindDeadlockCallbacks()
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+      DECLARE_MUTEXGUARD(_deadlockFinderMutex);
       return _inDeadlockFinderCallback.Decrement();
 #else
       return false;
@@ -228,10 +230,14 @@ private:
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    void LogDeadlockFinderEvent(uint32 lockActionType, const char * fileName, int fileLine) const
    {
-      if ((_enableDeadlockFinderPrints)&&(!_inDeadlockFinderCallback.IsInBatch()))
+      if (_deadlockFinderMutex.LockAux().IsOK())  // calling LockAux() only to keep _deadlockFinderMutex out of the deadlock-reports
       {
-         NestCountGuard ncg(_inDeadlockFinderCallback);
-         DeadlockFinder_LogEvent(lockActionType, this, fileName, fileLine);
+         if ((_enableDeadlockFinderPrints)&&(!_inDeadlockFinderCallback.IsInBatch()))
+         {
+            NestCountGuard ncg(_inDeadlockFinderCallback);
+            DeadlockFinder_LogEvent(lockActionType, this, fileName, fileLine);
+         }
+         (void) _deadlockFinderMutex.UnlockAux();  // calling UnlockAux() only to keep _deadlockFinderMutex out of the deadlock-reports
       }
    }
 
@@ -263,8 +269,10 @@ private:
    // Assumes _stateMutex is already locked
    ThreadState * GetOrAllocateThreadState(Hashtable<muscle_thread_id, ThreadState> & table, muscle_thread_id tid, bool okayToAllocateWC) const;
 
-   // experimental
    Mutex _stateMutex;   // serialize access to our member-variables below
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+   Mutex _deadlockFinderMutex;  // separate mutex for this, to avoid potential deadlocks (or maybe just false-positive reports of them)
+#endif
 
    mutable ObjectPool<RefCountableWaitCondition> _waitConditionPool;
 

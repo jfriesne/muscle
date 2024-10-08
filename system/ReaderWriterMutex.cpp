@@ -46,23 +46,30 @@ status_t ReaderWriterMutex :: LockReadOnlyAux(uint64 optTimeoutTimestamp) const
 
       while(true)
       {
-         MRETURN_ON_ERROR(tempWCRef()->_waitCondition.Wait(optTimeoutTimestamp));  // may block for a long time
+         status_t ret = tempWCRef()->_waitCondition.Wait(optTimeoutTimestamp);  // may block for a long time
 
-         DECLARE_MUTEXGUARD(_stateMutex);  // gotta re-lock now, so we can safely update our state tables
-         if (IsOkayForReaderThreadsToExecuteNow())  // check if we got scooped by another thread
+         DECLARE_MUTEXGUARD(_stateMutex);  // gotta re-lock now, so we can safely update our state-tables
+         if (ret.IsError())
+         {
+            (void) _waitingReaderThreads.Remove(tid);  // clean up!
+            return ret;
+         }
+         else if (IsOkayForReaderThreadsToExecuteNow())  // check if we got scooped by another thread
          {
             ts = _waitingReaderThreads.Get(tid);  // necessary since (ts) could have been invalidated while _stateMutex was unlocked
             MASSERT(ts != NULL, "ReaderWriterMutex::LockReadOnlyAux():  My ThreadState has disappeared while I was waiting!");
 
             // Register our thread into the executing-threads table
             ThreadState * exTS = GetOrAllocateThreadState(_executingThreads, tid, false);
-            MRETURN_OOM_ON_NULL(exTS);
-
-            exTS->_readOnlyRecurseCount  = ts->_readOnlyRecurseCount+1;
-            exTS->_readWriteRecurseCount = ts->_readWriteRecurseCount;
+            if (exTS)
+            {
+               exTS->_readOnlyRecurseCount  = ts->_readOnlyRecurseCount+1;
+               exTS->_readWriteRecurseCount = ts->_readWriteRecurseCount;
+            }
+            else ret = B_OUT_OF_MEMORY;
 
             (void) _waitingReaderThreads.Remove(tid);
-            return B_NO_ERROR;
+            return ret;
          }
       }
    }
@@ -152,24 +159,31 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
 
       while(true)
       {
-         MRETURN_ON_ERROR(tempWCRef()->_waitCondition.Wait(optTimeoutTimestamp));  // may block for a long time
+         status_t ret = tempWCRef()->_waitCondition.Wait(optTimeoutTimestamp);  // may block for a long time
 
-         DECLARE_MUTEXGUARD(_stateMutex);  // gotta re-lock now, so we can safely update our state tables (RAII OK because we never Wait() below)
-         if (IsOkayForWriterThreadToExecuteNow(tid))
+         DECLARE_MUTEXGUARD(_stateMutex);  // gotta re-lock now, so we can safely update our state-tables (RAII OK because we never Wait() below)
+         if (ret.IsError())
+         {
+            (void) _waitingWriterThreads.Remove(tid);  // clean up!
+            return ret;
+         }
+         else if (IsOkayForWriterThreadToExecuteNow(tid))
          {
             ts = _waitingWriterThreads.GetFirstValue();  // necessary since our old (ts) might have been invalidated while (_stateMutex) was unlocked
             MASSERT(ts != NULL, "ReaderWriterMutex::LockReadWrite():  My ThreadState has disappeared while I was waiting!");
 
             // Register our thread into the executing-threads table
             ThreadState * exTS = GetOrAllocateThreadState(_executingThreads, tid, false);
-            MRETURN_OOM_ON_NULL(exTS);
-
-            exTS->_readOnlyRecurseCount  = ts->_readOnlyRecurseCount;
-            exTS->_readWriteRecurseCount = ts->_readWriteRecurseCount+1;
-            _totalReadWriteRecurseCount++;
+            if (exTS)
+            {
+               exTS->_readOnlyRecurseCount  = ts->_readOnlyRecurseCount;
+               exTS->_readWriteRecurseCount = ts->_readWriteRecurseCount+1;
+               _totalReadWriteRecurseCount++;
+            }
+            else ret = B_OUT_OF_MEMORY;
 
             (void) _waitingWriterThreads.RemoveFirst();
-            return B_NO_ERROR;
+            return ret;
          }
       }
    }

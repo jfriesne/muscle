@@ -63,6 +63,7 @@ enum {
 # define Unlock()  DeadlockFinderUnlockWrapper (__FILE__, __LINE__)
 extern void DeadlockFinder_LogEvent(uint32 lockActionType, const void * mutexPtr, const char * fileName, int fileLine);
 extern bool _enableDeadlockFinderPrints;
+class ReaderWriterMutex;
 #endif
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
@@ -226,6 +227,9 @@ public:
    }
 
 private:
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+   friend class ReaderWriterMutex;   // just so ReaderWriterMutex::LogDeadlockFinderEvent() can call LockAux() and UnlockAux() directly
+#endif
    friend class MutexGuard;
 
    void Cleanup()
