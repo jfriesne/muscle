@@ -151,15 +151,10 @@ private:
 };
 DECLARE_REFTYPES(TestThread);
 
-// This program demonstrates running a ReflectServer event-loop in a child thread, and communicating with it from the main thread
+// This program tests the ReaderWriterMutex class to verify that it
+// does what it is supposed to do and doesn't deadlock when used correctly.
 int main(int argc, char ** argv)
 {
-   if ((argc >= 2)&&(strcmp(argv[1], "fromscript") == 0))
-   {
-      printf("Called from script, skipping test\n");
-      return 0;
-   }
-
    CompleteSetupSystem css;
 
    Message args; (void) ParseArgs(argc, argv, args);
