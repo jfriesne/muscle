@@ -107,7 +107,7 @@ public:
 #else
    /** Attempts to lock the lock for exclusive/read-write access.
      * Any thread that tries to LockReadWrite() this object while it is already locked by another thread
-     * until after all threads have unlocked the lock.  The lock is recursive, however;
+     * will block until after all threads have unlocked the lock.  The lock is recursive, however;
      * if a given thread calls LockReadWrite() twice in a row it won't deadlock itself (although it will
      * need to call UnlockReadWrite() twice in a row in order to truly unlock the lock)
      * @param optTimeoutAt timestamp at which we should give up and return B_TIMED_OUT if we still haven't
