@@ -841,6 +841,22 @@ public:
       return e ? e->_key : defaultKey;
    }
 
+   /** Given a (lookupKey), returns a pointer to the actual key-object in this table that is
+    *  located JUST BEFORE (lookupKey) in the iteration-order of this table's keys, or NULL
+    *  if (lookupKey) is not in the table, or if (lookupKey) is the first key in the table's iteration.
+    *  @param lookupKey The key used to look up the key object
+    *  @return A pointer to an internally held key object JUST BEFORE (lookupKey) on success, or NULL on failure.
+    */
+   MUSCLE_NODISCARD const KeyType * GetKeyBefore(const KeyType & lookupKey) const;
+
+   /** Given a (lookupKey), returns a pointer to the actual key-object in this table that is
+    *  located JUST AFTER (lookupKey) in the iteration-order of this table's keys, or NULL
+    *  if (lookupKey) is not in the table, or if (lookupKey) is the last key in the table's iteration.
+    *  @param lookupKey The key used to look up the key object
+    *  @return A pointer to an internally held key object JUST AFTER (lookupKey) on success, or NULL on failure.
+    */
+   MUSCLE_NODISCARD const KeyType * GetKeyAfter(const KeyType & lookupKey) const;
+
    /** Convenience method.  Returns a pointer to the last value in our iteration list, or NULL if the table is empty. */
    MUSCLE_NODISCARD ValueType * GetFirstValue()
    {
@@ -2662,6 +2678,24 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::GetKey(const KeyType & lookupK
 {
    const HashtableEntryBase * e = this->GetEntry(this->ComputeHash(lookupKey), lookupKey);
    return e ? &e->_key : NULL;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
+const KeyType *
+HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyBefore(const KeyType & lookupKey) const
+{
+   const HashtableEntryBase * e = this->GetEntry(this->ComputeHash(lookupKey), lookupKey);
+   const HashtableEntryBase * p = e ? GetEntryIterPrevChecked(e) : NULL;
+   return p ? &p->_key : NULL;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
+const KeyType *
+HashtableBase<KeyType,ValueType,HashFunctorType>::GetKeyAfter(const KeyType & lookupKey) const
+{
+   const HashtableEntryBase * e = this->GetEntry(this->ComputeHash(lookupKey), lookupKey);
+   const HashtableEntryBase * p = e ? GetEntryIterNextChecked(e) : NULL;
+   return p ? &p->_key : NULL;
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>

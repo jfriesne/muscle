@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added GetKeyBefore() and GetKeyAfter() convenience-methods to
+     the Hashtable class.
+
 9.42 - Released 10/15/2024
    - Under MacOS, GetNetworkInterfaceInfos() will now populate the
      NetworkInterfaceInfo class's description field with the String

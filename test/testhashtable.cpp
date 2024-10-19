@@ -556,6 +556,29 @@ int main(int argc, char ** argv)
    }
 
    {
+      LogTime(MUSCLE_LOG_INFO, "Testing iteration via GetKeyBefore() and GetKeyAfter()..\n");
+
+      Hashtable<String, int> t;
+      (void) t.Put("One", 1);
+      (void) t.Put("Two", 2);
+      (void) t.Put("Three", 3);
+
+      const String * k = t.GetFirstKey();
+      while(k)
+      {
+         printf("Forward:  [%s] -> %i\n", k->Cstr(), *t.Get(*k));
+         k = t.GetKeyAfter(*k);
+      }
+
+      k = t.GetLastKey();
+      while(k)
+      {
+         printf("Backward:  [%s] -> %i\n", k->Cstr(), *t.Get(*k));
+         k = t.GetKeyBefore(*k);
+      }
+   }
+
+   {
       LogTime(MUSCLE_LOG_INFO, "Preparing large table for sort...\n");
 
       const uint32 numItems = 100000;
