@@ -7,6 +7,8 @@ key:  - new feature
 
    - Added GetKeyBefore() and GetKeyAfter() convenience-methods to
      the Hashtable class.
+   - Added a Message::BytesMightContainFlattenedMessage() convenience method
+     for quick-and-dirty sanity-checking of flattened-Message bytes.
 
 9.42 - Released 10/15/2024
    - Under MacOS, GetNetworkInterfaceInfos() will now populate the
@@ -23,7 +25,7 @@ key:  - new feature
    - Added muscle-by-example documentation and examples for the new
      ReadOnlyMutexGuard classes.
    - Added a rwdeadlock.cpp program to the tools folder, to test
-     the deadlock-finder code's integration with the ReaderWriterMutex classa.
+     the deadlock-finder code's integration with the ReaderWriterMutex class.
    * Fixed typo in Thread.h that would break pre-C++11 builds.
    * Fixed the deadlock finder code to handle TryLock()/Unlock() pairs
      appropriately (a TryLock() call is non-blocking so can't cause deadlock)

@@ -1210,6 +1210,23 @@ void Message :: Flatten(DataFlattener flat) const
    DefaultEndianConverter::Export(numFlattenedEntries, entryCountPtr);
 }
 
+bool Message :: BytesMightContainFlattenedMessage(const uint8 * bytes, uint32 numBytes)
+{
+   if (numBytes < (3*sizeof(uint32))) return false;  // even the smallest flattened Message will have at least three uint32 fields in it
+
+   DataUnflattener unflat(bytes, numBytes);
+
+   const uint32 messageProtocolVersion = unflat.ReadInt32();
+   if (muscleInRange(messageProtocolVersion, (uint32)OLDEST_SUPPORTED_PROTOCOL_VERSION, (uint32)CURRENT_PROTOCOL_VERSION) == false) return false;
+
+   (void) unflat.ReadInt32();  // throw away the what-code, we don't care what it is
+
+   const uint32 numEntries         = unflat.ReadInt32();
+   const uint32 minBytesPerEntry   = (sizeof(uint32)*3);  // name-length + typecode-length + payload-length
+   const uint32 maxPossibleEntries = unflat.GetNumBytesAvailable() / minBytesPerEntry;  // max number of fields that might theoretically be present in (unflat)
+   return (numEntries <= maxPossibleEntries);
+}
+
 status_t Message :: Unflatten(DataUnflattener & unflat)
 {
    TCHECKPOINT;

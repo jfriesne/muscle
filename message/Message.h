@@ -1814,6 +1814,18 @@ public:
      */
    status_t TemplatedUnflatten(const Message & templateMsg, DataUnflattener & unflat);
 
+   /** Convenience method:  Returns true the data bytes pointed to by (bytes) might
+     * at least possibly contain a valid flattened Message object that Message::Unflatten()
+     * wouldn't reject.
+     * @param bytes Pointer to some bytes to test to see if they are at least plausibly a flattened Message.
+     * @param numBytes how many valid bytes (bytes) points to.
+     * @note this method checks for an appropriate magic number (e.g. CURRENT_PROTOCOL_VERSION) in the
+     *       bytes, and checks that the length of the message isn't too short, but it doesn't do exhaustive
+     *       checking of all the flattened data, so it might return true even if there are errors in the data.
+     *       For full error-checking, you'll need to pass the data to Message::Unflatten().
+     */
+   static bool BytesMightContainFlattenedMessage(const uint8 * bytes, uint32 numBytes);
+
 protected:
    /** Overridden to copy directly if (copyFrom) is a Message as well.
      * @param copyFrom the object to copy our new state from
