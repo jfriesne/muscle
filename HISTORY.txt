@@ -9,6 +9,12 @@ key:  - new feature
      the Hashtable class.
    - Added a Message::BytesMightContainFlattenedMessage() convenience method
      for quick-and-dirty sanity-checking of flattened-Message bytes.
+   - Added SetCompleteWriteRequired() and IsCompleteWriteRequired() methods
+     to the DataFlattener class.
+   o Removed the DataFlattener::MarkWritingComplete() method as it turned
+     out not to be very RAII-friendly.
+   * Fixed a bug in MiniPacketTunnelIOGateway that could cause it to
+     occasionally crash with an assertion failure.
 
 9.42 - Released 10/15/2024
    - Under MacOS, GetNetworkInterfaceInfos() will now populate the

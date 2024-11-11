@@ -117,6 +117,7 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
    MRETURN_ON_ERROR(_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false));  // _outputPacketBuffer.GetNumBytes() should be _maxTransferUnit at all times
 
    DataFlattener flat(_outputPacketBuffer.GetBuffer(), _outputPacketBuffer.GetNumBytes());
+   flat.SetCompleteWriteRequired(false);         // NEB-5099 -- since we're just using it as scratch-space anyway
    (void) flat.SeekRelative(_outputPacketSize);  // skip past any bytes that are already present in _outputPacketBuffer from previously
 
    io_status_t totalBytesWritten;
@@ -204,7 +205,6 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
       else break;  // nothing more to do!
    }
    _outputPacketSize = flat.GetNumBytesWritten();  // remember for next time how many still-pending packets are left in our _outputPacketBuffer
-   flat.MarkWritingComplete();   // avoid assertion failure; it's okay if we didn't write out the entire buffer
    return totalBytesWritten;
 }
 

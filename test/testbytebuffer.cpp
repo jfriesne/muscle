@@ -51,6 +51,8 @@ template<class EndianConverter> status_t TestHelpers()
    // Write out some POD data into (buf)
    {
       DataFlattenerHelper<EndianConverter> flat(buf, sizeof(buf));
+      flat.SetCompleteWriteRequired(false);
+
       flat.WriteInt8(0x01);
       flat.WriteInt16(0x0405);
       flat.WriteInt32(0x0708090a);
@@ -76,9 +78,7 @@ template<class EndianConverter> status_t TestHelpers()
       flat.WriteCString("9 bytes!");  // 8 ASCII chars plus a NUL byte
       flat.WritePaddingBytesToAlignTo(sizeof(uint32));
       flat.WriteInt32(0x12345678);  // this should be uint32-aligned
-
       numValidBytesInBuf = flat.GetNumBytesWritten();
-      flat.MarkWritingComplete();
    }
 
    // Print out the serialized bytes in hexadecimal, so we can see how they were written

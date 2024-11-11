@@ -27,7 +27,7 @@ public:
      *                be valid when the methods on this class are called.
      * @param maxBytes How many bytes of data this DataFlattenerHelper is expected to write.
      * @note failure to write exactly (maxBytes) of data will trigger an assertion failure!
-     *       if you don't want that, you can avoid it by calling MarkWritingComplete() on this object before destroying it.
+     *       if you don't want that, you can avoid it by calling SetCompleteWriteRequired(false).
      */
    DataFlattenerHelper(uint8 * writeTo, uint32 maxBytes) : _endianConverter() {Init(); SetBuffer(writeTo, maxBytes);}
 
@@ -35,7 +35,7 @@ public:
      * @param parentFlat reference to a parent DataFlattenerHelper object.  Our destructor will call
      *                   parentFlat.SeekRelative(GetNumBytesWritten()).
      * @note failure to write exactly (parentFlat.GetNumBytesAvailable()) of data will trigger an assertion failure!
-     *       if you don't want that, you can avoid it by calling MarkWritingComplete() on this object before destroying it.
+     *       if you don't want that, you can avoid it by calling SetCompleteWriteRequired(false).
      */
    DataFlattenerHelper(const DataFlattenerHelper & parentFlat) : _endianConverter() {Init(); SetBuffer(parentFlat, parentFlat.GetNumBytesAvailable());}
 
@@ -45,21 +45,21 @@ public:
      * @param maxBytes How many bytes of data this DataFlattenerHelper is expected to write.
      *                 This value must not be greater than (parentFlat.GetNumBytesAvailable()).
      * @note failure to write exactly (maxBytes) of data will trigger an assertion failure!
-     *       if you don't want that, you can avoid it by calling MarkWritingComplete() on this object before destroying it.
+     *       if you don't want that, you can avoid it by calling SetCompleteWriteRequired(false).
      */
    DataFlattenerHelper(const DataFlattenerHelper & parentFlat, uint32 maxBytes) : _endianConverter() {Init(); SetBuffer(parentFlat, maxBytes);}
 
    /** Constructs a DataFlattenerHelper to write (buf.GetNumBytes()) bytes into (buf).
      * @param buf a ByteBuffer object whose contents we will overwrite
      * @note failure to write exactly (buf.GetNumBytes()) of data will trigger an assertion failure!
-     *       if you don't want that, you can avoid it by calling MarkWritingComplete() on this object before destroying it.
+     *       if you don't want that, you can avoid it by calling SetCompleteWriteRequired(false).
      */
    DataFlattenerHelper(ByteBuffer & buf);
 
    /** Convenience constructor:  Sets us to write to the byte-array held by (buf)
      * @param buf a ByteBufferRef object whose contents we will overwrite
      * @note failure to write exactly (buf()->GetNumBytes()) of data will trigger an assertion failure!
-     *       if you don't want that, you can avoid it by calling MarkWritingComplete() on this object before destroying it.
+     *       if you don't want that, you can avoid it by calling SetCompleteWriteRequired(false).
      */
    DataFlattenerHelper(const Ref<ByteBuffer> & buf);
 
@@ -68,7 +68,7 @@ public:
      *       message and abort the program unless the number of bytes written was the same as the (maxBytes) value
      *       passed in to our constructor or to SetBuffer(); this is done to make any underwrite/overwrite bugs in
      *       Flatten() methods immediately obvious.  If you deliberately didn't write to all of the bytes in the buffer,
-     *       you can avoid a crash by calling MarkWritingComplete() on this object before it is destroyed.
+     *       you can avoid a crash by calling SetCompleteWriteRequired(false).
      */
    ~DataFlattenerHelper() {Finalize();}
 
@@ -79,7 +79,7 @@ public:
      * @param writeTo the new buffer to point to and write to in future Write*() method-calls.
      * @param maxBytes How many bytes of writable buffer space (writeTo) is pointing to
      * @note failure to write exactly (buf()->GetNumBytes()) of data will trigger an assertion failure!
-     *       if you don't want that, you can avoid it by calling MarkWritingComplete() on this object before destroying it.
+     *       if you don't want that, you can avoid it by calling SetCompleteWriteRequired(false).
      */
    void SetBuffer(uint8 * writeTo, uint32 maxBytes) {Finalize(); _writeTo = _origWriteTo = writeTo; _maxBytes = maxBytes; _parentFlat = NULL;}
 
@@ -242,11 +242,15 @@ public:
       return ((numBytes > 0)||(((uint32)(-numBytes)) <= nbw)) ? SeekTo(GetNumBytesWritten()+numBytes) : B_BAD_ARGUMENT;
    }
 
-   /** Convenience method:  Sets our maximum-number-of-bytes setting equal to the current number of bytes
-     * written.  Call this when you've finished writing into an oversized buffer, and you don't want an
-     * assertion-failure to be caused by the fact that you didn't write all the way to the end of the buffer.
+   /** Sets whether or not an assertion failure should be triggered by this object's destructor
+     * if fewer than the expected number of bytes were written out before this object was destroyed.
+     * @param isRequired true if all bytes in our target buffer must be written, or false if it's okay if some are not.
+     * @note default state is true.
      */
-   void MarkWritingComplete() {const uint32 nbw = GetNumBytesWritten(); if (nbw <= _maxBytes) _maxBytes = nbw;}
+   void SetCompleteWriteRequired(bool isRequired) {_completeWriteRequired = isRequired;}
+
+   /** Returns the state of our complete-write-required flag. */
+   bool IsCompleteWriteRequired() const {return _completeWriteRequired;}
 
 private:
    DataFlattenerHelper & operator = (const DataFlattenerHelper &);  // deliberately private and unimplemented
@@ -268,6 +272,7 @@ private:
       _writeTo    = _origWriteTo = NULL;
       _maxBytes   = 0;
       _parentFlat = NULL;
+      _completeWriteRequired = true;
    }
 
    void Advance(uint32 numBytes) {_writeTo += numBytes;}
@@ -279,8 +284,8 @@ private:
          const uint32 nbw = GetNumBytesWritten();
 #ifndef MUSCLE_AVOID_ASSERTIONS
          // caller is required to either write all of the bytes he said he would!
-         // If you only want to write some of the bytes, be sure to call MarkWritingComplete() before
-         // the DataFlattener's destructor executes, to avoid these assertion-failures.
+         // If you only want to write some of the bytes, be sure to call SetCompleteWriteRequired(false)
+         // before the DataFlattener's destructor executes, to avoid these assertion-failures.
          if ((nbw != _maxBytes)&&(_maxBytes != MUSCLE_NO_LIMIT))
          {
             if (nbw > _maxBytes)
@@ -288,7 +293,7 @@ private:
                LogTime(MUSCLE_LOG_CRITICALERROR, "DataFlattenerHelper %p:  " UINT32_FORMAT_SPEC " bytes were written into a buffer that only had space for " UINT32_FORMAT_SPEC " bytes!\n", this, nbw, _maxBytes);
                MCRASH("~DataFlattenerHelper(): detected buffer-write overflow");
             }
-            else
+            else if (_completeWriteRequired)
             {
                LogTime(MUSCLE_LOG_CRITICALERROR, "DataFlattenerHelper %p:  Only " UINT32_FORMAT_SPEC " bytes were written to a buffer that had space for " UINT32_FORMAT_SPEC " bytes, leaving " UINT32_FORMAT_SPEC " bytes uninitialized!\n", this, nbw, _maxBytes, GetNumBytesAvailable());
                MCRASH("~DataFlattenerHelper(): detected incomplete buffer-write");
@@ -303,6 +308,7 @@ private:
    uint8 * _origWriteTo;     // the pointer the user passed in
    uint32 _maxBytes;         // used for post-hoc detection of underwrite/overwrite errors
    const DataFlattenerHelper * _parentFlat;  // if non-NULL, we will call SeekRelative() on this in our destructor
+   bool _completeWriteRequired;
 };
 
 typedef DataFlattenerHelper<LittleEndianConverter>  LittleEndianDataFlattener;  /**< this flattener-type flattens to little-endian-format data */

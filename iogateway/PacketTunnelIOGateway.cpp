@@ -147,6 +147,7 @@ io_status_t PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          const uint32 dataBytesToSend = muscleMin(_maxTransferUnit-(_outputPacketSize+FRAGMENT_HEADER_SIZE), sbSize-_currentOutputBufferOffset);
 
          DataFlattener flat(_outputPacketBuffer.GetBuffer()+_outputPacketSize, _outputPacketBuffer.GetNumBytes()-_outputPacketSize);
+         flat.SetCompleteWriteRequired(false);
          flat.WriteInt32(_magic);                      // a well-known magic number, for sanity checking
          flat.WriteInt32(_sexID);                      // source exclusion ID
          flat.WriteInt32(_sendMessageIDCounter);       // message ID tag so the receiver can track what belongs where
@@ -165,8 +166,6 @@ io_status_t PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
             _currentOutputBufferOffset = 0;
             if (_currentOutputBuffers.IsEmpty()) ClearFakeSendBuffer(MAX_CACHE_SIZE);  // don't keep too much memory around!
          }
-
-         (void) flat.MarkWritingComplete();  // avoid assertion failure; it's okay if we didn't write out to the entire _outputPacketBuffer
       }
 
       // Step 2:  If we have a non-empty packet to send, send it!

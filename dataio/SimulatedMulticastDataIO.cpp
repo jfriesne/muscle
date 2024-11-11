@@ -215,6 +215,7 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
 #endif
 
    DataFlattener flat(pingBuf, sizeof(pingBuf));  // trust, but verify
+   flat.SetCompleteWriteRequired(false);
    flat.WriteInt64(SIMULATED_MULTICAST_CONTROL_MAGIC);
    flat.WriteInt32(whatCode);
    if ((_knownMembers.HasItems())&&(whatCode == SMDIO_COMMAND_PONG)&&(destIAP != _localAddressAndPort))  // no point telling myself about what I know
@@ -249,7 +250,6 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
    }
 
    ConstByteBufferRef buf = flat.GetByteBufferFromPool();
-   flat.MarkWritingComplete();  // avoid assertion failure due to us not writing out the entire buffer
    if (buf() == NULL) return B_OUT_OF_MEMORY;
 
    Queue<ConstByteBufferRef> * pq = _outgoingPacketsTable.GetOrPut(destIAP);
