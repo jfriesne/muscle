@@ -55,6 +55,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
 
    uint32 maxBytes           = MUSCLE_NO_LIMIT;
    uint32 maxNodesPerSession = MUSCLE_NO_LIMIT;
+   uint32 maxChildrenPerNode = MUSCLE_NO_LIMIT;
    uint32 maxReceiveRate     = MUSCLE_NO_LIMIT;
    uint32 maxSendRate        = MUSCLE_NO_LIMIT;
    uint32 maxCombinedRate    = MUSCLE_NO_LIMIT;
@@ -79,6 +80,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
       LogPlain(MUSCLE_LOG_INFO, "                [maxmem=megs]\n");
 #endif
       LogPlain(MUSCLE_LOG_INFO, "                [maxnodespersession=num] [remap=oldip=newip]\n");
+      LogPlain(MUSCLE_LOG_INFO, "                [maxchildrenpernode=num]\n");
       LogPlain(MUSCLE_LOG_INFO, "                [ban=ippattern] [require=ippattern]\n");
       LogPlain(MUSCLE_LOG_INFO, "                [privban=ippattern] [privunban=ippattern]\n");
       LogPlain(MUSCLE_LOG_INFO, "                [privkick=ippattern] [privall=ippattern]\n");
@@ -180,16 +182,22 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
       LogTime(MUSCLE_LOG_INFO, "Limiting nodes-per-session to " UINT32_FORMAT_SPEC ".\n", maxNodesPerSession);
    }
 
+   if (args.FindString("maxchildrenpernode", &value).IsOK())
+   {
+      maxChildrenPerNode = atoi(value);
+      LogTime(MUSCLE_LOG_INFO, "Limiting children-per-node to " UINT32_FORMAT_SPEC ".\n", maxChildrenPerNode);
+   }
+
    if (args.FindString("maxsessions", &value).IsOK())
    {
       maxSessions = atoi(value);
-      LogTime(MUSCLE_LOG_INFO, "Limiting total session count to " UINT32_FORMAT_SPEC ".\n", maxSessions);
+      LogTime(MUSCLE_LOG_INFO, "Limiting total session-count to " UINT32_FORMAT_SPEC ".\n", maxSessions);
    }
 
    if (args.FindString("maxsessionsperhost", &value).IsOK())
    {
       maxSessionsPerHost = atoi(value);
-      LogTime(MUSCLE_LOG_INFO, "Limiting session count for any given host to " UINT32_FORMAT_SPEC ".\n", maxSessionsPerHost);
+      LogTime(MUSCLE_LOG_INFO, "Limiting session-count for any given host to " UINT32_FORMAT_SPEC ".\n", maxSessionsPerHost);
    }
 
    {
@@ -230,6 +238,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    server.GetAddressRemappingTable() = tempRemaps;
 
    if (maxNodesPerSession != MUSCLE_NO_LIMIT) (void) server.GetCentralState().AddInt32(PR_NAME_MAX_NODES_PER_SESSION, maxNodesPerSession);
+   if (maxChildrenPerNode != MUSCLE_NO_LIMIT) (void) server.GetCentralState().AddInt32(PR_NAME_MAX_CHILDREN_PER_NODE, maxChildrenPerNode);
    for (MessageFieldNameIterator iter = tempPrivs.GetFieldNameIterator(); iter.HasData(); iter++) (void) tempPrivs.CopyName(iter.GetFieldName(), server.GetCentralState());
 
    // If the user asked for bandwidth limiting, create Policy objects to handle that.

@@ -592,6 +592,7 @@ enum {
         #define B_BAD_DATA        status_t(       "Bad Data")  ///< "Bad Data"         - data we were trying to use was malformed
         #define B_BAD_OBJECT      status_t(     "Bad Object")  ///< "Bad Object"       - the object the method was called on is not in a usable state for this operation
         #define B_END_OF_STREAM   status_t(  "End of Stream")  ///< "End of Stream"    - EOF / the end of the byte-stream was reached
+        #define B_RESOURCE_LIMIT  status_t( "Resource Limit Reached")  ///< "Resource Limit Reached"   - too many resources are in use
         #define B_TIMED_OUT       status_t(      "Timed Out")  ///< "Timed Out"        - the operation took too long, so we gave up
         #define B_IO_ERROR        status_t(      "I/O Error")  ///< "I/O Error"        - an I/O operation failed
         #define B_IO_READY        status_t(      "I/O Ready")  ///< "I/O Ready"        - this call has ended early because other I/O is ready for you to handle.
@@ -625,6 +626,7 @@ enum {
         MUSCLE_CONSTEXPR_OR_CONST status_t B_BAD_DATA(      "Bad Data");         ///< "Bad Data"         - data we were trying to use was malformed
         MUSCLE_CONSTEXPR_OR_CONST status_t B_BAD_OBJECT(    "Bad Object");       ///< "Bad Object"       - the object the method was called on is not in a usable state for this operation
         MUSCLE_CONSTEXPR_OR_CONST status_t B_END_OF_STREAM( "End of Stream");    ///< "End of Stream"    - EOF / the end of the byte-stream was reached
+        MUSCLE_CONSTEXPR_OR_CONST status_t B_RESOURCE_LIMIT("Resource Limit Reached");   ///< "Resource Limit Reached"   - too many resources are in use
         MUSCLE_CONSTEXPR_OR_CONST status_t B_TIMED_OUT(     "Timed Out");        ///< "Timed Out"        - the operation took too long, so we gave up
         MUSCLE_CONSTEXPR_OR_CONST status_t B_IO_ERROR(      "I/O Error");        ///< "I/O Error"        - an I/O operation failed
         MUSCLE_CONSTEXPR_OR_CONST status_t B_IO_READY(      "I/O Ready");        ///< "I/O Ready"        - this call has ended early because other I/O is ready for you to handle.

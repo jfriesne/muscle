@@ -54,6 +54,7 @@ StorageReflectSession() :
    _indexingPresent(false),
    _currentNodeCount(0),
    _maxNodeCount(MUSCLE_NO_LIMIT),
+   _maxChildrenPerDataNodeCount(MUSCLE_NO_LIMIT),
    _keepAliveIntervalSeconds(0),
    _nextKeepAliveSendTimeStamp(MUSCLE_TIME_NEVER)
 {
@@ -166,8 +167,9 @@ AttachedToServer()
 
       // Get our node-creation limit.  For now, this is the same for all sessions.
       // (someday maybe I'll work out a way to give different limits to different sessions)
-      uint32 nodeLimit;
-      if (state.FindInt32(PR_NAME_MAX_NODES_PER_SESSION, nodeLimit).IsOK()) _maxNodeCount = nodeLimit;
+      uint32 v;
+      if (state.FindInt32(PR_NAME_MAX_NODES_PER_SESSION, v).IsOK()) _maxNodeCount                = v;
+      if (state.FindInt32(PR_NAME_MAX_CHILDREN_PER_NODE, v).IsOK()) _maxChildrenPerDataNodeCount = v;
 
       return B_NO_ERROR;
    }
@@ -467,7 +469,8 @@ SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetData
          DataNodeRef allocedNode;
          if (node->GetChild(nextClause, childNodeRef).IsError())
          {
-            if ((_currentNodeCount >= _maxNodeCount)||(flags.IsBitSet(SETDATANODE_FLAG_DONTCREATENODE))) return B_ACCESS_DENIED;
+            if (_currentNodeCount >= _maxNodeCount)              return B_RESOURCE_LIMIT;
+            if (flags.IsBitSet(SETDATANODE_FLAG_DONTCREATENODE)) return B_ACCESS_DENIED;
 
             allocedNode = GetNewDataNode(nextClause, ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX) == false)) ? dataMsgRef : GetEmptyMessageRef());
             MRETURN_ON_ERROR(allocedNode);
@@ -487,6 +490,7 @@ SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetData
          if ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX) == false))
          {
             if ((node == NULL)||(flags.IsBitSet(SETDATANODE_FLAG_DONTOVERWRITEDATA)&&(node != allocedNode()))) return B_ACCESS_DENIED;
+
             DataNode::SetDataFlags setDataFlags;
             if (node == allocedNode()) setDataFlags.SetBit(DataNode::SET_DATA_FLAG_ISBEINGCREATED);
             if (flags.IsBitSet(SETDATANODE_FLAG_ENABLESUPERCEDE)) setDataFlags.SetBit(DataNode::SET_DATA_FLAG_ENABLESUPERCEDE);
@@ -910,7 +914,10 @@ MessageRef StorageReflectSession :: GetEffectiveParameters() const
    (void) resultMessage()->AddInt64(PR_NAME_SERVER_RUNTIME, now);
 
    (void) resultMessage()->RemoveName(PR_NAME_MAX_NODES_PER_SESSION);
-   (void) resultMessage()->AddInt64(PR_NAME_MAX_NODES_PER_SESSION, _maxNodeCount);
+   (void) resultMessage()->AddInt32(PR_NAME_MAX_NODES_PER_SESSION, _maxNodeCount);
+
+   (void) resultMessage()->RemoveName(PR_NAME_MAX_CHILDREN_PER_NODE);
+   (void) resultMessage()->AddInt32(PR_NAME_MAX_CHILDREN_PER_NODE, _maxChildrenPerDataNodeCount);
 
    (void) resultMessage()->RemoveName(PR_NAME_SERVER_SESSION_ID);
    (void) resultMessage()->AddInt64(PR_NAME_SERVER_SESSION_ID, GetServerSessionID());
@@ -1394,7 +1401,7 @@ status_t
 StorageReflectSession ::
 InsertOrderedChildNode(DataNode & node, const String * optInsertBefore, const ConstMessageRef & childNodeMsg, Hashtable<String, DataNodeRef> * optAddNewChildren)
 {
-   if (_currentNodeCount >= _maxNodeCount) return B_ACCESS_DENIED;
+   if (_currentNodeCount >= _maxNodeCount) return B_RESOURCE_LIMIT;
 
    MRETURN_ON_ERROR(node.InsertOrderedChild(childNodeMsg, optInsertBefore, NULL, this, this, optAddNewChildren));
    _indexingPresent = true;  // disable optimization in GetDataCallback()

@@ -92,24 +92,21 @@ status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const Stri
       }
    }
 
+   MRETURN_ON_ERROR(PutChild(dref, notifyWithOnSetParent, optNotifyChangedData));
+
    // Update the index
    status_t ret;
-
-   if (PutChild(dref, notifyWithOnSetParent, optNotifyChangedData).IsOK(ret))
+   if (_orderedIndex->InsertItemAt(insertIndex, dref).IsOK(ret))
    {
-      if (_orderedIndex->InsertItemAt(insertIndex, dref).IsOK(ret))
-      {
-         String np;
-         if ((optRetAdded)&&(dref()->GetNodePath(np).IsOK())) (void) optRetAdded->Put(np, dref);
+      String np;
+      if ((optRetAdded)&&(dref()->GetNodePath(np).IsOK())) (void) optRetAdded->Put(np, dref);
 
-         // Notify anyone monitoring this node that the ordered-index has been updated
-         notifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, dref()->GetNodeName());
-         return B_NO_ERROR;
-      }
-      else (void) RemoveChild(dref()->GetNodeName(), notifyWithOnSetParent, false, NULL);  // undo!
+      // Notify anyone monitoring this node that the ordered-index has been updated
+      notifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, dref()->GetNodeName());
    }
+   else (void) RemoveChild(dref()->GetNodeName(), notifyWithOnSetParent, false, NULL);  // roll back!
 
-   return ret | B_ERROR;
+   return ret;
 }
 
 status_t DataNode :: RemoveIndexEntryAt(uint32 removeIndex, StorageReflectSession * optNotifyWith)
@@ -180,6 +177,7 @@ status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * 
    if (child == NULL) return B_BAD_ARGUMENT;
 
    if (_children == NULL) _children = new Hashtable<const String *, DataNodeRef>;
+   if ((optNotifyWithOnSetParent)&&(_children->GetNumItems() >= optNotifyWithOnSetParent->_maxChildrenPerDataNodeCount)&&(_children->ContainsKey(&child->_nodeName) == false)) return B_RESOURCE_LIMIT;  // BAB-1081
 
    MRETURN_ON_ERROR(child->SetParent(this, optNotifyWithOnSetParent));
 
@@ -204,7 +202,7 @@ status_t DataNode :: SetParent(DataNode * parent, StorageReflectSession * optNot
       if (parent->_depth >= MUSCLE_MAX_NODE_DEPTH)
       {
          LogTime(MUSCLE_LOG_ERROR, "DataNode::SetParent():  Can't set node [%s] as parent of [%s], maximum node depth (%i) exceeded!\n", parent->GetNodePath()(), GetNodeName()(), MUSCLE_MAX_NODE_DEPTH);
-         return B_ACCESS_DENIED;
+         return B_RESOURCE_LIMIT;
       }
    }
 

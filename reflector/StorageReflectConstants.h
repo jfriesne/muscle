@@ -144,6 +144,7 @@ DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS, _s
 #define PR_NAME_SERVER_RUNTIME             "!Mrt"       /**< uint64 indicating the server's current run-time clock (microseconds) */
 #define PR_NAME_SERVER_SESSION_ID          "!Ssi"       /**< uint64 that is unique to this particular instance of the server in this particular process */
 #define PR_NAME_MAX_NODES_PER_SESSION      "!Mns"       /**< uint32 indicating the maximum number of nodes uploadable by a session */
+#define PR_NAME_MAX_CHILDREN_PER_NODE      "!Mcn"       /**< uint32 indicating the maximum number of children allowed directly under a single DataNode */
 #define PR_NAME_SESSION                    "session"    /**< this field will be replaced with the sender's session number for any client-to-client message (named "session" for BeShare backwards compatibility) */
 #define PR_NAME_SUBSCRIBE_PREFIX           "SUBSCRIBE:" /**< Prefix for parameters that indicate a subscription request  */
 #define PR_NAME_TREE_REQUEST_ID            "!TRid"      /**< Identifier field for associating PR_RESULT_DATATREES replies with PR_COMMAND_GETDATATREE commands */

@@ -623,6 +623,9 @@ private:
    /** The maximum number of database nodes we are allowed to create */
    uint32 _maxNodeCount;
 
+   /** The maximum number of children we will allow any one of our DataNodes to have at once */
+   uint32 _maxChildrenPerDataNodeCount;
+
    /** Keepalive-noop send interval, in seconds (0==disabled) */
    uint32 _keepAliveIntervalSeconds;
 

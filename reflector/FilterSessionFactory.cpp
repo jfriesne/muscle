@@ -26,7 +26,7 @@ AbstractReflectSessionRef FilterSessionFactory :: CreateSession(const String & c
    if (GetSessions().GetNumItems() >= _totalMaxSessions)
    {
       LogTime(MUSCLE_LOG_DEBUG, "Connection from [%s] refused (all " UINT32_FORMAT_SPEC " sessions slots are in use).\n", clientHostIP(), _totalMaxSessions);
-      return B_ACCESS_DENIED;
+      return B_RESOURCE_LIMIT;
    }
 
    if (_maxSessionsPerHost != MUSCLE_NO_LIMIT)
@@ -37,7 +37,7 @@ AbstractReflectSessionRef FilterSessionFactory :: CreateSession(const String & c
          if ((iter.GetValue()())&&(strcmp(iter.GetValue()()->GetHostName()(), clientHostIP()) == 0)&&(++count >= _maxSessionsPerHost))
          {
             LogTime(MUSCLE_LOG_DEBUG, "Connection from [%s] refused (host already has " UINT32_FORMAT_SPEC " sessions open).\n", clientHostIP(), _maxSessionsPerHost);
-            return B_ACCESS_DENIED;
+            return B_RESOURCE_LIMIT;
          }
       }
    }

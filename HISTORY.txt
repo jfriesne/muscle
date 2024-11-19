@@ -11,6 +11,10 @@ key:  - new feature
      for quick-and-dirty sanity-checking of flattened-Message bytes.
    - Added SetCompleteWriteRequired() and IsCompleteWriteRequired() methods
      to the DataFlattener class.
+   - Added a PR_MAX_CHILDREN_PER_NODE parameter to the server's parameter set.
+     This can be used to enforce a maximum-children-per-DataNode limit.
+   - Added B_RESOURCE_LIMIT error code (for when we've hit an application-
+     defined limit to the amount of resources we are willing to consume)
    o Removed the DataFlattener::MarkWritingComplete() method as it turned
      out not to be very RAII-friendly.
    * Fixed a bug in MiniPacketTunnelIOGateway that could cause it to
