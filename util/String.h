@@ -392,10 +392,10 @@ public:
    MUSCLE_NODISCARD int NumericAwareCompareTo(const char * rhs) const {return NumericAwareStrcmp(Cstr(), rhs?rhs:"");}
 
    /** Returns a read-only C-style pointer to our held character string. */
-   MUSCLE_NODISCARD const char * Cstr() const {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * Cstr() const {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
 
    /** Convenience synonym for Cstr(). */
-   MUSCLE_NODISCARD const char * operator()() const {return Cstr();}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * operator()() const {return Cstr();}
 
    /** Clears this string so that it contains no characters.  Equivalent to setting this string to "". */
    void Clear() {_length = 0; WriteNULTerminatorByte();}

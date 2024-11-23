@@ -500,10 +500,10 @@ enum {
            /** Returns "OK" if this status_t indicates success; otherwise returns the human-readable description
              * of the error this status_t indicates.
              */
-           MUSCLE_NODISCARD MUSCLE_CONSTEXPR const char * GetDescription() const {return IsOK() ? "OK" : _desc;}
+           MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL MUSCLE_CONSTEXPR const char * GetDescription() const {return IsOK() ? "OK" : _desc;}
 
            /** Convenience method -- a synonym for GetDescription() */
-           MUSCLE_NODISCARD MUSCLE_CONSTEXPR const char * operator()() const {return GetDescription();}
+           MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL MUSCLE_CONSTEXPR const char * operator()() const {return GetDescription();}
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status */
            MUSCLE_NODISCARD MUSCLE_CONSTEXPR bool IsOK() const {return (_desc == NULL);}
@@ -705,10 +705,10 @@ enum {
            /** Returns "OK" if this io_status_t indicates success; otherwise returns the human-readable description
              * of the error this status_t indicates.
              */
-           MUSCLE_NODISCARD MUSCLE_CONSTEXPR const char * GetDescription() const {return _status.GetDescription();}
+           MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL MUSCLE_CONSTEXPR const char * GetDescription() const {return _status.GetDescription();}
 
            /** Convenience method -- a synonym for GetDescription() */
-           MUSCLE_NODISCARD MUSCLE_CONSTEXPR const char * operator()() const {return GetDescription();}
+           MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL MUSCLE_CONSTEXPR const char * operator()() const {return GetDescription();}
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status */
            MUSCLE_NODISCARD MUSCLE_CONSTEXPR bool IsOK() const {return _status.IsOK();}
@@ -1784,7 +1784,7 @@ static inline void StoreTraceValue(uint32 v)
 }
 
 /** Returns a pointer to the first value in the trace-values array. */
-MUSCLE_NODISCARD static inline const volatile uint32 * GetTraceValues() {return _muscleTraceValues;}
+MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL static inline const volatile uint32 * GetTraceValues() {return _muscleTraceValues;}
 
 /** A macro for automatically setting a trace checkpoint value based on current code location.
   * The value will be the two characters of the function or file name, left-shifted by 16 bits,

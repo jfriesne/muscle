@@ -40,7 +40,7 @@ DECLARE_REFTYPES(StringMatcherQueue);
  *  to minimize the number of StringMatcherQueue allocations and deletions
  *  by recycling the StringMatcherQueue objects
  */
-StringMatcherQueueRef::ItemPool * GetStringMatcherQueuePool();
+MUSCLE_NEVER_RETURNS_NULL StringMatcherQueueRef::ItemPool * GetStringMatcherQueuePool();
 
 /** This class represents one entry in a PathMatcher object.  It contains the StringMatcher objects
  *  that test a wildcarded path, and optionally, the QueryFilter object that tests the content

@@ -176,7 +176,7 @@ DECLARE_REFTYPES(StringMatcher);
  *  to minimize the number of StringMatcher allocations and deletions
  *  by recycling the StringMatcher objects
  */
-MUSCLE_NODISCARD StringMatcherRef::ItemPool * GetStringMatcherPool();
+MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL StringMatcherRef::ItemPool * GetStringMatcherPool();
 
 /** Convenience method.  Returns a StringMatcher object from the default StringMatcher pool,
   * or a NULL reference on failure (out of memory?)

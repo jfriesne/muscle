@@ -265,7 +265,7 @@ ByteBuffer operator+(const ByteBuffer & lhs, const ByteBuffer & rhs);
 /** This function returns a pointer to a singleton ObjectPool that can be used to minimize the number of
  *  ByteBuffer allocations and frees by recycling the ByteBuffer objects.
  */
-MUSCLE_NODISCARD ByteBufferRef::ItemPool * GetByteBufferPool();
+MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL ByteBufferRef::ItemPool * GetByteBufferPool();
 
 /** Convenience method:  Gets a ByteBuffer from the ByteBuffer pool, makes sure it holds the specified number of bytes, and returns it.
  *  @param numBytes Number of bytes to copy in (or just allocate, if (optBuffer) is NULL).  Defaults to zero bytes (ie retrieve an empty buffer)

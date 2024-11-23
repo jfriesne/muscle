@@ -99,7 +99,7 @@ private:
 };
 DECLARE_REFTYPES(SegmentedStringMatcher);
 
-MUSCLE_NODISCARD SegmentedStringMatcherRef::ItemPool * GetSegmentedStringMatcherPool();
+MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL SegmentedStringMatcherRef::ItemPool * GetSegmentedStringMatcherPool();
 
 /** Convenience method.  Returns a StringMatcher object from the default StringMatcher pool,
   * or a NULL reference on failure (out of memory?)

@@ -331,7 +331,7 @@ public:
     *  @return a pointer to the internally held item.  The returned value is undefined
     *          if the index isn't valid, so be careful!
     */
-   MUSCLE_NODISCARD ItemType * GetItemAtUnchecked(uint32 index) const {return &_queue[InternalizeIndex(index)];}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL ItemType * GetItemAtUnchecked(uint32 index) const {return &_queue[InternalizeIndex(index)];}
 
    /** Returns a reference to the (index)'th item in the Queue, if such an item exists,
      * or a reference to a default item if it doesn't.  Unlike the [] operator,

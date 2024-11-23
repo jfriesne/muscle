@@ -37,7 +37,7 @@ MUSCLE_NODISCARD const ConstMessageRef & GetEmptyMessageRef();
  *  used to minimize the number of Message allocations and deletions by
  *  recycling the Message objects.
  */
-MUSCLE_NODISCARD MessageRef::ItemPool * GetMessagePool();
+MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL MessageRef::ItemPool * GetMessagePool();
 
 /** Convenience method:  Gets a Message from the Message pool and returns a reference to it.
  *  @param what The 'what' code to set in the returned Message.
