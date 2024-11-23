@@ -283,7 +283,7 @@ private:
       {
          const uint32 nbw = GetNumBytesWritten();
 #ifndef MUSCLE_AVOID_ASSERTIONS
-         // caller is required to either write all of the bytes he said he would!
+         // The calling code is required, by default, to write all of the bytes he said he would write!
          // If you only want to write some of the bytes, be sure to call SetCompleteWriteRequired(false)
          // before the DataFlattener's destructor executes, to avoid these assertion-failures.
          if ((nbw != _maxBytes)&&(_maxBytes != MUSCLE_NO_LIMIT))

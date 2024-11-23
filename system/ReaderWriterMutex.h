@@ -43,7 +43,7 @@ class ReadWriteMutexGuard;  // forward declaration
 /** This class is a platform-independent API for a recursive reader/writer lock (a.k.a mutex).
   * Typically used to serialize the execution of critical sections in a multithreaded API
   * This class allows multiple threads to hold the read-only lock simultaneously, but guarantees that
-  * only one thread can hold the read/write lock * at any given time (and that no read-only threads
+  * only one thread can hold the read/write lock at any given time (and that no read-only threads
   * will hold any lock while a thread holds the read/write lock).  When compiling with the
   * MUSCLE_SINGLE_THREAD_ONLY preprocessor flag defined, this class becomes a no-op.
   */
