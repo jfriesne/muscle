@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.43 - Released 11/22/2024
    - Added GetKeyBefore() and GetKeyAfter() convenience-methods to
      the Hashtable class.
    - Added a Message::BytesMightContainFlattenedMessage() convenience method
