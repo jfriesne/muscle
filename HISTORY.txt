@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added an optional human-readable name field to ReaderWriterMutex.
    o Tagged a few non-NULL-returning functions with MUSCLE_NEVER_RETURNS_NULL.
 
 9.43 - Released 11/22/2024

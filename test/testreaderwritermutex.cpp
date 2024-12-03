@@ -169,7 +169,7 @@ int main(int argc, char ** argv)
    const bool preferWriters      = !args.HasName("preferreaders");
    LogTime(MUSCLE_LOG_INFO, "Spawning " UINT32_FORMAT_SPEC " reader threads, " UINT32_FORMAT_SPEC " writer threads at " UINT32_FORMAT_SPEC " iterations/thread... (prefer %s)\n", numReaderThreads, numWriterThreads, numIters, preferWriters?"writers":"readers");
 
-   ReaderWriterMutex _rwMutex(preferWriters);
+   ReaderWriterMutex _rwMutex("test", preferWriters);
 
    Queue<TestThreadRef> testThreads;
    for (uint32 i=0; i<numThreads; i++)

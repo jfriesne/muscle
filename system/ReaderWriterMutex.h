@@ -11,6 +11,7 @@
 #endif
 
 #include "support/NotCopyable.h"
+#include "util/String.h"
 #include "util/TimeUtilityFunctions.h"  // for MUSCLE_TIME_NEVER
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
@@ -58,6 +59,24 @@ public:
    ReaderWriterMutex(bool preferWriters = true)
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
       : _preferWriters(preferWriters)
+      , _totalReadWriteRecurseCount(0)
+#endif
+   {
+#ifdef MUSCLE_SINGLE_THREAD_ONLY
+      (void) preferWriters;
+#endif
+   }
+
+   /** Named constructor
+     * @param name a human-readable name for this ReaderWriterMutex, for debugging purposes
+     * @param preferWriters if true, and we have a choice between waking up a blocked writer-thread or
+     *                      waking up one or more blocked reader-threads, we'll wake up the writer-thread.
+     *                      If false, we'll wake up the reader-threads instead.  Defaults to true.
+     */
+   ReaderWriterMutex(const String & name, bool preferWriters = true)
+      : _name(name)
+#ifndef MUSCLE_SINGLE_THREAD_ONLY
+      , _preferWriters(preferWriters)
       , _totalReadWriteRecurseCount(0)
 #endif
    {
@@ -199,6 +218,11 @@ public:
 #endif
    }
 
+   /** Returns this ReaderWriterMutex's human-readable name (as assigned in the constructor)
+     * or an empty String if no human-readable name was assigned.
+     */
+   const String & GetName() const {return _name;}
+
 private:
    friend class ReadOnlyMutexGuard;
    friend class ReadWriteMutexGuard;
@@ -208,7 +232,7 @@ private:
 #ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
    void CheckForLockingViolation(const char * methodName) const
    {
-      if (::IsOkayToAccessMuscleReaderWriterMutex(this, methodName) == false) printf("ReaderWriterMutex(%p)::%s:  Locking violation!\n", this, methodName);
+      if (::IsOkayToAccessMuscleReaderWriterMutex(this, methodName) == false) printf("ReaderWriterMutex(%p/%s)::%s:  Locking violation!\n", this, _name(), methodName);
    }
 #endif
 
@@ -243,6 +267,8 @@ private:
 
    mutable NestCount _inDeadlockFinderCallback;
 #endif
+
+   const String _name;
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
    class RefCountableWaitCondition : public RefCountable
