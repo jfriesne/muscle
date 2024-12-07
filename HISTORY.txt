@@ -7,6 +7,8 @@ key:  - new feature
 
    - Added an optional human-readable name field to ReaderWriterMutex.
    o Tagged a few non-NULL-returning functions with MUSCLE_NEVER_RETURNS_NULL.
+   * The resource-tallying in AbstractReflectSessions::PrintSessionsInfo()
+     wasn't working correctly.  Fixed.
 
 9.43 - Released 11/22/2024
    - Added GetKeyBefore() and GetKeyAfter() convenience-methods to

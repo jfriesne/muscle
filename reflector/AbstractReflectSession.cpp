@@ -519,17 +519,17 @@ PrintSessionsInfo() const
 {
    const Hashtable<const String *, AbstractReflectSessionRef> & t = GetSessions();
 
-   uint32 numCachedSubscribersTables = 0, numNodes = 0, numNodeBytes = 0;
-   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(t); iter.HasData(); iter++)
-      iter.GetValue()()->TallySubscriberTablesInfo(numCachedSubscribersTables, numNodes, numNodeBytes);
-
-   printf("There are " UINT32_FORMAT_SPEC " sessions attached, and " UINT32_FORMAT_SPEC " subscriber-tables cached:\n", t.GetNumItems(), numCachedSubscribersTables);
+   printf("There are " UINT32_FORMAT_SPEC " sessions attached:\n", t.GetNumItems());
 
    const uint64 now = GetRunTime64();
-   uint32 totalNumOutMessages = 0, totalNumOutBytes = 0, totalNumNodes = 0, totalNumNodeBytes = 0;
+   uint32 totalNumCachedSubscribersTables = 0, totalNumOutMessages = 0, totalNumOutBytes = 0, totalNumNodes = 0, totalNumNodeBytes = 0;
    for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(t); iter.HasData(); iter++)
    {
       AbstractReflectSession * ars = iter.GetValue()();
+
+      uint32 numCachedSubscribersTables = 0, numNodes = 0, numNodeBytes = 0;
+      ars->TallySubscriberTablesInfo(numCachedSubscribersTables, numNodes, numNodeBytes);
+
       uint32 numOutMessages = 0, numOutBytes = 0;
       const AbstractMessageIOGateway * gw = ars->GetGateway()();
       if (gw)
@@ -540,24 +540,25 @@ PrintSessionsInfo() const
       }
 
       String stateStr;
-      if (ars->IsConnectingAsync()) stateStr = stateStr.WithAppendedWord("ConnectingAsync", ", ");
-      if (ars->IsConnected()) stateStr = stateStr.WithAppendedWord("Connected", ", ");
-      if (ars->IsExpendable()) stateStr = stateStr.WithAppendedWord("Expendable", ", ");
-      if (ars->IsReadyForInput()) stateStr = stateStr.WithAppendedWord("IsReadyForInput", ", ");
-      if (ars->HasBytesToOutput()) stateStr = stateStr.WithAppendedWord("HasBytesToOutput", ", ");
-      if (ars->WasConnected()) stateStr = stateStr.WithAppendedWord("WasConnected", ", ");
-      if (ars->GetMostRecentInputTimeStamp() != MUSCLE_TIME_NEVER) stateStr = stateStr.WithAppendedWord(String("LastInput: %1 ago").Arg(GetHumanReadableTimeIntervalString(now-ars->GetMostRecentInputTimeStamp(), 1)), ", ");
+      if (ars->IsConnectingAsync()) stateStr = stateStr.WithAppendedWord("ConnectingAsync",  ", ");
+      if (ars->IsConnected())       stateStr = stateStr.WithAppendedWord("Connected",        ", ");
+      if (ars->IsExpendable())      stateStr = stateStr.WithAppendedWord("Expendable",       ", ");
+      if (ars->IsReadyForInput())   stateStr = stateStr.WithAppendedWord("IsReadyForInput",  ", ");
+      if (ars->HasBytesToOutput())  stateStr = stateStr.WithAppendedWord("HasBytesToOutput", ", ");
+      if (ars->WasConnected())      stateStr = stateStr.WithAppendedWord("WasConnected",     ", ");
+      if (ars->GetMostRecentInputTimeStamp()  != MUSCLE_TIME_NEVER) stateStr = stateStr.WithAppendedWord(String("LastInput: %1 ago").Arg(GetHumanReadableTimeIntervalString( now-ars->GetMostRecentInputTimeStamp(),  1)), ", ");
       if (ars->GetMostRecentOutputTimeStamp() != MUSCLE_TIME_NEVER) stateStr = stateStr.WithAppendedWord(String("LastOutput: %1 ago").Arg(GetHumanReadableTimeIntervalString(now-ars->GetMostRecentOutputTimeStamp(), 1)), ", ");
       if (stateStr.HasChars()) stateStr = stateStr.WithPrepend(", ");
 
-      printf("  Session [%s] (rfd=%i,wfd=%i) is [%s]:  (" UINT32_FORMAT_SPEC " outgoing Messages, " UINT32_FORMAT_SPEC " Message-bytes, " UINT32_FORMAT_SPEC " nodes, " UINT32_FORMAT_SPEC " node-bytes%s)\n", iter.GetKey()->Cstr(), ars->GetSessionReadSelectSocket().GetFileDescriptor(), ars->GetSessionWriteSelectSocket().GetFileDescriptor(), ars->GetSessionDescriptionString()(), numOutMessages, numOutBytes, numNodes, numNodeBytes, stateStr());
-      totalNumOutMessages += numOutMessages;
-      totalNumOutBytes    += numOutBytes;
-      totalNumNodes       += numNodes;
-      totalNumNodeBytes   += numNodeBytes;
+      printf("  Session [%s] (rfd=%i,wfd=%i) is [%s]:  (" UINT32_FORMAT_SPEC " outgoing Messages, " UINT32_FORMAT_SPEC " Message-bytes, " UINT32_FORMAT_SPEC " tables, " UINT32_FORMAT_SPEC " nodes, " UINT32_FORMAT_SPEC " node-bytes%s)\n", iter.GetKey()->Cstr(), ars->GetSessionReadSelectSocket().GetFileDescriptor(), ars->GetSessionWriteSelectSocket().GetFileDescriptor(), ars->GetSessionDescriptionString()(), numOutMessages, numOutBytes, numCachedSubscribersTables, numNodes, numNodeBytes, stateStr());
+      totalNumCachedSubscribersTables += numCachedSubscribersTables;
+      totalNumOutMessages             += numOutMessages;
+      totalNumOutBytes                += numOutBytes;
+      totalNumNodes                   += numNodes;
+      totalNumNodeBytes               += numNodeBytes;
    }
    printf("------------------------------------------------------------\n");
-   printf("Totals: " UINT32_FORMAT_SPEC " outgoing-messages, " UINT32_FORMAT_SPEC " outgoing-message-bytes, " UINT32_FORMAT_SPEC " DataNodes, " UINT32_FORMAT_SPEC " DataNode-payload-bytes.\n", totalNumOutMessages, totalNumOutBytes, totalNumNodes, totalNumNodeBytes);
+   printf("Totals: " UINT32_FORMAT_SPEC " outgoing Messages, " UINT32_FORMAT_SPEC " Message-bytes, " UINT32_FORMAT_SPEC " tables, " UINT32_FORMAT_SPEC " nodes, " UINT32_FORMAT_SPEC " node-bytes.\n", totalNumOutMessages, totalNumOutBytes, totalNumCachedSubscribersTables, totalNumNodes, totalNumNodeBytes);
 }
 
 } // end namespace muscle
