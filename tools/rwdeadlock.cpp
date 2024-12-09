@@ -5,6 +5,7 @@
 #include "system/SetupSystem.h"
 #include "system/ReaderWriterMutex.h"
 #include "system/Thread.h"
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
 
 using namespace muscle;
 
@@ -21,9 +22,9 @@ public:
       const uint32 numIterations = 5;  // enough iterations that we deadlock sometimes, but not always
       for (uint32 i=0; i<numIterations; i++)
       {
-         (void) Snooze64(MillisToMicros(rand()%10));  // space things out in time, otherwise we get deadlocks so often that it's hard to run the program to completion
+         (void) Snooze64(MillisToMicros(GetInsecurePseudoRandomNumber(10)));  // space things out in time, otherwise we get deadlocks so often that it's hard to run the program to completion
 
-         const bool reverseOrder = ((rand()%2) == 0);
+         const bool reverseOrder = (GetInsecurePseudoRandomNumber(2) == 0);
          ReaderWriterMutex * m1 = reverseOrder ? &g_mutexB : &g_mutexA;
          ReaderWriterMutex * m2 = reverseOrder ? &g_mutexA : &g_mutexB;
          DECLARE_READWRITE_MUTEXGUARD(*m1);  // using the macro allows the deadlock-finder to find this line-location, rather than the line in ReadWriteMutex.h

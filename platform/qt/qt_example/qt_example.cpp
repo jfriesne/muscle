@@ -25,7 +25,7 @@
 ExampleWidget :: ExampleWidget(ExampleWindow * master, bool animate)
    : _master(master)
    , _isMousePressed(false)
-   , _updatePos(rand()%10000)
+   , _updatePos(GetInsecurePseudoRandomNumber(10000))
    , _xRatio(0.7f)
    , _yRatio(0.7f)
 {
@@ -163,7 +163,7 @@ static QColor GetRandomBrightColor()
 {
    const uint32 colorFloor = 150;
    const uint32 colorRange = (256-colorFloor);
-   return QColor((rand()%colorRange)+colorFloor, (rand()%colorRange)+colorFloor, (rand()%colorRange)+colorFloor);  // coverity[dont_call] - don't care, not security-related
+   return QColor(GetInsecurePseudoRandomNumber(colorRange)+colorFloor, GetInsecurePseudoRandomNumber(colorRange)+colorFloor, GetInsecurePseudoRandomNumber(colorRange)+colorFloor);
 }
 
 ExampleWindow :: ExampleWindow(const QString & serverName, const QString & userName, const ConstByteBufferRef & publicKey, bool animate)

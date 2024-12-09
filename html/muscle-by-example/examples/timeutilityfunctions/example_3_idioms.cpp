@@ -24,7 +24,7 @@ int main(int argc, char ** argv)
    int count = 0;
    for (int i=0; i<100000000; i++)
    {
-      count += 37;
+      count += 7;
       if (OnceEvery(MillisToMicros(200), prevTime)) printf("At i=%i, count is %i\n", i, count);
    }
 
@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
    printf("The PRINT_CALLS_PER_SECOND macro will print out, twice per second, how many times per second it is being called:\n");
    for (int i=0; i<100000000; i++)
    {
-      count += 37;
+      count += 7;
       PRINT_CALLS_PER_SECOND("wow");
    }
 

@@ -49,7 +49,7 @@ void AsyncDataIO :: FlushOutput()
    }
    else LogTime(MUSCLE_LOG_ERROR, "StartInternalThread() must be called before calling AsyncDataIO::FlushOutput()!\n");
 
-   // coverity[missing_unlock] - we already unlocked above if we needed to
+   // coverity[missing_unlock : FALSE] - we already unlocked above if we needed to
 }
 
 void AsyncDataIO :: Shutdown()

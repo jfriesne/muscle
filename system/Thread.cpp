@@ -255,16 +255,13 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
       (void) recv_ignore_eintr(tsd._messageSocket.GetFileDescriptor(), (char *)bytes, sizeof(bytes), 0);
    }
 
-   if (tsd._queueLock.Lock().IsError()) return B_LOCK_FAILED; /* coverity[missing_unlock] */
-   else
-   {
-      const status_t ret = tsd._messages.RemoveHead(ref);
-      if (optRetNumMessagesLeftInQueue) *optRetNumMessagesLeftInQueue = tsd._messages.GetNumItems();
-      (void) tsd._queueLock.Unlock();
+   MRETURN_ON_ERROR(tsd._queueLock.Lock());
+   const status_t ret = tsd._messages.RemoveHead(ref);
+   if (optRetNumMessagesLeftInQueue) *optRetNumMessagesLeftInQueue = tsd._messages.GetNumItems();
+   (void) tsd._queueLock.Unlock();
 
-      if (ret.IsOK())      return ret;
-      if (wakeupTime == 0) return B_TIMED_OUT;
-   }
+   if (ret.IsOK())      return ret;
+   if (wakeupTime == 0) return B_TIMED_OUT;
 
    // If we got here, no Message was available, so we'll have to wait until there is one (or until wakeupTime)
    if (_useMessagingSockets)
@@ -416,17 +413,9 @@ Mutex Thread::_curThreadsMutex;
 
 Thread * Thread :: GetCurrentThread()
 {
-   muscle_thread_key key = GetCurrentThreadKey();
-
-   Thread * ret = NULL;
-   if (_curThreadsMutex.Lock().IsOK())
-   {
-      (void) _curThreads.Get(key, ret);
-      (void) _curThreadsMutex.Unlock();
-   }
-   // coverity[missing_unlock] - we already unlocked above, iff Lock() succeeded
-
-   return ret;
+   const muscle_thread_key key = GetCurrentThreadKey();  // done outside the lock, just because I can
+   DECLARE_MUTEXGUARD(_curThreadsMutex);
+   return _curThreads[key];
 }
 
 // This method is here to 'wrap' the internal thread's virtual method call with some standard setup/tear-down code of our own

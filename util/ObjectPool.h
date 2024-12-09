@@ -212,9 +212,10 @@ public:
          }
          else MWARN_OUT_OF_MEMORY;  // critical error -- not really out of memory but still
 
-         // coverity[missing_unlock] - we already unlocked above, iff Lock() succeeded
 #endif
       }
+
+      // coverity[missing_unlock : FALSE] - we already unlocked above, iff Lock() succeeded
    }
 
    /** AbstractObjectGenerator API:  Useful for polymorphism */

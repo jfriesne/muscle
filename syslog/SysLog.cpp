@@ -2344,8 +2344,8 @@ String HumanReadableTimeValues :: ExpandTokens(const String & origString) const
       while(newString.Contains("%r"))
       {
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
-         const uint32 r1 = (uint32) rand();                  // the old, not-very-good way to generate a sort-of-random number
-         const uint32 r2 = (uint32) rand();                  // we rely on the calling code to call srand() beforehand, if desired
+         const uint32 r1 = GetInsecurePseudoRandomNumber(); // the old, not-very-good way to generate a sort-of-random number
+         const uint32 r2 = GetInsecurePseudoRandomNumber(); // we rely on the calling code to call srand() beforehand, if desired
          const uint64 rn = (((uint64)r1)<<32)|((uint64)r2);
 #else
          const uint64 rn = distribution(generator);          // the newer (since C++11) and much improved way

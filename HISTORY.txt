@@ -6,6 +6,8 @@ key:  - new feature
       o other
 
    - Added an optional human-readable name field to ReaderWriterMutex.
+   - Added a GetInsecurePseudoRandomNumber() function to MiscUtilityFunctions,
+     just to minimize the number of direct calls to rand().
    o Tagged a few non-NULL-returning functions with MUSCLE_NEVER_RETURNS_NULL.
    * The resource-tallying in AbstractReflectSessions::PrintSessionsInfo()
      wasn't working correctly.  Fixed.

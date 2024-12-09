@@ -50,7 +50,7 @@ protected:
          {
             count++;
             totalCount++;
-            if ((rand()%5)==0)
+            if (GetInsecurePseudoRandomNumber(5)==0)
             {
                // Make sure re-entrant sub-iterations work correctly
                for (MessageFieldNameIterator fnIter2(*_msg(), B_ANY_TYPE); fnIter2.HasData(); fnIter2++) totalCount++;
@@ -264,11 +264,11 @@ static int DoInteractiveTest()
    }
 }
 
-static void CheckTable(Hashtable<int, Void> & table, uint32 numItems, bool backwards)
+static void CheckTable(Hashtable<uint32, Void> & table, uint32 numItems, bool backwards)
 {
    uint32 count = 0;
-   int last = backwards ? RAND_MAX : 0;
-   for (HashtableIterator<int, Void> iter(table,backwards?HTIT_FLAG_BACKWARDS:0); iter.HasData(); iter++)
+   uint32 last = backwards ? MUSCLE_NO_LIMIT : 0;
+   for (HashtableIterator<uint32, Void> iter(table,backwards?HTIT_FLAG_BACKWARDS:0); iter.HasData(); iter++)
    {
       if (backwards ? (last < iter.GetKey()) : (last > iter.GetKey())) printf("ERROR!  Sort out of order in %s traversal!!!!\n", backwards?"backwards":"forwards");
       last = iter.GetKey();
@@ -582,8 +582,8 @@ int main(int argc, char ** argv)
       LogTime(MUSCLE_LOG_INFO, "Preparing large table for sort...\n");
 
       const uint32 numItems = 100000;
-      Hashtable<int, Void> table; MPRINT_ON_ERROR("EnsureSize", table.EnsureSize(100000));
-      for (uint32 i=0; i<numItems; i++) MPRINT_ON_ERROR("PutWithDefault", table.PutWithDefault((int)rand()));
+      Hashtable<uint32, Void> table; MPRINT_ON_ERROR("EnsureSize", table.EnsureSize(100000));
+      for (uint32 i=0; i<numItems; i++) MPRINT_ON_ERROR("PutWithDefault", table.PutWithDefault(GetInsecurePseudoRandomNumber()));
       const uint32 actualNumItems = table.GetNumItems();  // may be smaller than numItems, due to duplicate values!
       (void) table.CountAverageLookupComparisons(true);
 
@@ -627,8 +627,8 @@ int main(int argc, char ** argv)
       LogTime(MUSCLE_LOG_INFO, "Preparing large table for sort...\n");
 
       const uint32 numItems = 100000;
-      Hashtable<int, Void> table;
-      for (uint32 i=0; i<numItems; i++) MPRINT_ON_ERROR("PutWithDefault", table.PutWithDefault((int)rand()));
+      Hashtable<uint32, Void> table;
+      for (uint32 i=0; i<numItems; i++) MPRINT_ON_ERROR("PutWithDefault", table.PutWithDefault(GetInsecurePseudoRandomNumber()));
       const uint32 actualNumItems = table.GetNumItems();  // may be smaller than numItems, due to duplicate values!
 
       LogTime(MUSCLE_LOG_INFO, "Sorting...\n");
@@ -730,15 +730,15 @@ int main(int argc, char ** argv)
    {
       const uint32 NUM_ITEMS = 1000000;
       const uint32 NUM_RUNS  = 3;
-      Hashtable<int, int> testCopy;
+      Hashtable<uint32, uint32> testCopy;
       Hashtable<String, double> tallies;
       for (uint32 t=0; t<NUM_RUNS; t++)
       {
-         Hashtable<int, int> iTable; (void) iTable.EnsureSize(NUM_ITEMS);
+         Hashtable<uint32, uint32> iTable; (void) iTable.EnsureSize(NUM_ITEMS);
          printf("SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          uint64 startTime = GetRunTime64();
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) (void) iTable.Put(rand(), rand());  // we want this to be repeatable, hence srand(0)
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) (void) iTable.Put(GetInsecurePseudoRandomNumber(), GetInsecurePseudoRandomNumber());  // we want this to be repeatable, hence srand(0)
          AddTally(tallies, "place", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();
@@ -779,7 +779,7 @@ int main(int argc, char ** argv)
          printf("STRING SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          uint64 startTime = GetRunTime64();
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) (void) sTable.Put(String("%1").Arg(rand()), String("%1").Arg(rand()));  // we want this to be repeatable, hence srand(0)
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) (void) sTable.Put(String("%1").Arg(GetInsecurePseudoRandomNumber()), String("%1").Arg(GetInsecurePseudoRandomNumber()));  // we want this to be repeatable, hence srand(0)
          AddTally(tallies, "place", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();

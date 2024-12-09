@@ -1,4 +1,5 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
 #include "util/RefCount.h"
 
 using namespace muscle;
@@ -24,7 +25,7 @@ DECLARE_REFTYPES(MyClass);  // defines MyClassRef and ConstMyClassRef
 
 MyClassRef MyFactoryFunction()
 {
-   if ((rand()%2) == 0)  // coverity[dont_call] - don't care, not security-related
+   if (GetInsecurePseudoRandomNumber(2) == 0)
    {
       return MyClassRef(new MyClass);
    }

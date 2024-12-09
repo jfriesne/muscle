@@ -65,7 +65,7 @@ protected:
                VerifyExpectedConditions(desc, i);
             }
 
-            (void) Snooze64(MillisToMicros(rand()%20));
+            (void) Snooze64(MillisToMicros(GetInsecurePseudoRandomNumber(20)));
 
             DECLARE_MUTEXGUARD(_statsMutex);
             AdjustStat(_readWriteOwnerToRecurseCount, -1);
@@ -83,7 +83,7 @@ protected:
                VerifyExpectedConditions(desc, i);
             }
 
-            (void) Snooze64(MillisToMicros(rand()%20));
+            (void) Snooze64(MillisToMicros(GetInsecurePseudoRandomNumber(20)));
 
             DECLARE_MUTEXGUARD(_statsMutex);
             AdjustStat(_readOnlyOwnerToRecurseCount, -1);

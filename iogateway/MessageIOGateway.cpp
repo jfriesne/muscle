@@ -133,11 +133,11 @@ DoOutputImplementation(uint32 maxBytes)
 #ifdef DELIBERATELY_INJECT_ERRORS_INTO_OUTGOING_MESSAGE_FOR_TESTING_ONLY_DONT_ENABLE_THIS_UNLESS_YOU_LIKE_CHAOS
  const uint32 hs    = GetHeaderSize();
  const uint32 bs    = _sendBuffer._buffer()->GetNumBytes() - hs;
- const uint32 start = rand()%bs;
+ const uint32 start = GetInsecurePseudoRandomNumber(bs);
  const uint32 end   = (start+5)%bs;
  if (start > end) muscleSwap(start, end);
  printf("Bork! %u->%u\n", start, end);
- for (uint32 i=start; i<=end; i++) _sendBuffer._buffer()->GetBuffer()[i+hs] = (uint8) (rand()%256);
+ for (uint32 i=start; i<=end; i++) _sendBuffer._buffer()->GetBuffer()[i+hs] = (uint8) GetInsecurePseudoRandomNumber(256);
 #endif
 
                break;  // now go on to the sending phase

@@ -253,11 +253,8 @@ private:
    class KeyAndValue
    {
    public:
-      KeyAndValue() {/* coverity[uninit_member] */}
-      HT_UniversalSinkKeyValueRef KeyAndValue(HT_SinkKeyParam key, HT_SinkValueParam value)
-         : _key(HT_ForwardKey(key))
-         , _value(HT_ForwardValue(value))
-      {/* empty */}
+      KeyAndValue() : _key(), _value() {/* empty */}
+      HT_UniversalSinkKeyValueRef KeyAndValue(HT_SinkKeyParam key, HT_SinkValueParam value) : _key(HT_ForwardKey(key)), _value(HT_ForwardValue(value)) {/* empty */}
 
       KeyType _key;
       ValueType _value;
@@ -1126,9 +1123,7 @@ private:
    class HashtableEntryBase
    {
    protected:
-      // Note:  All member variables are initialized by CreateEntriesArray(), not by the ctor!
-      HashtableEntryBase()  {/* coverity[uninit_member] */}
-      ~HashtableEntryBase() {/* empty */}
+      HashtableEntryBase() : _hash(MUSCLE_HASHTABLE_INVALID_HASH_CODE), _key(), _value() {/* empty */}
 
    public:
       uint32 _hash;       // precalculated for efficiency
@@ -1187,12 +1182,12 @@ private:
             {
                HashtableEntry * e = &ret[i];
                e->_hash                           = MUSCLE_HASHTABLE_INVALID_HASH_CODE;
-               e->_indices[HTE_INDEX_BUCKET_PREV] = (IndexType)(i-1);  // coverity[overflow_const] - yes, _bucketPrev will be set to (IndexType)-1 when (i==0)
-               e->_indices[HTE_INDEX_BUCKET_NEXT] = (IndexType)(i+1);
-               e->_indices[HTE_INDEX_ITER_PREV]   = e->_indices[HTE_INDEX_ITER_NEXT]   = (IndexType)-1;
+               e->_indices[HTE_INDEX_BUCKET_PREV] = (IndexType)(i-1U);
+               e->_indices[HTE_INDEX_BUCKET_NEXT] = (IndexType)(i+1U);
+               e->_indices[HTE_INDEX_ITER_PREV]   = e->_indices[HTE_INDEX_ITER_NEXT]   = (IndexType)-1U;
                e->_indices[HTE_INDEX_MAP_TO]      = e->_indices[HTE_INDEX_MAPPED_FROM] = (IndexType)i;
             }
-            ret[size-1]._indices[HTE_INDEX_BUCKET_NEXT] = (IndexType)-1;
+            ret[size-1]._indices[HTE_INDEX_BUCKET_NEXT] = (IndexType)-1U;
          }
          else MWARN_OUT_OF_MEMORY;
          return ret;

@@ -127,7 +127,8 @@ int main(int argc, char ** argv)
          printf("Uploading timed OpenSSL-tester update at time " UINT64_FORMAT_SPEC "\n", now);
          MessageRef stateMsg = GetMessageFromPool();
          (void) stateMsg()->AddString("username", "singlethreadedreflectclient");
-         (void) stateMsg()->AddPoint("position", Point((rand()%100)/100.0f, (rand()%100)/100.0f));  // coverity[dont_call] -- don't care, not security-related
+
+         (void) stateMsg()->AddPoint("position", Point(GetInsecurePseudoRandomNumber(100)/100.0f, GetInsecurePseudoRandomNumber(100)/100.0f));
          (void) stateMsg()->AddInt32("color", -1);
 
          MessageRef uploadMsg = GetMessageFromPool(PR_COMMAND_SETDATA);

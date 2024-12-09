@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "system/SetupSystem.h"
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
 #include "util/String.h"
 #include "util/StringTokenizer.h"
 #include "util/TimeUtilityFunctions.h"
@@ -23,7 +24,7 @@ int main(int argc, char ** argv)
       {
          const uint32 BIGBUFSIZE = 50*1024*1024;  // a really big string, to give us some room to exercise
          char * tempBuf = new char[BIGBUFSIZE];
-         for (uint32 i=0; i<BIGBUFSIZE; i++) tempBuf[i] = (rand()%80)+' ';
+         for (uint32 i=0; i<BIGBUFSIZE; i++) tempBuf[i] = ((char)GetInsecurePseudoRandomNumber(80))+' ';
          tempBuf[BIGBUFSIZE-1] = '\0';
 
          StringTokenizer tok(false, tempBuf);

@@ -101,7 +101,7 @@ int main(int argc, char ** argv)
       // We're sending...
       while(1)
       {
-         const uint32 sendLen = rand() % mtu;
+         const uint32 sendLen = GetInsecurePseudoRandomNumber(mtu);
          const uint8 c = (sendLen % 256);
          uint8 * b = buf.GetBuffer();
          for (uint32 i=0; i<sendLen; i++) b[i] = c;
