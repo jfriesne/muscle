@@ -199,7 +199,7 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   ByteBuffer(ByteBuffer && rhs) MUSCLE_NOEXCEPT : _buffer(NULL), _numValidBytes(0), _numAllocatedBytes(0) {SwapContents(rhs);}
+   ByteBuffer(ByteBuffer && rhs) MUSCLE_NOEXCEPT : _buffer(NULL), _numValidBytes(0), _numAllocatedBytes(0), _allocStrategy(NULL) {SwapContents(rhs);}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    ByteBuffer & operator =(ByteBuffer && rhs) MUSCLE_NOEXCEPT {SwapContents(rhs); return *this;}
@@ -362,9 +362,8 @@ public:
 template<class EndianConverter, class SizeChecker>
 void DataUnflattenerHelper<EndianConverter, SizeChecker> :: SetBuffer(const ByteBuffer & readFrom, uint32 maxBytes, uint32 startOffset)
 {
-   maxBytes    = muscleMin(readFrom.GetNumBytes(), maxBytes);
-   startOffset = muscleMin(startOffset,            maxBytes);
-   SetBuffer(readFrom.GetBuffer()+startOffset, maxBytes-startOffset);
+   startOffset = muscleMin(startOffset, readFrom.GetNumBytes());
+   SetBuffer(readFrom.GetBuffer()+startOffset, muscleMin(maxBytes, readFrom.GetNumBytes()-startOffset));
 }
 
 template<class EndianConverter>

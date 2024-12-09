@@ -247,7 +247,7 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
 {
    if (optRetNumMessagesLeftInQueue) *optRetNumMessagesLeftInQueue = 0;
 
-   if (_useMessagingSockets)
+   if ((_useMessagingSockets)&&(tsd._messageSocket.GetFileDescriptor() >= 0))  // latter clause is just to keep Coverity happy
    {
       // Be sure to always absorb any signal-bytes that were sent to us, now that we've been awoken,
       // otherwise we could end up in a CPU-burning loop with select() always returning immediately
@@ -255,7 +255,7 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
       (void) recv_ignore_eintr(tsd._messageSocket.GetFileDescriptor(), (char *)bytes, sizeof(bytes), 0);
    }
 
-   if (tsd._queueLock.Lock().IsError()) return B_LOCK_FAILED;
+   if (tsd._queueLock.Lock().IsError()) return B_LOCK_FAILED; /* coverity[missing_unlock] */
    else
    {
       const status_t ret = tsd._messages.RemoveHead(ref);
@@ -424,6 +424,8 @@ Thread * Thread :: GetCurrentThread()
       (void) _curThreads.Get(key, ret);
       (void) _curThreadsMutex.Unlock();
    }
+   // coverity[missing_unlock] - we already unlocked above, iff Lock() succeeded
+
    return ret;
 }
 

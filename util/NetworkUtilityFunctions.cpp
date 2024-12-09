@@ -273,9 +273,9 @@ status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRet
    if (allowShared)
    {
       const int trueValue = 1;
-      setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const sockopt_arg *) &trueValue, sizeof(trueValue));
+      if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const sockopt_arg *) &trueValue, sizeof(trueValue)) == -1) return B_ERRNO;
 #ifdef __APPLE__
-      setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (const sockopt_arg *) &trueValue, sizeof(trueValue));
+      if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (const sockopt_arg *) &trueValue, sizeof(trueValue)) == -1) return B_ERRNO;
 #endif
    }
 
@@ -720,6 +720,8 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
    if (s())
    {
       const int fd = s.GetFileDescriptor();
+      if (fd < 0) return B_LOGIC_ERROR;  // just to keep Coverity happy -- should never actually happen
+
       status_t ret;
       if (maxConnectTime == MUSCLE_TIME_NEVER)
       {

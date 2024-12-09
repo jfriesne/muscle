@@ -20,7 +20,8 @@ public:
       const uint32 numIterations = 5;  // enough iterations that we deadlock sometimes, but not always
       for (uint32 i=0; i<numIterations; i++)
       {
-         (void) Snooze64(MillisToMicros(rand()%200));  // space things out in time, otherwise we get deadlocks so often that it's hard to run the program to completion
+         const int randomMillis = rand()%200;           // coverity[dont_call] - don't care, not security-related
+         (void) Snooze64(MillisToMicros(randomMillis)); // space things out in time, otherwise we get deadlocks so often that it's hard to run the program to completion
 
          const bool reverseOrder = ((rand()%2) == 0);
          Mutex * m1 = reverseOrder ? &g_mutexB : &g_mutexA;

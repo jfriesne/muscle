@@ -63,10 +63,10 @@ int main(int argc, char ** argv)
    {
       FileDataIO fdio(fpIn);
 
-      const uint64 fileSize = fdio.GetLength();
-      printf("fileSize=" UINT64_FORMAT_SPEC "\n", fileSize);
+      const int64 fileSize = fdio.GetLength();
+      printf("fileSize=" INT64_FORMAT_SPEC "\n", fileSize);
 
-      ByteBufferRef buf = GetByteBufferFromPool((uint32)fileSize);
+      ByteBufferRef buf = (fileSize >= 0) ? GetByteBufferFromPool((uint32)fileSize) : ByteBufferRef();
       if (buf() == NULL)
       {
          MWARN_OUT_OF_MEMORY;

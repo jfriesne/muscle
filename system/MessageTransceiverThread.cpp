@@ -303,22 +303,21 @@ status_t MessageTransceiverThread :: RequestOutputQueuesDrainedNotification(cons
    MessageRef replyRef   = GetMessageFromPool(MTT_EVENT_OUTPUT_QUEUES_DRAINED);
    if ((commandRef() == NULL)||(replyRef() == NULL)) MRETURN_OUT_OF_MEMORY;
 
+   MRETURN_ON_ERROR(commandRef()->CAddString(MTT_NAME_PATH, optDistPath));
    MRETURN_ON_ERROR(replyRef()->CAddMessage(MTT_NAME_MESSAGE, notifyRef));
 
    DrainTagRef drainTagRef(optDrainTag ? optDrainTag : new DrainTag);
    drainTagRef()->SetReplyMessage(replyRef);
-   MRETURN_ON_ERROR(commandRef()->CAddString(MTT_NAME_PATH, optDistPath));
-   MRETURN_ON_ERROR(commandRef()->AddTag(MTT_NAME_DRAIN_TAG, drainTagRef));
-   return SendMessageToInternalThread(commandRef);
 
-   // User keeps ownership of his custom DrainTag on error, so we don't delete it.
-   if ((drainTagRef())&&(drainTagRef() == optDrainTag))
+   status_t ret = commandRef()->AddTag(MTT_NAME_DRAIN_TAG, drainTagRef);
+   if (ret.IsOK()) ret = SendMessageToInternalThread(commandRef);  // don't combine this with the previous line, or it might be executed out-of-order!
+   if ((ret.IsError())&&(drainTagRef())&&(drainTagRef() == optDrainTag))
    {
+      // Caller retains ownership of his custom (*optDrainTag) on error, so we need to make sure our drainTagRef doesn't delete it here.
       drainTagRef()->SetReplyMessage(MessageRef());
       drainTagRef.Neutralize();
    }
-
-  return B_NO_ERROR;
+   return ret;
 }
 
 status_t MessageTransceiverThread :: SetNewInputPolicy(const AbstractSessionIOPolicyRef & pref, const String & optDistPath)

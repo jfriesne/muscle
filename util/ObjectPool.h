@@ -211,6 +211,8 @@ public:
             delete slabToDelete;  // do this outside the critical section, for better concurrency
          }
          else MWARN_OUT_OF_MEMORY;  // critical error -- not really out of memory but still
+
+         // coverity[missing_unlock] - we already unlocked above, iff Lock() succeeded
 #endif
       }
    }

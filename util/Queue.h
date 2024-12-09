@@ -871,7 +871,7 @@ Queue<ItemType>::Queue()
    , _headIndex(0)
    , _tailIndex(0)
 {
-   // empty
+   // coverity[uninit_member] - _smallQueue doesn't need to be initialized
 }
 
 template <class ItemType>
@@ -1439,7 +1439,11 @@ EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** 
       MRETURN_OOM_ON_NULL(newQueue);
       if (newQueue == _smallQueue) newQLen = sqLen;
 
-      for (uint32 i=0; i<_itemCount; i++) newQueue[i] = QQ_PlunderItem(*GetItemAtUnchecked(i));  // we know that (_itemCount < size)
+      if (_queue)  // just to make Coverity happy
+      {
+         for (uint32 i=0; i<_itemCount; i++)
+            newQueue[i] = QQ_PlunderItem(*GetItemAtUnchecked(i));  // we know that (_itemCount < size)
+      }
 
       if (setNumItems) _itemCount = size;
       _headIndex = 0;

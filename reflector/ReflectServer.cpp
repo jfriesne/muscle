@@ -266,7 +266,7 @@ ReflectServer :: ReflectServer()
    : _keepServerGoing(true)
    , _serverStartedAt(0)
    , _doLogging(true)
-   , _serverSessionID(GetCurrentTime64()+GetRunTime64()+rand())
+   , _serverSessionID(GetCurrentTime64()+GetRunTime64()+rand())  // coverity[dont_call] - don't care, not security-related
    , _computerIsAboutToSleep(false)
 {
    if (_serverSessionID == 0) _serverSessionID++;  // paranoia:  make sure 0 can be used as a guard value

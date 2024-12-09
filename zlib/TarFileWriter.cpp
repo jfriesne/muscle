@@ -84,6 +84,7 @@ static void WriteOctalASCII(uint8 * b, uint64 val, uint8 fieldSize)
 
    // The if-test below shouldn't be necessary, but it's here to
    // avoid a spurious warning from gcc under Windows (per Mika)
+   // coverity[bad_memset] - yes, I really meant to fill with ASCII-zero here!  --jaf
    if (dStart > b) memset(b, '0', dStart-b);  // initial zeros
 }
 

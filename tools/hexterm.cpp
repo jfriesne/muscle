@@ -197,7 +197,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
                spamBytesSent = io()->WriteFully(b, g_spamSize).IsOK() ? g_spamSize : 0;
             }
             if ((!g_quietSend)&&(g_decorateOutput)) LogTime(MUSCLE_LOG_ERROR, "Sent " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of spam!\n", spamBytesSent, g_spamSize);
-            spamTime += (1000000/g_spamsPerSecond);
+            if (g_spamsPerSecond > 0) spamTime += (1000000/g_spamsPerSecond);
          }
 
          if (multiplexer.IsSocketReadyForRead(readFD))

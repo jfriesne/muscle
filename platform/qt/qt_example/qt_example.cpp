@@ -163,7 +163,7 @@ static QColor GetRandomBrightColor()
 {
    const uint32 colorFloor = 150;
    const uint32 colorRange = (256-colorFloor);
-   return QColor((rand()%colorRange)+colorFloor, (rand()%colorRange)+colorFloor, (rand()%colorRange)+colorFloor);
+   return QColor((rand()%colorRange)+colorFloor, (rand()%colorRange)+colorFloor, (rand()%colorRange)+colorFloor);  // coverity[dont_call] - don't care, not security-related
 }
 
 ExampleWindow :: ExampleWindow(const QString & serverName, const QString & userName, const ConstByteBufferRef & publicKey, bool animate)

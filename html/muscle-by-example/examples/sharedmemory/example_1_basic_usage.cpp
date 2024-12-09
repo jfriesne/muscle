@@ -60,7 +60,7 @@ int main(int argc, char ** argv)
       // Let's write to the shared memory area!
       if (sm.LockAreaReadWrite().IsOK(ret))
       {
-         const uint32 offset = rand() % sm.GetAreaSize();
+         const uint32 offset = rand() % sm.GetAreaSize();  // coverity[dont_call] - don't care, not security-related
          printf("\nWRITING value %c to offset " UINT32_FORMAT_SPEC "\n", myVal, offset);
          sm()[offset] = myVal;
          sm.UnlockArea();

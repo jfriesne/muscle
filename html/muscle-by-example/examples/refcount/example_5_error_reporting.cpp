@@ -24,7 +24,7 @@ DECLARE_REFTYPES(MyClass);  // defines MyClassRef and ConstMyClassRef
 
 MyClassRef MyFactoryFunction()
 {
-   if ((rand()%2) == 0)
+   if ((rand()%2) == 0)  // coverity[dont_call] - don't care, not security-related
    {
       return MyClassRef(new MyClass);
    }

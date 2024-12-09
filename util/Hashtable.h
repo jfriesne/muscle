@@ -253,7 +253,7 @@ private:
    class KeyAndValue
    {
    public:
-      KeyAndValue() {/* empty */}
+      KeyAndValue() {/* coverity[uninit_member] */}
       HT_UniversalSinkKeyValueRef KeyAndValue(HT_SinkKeyParam key, HT_SinkValueParam value)
          : _key(HT_ForwardKey(key))
          , _value(HT_ForwardValue(value))
@@ -1127,7 +1127,7 @@ private:
    {
    protected:
       // Note:  All member variables are initialized by CreateEntriesArray(), not by the ctor!
-      HashtableEntryBase()  {/* empty */}
+      HashtableEntryBase()  {/* coverity[uninit_member] */}
       ~HashtableEntryBase() {/* empty */}
 
    public:
@@ -1187,7 +1187,7 @@ private:
             {
                HashtableEntry * e = &ret[i];
                e->_hash                           = MUSCLE_HASHTABLE_INVALID_HASH_CODE;
-               e->_indices[HTE_INDEX_BUCKET_PREV] = (IndexType)(i-1);  // yes, _bucketPrev will be set to (IndexType)-1 when (i==0)
+               e->_indices[HTE_INDEX_BUCKET_PREV] = (IndexType)(i-1);  // coverity[overflow_const] - yes, _bucketPrev will be set to (IndexType)-1 when (i==0)
                e->_indices[HTE_INDEX_BUCKET_NEXT] = (IndexType)(i+1);
                e->_indices[HTE_INDEX_ITER_PREV]   = e->_indices[HTE_INDEX_ITER_NEXT]   = (IndexType)-1;
                e->_indices[HTE_INDEX_MAP_TO]      = e->_indices[HTE_INDEX_MAPPED_FROM] = (IndexType)i;
@@ -1413,7 +1413,7 @@ private:
    MUSCLE_NODISCARD inline uint32 ComputeHash(const KeyType & key) const
    {
       const uint32 ret = GetHashFunctor()(key);
-      return (ret == MUSCLE_HASHTABLE_INVALID_HASH_CODE) ? (ret+1) : ret;  // avoid using the guard value as a hash code (unlikely but possible)
+      return (ret == MUSCLE_HASHTABLE_INVALID_HASH_CODE) ? (ret+1U) : ret;  // avoid using the guard value as a hash code (unlikely but possible)
    }
 
    MUSCLE_NODISCARD inline bool AreKeysEqual(const KeyType & k1, const KeyType & k2) const

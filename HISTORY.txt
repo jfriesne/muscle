@@ -9,6 +9,7 @@ key:  - new feature
    o Tagged a few non-NULL-returning functions with MUSCLE_NEVER_RETURNS_NULL.
    * The resource-tallying in AbstractReflectSessions::PrintSessionsInfo()
      wasn't working correctly.  Fixed.
+   * Applied fixes for various Coverity warnings
 
 9.43 - Released 11/22/2024
    - Added GetKeyBefore() and GetKeyAfter() convenience-methods to

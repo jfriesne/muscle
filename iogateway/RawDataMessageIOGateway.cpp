@@ -6,7 +6,15 @@ namespace muscle {
 
 RawDataMessageIOGateway ::
 RawDataMessageIOGateway(uint32 minChunkSize, uint32 maxChunkSize)
-   : _recvScratchSpace(NULL)
+   : _sendBuf(NULL)        // initialized only to make Coverity happy
+   , _sendBufLength(0)     // same
+   , _sendBufIndex(0)      // same
+   , _sendBufByteOffset(0) // same
+   , _recvBuf(NULL)        // same
+   , _recvBufLength(0)     // same
+   , _recvBufByteOffset(0) // same
+   , _recvScratchSpace(NULL)
+   , _recvScratchSpaceSize(0)
    , _minChunkSize(minChunkSize)
    , _maxChunkSize(maxChunkSize)
    , _receiveTimestampingEnabled(false)

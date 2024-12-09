@@ -280,6 +280,9 @@ extern int ZEXPORT unzRepair(const char* file, const char* fileOut, const char* 
     }
   } else {
     err = Z_STREAM_ERROR;
+    if (fpZip)   fclose(fpZip);   /* jaf */
+    if (fpOut)   fclose(fpOut);   /* jaf */
+    if (fpOutCD) fclose(fpOutCD); /* jaf */
   }
   return err;
 }
