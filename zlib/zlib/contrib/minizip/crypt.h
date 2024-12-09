@@ -111,7 +111,7 @@ static unsigned crypthead(const char* passwd,       /* password string */
     init_keys(passwd, pkeys, pcrc_32_tab);
     for (n = 0; n < RAND_HEAD_LEN-2; n++)
     {
-        // coverity [dont_call] - see comment above the ++calls line -jaf
+        /* coverity[dont_call] - see comment above the ++calls line -jaf */
         c = (rand() >> 7) & 0xff;
         header[n] = (unsigned char)zencode(pkeys, pcrc_32_tab, c, t);
     }

@@ -730,7 +730,7 @@ public:
          char buf[100];
          muscleSprintf(buf, "[flattenedSize=" UINT32_FORMAT_SPEC "] ", bb->GetNumBytes());
          s += buf;
-         uint32 printBytes = muscleMin(bb->GetNumBytes(), (uint32)10);
+         const uint32 printBytes = muscleMin(bb->GetNumBytes(), (uint32)10);
          if (printBytes > 0)
          {
             s += '[';
@@ -739,7 +739,7 @@ public:
                muscleSprintf(buf, "%02x%s", (bb->GetBuffer())[j], (j<printBytes-1)?" ":"");
                s += buf;
             }
-            if (printBytes > 10) s += " ...";
+            if (bb->GetNumBytes() > 10) s += " ...";
             s += ']';
          }
       }

@@ -14,7 +14,7 @@ status_t ReaderWriterMutex :: LockReadOnlyAux(uint64 optTimeoutTimestamp) const
 #else
    const muscle_thread_id tid = muscle_thread_id::GetCurrentThreadID();
 
-   // coverity [missing_unlock : FALSE] - on error-return, lock was never locked so it doesn't need an Unlock()
+   // coverity[missing_unlock : FALSE] - on error-return, lock was never locked so it doesn't need an Unlock()
    MRETURN_ON_ERROR(_stateMutex.Lock());  // can't use RAII here because we may need to Wait() below
 
    ThreadState * ts = _executingThreads.Get(tid);
@@ -97,7 +97,7 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
 #else
    const muscle_thread_id tid = muscle_thread_id::GetCurrentThreadID();
 
-   // coverity [missing_unlock : FALSE] - on error-return, lock was never locked so doesn't need to be unlocked
+   // coverity[missing_unlock : FALSE] - on error-return, lock was never locked so doesn't need to be unlocked
    MRETURN_ON_ERROR(_stateMutex.Lock());  // can't use RAII here because we may need to Wait() below
 
    ThreadState * ts = _executingThreads.Get(tid);

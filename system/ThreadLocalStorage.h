@@ -120,7 +120,7 @@ public:
       return SetThreadLocalObjectAux(newObj);   // pthreads and Qt manage memory so we don't have to
 #else
 
-      // coverity [missing_unlock : FALSE] - on error return the lock was never locked anyway
+      // coverity[missing_unlock : FALSE] - on error return the lock was never locked anyway
       MRETURN_ON_ERROR(_allocedObjsMutex.Lock());
 
       status_t ret;

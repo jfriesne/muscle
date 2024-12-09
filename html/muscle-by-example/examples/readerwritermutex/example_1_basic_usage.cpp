@@ -45,7 +45,7 @@ protected:
          }
       }
 
-      // coverity [missing_unlock : FALSE] - We called UnlockReadWrite() or UnlockReadOnly() if necessary, above
+      // coverity[missing_unlock : FALSE] - We called UnlockReadWrite() or UnlockReadOnly() if necessary, above
    }
 
 private:

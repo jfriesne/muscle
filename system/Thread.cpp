@@ -257,7 +257,7 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
       (void) recv_ignore_eintr(tsd._messageSocket.GetFileDescriptor(), (char *)bytes, sizeof(bytes), 0);
    }
 
-   // coverity [missing_unlock : FALSE] - on error-return, lock was never locked so doesn't need an unlock
+   // coverity[missing_unlock : FALSE] - on error-return, lock was never locked so doesn't need an unlock
    MRETURN_ON_ERROR(tsd._queueLock.Lock());
 
    status_t ret = tsd._messages.RemoveHead(ref);

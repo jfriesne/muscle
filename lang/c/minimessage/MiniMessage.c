@@ -1090,7 +1090,7 @@ c_status_t MMRenameField(MMessage * msg, const char * oldFieldName, const char *
                if (msg->lastField  == f) msg->lastField  = g;
                f = g;
             }
-            // coverity [leaked_storage : FALSE] - memory pointed to by (g) isn't leaked, because we inserted it into a linked-list above
+            // coverity[leaked_storage : FALSE] - memory pointed to by (g) isn't leaked, because we inserted it into a linked-list above
          }
          memcpy((char *)f->name, newFieldName, slen);
 

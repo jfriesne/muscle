@@ -150,7 +150,10 @@ public:
       }
       else
       {
-         for (uint32 i=0; i<NUM_WORDS-1; i++) if (_words[i] != ((uint32)-1)) return false;
+         if (NUM_WORDS > 1)  // just to keep Coverity happey
+         {
+            for (uint32 i=0; i<NUM_WORDS-1; i++) if (_words[i] != ((uint32)-1)) return false;
+         }
          for (uint32 j=(NUM_WORDS-1)*NUM_BITS_PER_WORD; j<NumBits; j++) if (IsBitSet(j) == false) return false;
       }
       return true;
@@ -547,7 +550,7 @@ public:
 
       String ret;
 
-      // coverity [array_null] - optLabelArray can be equal to nullptr if no labels are being used
+      // coverity[array_null] - optLabelArray can be equal to nullptr if no labels are being used
       if (optLabelArray != MUSCLE_BITCHORD_NULLPTR)
       {
          for (uint32 i=0; i<NumBits; i++)

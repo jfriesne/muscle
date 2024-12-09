@@ -1197,9 +1197,9 @@ private:
             {
                HashtableEntry * e = &ret[i];
                e->_hash                           = MUSCLE_HASHTABLE_INVALID_HASH_CODE;
-               // coverity [overflow_const] - yes, the potential-underflow is intentional here
+               // coverity[overflow_const] - yes, the potential-underflow is intentional here
                e->_indices[HTE_INDEX_BUCKET_PREV] = (IndexType)(i-1U);
-               // coverity [overflow_const] - yes, the potential-overflow is intentional here
+               // coverity[overflow_const] - yes, the potential-overflow is intentional here
                e->_indices[HTE_INDEX_BUCKET_NEXT] = (IndexType)(i+1U);
                e->_indices[HTE_INDEX_ITER_PREV]   = e->_indices[HTE_INDEX_ITER_NEXT]   = (IndexType)-1U;
                e->_indices[HTE_INDEX_MAP_TO]      = e->_indices[HTE_INDEX_MAPPED_FROM] = (IndexType)i;

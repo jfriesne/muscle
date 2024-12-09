@@ -21,9 +21,10 @@ int main(int argc, char ** argv)
 
    ByteBuffer buf(64);  // 64-byte ByteBuffer
    uint8 * b = buf.GetBuffer();
-   assert(b != NULL);  // reassure Coverity that won't happen
-
-   for (uint32 i=0; i<buf.GetNumBytes(); i++) b[i] = i;
+   if (b)  // just to reassure Coverity
+   {
+      for (uint32 i=0; i<buf.GetNumBytes(); i++) b[i] = i;
+   }
    buf.PrintToStream(); // let's view its contents
 
    printf("\n");

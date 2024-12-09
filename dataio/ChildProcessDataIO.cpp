@@ -324,14 +324,13 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       // Old-fashioned fork() implementation
       ConstSocketRef masterSock, slaveSock;
       MRETURN_ON_ERROR(CreateConnectedSocketPair(masterSock, slaveSock, true));
-      assert(masterSock() != NULL);  // here to reassure Coverity that CreateConnectedSocketPair() won't succeed and also return a NULL ConstSocketRef
-      assert(slaveSock()  != NULL);  // here to reassure Coverity that CreateConnectedSocketPair() won't succeed and also return a NULL ConstSocketRef
 
       pid = fork();
            if (pid > 0) _handle = masterSock;
       else if (pid == 0)
       {
-         const int fd = slaveSock()->GetFileDescriptor();
+         const int fd = slaveSock() ? slaveSock()->GetFileDescriptor() : -1;  // slaveSock() will never return NULL, but Coverity needs reassurance
+         if (fd < 0) ExitWithoutCleanup(13);  // should never happen
          if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN)  == false)&&(dup2(fd, STDIN_FILENO)  < 0)) ExitWithoutCleanup(14);
          if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT) == false)&&(dup2(fd, STDOUT_FILENO) < 0)) ExitWithoutCleanup(15);
          if ((launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR) == false)&&(dup2(fd, STDERR_FILENO) < 0)) ExitWithoutCleanup(16);

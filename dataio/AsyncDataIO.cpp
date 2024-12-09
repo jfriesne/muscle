@@ -29,7 +29,7 @@ status_t AsyncDataIO :: Seek(int64 offset, int whence)
 {
    if (IsInternalThreadRunning() == false) {LogTime(MUSCLE_LOG_ERROR, "StartInternalThread() must be called before calling AsyncDataIO::Seek()!\n"); return B_BAD_OBJECT;}
 
-   // coverity [missing_unlock : FALSE] - on error-return, lock was never locked and so doesn't need an Unlock()
+   // coverity[missing_unlock : FALSE] - on error-return, lock was never locked and so doesn't need an Unlock()
    MRETURN_ON_ERROR(_asyncCommandsMutex.Lock());
 
    const status_t ret = _asyncCommands.AddTail(AsyncCommand(_mainThreadBytesWritten, ASYNC_COMMAND_SEEK, offset, whence));
@@ -67,7 +67,7 @@ void AsyncDataIO :: Shutdown()
    }
    else ProxyDataIO::Shutdown();
 
-   // coverity [missing_unlock : FALSE] - we called Unlock() above iff Lock() succeeded
+   // coverity[missing_unlock : FALSE] - we called Unlock() above iff Lock() succeeded
 }
 
 void AsyncDataIO :: ShutdownInternalThread(bool waitForThread)

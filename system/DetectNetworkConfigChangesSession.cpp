@@ -835,8 +835,11 @@ ConstSocketRef DetectNetworkConfigChangesSession :: CreateDefaultSocket()
 
    ConstSocketRef ret = GetConstSocketRefFromPool(socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE));
    MRETURN_ON_ERROR(ret);
-   assert(ret() != NULL);  // reassure Coverity this won't happen
-   if (bind(ret()->GetFileDescriptor(), (struct sockaddr*)&sa, sizeof(sa)) != 0) return B_ERRNO;
+
+   const int fd = ret() ? ret()->GetFileDescriptor() : -1;
+   if (fd < 0) return B_LOGIC_ERROR;  // will never happen, but Coverity needs reassurance
+
+   if (bind(fd, (struct sockaddr*)&sa, sizeof(sa)) != 0) return B_ERRNO;
 
    MRETURN_ON_ERROR(SetSocketBlockingEnabled(ret, false));
    return ret;

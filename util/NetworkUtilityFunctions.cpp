@@ -668,8 +668,8 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
          if (optRetInterfaceIP)
          {
             muscle_socklen_t len = sizeof(saSocket);
-            if (getsockname(ret.GetFileDescriptor(), (struct sockaddr *)&saSocket, &len) == 0) GET_SOCKADDR_IP_IPV4(saSocket, *optRetInterfaceIP);
-                                                                                          else *optRetInterfaceIP = invalidIP;
+            if (getsockname(cfd, (struct sockaddr *)&saSocket, &len) == 0) GET_SOCKADDR_IP_IPV4(saSocket, *optRetInterfaceIP);
+                                                                      else *optRetInterfaceIP = invalidIP;
          }
          return ret;
       }
@@ -690,8 +690,8 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
          if (optRetInterfaceIP)
          {
             muscle_socklen_t len = sizeof(saSocket);
-            if (getsockname(ret.GetFileDescriptor(), (struct sockaddr *)&saSocket, &len) == 0) GET_SOCKADDR_IP_IPV6(saSocket, *optRetInterfaceIP);
-                                                                                          else *optRetInterfaceIP = invalidIP;
+            if (getsockname(cfd, (struct sockaddr *)&saSocket, &len) == 0) GET_SOCKADDR_IP_IPV6(saSocket, *optRetInterfaceIP);
+                                                                      else *optRetInterfaceIP = invalidIP;
          }
          return ret;
       }
@@ -1125,7 +1125,6 @@ ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
 {
    ConstSocketRef s = CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CONNECT, SOCKET_FAMILY_PREFERRED);
    MRETURN_ON_ERROR(s);
-   assert(s() != NULL);  // reassure Coverity that won't happen
 
    MRETURN_ON_ERROR(SetSocketBlockingEnabled(s, false));
 
@@ -1133,7 +1132,7 @@ ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
    if (fd < 0) return ConstSocketRef();  // just to keep Coverity happy
 
    int result = -1;
-   switch(s()->GetSocketFamily())
+   switch(s() ? s()->GetSocketFamily() : NUM_SOCKET_FAMILIES)  // s() will never return NULL, but Coverity needs reassurance
    {
       case SOCKET_FAMILY_IPV4:
       {
