@@ -18,8 +18,11 @@ int main(int argc, char ** argv)
    PrintExampleDescription();
 
    printf("Example ByteBuffer containing 64 bytes...\n");
+
    ByteBuffer buf(64);  // 64-byte ByteBuffer
    uint8 * b = buf.GetBuffer();
+   assert(b != NULL);  // reassure Coverity that won't happen
+
    for (uint32 i=0; i<buf.GetNumBytes(); i++) b[i] = i;
    buf.PrintToStream(); // let's view its contents
 

@@ -16,7 +16,8 @@ using namespace muscle;
 
 static void PrintUsageAndExit()
 {
-   LogTime(MUSCLE_LOG_INFO, "Usage:  ./testchildprocess <count> <cmd> [args]\n");
+   LogTime(MUSCLE_LOG_INFO, "Usage: ./testchildprocess <count> <cmd> [args]\n");
+   LogTime(MUSCLE_LOG_INFO, "Note:  count must be between 1 and 10000.\n");
    exit(10);
 }
 
@@ -127,7 +128,7 @@ int main(int argc, char ** argv)
 #endif
 
    const uint32 numProcesses = atol(argv[1]);
-   if (numProcesses == 0) PrintUsageAndExit();
+   if ((numProcesses == 0)||(numProcesses > 10000)) PrintUsageAndExit();
 
    const char * cmd = argv[2];
 

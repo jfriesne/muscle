@@ -355,6 +355,7 @@ static status_t UnitTestQueue(bool isFromScript)
          {
             printf("ERROR IN NORMALIZE!\n");
             for (uint32 j=0; j<qq.GetNumItems(); j++) printf("   Expected %i, got %i (qi=%i at " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ")\n", compareArray[j], a[j], qq[j], j, qq.GetNumItems());
+            delete [] compareArray;
             return B_LOGIC_ERROR;
          }
 

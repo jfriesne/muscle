@@ -1275,7 +1275,7 @@ static inline int muscleSnprintf(char * buf, size_t bufLen, const char * format,
 #endif
    if (bufLen > 0) buf[bufLen-1] = '\0';                // so we'll manually place a NUL byte just to make sure (buf) is terminated in all cases
    va_end(va);
-   return muscleMin(ret, (int)(bufLen-1));
+   return (bufLen > 0) ? muscleMin(ret, (int)(bufLen-1)) : 0;
 }
 
 }; // end namespace muscle

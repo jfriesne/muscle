@@ -33,7 +33,7 @@ static uint32 counter = 0;
 class MyTupleSubclass : public Tuple<5, float>
 {
 public:
-   MyTupleSubclass() {/* empty */}
+   MyTupleSubclass() : _count(0) {/* empty */}
 
    explicit MyTupleSubclass(float first)
    {

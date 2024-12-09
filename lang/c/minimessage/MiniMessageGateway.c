@@ -16,13 +16,13 @@ struct _MMessageGateway {
 
 static inline MByteBuffer * GetNextPointer(const MByteBuffer * buf)
 {
-   /** coverity [overrun-local] - okay because the MByteBuffer's allocation is greater than sizeof(MByteBuffer) */
+   /* coverity [overrun-local] - okay because the MByteBuffer's allocation is greater than sizeof(MByteBuffer) */
    return *((MByteBuffer **)(&buf->bytes));
 }
 
 static inline void SetNextPointer(MByteBuffer * buf, const MByteBuffer * next)
 {
-   /** coverity [overrun-local] - okay because the MByteBuffer's allocation is greater than sizeof(MByteBuffer) */
+   /* coverity [overrun-local] - okay because the MByteBuffer's allocation is greater than sizeof(MByteBuffer) */
    *((const MByteBuffer **)(&buf->bytes)) = next;
 }
 
@@ -195,11 +195,11 @@ int32 MGDoInput(MMessageGateway * gw, uint32 maxBytes, MGReceiveFunc recvFunc, v
                bodySize += (2*sizeof(uint32));  /* we'll include the fixed headers in our body buffer too */
                if (bodySize > gw->_curInput->numBytes)
                {
-                  /** Gotta trade up for a larger buffer, so that all our data will fit! */
+                  /* Gotta trade up for a larger buffer, so that all our data will fit! */
                   MByteBuffer * bigBuf = MBAllocByteBuffer(2*bodySize, false);  /* might as well alloc some extra space too */
                   if (bigBuf == NULL) return -1;  /* out of memory! */
 
-                  /** coverity [overrun-buffer-arg] - not really a buffer-overrun because MByteBuffer allocation is larger than sizeof(MByteBuffer) */
+                  /* coverity [overrun-buffer-arg] - not really a buffer-overrun because MByteBuffer allocation is larger than sizeof(MByteBuffer) */
                   memcpy(&bigBuf->bytes, &gw->_curInput->bytes, gw->_curInputPos);  /* not strictly necessary, but for form's sake... */
 
                   MBFreeByteBuffer(gw->_curInput);  /* dispose of the too-small old input buffer */

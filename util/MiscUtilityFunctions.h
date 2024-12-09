@@ -263,6 +263,7 @@ void HandleStandardDaemonArgs(const Message & args);
   * @param exitCode the exit code value that should be passed back to our parent process
   *                 (ie the argument to pass to exit() or _exit())
   */
+//coverity[+kill]
 void ExitWithoutCleanup(int exitCode);
 
 /** Causes this process to terminate abnormally (ie with a crash).
@@ -270,6 +271,7 @@ void ExitWithoutCleanup(int exitCode);
   * Under all other OS's, this is implemented by calling abort().
   * @note this function will not return!
   */
+//coverity[+kill]
 void Crash();
 
 /** Calls fork(), setsid(), chdir(), umask(), etc, to fork an independent daemon process.

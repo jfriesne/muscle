@@ -8,10 +8,16 @@ key:  - new feature
    - Added an optional human-readable name field to ReaderWriterMutex.
    - Added a GetInsecurePseudoRandomNumber() function to MiscUtilityFunctions,
      just to minimize the number of direct calls to rand().
+   - Added a move-assignment-operator, a move-constructor, and a
+     SwapContents() method to the HashtableIterator class.
+   - Added a move-assignment-operator and a move-constructor to the
+     DemandConstructedObject class.
    o Tagged a few non-NULL-returning functions with MUSCLE_NEVER_RETURNS_NULL.
    * The resource-tallying in AbstractReflectSessions::PrintSessionsInfo()
      wasn't working correctly.  Fixed.
    * Applied fixes for various Coverity warnings
+   * Fixed a couple of file-handle leaks in SpawnDaemonProcess().
+   * Fixed a use-after-free error in MiniMessage's MMMoveField() function.
 
 9.43 - Released 11/22/2024
    - Added GetKeyBefore() and GetKeyAfter() convenience-methods to

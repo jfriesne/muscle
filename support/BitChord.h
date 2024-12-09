@@ -546,6 +546,8 @@ public:
       if ((returnAllBitsSet)&&(AreAllBitsSet())) return "AllBitsSet";
 
       String ret;
+
+      // coverity [array_null] - optLabelArray can be equal to nullptr if no labels are being used
       if (optLabelArray != MUSCLE_BITCHORD_NULLPTR)
       {
          for (uint32 i=0; i<NumBits; i++)

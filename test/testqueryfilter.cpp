@@ -30,7 +30,7 @@ static void TestQueryFilter(MultiQueryFilter & qf, const char * desc, const char
    uint32 numStates = 1;
    for (uint32 numArgs=0; numArgs<6; numArgs++)
    {
-      printf("\n%s with " UINT32_FORMAT_SPEC " ARGS (%s)\n", desc, numArgs, String((numArgs>0)?instructions:"Degenerate case").Arg(muscleMin(numArgs-1, max))());
+      printf("\n%s with " UINT32_FORMAT_SPEC " ARGS (%s)\n", desc, numArgs, String((numArgs>0)?instructions:"Degenerate case").Arg((numArgs>0)?muscleMin(numArgs-1, max):0)());
 
       for (uint32 state=0; state<numStates; state++)
       {

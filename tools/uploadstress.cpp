@@ -77,6 +77,5 @@ int main(int argc, char ** argv)
       }
    }
 
-   printf("\n\nBye!\n");
    return 0;
 }

@@ -986,6 +986,8 @@ AddTailAndGet(QQ_SinkItemParam item)
 #endif
    *ret = item;
    delete [] oldArray;  // must do this AFTER the last reference to (item), in case (item) was part of (oldArray)
+
+   // coverity [use_after_free : FALSE] - (ret) is still a valid pointer beause (ret) never points into (oldArray)
    return ret;
 }
 
@@ -1071,6 +1073,8 @@ AddHeadAndGet(QQ_SinkItemParam item)
    ItemType * ret = &_queue[_headIndex];
    *ret = QQ_ForwardItem(item);
    delete [] oldArray;  // must be done after all references to (item)!
+
+   // coverity [use_after_free : FALSE] - (ret) is still a valid pointer beause (ret) never points into (oldArray)
    return ret;
 }
 

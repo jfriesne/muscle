@@ -36,16 +36,42 @@ public:
      */
    DemandConstructedObject(const T & rhs) : _objPointer(NULL) {(void) EnsureObjectConstructed(rhs);}
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
+   DemandConstructedObject(DemandConstructedObject<T> && rhs) : _objPointer(NULL) {if (rhs.IsObjectConstructed()) (void) EnsureObjectConstructed(std::move(rhs.GetObjectUnchecked()));}
+
+   /** Pseudo-Move constructor.
+     * @param rhs the object to steal
+     */
+   DemandConstructedObject(T && rhs) : _objPointer(NULL) {(void) EnsureObjectConstructed(std::move(rhs));}
+#endif
+
    /** Destructor.  Calls the destructor on our held object as well, if necessary. */
    ~DemandConstructedObject() {if (_objPointer) _objPointer->~T();}
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    DemandConstructedObject & operator=(const DemandConstructedObject & rhs)
    {
-      if (rhs.IsObjectConstructed()) GetObject() = rhs.GetObjectUnchecked();
-                                 else (void) EnsureObjectDestructed();
+      if (&rhs != this)
+      {
+         if (rhs.IsObjectConstructed()) GetObject() = rhs.GetObjectUnchecked();
+                                   else (void) EnsureObjectDestructed();
+      }
       return *this;
    }
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
+   DemandConstructedObject & operator=(DemandConstructedObject && rhs)
+   {
+      if (&rhs != this)
+      {
+         if (rhs.IsObjectConstructed()) GetObject() = std::move(rhs.GetObjectUnchecked());
+                                   else (void) EnsureObjectDestructed();
+      }
+      return *this;
+   }
+#endif
 
    /** Templated Assignment operator, for convenience
      * @param rhs the data object to set our own held object equal to

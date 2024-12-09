@@ -20,10 +20,10 @@ int main(int argc, char ** argv)
 
    uint32 numPairs = 5;
    if ((argc > 1)&&(strcmp(argv[1], "fromscript") != 0)) numPairs = atoi(argv[1]);
-   if (numPairs == 0)
+   if ((numPairs <= 0)||(numPairs > 10000))
    {
       printf("Usage:  ./testsocketmultiplexer <numPairs>\n");
-      printf("numPairs argument must be at least 1\n");
+      printf("numPairs argument must be between 1 and 10000\n");
       return 10;
    }
 

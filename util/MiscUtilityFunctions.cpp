@@ -60,8 +60,8 @@ static status_t ParseArgAux(const String & a, Message * optAddToMsg, Queue<Strin
    const char * s = argName();
    if (s > argName()) argName = argName.Substring(s-argName);
 
-   if (optAddToQueue) return optAddToQueue->AddTail(argName);
-   else
+        if (optAddToQueue) return optAddToQueue->AddTail(argName);
+   else if (optAddToMsg)  // mostly just to keep Coverity happy
    {
       const int equalsAt = argName.IndexOf('=');
       String argValue;
@@ -84,6 +84,7 @@ static status_t ParseArgAux(const String & a, Message * optAddToMsg, Queue<Strin
       }
       else return B_NO_ERROR;
    }
+   else return B_LOGIC_ERROR;  // either (optAddToQueue) or (optAddToMsg) should be non-NULL!
 }
 status_t ParseArg(const String & a, Message & addTo, bool cs)       {return ParseArgAux(a, &addTo, NULL, cs);}
 status_t ParseArg(const String & a, Queue<String> & addTo, bool cs) {return ParseArgAux(a, NULL, &addTo, cs);}
@@ -748,7 +749,11 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, co
    //    or any other combination that makes sense for your particular daemon.
    const mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH;
    const int nullfd = open("/dev/null", O_RDWR, mode);
-   if (nullfd >= 0) dup2(nullfd, STDIN_FILENO);
+   if (nullfd >= 0)
+   {
+      (void) dup2(nullfd, STDIN_FILENO);
+      close(nullfd);
+   }
 
    int outfd = -1;
    if (optOutputTo)
@@ -760,6 +765,7 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, co
    {
       (void) dup2(outfd, STDOUT_FILENO);
       (void) dup2(outfd, STDERR_FILENO);
+      close(outfd);
    }
 
    _isDaemonProcess = true;

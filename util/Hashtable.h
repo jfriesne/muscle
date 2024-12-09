@@ -126,6 +126,9 @@ public:
    HashtableIterator(const HashtableType & table, uint32 flags = 0);
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
+   HashtableIterator(HashtableIterator && rhs) {SwapContentsAux(rhs, true);}
+
    /** This constructor is declared deleted to keep HashtableIterators from being accidentally associated with temporary objects */
    HashtableIterator(HashtableType && table, uint32 flags = 0) = delete;
 #endif
@@ -143,6 +146,11 @@ public:
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    HashtableIterator & operator=(const HashtableIterator & rhs);
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
+   HashtableIterator & operator=(HashtableIterator && rhs) {SwapContentsAux(rhs, true); return *this;}
+#endif
 
    /** Advances this iterator by one entry in the table.  */
    void operator++(int)
@@ -210,8 +218,15 @@ public:
    /** Convenience method.  Returns true iff we are currently referencing the final key/value pair in our iteration-sequence */
    MUSCLE_NODISCARD bool IsAtEnd() const {return ((HasData())&&(_currentKey == (IsBackwards() ? _owner->GetFirstKey() : _owner->GetLastKey())));}
 
+   /** This method swaps the state of this iterator with the iterator in the argument.
+    *  @param swapMe The iterator whose state we are to swap with
+    */
+   void SwapContents(HashtableIterator & swapMe) MUSCLE_NOEXCEPT {SwapContentsAux(swapMe, false);}
+
 private:
    friend class HashtableBase<KeyType, ValueType, HashFunctorType>;
+
+   void SwapContentsAux(HashtableIterator & swapMe, bool swapMeIsGoingAway) MUSCLE_NOEXCEPT;
 
    HT_UniversalSinkKeyValueRef void SetScratchValues(HT_SinkKeyParam key, HT_SinkValueParam val)
    {
@@ -1182,7 +1197,9 @@ private:
             {
                HashtableEntry * e = &ret[i];
                e->_hash                           = MUSCLE_HASHTABLE_INVALID_HASH_CODE;
+               // coverity [overflow_const] - yes, the potential-underflow is intentional here
                e->_indices[HTE_INDEX_BUCKET_PREV] = (IndexType)(i-1U);
+               // coverity [overflow_const] - yes, the potential-overflow is intentional here
                e->_indices[HTE_INDEX_BUCKET_NEXT] = (IndexType)(i+1U);
                e->_indices[HTE_INDEX_ITER_PREV]   = e->_indices[HTE_INDEX_ITER_NEXT]   = (IndexType)-1U;
                e->_indices[HTE_INDEX_MAP_TO]      = e->_indices[HTE_INDEX_MAPPED_FROM] = (IndexType)i;
@@ -3818,6 +3835,50 @@ HashtableIterator<KeyType,ValueType,HashFunctorType>:: operator=(const Hashtable
       UpdateKeyAndValuePointers();
    }
    return *this;
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
+void
+HashtableIterator<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableIterator<KeyType,ValueType,HashFunctorType> & rhs, bool rhsIsGoingAway) MUSCLE_NOEXCEPT
+{
+   if (this != &rhs)
+   {
+      const bool mustReregister = ((_owner != rhs._owner)||(_flags != rhs._flags));
+      if ((_owner)&&(mustReregister)) _owner->UnregisterIterator(this);
+      if ((rhs._owner)&&((mustReregister)||(rhsIsGoingAway))) rhs._owner->UnregisterIterator(&rhs);
+
+      if (rhsIsGoingAway)
+      {
+         _flags              = rhs._flags;
+         _owner              = rhs._owner;
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+         _scratchKeyAndValue = std::move(rhs._scratchKeyAndValue);
+#else
+         _scratchKeyAndValue = rhs._scratchKeyAndValue;
+#endif
+         rhs._owner          = NULL;  // no point in re-registering (rhs) if he's going away soon anyway
+      }
+      else
+      {
+         muscleSwap(_flags, rhs._flags);   // must be done while unregistered, in case NOREGISTER flag changes state
+         muscleSwap(_owner, rhs._owner);
+         muscleSwap(_scratchKeyAndValue, rhs._scratchKeyAndValue);
+      }
+
+      if (mustReregister)
+      {
+         void * thisIterCookie = _iterCookie;  // save this value before we overwrite it, so we can use it to register rhs
+
+         if (_owner) _owner->RegisterIterator(this, rhs._iterCookie);
+                else _iterCookie = NULL;  // no owner == no data
+
+         if (rhs._owner) rhs._owner->RegisterIterator(&rhs, thisIterCookie);
+                    else rhs._iterCookie = NULL;  // no owner == no data
+      }
+
+      UpdateKeyAndValuePointers();
+      rhs.UpdateKeyAndValuePointers();
+   }
 }
 
 } // end namespace muscle

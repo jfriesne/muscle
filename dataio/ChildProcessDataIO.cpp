@@ -324,6 +324,9 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       // Old-fashioned fork() implementation
       ConstSocketRef masterSock, slaveSock;
       MRETURN_ON_ERROR(CreateConnectedSocketPair(masterSock, slaveSock, true));
+      assert(masterSock() != NULL);  // here to reassure Coverity that CreateConnectedSocketPair() won't succeed and also return a NULL ConstSocketRef
+      assert(slaveSock()  != NULL);  // here to reassure Coverity that CreateConnectedSocketPair() won't succeed and also return a NULL ConstSocketRef
+
       pid = fork();
            if (pid > 0) _handle = masterSock;
       else if (pid == 0)
@@ -657,7 +660,10 @@ io_status_t ChildProcessDataIO :: Read(void *buf, uint32 len)
       return ret;
    }
 #else
-   const int32 r = read_ignore_eintr(_handle.GetFileDescriptor(), buf, len);
+   const int fd = _handle.GetFileDescriptor();
+   if (fd < 0) return B_BAD_OBJECT;
+
+   const int32 r = read_ignore_eintr(fd, buf, len);
    if (r == 0) return B_END_OF_STREAM;
 
    const int32 er = _blocking ? r : ConvertReturnValueToMuscleSemantics(r, len, _blocking);
@@ -684,7 +690,10 @@ io_status_t ChildProcessDataIO :: Write(const void *buf, uint32 len)
       return ret;
    }
 #else
-   const int32 ret = ConvertReturnValueToMuscleSemantics(write_ignore_eintr(_handle.GetFileDescriptor(), buf, len), len, _blocking);
+   const int fd = _handle.GetFileDescriptor();
+   if (fd < 0) return B_BAD_OBJECT;
+
+   const int32 ret = ConvertReturnValueToMuscleSemantics(write_ignore_eintr(fd, buf, len), len, _blocking);
    return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
 #endif
 }

@@ -376,6 +376,7 @@ ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRe
    (void) setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (const sockopt_arg *) &trueValue, sizeof(trueValue));
 #endif
 
+   // coverity[returned_null : FALSE] - if ret() was going to return NULL, then fd would be negative above and execution wouldn't get here
    switch(ret()->GetSocketFamily())
    {
       case SOCKET_FAMILY_IPV4:
@@ -646,9 +647,10 @@ status_t ShutdownSocket(const ConstSocketRef & sock, bool dRecv, bool dSend)
 
 ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP)
 {
-   const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return B_BAD_ARGUMENT;
+   const int sfd = sock.GetFileDescriptor();
+   if (sfd < 0) return B_BAD_ARGUMENT;
 
+   // coverity[returned_null : FALSE] - if ret() was going to return NULL, then sfd would be negative above and execution wouldn't get here
    switch(sock()->GetSocketFamily())
    {
       case SOCKET_FAMILY_IPV4:
@@ -656,7 +658,10 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
          DECLARE_SOCKADDR_IPV4(saSocket, NULL, 0);
          muscle_socklen_t nLen = sizeof(saSocket);
 
-         ConstSocketRef ret = GetConstSocketRefFromPool(accept(fd, (struct sockaddr *)&saSocket, &nLen));
+         const int cfd = accept(sfd, (struct sockaddr *)&saSocket, &nLen);
+         if (cfd < 0) return B_ERRNO;  // mostly just to keep Coverity happy
+
+         ConstSocketRef ret = GetConstSocketRefFromPool(cfd);
          MRETURN_ON_ERROR(ret);
          MRETURN_ON_ERROR(DoGlobalSocketCallback(GlobalSocketCallback::SOCKET_CALLBACK_ACCEPT, ret));  // called separately since accept() created this socket, not CreateMuscleSocket()
 
@@ -675,7 +680,10 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
          DECLARE_SOCKADDR_IPV6(saSocket, NULL, 0);
          muscle_socklen_t nLen = sizeof(saSocket);
 
-         ConstSocketRef ret = GetConstSocketRefFromPool(accept(fd, (struct sockaddr *)&saSocket, &nLen));
+         const int cfd = accept(sfd, (struct sockaddr *)&saSocket, &nLen);
+         if (cfd < 0) return B_ERRNO;  // mostly just to keep Coverity happy
+
+         ConstSocketRef ret = GetConstSocketRefFromPool(cfd);
          MRETURN_ON_ERROR(ret);
          MRETURN_ON_ERROR(DoGlobalSocketCallback(GlobalSocketCallback::SOCKET_CALLBACK_ACCEPT, ret)); // called separately since accept() created this socket, not CreateMuscleSocket()
 
@@ -1117,7 +1125,12 @@ ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
 {
    ConstSocketRef s = CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CONNECT, SOCKET_FAMILY_PREFERRED);
    MRETURN_ON_ERROR(s);
+   assert(s() != NULL);  // reassure Coverity that won't happen
+
    MRETURN_ON_ERROR(SetSocketBlockingEnabled(s, false));
+
+   const int fd = s.GetFileDescriptor();
+   if (fd < 0) return ConstSocketRef();  // just to keep Coverity happy
 
    int result = -1;
    switch(s()->GetSocketFamily())
@@ -1125,7 +1138,7 @@ ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
       case SOCKET_FAMILY_IPV4:
       {
          DECLARE_SOCKADDR_IPV4(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
-         result = connect(s.GetFileDescriptor(), (struct sockaddr *) &saAddr, sizeof(saAddr));
+         result = connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr));
       }
       break;
 
@@ -1133,7 +1146,7 @@ ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
       case SOCKET_FAMILY_IPV6:
       {
          DECLARE_SOCKADDR_IPV6(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
-         result = connect(s.GetFileDescriptor(), (struct sockaddr *) &saAddr, sizeof(saAddr));
+         result = connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr));
       }
       break;
 #endif
@@ -1158,13 +1171,16 @@ ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
 
 IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock)
 {
+   const int fd = sock.GetFileDescriptor();
+   if (fd < 0) return IPAddressAndPort();
+
    switch(sock.GetSocketFamily())
    {
       case SOCKET_FAMILY_IPV4:
       {
          struct sockaddr_in saSocket;
          muscle_socklen_t len = sizeof(saSocket);
-         if (getsockname(sock.GetFileDescriptor(), (struct sockaddr *)&saSocket, &len) == 0) return IPAddressAndPort(saSocket);
+         if (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) return IPAddressAndPort(saSocket);
       }
       break;
 
@@ -1173,7 +1189,7 @@ IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock)
       {
          struct sockaddr_in6 saSocket;
          muscle_socklen_t len = sizeof(saSocket);
-         if (getsockname(sock.GetFileDescriptor(), (struct sockaddr *)&saSocket, &len) == 0) return IPAddressAndPort(saSocket);
+         if (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) return IPAddressAndPort(saSocket);
       }
       break;
 #endif
