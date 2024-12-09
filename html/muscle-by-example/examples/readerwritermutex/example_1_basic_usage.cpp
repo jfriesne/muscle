@@ -44,6 +44,8 @@ protected:
             if (msg() == NULL) break;
          }
       }
+
+      // coverity [missing_unlock : FALSE] - We called UnlockReadWrite() or UnlockReadOnly() if necessary, above
    }
 
 private:

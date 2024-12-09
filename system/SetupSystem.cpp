@@ -2165,9 +2165,10 @@ uint64 Atoxll(const char * str)
    while(ParseHexDigit(*s) >= 0) s++;
 
    // Then iterate back to the beginning, tabulating as we go
-   while((--s >= str)&&(ParseHexDigit(*s) >= 0))
+   int hd;
+   while((--s >= str)&&((hd = ParseHexDigit(*s)) >= 0))
    {
-      ret  += base * ((uint64)ParseHexDigit(*s));
+      ret  += base * (uint64)hd;
       base *= (uint64)16;
    }
    return ret;

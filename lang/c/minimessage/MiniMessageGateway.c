@@ -16,11 +16,13 @@ struct _MMessageGateway {
 
 static inline MByteBuffer * GetNextPointer(const MByteBuffer * buf)
 {
+   /** coverity [overrun-local] - okay because the MByteBuffer's allocation is greater than sizeof(MByteBuffer) */
    return *((MByteBuffer **)(&buf->bytes));
 }
 
 static inline void SetNextPointer(MByteBuffer * buf, const MByteBuffer * next)
 {
+   /** coverity [overrun-local] - okay because the MByteBuffer's allocation is greater than sizeof(MByteBuffer) */
    *((const MByteBuffer **)(&buf->bytes)) = next;
 }
 
@@ -71,6 +73,7 @@ c_status_t MGAddOutgoingMessage(MMessageGateway * gw, const MMessage * msg)
 
       SetNextPointer(buf, NULL);
       h[0] = B_HOST_TO_LENDIAN_INT32(flatSize);
+      /* coverity [overrun-local] - okay because our MByteBuffer's allocation is greater than sizeof(MByteBuffer) */
       h[1] = B_HOST_TO_LENDIAN_INT32(_MUSCLE_MESSAGE_ENCODING_DEFAULT);
       MMFlattenMessage(msg, (uint8 *) &h[2]);
 
@@ -133,6 +136,7 @@ int32 MGDoInput(MMessageGateway * gw, uint32 maxBytes, MGReceiveFunc recvFunc, v
       uint32 bytesToRecv = gw->_maxInputPos - gw->_curInputPos;
       if (bytesToRecv > maxBytes) bytesToRecv = maxBytes;
 
+      /* coverity [illegal_address] - not really an out-of-bounds read because the MByteBuffer's allocation is greater than sizeof(MByteBuffer) */
       bytesReceived = recvFunc((&gw->_curInput->bytes)+gw->_curInputPos, bytesToRecv, arg);
       if (bytesReceived < 0) return -1;  /* error */
       else
@@ -195,7 +199,9 @@ int32 MGDoInput(MMessageGateway * gw, uint32 maxBytes, MGReceiveFunc recvFunc, v
                   MByteBuffer * bigBuf = MBAllocByteBuffer(2*bodySize, false);  /* might as well alloc some extra space too */
                   if (bigBuf == NULL) return -1;  /* out of memory! */
 
+                  /** coverity [overrun-buffer-arg] - not really a buffer-overrun because MByteBuffer allocation is larger than sizeof(MByteBuffer) */
                   memcpy(&bigBuf->bytes, &gw->_curInput->bytes, gw->_curInputPos);  /* not strictly necessary, but for form's sake... */
+
                   MBFreeByteBuffer(gw->_curInput);  /* dispose of the too-small old input buffer */
                   gw->_curInput = bigBuf;
                }

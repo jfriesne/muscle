@@ -183,6 +183,8 @@ public:
       }
       if (ret) ret->SetManager(this);
           else MWARN_OUT_OF_MEMORY;
+
+      // coverity [missing_unlock : FALSE] - we called Unlock() above, iff Lock() succeeded
       return ret;
 #endif
    }

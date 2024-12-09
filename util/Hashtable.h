@@ -1408,7 +1408,7 @@ private:
    MUSCLE_NODISCARD inline uint32 ComputeHash(const KeyType & key) const
    {
       const uint32 ret = GetHashFunctor()(key);
-      return (ret == MUSCLE_HASHTABLE_INVALID_HASH_CODE) ? (ret+1U) : ret;  // avoid using the guard value as a hash code (unlikely but possible)
+      return (ret == MUSCLE_HASHTABLE_INVALID_HASH_CODE) ? 0 : ret;  // avoid using the guard value as a hash code (unlikely but possible)
    }
 
    MUSCLE_NODISCARD inline bool AreKeysEqual(const KeyType & k1, const KeyType & k2) const

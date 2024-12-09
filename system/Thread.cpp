@@ -172,6 +172,8 @@ status_t Thread :: SendMessageToOwner(const MessageRef & ref)
 status_t Thread :: SendMessageAux(int whichQueue, const MessageRef & replyRef)
 {
    ThreadSpecificData & tsd = _threadData[whichQueue];
+
+   // coverity[missing_unlock : FALSE] - on error-return, lock was never locked so doesn't need to be unlocked
    MRETURN_ON_ERROR(tsd._queueLock.Lock());
 
    status_t ret;
@@ -255,8 +257,10 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
       (void) recv_ignore_eintr(tsd._messageSocket.GetFileDescriptor(), (char *)bytes, sizeof(bytes), 0);
    }
 
+   // coverity [missing_unlock : FALSE] - on error-return, lock was never locked so doesn't need an unlock
    MRETURN_ON_ERROR(tsd._queueLock.Lock());
-   const status_t ret = tsd._messages.RemoveHead(ref);
+
+   status_t ret = tsd._messages.RemoveHead(ref);
    if (optRetNumMessagesLeftInQueue) *optRetNumMessagesLeftInQueue = tsd._messages.GetNumItems();
    (void) tsd._queueLock.Unlock();
 
@@ -289,7 +293,7 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
 
       MRETURN_ON_ERROR(tsd._multiplexer.WaitForEvents(wakeupTime));
 
-      status_t ret = B_TIMED_OUT;
+      ret = B_TIMED_OUT;
       for (uint32 j=0; j<ARRAYITEMS(tsd._socketSets); j++)
       {
          Hashtable<ConstSocketRef, bool> & t = tsd._socketSets[j];

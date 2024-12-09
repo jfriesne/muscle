@@ -1953,6 +1953,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                if (unicastIP.IsIPv4() == false) unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignored by the TCP stack
 #endif
 
+               // coverity[dead_error_line] - it's okay, ifDesc does get modified in the MacOS case
                if (results.AddTail(NetworkInterfaceInfo(iname, ifDesc?*ifDesc:GetEmptyString(), unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType, GetNetworkInterfaceMTU(dummySocket, iname))).IsOK(ret))  // MAC address will be set later
                {
                   DECLARE_MUTEXGUARD(_cachedLocalhostAddressLock);
