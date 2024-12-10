@@ -2275,6 +2275,7 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
          MURMUR2_MIX(h,k,m);
 
          data += align;
+         // coverity[overflow_const : FALSE] - Coverity reports an underflow bug here but we know (numBytes >= align) so I don't see how that's possible --jaf
          numBytes -= align;
 
          //----------

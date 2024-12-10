@@ -5,18 +5,18 @@
 
 using namespace muscle;
 
-#define TEST_CONVERSION(fromType, toType)    \
-{                                            \
-    int64 before = 1;                        \
-    int64 after = 0;                         \
-    int64 afterRoundUp = 0;                  \
-    while(1)                                 \
-    {                                        \
-       after = fromType##To##toType(before); \
+#define TEST_CONVERSION(fromType, toType)     \
+{                                             \
+    int64 before       = 1;                   \
+    int64 after        = 0;                   \
+    int64 afterRoundUp = 0;                   \
+    while(1)                                  \
+    {                                         \
+       after = fromType##To##toType(before);  \
        afterRoundUp = fromType##To##toType##RoundUp(before); \
-       if (after == 0) before *= 10;         \
-                 else break;                 \
-    }                                        \
+       if (after == 0) before *= ((int64)10); \
+                  else break;                 \
+    }                                         \
     printf(INT64_FORMAT_SPEC " %s is " INT64_FORMAT_SPEC " %s (rounded up it's " INT64_FORMAT_SPEC ")\n", before, #fromType, after, #toType, afterRoundUp); \
 }
 

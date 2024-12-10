@@ -337,7 +337,7 @@ GetClientDescriptionString() const
       const uint16 port = _ipAddressAndPort.GetPort();
       if (port > 0)
       {
-         char buf[64]; muscleSprintf(buf, ":%u", (port>0)?port:_asyncConnectDest.GetPort());
+         char buf[64]; muscleSprintf(buf, ":%u", port);
          return _hostName + buf;
       }
       else

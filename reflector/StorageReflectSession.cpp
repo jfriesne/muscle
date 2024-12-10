@@ -891,13 +891,16 @@ MessageRef StorageReflectSession :: GetEffectiveParameters() const
    (void) resultMessage()->AddString(PR_NAME_SERVER_VERSION, MUSCLE_VERSION_STRING);
 
    (void) resultMessage()->RemoveName(PR_NAME_SERVER_MEM_AVAILABLE);
-   (void) resultMessage()->AddInt64(PR_NAME_SERVER_MEM_AVAILABLE, (int64) GetNumAvailableBytes());
+   // coverity[underflow] - it's okay if the value gets cast to a negative value here
+   (void) resultMessage()->AddInt64(PR_NAME_SERVER_MEM_AVAILABLE, GetNumAvailableBytes());
 
    (void) resultMessage()->RemoveName(PR_NAME_SERVER_MEM_USED);
-   (void) resultMessage()->AddInt64(PR_NAME_SERVER_MEM_USED, (int64) GetNumUsedBytes());
+   // coverity[underflow] - it's okay if the value gets cast to a negative value here
+   (void) resultMessage()->AddInt64(PR_NAME_SERVER_MEM_USED, GetNumUsedBytes());
 
    (void) resultMessage()->RemoveName(PR_NAME_SERVER_MEM_MAX);
-   (void) resultMessage()->AddInt64(PR_NAME_SERVER_MEM_MAX, (int64) GetMaxNumBytes());
+   // coverity[underflow] - it's okay if the value gets cast to a negative value here
+   (void) resultMessage()->AddInt64(PR_NAME_SERVER_MEM_MAX, GetMaxNumBytes());
 
    const uint64 now = GetRunTime64();
 

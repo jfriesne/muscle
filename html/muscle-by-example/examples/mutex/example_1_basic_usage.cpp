@@ -40,6 +40,8 @@ protected:
             if (msg() == NULL) break;
          }
       }
+
+      // coverity[missing_unlock : FALSE] - We called Unlock() if necessary, above
    }
 };
 
