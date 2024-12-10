@@ -3,6 +3,7 @@
 #include "iogateway/MessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"  // for PR_COMMAND_PING, PR_RESULT_PONG
 #include "dataio/TCPSocketDataIO.h"
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
 
 namespace muscle {
 

@@ -13,6 +13,7 @@
 #include "util/Directory.h"
 #include "util/FilePathInfo.h"
 #include "util/Hashtable.h"
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
 #include "util/NestCount.h"
 #include "util/String.h"
 #include "util/StringTokenizer.h"
