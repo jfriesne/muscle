@@ -147,9 +147,11 @@ public:
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    HashtableIterator & operator=(const HashtableIterator & rhs);
 
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // workaround for apparent DOxygen generator bug
+# ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
    HashtableIterator & operator=(HashtableIterator && rhs) {SwapContentsAux(rhs, true); return *this;}
+# endif
 #endif
 
    /** Advances this iterator by one entry in the table.  */
