@@ -18,7 +18,7 @@ void PathMatcher :: AdjustStringPrefix(String & path, const char * optPrepend) c
          String temp(optPrepend);  // gcc chokes on more compact code than this :^P
          temp += '/';
          temp += path;
-         path = temp;
+         path = std_move_if_available(temp);
       }
    }
 }

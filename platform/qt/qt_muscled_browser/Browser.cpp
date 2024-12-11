@@ -160,7 +160,7 @@ void BrowserWindow :: SetMessageContentsViewContents(QTreeWidgetItem * item)
       }
       else t = QString("Message at path [%1] isn't known").arg(itemPath());
 
-      _messageContentsPath = itemPath;
+      _messageContentsPath = std_move_if_available(itemPath);
    }
    else _messageContentsPath.Clear();
 

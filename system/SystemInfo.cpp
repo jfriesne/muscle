@@ -185,7 +185,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
             if (p) homeDir = p->pw_dir;
          }
 #endif
-         if (homeDir.HasChars()) {found = true; outStr = homeDir;}
+         if (homeDir.HasChars()) {found = true; outStr = std_move_if_available(homeDir);}
       }
       break;
 

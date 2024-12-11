@@ -946,6 +946,14 @@ template <typename T> inline T * broken_gcc_newnothrow_array(size_t count)
 # define newnothrow_array(T, count) newnothrow T[count]                    /**< workaround wrapper for broken newnothrow T[count] under gcc 3.x */
 #endif
 
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+# define std_move_if_available(x)    (x)   /**< wrapper for std::move() that will resolve to a no-op on pre-C++11 compilers */
+# define std_forward_if_available(x) (x)   /**< wrapper for std::forward() that will resolve to a no-op on pre-C++11 compilers */
+#else
+# define std_move_if_available(x)    std::move(x)     /**< wrapper for std::move() that will resolve to a no-op on pre-C++11 compilers */
+# define std_forward_if_available(x) std::forward(x)  /**< wrapper for std::forward() that will resolve to a no-op on pre-C++11 compilers */
+#endif
+
 /** This function returns a reference to a read-only, default-constructed
   * static object of type T.  There will be exactly one of these objects
   * present per instantiated type, per process.

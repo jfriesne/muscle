@@ -12,6 +12,8 @@ key:  - new feature
      SwapContents() method to the HashtableIterator class.
    - Added a move-assignment-operator and a move-constructor to the
      DemandConstructedObject class.
+   - Added std_move_if_available() and std_forward_if_available() macros
+     so I can use those calls without breaking pre-C++11 compatibility.
    o Tagged a few non-NULL-returning functions with MUSCLE_NEVER_RETURNS_NULL.
    * The resource-tallying in AbstractReflectSessions::PrintSessionsInfo()
      wasn't working correctly.  Fixed.

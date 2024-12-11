@@ -337,7 +337,7 @@ bool MakeRegexCaseInsensitive(String & str)
      }
      else ret += next;
    }
-   if (changed) str = ret;
+   if (changed) str = std_move_if_available(ret);
    return changed;
 }
 

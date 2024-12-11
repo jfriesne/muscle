@@ -76,12 +76,19 @@ public:
       , _headIndex(0)  // initialization not strictly necessary, but
       , _tailIndex(0)  // here anyway to keep the static analyzers happy
    {
-      if (rhs._queue == rhs._smallQueue) *this = rhs;
+      if (rhs._queue == rhs._smallQueue) *this = std_move_if_available(rhs);
                                     else SwapContents(rhs);
    }
 
-   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
-   Queue & operator =(Queue && rhs) {if (rhs._queue == rhs._smallQueue) *this = rhs; else SwapContents(rhs); return *this;}  // note: can't be MUSCLE_NOEXCEPT because we may copy items
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&)
+     * @note can't be MUSCLE_NOEXCEPT because we may copy items
+     */
+   Queue & operator =(Queue && rhs)
+   {
+      if (rhs._queue == rhs._smallQueue) *this = std_move_if_available(rhs);
+                                    else SwapContents(rhs);
+      return *this;
+   }
 #endif
 
    /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
@@ -984,10 +991,10 @@ AddTailAndGet(QQ_SinkItemParam item)
 #ifdef __clang_analyzer__
    assert(ret != NULL);
 #endif
-   *ret = item;
+   *ret = QQ_ForwardItem(item);
    delete [] oldArray;  // must do this AFTER the last reference to (item), in case (item) was part of (oldArray)
 
-   // coverity[use_after_free : FALSE] - (ret) is still a valid pointer beause (ret) never points into (oldArray)
+   // coverity[use_after_free : FALSE] - (ret) is still a valid pointer because (ret) never points into (oldArray)
    return ret;
 }
 
@@ -1074,7 +1081,7 @@ AddHeadAndGet(QQ_SinkItemParam item)
    *ret = QQ_ForwardItem(item);
    delete [] oldArray;  // must be done after all references to (item)!
 
-   // coverity[use_after_free : FALSE] - (ret) is still a valid pointer beause (ret) never points into (oldArray)
+   // coverity[use_after_free : FALSE] - (ret) is still a valid pointer because (ret) never points into (oldArray)
    return ret;
 }
 

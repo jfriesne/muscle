@@ -1638,7 +1638,7 @@ status_t DefaultFileLogger :: EnsureLogFileCreated(const LogCallbackArgs & a)
 #ifdef WIN32
          _lastGetAttributesTime = GetRunTime64();
 #endif
-         _activeLogFileName = logFileName;
+         _activeLogFileName = std_move_if_available(logFileName);
          LogTime(MUSCLE_LOG_DEBUG, "Created Log file [%s]\n", _activeLogFileName());
 
          while(_oldLogFileNames.GetNumItems() >= _maxNumLogFiles)

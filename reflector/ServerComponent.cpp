@@ -38,7 +38,7 @@ static String DemangleTypeName(const char * mangled_name)
 #endif
 
    const int32 doubleColonIdx = ret.IndexOf("::");
-   return (doubleColonIdx >= 0) ? ret.Substring(doubleColonIdx+2) : ret;   // remove namespace prefix
+   return (doubleColonIdx >= 0) ? ret.Substring(doubleColonIdx+2) : std_move_if_available(ret);   // remove namespace prefix
 }
 
 status_t

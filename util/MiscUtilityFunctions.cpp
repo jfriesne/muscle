@@ -93,7 +93,7 @@ static String QuoteAndEscapeStringIfNecessary(const String & s)
 {
    String tmp = s;
    tmp.Replace("\"", "\\\"");
-   return ((tmp.IndexOf(' ') >= 0)||(tmp.IndexOf('\t') >= 0)||(tmp.IndexOf('\r') >= 0)||(tmp.IndexOf('\n') >= 0)) ? tmp.WithPrepend('\"').WithAppend('\"') : tmp;
+   return ((tmp.IndexOf(' ') >= 0)||(tmp.IndexOf('\t') >= 0)||(tmp.IndexOf('\r') >= 0)||(tmp.IndexOf('\n') >= 0)) ? tmp.WithPrepend('\"').WithAppend('\"') : std_move_if_available(tmp);
 }
 
 String UnparseArgs(const Message & argsMsg)
@@ -362,7 +362,7 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
 }
 
 status_t UnparseFile(const Message & readFrom, FILE * file) {return UnparseFileAux(readFrom, file, NULL, 0);}
-String UnparseFile(const Message & readFrom) {String s; return (UnparseFileAux(readFrom, NULL, &s, 0).IsOK()) ? s : "";}
+String UnparseFile(const Message & readFrom) {String s; return UnparseFileAux(readFrom, NULL, &s, 0).IsOK() ? std_move_if_available(s) : GetEmptyString();}
 
 static status_t ParseConnectArgAux(const String & s, uint32 startIdx, uint16 & retPort, bool portRequired)
 {

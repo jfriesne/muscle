@@ -72,7 +72,7 @@ int main(int, char **)
    {
       for (uint32 i=0; i<ARRAYLEN; i++)
       {
-         const int si = (((int)i)-(ARRAYLEN/2));
+         const int si = (((int)i)-(((int)ARRAYLEN)/2));
          origArray16[i]     = si/10;  // divide-by-10 to avoid 16-bit overflow
          origArray32[i]     = si*((int32)1024);
          origArray64[i]     = si*((int64)1024*1024);

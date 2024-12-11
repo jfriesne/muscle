@@ -235,7 +235,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    ReflectServer server;
 
    status_t ret;
-   server.GetAddressRemappingTable() = tempRemaps;
+   server.GetAddressRemappingTable() = std_move_if_available(tempRemaps);
 
    if (maxNodesPerSession != MUSCLE_NO_LIMIT) (void) server.GetCentralState().AddInt32(PR_NAME_MAX_NODES_PER_SESSION, maxNodesPerSession);
    if (maxChildrenPerNode != MUSCLE_NO_LIMIT) (void) server.GetCentralState().AddInt32(PR_NAME_MAX_CHILDREN_PER_NODE, maxChildrenPerNode);
