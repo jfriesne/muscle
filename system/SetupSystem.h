@@ -302,7 +302,7 @@ public:
      * @param buf Must point to a buffer of at least 20 characters that we can write to
      * @returns buf
      */
-   const char * ToString(char * buf) const
+   MUSCLE_NEVER_RETURNS_NULL const char * ToString(char * buf) const
    {
 # if defined(MUSCLE_USE_CPLUSPLUS11_THREADS) || defined(MUSCLE_USE_PTHREADS)
       // _id is a POD value, so generate a good-enough ID from its bytes

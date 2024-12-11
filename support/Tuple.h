@@ -236,12 +236,12 @@ public:
    /** Convenience method -- returns a pointer to the nth item in our tuple.
      * @param which the index of the item-value to return a pointer to
      */
-   MUSCLE_NODISCARD ItemType * GetItemPointer(uint32 which) {return &_items[which];}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL ItemType * GetItemPointer(uint32 which) {return &_items[which];}
 
    /** Convenience method -- returns a read-only pointer to the nth item in our tuple.
      * @param which the index of the item-value to return a pointer to
      */
-   MUSCLE_NODISCARD const ItemType * GetItemPointer(uint32 which) const {return &_items[which];}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const ItemType * GetItemPointer(uint32 which) const {return &_items[which];}
 
    /** Returns a hash code for this Tuple.  Implementing this allows Tuples to be used as keys in Hashtables. */
    MUSCLE_NODISCARD uint32 HashCode() const {return CalculateHashCode(_items);}

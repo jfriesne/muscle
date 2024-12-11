@@ -133,13 +133,12 @@ public:
    }
 
    /** Convenience method:  Returns the state of the (nth) bit, as a boolean.
-     * @param whichBit the index of the bit to retrieve the value of.  Must be less than (NumBits).
+     * @param whichBit the index of the bit to retrieve the value of.
+     * @note if (whichBit) is not less than (NumBits), this method will return false.
      */
    MUSCLE_NODISCARD bool IsBitSet(unsigned int whichBit) const
    {
-      MASSERT(whichBit<NumBits, "PointerAndBits::IsBitSet():  Invalid bit-index!");
-
-      return ((GetDataBitsWord() & GetInternalBitMaskForBitIndex(whichBit)) != 0);
+      return ((whichBit<NumBits)&&((GetDataBitsWord() & GetInternalBitMaskForBitIndex(whichBit)) != 0));
    }
 
    /** Returns this PointerAndBits to its default state (i.e. (NULL, 0)) */

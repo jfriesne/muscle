@@ -47,7 +47,7 @@ public:
      * RTTI info; subclasses may override this to return something prettier,
      * if they wish.
      */
-   MUSCLE_NODISCARD virtual const char * GetTypeName() const;
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL virtual const char * GetTypeName() const;
 
    /**
     * This method is called when this object has been added to

@@ -317,7 +317,7 @@ public:
      * @param priority a PRIORITY_* value
      * @note Negative values will return "Unspecified", and values greater than or equal to NUM_PRIORITIES will return "???"
      */
-   static const char * GetThreadPriorityName(int priority);
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL static const char * GetThreadPriorityName(int priority);
 
    /** Sets the scheduler this thread should be scheduled by.
      * If the thread is currently running, the change will take place immediately; otherwise
@@ -345,20 +345,20 @@ public:
      * @param sched a SCHEDULER_* value
      * @note Negative values will return "Unspecified", and values greater than or equal to NUM_SCHEDULERS will return "???"
      */
-   static const char * GetThreadSchedulerName(int sched);
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL static const char * GetThreadSchedulerName(int sched);
 
 #if defined(MUSCLE_USE_QT_THREADS)
    /** Returns a pointer to the QThread object being used to implement our internal thread.
      * Note that this method is only available when the MUSCLE_USE_QT_THREADS preprocessor macro is defined,
      * since otherwise there is no QThread object in use.
      */
-   MUSCLE_NODISCARD QThread * GetQThread() {return &_thread;}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL QThread * GetQThread() {return &_thread;}
 
    /** Returns a read-only pointer to the QThread object being used to implement our internal thread.
      * Note that this method is only available when the MUSCLE_USE_QT_THREADS preprocessor macro is defined,
      * since otherwise there is no QThread object in use.
      */
-   MUSCLE_NODISCARD const QThread * GetQThread() const {return &_thread;}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const QThread * GetQThread() const {return &_thread;}
 #endif
 
 protected:

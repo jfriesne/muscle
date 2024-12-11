@@ -55,7 +55,7 @@ status_t GetNumberOfProcessors(uint32 & retNumProcessors);
   * system:  ie backslash for Windows, and forward-slash for every
   * other operating system.
   */
-MUSCLE_NODISCARD inline const char * GetFilePathSeparator()
+MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL inline const char * GetFilePathSeparator()
 {
 #ifdef WIN32
    return "\\";

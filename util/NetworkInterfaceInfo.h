@@ -137,7 +137,7 @@ public:
    /** Given a NETWORK_INTERFACE_HARDWARE_TYPE_* value, returns a human-readable string describing the type (eg "Ethernet" or "WiFi")
      * @param hardwareType a NETWORK_INTERFACE_HARDWARE_TYPE_* value
      */
-   MUSCLE_NODISCARD static const char * GetNetworkHardwareTypeString(uint32 hardwareType);
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL static const char * GetNetworkHardwareTypeString(uint32 hardwareType);
 
    /** Comparison Operator.  Returns true iff the two NetworkInterfaceInfos contain the same data as each other in all fields.
      * @param rhs A NetworkInterfaceInfo to compare ourself with

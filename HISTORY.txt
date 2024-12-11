@@ -17,9 +17,12 @@ key:  - new feature
    o Tagged a few non-NULL-returning functions with MUSCLE_NEVER_RETURNS_NULL.
    o BitChord::IsBitSet() now just returns false when passed an invalid
      argument, rather than triggering an assertion failure.
+   o PointerAndBits::IsBitSet() now just returns false when passed an invalid
+     argument, rather than triggering an assertion failure.
+   o Tagged some more methods with MUSCLE_NEVER_RETURNS_NULL where appropriate.
    * The resource-tallying in AbstractReflectSessions::PrintSessionsInfo()
      wasn't working correctly.  Fixed.
-   * Applied fixes for various Coverity warnings
+   * Applied fixes for various Coverity warnings.
    * Fixed a couple of file-handle leaks in SpawnDaemonProcess().
    * Fixed a use-after-free error in MiniMessage's MMMoveField() function.
 

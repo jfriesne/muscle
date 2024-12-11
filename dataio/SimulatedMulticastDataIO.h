@@ -75,7 +75,7 @@ private:
    void EnsureUserUnicastMembershipSetUpToDate();
    status_t EnqueueOutgoingMulticastControlCommand(uint32 whatCode, uint64 now, const IPAddressAndPort & destIAP);
    status_t ParseMulticastControlPacket(const ByteBuffer & buf, uint64 now, uint32 & retWhatCode);
-   MUSCLE_NODISCARD const char * GetUDPSocketTypeName(uint32 which) const;
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * GetUDPSocketTypeName(uint32 which) const;
    MUSCLE_NODISCARD bool IsInEnobufsErrorMode() const;
    void SetEnobufsErrorMode(bool enableErrorMode);
 

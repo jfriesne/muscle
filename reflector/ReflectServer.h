@@ -153,7 +153,7 @@ public:
     * Returns a human-readable string that describes the type of server that is running.
     * @return Default implementation returns "MUSCLE".
     */
-   MUSCLE_NODISCARD virtual const char * GetServerName() const;
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL virtual const char * GetServerName() const;
 
    /** Returns a read-only reference to our table of sessions currently attached to this server (indexed by key-string-pointer). */
    MUSCLE_NODISCARD const Hashtable<const String *, AbstractReflectSessionRef> & GetSessions() const {return _sessions;}

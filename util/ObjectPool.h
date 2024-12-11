@@ -255,7 +255,7 @@ public:
    }
 
    /** Returns the name of the class of objects this pool is designed to hold. */
-   MUSCLE_NODISCARD const char * GetObjectClassName() const {return typeid(Object).name();}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * GetObjectClassName() const {return typeid(Object).name();}
 
    /** Prints this object's state to stdout.  Used for debugging. */
    virtual void PrintToStream() const
@@ -474,7 +474,7 @@ private:
       void SetNextIndex(uint16 nextIndex) {_nextIndex = nextIndex;}
       MUSCLE_NODISCARD uint16 GetNextIndex() const {return _nextIndex;}
 
-      MUSCLE_NODISCARD const char * GetObjectClassName() const {return typeid(Object).name();}
+      MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * GetObjectClassName() const {return typeid(Object).name();}
 
       MUSCLE_NODISCARD const Object & GetObject() const {return _object;}
       MUSCLE_NODISCARD Object & GetObject() {return _object;}
@@ -643,7 +643,7 @@ private:
          }
       }
 
-      MUSCLE_NODISCARD const char * GetObjectClassName() const {return _nodes[0].GetObjectClassName();}
+      MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * GetObjectClassName() const {return _nodes[0].GetObjectClassName();}
 
       MUSCLE_NODISCARD bool HasAvailableNodes() const {return _data.HasAvailableNodes();}
       MUSCLE_NODISCARD bool IsInUse() const           {return _data.IsInUse();}

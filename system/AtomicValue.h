@@ -80,10 +80,10 @@ public:
    MUSCLE_NODISCARD uint32 GetNumValues() const {return ATOMIC_BUFFER_SIZE;}
 
    /** Returns a pointer to our internal-values array.  Don't call this unless you know what you are doing! */
-   MUSCLE_NODISCARD T * GetInternalValuesArray() {return _buffer;}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL T * GetInternalValuesArray() {return _buffer;}
 
    /** Returns a read-only pointer to our internal-values array.  Don't call this unless you know what you are doing! */
-   MUSCLE_NODISCARD const T * GetInternalValuesArray() const {return _buffer;}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const T * GetInternalValuesArray() const {return _buffer;}
 
 private:
    static const uint32 ATOMIC_BUFFER_MASK = ATOMIC_BUFFER_SIZE-1;

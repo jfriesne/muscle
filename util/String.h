@@ -1332,7 +1332,7 @@ private:
    status_t EnsureBufferSize(uint32 newBufLen, bool retainValue, bool allowShrink);
    String ArgAux(const char * buf) const;
    MUSCLE_NODISCARD bool IsArrayDynamicallyAllocated() const {return (_bufferLen>sizeof(_strData._smallBuffer));}
-   MUSCLE_NODISCARD char * GetBuffer() {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL char * GetBuffer() {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
    void ClearSmallBuffer()
    {
       memset(_strData._smallBuffer, 0, sizeof(_strData._smallBuffer));

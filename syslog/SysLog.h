@@ -371,13 +371,13 @@ status_t GetStackTrace(String & retStr, uint32 maxDepth = 64);
  *  @param logLevel A MUSCLE_LOG_* value
  *  @return A pretty human-readable description string such as "Informational" or "Warnings and Errors Only"
  */
-MUSCLE_NODISCARD const char * GetLogLevelName(int logLevel);
+MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * GetLogLevelName(int logLevel);
 
 /** Returns a brief human-readable string for the given log level.
  *  @param logLevel A MUSCLE_LOG_* value
  *  @return A brief human-readable description string such as "info" or "warn"
  */
-MUSCLE_NODISCARD const char * GetLogLevelKeyword(int logLevel);
+MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * GetLogLevelKeyword(int logLevel);
 
 /** Writes a standard text string of the format "[L mm/dd hh:mm:ss]" into (buf).
  *  @param buf Char buffer to write into.  Should be at least 64 chars long.

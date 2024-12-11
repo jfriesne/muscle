@@ -209,7 +209,7 @@ public:
    MUSCLE_NODISCARD bool GetConsoleLogToStderr() const {return _logToStderr;}
 
 private:
-   FILE * GetConsoleOutputStream() const {return _logToStderr ? stderr : stdout;}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL FILE * GetConsoleOutputStream() const {return _logToStderr ? stderr : stdout;}
    bool _firstCall;
    bool _logToStderr;
 };

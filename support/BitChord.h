@@ -65,6 +65,7 @@ public:
    /** Returns the state of the specified bit
      * @param whichBit the index of the bit to query (eg 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
      * @returns true iff the bit was set
+     * @note if (whichBit) is not less than (NumBits), this method will return false.
      */
    MUSCLE_NODISCARD bool IsBitSet(uint32 whichBit) const {return ((IsBitIndexValid(whichBit))&&(IsBitSetUnchecked(whichBit)));}
 
