@@ -127,10 +127,13 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   HashtableIterator(HashtableIterator && rhs) {SwapContentsAux(rhs, true);}
+   HashtableIterator(HashtableIterator && rhs) MUSCLE_NOEXCEPT {SwapContentsAux(rhs, true);}
 
    /** This constructor is declared deleted to keep HashtableIterators from being accidentally associated with temporary objects */
    HashtableIterator(HashtableType && table, uint32 flags = 0) = delete;
+
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
+   HashtableIterator & operator=(HashtableIterator && rhs) {SwapContentsAux(rhs, true); return *this;}
 #endif
 
    /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIteratorAt().
@@ -146,13 +149,6 @@ public:
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    HashtableIterator & operator=(const HashtableIterator & rhs);
-
-#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // workaround for apparent DOxygen generator bug
-# ifndef MUSCLE_AVOID_CPLUSPLUS11
-   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
-   HashtableIterator & operator=(HashtableIterator && rhs) {SwapContentsAux(rhs, true); return *this;}
-# endif
-#endif
 
    /** Advances this iterator by one entry in the table.  */
    void operator++(int)
@@ -3820,6 +3816,7 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::~HashtableIterator()
    if (_owner) _owner->UnregisterIterator(this);
 }
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // workaround for apparent DOxygen generator bug
 template <class KeyType, class ValueType, class HashFunctorType>
 HashtableIterator<KeyType,ValueType,HashFunctorType> &
 HashtableIterator<KeyType,ValueType,HashFunctorType>:: operator=(const HashtableIterator<KeyType,ValueType,HashFunctorType> & rhs)
@@ -3838,6 +3835,7 @@ HashtableIterator<KeyType,ValueType,HashFunctorType>:: operator=(const Hashtable
    }
    return *this;
 }
+#endif
 
 template <class KeyType, class ValueType, class HashFunctorType>
 void
