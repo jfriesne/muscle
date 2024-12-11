@@ -72,8 +72,8 @@ int main(int argc, char ** argv)
       // (doing so doesn't copy the RefCountable they point to, but it
       // does increase the RefCountable's reference count)
       MyClassRef mc4(mc1);
-      MyClassRef mc5(std_move_if_available(mc2));  // std_move_if_available() is here only to make Coverity Scan happy re: performance
-      MyClassRef mc6(mc3);
+      MyClassRef mc5(std_move_if_available(mc2));  // the std_move_if_available() calls are here only because Coverity Scan
+      MyClassRef mc6(std_move_if_available(mc3));  // thinks they improve performance.  Personally I doubt the difference is measurable --jaf
 
       printf("About to exit inner scope\n");
    }

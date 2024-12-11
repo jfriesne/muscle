@@ -215,7 +215,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             if (scratchBuf() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); break;}  // out of memory?
 
             _recvBuffer._offset = 0;
-            _recvBuffer._buffer = (mtuSize<=scratchBuf()->GetNumBytes()) ? scratchBuf : GetByteBufferFromPool(mtuSize);
+            _recvBuffer._buffer = (mtuSize<=scratchBuf()->GetNumBytes()) ? std_move_if_available(scratchBuf) : GetByteBufferFromPool(mtuSize);
             if (_recvBuffer._buffer() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); break;}  // out of memory?
          }
 
