@@ -979,7 +979,7 @@ status_t AssembleBatchMessage(MessageRef & batchMsg, const MessageRef & newMsg, 
       MRETURN_ON_ERROR(newBatchMsg);
       MRETURN_ON_ERROR(newBatchMsg()->AddMessage(PR_NAME_KEYS, prepend?newMsg:batchMsg));
       MRETURN_ON_ERROR(newBatchMsg()->AddMessage(PR_NAME_KEYS, prepend?batchMsg:newMsg));
-      batchMsg = newBatchMsg;
+      batchMsg = std_move_if_available(newBatchMsg);
       return B_NO_ERROR;
    }
 }

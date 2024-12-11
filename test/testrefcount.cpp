@@ -91,7 +91,7 @@ int main(int argc, char ** argv)
          char temp[50]; muscleSprintf(temp, "%i", i);
          TestItemRef tr(new TestItem(temp));
          ConstTestItemRef ctr(tr);
-         ConstTestItemRef t2(ctr);
+         ConstTestItemRef t2(std_move_if_available(ctr));
          (void) q.AddTail(tr);
       }
       printf("Removing refs...\n");

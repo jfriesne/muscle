@@ -253,7 +253,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             if (scratchBuf() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); break;}  // out of memory?
 
             _recvBuffer._offset = 0;
-            _recvBuffer._buffer = (hs<=scratchBuf()->GetNumBytes()) ? scratchBuf : GetByteBufferFromPool(hs);
+            _recvBuffer._buffer = (hs<=scratchBuf()->GetNumBytes()) ? std_move_if_available(scratchBuf) : GetByteBufferFromPool(hs);
             if (_recvBuffer._buffer() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); break;}  // out of memory?
          }
 
@@ -371,7 +371,7 @@ FlattenHeaderAndMessageAux(const MessageRef & msgRef) const
          }
       }
    }
-   return ret() ? ret : FlattenHeaderAndMessage(msgRef);  // the standard approach (every gateway for himself)
+   return ret() ? std_move_if_available(ret) : FlattenHeaderAndMessage(msgRef);  // the standard approach (every gateway for himself)
 }
 
 ByteBufferRef
@@ -400,7 +400,7 @@ FlattenHeaderAndMessage(const MessageRef & msgRef) const
                if (compressedRef())
                {
                   encoding = MUSCLE_MESSAGE_ENCODING_ZLIB_1+enc->GetCompressionLevel()-1;
-                  ret = compressedRef;
+                  ret = std_move_if_available(compressedRef);
                }
                else ret.Reset();  // uh oh, the compressor failed
             }

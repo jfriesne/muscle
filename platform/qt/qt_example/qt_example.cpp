@@ -378,7 +378,7 @@ void ExampleWindow :: UploadLocalState()
    MessageRef uploadMsg = GetMessageFromPool(PR_COMMAND_SETDATA);
    (void) uploadMsg()->AddMessage("qt_example/state", stateMsg);
 
-   _localState = stateMsg;
+   _localState = std_move_if_available(stateMsg);
    if (_isConnected) (void) _mtt.SendMessageToSessions(uploadMsg);
 }
 

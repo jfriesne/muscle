@@ -72,7 +72,7 @@ int main(int argc, char ** argv)
       // (doing so doesn't copy the RefCountable they point to, but it
       // does increase the RefCountable's reference count)
       MyClassRef mc4(mc1);
-      MyClassRef mc5(mc2);
+      MyClassRef mc5(std_move_if_available(mc2));  // std_move_if_available() is here only to make Coverity Scan happy re: performance
       MyClassRef mc6(mc3);
 
       printf("About to exit inner scope\n");

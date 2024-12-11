@@ -81,7 +81,7 @@ ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const Messag
             if (compressedRef())
             {
                encoding = MUSCLE_MESSAGE_ENCODING_ZLIB_1+enc->GetCompressionLevel()-1;
-               retBuf = compressedRef;
+               retBuf = std_move_if_available(compressedRef);
             }
             else retBuf.Reset();  // uh oh, the compressor failed
          }

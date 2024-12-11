@@ -127,7 +127,7 @@ MessageRef DeflateMessage(const MessageRef & msgRef, int compressionLevel, bool 
       if ((defMsg())&&(buf()))
       {
          buf = DeflateByteBuffer(*buf(), compressionLevel);
-         if ((buf())&&(defMsg()->AddFlat(MUSCLE_ZLIB_FIELD_NAME_STRING, buf).IsOK())&&((force)||(defMsg()->FlattenedSize() < msgRef()->FlattenedSize()))) ret = defMsg;
+         if ((buf())&&(defMsg()->AddFlat(MUSCLE_ZLIB_FIELD_NAME_STRING, buf).IsOK())&&((force)||(defMsg()->FlattenedSize() < msgRef()->FlattenedSize()))) ret = std_move_if_available(defMsg);
       }
    }
    return ret;
@@ -150,7 +150,7 @@ MessageRef InflateMessage(const MessageRef & msgRef)
          if ((bufRef())&&(infMsg()->UnflattenFromByteBuffer(bufRef).IsOK()))
          {
             infMsg()->what = msgRef()->what;  // do this after UnflattenFromByteBuffer(), so that the outer 'what' is the one that gets used
-            ret = infMsg;
+            ret = std_move_if_available(infMsg);
          }
       }
    }

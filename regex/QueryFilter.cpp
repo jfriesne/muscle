@@ -193,7 +193,7 @@ bool MessageQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNo
    if (msg()->FindMessage(GetFieldName(), GetIndex(), subMsg).IsError()) return false;
    if (_childFilter() == NULL) return true;
 
-   ConstMessageRef constSubMsg = subMsg;
+   ConstMessageRef constSubMsg = std_move_if_available(subMsg);
    return _childFilter()->Matches(constSubMsg, optNode);
 }
 

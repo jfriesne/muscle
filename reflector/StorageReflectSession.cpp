@@ -158,7 +158,7 @@ AttachedToServer()
          (void) _parameters.AddInt32(PR_NAME_PRIVILEGE_BITS, privBits);
       }
 
-      _sessionDir = sessionNode;
+      _sessionDir = std_move_if_available(sessionNode);
       status_t ret;
       if (hostDir()->PutChild(_sessionDir, this, this).IsError(ret)) {Cleanup(); return ret;}
 

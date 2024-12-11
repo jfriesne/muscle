@@ -86,7 +86,7 @@ int main(int argc, char ** argv)
       if (infBuf())
       {
          LogTime(MUSCLE_LOG_INFO, "Zlib-inflated file data from " INT32_FORMAT_SPEC " to " UINT32_FORMAT_SPEC " bytes.\n", buf()->GetNumBytes(), infBuf()->GetNumBytes());
-         buf = infBuf;
+         buf = std_move_if_available(infBuf);
       }
 #endif
 

@@ -1681,7 +1681,7 @@ status_t Message :: FindTag(const String & fieldName, uint32 index, ConstRefCoun
 {
    RefCountableRef rcRef;
    MRETURN_ON_ERROR(FindTag(fieldName, index, rcRef));
-   tag = rcRef;
+   tag = std_move_if_available(rcRef);
    return B_NO_ERROR;
 }
 
@@ -1704,7 +1704,7 @@ status_t Message :: FindMessage(const String & fieldName, uint32 index, ConstMes
    MessageRef mRef;
    MRETURN_ON_ERROR(FindMessage(fieldName, index, mRef));
 
-   ref = mRef;
+   ref = std_move_if_available(mRef);
    return B_NO_ERROR;
 }
 

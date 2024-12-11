@@ -142,7 +142,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             MRETURN_ON_ERROR(newMsg()->FindDataPointer(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, &_recvBuf, (uint32*)&_recvBufLength));
 
             _recvBufByteOffset = 0;
-            _recvMsgRef        = newMsg;
+            _recvMsgRef        = std_move_if_available(newMsg);
          }
 
          const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(&((char*)_recvBuf)[_recvBufByteOffset], muscleMin(maxBytes, (uint32)(_recvBufLength-_recvBufByteOffset))) : io_status_t(B_BAD_OBJECT);
