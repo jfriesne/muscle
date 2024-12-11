@@ -66,11 +66,7 @@ public:
      * @param whichBit the index of the bit to query (eg 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)
      * @returns true iff the bit was set
      */
-   MUSCLE_NODISCARD bool IsBitSet(uint32 whichBit) const
-   {
-      MASSERT(whichBit < NumBits, "BitChord::IsBitSet:  whichBit was out of range!\n");
-      return IsBitSetUnchecked(whichBit);
-   }
+   MUSCLE_NODISCARD bool IsBitSet(uint32 whichBit) const {return ((IsBitIndexValid(whichBit))&&(IsBitSetUnchecked(whichBit)));}
 
    /** Sets the state of the specified bit to 1.
      * @param whichBit the index of the bit to set to 1 (eg 0 indicates the first bit, 1 indicates the second bit, 2 indicates the third bit, and so on)

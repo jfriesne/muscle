@@ -15,6 +15,8 @@ key:  - new feature
    - Added std_move_if_available() and std_forward_if_available() macros
      so I can use those calls without breaking pre-C++11 compatibility.
    o Tagged a few non-NULL-returning functions with MUSCLE_NEVER_RETURNS_NULL.
+   o BitChord::IsBitSet() now just returns false when passed an invalid
+     argument, rather than triggering an assertion failure.
    * The resource-tallying in AbstractReflectSessions::PrintSessionsInfo()
      wasn't working correctly.  Fixed.
    * Applied fixes for various Coverity warnings
