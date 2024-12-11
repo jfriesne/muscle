@@ -199,7 +199,7 @@ public:
    /** Returns this iterator's HTIT_FLAG_* bit-chord value. */
    MUSCLE_NODISCARD uint32 GetFlags() const {return _flags;}
 
-   /** Sets or unsets the HTIT_FLAG_BACWARDS flag on this iterator.
+   /** Sets or unsets the HTIT_FLAG_BACKWARDS flag on this iterator.
      * @param backwards If true, this iterator will be set to iterate backwards from wherever it is currently;
      *                  if false, this iterator will be set to iterate forwards from wherever it is currently.
      */
