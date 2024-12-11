@@ -5,12 +5,14 @@
 
 using namespace muscle;
 
+// Note that I'm using a for-loop instead of a while(1) only to
+// convince Coverity Scan that (before) can't possibly overflow.
 #define TEST_CONVERSION(fromType, toType)     \
 {                                             \
     int64 before       = 1;                   \
     int64 after        = 0;                   \
     int64 afterRoundUp = 0;                   \
-    while(1)                                  \
+    for (int i=0; i<15; i++)                  \
     {                                         \
        after = fromType##To##toType(before);  \
        afterRoundUp = fromType##To##toType##RoundUp(before); \
