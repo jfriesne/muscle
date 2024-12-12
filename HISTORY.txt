@@ -14,6 +14,8 @@ key:  - new feature
      DemandConstructedObject class.
    - Added std_move_if_available() and std_forward_if_available() macros
      so I can use those calls without breaking pre-C++11 compatibility.
+   - Added a Plunder() method to the Queue class, and updated the move-ctor
+     and move-assignment-operators to use it.
    o Tagged a few non-NULL-returning functions with MUSCLE_NEVER_RETURNS_NULL.
    o BitChord::IsBitSet() now just returns false when passed an invalid
      argument, rather than triggering an assertion failure.

@@ -69,24 +69,20 @@ public:
    }
 
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   Queue(Queue && rhs)  // note:  can't be MUSCLE_NO_EXCEPT because we may copy items
+   Queue(Queue && rhs) MUSCLE_NOEXCEPT
       : _queue(NULL)
       , _queueSize(0)
       , _itemCount(0)
       , _headIndex(0)  // initialization not strictly necessary, but
       , _tailIndex(0)  // here anyway to keep the static analyzers happy
    {
-      if (rhs._queue == rhs._smallQueue) *this = std_move_if_available(rhs);
-                                    else SwapContents(rhs);
+      Plunder(rhs);
    }
 
-   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&)
-     * @note can't be MUSCLE_NOEXCEPT because we may copy items
-     */
-   Queue & operator =(Queue && rhs)
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
+   Queue & operator =(Queue && rhs) MUSCLE_NOEXCEPT
    {
-      if (rhs._queue == rhs._smallQueue) *this = std_move_if_available(rhs);
-                                    else SwapContents(rhs);
+      Plunder(rhs);
       return *this;
    }
 #endif
@@ -784,6 +780,23 @@ public:
      * @note Don't call this method unless you know what you are doing!
      */
    ItemType * ReleaseRawDataArray(uint32 * optRetArrayLen = NULL);
+
+   /** Steals the contents of (rhs) for our own use.
+     * @param rhs the Queue to plunder.  On return, (rhs) will be empty,
+     *            and this Queue will contain the contents that (rhs) previously contained.
+     */
+   void Plunder(Queue & rhs) MUSCLE_NOEXCEPT
+   {
+      if (rhs._queue == rhs._smallQueue)
+      {
+         const uint32 rhsSize = rhs.GetNumItems();  // guaranteed to be small enough for the _smallQueue
+         (void) EnsureSize(rhsSize, true);          // set our size to match (rhs)'s -- guaranteed not to fail
+         for (uint32 i=0; i<rhsSize; i++) muscleSwap((*this)[i], rhs[i]);  // and then steal his goodies
+      }
+      else SwapContents(rhs);
+
+      rhs.Clear();
+   }
 
 private:
    /** Returns true iff we need to set our ItemType objects to their default-constructed state when we're done using them */
