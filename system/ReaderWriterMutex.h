@@ -134,6 +134,10 @@ public:
      *                     or a timestamp value (e.g. GetRunTime64()+SecondsToMicros(1)) for a finite timeout,
      *                     or pass MUSCLE_TIME_NEVER (the default value) to have no timeout.
      * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the lock could not be locked for some reason.
+     * @note if you call this method while your thread already has read-only access to this ReaderWriterMutex,
+     *       that won't cause a deadlock, but the lock-upgrade process does involve temporarily unlocking your thread's
+     *       existing read-only-lock(s) and then re-locking them again, which means that is is possible that some other
+     *       thread might gain write-access and modify the data protected by this ReaderWriterMutex before this method returns.
      */
    status_t LockReadWrite(uint64 optTimeoutAt = MUSCLE_TIME_NEVER) const
 #endif
