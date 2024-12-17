@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.44 - Released 12/16/2024
    - Added an optional human-readable name field to ReaderWriterMutex.
    - Added a GetInsecurePseudoRandomNumber() function to MiscUtilityFunctions,
      just to minimize the number of direct calls to rand().

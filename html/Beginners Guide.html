@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
    <H1>MUSCLE Overview and Beginner's Guide</H1>
-   <H4>v9.43 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 11/22/2024</H4>
+   <H4>v9.44 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 12/16/2024</H4>
    <A HREF="https://public.msli.com/lcs/muscle/html/index.html">Click here for DOxygen class API documentation</A><p>
    <A HREF="https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/site/index.html">Click here for the MUSCLE-by-example tour</A>
 </HEAD>
@@ -25,7 +25,7 @@ This document assumes you are familiar with C++ programming programming.  Howeve
   <LI> <b>Efficient:</b>  Messages sent to the server may be broadcast to all connected clients, or multicast intelligently using pattern-matching and/or boolean filtering logic. </LI>
   <LI> <b>Portable:</b>  All code (except for some platform-specific convenience classes in the support folders) uses only standard C++ and BSD socket calls, and should compile and run under any modern OS with minimal changes.  All code has been compiled and tested on 32-bit and 64-bit platforms including Linux, MacOS/X, Windows, and BSD. </LI>
   <LI> <b>Flexible:</b>  Clients may store data (in the form of Messages) in the server's RAM, using a filesystem-like node hierarchy.  Other clients may "subscribe" to this server-side data, and the server will then automatically send them updates to the data as it is changed.  Subscriptions are also specified via wildcarding, for maximum flexibility.  Server-side filtering of results using boolean tests of their content is also supported.</LI>
-  <LI> <b>Open:</b>  All source code is licensed under the BSD Open Source License, and is freely distributable and usable for any purpose.  The source code contains many useful classes, including platform-neutral analogs to Be's BMessage, BDataIO, BFlattenable, and BString classes.  In addition, the archive also includes handy double-ended-queue, Hashtable, Reference-counting, and "I/O gateway" classes.</LI>
+  <LI> <b>Open:</b>  All source code is licensed under the BSD Open Source License, and is freely distributable and usable for any purpose.  The source code contains many useful classes, including platform-neutral analogs to Be's BMessage, BDataIO, BFlattenable, and BString classes.  In addition, the archive also includes handy double-ended-Queue, Hashtable, Reference-counting, and "I/O gateway" classes.</LI>
   <LI> <b>Customizable:</b>  All server-side session handlers are implemented by subclassing a standard interface (AbstractReflectSession) so that they can be easily augmented or replaced with custom logic.  Message serialization and low-level I/O is handled in a similar fashion, making it easy to replace the byte-stream format or transport mechanism with your own. </LI>
   <LI> <b>Scalable:</b>  A vanilla MUSCLE server can handle up to 1024 simultaneous TCP connections (or more than that if you enable -DMUSCLE_USE_POLL or -DMUSCLE_USE_KQUEUE or -DMUSCLE_USE_EPOLL).  Additional simultaneous connections can be supported in custom MUSCLE servers by adding multiple threads or processes</LI>
   <LI> <b>Convenient:</b>  For selected environments, including Windows, Qt, Java, Delphi, and Python, special utility classes are provided to hide the synchronous TCP messaging interface behind an asynchronous send-and-receive-messages API that's easier to deal with.</LI>
