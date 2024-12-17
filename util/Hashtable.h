@@ -127,7 +127,7 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   HashtableIterator(HashtableIterator && rhs) MUSCLE_NOEXCEPT {SwapContentsAux(rhs, true);}
+   HashtableIterator(HashtableIterator && rhs) MUSCLE_NOEXCEPT;
 
    /** This constructor is declared deleted to keep HashtableIterators from being accidentally associated with temporary objects */
    HashtableIterator(HashtableType && table, uint32 flags = 0) = delete;
@@ -3818,6 +3818,21 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::~HashtableIterator()
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS  // workaround for apparent DOxygen generator bug
 template <class KeyType, class ValueType, class HashFunctorType>
+HashtableIterator<KeyType,ValueType,HashFunctorType>::HashtableIterator(HashtableIterator && rhs) MUSCLE_NOEXCEPT
+   : _iterCookie(NULL)
+   , _currentKey(NULL)
+   , _currentVal(NULL)
+   , _flags(0)
+   , _prevIter(NULL)  // just to keep clang-tidy happy
+   , _nextIter(NULL)  // just to keep clang-tidy happy
+   , _owner(NULL)
+   , _scratchSpace(NULL)  // just to keep clang-tidy happy
+   , _okayToUnsetThreadID(false)
+{
+   SwapContentsAux(rhs, true);
+}
+
+template <class KeyType, class ValueType, class HashFunctorType>
 HashtableIterator<KeyType,ValueType,HashFunctorType> &
 HashtableIterator<KeyType,ValueType,HashFunctorType>:: operator=(const HashtableIterator<KeyType,ValueType,HashFunctorType> & rhs)
 {
@@ -3851,11 +3866,7 @@ HashtableIterator<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableI
       {
          _flags              = rhs._flags;
          _owner              = rhs._owner;
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-         _scratchKeyAndValue = std::move(rhs._scratchKeyAndValue);
-#else
-         _scratchKeyAndValue = rhs._scratchKeyAndValue;
-#endif
+         _scratchKeyAndValue = std_move_if_available(rhs._scratchKeyAndValue);
          rhs._owner          = NULL;  // no point in re-registering (rhs) if he's going away soon anyway
       }
       else
@@ -3875,6 +3886,7 @@ HashtableIterator<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableI
          if (rhs._owner) rhs._owner->RegisterIterator(&rhs, thisIterCookie);
                     else rhs._iterCookie = NULL;  // no owner == no data
       }
+      else muscleSwap(_iterCookie, rhs._iterCookie);
 
       UpdateKeyAndValuePointers();
       rhs.UpdateKeyAndValuePointers();

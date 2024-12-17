@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Fixed a bug in HashtableIterator's move-operator that could cause
+     a moved-into HashtableIterator not to point to the expected content.
+
 9.44 - Released 12/16/2024
    - Added an optional human-readable name field to ReaderWriterMutex.
    - Added a GetInsecurePseudoRandomNumber() function to MiscUtilityFunctions,
