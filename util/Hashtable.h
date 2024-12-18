@@ -3817,6 +3817,8 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::~HashtableIterator()
 }
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS  // workaround for apparent DOxygen generator bug
+
+# ifndef MUSCLE_AVOID_CPLUSPLUS11
 template <class KeyType, class ValueType, class HashFunctorType>
 HashtableIterator<KeyType,ValueType,HashFunctorType>::HashtableIterator(HashtableIterator && rhs) MUSCLE_NOEXCEPT
    : _iterCookie(NULL)
@@ -3831,6 +3833,7 @@ HashtableIterator<KeyType,ValueType,HashFunctorType>::HashtableIterator(Hashtabl
 {
    SwapContentsAux(rhs, true);
 }
+# endif
 
 template <class KeyType, class ValueType, class HashFunctorType>
 HashtableIterator<KeyType,ValueType,HashFunctorType> &
