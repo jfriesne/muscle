@@ -2023,14 +2023,14 @@ String HexBytesToAnnotatedString(const ConstByteBufferRef & bbRef, const char * 
    return HexBytesToAnnotatedString(bbRef()?bbRef()->GetBuffer():NULL, bbRef()?bbRef()->GetNumBytes():0, optDesc, numColumns);
 }
 
-String HexBytesToString(const uint8 * buf, uint32 numBytes)
+String HexBytesToString(const uint8 * buf, uint32 numBytes, bool withSpaces)
 {
    String ret;
-   if (ret.Prealloc(numBytes*3).IsOK())
+   if (ret.Prealloc(numBytes*(withSpaces?3:2)).IsOK())
    {
       for (uint32 i=0; i<numBytes; i++)
       {
-         if (i > 0) ret += ' ';
+         if ((withSpaces)&&(i > 0)) ret += ' ';
          char b[32]; muscleSprintf(b, "%02x", buf[i]);
          ret += b;
       }
@@ -2038,26 +2038,26 @@ String HexBytesToString(const uint8 * buf, uint32 numBytes)
    return ret;
 }
 
-String HexBytesToString(const ConstByteBufferRef & bbRef)
+String HexBytesToString(const ConstByteBufferRef & bbRef, bool withSpaces)
 {
-   return bbRef() ? HexBytesToString(*bbRef()) : String("(null)");
+   return bbRef() ? HexBytesToString(*bbRef(), withSpaces) : String("(null)");
 }
 
-String HexBytesToString(const ByteBuffer & bb)
+String HexBytesToString(const ByteBuffer & bb, bool withSpaces)
 {
-   return HexBytesToString(bb.GetBuffer(), bb.GetNumBytes());
+   return HexBytesToString(bb.GetBuffer(), bb.GetNumBytes(), withSpaces);
 }
 
-String HexBytesToString(const Queue<uint8> & bytes)
+String HexBytesToString(const Queue<uint8> & bytes, bool withSpaces)
 {
    const uint32 numBytes = bytes.GetNumItems();
 
    String ret;
-   if (ret.Prealloc(numBytes*3).IsOK())
+   if (ret.Prealloc(numBytes*(withSpaces?3:2)).IsOK())
    {
       for (uint32 i=0; i<numBytes; i++)
       {
-         if (i > 0) ret += ' ';
+         if ((withSpaces)&&(i > 0)) ret += ' ';
          char b[32]; muscleSprintf(b, "%02x", bytes[i]);
          ret += b;
       }

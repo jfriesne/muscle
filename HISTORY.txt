@@ -5,6 +5,14 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added the IncrementalHashCalculator class and related utility
+     functions, in util/IncrementalHashCalculator.{cpp,h}.
+   - Added an optional (withSpaces) argument to the HexBytesToString()
+     and ByteBuffer::ToHexString() methods.
+   - Added Base64Encode() and Base64Decode() functions to
+     MiscUtilityFunctions.{cpp,h}, based on John Walker's Base64 code.
+   o Renamed ParseHexBytes() to HexBytesFromString(), and updated it
+     to also handle hex-strings without spaces (e.g. "015A2B66").
    * Fixed a bug in HashtableIterator's move-operator that could cause
      a moved-into HashtableIterator not to point to the expected content.
 

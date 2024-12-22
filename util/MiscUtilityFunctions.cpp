@@ -921,7 +921,7 @@ String DenybbleizeString(const String & ns)
    return (DenybbleizeData(ns, outBuf).IsOK()) ? String((const char *) outBuf.GetBuffer(), outBuf.GetNumBytes()) : String();
 }
 
-ByteBufferRef ParseHexBytes(const char * buf)
+ByteBufferRef HexBytesFromString(const char * buf)
 {
    ByteBufferRef bb = GetByteBufferFromPool((uint32)strlen(buf));
    if (bb())
@@ -956,7 +956,19 @@ ByteBufferRef ParseHexBytes(const char * buf)
                }
                b[count++] = c;
             }
-            else b[count++] = (uint8) strtol(next, NULL, 16);
+            else
+            {
+               // handle the case where multiple hex-digit-pairs are squished together (e.g. "1A7EF7")
+               const size_t numCharsInWord = strlen(next);
+               for (size_t i=0; i<numCharsInWord; i+=2)
+               {
+                  char temp[3];
+                  temp[0] = next[i];   // guaranteed not to be NUL because (i<numCharsInWord)
+                  temp[1] = next[i+1]; // might be NUL, and that's ok
+                  temp[2] = '\0';
+                  b[count++] = (uint8) strtol(temp, NULL, 16);
+               }
+            }
          }
       }
       bb()->TruncateToLength(count);
@@ -1118,6 +1130,143 @@ float GetSystemMemoryUsagePercentage()
    if (GlobalMemoryStatusEx(&stat)) return ((float)stat.dwMemoryLoad)/100.0f;
 #endif
    return -1.0f;
+}
+
+/** This code was adapted from John Walker's Base64 code on Freecode.com */
+String Base64Encode(const uint8 * inBytes, uint32 numInBytes)
+{
+   static uint8 _dtable[256] = {0};
+   static bool _firstTime = true;
+
+   if (_firstTime)
+   {
+      for(int i=0;i<9;i++)
+      {
+         _dtable[i]      = 'A'+i;
+         _dtable[i+9]    = 'J'+i;
+         _dtable[26+i]   = 'a'+i;
+         _dtable[26+i+9] = 'j'+i;
+      }
+      for(int i=0;i<8;i++)
+      {
+         _dtable[i+18]    = 'S'+i;
+         _dtable[26+i+18] = 's'+i;
+      }
+      for(int i=0;i<10;i++) _dtable[52+i]= '0'+i;
+      _dtable[62]= '+';
+      _dtable[63]= '/';
+
+      _firstTime = false;
+   }
+
+   String ret;
+   while(numInBytes > 0)
+   {
+      uint8 igroup[3], ogroup[4];
+      int c,n;
+
+      igroup[0]= igroup[1]= igroup[2]= 0;
+      for(n=0;n<3;n++)
+      {
+         c=(numInBytes>0)?(int)(*inBytes):EOF;
+         if (numInBytes > 0) {inBytes++; numInBytes--;}
+         if(c==EOF) break;
+         igroup[n]=(uint8)c;
+      }
+      if(n>0)
+      {
+         ogroup[0]=_dtable[igroup[0]>>2];
+         ogroup[1]=_dtable[((igroup[0]&3)<<4)|(igroup[1]>>4)];
+         ogroup[2]=_dtable[((igroup[1]&0xF)<<2)|(igroup[2]>>6)];
+         ogroup[3]=_dtable[igroup[2]&0x3F];
+         if(n<3)
+         {
+            ogroup[3]='=';
+            if(n<2) ogroup[2]='=';
+         }
+         for(int i=0;i<4;i++) ret += (char) ogroup[i];
+      }
+   }
+   return ret;
+}
+
+// NOLINTEND
+
+/** This code was adapted from John Walker's Base64 code on Freecode.com */
+static ByteBufferRef Base64DecodeAux(const char * base64String, uint32 numBytes)
+{
+   static uint8 _dtable[256] = {0};
+   static bool _firstTime = true;
+   if (_firstTime)
+   {
+      memset(_dtable, 0x80, sizeof(_dtable));
+      for (int i='A'; i<='I'; i++) _dtable[i] =  0+(i-'A');
+      for (int i='J'; i<='R'; i++) _dtable[i] =  9+(i-'J');
+      for (int i='S'; i<='Z'; i++) _dtable[i] = 18+(i-'S');
+      for (int i='a'; i<='i'; i++) _dtable[i] = 26+(i-'a');
+      for (int i='j'; i<='r'; i++) _dtable[i] = 35+(i-'j');
+      for (int i='s'; i<='z'; i++) _dtable[i] = 44+(i-'s');
+      for (int i='0'; i<='9'; i++) _dtable[i] = 52+(i-'0');
+
+      _dtable[(int) '+'] = 62;
+      _dtable[(int) '/'] = 63;
+      _dtable[(int) '='] = 0;
+
+      _firstTime  = false;
+   }
+
+
+   uint32 rawBytesCount = (numBytes*3)/4;
+   while(rawBytesCount%4) rawBytesCount++;
+
+   ByteBufferRef ret = GetByteBufferFromPool(rawBytesCount);
+   MRETURN_ON_ERROR(ret);
+
+   uint8 * out = ret()->GetBuffer();
+   uint32 outIdx = 0;
+
+   const uint8 * start = (const uint8 *) base64String;
+   const uint8 * in    = start;
+   while((in-start)<numBytes)
+   {
+      uint8 a[4], b[4];
+      for (uint32 i=0; i<4; i++)
+      {
+         const uint8 c = *in++;
+         if (c == '\0') break;
+         if (_dtable[c] & 0x80) return B_BAD_DATA;
+
+         a[i] = c;
+         b[i] = (uint8) _dtable[c];
+      }
+
+      const uint8 o[3] = {(uint8)((b[0]<<2)|(b[1]>>4)), (uint8)((b[1]<<4)|(b[2]>>2)), (uint8)((b[2]<<6)|b[3])};
+
+      const uint32 numOsToWrite = (a[2] == '=') ? 1 : (a[3] == '=' ? 2 : 3);
+      if ((outIdx+numOsToWrite) > ret()->GetNumBytes()) return B_LOGIC_ERROR;  // paranoia:  should never happen
+      memcpy(&out[outIdx], o, numOsToWrite);
+      outIdx += numOsToWrite;
+      if (numOsToWrite < 3) break;
+   }
+
+   (void) ret()->SetNumBytes(outIdx, true);  // remove any unused trailing bytes
+   return ret;
+}
+
+ByteBufferRef Base64Decode(const char * base64String, uint32 maxBytes)
+{
+   if (base64String == NULL) base64String = "";
+
+   // This is faster than calling strlen(base64String) when (maxBytes) is small
+   const char * b = base64String;
+   while((*b)&&((b-base64String)<maxBytes)) b++;
+
+   return Base64DecodeAux(base64String, muscleMin(maxBytes, (uint32) (b-base64String)));
+}
+
+ByteBufferRef Base64Decode(const String & base64String)
+{
+   return Base64DecodeAux(base64String(), base64String.Length());
 }
 
 } // end namespace muscle

@@ -539,32 +539,72 @@ String HexBytesToAnnotatedString(const Queue<uint8> & bytes, const char * optDes
   * @returns a ByteBufferRef containing the corresponding binary data,
   *          or a NULL ByteBufferRef on failure (out of memory?)
   */
-ByteBufferRef ParseHexBytes(const char * buf);
+ByteBufferRef HexBytesFromString(const char * buf);
 
 /** Given a byte buffer, returns an ASCII representation of it.
   * @param buf A buffer of bytes
   * @param numBytes The number of bytes that (buf) points to.
-  * @returns a String with human-readable contents:  eg "5F A3 A2"...
+  * @param withSpaces if left as true (the default value) then the returned
+  *                   String will contain a space between each hex-digit-pair.
+  *                   If false, then the hex-digit-pairs won't be separated by spaces.
+  * @returns a String with human-readable contents:  eg "5F A3 A2" (if withSpaces was
+  *          pass as true) or "5FA3A2" (if withSpaces is passed as false)
   */
-String HexBytesToString(const uint8 * buf, uint32 numBytes);
+String HexBytesToString(const uint8 * buf, uint32 numBytes, bool withSpaces = true);
 
 /** Given a reference to a byte buffer, returns an ASCII representation of it.
   * @param bbRef Reference to a buffer of bytes.
-  * @returns a String with human-readable contents:  eg "5F A3 A2"...
+  * @param withSpaces if left as true (the default value) then the returned
+  *                   String will contain a space between each hex-digit-pair.
+  *                   If false, then the hex-digit-pairs won't be separated by spaces.
+  * @returns a String with human-readable contents:  eg "5F A3 A2" (if withSpaces was
+  *          pass as true) or "5FA3A2" (if withSpaces is passed as false)
   */
-String HexBytesToString(const ConstByteBufferRef & bbRef);
+String HexBytesToString(const ConstByteBufferRef & bbRef, bool withSpaces = true);
 
 /** Given a byte buffer, returns an ASCII representation of it.
   * @param bb a buffer of bytes.
-  * @returns a String with human-readable contents:  eg "5F A3 A2"...
+  * @param withSpaces if left as true (the default value) then the returned
+  *                   String will contain a space between each hex-digit-pair.
+  *                   If false, then the hex-digit-pairs won't be separated by spaces.
+  * @returns a String with human-readable contents:  eg "5F A3 A2" (if withSpaces was
+  *          pass as true) or "5FA3A2" (if withSpaces is passed as false)
   */
-String HexBytesToString(const ByteBuffer & bb);
+String HexBytesToString(const ByteBuffer & bb, bool withSpaces = true);
 
 /** Given a Queue of uint8s, returns an ASCII representation of it.
   * @param bytes a Queue of uint8s.
-  * @returns a String with human-readable contents:  eg "5F A3 A2"...
+  * @param withSpaces if left as true (the default value) then the returned
+  *                   String will contain a space between each hex-digit-pair.
+  *                   If false, then the hex-digit-pairs won't be separated by spaces.
+  * @returns a String with human-readable contents:  eg "5F A3 A2" (if withSpaces was
+  *          pass as true) or "5FA3A2" (if withSpaces is passed as false)
   */
-String HexBytesToString(const Queue<uint8> & bytes);
+String HexBytesToString(const Queue<uint8> & bytes, bool withSpaces = true);
+
+/** Returns a Base-64-encoded string representing the passed-in byte array.
+  * @param inBytes Pointer to the bytes to encode
+  * @param numInBytes The number of bytes pointed to by (inBytes)
+  * @returns the Base-64 string.
+  */
+String Base64Encode(const uint8 * inBytes, uint32 numInBytes);
+
+/** Given a Base-64-encoded string (e.g. as previously returned by Base64Encode())
+  * returns the corresponding original (unencoded) data, or an error if the base64
+  * string could not be encoded
+  * @param base64String a base64-encoded string.
+  */
+ByteBufferRef Base64Decode(const String & base64String);
+
+/** Same as above, but the String is passed as a pointer-to-char rather than as a String object.
+  * @param base64String Pointer to an optionally-NUL-terminated base64-encoded string.
+  * @param maxBytes the maximum number of bytes to parse.  Defaults to MUSCLE_NO_LIMIT,
+  *                 which is equivalent to passing in strlen(base64String).
+  * @note if (base64String) is not NUL-terminated, then it is up to the caller to pass
+  *       in an appropriate value for (maxBytes).
+  * @note if (base64String) is NULL, it will be treated as an zero-byte string ("")
+  */
+ByteBufferRef Base64Decode(const char * base64String, uint32 maxBytes = MUSCLE_NO_LIMIT);
 
 /** A convenience method, useful to optimally create a single PR_COMMAND_BATCH
   * Message out of a set of zero or more other Messages.  Here's how it works:

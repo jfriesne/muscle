@@ -262,7 +262,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
                      if (outBuf() == NULL) outBuf = GetByteBufferFromPool();
 
                      ByteBufferRef nextBuf;
-                     if (g_useHex) nextBuf = ParseHexBytes(b());
+                     if (g_useHex) nextBuf = HexBytesFromString(b());
                      else
                      {
                         nextBuf = GetByteBufferFromPool(b.FlattenedSize(), (const uint8 *) b());

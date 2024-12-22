@@ -25,9 +25,9 @@ int main(int argc, char ** argv)
    printf("And now, here it is as rendered by HexBytesToString():  [%s]\n", hexBytesStr());
 
    printf("\n");
-   ByteBufferRef parseHexBytesStr = ParseHexBytes(hexBytesStr());
-   if (parseHexBytesStr()) printf("Here's the result of parsing that previous string back using ParseHexBytes(): [%s]\n", parseHexBytesStr()->GetBuffer());
-                      else printf("ParseHexBytes() failed!?\n");
+   ByteBufferRef parseHexBytesStr = HexBytesFromString(hexBytesStr());
+   if (parseHexBytesStr()) printf("Here's the result of parsing that previous string back using HexBytesFromString(): [%s]\n", parseHexBytesStr()->GetBuffer());
+                      else printf("HexBytesFromString() failed!?\n");
 
    printf("\n");
    String nybbleizedBytes;

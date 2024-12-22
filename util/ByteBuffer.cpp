@@ -145,9 +145,9 @@ void ByteBuffer :: PrintToStream(uint32 maxBytesToPrint, uint32 numColumns, FILE
    PrintHexBytes(GetBuffer(), muscleMin(maxBytesToPrint, GetNumBytes()), "ByteBuffer", numColumns, optFile);
 }
 
-String ByteBuffer :: ToHexString(uint32 maxBytesToInclude) const
+String ByteBuffer :: ToHexString(uint32 maxBytesToInclude, bool withSpaces) const
 {
-   return HexBytesToString(GetBuffer(), muscleMin(maxBytesToInclude, GetNumBytes()));
+   return HexBytesToString(GetBuffer(), muscleMin(maxBytesToInclude, GetNumBytes()), withSpaces);
 }
 
 String ByteBuffer :: ToAnnotatedHexString(uint32 maxBytesToInclude, uint32 numColumns) const

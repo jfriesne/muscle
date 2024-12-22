@@ -122,8 +122,10 @@ public:
 
    /** Returns the contents of this ByteBuffer as a human-readable hexadecimal string
      * @param maxBytesToInclude optional maximum number of byte-values to include in the string.  Defaults to MUSCLE_NO_LIMIT.
+     * @param withSpaces if true (the default) then the hex-digit pairs in the returned String will be separated by spaces.
+     *                   if passed as false, they will be packed together with no white space.
      */
-   String ToHexString(uint32 maxBytesToInclude = MUSCLE_NO_LIMIT) const;
+   String ToHexString(uint32 maxBytesToInclude = MUSCLE_NO_LIMIT, bool withSpaces = true) const;
 
    /** Returns the contents of this ByteBuffer as a human-readable annotated hexadecimal/ASCII string
      * @param maxBytesToInclude optional maximum number of byte-values to include in the string.  Defaults to MUSCLE_NO_LIMIT.
