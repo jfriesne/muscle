@@ -11,6 +11,7 @@ key:  - new feature
      and ByteBuffer::ToHexString() methods.
    - Added Base64Encode() and Base64Decode() functions to
      MiscUtilityFunctions.{cpp,h}, based on John Walker's Base64 code.
+   - Added WebSocketDataIOGateway.{cpp,h} to the iogateways folder.
    o Renamed ParseHexBytes() to HexBytesFromString(), and updated it
      to also handle hex-strings without spaces (e.g. "015A2B66").
    * Fixed a bug in HashtableIterator's move-operator that could cause
