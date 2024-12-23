@@ -19,6 +19,8 @@ key:  - new feature
      Specify -DMUSCLE_USE_DUMMYNOP on the compile line to use it.
    - Added an EmscriptenWebSocketDataIO class to the platform/emscripten
      folder, to support network I/O via the Emscripten WebSocket API.
+   - Added EmscriptenAsyncCallback class to the platform/emscripten folder,
+     to manage Emscripten's non-cancellable async callbacks.
    o Split the StringMatcher constructor in two, so that implicit
      construction of a StringMatcher from a String argument can happen.
    o Renamed ParseHexBytes() to HexBytesFromString(), and updated it
