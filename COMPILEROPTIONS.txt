@@ -54,6 +54,12 @@ of your Makefile to alter muscle's behaviour:
    you are able to guarantee that your program will never access MUSCLE
    code from more than one thread.
 
+-DMUSCLE_USE_DUMMYNOP
+   Causes the SocketMultiplexer class to be implemented as a dummy/no-op
+   class.  In this mode, SocketMultiplexer::WaitForEvents() will always
+   return B_NO_ERROR immediately, and the IsReadyForXXX() methods will
+   always return true.
+
 -DMUSCLE_USE_EPOLL
    Causes the SocketMultiplexer class to use the epoll() Linux system
    call instead of select().  This method is less portable, but

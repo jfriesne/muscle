@@ -32,6 +32,10 @@ public:
     *                  will never return (unless it errors out)
     *  @return B_NO_ERROR if the server has decided to exit peacefully, or an error code if there was a
     *                     fatal error during setup or execution.
+    *  @note that barring any startup errors, this method will always run the ReflectServer event-loop
+    *        at least once, even if the value passed to (runUntil) is less than the current time (as returned
+    *        by GetRunTime64()).  That means you can call ServerProcessLoop(0) periodically, if need be, to
+    *        single-shot-pump the ReflectServer event-loop without blocking the execution of the calling thread.
     */
    virtual status_t ServerProcessLoop(uint64 runUntil = MUSCLE_TIME_NEVER);
 

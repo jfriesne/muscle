@@ -21,12 +21,15 @@
 # endif
 #else
 # ifndef MUSCLE_USE_SELECT
-/** Causes SocketMultiplexer() to use the select() system call in its implementation.  This constant is defined implicitly if none of the other MUSCLE_USE_* preprocessor constants (eg MUSCLE_USE_KQUEUE, MUSCLE_USE_EPOLL, MUSCLE_USE_POLL, etc) were defined explicitly. */
-#  define MUSCLE_USE_SELECT 1
+#  if defined(__EMSCRIPTEN__)
+#   define MUSCLE_USE_DUMMYNOP 1 // until Emscripten/WebAssembly can support some type of multiplexing, we might as well at least do nothing, gracefully
+#  else
+#   define MUSCLE_USE_SELECT 1   // if other implementation was explicitly specified, we'll default to using select() since it's the most widely supported API
+#  endif
 # endif
 #endif
 
-#ifndef MUSCLE_USE_SELECT
+#if !defined(MUSCLE_USE_SELECT) && !defined(MUSCLE_USE_DUMMYNOP)
 # include "util/Hashtable.h"
 # include "util/Queue.h"
 #endif
@@ -42,7 +45,9 @@ namespace muscle {
  *  mechanism is the most widely portable.  However, you can force this class
  *  to use poll(), epoll(), or kqueue() instead, by specifying the compiler
  *  flag -DMUSCLE_USE_POLL, -DMUSCLE_USE_EPOLL, or -DMUSCLE_USE_KQUEUE
- *  (respectively) on the compile line.
+ *  (respectively) on the compile line.  To make this class into a no-op
+ *  class that just always reports all sockets as ready-for-anything, you
+ *  can specify -DMUSCLE_USE_DUMMYNOP.
  */
 class MUSCLE_NODISCARD SocketMultiplexer
 {
@@ -158,24 +163,29 @@ private:
       {
          if (fd < 0) return B_BAD_ARGUMENT;
 
-#if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
+#if defined(MUSCLE_USE_DUMMYNOP)
+         (void) fd;
+         (void) whichSet;
+#else
+# if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
          uint16 * b = _bits.GetOrPut(fd);
          if (b == NULL) return B_OUT_OF_MEMORY;
          *b |= (1<<whichSet);
-#elif defined(MUSCLE_USE_POLL)
+# elif defined(MUSCLE_USE_POLL)
          uint32 idx;
          if (_pollFDToArrayIndex.Get(fd, idx).IsOK()) _pollFDArray[idx].events |= GetPollBitsForFDSet(whichSet, true);
                                                  else return PollRegisterNewSocket(fd, whichSet);
-#else
-# ifndef WIN32  // Window supports file descriptors that are greater than FD_SETSIZE!  Other OS's do not
+# else
+#  ifndef WIN32  // Window supports file descriptors that are greater than FD_SETSIZE!  Other OS's do not
          if (fd >= FD_SETSIZE)
          {
             LogTime(MUSCLE_LOG_ERROR, "SocketMultiplexer::RegisterSocket(%i):  file descriptor %i is too large for select() to support!  Maybe compile with -DMUSCLE_USE_POLL instead?\n", whichSet, fd);
             return B_BAD_ARGUMENT;
          }
-# endif
+#  endif
          FD_SET(fd, &_fdSets[whichSet]);
          _maxFD[whichSet] = muscleMax(_maxFD[whichSet], fd);
+# endif
 #endif
          return B_NO_ERROR;
       }
@@ -184,13 +194,18 @@ private:
       {
          if (fd < 0) return false;
 
-#if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
+#if defined(MUSCLE_USE_DUMMYNOP)
+         (void) whichSet;
+         return true;  // dummy implementation just always reports everybody as ready-for-anything
+#else
+# if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
          return ((_bits.GetWithDefault(fd) & (1<<(whichSet+8))) != 0);
-#elif defined(MUSCLE_USE_POLL)
+# elif defined(MUSCLE_USE_POLL)
          uint32 idx;
          return ((_pollFDToArrayIndex.Get(fd, idx).IsOK())&&((_pollFDArray[idx].revents & GetPollBitsForFDSet(whichSet, false)) != 0));
-#else
+# else
          return (FD_ISSET(fd, const_cast<fd_set *>(&_fdSets[whichSet])) != 0);
+# endif
 #endif
       }
 
@@ -245,7 +260,7 @@ private:
       status_t PollRegisterNewSocket(int fd, uint32 whichSet);
       Hashtable<int, uint32> _pollFDToArrayIndex;
       Queue<struct pollfd> _pollFDArray;
-#else
+#elif !defined(MUSCLE_USE_DUMMYNOP)
       int _maxFD[NUM_FDSTATE_SETS];
       fd_set _fdSets[NUM_FDSTATE_SETS];
 #endif

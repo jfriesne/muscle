@@ -68,6 +68,10 @@ io_status_t SocketMultiplexer :: WaitForEvents(uint64 optTimeoutAtTime)
 
 io_status_t SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTime)
 {
+#if defined(MUSCLE_USE_DUMMYNOP)
+   (void) optTimeoutAtTime;
+   return B_NO_ERROR;
+#else
    // Calculate how long we should wait before timing out
    uint64 waitTimeMicros;
    if (optTimeoutAtTime == MUSCLE_TIME_NEVER) waitTimeMicros = MUSCLE_TIME_NEVER;
@@ -77,7 +81,7 @@ io_status_t SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTim
       waitTimeMicros = (optTimeoutAtTime>now) ? (optTimeoutAtTime-now) : 0;
    }
 
-#if defined(MUSCLE_USE_SELECT)
+# if defined(MUSCLE_USE_SELECT)
    int maxFD = -1;
    fd_set * sets[NUM_FDSTATE_SETS];
    for (uint32 i=0; i<NUM_FDSTATE_SETS; i++)
@@ -89,17 +93,17 @@ io_status_t SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTim
       }
       else sets[i] = NULL;
    }
-#endif
+# endif
 
-#if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
+# if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
    if (1)   // for kqueue/epoll we need to always do the full check, or our state-bits might not get updated properly
-#elif defined(MUSCLE_USE_POLL)
+# elif defined(MUSCLE_USE_POLL)
    if (_pollFDArray.HasItems())
-#else
+# else
    if (maxFD >= 0)
-#endif
+# endif
    {
-#if defined(MUSCLE_USE_KQUEUE)
+# if defined(MUSCLE_USE_KQUEUE)
       MRETURN_ON_ERROR(ComputeStateBitsChangeRequests());
 
       struct timespec waitTime;
@@ -139,7 +143,7 @@ io_status_t SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTim
             }
          }
       }
-#elif defined(MUSCLE_USE_EPOLL)
+# elif defined(MUSCLE_USE_EPOLL)
       MRETURN_ON_ERROR(ComputeStateBitsChangeRequests());
 
       const int r = epoll_wait(_kernelFD, _scratchEvents.HeadPointer(), _scratchEvents.GetNumItems(), (waitTimeMicros==MUSCLE_TIME_NEVER)?-1:(int)(muscleMin(MicrosToMillisRoundUp(waitTimeMicros), (int64)INT_MAX)));
@@ -158,14 +162,14 @@ io_status_t SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTim
             }
          }
       }
-#elif defined(MUSCLE_USE_POLL)
+# elif defined(MUSCLE_USE_POLL)
       const int timeoutMillis = (waitTimeMicros == MUSCLE_TIME_NEVER) ? -1 : ((int) muscleMin(MicrosToMillisRoundUp(waitTimeMicros), (int64)(INT_MAX)));
-# ifdef WIN32
+#  ifdef WIN32
       const int r = WSAPoll(_pollFDArray.GetItemAt(0), _pollFDArray.GetNumItems(), timeoutMillis);
-# else
+#  else
       const int r = poll(   _pollFDArray.GetItemAt(0), _pollFDArray.GetNumItems(), timeoutMillis);
-# endif
-#else
+#  endif
+# else
       struct timeval waitTime;
       struct timeval * pWaitTime;
       if (waitTimeMicros == MUSCLE_TIME_NEVER) pWaitTime = NULL;
@@ -175,7 +179,7 @@ io_status_t SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTim
          pWaitTime = &waitTime;
       }
       const int r = select(maxFD+1, sets[FDSTATE_SET_READ], sets[FDSTATE_SET_WRITE], sets[FDSTATE_SET_EXCEPT], pWaitTime);
-#endif
+# endif
       if ((r < 0)&&(PreviousOperationWasInterrupted())) return B_NO_ERROR;  // on interruption we'll just go round gain
       return (r < 0) ? io_status_t(B_ERRNO) : io_status_t(r);
    }
@@ -185,6 +189,7 @@ io_status_t SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTim
       // Note doing it this way avoids a Windows problem where select() will fail if no sockets are provided to wait on.
       return Snooze64(waitTimeMicros);
    }
+#endif
 }
 
 void SocketMultiplexer :: FDState :: Reset()
@@ -193,7 +198,7 @@ void SocketMultiplexer :: FDState :: Reset()
 # if defined(MUSCLE_USE_POLL)
    _pollFDArray.FastClear();
    _pollFDToArrayIndex.Clear();
-# else
+# elif !defined(MUSCLE_USE_DUMMYNOP)
    for (uint32 i=0; i<NUM_FDSTATE_SETS; i++)
    {
       _maxFD[i] = -1;
