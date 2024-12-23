@@ -102,6 +102,7 @@ file(GLOB MUSCLE_SRCS
    "./dataio/*.cpp"
    "./iogateway/*.cpp"
    "./message/*.cpp"
+   "./platform/emscripten/*.cpp"
    "./reflector/*.cpp"
    "./regex/*.cpp"
    "./syslog/*.cpp"
