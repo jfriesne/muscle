@@ -195,8 +195,7 @@ private:
          if (fd < 0) return false;
 
 #if defined(MUSCLE_USE_DUMMYNOP)
-         (void) whichSet;
-         return true;  // dummy implementation just always reports everybody as ready-for-anything
+         return (whichSet != FDSTATE_SET_EXCEPT);  // dummy implementation just always reports ready-for-read and read-for-write
 #else
 # if defined(MUSCLE_USE_KQUEUE) || defined(MUSCLE_USE_EPOLL)
          return ((_bits.GetWithDefault(fd) & (1<<(whichSet+8))) != 0);
