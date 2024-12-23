@@ -327,9 +327,7 @@ GetServerName() const
 }
 
 /** Makes sure the given policy has its BeginIO() called, if necessary, and returns it */
-uint32
-ReflectServer ::
-CheckPolicy(Hashtable<AbstractSessionIOPolicyRef, Void> & policies, const AbstractSessionIOPolicyRef & policyRef, const PolicyHolder & ph, uint64 now) const
+uint32 ReflectServer :: CheckPolicy(Hashtable<AbstractSessionIOPolicyRef, Void> & policies, const AbstractSessionIOPolicyRef & policyRef, const PolicyHolder & ph, uint64 now) const
 {
    AbstractSessionIOPolicy * p = policyRef();
    if (p)
@@ -369,14 +367,319 @@ void ReflectServer :: CheckForOutOfMemory(const AbstractReflectSessionRef & optS
 #endif
 }
 
-status_t
-ReflectServer ::
-ServerProcessLoop()
+uint64 ReflectServer :: PrepareToWaitForEvents()
 {
+   uint64 nextPulseAt = MUSCLE_TIME_NEVER; // running minimum of everything that wants to be Pulse()'d
+
+   // Set up socket multiplexer registrations and Pulse() timing info for all our different components
+   const uint64 now = GetRunTime64(); // nothing in this scope is supposed to take a significant amount of time to execute, so just calculate this once
+
    TCHECKPOINT;
 
+   _preparedPolicies.Clear();  // semi-paranoia
+
+   // Set up the session factories so we can be notified when a new connection is received
+   if (_factories.HasItems())
+   {
+      for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++)
+      {
+         ConstSocketRef * nextAcceptSocket = iter.GetValue()()->IsReadyToAcceptSessions() ? _factorySockets.Get(iter.GetKey()) : NULL;
+         const int nfd = nextAcceptSocket ? nextAcceptSocket->GetFileDescriptor() : -1;
+         if (nfd >= 0) (void) _multiplexer.RegisterSocketForReadReady(nfd);
+         CallGetPulseTimeAux(*iter.GetValue()(), now, nextPulseAt);
+      }
+   }
+
+   TCHECKPOINT;
+
+   // Set up the sessions, their associated IO-gateways, and their IOPolicies
+   if (_sessions.HasItems())
+   {
+      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+      {
+         AbstractReflectSession * session = iter.GetValue()();
+         if (session)
+         {
+            session->_maxInputChunk = session->_maxOutputChunk = 0;
+            AbstractMessageIOGateway * g = session->GetGateway()();
+            if (g)
+            {
+               const int sessionReadFD = session->GetSessionReadSelectSocket().GetFileDescriptor();
+               if ((sessionReadFD >= 0)&&(session->IsConnectingAsync() == false))
+               {
+                  session->_maxInputChunk = CheckPolicy(_preparedPolicies, session->GetInputPolicy(), PolicyHolder(session->IsReadyForInput() ? session : NULL, true), now);
+                  if (session->_maxInputChunk > 0) (void) _multiplexer.RegisterSocketForReadReady(sessionReadFD);
+               }
+
+               const int sessionWriteFD = session->GetSessionWriteSelectSocket().GetFileDescriptor();
+               if (sessionWriteFD >= 0)
+               {
+                  bool out;
+                  if (session->IsConnectingAsync())
+                  {
+                     out = true;  // so we can watch for the async-connect event
+#if defined(WIN32)
+                     // Under Windows, failed asynchronous TCP connect()'s are communicated via a raised exception-flag
+                     (void) _multiplexer.RegisterSocketForExceptionRaised(sessionWriteFD);
+#endif
+                  }
+                  else
+                  {
+                     session->_maxOutputChunk = CheckPolicy(_preparedPolicies, session->GetOutputPolicy(), PolicyHolder(session->HasBytesToOutput() ? session : NULL, false), now);
+                     out = ((session->_maxOutputChunk > 0)||((g->GetDataIO()())&&(g->GetDataIO()()->HasBufferedOutput())));
+                  }
+
+                  if (out)
+                  {
+                     (void) _multiplexer.RegisterSocketForWriteReady(sessionWriteFD);
+                     if (session->_pendingLastByteOutputAt == 0) session->_lastByteOutputAt = session->_pendingLastByteOutputAt = now;  // the bogged-session-clock starts ticking when we first want to write...
+                     if (session->_outputStallLimit != MUSCLE_TIME_NEVER) nextPulseAt = muscleMin(nextPulseAt, session->_pendingLastByteOutputAt+session->_outputStallLimit);
+                  }
+                  else session->_pendingLastByteOutputAt = 0;  // If we no longer want to write, then the bogged-session-clock-timeout is cancelled
+               }
+
+               TCHECKPOINT;
+               CallGetPulseTimeAux(*g, now, nextPulseAt);
+               TCHECKPOINT;
+            }
+            TCHECKPOINT;
+            CallGetPulseTimeAux(*session, now, nextPulseAt);
+            TCHECKPOINT;
+         }
+      }
+   }
+
+   TCHECKPOINT;
+   CallGetPulseTimeAux(*this, now, nextPulseAt);
+   TCHECKPOINT;
+
+   // Set up the Session IO Policies
+   if (_preparedPolicies.HasItems())
+   {
+      // Now that the policies know *who* amongst their policyholders will be reading/writing,
+      // let's ask each activated policy *how much* each policyholder should be allowed to read/write.
+      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+      {
+         AbstractReflectSession * session = iter.GetValue()();
+         if (session)
+         {
+            AbstractSessionIOPolicy * inPolicy  = session->GetInputPolicy()();
+            AbstractSessionIOPolicy * outPolicy = session->GetOutputPolicy()();
+            if ((inPolicy)&&( session->_maxInputChunk  > 0)) session->_maxInputChunk  = inPolicy->GetMaxTransferChunkSize(PolicyHolder(session, true));
+            if ((outPolicy)&&(session->_maxOutputChunk > 0)) session->_maxOutputChunk = outPolicy->GetMaxTransferChunkSize(PolicyHolder(session, false));
+         }
+      }
+
+      // Now that all is prepared, calculate all the policies' wakeup times
+      TCHECKPOINT;
+      for (HashtableIterator<AbstractSessionIOPolicyRef, Void> iter(_preparedPolicies); iter.HasData(); iter++) CallGetPulseTimeAux(*iter.GetKey()(), now, nextPulseAt);
+      TCHECKPOINT;
+   }
+
+   return nextPulseAt;
+}
+
+status_t ReflectServer :: WaitForEvents(uint64 waitUntil)
+{
+   _inWaitForEvents.AtomicIncrement();   // so a watchdog thread can know we're meant to be waiting at this point
+   const io_status_t r = _multiplexer.WaitForEvents(waitUntil);
+   _inWaitForEvents.AtomicDecrement();   // so a watchdog thread can know we're done waiting at this point
+   return r.GetStatus();
+}
+
+void ReflectServer :: HandleEvents()
+{
+   // Each event-loop cycle officially "starts" as soon as WaitForEvents() returns
+   CallSetCycleStartTime(*this, GetRunTime64());
+
+   TCHECKPOINT;
+
+   // Do I/O for each of our attached sessions
+   {
+      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(_sessions); iter.HasData(); iter++)
+      {
+         TCHECKPOINT;
+
+         AbstractReflectSessionRef & sessionRef = iter.GetValue();
+         AbstractReflectSession * session = sessionRef();
+         if (session)
+         {
+#ifdef MUSCLE_ENABLE_MEMORY_TRACKING
+            MemoryAllocator * ma = GetCPlusPlusGlobalMemoryAllocator()();
+            if (ma) (void) ma->SetAllocationHasFailed(false);  // (session)'s responsibility for starts here!  If we run out of mem on his watch, he's history
+#endif
+
+            TCHECKPOINT;
+
+            CallSetCycleStartTime(*session, GetRunTime64());
+            TCHECKPOINT;
+            CallPulseAux(*session, session->GetCycleStartTime());
+            {
+               AbstractMessageIOGateway * gateway = session->GetGateway()();
+               if (gateway)
+               {
+                  TCHECKPOINT;
+
+                  CallSetCycleStartTime(*gateway, GetRunTime64());
+                  CallPulseAux(*gateway, gateway->GetCycleStartTime());
+               }
+            }
+
+            TCHECKPOINT;
+
+            const int readSock = session->GetSessionReadSelectSocket().GetFileDescriptor();
+            if (readSock >= 0)
+            {
+               io_status_t readBytes;
+               if (_multiplexer.IsSocketReadyForRead(readSock))
+               {
+                  readBytes = session->DoInput(*session, session->_maxInputChunk);  // session->MessageReceivedFromGateway() gets called here
+                  if (readBytes.IsOK())
+                  {
+                     session->_mostRecentInputTimeStamp = GetCycleStartTime();
+
+                     AbstractSessionIOPolicy * p = session->GetInputPolicy()();
+                     if (p) p->BytesTransferred(PolicyHolder(session, true), readBytes.GetByteCount());
+                  }
+               }
+
+               TCHECKPOINT;
+
+               if (readBytes.IsError())
+               {
+                  const bool wasConnecting = session->IsConnectingAsync();
+                  if ((DisconnectSession(session) == false)&&(_doLogging)) LogTime(MUSCLE_LOG_DEBUG, "Connection for %s %s (read error: %s).\n", session->GetSessionDescriptionString()(), wasConnecting?"failed":"was severed", readBytes());
+               }
+            }
+
+            const int writeSock = session->GetSessionWriteSelectSocket().GetFileDescriptor();
+            if (writeSock >= 0)
+            {
+               TCHECKPOINT;
+
+               io_status_t wroteBytes;
+               if (_multiplexer.IsSocketReadyForWrite(writeSock))
+               {
+                  if (session->IsConnectingAsync())
+                  {
+                     const status_t facRet = FinalizeAsyncConnect(sessionRef);
+                     if (facRet.IsError()) wroteBytes = facRet;
+                  }
+                  else
+                  {
+                     // if the session's DataIO object is still has bytes buffered for output, try to send them now
+                     AbstractMessageIOGateway * g = session->GetGateway()();
+                     if (g)
+                     {
+                        DataIO * io = g->GetDataIO()();
+                        if (io) io->WriteBufferedOutput();
+                     }
+
+                     wroteBytes = session->DoOutput(session->_maxOutputChunk);
+                     if (wroteBytes.IsOK())
+                     {
+                        session->_mostRecentOutputTimeStamp = GetCycleStartTime();
+
+                        AbstractSessionIOPolicy * p = session->GetOutputPolicy()();
+                        if (p) p->BytesTransferred(PolicyHolder(session, false), wroteBytes.GetByteCount());
+                     }
+                  }
+               }
+#if defined(WIN32)
+               if (_multiplexer.IsSocketExceptionRaised(writeSock)) wroteBytes = B_ERROR("asynchronous TCP connection failed");
+#endif
+
+               TCHECKPOINT;
+
+               if (wroteBytes.IsError())
+               {
+                  const bool wasConnecting = session->IsConnectingAsync();
+                  if ((DisconnectSession(session) == false)&&(_doLogging)) LogTime(MUSCLE_LOG_DEBUG, "Connection for %s %s (write error: %s).\n", session->GetSessionDescriptionString()(), wasConnecting?"failed":"was severed", wroteBytes());
+               }
+               else if (session->_pendingLastByteOutputAt > 0)
+               {
+                  // Check for output stalls
+                  const uint64 now = GetRunTime64();
+
+                       if ((wroteBytes.GetByteCount() > 0)||(session->_maxOutputChunk == 0)) session->_pendingLastByteOutputAt = now;  // reset the moribundness-timer
+                  else if (now-session->_pendingLastByteOutputAt > session->_outputStallLimit)
+                  {
+                     if (_doLogging) LogTime(MUSCLE_LOG_WARNING, "Connection for %s timed out (output stall, no data movement for %s).\n", session->GetSessionDescriptionString()(), GetHumanReadableTimeIntervalString(session->_outputStallLimit)());
+                     (void) DisconnectSession(session);
+                  }
+               }
+            }
+            else if (_lameDuckSessions.ContainsKey(iter.GetKey()) == false)  // no sense reporting about a session that is about to go away anyway
+            {
+               // Watch for a continually-growing/never-drained output queue, and warn if we see it happening.
+               const AbstractMessageIOGateway * g = session->GetGateway()();
+               if (g)
+               {
+                  const uint32 outQSize = g->GetOutgoingMessageQueue().GetNumItems();
+                  if (outQSize > session->_lastReportedQueueSize+100)
+                  {
+                     const DataIO * dio = g->GetDataIO()();
+                     const Socket * sck = dio ? dio->GetWriteSelectSocket()() : NULL;
+                     LogTime(MUSCLE_LOG_WARNING, "Session [%s] has " UINT32_FORMAT_SPEC " Messages in its outgoing-Message-Queue, but no writeable socket (gw=[%s] dio=[%s] sock=%p).  Possible resource leak?\n", session->GetSessionDescriptionString()(), outQSize, typeid(*g).name(), dio?typeid(*dio).name():"(null)", sck);
+                     session->_lastReportedQueueSize = outQSize;
+                  }
+               }
+            }
+         }
+
+         TCHECKPOINT;
+         CheckForOutOfMemory(sessionRef);  // if the session caused a memory error, give him the boot
+      }
+   }
+
+   TCHECKPOINT;
+
+   // Pulse() our other PulseNode objects, as necessary
+   if (_preparedPolicies.HasItems())
+   {
+      // Tell the session policies we're done doing I/O (for now)
+      for (HashtableIterator<AbstractSessionIOPolicyRef, Void> iter(_preparedPolicies); iter.HasData(); iter++)
+      {
+         AbstractSessionIOPolicy * p = iter.GetKey()();
+         if (p->_hasBegun)
+         {
+            p->EndIO(GetRunTime64());
+            p->_hasBegun = false;
+         }
+      }
+
+      // Pulse the Policies
+      for (HashtableIterator<AbstractSessionIOPolicyRef, Void> iter(_preparedPolicies); iter.HasData(); iter++) CallPulseAux(*iter.GetKey()(), GetRunTime64());
+      _preparedPolicies.Clear();  // not strictly necessary since we'll clear it at the top of PrepareToWaitForEvents() also, but just in case
+   }
+
+   // Pulse the Server
+   CallPulseAux(*this, GetRunTime64());
+
+   TCHECKPOINT;
+
+   // Lastly, check our accepting ports to see if anyone is trying to connect...
+   if (_factories.HasItems())
+   {
+      for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++)
+      {
+         ReflectSessionFactory * factory = iter.GetValue()();
+         CallSetCycleStartTime(*factory, GetRunTime64());
+         CallPulseAux(*factory, factory->GetCycleStartTime());
+
+         if (factory->IsReadyToAcceptSessions())
+         {
+            ConstSocketRef * as = _factorySockets.Get(iter.GetKey());
+            const int fd = as ? as->GetFileDescriptor() : -1;
+            if ((fd >= 0)&&(_multiplexer.IsSocketReadyForRead(fd))) (void) DoAccept(iter.GetKey(), *as, factory);
+         }
+      }
+   }
+}
+
+status_t ReflectServer :: DoFirstTimeServerSetup()
+{
    status_t ret;
-   _serverStartedAt = GetRunTime64();
 
    if (_doLogging)
    {
@@ -397,7 +700,7 @@ ServerProcessLoop()
       SignalHandlerSessionRef shs(new SignalHandlerSession);
       if (AddNewSession(shs).IsError(ret))
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::ReadyToRun:  Could not install SignalHandlerSession!\n");
+         LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::DoFirstTimeServerSetup:  Could not install SignalHandlerSession! [%s]\n", ret());
          return ret;
       }
    }
@@ -405,11 +708,9 @@ ServerProcessLoop()
 
    if (ReadyToRun().IsError(ret))
    {
-      if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "Server:  ReadyToRun() failed [%s], aborting.\n", ret());
+      if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer:  ReadyToRun() failed [%s], aborting.\n", ret());
       return ret;
    }
-
-   TCHECKPOINT;
 
    // Print an informative startup message
    if ((_doLogging)&&(GetMaxLogLevel() >= MUSCLE_LOG_DEBUG))
@@ -432,7 +733,9 @@ ServerProcessLoop()
          if (listeningOnAll)
          {
             Queue<NetworkInterfaceInfo> ifs;
-            if ((GetNetworkInterfaceInfos(ifs).IsOK(ret))&&(ifs.HasItems()))
+
+            status_t ifRet;
+            if ((GetNetworkInterfaceInfos(ifs).IsOK(ifRet))&&(ifs.HasItems()))
             {
                LogTime(MUSCLE_LOG_DEBUG, "This host's network interface addresses are as follows:\n");
                for (uint32 i=0; i<ifs.GetNumItems(); i++)
@@ -440,347 +743,47 @@ ServerProcessLoop()
                   LogTime(MUSCLE_LOG_DEBUG, "- %s (%s)\n", Inet_NtoA(ifs[i].GetLocalAddress())(), ifs[i].GetName()());
                }
             }
-            else LogTime(MUSCLE_LOG_ERROR, "Could not retrieve this server's network interface addresses list. [%s]\n", ret());
+            else LogTime(MUSCLE_LOG_ERROR, "Could not retrieve this server's network interface addresses list. [%s]\n", ifRet());
          }
       }
       else LogTime(MUSCLE_LOG_DEBUG, "Server is not listening on any ports.\n");
    }
 
-   // The primary event loop for any MUSCLE-based server!
-   // These variables are used as scratch space, but are declared outside the loop to avoid having to reinitialize them all the time.
-   Hashtable<AbstractSessionIOPolicyRef, Void> policies;
+   return ret;
+}
 
-   while(ClearLameDucks().IsOK())
+status_t ReflectServer :: ServerProcessLoop(uint64 maxTime)
+{
+   if (_serverStartedAt == 0)
    {
-      TCHECKPOINT;
+      _serverStartedAt = GetRunTime64();
+      MRETURN_ON_ERROR(DoFirstTimeServerSetup());
+   }
+
+   bool firstTime = true;  // so we'll always run at least on iteration
+
+   status_t ret;
+   while((_keepServerGoing)&&(ret.IsOK())&&((firstTime)||(GetRunTime64() < maxTime)))
+   {
+      ClearLameDucks();
+
+      firstTime = false;
+
       EventLoopCycleBegins();
-
-      uint64 nextPulseAt = MUSCLE_TIME_NEVER; // running minimum of everything that wants to be Pulse()'d
-
-      // Set up socket multiplexer registrations and Pulse() timing info for all our different components
       {
-         const uint64 now = GetRunTime64(); // nothing in this scope is supposed to take a significant amount of time to execute, so just calculate this once
-
-         TCHECKPOINT;
-
-         // Set up the session factories so we can be notified when a new connection is received
-         if (_factories.HasItems())
+         // This line is the center of the MUSCLE server's universe -- where we sit and sleep until it's time to do something
+         if (WaitForEvents(muscleMin(PrepareToWaitForEvents(),maxTime)).IsOK(ret))
          {
-            for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++)
-            {
-               ConstSocketRef * nextAcceptSocket = iter.GetValue()()->IsReadyToAcceptSessions() ? _factorySockets.Get(iter.GetKey()) : NULL;
-               const int nfd = nextAcceptSocket ? nextAcceptSocket->GetFileDescriptor() : -1;
-               if (nfd >= 0) (void) _multiplexer.RegisterSocketForReadReady(nfd);
-               CallGetPulseTimeAux(*iter.GetValue()(), now, nextPulseAt);
-            }
+            CheckForOutOfMemory(AbstractReflectSessionRef()); // Before we do any session I/O, make sure there hasn't been a generalized memory failure
+            HandleEvents();
          }
-
-         TCHECKPOINT;
-
-         // Set up the sessions, their associated IO-gateways, and their IOPolicies
-         if (_sessions.HasItems())
-         {
-            for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
-            {
-               AbstractReflectSession * session = iter.GetValue()();
-               if (session)
-               {
-                  session->_maxInputChunk = session->_maxOutputChunk = 0;
-                  AbstractMessageIOGateway * g = session->GetGateway()();
-                  if (g)
-                  {
-                     const int sessionReadFD = session->GetSessionReadSelectSocket().GetFileDescriptor();
-                     if ((sessionReadFD >= 0)&&(session->IsConnectingAsync() == false))
-                     {
-                        session->_maxInputChunk = CheckPolicy(policies, session->GetInputPolicy(), PolicyHolder(session->IsReadyForInput() ? session : NULL, true), now);
-                        if (session->_maxInputChunk > 0) (void) _multiplexer.RegisterSocketForReadReady(sessionReadFD);
-                     }
-
-                     const int sessionWriteFD = session->GetSessionWriteSelectSocket().GetFileDescriptor();
-                     if (sessionWriteFD >= 0)
-                     {
-                        bool out;
-                        if (session->IsConnectingAsync())
-                        {
-                           out = true;  // so we can watch for the async-connect event
-#if defined(WIN32)
-                           // Under Windows, failed asynchronous TCP connect()'s are communicated via a raised exception-flag
-                           (void) _multiplexer.RegisterSocketForExceptionRaised(sessionWriteFD);
-#endif
-                        }
-                        else
-                        {
-                           session->_maxOutputChunk = CheckPolicy(policies, session->GetOutputPolicy(), PolicyHolder(session->HasBytesToOutput() ? session : NULL, false), now);
-                           out = ((session->_maxOutputChunk > 0)||((g->GetDataIO()())&&(g->GetDataIO()()->HasBufferedOutput())));
-                        }
-
-                        if (out)
-                        {
-                           (void) _multiplexer.RegisterSocketForWriteReady(sessionWriteFD);
-                           if (session->_pendingLastByteOutputAt == 0) session->_lastByteOutputAt = session->_pendingLastByteOutputAt = now;  // the bogged-session-clock starts ticking when we first want to write...
-                           if (session->_outputStallLimit != MUSCLE_TIME_NEVER) nextPulseAt = muscleMin(nextPulseAt, session->_pendingLastByteOutputAt+session->_outputStallLimit);
-                        }
-                        else session->_pendingLastByteOutputAt = 0;  // If we no longer want to write, then the bogged-session-clock-timeout is cancelled
-                     }
-
-                     TCHECKPOINT;
-                     CallGetPulseTimeAux(*g, now, nextPulseAt);
-                     TCHECKPOINT;
-                  }
-                  TCHECKPOINT;
-                  CallGetPulseTimeAux(*session, now, nextPulseAt);
-                  TCHECKPOINT;
-               }
-            }
-         }
-
-         TCHECKPOINT;
-         CallGetPulseTimeAux(*this, now, nextPulseAt);
-         TCHECKPOINT;
-
-         // Set up the Session IO Policies
-         if (policies.HasItems())
-         {
-            // Now that the policies know *who* amongst their policyholders will be reading/writing,
-            // let's ask each activated policy *how much* each policyholder should be allowed to read/write.
-            for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
-            {
-               AbstractReflectSession * session = iter.GetValue()();
-               if (session)
-               {
-                  AbstractSessionIOPolicy * inPolicy  = session->GetInputPolicy()();
-                  AbstractSessionIOPolicy * outPolicy = session->GetOutputPolicy()();
-                  if ((inPolicy)&&( session->_maxInputChunk  > 0)) session->_maxInputChunk  = inPolicy->GetMaxTransferChunkSize(PolicyHolder(session, true));
-                  if ((outPolicy)&&(session->_maxOutputChunk > 0)) session->_maxOutputChunk = outPolicy->GetMaxTransferChunkSize(PolicyHolder(session, false));
-               }
-            }
-
-            // Now that all is prepared, calculate all the policies' wakeup times
-            TCHECKPOINT;
-            for (HashtableIterator<AbstractSessionIOPolicyRef, Void> iter(policies); iter.HasData(); iter++) CallGetPulseTimeAux(*iter.GetKey()(), now, nextPulseAt);
-            TCHECKPOINT;
-         }
+         else if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, aborting! [%s]\n", ret());
       }
-
-      TCHECKPOINT;
-
-      // This block is the center of the MUSCLE server's universe -- where we sit and wait for the next event
-      {
-         _inWaitForEvents.AtomicIncrement();   // so a watchdog thread can know we're meant to be waiting at this point
-         const io_status_t r = _multiplexer.WaitForEvents(nextPulseAt);
-         _inWaitForEvents.AtomicDecrement();   // so a watchdog thread can know we're done waiting at this point
-
-         if (r.IsError())
-         {
-            if (_doLogging) LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, aborting! [%s]\n", ret());
-            (void) ClearLameDucks();
-            EventLoopCycleEnds();  // probably not that important, but it makes PVS studio happy if we tie up the loose end
-            return r.GetStatus();
-         }
-      }
-
-      // Each event-loop cycle officially "starts" as soon as WaitForEvents() returns
-      CallSetCycleStartTime(*this, GetRunTime64());
-
-      TCHECKPOINT;
-
-      // Before we do any session I/O, make sure there hasn't been a generalized memory failure
-      CheckForOutOfMemory(AbstractReflectSessionRef());
-
-      TCHECKPOINT;
-
-      // Do I/O for each of our attached sessions
-      {
-         for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(_sessions); iter.HasData(); iter++)
-         {
-            TCHECKPOINT;
-
-            AbstractReflectSessionRef & sessionRef = iter.GetValue();
-            AbstractReflectSession * session = sessionRef();
-            if (session)
-            {
-#ifdef MUSCLE_ENABLE_MEMORY_TRACKING
-               MemoryAllocator * ma = GetCPlusPlusGlobalMemoryAllocator()();
-               if (ma) (void) ma->SetAllocationHasFailed(false);  // (session)'s responsibility for starts here!  If we run out of mem on his watch, he's history
-#endif
-
-               TCHECKPOINT;
-
-               CallSetCycleStartTime(*session, GetRunTime64());
-               TCHECKPOINT;
-               CallPulseAux(*session, session->GetCycleStartTime());
-               {
-                  AbstractMessageIOGateway * gateway = session->GetGateway()();
-                  if (gateway)
-                  {
-                     TCHECKPOINT;
-
-                     CallSetCycleStartTime(*gateway, GetRunTime64());
-                     CallPulseAux(*gateway, gateway->GetCycleStartTime());
-                  }
-               }
-
-               TCHECKPOINT;
-
-               const int readSock = session->GetSessionReadSelectSocket().GetFileDescriptor();
-               if (readSock >= 0)
-               {
-                  io_status_t readBytes;
-                  if (_multiplexer.IsSocketReadyForRead(readSock))
-                  {
-                     readBytes = session->DoInput(*session, session->_maxInputChunk);  // session->MessageReceivedFromGateway() gets called here
-                     if (readBytes.IsOK())
-                     {
-                        session->_mostRecentInputTimeStamp = GetCycleStartTime();
-
-                        AbstractSessionIOPolicy * p = session->GetInputPolicy()();
-                        if (p) p->BytesTransferred(PolicyHolder(session, true), readBytes.GetByteCount());
-                     }
-                  }
-
-                  TCHECKPOINT;
-
-                  if (readBytes.IsError())
-                  {
-                     const bool wasConnecting = session->IsConnectingAsync();
-                     if ((DisconnectSession(session) == false)&&(_doLogging)) LogTime(MUSCLE_LOG_DEBUG, "Connection for %s %s (read error: %s).\n", session->GetSessionDescriptionString()(), wasConnecting?"failed":"was severed", readBytes());
-                  }
-               }
-
-               const int writeSock = session->GetSessionWriteSelectSocket().GetFileDescriptor();
-               if (writeSock >= 0)
-               {
-                  TCHECKPOINT;
-
-                  io_status_t wroteBytes;
-                  if (_multiplexer.IsSocketReadyForWrite(writeSock))
-                  {
-                     if (session->IsConnectingAsync())
-                     {
-                        const status_t facRet = FinalizeAsyncConnect(sessionRef);
-                        if (facRet.IsError()) wroteBytes = facRet;
-                     }
-                     else
-                     {
-                        // if the session's DataIO object is still has bytes buffered for output, try to send them now
-                        AbstractMessageIOGateway * g = session->GetGateway()();
-                        if (g)
-                        {
-                           DataIO * io = g->GetDataIO()();
-                           if (io) io->WriteBufferedOutput();
-                        }
-
-                        wroteBytes = session->DoOutput(session->_maxOutputChunk);
-                        if (wroteBytes.IsOK())
-                        {
-                           session->_mostRecentOutputTimeStamp = GetCycleStartTime();
-
-                           AbstractSessionIOPolicy * p = session->GetOutputPolicy()();
-                           if (p) p->BytesTransferred(PolicyHolder(session, false), wroteBytes.GetByteCount());
-                        }
-                     }
-                  }
-#if defined(WIN32)
-                  if (_multiplexer.IsSocketExceptionRaised(writeSock)) wroteBytes = B_ERROR("asynchronous TCP connection failed");
-#endif
-
-                  TCHECKPOINT;
-
-                  if (wroteBytes.IsError())
-                  {
-                     const bool wasConnecting = session->IsConnectingAsync();
-                     if ((DisconnectSession(session) == false)&&(_doLogging)) LogTime(MUSCLE_LOG_DEBUG, "Connection for %s %s (write error: %s).\n", session->GetSessionDescriptionString()(), wasConnecting?"failed":"was severed", wroteBytes());
-                  }
-                  else if (session->_pendingLastByteOutputAt > 0)
-                  {
-                     // Check for output stalls
-                     const uint64 now = GetRunTime64();
-
-                          if ((wroteBytes.GetByteCount() > 0)||(session->_maxOutputChunk == 0)) session->_pendingLastByteOutputAt = now;  // reset the moribundness-timer
-                     else if (now-session->_pendingLastByteOutputAt > session->_outputStallLimit)
-                     {
-                        if (_doLogging) LogTime(MUSCLE_LOG_WARNING, "Connection for %s timed out (output stall, no data movement for %s).\n", session->GetSessionDescriptionString()(), GetHumanReadableTimeIntervalString(session->_outputStallLimit)());
-                        (void) DisconnectSession(session);
-                     }
-                  }
-               }
-               else if (_lameDuckSessions.ContainsKey(iter.GetKey()) == false)  // no sense reporting about a session that is about to go away anyway
-               {
-                  // Watch for a continually-growing/never-drained output queue, and warn if we see it happening.
-                  const AbstractMessageIOGateway * g = session->GetGateway()();
-                  if (g)
-                  {
-                     const uint32 outQSize = g->GetOutgoingMessageQueue().GetNumItems();
-                     if (outQSize > session->_lastReportedQueueSize+100)
-                     {
-                        const DataIO * dio = g->GetDataIO()();
-                        const Socket * sck = dio ? dio->GetWriteSelectSocket()() : NULL;
-                        LogTime(MUSCLE_LOG_WARNING, "Session [%s] has " UINT32_FORMAT_SPEC " Messages in its outgoing-Message-Queue, but no writeable socket (gw=[%s] dio=[%s] sock=%p).  Possible resource leak?\n", session->GetSessionDescriptionString()(), outQSize, typeid(*g).name(), dio?typeid(*dio).name():"(null)", sck);
-                        session->_lastReportedQueueSize = outQSize;
-                     }
-                  }
-               }
-            }
-
-            TCHECKPOINT;
-            CheckForOutOfMemory(sessionRef);  // if the session caused a memory error, give him the boot
-         }
-      }
-
-      TCHECKPOINT;
-
-      // Pulse() our other PulseNode objects, as necessary
-      if (policies.HasItems())
-      {
-         // Tell the session policies we're done doing I/O (for now)
-         for (HashtableIterator<AbstractSessionIOPolicyRef, Void> iter(policies); iter.HasData(); iter++)
-         {
-            AbstractSessionIOPolicy * p = iter.GetKey()();
-            if (p->_hasBegun)
-            {
-               p->EndIO(GetRunTime64());
-               p->_hasBegun = false;
-            }
-         }
-
-         // Pulse the Policies
-         for (HashtableIterator<AbstractSessionIOPolicyRef, Void> iter(policies); iter.HasData(); iter++) CallPulseAux(*iter.GetKey()(), GetRunTime64());
-
-         policies.Clear();
-      }
-
-      // Pulse the Server
-      CallPulseAux(*this, GetRunTime64());
-
-      TCHECKPOINT;
-
-      // Lastly, check our accepting ports to see if anyone is trying to connect...
-      if (_factories.HasItems())
-      {
-         for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++)
-         {
-            ReflectSessionFactory * factory = iter.GetValue()();
-            CallSetCycleStartTime(*factory, GetRunTime64());
-            CallPulseAux(*factory, factory->GetCycleStartTime());
-
-            if (factory->IsReadyToAcceptSessions())
-            {
-               ConstSocketRef * as = _factorySockets.Get(iter.GetKey());
-               const int fd = as ? as->GetFileDescriptor() : -1;
-               if ((fd >= 0)&&(_multiplexer.IsSocketReadyForRead(fd))) (void) DoAccept(iter.GetKey(), *as, factory);
-            }
-         }
-      }
-
-      TCHECKPOINT;
       EventLoopCycleEnds();
    }
 
-   TCHECKPOINT;
    (void) ClearLameDucks();  // get rid of any leftover ducks
-   TCHECKPOINT;
-
-   return B_NO_ERROR;
+   return ret;
 }
 
 void ReflectServer :: ShutdownIOFor(AbstractReflectSession * session)
@@ -793,7 +796,7 @@ void ReflectServer :: ShutdownIOFor(AbstractReflectSession * session)
    }
 }
 
-status_t ReflectServer :: ClearLameDucks()
+void ReflectServer :: ClearLameDucks()
 {
    // Delete any factories that were previously marked for deletion
    _lameDuckFactories.Clear();
@@ -820,8 +823,6 @@ status_t ReflectServer :: ClearLameDucks()
       }
       (void) _lameDuckSessions.RemoveFirst();
    }
-
-   return _keepServerGoing ? B_NO_ERROR : B_ERROR;
 }
 
 void ReflectServer :: LogAcceptFailed(int lvl, const char * desc, const char * ipbuf, const IPAddressAndPort & iap)

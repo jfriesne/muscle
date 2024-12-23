@@ -12,6 +12,8 @@ key:  - new feature
    - Added Base64Encode() and Base64Decode() functions to
      MiscUtilityFunctions.{cpp,h}, based on John Walker's Base64 code.
    - Added WebSocketDataIOGateway.{cpp,h} to the iogateways folder.
+   - Added an optional (runUntil) argument to ReflectServer::ServerProcessLoop()
+     so that you can tell it when to return, if you want.
    o Split the StringMatcher constructor in two, so that implicit
      construction of a StringMatcher from a String argument can happen.
    o Renamed ParseHexBytes() to HexBytesFromString(), and updated it

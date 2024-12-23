@@ -27,11 +27,13 @@ public:
    virtual ~ReflectServer();
 
    /** The main loop for the message reflection server.
-    *  This method will not return until the server stops running (usually due to an error).
+    *  @param runUntil optional timestamp at which this method should return (e.g. relative to the timestamp
+    *                  returned by GetRunTime64()).  Defaults to MUSCLE_TIME_NEVER, which means this method
+    *                  will never return (unless it errors out)
     *  @return B_NO_ERROR if the server has decided to exit peacefully, or an error code if there was a
     *                     fatal error during setup or execution.
     */
-   virtual status_t ServerProcessLoop();
+   virtual status_t ServerProcessLoop(uint64 runUntil = MUSCLE_TIME_NEVER);
 
    /** This function may be called zero or more times before ServerProcessLoop()
     *  Each call adds one port that the server should listen on, and the factory object
@@ -392,7 +394,7 @@ private:
    void AddLameDuckSession(const AbstractReflectSessionRef & whoRef);
    void AddLameDuckSession(AbstractReflectSession * who);  // convenience method ... less efficient
    void ShutdownIOFor(AbstractReflectSession * session);
-   status_t ClearLameDucks();  // returns B_NO_ERROR if the server should keep going, or an error code otherwise
+   void ClearLameDucks();
    uint32 DumpBoggedSessions();
    status_t RemoveAcceptFactoryAux(const IPAddressAndPort & iap);
    status_t FinalizeAsyncConnect(const AbstractReflectSessionRef & ref);
@@ -403,6 +405,11 @@ private:
    void SetComputerIsAboutToSleep(bool isAboutToSleep);
    bool IsSessionScheduledForPostSleepReconnect(const String & sessionID) const {return _sessionsToReconnectOnWakeup.ContainsKey(sessionID);}
 
+   status_t DoFirstTimeServerSetup();
+   uint64 PrepareToWaitForEvents();
+   status_t WaitForEvents(uint64 waitUntil);
+   void HandleEvents();
+
    Hashtable<IPAddressAndPort, ReflectSessionFactoryRef> _factories;
    Hashtable<IPAddressAndPort, ConstSocketRef> _factorySockets;
 
@@ -412,6 +419,8 @@ private:
    Hashtable<const String *, AbstractReflectSessionRef> _sessions;           // these two tables should always have
    Hashtable<uint32,         AbstractReflectSessionRef> _sessionsByIDNumber; // the same contents
    Hashtable<const String *, AbstractReflectSessionRef> _lameDuckSessions;   // sessions that are due to be removed
+   Hashtable<AbstractSessionIOPolicyRef, Void> _preparedPolicies;
+
    bool _keepServerGoing;
    uint64 _serverStartedAt;
    bool _doLogging;
