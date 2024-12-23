@@ -17,6 +17,8 @@ key:  - new feature
      pumping the event loop manually from a higher-level event-loop.
    - Added a dummy/no-op implementation to the SocketMultiplexer class.
      Specify -DMUSCLE_USE_DUMMYNOP on the compile line to use it.
+   - Added an EmscriptenWebSocketDataIO class to the platform/emscripten
+     folder, to support network I/O via the Emscripten WebSocket API.
    o Split the StringMatcher constructor in two, so that implicit
      construction of a StringMatcher from a String argument can happen.
    o Renamed ParseHexBytes() to HexBytesFromString(), and updated it

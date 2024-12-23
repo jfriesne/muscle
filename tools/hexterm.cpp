@@ -20,10 +20,6 @@
 # include "zlib/ZLibDataIO.h"
 #endif
 
-#ifdef BUILD_MUSCLE_IN_MEYER_CONTEXT
-# include "version/core_version.h"
-#endif
-
 using namespace muscle;
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
@@ -414,11 +410,7 @@ static void LogUsage(const char * argv0)
 {
    String progName = String(argv0).Substring(GetFilePathSeparator());
 
-#ifdef BUILD_MUSCLE_IN_MEYER_CONTEXT
-   LogPlain(MUSCLE_LOG_INFO, "%s (%s)\n\n", progName(), mslicommon::GetCoreReleaseVersionTitle(progName(), mslicommon::GetLocalCoreReleaseVersion(), true)());
-#else
    LogPlain(MUSCLE_LOG_INFO, "%s (compiled from MUSCLE v%s)\n\n", progName(), MUSCLE_VERSION_STRING);
-#endif
    LogPlain(MUSCLE_LOG_INFO, "Usage:  hexterm tcp=<port>               (listen for incoming TCP connections on the given port)\n");
    LogPlain(MUSCLE_LOG_INFO, "   or:  hexterm tcp=<host>:<port>        (make an outgoing TCP connection to the given host/port)\n");
    LogPlain(MUSCLE_LOG_INFO, "   or:  hexterm udp=<host>:<port>[_port] (send outgoing UDP packets to the given host/port (optionally binding to _port))\n");
