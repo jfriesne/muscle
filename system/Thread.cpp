@@ -34,7 +34,11 @@ namespace muscle {
 
 Thread :: Thread(bool useMessagingSockets, ICallbackMechanism * optCallbackMechanism)
    : ICallbackSubscriber(optCallbackMechanism)
+#if defined(__EMSCRIPTEN__)
+   , _useMessagingSockets(false)  // since under Emscripten/WebAssembly, we aren't allowed to use sockets this way anyway :(
+#else
    , _useMessagingSockets(useMessagingSockets)
+#endif
    , _messageSocketsAllocated(!useMessagingSockets)  // preset to true if we're not using sockets, to prevent us from demand-allocating them
    , _threadRunning(false)
    , _suggestedStackSize(0)

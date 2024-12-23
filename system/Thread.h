@@ -80,6 +80,9 @@ public:
      * @param optCallbackMechanism if specified non-NULL, our SignalOwner() method will call
      *                             RequestCallbackInDispatchThread() in order to request that
      *                             the main/dispatch-thread call DispatchCallbacks() later on.
+     * @note when compiling with Emscripten, the (useMessagingSockets) argument will be ignored
+     *       and always treated as if it was passed in as (false), because WebAssembly doesn't
+     *       currently support using messaging sockets.
      */
    Thread(bool useMessagingSockets = true, ICallbackMechanism * optCallbackMechanism = NULL);
 

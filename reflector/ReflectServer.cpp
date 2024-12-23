@@ -752,8 +752,12 @@ status_t ReflectServer :: DoFirstTimeServerSetup()
    return ret;
 }
 
-status_t ReflectServer :: ServerProcessLoop(uint64 maxTime)
+status_t ReflectServer :: ServerProcessLoop(uint64 maxTime, uint64 * userRetNextPulseTime)
 {
+   uint64 junk = MUSCLE_TIME_NEVER;  // just so I can void NULL-checks within the event-loop
+   uint64 & nextPulseTime = userRetNextPulseTime ? *userRetNextPulseTime : junk;
+   nextPulseTime = MUSCLE_TIME_NEVER;
+
    if (_serverStartedAt == 0)
    {
       _serverStartedAt = GetRunTime64();
@@ -771,8 +775,8 @@ status_t ReflectServer :: ServerProcessLoop(uint64 maxTime)
 
       EventLoopCycleBegins();
       {
-         // This line is the center of the MUSCLE server's universe -- where we sit and sleep until it's time to do something
-         if (WaitForEvents(muscleMin(PrepareToWaitForEvents(),maxTime)).IsOK(ret))
+         nextPulseTime = PrepareToWaitForEvents();
+         if (WaitForEvents(muscleMin(nextPulseTime, maxTime)).IsOK(ret)) // This line is the center of the MUSCLE server's universe -- where we sit and sleep until it's time to do something
          {
             CheckForOutOfMemory(AbstractReflectSessionRef()); // Before we do any session I/O, make sure there hasn't been a generalized memory failure
             HandleEvents();

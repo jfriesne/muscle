@@ -12,14 +12,18 @@ key:  - new feature
    - Added Base64Encode() and Base64Decode() functions to
      MiscUtilityFunctions.{cpp,h}, based on John Walker's Base64 code.
    - Added WebSocketDataIOGateway.{cpp,h} to the iogateways folder.
-   - Added an optional (runUntil) argument to ReflectServer::ServerProcessLoop()
-     so that you can tell it when to return, if you want.
+   - Added optional (runUntil) and (optRetNextPulseTime) arguments to
+     ReflectServer::ServerProcessLoop(), to facilitate periodically
+     pumping the event loop manually from a higher-level event-loop.
    - Added a dummy/no-op implementation to the SocketMultiplexer class.
      Specify -DMUSCLE_USE_DUMMYNOP on the compile line to use it.
    o Split the StringMatcher constructor in two, so that implicit
      construction of a StringMatcher from a String argument can happen.
    o Renamed ParseHexBytes() to HexBytesFromString(), and updated it
      to also handle hex-strings without spaces (e.g. "015A2B66").
+   o The Thread class now automatically disables its messaging-sockets
+     option when compiling with Emscripten, since WebAssembly doesn't
+     currently support socket-pair signalling anyway.
    * Fixed a bug in HashtableIterator's move-operator that could cause
      a moved-into HashtableIterator not to point to the expected content.
 

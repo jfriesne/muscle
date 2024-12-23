@@ -30,6 +30,10 @@ public:
     *  @param runUntil optional timestamp at which this method should return (e.g. relative to the timestamp
     *                  returned by GetRunTime64()).  Defaults to MUSCLE_TIME_NEVER, which means this method
     *                  will never return (unless it errors out)
+    *  @param optRetNextPulseTime if specified as non-NULL, on return the timestamp at which the next Pulse()
+    *                             needs to be called will be written here, or MUSCLE_TIME_NEVER if no Pulse()
+    *                             calls are scheduled.  This can be helpful if you are calling ServerProcessLoop()
+    *                             from another event loop and needs to know when to call it next.  Defaults to NULL.
     *  @return B_NO_ERROR if the server has decided to exit peacefully, or an error code if there was a
     *                     fatal error during setup or execution.
     *  @note that barring any startup errors, this method will always run the ReflectServer event-loop
@@ -37,7 +41,7 @@ public:
     *        by GetRunTime64()).  That means you can call ServerProcessLoop(0) periodically, if need be, to
     *        single-shot-pump the ReflectServer event-loop without blocking the execution of the calling thread.
     */
-   virtual status_t ServerProcessLoop(uint64 runUntil = MUSCLE_TIME_NEVER);
+   virtual status_t ServerProcessLoop(uint64 runUntil = MUSCLE_TIME_NEVER, uint64 * optRetNextPulseTime = NULL);
 
    /** This function may be called zero or more times before ServerProcessLoop()
     *  Each call adds one port that the server should listen on, and the factory object
