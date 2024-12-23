@@ -268,6 +268,11 @@ if (APPLE)
    endif()
 endif (APPLE)
 
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
+   add_compile_options(-sUSE_PTHREADS=1)
+   target_link_libraries(muscle websocket.js)
+endif()
+
 if (WIN32)
    target_include_directories(muscle PRIVATE "./regex/regex" "./zlib/zlib")
 else (!WIN32)
