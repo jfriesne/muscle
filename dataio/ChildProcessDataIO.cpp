@@ -6,6 +6,10 @@
 #include "util/NetworkUtilityFunctions.h"  // SendData() and ReceiveData()
 #include "util/SocketMultiplexer.h"
 
+#if defined(__EMSCRIPTEN__)
+# define MUSCLE_AVOID_FORKPTY   // Emscripten doesn't have access to util.h, apparently
+#endif
+
 #if defined(WIN32) || defined(__CYGWIN__)
 # include <process.h>     // for _beginthreadex()
 # if defined(_UNICODE) || defined(UNICODE)
