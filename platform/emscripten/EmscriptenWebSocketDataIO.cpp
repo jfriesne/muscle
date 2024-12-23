@@ -62,10 +62,12 @@ io_status_t EmscriptenWebSocket :: Write(const void * data, uint32 numBytes)
 }
 
 
+#if defined(__EMSCRIPTEN__)
 bool EmscriptenWebSocket :: EmScriptenWebSocketConnectionOpened(int eventType, const EmscriptenWebSocketOpenEvent    & evt) {return _sub ? _sub->EmScriptenWebSocketConnectionOpened(*this, eventType, evt) : false;}
 bool EmscriptenWebSocket :: EmScriptenWebSocketMessageReceived( int eventType, const EmscriptenWebSocketMessageEvent & evt) {return _sub ? _sub->EmScriptenWebSocketMessageReceived( *this, eventType, evt) : false;}
 bool EmscriptenWebSocket :: EmScriptenWebSocketErrorOccurred(   int eventType, const EmscriptenWebSocketErrorEvent   & evt) {return _sub ? _sub->EmScriptenWebSocketErrorOccurred   (*this, eventType, evt) : false;}
 bool EmscriptenWebSocket :: EmScriptenWebSocketConnectionClosed(int eventType, const EmscriptenWebSocketCloseEvent   & evt) {return _sub ? _sub->EmScriptenWebSocketConnectionClosed(*this, eventType, evt) : false;}
+#endif
 
 EmscriptenWebSocketDataIO :: EmscriptenWebSocketDataIO(const String & host, uint16 port, AbstractReflectSession * optSession)
    : _sock(CreateClientWebSocket(host, port))
@@ -96,6 +98,7 @@ io_status_t EmscriptenWebSocketDataIO :: Write(const void * buffer, uint32 size)
    return _sock() ? _sock()->Write(buffer, size) : B_BAD_OBJECT;
 }
 
+#if defined(__EMSCRIPTEN__)
 bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketConnectionOpened(EmscriptenWebSocket & /*webSock*/, int /*eventType*/, const EmscriptenWebSocketOpenEvent & /*evt*/)
 {
    if (_optSession) _optSession->AsyncConnectCompleted();
@@ -163,6 +166,7 @@ bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketConnectionClosed(Emscripten
    if (_optSession) (void) _optSession->ClientConnectionClosed();
    return true;
 }
+#endif
 
 EmscriptenWebSocketRef EmscriptenWebSocketSubscriber :: CreateClientWebSocket(const String & host, uint16 port)
 {
