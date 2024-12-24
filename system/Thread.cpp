@@ -39,7 +39,7 @@ Thread :: Thread(bool useMessagingSockets, ICallbackMechanism * optCallbackMecha
 #else
    , _useMessagingSockets(useMessagingSockets)
 #endif
-   , _messageSocketsAllocated(!useMessagingSockets)  // preset to true if we're not using sockets, to prevent us from demand-allocating them
+   , _messageSocketsAllocated(!_useMessagingSockets)  // preset to true if we're not using sockets, to prevent us from demand-allocating them
    , _threadRunning(false)
    , _suggestedStackSize(0)
    , _threadStackBase(NULL)

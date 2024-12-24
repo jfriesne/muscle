@@ -69,7 +69,8 @@ PopNextOutgoingMessage(MessageRef & retMsg)
 // For this method, B_NO_ERROR means "keep sending", and B_ERROR means "stop sending for now", and isn't fatal to the stream
 // If there is a fatal error in the stream it will call SetUnrecoverableErrorStatus() to indicate that.
 status_t
-MessageIOGateway :: SendMoreData(uint32 & sentBytes, uint32 & maxBytes)
+MessageIOGateway ::
+SendMoreData(uint32 & sentBytes, uint32 & maxBytes)
 {
    TCHECKPOINT;
 

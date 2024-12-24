@@ -1082,8 +1082,8 @@ static uint64 GetRunTime64Aux()
          return ((cycles/MUSCLE_POWERPC_TIMEBASE_HZ)*MICROS_PER_SECOND)+(((cycles%MUSCLE_POWERPC_TIMEBASE_HZ)*(MICROS_PER_SECOND))/MUSCLE_POWERPC_TIMEBASE_HZ);
       }
    }
-#elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK)
-# if defined(MUSCLE_AVOID_CLOCK_MONOTONIC_RAW)
+#elif defined(__EMSCRIPTEN__) || (defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK))
+# if defined(MUSCLE_AVOID_CLOCK_MONOTONIC_RAW) || defined(__EMSCRIPTEN__)  // Emscripten doesn't know about the monotonic_raw clock
    const clockid_t clkid = CLOCK_MONOTONIC;
 # else
    const clockid_t clkid = CLOCK_MONOTONIC_RAW;

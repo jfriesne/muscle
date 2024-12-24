@@ -465,6 +465,7 @@ io_status_t WebSocketMessageIOGateway :: DoOutputImplementation(uint32 maxBytes)
                // Have the slave-gateway convert the outgoing Message into a binary-blob for us to send
                ByteBufferDataIO bbdio((DummyByteBufferRef(_scratchSlaveBuf)));  // extra parens to avoid most-vexing-parse
                _slaveGateway()->SetDataIO((DummyDataIORef(bbdio)));             // ditto
+               (void) _slaveGateway()->AddOutgoingMessage(q.Head());
                while(_slaveGateway()->DoOutput().GetByteCount() > 0) {/* empty */}
                _slaveGateway()->SetDataIO(DataIORef());
 

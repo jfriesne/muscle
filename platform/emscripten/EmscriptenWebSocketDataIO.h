@@ -35,13 +35,24 @@ public:
      */
    io_status_t Write(const void * data, uint32 numBytes);
 
+   /** Returns a dummy ConstSocketRef that can (sort of) be used to represent our file descriptor */
+   const ConstSocketRef & GetConstSocketRef() {return _sockRef;}
+
 private:
    friend class EmscriptenWebSocketSubscriber;
 
    EmscriptenWebSocketSubscriber * _sub;
    int _emSock;
 
-   EmscriptenWebSocket(EmscriptenWebSocketSubscriber * sub, int emSock) : _sub(sub), _emSock(emSock) {/* empty */}
+   ConstSocketRef _sockRef;
+
+   EmscriptenWebSocket(EmscriptenWebSocketSubscriber * sub, int emSock)
+      : _sub(sub)
+      , _emSock(emSock)
+      , _sockRef(new Socket(_emSock, false))
+   {
+      // empty
+   }
 
 public:
 #if defined(__EMSCRIPTEN__)
@@ -96,9 +107,8 @@ public:
    virtual void FlushOutput() {/* empty */}
    virtual void Shutdown();
 
-   // Alas, WebSockets and select() don't mix
-   MUSCLE_NODISCARD virtual const ConstSocketRef &  GetReadSelectSocket() const {return GetInvalidSocket();}
-   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetInvalidSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef &  GetReadSelectSocket() const {return _sock() ? _sock()->GetConstSocketRef() : GetInvalidSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _sock() ? _sock()->GetConstSocketRef() : GetInvalidSocket();}
 
 private:
    EmscriptenWebSocketRef _sock;
