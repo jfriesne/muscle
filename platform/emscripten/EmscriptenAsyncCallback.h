@@ -3,6 +3,7 @@
 #ifndef EMSCRIPTEN_ASYNC_CALLBACK_H
 #define EMSCRIPTEN_ASYNC_CALLBACK_H
 
+#include "util/Queue.h"
 #include "util/RefCount.h"
 #include "util/TimeUtilityFunctions.h"  // for MUSCLE_TIME_NEVER
 
@@ -76,10 +77,13 @@ public:
       bool AsyncCallback();
 
    private:
-      void ScheduleCallback();
+      status_t ScheduleCallback(uint64 when);
+      bool HasCallbackAtOrBefore(uint64 when) const;
 
       EmscriptenAsyncCallback * _master;
       uint64 _callbackTime;
+
+      Queue<uint64> _scheduledTimes;
    };
    DECLARE_REFTYPES(AsyncCallbackStub);
    friend class AsyncCallbackStub;
