@@ -4,6 +4,7 @@
 # include <emscripten/websocket.h>
 #endif
 
+#include "platform/emscripten/EmscriptenAsyncCallback.h"
 #include "platform/emscripten/EmscriptenWebSocketDataIO.h"
 #include "util/String.h"
 
@@ -131,7 +132,7 @@ bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketConnectionOpened(Emscripten
    if (_optAsyncCallback)
    {
       _asyncConnectedFlag = true;
-      _optAsyncCallback->SetAsyncCallbackTime(0);
+      (void) _optAsyncCallback->SetAsyncCallbackTime(0);
    }
    else if (_optSession) _optSession->AsyncConnectCompleted();
 
@@ -146,10 +147,10 @@ bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketMessageReceived(EmscriptenW
       const uint8 * newData = evt.data;
       const uint32 newNumBytes = evt.numBytes;
 
-      if (_asyncCallback)
+      if (_optAsyncCallback)
       {
          ByteBufferRef newBuf = GetByteBufferFromPool(newNumBytes, newData);
-         if ((newBuf())&&(_receivedData.Put(newBuf, 0).IsOK())) _asyncCallback->SetAsyncCallbackTime(0);  // wanna handle the data ASAP!
+         if ((newBuf())&&(_receivedData.Put(newBuf, 0).IsOK())) (void) _optAsyncCallback->SetAsyncCallbackTime(0);  // wanna handle the data ASAP!
       }
       else
       {
@@ -210,7 +211,7 @@ bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketConnectionClosed(Emscripten
    if (_optAsyncCallback)
    {
       _asyncDisconnectedFlag = true;
-      _optAsyncCallback->SetAsyncCallbackTime(0);
+      (void) _optAsyncCallback->SetAsyncCallbackTime(0);
    }
    else if (_optSession) (void) _optSession->ClientConnectionClosed();
 

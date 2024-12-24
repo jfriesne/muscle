@@ -103,5 +103,6 @@ private:
    AbstractMessageIOGatewayRef _slaveGateway;
    ByteBuffer _scratchSlaveBuf;
 };
+DECLARE_REFTYPES(WebSocketMessageIOGateway);
 
 };  // end namespace muscle
