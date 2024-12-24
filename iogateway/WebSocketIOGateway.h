@@ -40,6 +40,19 @@ public:
      */
    const String & GetAcceptedProtocol() const {return _acceptedProtocol;}
 
+   /** If you want this gateway to tunnel the protocol of another gateway over the WebSocket connection, you
+     * can install that other gateway here and this gateway will use it to convert incoming WebSocket binary buffers
+     * into Messages, and to convert outgoing Messages into binary buffers to send as WebSocket buffers.
+     * @param slaveGateway gateway to use as a data-converter
+     */
+   void SetSlaveGateway(const AbstractMessageIOGatewayRef & slaveGateway) {_slaveGateway = slaveGateway;}
+
+   /** Returns a reference to our currently-held slave gateway.  If NULL (the default) then we'll use our built-ing
+     * algorithm to turn PR_COMMAND_TEXT_STRINGS Messages into ASCII WebSocket buffers, and PR_COMMAND_RAW_DATA Messages
+     * into binary WebSocket buffers.
+     */
+   const AbstractMessageIOGatewayRef & GetSlaveGateway() const {return _slaveGateway;}
+
 protected:
    virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
    virtual io_status_t DoOutputImplementation(uint32 maxBytes);
@@ -86,6 +99,9 @@ private:
 
    ByteBuffer _outputBuf;
    uint32 _outputBytesWritten;
+
+   AbstractMessageIOGatewayRef _slaveGateway;
+   ByteBuffer _scratchSlaveBuf;
 };
 
 };  // end namespace muscle

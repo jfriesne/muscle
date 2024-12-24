@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.50 - 
    - Added the IncrementalHashCalculator class and related utility
      functions, in util/IncrementalHashCalculator.{cpp,h}.
    - Added an optional (withSpaces) argument to the HexBytesToString()
@@ -17,6 +18,8 @@ key:  - new feature
      pumping the event loop manually from a higher-level event-loop.
    - Added a dummy/no-op implementation to the SocketMultiplexer class.
      Specify -DMUSCLE_USE_DUMMYNOP on the compile line to use it.
+   - Added an EmscriptenReflectServer class to the platform/emscripten
+     folder, to support driving an event loop from async callbacks.
    - Added an EmscriptenWebSocketDataIO class to the platform/emscripten
      folder, to support network I/O via the Emscripten WebSocket API.
    - Added EmscriptenAsyncCallback class to the platform/emscripten folder,

@@ -69,18 +69,37 @@ bool EmscriptenWebSocket :: EmScriptenWebSocketErrorOccurred(   int eventType, c
 bool EmscriptenWebSocket :: EmScriptenWebSocketConnectionClosed(int eventType, const EmscriptenWebSocketCloseEvent   & evt) {return _sub ? _sub->EmScriptenWebSocketConnectionClosed(*this, eventType, evt) : false;}
 #endif
 
-EmscriptenWebSocketDataIO :: EmscriptenWebSocketDataIO(const String & host, uint16 port, AbstractReflectSession * optSession)
+EmscriptenWebSocketDataIO :: EmscriptenWebSocketDataIO(const String & host, uint16 port, AbstractReflectSession * optSession, EmscriptenAsyncCallback * optAsyncCallback)
    : _sock(CreateClientWebSocket(host, port))
    , _optSession(optSession)
+   , _optAsyncCallback(optAsyncCallback)
+   , _asyncConnectedFlag(false)
+   , _asyncDisconnectedFlag(false)
 {
    // empty
 }
 
 io_status_t EmscriptenWebSocketDataIO :: Read(void * buffer, uint32 size)
 {
+   DECLARE_MUTEXGUARD(_mutex);
+
+   if (_asyncConnectedFlag)
+   {
+      _asyncConnectedFlag = false;
+      if (_optSession) _optSession->AsyncConnectCompleted();
+   }
+
    const ByteBufferRef * lastBufRef = _receivedData.GetFirstKey();
    const ByteBuffer    * lastBuf    = lastBufRef ? lastBufRef->GetItemPointer() : NULL;
-   if (lastBuf == NULL) return io_status_t(0);  // nothing more to read!
+   if (lastBuf == NULL)
+   {
+      if (_asyncDisconnectedFlag)
+      {
+         _asyncDisconnectedFlag = false;
+         if (_optSession) (void) _optSession->ClientConnectionClosed();
+      }
+      return io_status_t(0);  // nothing more to read!
+   }
 
    uint32 * lastNumBytesRead   = _receivedData.GetFirstValue();  // guaranteed not to be NULL
    const uint32 bufSize        = lastBuf->GetNumBytes();
@@ -95,60 +114,83 @@ io_status_t EmscriptenWebSocketDataIO :: Read(void * buffer, uint32 size)
 
 io_status_t EmscriptenWebSocketDataIO :: Write(const void * buffer, uint32 size)
 {
+   DECLARE_MUTEXGUARD(_mutex);
    return _sock() ? _sock()->Write(buffer, size) : B_BAD_OBJECT;
+}
+
+void EmscriptenWebSocketDataIO :: Shutdown()
+{
+   DECLARE_MUTEXGUARD(_mutex);
+   _sock.Reset();
 }
 
 #if defined(__EMSCRIPTEN__)
 bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketConnectionOpened(EmscriptenWebSocket & /*webSock*/, int /*eventType*/, const EmscriptenWebSocketOpenEvent & /*evt*/)
 {
-   if (_optSession) _optSession->AsyncConnectCompleted();
+   DECLARE_MUTEXGUARD(_mutex);
+   if (_optAsyncCallback)
+   {
+      _asyncConnectedFlag = true;
+      _optAsyncCallback->SetAsyncCallbackTime(0);
+   }
+   else if (_optSession) _optSession->AsyncConnectCompleted();
+
    return true;
 }
 
 bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketMessageReceived(EmscriptenWebSocket & /*webSock*/, int /*eventType*/, const EmscriptenWebSocketMessageEvent & evt)
 {
+   DECLARE_MUTEXGUARD(_mutex);
    if ((_optSession)&&(evt.numBytes > 0)&&(evt.isText == false))
    {
       const uint8 * newData = evt.data;
       const uint32 newNumBytes = evt.numBytes;
 
-      // Hopefully all the new data will be read synchronously, and we can avoid a data-copy here
-      ByteBuffer tempBuf; tempBuf.AdoptBuffer(evt.numBytes, evt.data);
-      DummyByteBufferRef dummyBuffer(tempBuf);
-      if (_receivedData.Put(dummyBuffer, 0).IsOK())
+      if (_asyncCallback)
       {
-         io_status_t ret;
-         while((_receivedData.HasItems())&&(ret.IsOK()))
-         {
-            const io_status_t subRet = _optSession->DoInput(*_optSession, MUSCLE_NO_LIMIT);
-
-                 if (subRet.GetByteCount() > 0) ret += subRet;
-            else if (subRet.GetByteCount() < 0) ret  = subRet;
-            else                                break;    // avoid busy-looping if DoInput() isn't reading anything
-         }
-
-         // If there is still data in _receivedData, then the last entry will be some or all of our dummy buffer.
-         // We need to replace it with one where we control the lifetime of the buffer.
-         const ByteBufferRef * lastBufRef = _receivedData.GetLastKey();
-         if (lastBufRef)
-         {
-            const ByteBuffer * lastBuf = lastBufRef->GetItemPointer();
-
-            const uint32 numBytesRead = *_receivedData.GetLastValue();
-            ByteBufferRef newBuf = GetByteBufferFromPool(lastBuf->GetNumBytes()-numBytesRead, lastBuf->GetBuffer()+numBytesRead);
-
-            (void) _receivedData.RemoveLast();
-
-            if ((newBuf() == NULL)||(_receivedData.Put(newBuf, 0).IsError())) ret = B_OUT_OF_MEMORY;
-         }
-
-         tempBuf.ReleaseBuffer();
-         return ret.IsOK();
+         ByteBufferRef newBuf = GetByteBufferFromPool(newNumBytes, newData);
+         if ((newBuf())&&(_receivedData.Put(newBuf, 0).IsOK())) _asyncCallback->SetAsyncCallbackTime(0);  // wanna handle the data ASAP!
       }
       else
       {
-         tempBuf.ReleaseBuffer();
-         return false;
+         // Hopefully all the new data will be read synchronously, and we can avoid a data-copy here
+         ByteBuffer tempBuf; tempBuf.AdoptBuffer(evt.numBytes, evt.data);
+         DummyByteBufferRef dummyBuffer(tempBuf);
+         if (_receivedData.Put(dummyBuffer, 0).IsOK())
+         {
+            io_status_t ret;
+            while((_receivedData.HasItems())&&(ret.IsOK())&&(_optSession->IsReadyForInput()))
+            {
+               const io_status_t subRet = _optSession->DoInput(*_optSession, MUSCLE_NO_LIMIT);
+
+                    if (subRet.GetByteCount() > 0) ret += subRet;
+               else if (subRet.GetByteCount() < 0) ret  = subRet;
+               else                                break;    // avoid busy-looping if DoInput() isn't reading anything
+            }
+
+            // If there is still data in _receivedData, then the last entry will be some or all of our dummy buffer.
+            // We need to replace it with one where we control the lifetime of the buffer.
+            const ByteBufferRef * lastBufRef = _receivedData.GetLastKey();
+            if (lastBufRef)
+            {
+               const ByteBuffer * lastBuf = lastBufRef->GetItemPointer();
+
+               const uint32 numBytesRead = *_receivedData.GetLastValue();
+               ByteBufferRef newBuf = GetByteBufferFromPool(lastBuf->GetNumBytes()-numBytesRead, lastBuf->GetBuffer()+numBytesRead);
+
+               (void) _receivedData.RemoveLast();
+
+               if ((newBuf() == NULL)||(_receivedData.Put(newBuf, 0).IsError())) ret = B_OUT_OF_MEMORY;
+            }
+
+            tempBuf.ReleaseBuffer();
+            return ret.IsOK();
+         }
+         else
+         {
+            tempBuf.ReleaseBuffer();
+            return false;
+         }
       }
    }
 
@@ -157,13 +199,21 @@ bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketMessageReceived(EmscriptenW
 
 bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketErrorOccurred(EmscriptenWebSocket & /*webSock*/, int eventType, const EmscriptenWebSocketErrorEvent & /*evt*/)
 {
+   DECLARE_MUTEXGUARD(_mutex);
    LogTime(MUSCLE_LOG_ERROR, "EmScriptenWebSocketErrorOccurred:  Error %i on web socket!\n", eventType);
    return true;
 }
 
 bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketConnectionClosed(EmscriptenWebSocket & /*webSock*/, int /*eventType*/, const EmscriptenWebSocketCloseEvent & /*evt*/)
 {
-   if (_optSession) (void) _optSession->ClientConnectionClosed();
+   DECLARE_MUTEXGUARD(_mutex);
+   if (_optAsyncCallback)
+   {
+      _asyncDisconnectedFlag = true;
+      _optAsyncCallback->SetAsyncCallbackTime(0);
+   }
+   else if (_optSession) (void) _optSession->ClientConnectionClosed();
+
    return true;
 }
 #endif

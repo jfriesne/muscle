@@ -9,11 +9,13 @@
 
 #include "dataio/DataIO.h"
 #include "reflector/AbstractReflectSession.h"
+#include "system/Mutex.h"
 #include "util/Hashtable.h"
 #include "util/RefCount.h"
 
 namespace muscle {
 
+class EmscriptenAsyncCallback;
 class EmscriptenWebSocketSubscriber;
 
 /** RefCountable class to hold an Emscripten websocket and make sure it gets cleaned up when no longer in use */
@@ -84,14 +86,15 @@ public:
      * @param host hostname to connect to
      * @param port port number to connect to
      * @param optSession if non-NULL, we will make callbacks on this session when we receive callbacks from the EmscriptenWebSocket.
+     * @param optAsyncCallback if non-NULL, we will schedule callbacks on this to handle the I/O for us
      */
-   EmscriptenWebSocketDataIO(const String & host, uint16 port, AbstractReflectSession * optSession);
+   EmscriptenWebSocketDataIO(const String & host, uint16 port, AbstractReflectSession * optSession, EmscriptenAsyncCallback * optAsyncCallback);
 
    virtual io_status_t Read(void * buffer, uint32 size);
    virtual io_status_t Write(const void * buffer, uint32 size);
 
    virtual void FlushOutput() {/* empty */}
-   virtual void Shutdown() {_sock.Reset();}
+   virtual void Shutdown();
 
    // Alas, WebSockets and select() don't mix
    MUSCLE_NODISCARD virtual const ConstSocketRef &  GetReadSelectSocket() const {return GetInvalidSocket();}
@@ -100,7 +103,12 @@ public:
 private:
    EmscriptenWebSocketRef _sock;
    AbstractReflectSession * _optSession;
+   EmscriptenAsyncCallback * _optAsyncCallback;
 
+   bool _asyncConnectedFlag;
+   bool _asyncDisconnectedFlag;
+
+   Mutex _mutex;
    Hashtable<ByteBufferRef, uint32> _receivedData;  // buffer -> bytes already read
 
 #if defined(__EMSCRIPTEN__)

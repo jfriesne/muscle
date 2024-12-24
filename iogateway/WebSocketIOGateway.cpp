@@ -1,3 +1,4 @@
+#include "dataio/ByteBufferDataIO.h"
 #include "iogateway/WebSocketIOGateway.h"
 #include "iogateway/PlainTextMessageIOGateway.h"  // for PR_COMMAND_TEXT_STRINGS
 #include "iogateway/RawDataMessageIOGateway.h"    // for PR_COMMAND_RAW_DATA
@@ -27,6 +28,8 @@ enum {
    WS_OPCODE_RESERVED_F,
    NUM_WS_OPCODES
 };
+
+static const String WS_GATEWAY_NAME_SPECIAL = "_wsgwy_";  // used to differentiate our own Messages from the user's Messages
 
 static String GetWebSocketHashKeyString(const String & orig)
 {
@@ -447,26 +450,52 @@ io_status_t WebSocketMessageIOGateway :: DoOutputImplementation(uint32 maxBytes)
          if (q.HasItems())
          {
             Message * m = q.Head()();
-            if (m->what == WS_OPCODE_PONG)
+            if ((m->what == WS_OPCODE_PONG)&&(m->HasName(WS_GATEWAY_NAME_SPECIAL)))
             {
-               // form Pong reply
-               ByteBufferRef bufRef;
-               if (m->FindFlat("data", bufRef) == B_NO_ERROR)
-               {
-                  MRETURN_ON_ERROR(CreateReplyFrame(bufRef()->GetBuffer(), bufRef()->GetNumBytes(), WS_OPCODE_PONG));
-               }
+               // form a WebSocket-Pong reply
+               const ByteBufferRef optBufRef = m->GetFlat<ByteBufferRef>("data");
+               const status_t ret = CreateReplyFrame(optBufRef()?optBufRef()->GetBuffer():NULL, optBufRef()?optBufRef()->GetNumBytes():0, WS_OPCODE_PONG);
                (void) q.RemoveHead();
+               MRETURN_ON_ERROR(ret);
+            }
+            else if (_slaveGateway())
+            {
+               _scratchSlaveBuf.Clear();  // paranoia
+
+               // Have the slave-gateway convert the outgoing Message into a binary-blob for us to send
+               ByteBufferDataIO bbdio((DummyByteBufferRef(_scratchSlaveBuf)));  // extra parens to avoid most-vexing-parse
+               _slaveGateway()->SetDataIO((DummyDataIORef(bbdio)));             // ditto
+               while(_slaveGateway()->DoOutput().GetByteCount() > 0) {/* empty */}
+               _slaveGateway()->SetDataIO(DataIORef());
+
+               const status_t ret = CreateReplyFrame(_scratchSlaveBuf.GetBuffer(), _scratchSlaveBuf.GetNumBytes(), WS_OPCODE_BINARY);
+               _scratchSlaveBuf.Clear();
+               (void) q.RemoveHead();
+               MRETURN_ON_ERROR(ret);
             }
             else
             {
-               // form Text reply
                const String * s = m->GetStringPointer(PR_NAME_TEXT_LINE);
                if (s)
                {
-                  MRETURN_ON_ERROR(CreateReplyFrame((const uint8 *) s->Cstr(), s->Length(), WS_OPCODE_TEXT));  // note that we don't send a NUL terminator byte!
+                  // form Text reply
+                  const status_t ret = CreateReplyFrame((const uint8 *) s->Cstr(), s->Length(), WS_OPCODE_TEXT);  // note that we don't send a NUL terminator byte!
                   (void) m->RemoveData(PR_NAME_TEXT_LINE);
+                  MRETURN_ON_ERROR(ret);
                }
-               else (void) q.RemoveHead();
+               else
+               {
+                  const void * d;
+                  uint32 numBytes;
+                  if (m->FindData(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, &d, &numBytes).IsOK())
+                  {
+                     // form Binary reply
+                     const status_t ret = CreateReplyFrame((const uint8 *)d, numBytes, WS_OPCODE_BINARY);
+                     (void) m->RemoveData(PR_NAME_DATA_CHUNKS);
+                     MRETURN_ON_ERROR(ret);
+                  }
+                  else (void) q.RemoveHead();
+               }
             }
          }
          else break;
@@ -524,7 +553,7 @@ status_t WebSocketMessageIOGateway :: InitializeIncomingPayload(uint32 payloadSi
       {
          // don't change _opCode if we are merely extending a fragment...
          (void) UnmaskPayloadSegment(NULL);  // Gotta unmask the previous segment while we still have its mask
-         if (_payload()->AppendBytes(NULL, payloadSizeBytes, false) != B_NO_ERROR) _payload.Reset();
+         if (_payload()->AppendBytes(NULL, payloadSizeBytes, false).IsError()) _payload.Reset();
       }
       else
       {
@@ -574,7 +603,7 @@ void WebSocketMessageIOGateway :: ExecuteReceivedFrame(AbstractGatewayMessageRec
             if ((_receivedMsg())&&(_receivedMsg()->what != PR_COMMAND_TEXT_STRINGS)) FlushReceivedMessage(receiver);
 
             const String text((const char *) payloadBytes, payloadSize);
-            LogTime(MUSCLE_LOG_DEBUG, "Received text from client:  [%s]\n", text());
+            LogTime(MUSCLE_LOG_DEBUG, "WebSocketMessageIOGateway::ExecuteReceivedFrame():  Received text:  [%s]\n", text());
             if (_receivedMsg() == NULL) _receivedMsg = GetMessageFromPool(PR_COMMAND_TEXT_STRINGS);
             if (_receivedMsg())
             {
@@ -589,12 +618,25 @@ void WebSocketMessageIOGateway :: ExecuteReceivedFrame(AbstractGatewayMessageRec
          {
             if ((_receivedMsg())&&(_receivedMsg()->what != PR_COMMAND_RAW_DATA)) FlushReceivedMessage(receiver);
 
-            ByteBufferRef buf = GetByteBufferFromPool(payloadSize, payloadBytes);
-            if (buf())
+            LogTime(MUSCLE_LOG_DEBUG, "WebSocketMessageIOGateway::ExecuteReceivedFrame():  Received " UINT32_FORMAT_SPEC "-byte binary blob.\n", payloadSize);
+
+            if (_slaveGateway())
             {
-               LogTime(MUSCLE_LOG_DEBUG, "Received blob from client: " UINT32_FORMAT_SPEC "bytes\n", payloadSize);
-               if (_receivedMsg() == NULL) _receivedMsg = GetMessageFromPool(PR_COMMAND_RAW_DATA);
-               if (_receivedMsg()) (void) _receivedMsg()->AddFlat(PR_NAME_DATA_CHUNKS, buf);
+               ByteBuffer temp; temp.AdoptBuffer(payloadSize, const_cast<uint8 *>(payloadBytes));
+               ByteBufferDataIO bbdio((DummyByteBufferRef(temp)));  // extra parens to avoid most-vexing-parse
+               _slaveGateway()->SetDataIO((DummyDataIORef(bbdio))); // ditto
+               while(_slaveGateway()->DoInput(receiver).GetByteCount() > 0) {/* empty */}
+               _slaveGateway()->SetDataIO(DataIORef());
+               temp.ReleaseBuffer();
+            }
+            else
+            {
+               ByteBufferRef buf = GetByteBufferFromPool(payloadSize, payloadBytes);
+               if (buf())
+               {
+                  if (_receivedMsg() == NULL) _receivedMsg = GetMessageFromPool(PR_COMMAND_RAW_DATA);
+                  if (_receivedMsg()) (void) _receivedMsg()->AddFlat(PR_NAME_DATA_CHUNKS, buf);
+               }
             }
          }
          break;
@@ -609,7 +651,7 @@ void WebSocketMessageIOGateway :: ExecuteReceivedFrame(AbstractGatewayMessageRec
             FlushReceivedMessage(receiver);  // necessary because the receiver might queue some outgoing-data that we want to appear before the pong we send below
 
             MessageRef pongMsg = GetMessageFromPool(WS_OPCODE_PONG);
-            if ((pongMsg())&&((_payload() == NULL)||(pongMsg()->AddFlat("data", _payload) == B_NO_ERROR))) (void) AddOutgoingMessage(pongMsg);
+            if ((pongMsg())&&(pongMsg()->AddBool(WS_GATEWAY_NAME_SPECIAL, true).IsOK())&&((_payload() == NULL)||(pongMsg()->AddFlat("data", _payload).IsOK()))) (void) AddOutgoingMessage(pongMsg);
          }
          break;
 
