@@ -2,7 +2,7 @@
 
 #if defined(__EMSCRIPTEN__)
 # include <limits.h>  // for INT_MAX
-# include <emscripten/websocket.h>
+# include <emscripten/emscripten.h>
 # include "platform/emscripten/EmscriptenAsyncCallback.h"
 
 namespace muscle {
