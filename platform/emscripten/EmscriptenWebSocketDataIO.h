@@ -23,7 +23,7 @@ class EmscriptenWebSocket : public RefCountable
 {
 public:
    /** Default constructor */
-   EmscriptenWebSocket() : _sub(NULL), _emSock(-1) {/* empty */}
+   EmscriptenWebSocket();
 
    /** Destructor -- closes and deletes our web socket, if we have one */
    virtual ~EmscriptenWebSocket();
@@ -46,13 +46,7 @@ private:
 
    ConstSocketRef _sockRef;
 
-   EmscriptenWebSocket(EmscriptenWebSocketSubscriber * sub, int emSock)
-      : _sub(sub)
-      , _emSock(emSock)
-      , _sockRef(new Socket(_emSock, false))
-   {
-      // empty
-   }
+   EmscriptenWebSocket(EmscriptenWebSocketSubscriber * sub, int emSock);
 
 public:
 #if defined(__EMSCRIPTEN__)
@@ -100,6 +94,9 @@ public:
      * @param optAsyncCallback if non-NULL, we will schedule callbacks on this to handle the I/O for us
      */
    EmscriptenWebSocketDataIO(const String & host, uint16 port, AbstractReflectSession * optSession, EmscriptenAsyncCallback * optAsyncCallback);
+
+   /** Destructor */
+   virtual ~EmscriptenWebSocketDataIO();
 
    virtual io_status_t Read(void * buffer, uint32 size);
    virtual io_status_t Write(const void * buffer, uint32 size);

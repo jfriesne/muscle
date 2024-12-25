@@ -3,6 +3,7 @@
 #ifndef EMSCRIPTEN_ASYNC_CALLBACK_H
 #define EMSCRIPTEN_ASYNC_CALLBACK_H
 
+#include "support/NotCopyable.h"
 #include "util/Queue.h"
 #include "util/RefCount.h"
 #include "util/TimeUtilityFunctions.h"  // for MUSCLE_TIME_NEVER
@@ -10,19 +11,14 @@
 namespace muscle {
 
 /** This class manages an asynchronous callback from Emscripten */
-class EmscriptenAsyncCallback
+class EmscriptenAsyncCallback : private NotCopyable
 {
 public:
    /** Default constructor */
-   EmscriptenAsyncCallback() {/* empty */}
+   EmscriptenAsyncCallback();
 
    /** Destructor */
-   virtual ~EmscriptenAsyncCallback()
-   {
-#if defined(__EMSCRIPTEN__)
-      if (_stub()) _stub()->ForgetMaster();
-#endif
-   }
+   virtual ~EmscriptenAsyncCallback();
 
    /** Schedules a time for the callback to be called.
      * If a callback is already pending, if will be rescheduled to this new time
@@ -33,26 +29,10 @@ public:
      *       the next iteration of the event loop)
      * @returns B_NO_ERROR on success, or B_UNIMPLEMENTED if we haven't been compiled to use Emscripten.
      */
-   status_t SetAsyncCallbackTime(uint64 callbackTime)
-   {
-#if defined(__EMSCRIPTEN__)
-      if (_stub() == NULL) _stub.SetRef(new AsyncCallbackStub(this));
-      return _stub()->SetAsyncCallbackTime(callbackTime);
-#else
-      (void) callbackTime;
-      return B_UNIMPLEMENTED;
-#endif
-   }
+   status_t SetAsyncCallbackTime(uint64 callbackTime);
 
    /** Returns the timestamp of our next call to AsyncCallback(), or MUSCLE_TIME_NEVER if none is scheduled. */
-   uint64 GetAsyncCallbackTime() const
-   {
-#if defined(__EMSCRIPTEN__)
-      return _stub() ? _stub()->GetAsyncCallbackTime() : MUSCLE_TIME_NEVER;
-#else
-      return MUSCLE_TIME_NEVER;
-#endif
-   }
+   uint64 GetAsyncCallbackTime() const;
 
 protected:
    /** The asynchronous callback.  We aim to have this method called as close as
@@ -65,10 +45,11 @@ public:
 #if defined(__EMSCRIPTEN__)
    // This stub is just here so we can safely destroy the EmscriptenAsyncCallback object
    // and not have to worry about any lingering async-callbacks trying to access it afterwards
-   class AsyncCallbackStub : public RefCountable
+   class AsyncCallbackStub : public RefCountable, private NotCopyable
    {
    public:
       AsyncCallbackStub(EmscriptenAsyncCallback * master);
+      ~AsyncCallbackStub();
 
       uint64 GetAsyncCallbackTime() const {return _callbackTime;}
       status_t SetAsyncCallbackTime(uint64 callbackTime);

@@ -10,6 +10,30 @@
 
 namespace muscle {
 
+static void CheckPointer(const char * desc, const Hashtable<void *, Void> & table, void * ptr, int line)
+{
+   if (table.ContainsKey(ptr) == false)
+   {
+      printf("ERROR @ [%s]:%i:  ptr %p isn't in the table!\n", desc, line, ptr);
+      MCRASH("WTF Z");
+   }
+}
+
+EmscriptenWebSocket :: EmscriptenWebSocket()
+   : _sub(NULL)
+   , _emSock(-1)
+{
+   // empty
+}
+
+EmscriptenWebSocket :: EmscriptenWebSocket(EmscriptenWebSocketSubscriber * sub, int emSock)
+   : _sub(sub)
+   , _emSock(emSock)
+   , _sockRef(new Socket(_emSock, false))
+{
+   // empty
+}
+
 EmscriptenWebSocket :: ~EmscriptenWebSocket()
 {
 #if defined(__EMSCRIPTEN__)
@@ -25,22 +49,22 @@ EmscriptenWebSocket :: ~EmscriptenWebSocket()
 }
 
 #if defined(__EMSCRIPTEN__)
-static EM_BOOL em_discovery_onmessage_callback(int eventType, const EmscriptenWebSocketMessageEvent * evt, void * userData)
+static EM_BOOL em_websocket_onmessage_callback(int eventType, const EmscriptenWebSocketMessageEvent * evt, void * userData)
 {
    return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmScriptenWebSocketMessageReceived(eventType, *evt) ? EM_TRUE : EM_FALSE;
 }
 
-static EM_BOOL em_discovery_onopen_callback(int eventType, const EmscriptenWebSocketOpenEvent * evt, void * userData)
+static EM_BOOL em_websocket_onopen_callback(int eventType, const EmscriptenWebSocketOpenEvent * evt, void * userData)
 {
    return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmScriptenWebSocketConnectionOpened(eventType, *evt) ? EM_TRUE : EM_FALSE;
 }
 
-static EM_BOOL em_discovery_onerror_callback(int eventType, const EmscriptenWebSocketErrorEvent * evt, void * userData)
+static EM_BOOL em_websocket_onerror_callback(int eventType, const EmscriptenWebSocketErrorEvent * evt, void * userData)
 {
    return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmScriptenWebSocketErrorOccurred(eventType, *evt) ? EM_TRUE : EM_FALSE;
 }
 
-static EM_BOOL em_discovery_onclose_callback(int eventType, const EmscriptenWebSocketCloseEvent * evt, void * userData)
+static EM_BOOL em_websocket_onclose_callback(int eventType, const EmscriptenWebSocketCloseEvent * evt, void * userData)
 {
    return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmScriptenWebSocketConnectionClosed(eventType, *evt) ? EM_TRUE : EM_FALSE;
 }
@@ -76,6 +100,11 @@ EmscriptenWebSocketDataIO :: EmscriptenWebSocketDataIO(const String & host, uint
    , _optAsyncCallback(optAsyncCallback)
    , _asyncConnectedFlag(false)
    , _asyncDisconnectedFlag(false)
+{
+   // empty
+}
+
+EmscriptenWebSocketDataIO :: ~EmscriptenWebSocketDataIO()
 {
    // empty
 }
@@ -234,10 +263,10 @@ EmscriptenWebSocketRef EmscriptenWebSocketSubscriber :: CreateClientWebSocket(co
    }
 
    EmscriptenWebSocketRef ret(new EmscriptenWebSocket(this, s));
-   (void) emscripten_websocket_set_onopen_callback(   s, ret(), em_discovery_onopen_callback);
-   (void) emscripten_websocket_set_onmessage_callback(s, ret(), em_discovery_onmessage_callback);
-   (void) emscripten_websocket_set_onerror_callback(  s, ret(), em_discovery_onerror_callback);
-   (void) emscripten_websocket_set_onclose_callback(  s, ret(), em_discovery_onclose_callback);
+   (void) emscripten_websocket_set_onopen_callback(   s, ret(), em_websocket_onopen_callback);
+   (void) emscripten_websocket_set_onmessage_callback(s, ret(), em_websocket_onmessage_callback);
+   (void) emscripten_websocket_set_onerror_callback(  s, ret(), em_websocket_onerror_callback);
+   (void) emscripten_websocket_set_onclose_callback(  s, ret(), em_websocket_onclose_callback);
 
    return ret;
 #else

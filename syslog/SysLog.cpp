@@ -5,6 +5,10 @@
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
 # include <random>
 #endif
+#if defined(__EMSCRIPTEN__)
+# include <emscripten/emscripten.h>
+#endif
+
 #include "dataio/FileDataIO.h"
 #include "regex/StringMatcher.h"
 #include "syslog/LogCallback.h"
@@ -1368,7 +1372,10 @@ status_t PrintStackTrace(FILE * optFile, uint32 maxDepth)
 
    if (optFile == NULL) optFile = stdout;
 
-#if defined(MUSCLE_USE_BACKTRACE)
+#if defined(__EMSCRIPTEN__)
+   (void) emscripten_run_script("print(new Error().stack)");
+   return B_NO_ERROR;
+#elif defined(MUSCLE_USE_BACKTRACE)
    void *array[MAX_STACK_TRACE_DEPTH];
    const size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
    fprintf(optFile, "--Stack trace follows (%i frames):\n", (int) size);

@@ -24,6 +24,10 @@ const char * GetOSName(const char * defStr)
    ret = "Windows";
 #endif
 
+#ifdef __EMSCRIPTEN__
+   ret = "Emscripten";
+#endif
+
 #ifdef __CYGWIN__
    ret = "Windows (CygWin)";
 #endif

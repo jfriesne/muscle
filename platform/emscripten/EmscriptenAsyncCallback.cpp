@@ -7,6 +7,36 @@
 
 namespace muscle {
 
+EmscriptenAsyncCallback :: EmscriptenAsyncCallback()
+{
+   // empty
+}
+
+EmscriptenAsyncCallback :: ~EmscriptenAsyncCallback()
+{
+   if (_stub()) _stub()->ForgetMaster();
+}
+
+status_t EmscriptenAsyncCallback :: SetAsyncCallbackTime(uint64 callbackTime)
+{
+#if defined(__EMSCRIPTEN__)
+   if (_stub() == NULL) _stub.SetRef(new AsyncCallbackStub(this));
+   return _stub()->SetAsyncCallbackTime(callbackTime);
+#else
+   (void) callbackTime;
+   return B_UNIMPLEMENTED;
+#endif
+}
+
+uint64 EmscriptenAsyncCallback :: GetAsyncCallbackTime() const
+{
+#if defined(__EMSCRIPTEN__)
+   return _stub() ? _stub()->GetAsyncCallbackTime() : MUSCLE_TIME_NEVER;
+#else
+   return MUSCLE_TIME_NEVER;
+#endif
+}
+
 EmscriptenAsyncCallback :: AsyncCallbackStub :: AsyncCallbackStub(EmscriptenAsyncCallback * master)
    : _master(master)
    , _callbackTime(MUSCLE_TIME_NEVER)
@@ -14,9 +44,14 @@ EmscriptenAsyncCallback :: AsyncCallbackStub :: AsyncCallbackStub(EmscriptenAsyn
    // empty
 }
 
+EmscriptenAsyncCallback :: AsyncCallbackStub :: ~AsyncCallbackStub()
+{
+   // empty
+}
+
 bool EmscriptenAsyncCallback :: AsyncCallbackStub :: AsyncCallback()
 {
-   (void) _scheduledTimes.RemoveHead();
+   const bool justEmptiedQueue = ((_scheduledTimes.RemoveHead().IsOK())&&(_scheduledTimes.IsEmpty()));
 
    if (_master)
    {
@@ -30,7 +65,7 @@ bool EmscriptenAsyncCallback :: AsyncCallbackStub :: AsyncCallback()
       else if (HasCallbackAtOrBefore(_callbackTime) == false) (void) ScheduleCallback(_callbackTime);
    }
 
-   return DecrementRefCount();  // always do this, since this callback means one less data structure pointing to us
+   return justEmptiedQueue ? DecrementRefCount() : false;
 }
 
 static void emscripten_async_callback(void * userData)
@@ -58,11 +93,13 @@ status_t EmscriptenAsyncCallback :: AsyncCallbackStub :: SetAsyncCallbackTime(ui
 
 status_t EmscriptenAsyncCallback :: AsyncCallbackStub :: ScheduleCallback(uint64 callbackTime)
 {
+   const bool wasEmpty = _scheduledTimes.IsEmpty();
    if (_scheduledTimes.InsertItemAtSortedPosition(callbackTime) < 0) return B_OUT_OF_MEMORY;
 
    const int millisUntil = (int) muscleClamp((int64)0, MicrosToMillisRoundUp(callbackTime-GetRunTime64()), (int64)(INT_MAX));
-   emscripten_async_call(emscripten_async_callback, this, (int) millisUntil);
-   IncrementRefCount();  // gotta keep ourselves alive until the async callback fires, at least!
+   emscripten_async_call(emscripten_async_callback, this, millisUntil);
+
+   if (wasEmpty) IncrementRefCount();  // gotta keep ourselves alive until the async callback fires, at least!
    return B_NO_ERROR;
 }
 
