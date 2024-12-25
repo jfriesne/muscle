@@ -80,8 +80,8 @@ private:
    String _clientGeneratedKey;
    String _receivedHTTPText;
 
-   String _httpTextToSend;
-   uint32 _numHTTPBytesSent;
+   String _httpTextToWrite;
+   uint32 _numHTTPBytesWritten;
 
    String _acceptedProtocol; // the protocol the server told us he has chosen to use
 

@@ -40,7 +40,7 @@ static String GetWebSocketHashKeyString(const String & orig)
 
 WebSocketMessageIOGateway :: WebSocketMessageIOGateway()
    : _handshakeState(WEBSOCKET_HANDSHAKE_NONE)
-   , _numHTTPBytesSent(0)
+   , _numHTTPBytesWritten(0)
    , _headerBytesReceived(0)
    , _headerSize(2)
    , _firstByteToMask(0)
@@ -57,7 +57,7 @@ WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const StringMatcher & pro
    : _handshakeState(WEBSOCKET_HANDSHAKE_AS_SERVER)
    , _protocolNameMatcher(protocolNameMatcher)
    , _pathMatcher(pathMatcher)
-   , _numHTTPBytesSent(0)
+   , _numHTTPBytesWritten(0)
    , _headerBytesReceived(0)
    , _headerSize(2)
    , _firstByteToMask(0)
@@ -72,7 +72,7 @@ WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const StringMatcher & pro
 
 WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const String & getPath, const String & host, const String & protocolsStr, const String & origin)
    : _handshakeState(WEBSOCKET_HANDSHAKE_AS_CLIENT)
-   , _numHTTPBytesSent(0)
+   , _numHTTPBytesWritten(0)
    , _headerBytesReceived(0)
    , _headerSize(2)
    , _firstByteToMask(0)
@@ -91,14 +91,14 @@ WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const String & getPath, c
    }
 
    // Generate the HTTP request that we will send ASAP
-   _httpTextToSend  = String("GET %1 HTTP/1.1\r\n").Arg(getPath);
-   _httpTextToSend += String("Host: %1\n\n").Arg(host);
-   _httpTextToSend += "Upgrade: websocket\r\n";
-   _httpTextToSend += "Connection: Upgrade\r\n";
-   _httpTextToSend += String("Sec-WebSocket-Key: %1\r\n").Arg(_clientGeneratedKey);
-   if (protocolsStr.HasChars()) _httpTextToSend += String("Sec-WebSocket-Protocol: %4\r\n").Arg(protocolsStr);
-   _httpTextToSend += "Sec-WebSocket-Version: 13\r\n";
-   if (origin.HasChars()) _httpTextToSend += String("Origin: %1\r\n").Arg(origin);
+   _httpTextToWrite  = String("GET %1 HTTP/1.1\r\n").Arg(getPath);
+   _httpTextToWrite += String("Host: %1\n\n").Arg(host);
+   _httpTextToWrite += "Upgrade: websocket\r\n";
+   _httpTextToWrite += "Connection: Upgrade\r\n";
+   _httpTextToWrite += String("Sec-WebSocket-Key: %1\r\n").Arg(_clientGeneratedKey);
+   if (protocolsStr.HasChars()) _httpTextToWrite += String("Sec-WebSocket-Protocol: %4\r\n").Arg(protocolsStr);
+   _httpTextToWrite += "Sec-WebSocket-Version: 13\r\n";
+   if (origin.HasChars()) _httpTextToWrite += String("Origin: %1\r\n").Arg(origin);
 }
 
 void WebSocketMessageIOGateway :: ResetHeaderReceiveState()
@@ -192,12 +192,12 @@ status_t WebSocketMessageIOGateway :: HandleReceivedHTTPText()
          if (key.HasChars())
          {
             // FogBugz #8945:  go into web-socket mode if that was required
-            _httpTextToSend  = "HTTP/1.1 101 Switching Protocols\r\n";
-            _httpTextToSend += "Upgrade: websocket\r\n";
-            _httpTextToSend += "Connection: Upgrade\r\n";
-            _httpTextToSend += String("Sec-WebSocket-Accept: %1\r\n").Arg(GetWebSocketHashKeyString(key));
-            if (foundProto.HasChars()) _httpTextToSend += String("Sec-WebSocket-Protocol: %1\r\n").Arg(foundProto);
-            _httpTextToSend += "\r\n";
+            _httpTextToWrite  = "HTTP/1.1 101 Switching Protocols\r\n";
+            _httpTextToWrite += "Upgrade: websocket\r\n";
+            _httpTextToWrite += "Connection: Upgrade\r\n";
+            _httpTextToWrite += String("Sec-WebSocket-Accept: %1\r\n").Arg(GetWebSocketHashKeyString(key));
+            if (foundProto.HasChars()) _httpTextToWrite += String("Sec-WebSocket-Protocol: %1\r\n").Arg(foundProto);
+            _httpTextToWrite += "\r\n";
 
             return B_NO_ERROR;
          }
@@ -399,10 +399,10 @@ bool WebSocketMessageIOGateway :: HasBytesToOutput() const
    {
       case WEBSOCKET_HANDSHAKE_AS_SERVER:
       case WEBSOCKET_HANDSHAKE_AS_CLIENT:
-         return (_numHTTPBytesSent < _httpTextToSend.Length());
+         return (_numHTTPBytesWritten < _httpTextToWrite.Length());
 
       case WEBSOCKET_HANDSHAKE_NONE:
-         return ((_numHTTPBytesSent < _httpTextToSend.Length())||(_outputBytesWritten < _outputBuf.GetNumBytes())||(GetOutgoingMessageQueue().HasItems()));
+         return ((_numHTTPBytesWritten < _httpTextToWrite.Length())||(_outputBytesWritten < _outputBuf.GetNumBytes())||(GetOutgoingMessageQueue().HasItems()));
 
       default:
          return false;  // gateway is error'd out
@@ -411,17 +411,19 @@ bool WebSocketMessageIOGateway :: HasBytesToOutput() const
 
 io_status_t WebSocketMessageIOGateway :: DoOutputImplementation(uint32 maxBytes)
 {
-   if (_numHTTPBytesSent < _httpTextToSend.Length())
+   if (_numHTTPBytesWritten < _httpTextToWrite.Length())
    {
-      const io_status_t ret = GetDataIO()()->Write(_httpTextToSend()+_numHTTPBytesSent, muscleMin((uint32)(_httpTextToSend.Length()-_numHTTPBytesSent), maxBytes));
-      const int32 numBytesSent = ret.GetByteCount();
-      if (numBytesSent > 0)
+      const io_status_t ret = GetDataIO()()->Write(_httpTextToWrite()+_numHTTPBytesWritten, muscleMin((uint32)(_httpTextToWrite.Length()-_numHTTPBytesWritten), maxBytes));
+      const int32 numBytesWritten = ret.GetByteCount();
+      if (numBytesWritten > 0)
       {
-         _numHTTPBytesSent += ret.GetByteCount();
-         if (_numHTTPBytesSent >= _httpTextToSend.Length())
+         LogTime(MUSCLE_LOG_TRACE, "WebSocketMessageIOGateway::DoOutputImplementation():  %p wrote " INT32_FORMAT_SPEC " bytes of outgoing HTTP data.\n", this, numBytesWritten);
+
+         _numHTTPBytesWritten += ret.GetByteCount();
+         if (_numHTTPBytesWritten >= _httpTextToWrite.Length())
          {
-            _numHTTPBytesSent = 0;
-            _httpTextToSend.Clear();
+            _numHTTPBytesWritten = 0;
+            _httpTextToWrite.Clear();
          }
       }
       return ret;
@@ -438,6 +440,7 @@ io_status_t WebSocketMessageIOGateway :: DoOutputImplementation(uint32 maxBytes)
          const uint32 numBytesWritten = ret.GetByteCount();
          if (numBytesWritten > 0)
          {
+            LogTime(MUSCLE_LOG_TRACE, "WebSocketMessageIOGateway::DoOutputImplementation():  %p wrote " INT32_FORMAT_SPEC " bytes of outgoing WebSocket data.\n", this, numBytesWritten);
             bytesWritten        += numBytesWritten;
             _outputBytesWritten += bytesWritten;
             maxBytes            -= bytesWritten;
@@ -596,7 +599,7 @@ void WebSocketMessageIOGateway :: ExecuteReceivedFrame(AbstractGatewayMessageRec
       switch(_opCode)
       {
          case WS_OPCODE_CONTINUATION:
-            if (_inputClosed == false) LogTime(MUSCLE_LOG_WARNING, "WebSocketMessageIOGateway:  Executing a continuation opcode?!?\n");
+            if (_inputClosed == false) LogTime(MUSCLE_LOG_ERROR, "WebSocketMessageIOGateway::ExecuteReceivedFrame():   %p received WS_OPCODE_CONTINUATION; continuation handling is not currently implemented\n", this);
          break;
 
          case WS_OPCODE_TEXT:
@@ -604,7 +607,8 @@ void WebSocketMessageIOGateway :: ExecuteReceivedFrame(AbstractGatewayMessageRec
             if ((_receivedMsg())&&(_receivedMsg()->what != PR_COMMAND_TEXT_STRINGS)) FlushReceivedMessage(receiver);
 
             const String text((const char *) payloadBytes, payloadSize);
-            LogTime(MUSCLE_LOG_DEBUG, "WebSocketMessageIOGateway::ExecuteReceivedFrame():  Received text:  [%s]\n", text());
+            LogTime(MUSCLE_LOG_TRACE, "WebSocketMessageIOGateway::ExecuteReceivedFrame():  %p received text:  [%s]\n", this, text());
+
             if (_receivedMsg() == NULL) _receivedMsg = GetMessageFromPool(PR_COMMAND_TEXT_STRINGS);
             if (_receivedMsg())
             {
@@ -619,7 +623,7 @@ void WebSocketMessageIOGateway :: ExecuteReceivedFrame(AbstractGatewayMessageRec
          {
             if ((_receivedMsg())&&(_receivedMsg()->what != PR_COMMAND_RAW_DATA)) FlushReceivedMessage(receiver);
 
-            LogTime(MUSCLE_LOG_DEBUG, "WebSocketMessageIOGateway::ExecuteReceivedFrame():  Received " UINT32_FORMAT_SPEC "-byte binary blob.\n", payloadSize);
+            LogTime(MUSCLE_LOG_TRACE, "WebSocketMessageIOGateway::ExecuteReceivedFrame():  %p Received " UINT32_FORMAT_SPEC "-byte binary blob.\n", this, payloadSize);
 
             if (_slaveGateway())
             {
@@ -644,12 +648,14 @@ void WebSocketMessageIOGateway :: ExecuteReceivedFrame(AbstractGatewayMessageRec
 
          case WS_OPCODE_CLOSE:
             _inputClosed = true;
-            LogTime(MUSCLE_LOG_DEBUG, "Got WS_OPCODE_CLOSE!\n");
+            LogTime(MUSCLE_LOG_TRACE, "WebSocketMessageIOGateway::ExecuteReceivedFrame():  %p got WS_OPCODE_CLOSE!\n", this);
          break;
 
          case WS_OPCODE_PING:
          {
             FlushReceivedMessage(receiver);  // necessary because the receiver might queue some outgoing-data that we want to appear before the pong we send below
+
+            LogTime(MUSCLE_LOG_TRACE, "WebSocketMessageIOGateway::ExecuteReceivedFrame():  %p received WS_OPCODE_PING\n", this);
 
             MessageRef pongMsg = GetMessageFromPool(WS_OPCODE_PONG);
             if ((pongMsg())&&(pongMsg()->AddBool(WS_GATEWAY_NAME_SPECIAL, true).IsOK())&&((_payload() == NULL)||(pongMsg()->AddFlat("data", _payload).IsOK()))) (void) AddOutgoingMessage(pongMsg);
@@ -657,11 +663,11 @@ void WebSocketMessageIOGateway :: ExecuteReceivedFrame(AbstractGatewayMessageRec
          break;
 
          case WS_OPCODE_PONG:
-            // Not sure what to do with pongs, so I'm just going to ignore them for now
+            LogTime(MUSCLE_LOG_TRACE, "WebSocketMessageIOGateway::ExecuteReceivedFrame():  %p received WS_OPCODE_PONG!\n", this);
          break;
 
          default:
-            LogTime(MUSCLE_LOG_ERROR, "WebSocketMessageIOGateway:  Received unsupported opcode 0x%x!\n", _opCode);
+            LogTime(MUSCLE_LOG_ERROR, "WebSocketMessageIOGateway::ExecuteReceivedFrame():  %p received unsupported opcode 0x%x!\n", this, _opCode);
          break;
       }
    }
