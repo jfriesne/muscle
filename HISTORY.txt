@@ -22,8 +22,9 @@ key:  - new feature
      folder, to support driving an event loop from async callbacks.
    - Added an EmscriptenWebSocketDataIO class to the platform/emscripten
      folder, to support network I/O via the Emscripten WebSocket API.
-   - Added EmscriptenAsyncCallback class to the platform/emscripten folder,
+   - Added an EmscriptenAsyncCallback class to the platform/emscripten folder,
      to manage Emscripten's non-cancellable async callbacks.
+   - Added an EmscriptenCallbackMechanism to the platform/emscripten folder.
    o Split the StringMatcher constructor in two, so that implicit
      construction of a StringMatcher from a String argument can happen.
    o Renamed ParseHexBytes() to HexBytesFromString(), and updated it
