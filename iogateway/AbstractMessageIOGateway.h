@@ -32,7 +32,7 @@ public:
     * @param messageRef A reference to the Message to send out through the gateway.
     * @return B_NO_ERROR on success, or B_BAD_OBJECT if this gateway is out of commision, or B_OUT_OF_MEMORY.
     */
-   virtual status_t AddOutgoingMessage(const MessageRef & messageRef) {return _unrecoverableErrorStatus.IsError() ? B_BAD_OBJECT : _outgoingMessages.AddTail(messageRef);}
+   virtual status_t AddOutgoingMessage(const MessageRef & messageRef);
 
    /**
     * Writes some of our outgoing message bytes to the wire.

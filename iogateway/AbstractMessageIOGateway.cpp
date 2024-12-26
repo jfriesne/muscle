@@ -124,4 +124,13 @@ io_status_t AbstractMessageIOGateway :: DoOutput(uint32 maxBytes)
    return ret;
 }
 
+status_t AbstractMessageIOGateway :: AddOutgoingMessage(const MessageRef & messageRef)
+{
+   const status_t ret = _unrecoverableErrorStatus.IsError() ? B_BAD_OBJECT : _outgoingMessages.AddTail(messageRef);
+#if defined(__EMSCRIPTEN__)
+   (void) DoOutput(); // hack to keep Emscripten responsive, because otherwise there's no easy way to trigger the event loop to run.
+#endif
+   return ret;
+}
+
 } // end namespace muscle

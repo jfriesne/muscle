@@ -630,7 +630,7 @@ void WebSocketMessageIOGateway :: ExecuteReceivedFrame(AbstractGatewayMessageRec
                ByteBuffer temp; temp.AdoptBuffer(payloadSize, const_cast<uint8 *>(payloadBytes));
                ByteBufferDataIO bbdio((DummyByteBufferRef(temp)));  // extra parens to avoid most-vexing-parse
                _slaveGateway()->SetDataIO((DummyDataIORef(bbdio))); // ditto
-               while(_slaveGateway()->DoInput(receiver).GetByteCount() > 0) {/* empty */}
+               while(_slaveGateway()->DoInput(receiver).GetByteCount() > 0) {/* empty */}  // TODO: handle parse-errors here?
                _slaveGateway()->SetDataIO(DataIORef());
                temp.ReleaseBuffer();
             }

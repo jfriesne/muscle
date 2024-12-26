@@ -7,6 +7,7 @@
 #include "platform/emscripten/EmscriptenAsyncCallback.h"
 #include "platform/emscripten/EmscriptenWebSocketDataIO.h"
 #include "util/String.h"
+#include "util/MiscUtilityFunctions.h" // TEMP REMOVE THIS
 
 namespace muscle {
 
@@ -61,6 +62,24 @@ static EM_BOOL em_websocket_onclose_callback(int eventType, const EmscriptenWebS
 {
    return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmScriptenWebSocketConnectionClosed(eventType, *evt) ? EM_TRUE : EM_FALSE;
 }
+
+static status_t GetStatusForEmscriptenResult(EMSCRIPTEN_RESULT r)
+{
+   switch(r)
+   {
+      case EMSCRIPTEN_RESULT_SUCCESS:             return B_NO_ERROR;
+      case EMSCRIPTEN_RESULT_DEFERRED:            return B_ERROR("Emscripten: Deferred");
+      case EMSCRIPTEN_RESULT_NOT_SUPPORTED:       return B_ERROR("Emscripten: Not Supported");
+      case EMSCRIPTEN_RESULT_FAILED_NOT_DEFERRED: return B_ERROR("Emscripten: Failed Not Deferred");
+      case EMSCRIPTEN_RESULT_INVALID_TARGET:      return B_ERROR("Emscripten: Invalid Target");
+      case EMSCRIPTEN_RESULT_UNKNOWN_TARGET:      return B_ERROR("Emscripten: Unknown Target");
+      case EMSCRIPTEN_RESULT_INVALID_PARAM:       return B_ERROR("Emscripten: Invalid Param");
+      case EMSCRIPTEN_RESULT_FAILED:              return B_ERROR("Emscripten: Failed");
+      case EMSCRIPTEN_RESULT_NO_DATA:             return B_ERROR("Emscripten: No Data");
+      case EMSCRIPTEN_RESULT_TIMED_OUT:           return B_ERROR("Emscripten: Timed Out");
+      default:                                    return B_ERROR("Emscripten: Unknown");
+   }
+}
 #endif
 
 io_status_t EmscriptenWebSocket :: Write(const void * data, uint32 numBytes)
@@ -69,7 +88,7 @@ io_status_t EmscriptenWebSocket :: Write(const void * data, uint32 numBytes)
    if (_emSock > 0)
    {
       const EMSCRIPTEN_RESULT ret = emscripten_websocket_send_binary(_emSock, const_cast<void *>(data), numBytes);
-      return (ret == EMSCRIPTEN_RESULT_SUCCESS) ? io_status_t(numBytes) : io_status_t(B_IO_ERROR);
+      return (ret == EMSCRIPTEN_RESULT_SUCCESS) ? io_status_t(numBytes) : GetStatusForEmscriptenResult(ret);
    }
    else return B_BAD_OBJECT;
 #else
