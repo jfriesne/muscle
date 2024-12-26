@@ -128,7 +128,10 @@ status_t AbstractMessageIOGateway :: AddOutgoingMessage(const MessageRef & messa
 {
    const status_t ret = _unrecoverableErrorStatus.IsError() ? B_BAD_OBJECT : _outgoingMessages.AddTail(messageRef);
 #if defined(__EMSCRIPTEN__)
-   (void) DoOutput(); // hack to keep Emscripten responsive, because otherwise there's no easy way to trigger the event loop to run.
+   // A cheap hack to keep Emscripten responsive, because otherwise
+   // there's no easy way to trigger the ServerEventLoop to be executed
+   // again later on to flush our outgoing-message-queue.
+   while(DoOutput().GetByteCount() > 0) {/* empty */};
 #endif
    return ret;
 }
