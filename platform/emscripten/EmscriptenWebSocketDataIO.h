@@ -9,7 +9,6 @@
 
 #include "dataio/DataIO.h"
 #include "reflector/AbstractReflectSession.h"
-#include "system/Mutex.h"
 #include "util/Hashtable.h"
 #include "util/RefCount.h"
 
@@ -112,10 +111,6 @@ private:
    AbstractReflectSession * _optSession;
    EmscriptenAsyncCallback * _optAsyncCallback;
 
-   bool _asyncConnectedFlag;
-   bool _asyncDisconnectedFlag;
-
-   Mutex _mutex;
    Hashtable<ByteBufferRef, uint32> _receivedData;  // buffer -> bytes already read
 
 #if defined(__EMSCRIPTEN__)
