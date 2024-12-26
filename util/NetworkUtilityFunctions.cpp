@@ -1264,6 +1264,11 @@ status_t CreateConnectedSocketPair(ConstSocketRef & socket1, ConstSocketRef & so
       if ((SetSocketBlockingEnabled(socket1, blocking).IsOK(ret))&&(SetSocketBlockingEnabled(socket2, blocking).IsOK(ret))) return B_NO_ERROR;
    }
    else return B_ERRNO;
+#elif defined(__EMSCRIPTEN__)
+   (void) socket1;
+   (void) socket2;
+   (void) blocking;
+   return B_UNIMPLEMENTED;  // sorry guys, they simply can't do it
 #else
    uint16 port;
    socket1 = CreateAcceptingSocket(0, 1, &port, localhostIP);

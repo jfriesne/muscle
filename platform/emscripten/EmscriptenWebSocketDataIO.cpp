@@ -10,15 +10,6 @@
 
 namespace muscle {
 
-static void CheckPointer(const char * desc, const Hashtable<void *, Void> & table, void * ptr, int line)
-{
-   if (table.ContainsKey(ptr) == false)
-   {
-      printf("ERROR @ [%s]:%i:  ptr %p isn't in the table!\n", desc, line, ptr);
-      MCRASH("WTF Z");
-   }
-}
-
 EmscriptenWebSocket :: EmscriptenWebSocket()
    : _sub(NULL)
    , _emSock(-1)
@@ -31,7 +22,9 @@ EmscriptenWebSocket :: EmscriptenWebSocket(EmscriptenWebSocketSubscriber * sub, 
    , _emSock(emSock)
    , _sockRef(new Socket(_emSock, false))
 {
-   // empty
+#if !defined(__EMSCRIPTEN__)
+   (void) _sub; // suppress compiler warning about member-variable not being used
+#endif
 }
 
 EmscriptenWebSocket :: ~EmscriptenWebSocket()
@@ -101,7 +94,9 @@ EmscriptenWebSocketDataIO :: EmscriptenWebSocketDataIO(const String & host, uint
    , _asyncConnectedFlag(false)
    , _asyncDisconnectedFlag(false)
 {
-   // empty
+#if !defined(__EMSCRIPTEN__)
+   (void) _optAsyncCallback; // suppress compiler warning about member-variable not being used
+#endif
 }
 
 EmscriptenWebSocketDataIO :: ~EmscriptenWebSocketDataIO()

@@ -1,10 +1,11 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#include <limits.h>  // for INT_MAX
 #if defined(__EMSCRIPTEN__)
-# include <limits.h>  // for INT_MAX
 # include <emscripten/emscripten.h>
+#endif
 # include "platform/emscripten/EmscriptenAsyncCallback.h"
-# include "util/String.h"  // So we can call GetHumanReadableTimeIntervalString()
+#include "util/String.h"  // So we can call GetHumanReadableTimeIntervalString()
 
 namespace muscle {
 
@@ -15,7 +16,9 @@ EmscriptenAsyncCallback :: EmscriptenAsyncCallback()
 
 EmscriptenAsyncCallback :: ~EmscriptenAsyncCallback()
 {
+#if defined(__EMSCRIPTEN__)
    if (_stub()) _stub()->ForgetMaster();
+#endif
 }
 
 status_t EmscriptenAsyncCallback :: SetAsyncCallbackTime(uint64 callbackTime)
@@ -38,6 +41,7 @@ uint64 EmscriptenAsyncCallback :: GetAsyncCallbackTime() const
 #endif
 }
 
+#if defined(__EMSCRIPTEN__)
 EmscriptenAsyncCallback :: AsyncCallbackStub :: AsyncCallbackStub(EmscriptenAsyncCallback * master)
    : _master(master)
    , _callbackTime(MUSCLE_TIME_NEVER)
@@ -124,7 +128,6 @@ if (callbackTime > 0)
    if (wasEmpty) IncrementRefCount();  // gotta keep ourselves alive until the async callback fires, at least!
    return B_NO_ERROR;
 }
+#endif
 
 };  // end namespace muscle
-
-#endif
