@@ -65,6 +65,7 @@ public:
       uint64 _callbackTime;
 
       Queue<uint64> _scheduledTimes;
+      uint32 _timingOkayCount;
    };
    DECLARE_REFTYPES(AsyncCallbackStub);
    friend class AsyncCallbackStub;

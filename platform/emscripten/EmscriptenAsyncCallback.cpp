@@ -4,6 +4,7 @@
 # include <limits.h>  // for INT_MAX
 # include <emscripten/emscripten.h>
 # include "platform/emscripten/EmscriptenAsyncCallback.h"
+# include "util/String.h"  // So we can call GetHumanReadableTimeIntervalString()
 
 namespace muscle {
 
@@ -40,6 +41,7 @@ uint64 EmscriptenAsyncCallback :: GetAsyncCallbackTime() const
 EmscriptenAsyncCallback :: AsyncCallbackStub :: AsyncCallbackStub(EmscriptenAsyncCallback * master)
    : _master(master)
    , _callbackTime(MUSCLE_TIME_NEVER)
+   , _timingOkayCount(0)
 {
    // empty
 }
@@ -59,6 +61,18 @@ bool EmscriptenAsyncCallback :: AsyncCallbackStub :: AsyncCallback()
       if (now >= _callbackTime)
       {
          const uint64 schedTime = _callbackTime;
+         if (_callbackTime > 0)
+         {
+            const int64 delta = now-_callbackTime;
+            if (delta > MillisToMicros(10))
+            {
+               LogTime(MUSCLE_LOG_WARNING, "AsyncCallback %p is late by %s (after " UINT32_FORMAT_SPEC " on-time callbacks)\n", this, GetHumanReadableTimeIntervalString(delta)(), _timingOkayCount);
+               _timingOkayCount = 0;
+            }
+            else _timingOkayCount++;
+         }
+         else _timingOkayCount++;  // I guess?
+
          _callbackTime = MUSCLE_TIME_NEVER;
          _master->AsyncCallback(schedTime);
       }
@@ -96,7 +110,15 @@ status_t EmscriptenAsyncCallback :: AsyncCallbackStub :: ScheduleCallback(uint64
    const bool wasEmpty = _scheduledTimes.IsEmpty();
    if (_scheduledTimes.InsertItemAtSortedPosition(callbackTime) < 0) return B_OUT_OF_MEMORY;
 
-   const int millisUntil = (int) muscleClamp((int64)0, MicrosToMillisRoundUp(callbackTime-GetRunTime64()), (int64)(INT_MAX));
+   const uint64 now = GetRunTime64();
+   const int millisUntil = (int) muscleClamp((int64)0, MicrosToMillisRoundUp(callbackTime-now), (int64)(INT_MAX));
+#ifdef DEBUG_CALLBACK_TIMES
+if (callbackTime > 0)
+{
+   printf("CB %p:  callbackTime=" UINT64_FORMAT_SPEC " now=" UINT64_FORMAT_SPEC " millisUntil=%i _scheduledTimes=%u\n", this, callbackTime, now, millisUntil, _scheduledTimes.GetNumItems());
+   for (uint32 i=0; i<_scheduledTimes.GetNumItems(); i++) printf("rel: " INT64_FORMAT_SPEC, _scheduledTimes[i]-now); printf("\n");
+}
+#endif
    emscripten_async_call(emscripten_async_callback, this, millisUntil);
 
    if (wasEmpty) IncrementRefCount();  // gotta keep ourselves alive until the async callback fires, at least!
