@@ -109,7 +109,11 @@ file(GLOB MUSCLE_SRCS
    "./system/*.cpp"
    "./util/*.cpp"
    "./zlib/*.cpp"
-   "./zlib/zlib/contrib/minizip/*.c"
+   "./zlib/zlib/contrib/minizip/ioapi.c"
+   "./zlib/zlib/contrib/minizip/iowin32.c"
+   "./zlib/zlib/contrib/minizip/mztools.c"
+   "./zlib/zlib/contrib/minizip/unzip.c"
+   "./zlib/zlib/contrib/minizip/zip.c"
 )
 
 option(WITH_SSL "Enable OpenSSL Support" OFF)

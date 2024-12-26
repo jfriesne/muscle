@@ -33,6 +33,8 @@ key:  - new feature
      currently support socket-pair signalling anyway.
    * Fixed a bug in HashtableIterator's move-operator that could cause
      a moved-into HashtableIterator not to point to the expected content.
+   * Fixed CMakeLists.txt not to include minizip.c and miniunz.c in
+     the compiled muscle library.
 
 9.44 - Released 12/16/2024
    - Added an optional human-readable name field to ReaderWriterMutex.
