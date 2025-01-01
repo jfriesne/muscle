@@ -192,6 +192,20 @@ Directory contents descriptions follow:
 </li>
 <p>
 <li>
+<b>platform/emscripten/</b>
+<p>
+   This directory contains several classes that support C++ code that is compiled to JavaScript or WebAssembly using the Emscripten SDK.
+
+   <p>
+   <table>
+    <tr><td><a href="platform/emscripten/EmscriptenAsyncCallback.h">EmscriptenAsyncCallback</a></td><td>A wrapper class for managing Emscripten's asynchronous-callback mechanism.</td></tr>
+    <tr><td><a href="platform/emscripten/EmscriptenCallbackMechanism.h">EmscriptenCallbackMechanism</a></td><td>An EmscriptenAsyncCallback-based implementation of the <a href="util/ICallbackMechanism.h">ICallbackMechanism</a> interface.</td></tr>
+    <tr><td><a href="platform/emscripten/EmscriptenReflectServer.h">EmscriptenReflectServer</a></td><td>A specialization of <a href="reflector/ReflectServer.h">ReflectServer</a> that uses an EmscriptenAsyncCallback to drive its ServerEventLoop.</td></tr>
+    <tr><td><a href="platform/emscripten/EmscriptenWebSocketDataIO.h">EmscriptenWebSocketDataIO</a></td><td>An implementation of <a href="dataio/DataIO.h">DataIO</a> that uses Emscripten's asynchronous websocket APIs to send and receive data.</td></tr>
+   </table>
+<p>
+</li>
+<li>
 <b>platform/qt/</b>
 <p>
    This directory contains several classes that support clients that use TrollTech's
