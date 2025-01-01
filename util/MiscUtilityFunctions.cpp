@@ -166,6 +166,7 @@ static status_t ParseArgsAux(const String & line, Message * optAddToMsg, Queue<S
       }
       lastCharWasBackslash = (c == '\\');
    }
+
    StringTokenizer tok(tokenizeThis(), STRING_TOKENIZER_DEFAULT_SOFT_SEPARATOR_CHARS);   // soft/whitespace separators only
    const char * t = tok();
    while(t)
@@ -279,7 +280,7 @@ static status_t ParseFileAux(const String * optInStr, FILE * fpIn, Message * opt
    if (optInStr)
    {
       StringTokenizer tok(optInStr->Cstr(), "\r\n");
-      return (tok.GetRemainderOfString() != NULL) ? ParseFileAux(&tok, NULL, optAddToMsg, optAddToQueue, NULL, 0, cs) : B_BAD_ARGUMENT;
+      return (tok.GetRemainderOfString() != NULL) ? ParseFileAux(&tok, NULL, optAddToMsg, optAddToQueue, NULL, 0, cs) : B_NO_ERROR;
    }
    else
    {

@@ -36,6 +36,8 @@ key:  - new feature
      a moved-into HashtableIterator not to point to the expected content.
    * Fixed CMakeLists.txt not to include minizip.c and miniunz.c in
      the compiled muscle library.
+   * ParseFile() was incorrectly returning B_BAD_ARGUMENT when an
+     empty String was passed to it.  Fixed.
 
 9.44 - Released 12/16/2024
    - Added an optional human-readable name field to ReaderWriterMutex.
