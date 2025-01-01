@@ -113,6 +113,7 @@ EmscriptenWebSocketDataIO :: EmscriptenWebSocketDataIO(const String & host, uint
 {
 #if !defined(__EMSCRIPTEN__)
    (void) _optAsyncCallback; // suppress compiler warning about member-variable not being used
+   (void) _optSession;       // ditto
 #endif
 }
 
