@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-9.50 - 
+9.50 - Released 12/31/2024
    - Added the IncrementalHashCalculator class and related utility
      functions, in util/IncrementalHashCalculator.{cpp,h}.
    - Added an optional (withSpaces) argument to the HexBytesToString()
