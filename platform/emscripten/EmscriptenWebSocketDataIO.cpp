@@ -45,22 +45,22 @@ EmscriptenWebSocket :: ~EmscriptenWebSocket()
 #if defined(__EMSCRIPTEN__)
 static EM_BOOL em_websocket_onmessage_callback(int eventType, const EmscriptenWebSocketMessageEvent * evt, void * userData)
 {
-   return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmScriptenWebSocketMessageReceived(eventType, *evt) ? EM_TRUE : EM_FALSE;
+   return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmscriptenWebSocketMessageReceived(eventType, *evt) ? EM_TRUE : EM_FALSE;
 }
 
 static EM_BOOL em_websocket_onopen_callback(int eventType, const EmscriptenWebSocketOpenEvent * evt, void * userData)
 {
-   return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmScriptenWebSocketConnectionOpened(eventType, *evt) ? EM_TRUE : EM_FALSE;
+   return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmscriptenWebSocketConnectionOpened(eventType, *evt) ? EM_TRUE : EM_FALSE;
 }
 
 static EM_BOOL em_websocket_onerror_callback(int eventType, const EmscriptenWebSocketErrorEvent * evt, void * userData)
 {
-   return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmScriptenWebSocketErrorOccurred(eventType, *evt) ? EM_TRUE : EM_FALSE;
+   return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmscriptenWebSocketErrorOccurred(eventType, *evt) ? EM_TRUE : EM_FALSE;
 }
 
 static EM_BOOL em_websocket_onclose_callback(int eventType, const EmscriptenWebSocketCloseEvent * evt, void * userData)
 {
-   return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmScriptenWebSocketConnectionClosed(eventType, *evt) ? EM_TRUE : EM_FALSE;
+   return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmscriptenWebSocketConnectionClosed(eventType, *evt) ? EM_TRUE : EM_FALSE;
 }
 
 static status_t GetStatusForEmscriptenResult(EMSCRIPTEN_RESULT r)
@@ -100,10 +100,10 @@ io_status_t EmscriptenWebSocket :: Write(const void * data, uint32 numBytes)
 
 
 #if defined(__EMSCRIPTEN__)
-bool EmscriptenWebSocket :: EmScriptenWebSocketConnectionOpened(int eventType, const EmscriptenWebSocketOpenEvent    & evt) {return _sub ? _sub->EmScriptenWebSocketConnectionOpened(*this, eventType, evt) : false;}
-bool EmscriptenWebSocket :: EmScriptenWebSocketMessageReceived( int eventType, const EmscriptenWebSocketMessageEvent & evt) {return _sub ? _sub->EmScriptenWebSocketMessageReceived( *this, eventType, evt) : false;}
-bool EmscriptenWebSocket :: EmScriptenWebSocketErrorOccurred(   int eventType, const EmscriptenWebSocketErrorEvent   & evt) {return _sub ? _sub->EmScriptenWebSocketErrorOccurred   (*this, eventType, evt) : false;}
-bool EmscriptenWebSocket :: EmScriptenWebSocketConnectionClosed(int eventType, const EmscriptenWebSocketCloseEvent   & evt) {return _sub ? _sub->EmScriptenWebSocketConnectionClosed(*this, eventType, evt) : false;}
+bool EmscriptenWebSocket :: EmscriptenWebSocketConnectionOpened(int eventType, const EmscriptenWebSocketOpenEvent    & evt) {return _sub ? _sub->EmscriptenWebSocketConnectionOpened(*this, eventType, evt) : false;}
+bool EmscriptenWebSocket :: EmscriptenWebSocketMessageReceived( int eventType, const EmscriptenWebSocketMessageEvent & evt) {return _sub ? _sub->EmscriptenWebSocketMessageReceived( *this, eventType, evt) : false;}
+bool EmscriptenWebSocket :: EmscriptenWebSocketErrorOccurred(   int eventType, const EmscriptenWebSocketErrorEvent   & evt) {return _sub ? _sub->EmscriptenWebSocketErrorOccurred   (*this, eventType, evt) : false;}
+bool EmscriptenWebSocket :: EmscriptenWebSocketConnectionClosed(int eventType, const EmscriptenWebSocketCloseEvent   & evt) {return _sub ? _sub->EmscriptenWebSocketConnectionClosed(*this, eventType, evt) : false;}
 #endif
 
 EmscriptenWebSocketDataIO :: EmscriptenWebSocketDataIO(const String & host, uint16 port, AbstractReflectSession * optSession, EmscriptenAsyncCallback * optAsyncCallback)
@@ -149,14 +149,14 @@ void EmscriptenWebSocketDataIO :: Shutdown()
 }
 
 #if defined(__EMSCRIPTEN__)
-bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketConnectionOpened(EmscriptenWebSocket & /*webSock*/, int /*eventType*/, const EmscriptenWebSocketOpenEvent & /*evt*/)
+bool EmscriptenWebSocketDataIO :: EmscriptenWebSocketConnectionOpened(EmscriptenWebSocket & /*webSock*/, int /*eventType*/, const EmscriptenWebSocketOpenEvent & /*evt*/)
 {
    if (_optSession) _optSession->AsyncConnectCompleted();
    if (_optAsyncCallback) (void) _optAsyncCallback->SetAsyncCallbackTime(0);
    return true;
 }
 
-bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketMessageReceived(EmscriptenWebSocket & /*webSock*/, int /*eventType*/, const EmscriptenWebSocketMessageEvent & evt)
+bool EmscriptenWebSocketDataIO :: EmscriptenWebSocketMessageReceived(EmscriptenWebSocket & /*webSock*/, int /*eventType*/, const EmscriptenWebSocketMessageEvent & evt)
 {
    io_status_t ret;
 
@@ -206,17 +206,17 @@ bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketMessageReceived(EmscriptenW
    return ret.IsOK();
 }
 
-bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketErrorOccurred(EmscriptenWebSocket & /*webSock*/, int eventType, const EmscriptenWebSocketErrorEvent & /*evt*/)
+bool EmscriptenWebSocketDataIO :: EmscriptenWebSocketErrorOccurred(EmscriptenWebSocket & /*webSock*/, int eventType, const EmscriptenWebSocketErrorEvent & /*evt*/)
 {
-   LogTime(MUSCLE_LOG_ERROR, "EmScriptenWebSocketErrorOccurred:  Error %i on web socket!\n", eventType);
+   LogTime(MUSCLE_LOG_ERROR, "EmscriptenWebSocketErrorOccurred:  Error %i on web socket!\n", eventType);
    if (_optSession)       (void) _optSession->ClientConnectionClosed();
    if (_optAsyncCallback) (void) _optAsyncCallback->SetAsyncCallbackTime(0);
    return true;
 }
 
-bool EmscriptenWebSocketDataIO :: EmScriptenWebSocketConnectionClosed(EmscriptenWebSocket & /*webSock*/, int /*eventType*/, const EmscriptenWebSocketCloseEvent & /*evt*/)
+bool EmscriptenWebSocketDataIO :: EmscriptenWebSocketConnectionClosed(EmscriptenWebSocket & /*webSock*/, int /*eventType*/, const EmscriptenWebSocketCloseEvent & /*evt*/)
 {
-   LogTime(MUSCLE_LOG_DEBUG, "EmScriptenWebSocketConnectionClosed:  web socket session ended!\n");
+   LogTime(MUSCLE_LOG_DEBUG, "EmscriptenWebSocketConnectionClosed:  web socket session ended!\n");
    if (_optSession)       (void) _optSession->ClientConnectionClosed();
    if (_optAsyncCallback) (void) _optAsyncCallback->SetAsyncCallbackTime(0);
    return true;

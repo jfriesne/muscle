@@ -49,10 +49,10 @@ private:
 
 public:
 #if defined(__EMSCRIPTEN__)
-   bool EmScriptenWebSocketConnectionOpened(int eventType, const EmscriptenWebSocketOpenEvent    & evt);
-   bool EmScriptenWebSocketMessageReceived( int eventType, const EmscriptenWebSocketMessageEvent & evt);
-   bool EmScriptenWebSocketErrorOccurred(   int eventType, const EmscriptenWebSocketErrorEvent   & evt);
-   bool EmScriptenWebSocketConnectionClosed(int eventType, const EmscriptenWebSocketCloseEvent   & evt);
+   bool EmscriptenWebSocketConnectionOpened(int eventType, const EmscriptenWebSocketOpenEvent    & evt);
+   bool EmscriptenWebSocketMessageReceived( int eventType, const EmscriptenWebSocketMessageEvent & evt);
+   bool EmscriptenWebSocketErrorOccurred(   int eventType, const EmscriptenWebSocketErrorEvent   & evt);
+   bool EmscriptenWebSocketConnectionClosed(int eventType, const EmscriptenWebSocketCloseEvent   & evt);
 #endif
 };
 DECLARE_REFTYPES(EmscriptenWebSocket);
@@ -78,7 +78,7 @@ protected:
      * @param evt an EmscriptenWebSocketOpenEvent object containing more information about the event.
      * @return true to allow this event to be propagated to other listeners as well, or false to prevent further propagation of this event.
      */
-   virtual bool EmScriptenWebSocketConnectionOpened(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketOpenEvent & evt) = 0;
+   virtual bool EmscriptenWebSocketConnectionOpened(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketOpenEvent & evt) = 0;
 
    /** This callback is called when a websocket receives some data from the server.
      * @param webSock the socket that the data was received on
@@ -86,7 +86,7 @@ protected:
      * @param evt an EmscriptenWebSocketMessageEvent object containing more information about the event.
      * @return true to allow this event to be propagated to other listeners as well, or false to prevent further propagation of this event.
      */
-   virtual bool EmScriptenWebSocketMessageReceived(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketMessageEvent & evt) = 0;
+   virtual bool EmscriptenWebSocketMessageReceived(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketMessageEvent & evt) = 0;
 
    /** This callback is called when a websocket reports an error condition.
      * @param webSock the socket that the error was received on
@@ -94,7 +94,7 @@ protected:
      * @param evt an EmscriptenWebSocketErrorEvent object containing more information about the error.
      * @return true to allow this event to be propagated to other listeners as well, or false to prevent further propagation of this event.
      */
-   virtual bool EmScriptenWebSocketErrorOccurred(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketErrorEvent & evt) = 0;
+   virtual bool EmscriptenWebSocketErrorOccurred(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketErrorEvent & evt) = 0;
 
    /** This callback is called when a websocket becomes disconnected from the server.
      * @param webSock the socket that is no longer connected to the server
@@ -102,7 +102,7 @@ protected:
      * @param evt an EmscriptenWebSocketCloseEvent object containing more information about the event.
      * @return true to allow this event to be propagated to other listeners as well, or false to prevent further propagation of this event.
      */
-   virtual bool EmScriptenWebSocketConnectionClosed(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketCloseEvent & evt) = 0;
+   virtual bool EmscriptenWebSocketConnectionClosed(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketCloseEvent & evt) = 0;
 #endif
 
 private:
@@ -141,10 +141,10 @@ private:
    Hashtable<ByteBufferRef, uint32> _receivedData;  // buffer -> bytes already read
 
 #if defined(__EMSCRIPTEN__)
-   virtual bool EmScriptenWebSocketConnectionOpened(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketOpenEvent    & evt);
-   virtual bool EmScriptenWebSocketMessageReceived( EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketMessageEvent & evt);
-   virtual bool EmScriptenWebSocketErrorOccurred(   EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketErrorEvent   & evt);
-   virtual bool EmScriptenWebSocketConnectionClosed(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketCloseEvent   & evt);
+   virtual bool EmscriptenWebSocketConnectionOpened(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketOpenEvent    & evt);
+   virtual bool EmscriptenWebSocketMessageReceived( EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketMessageEvent & evt);
+   virtual bool EmscriptenWebSocketErrorOccurred(   EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketErrorEvent   & evt);
+   virtual bool EmscriptenWebSocketConnectionClosed(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketCloseEvent   & evt);
 #endif
 };
 
