@@ -71,11 +71,38 @@ public:
    EmscriptenWebSocketRef CreateClientWebSocket(const String & host, uint16 port);
 
 protected:
-#if defined(__EMSCRIPTEN__)
-   virtual bool EmScriptenWebSocketConnectionOpened(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketOpenEvent    & evt) = 0;
-   virtual bool EmScriptenWebSocketMessageReceived( EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketMessageEvent & evt) = 0;
-   virtual bool EmScriptenWebSocketErrorOccurred(   EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketErrorEvent   & evt) = 0;
-   virtual bool EmScriptenWebSocketConnectionClosed(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketCloseEvent   & evt) = 0;
+#if defined(__EMSCRIPTEN__) || defined(DOXYGEN_SHOULD_IGNORE_THIS)
+   /** This callback is called when a websocket connection becomes connected to a server.
+     * @param webSock the socket that is now connected to the server
+     * @param eventType the EMSCRIPTEN_EVENT_* value that represents this callback.  (Typically EMSCRIPTEN_EVENT_WEB_SOCKET_OPEN)
+     * @param evt an EmscriptenWebSocketOpenEvent object containing more information about the event.
+     * @return true to allow this event to be propagated to other listeners as well, or false to prevent further propagation of this event.
+     */
+   virtual bool EmScriptenWebSocketConnectionOpened(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketOpenEvent & evt) = 0;
+
+   /** This callback is called when a websocket receives some data from the server.
+     * @param webSock the socket that the data was received on
+     * @param eventType the EMSCRIPTEN_EVENT_* value that represents this callback.  (Typically EMSCRIPTEN_EVENT_WEB_SOCKET_MESSAGE)
+     * @param evt an EmscriptenWebSocketMessageEvent object containing more information about the event.
+     * @return true to allow this event to be propagated to other listeners as well, or false to prevent further propagation of this event.
+     */
+   virtual bool EmScriptenWebSocketMessageReceived(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketMessageEvent & evt) = 0;
+
+   /** This callback is called when a websocket reports an error condition.
+     * @param webSock the socket that the error was received on
+     * @param eventType the EMSCRIPTEN_EVENT_* value that represents this callback.  (Typically EMSCRIPTEN_EVENT_WEB_SOCKET_ERROR)
+     * @param evt an EmscriptenWebSocketErrorEvent object containing more information about the error.
+     * @return true to allow this event to be propagated to other listeners as well, or false to prevent further propagation of this event.
+     */
+   virtual bool EmScriptenWebSocketErrorOccurred(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketErrorEvent & evt) = 0;
+
+   /** This callback is called when a websocket becomes disconnected from the server.
+     * @param webSock the socket that is no longer connected to the server
+     * @param eventType the EMSCRIPTEN_EVENT_* value that represents this callback.  (Typically EMSCRIPTEN_EVENT_WEB_SOCKET_CLOSE)
+     * @param evt an EmscriptenWebSocketCloseEvent object containing more information about the event.
+     * @return true to allow this event to be propagated to other listeners as well, or false to prevent further propagation of this event.
+     */
+   virtual bool EmScriptenWebSocketConnectionClosed(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketCloseEvent & evt) = 0;
 #endif
 
 private:
