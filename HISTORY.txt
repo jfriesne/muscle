@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   o Replaced overloaded_preprocessor_macro.h with conditional
+     usage of the comma-swallowing operator (##__VA_ARGS__).
    * The deadlock finder no longer warns about inconsistent
      locking orders that consist entirely of shared/read-only locks.
    * The deadlock finder no longer considers TryLock() calls at

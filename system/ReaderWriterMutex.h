@@ -14,10 +14,6 @@
 #include "util/String.h"
 #include "util/TimeUtilityFunctions.h"  // for MUSCLE_TIME_NEVER
 
-#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-# include "util/overloaded_preprocessor_macro.h"
-#endif
-
 #ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
 // Should be defined elsewhere to return true iff it's considered okay to call the given method on the given
 // ReaderWriterMutex from the current thread-context.
@@ -28,14 +24,15 @@ extern bool IsOkayToAccessMuscleReaderWriterMutex(const muscle::ReaderWriterMute
 namespace muscle {
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-# define LockReadOnly(...)       OVERLOADED_PREPROCESSOR_MACRO(LockReadOnly, __VA_ARGS__)
-# define LockReadOnly0()         DeadlockFinderLockReadOnlyWrapper(__FILE__, __LINE__, MUSCLE_TIME_NEVER)
-# define LockReadOnly1(ts)       DeadlockFinderLockReadOnlyWrapper(__FILE__, __LINE__, ts)
-# define LockReadWrite(...)      OVERLOADED_PREPROCESSOR_MACRO(LockReadWrite, __VA_ARGS__)
-# define LockReadWrite0()        DeadlockFinderLockReadWriteWrapper(__FILE__, __LINE__, MUSCLE_TIME_NEVER)
-# define LockReadWrite1(ts)      DeadlockFinderLockReadWriteWrapper(__FILE__, __LINE__, ts)
-# define UnlockReadOnly()        DeadlockFinderUnlockReadOnlyWrapper  (__FILE__, __LINE__)
-# define UnlockReadWrite()       DeadlockFinderUnlockReadWriteWrapper (__FILE__, __LINE__)
+# if defined(__clang__) || defined(__GNUC__)
+#  define LockReadOnly(...)  DeadlockFinderLockReadOnlyWrapper   (__FILE__, __LINE__, ##__VA_ARGS__)
+#  define LockReadWrite(...) DeadlockFinderLockReadWriteWrapper  (__FILE__, __LINE__, ##__VA_ARGS__)
+# else
+#  define LockReadOnly(...)  DeadlockFinderLockReadOnlyWrapper   (__FILE__, __LINE__, __VA_ARGS__)
+#  define LockReadWrite(...) DeadlockFinderLockReadWriteWrapper  (__FILE__, __LINE__, __VA_ARGS__)
+# endif
+# define UnlockReadOnly()   DeadlockFinderUnlockReadOnlyWrapper (__FILE__, __LINE__)
+# define UnlockReadWrite()  DeadlockFinderUnlockReadWriteWrapper(__FILE__, __LINE__)
 #endif
 
 class ReadOnlyMutexGuard;  // forward declaration
@@ -91,7 +88,7 @@ public:
    ~ReaderWriterMutex() {/* empty */}
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   status_t DeadlockFinderLockReadOnlyWrapper(const char * fileName, int fileLine, uint64 optTimeoutAt) const
+   status_t DeadlockFinderLockReadOnlyWrapper(const char * fileName, int fileLine, uint64 optTimeoutAt = MUSCLE_TIME_NEVER) const
 #else
    /** Attempts to lock the mutex for shared/read-only access.
      * Any thread that tries to LockReadOnly() this object while it is already locked-for-read+write access
@@ -122,7 +119,7 @@ public:
    status_t TryLockReadOnly() const {return LockReadOnly(0);}
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   status_t DeadlockFinderLockReadWriteWrapper(const char * fileName, int fileLine, uint64 optTimeoutAt) const
+   status_t DeadlockFinderLockReadWriteWrapper(const char * fileName, int fileLine, uint64 optTimeoutAt = MUSCLE_TIME_NEVER) const
 #else
    /** Attempts to lock the lock for exclusive/read-write access.
      * Any thread that tries to LockReadWrite() this object while it is already locked by another thread
