@@ -365,7 +365,7 @@ io_status_t WebSocketMessageIOGateway :: DoInputImplementation(AbstractGatewayMe
                         SetUnrecoverableErrorStatus(B_ACCESS_DENIED);
                         return B_ACCESS_DENIED;
                      }
-                     MRETURN_ON_ERROR(InitializeIncomingPayload(payloadSize, 10, receiver));
+                     MRETURN_ON_ERROR(InitializeIncomingPayload((uint32) payloadSize, 10, receiver));
                   }
                   break;
 

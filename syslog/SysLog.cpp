@@ -1495,7 +1495,14 @@ void DefaultConsoleLogger :: Log(const LogCallbackArgs & a, va_list & argList)
       // command line argument to get parsed, because by then some
       // output has already gone to stdout and e.g. our .tgz file now
       // has some ASCII text where its tar-file headers should be :/
+#ifdef _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4996 )
+#endif
       if (getenv("MUSCLE_LOG_TO_STDERR") != NULL) _logToStderr = true;
+#ifdef _MSC_VER
+# pragma warning( pop )
+#endif
    }
 
    FILE * fpOut = GetConsoleOutputStream();

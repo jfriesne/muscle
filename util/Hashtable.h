@@ -1191,6 +1191,7 @@ private:
          HashtableEntry * ret = (size>0) ? newnothrow_array(HashtableEntry,size) : NULL;  // size is guaranteed to always be greater than 0 but clang++ needs reassurance
          if (ret)
          {
+            const IndexType INVALID_INDEX = (IndexType) -1;
             for (uint32 i=0; i<size; i++)
             {
                HashtableEntry * e = &ret[i];
@@ -1199,10 +1200,10 @@ private:
                e->_indices[HTE_INDEX_BUCKET_PREV] = (IndexType)(i-1U);
                // coverity[overflow_const] - yes, the potential-overflow is intentional here
                e->_indices[HTE_INDEX_BUCKET_NEXT] = (IndexType)(i+1U);
-               e->_indices[HTE_INDEX_ITER_PREV]   = e->_indices[HTE_INDEX_ITER_NEXT]   = (IndexType)-1U;
+               e->_indices[HTE_INDEX_ITER_PREV]   = e->_indices[HTE_INDEX_ITER_NEXT]   = INVALID_INDEX;
                e->_indices[HTE_INDEX_MAP_TO]      = e->_indices[HTE_INDEX_MAPPED_FROM] = (IndexType)i;
             }
-            ret[size-1]._indices[HTE_INDEX_BUCKET_NEXT] = (IndexType)-1U;
+            ret[size-1]._indices[HTE_INDEX_BUCKET_NEXT] = INVALID_INDEX;
          }
          else MWARN_OUT_OF_MEMORY;
          return ret;

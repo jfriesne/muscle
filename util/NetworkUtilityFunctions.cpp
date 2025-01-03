@@ -658,7 +658,7 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
          DECLARE_SOCKADDR_IPV4(saSocket, NULL, 0);
          muscle_socklen_t nLen = sizeof(saSocket);
 
-         const int cfd = accept(sfd, (struct sockaddr *)&saSocket, &nLen);
+         const int cfd = (int) accept(sfd, (struct sockaddr *)&saSocket, &nLen);  // int cast is to quiet MSVC warning
          if (cfd < 0) return B_ERRNO;  // mostly just to keep Coverity happy
 
          ConstSocketRef ret = GetConstSocketRefFromPool(cfd);
@@ -680,7 +680,7 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
          DECLARE_SOCKADDR_IPV6(saSocket, NULL, 0);
          muscle_socklen_t nLen = sizeof(saSocket);
 
-         const int cfd = accept(sfd, (struct sockaddr *)&saSocket, &nLen);
+         const int cfd = (int) accept(sfd, (struct sockaddr *)&saSocket, &nLen);  // int cast to quiet MSVC warning
          if (cfd < 0) return B_ERRNO;  // mostly just to keep Coverity happy
 
          ConstSocketRef ret = GetConstSocketRefFromPool(cfd);

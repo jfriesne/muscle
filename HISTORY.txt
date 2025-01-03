@@ -11,6 +11,7 @@ key:  - new feature
      the end of a locking-sequence to be significant, as they
      can't affect the deadlocking behavior of the app.
    * Fixed capitalization of Emscripten callback method names.
+   * Fixed some build warnings under MSVC.
 
 9.50 - Released 12/31/2024
    - Added the IncrementalHashCalculator class and related utility
