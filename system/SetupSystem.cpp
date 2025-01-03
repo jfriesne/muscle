@@ -621,7 +621,6 @@ private:
                                                                                                  else numTrailingTryLocks = 0;
                   }
                }
-printf("XXX numTrailingTryLocks=%u\n", numTrailingTryLocks);
 
                for (uint32 i=0; i<numTrailingTryLocks; i++) (void) q.RemoveTail();  // Trylocks at the end of the sequence don't count, as they won't block
                RemoveDuplicateItemsFromSequence(q);
