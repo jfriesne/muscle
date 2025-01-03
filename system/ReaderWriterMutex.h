@@ -110,7 +110,7 @@ public:
       const status_t ret = LockReadOnlyAux(optTimeoutAt);
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
-      if (ret.IsOK()) LogDeadlockFinderEvent((optTimeoutAt==MUSCLE_TIME_NEVER)?LOCK_ACTION_LOCK:LOCK_ACTION_TRYLOCK, fileName, fileLine);
+      if (ret.IsOK()) LogDeadlockFinderEvent((optTimeoutAt==MUSCLE_TIME_NEVER)?LOCK_ACTION_LOCK_SHARED:LOCK_ACTION_TRYLOCK_SHARED, fileName, fileLine);
 #endif
       return ret;
    }
@@ -145,7 +145,7 @@ public:
       const status_t ret = LockReadWriteAux(optTimeoutAt);
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
-      if (ret.IsOK()) LogDeadlockFinderEvent((optTimeoutAt==MUSCLE_TIME_NEVER)?LOCK_ACTION_LOCK:LOCK_ACTION_TRYLOCK, fileName, fileLine);
+      if (ret.IsOK()) LogDeadlockFinderEvent((optTimeoutAt==MUSCLE_TIME_NEVER)?LOCK_ACTION_LOCK_EXCLUSIVE:LOCK_ACTION_TRYLOCK_EXCLUSIVE, fileName, fileLine);
 #endif
       return ret;
    }
@@ -159,7 +159,7 @@ public:
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    status_t DeadlockFinderUnlockReadOnlyWrapper(const char * fileName, int fileLine) const
 #else
-   /** Unlocks the a read-only-locked lock.  Once this is done, any other thread that is blocked in the Lock()
+   /** Unlocks the read-only-locked lock.  Once this is done, any other thread that is blocked in the Lock()
      * methods will gain ownership of the lock and return.
      * @returns B_NO_ERROR on success, or B_LOCK_FAILED on failure (perhaps you tried to unlock a lock
      *          that you didn't currently have locked-read-only?  This method should never fail in typical usage)
@@ -169,7 +169,7 @@ public:
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging while we are still are locked, otherwise our counter can suffer from race conditions
-      LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK, fileName, fileLine);
+      LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_SHARED, fileName, fileLine);
 #endif
 
       return UnlockReadOnlyAux();
@@ -178,7 +178,7 @@ public:
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    status_t DeadlockFinderUnlockReadWriteWrapper(const char * fileName, int fileLine) const
 #else
-   /** Unlocks the a read-write-locked lock.  Once this is done, any other thread that is blocked in the Lock()
+   /** Unlocks the read-write-locked lock.  Once this is done, any other thread that is blocked in the Lock()
      * methods will gain ownership of the lock and return.
      * @returns B_NO_ERROR on success, or B_LOCK_FAILED on failure (perhaps you tried to unlock a lock
      *          that you didn't currently have locked-read-write?  This method should never fail in typical usage)
@@ -188,7 +188,7 @@ public:
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging while we are still are locked, otherwise our counter can suffer from race conditions
-      LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK, fileName, fileLine);
+      LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_EXCLUSIVE, fileName, fileLine);
 #endif
 
       return UnlockReadWriteAux();
@@ -339,7 +339,7 @@ public:
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       if (_mutex.LockReadOnlyAux(MUSCLE_TIME_NEVER).IsError()) MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex LockReadOnly() failed!\n");
-      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_LOCK, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
+      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_LOCK_SHARED, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
 #else
       if (_mutex.LockReadOnly().IsError())    MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex LockReadOnly() failed!\n");
 #endif
@@ -349,7 +349,7 @@ public:
    ~ReadOnlyMutexGuard()
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
+      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_SHARED, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
       if (_mutex.UnlockReadOnlyAux().IsError()) MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex UnlockReadOnly() failed!\n");
 #else
       if (_mutex.UnlockReadOnly().IsError())    MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex UnlockReadOnly() failed!\n");
@@ -390,7 +390,7 @@ public:
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       if (_mutex.LockReadWriteAux(MUSCLE_TIME_NEVER).IsError()) MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex LockReadWrite() failed!\n");
-      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_LOCK, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
+      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_LOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
 #else
       if (_mutex.LockReadWrite().IsError())    MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex LockReadWrite() failed!\n");
 #endif
@@ -400,7 +400,7 @@ public:
    ~ReadWriteMutexGuard()
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
+      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
       if (_mutex.UnlockReadWriteAux().IsError()) MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex UnlockReadWrite() failed!\n");
 #else
       if (_mutex.UnlockReadWrite().IsError())    MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex UnlockReadWrite() failed!\n");

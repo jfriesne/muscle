@@ -53,9 +53,12 @@ namespace muscle {
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
 enum {
-   LOCK_ACTION_UNLOCK = 0,
-   LOCK_ACTION_LOCK,
-   LOCK_ACTION_TRYLOCK,
+   LOCK_ACTION_UNLOCK_EXCLUSIVE = 0,
+   LOCK_ACTION_UNLOCK_SHARED,
+   LOCK_ACTION_LOCK_EXCLUSIVE,
+   LOCK_ACTION_LOCK_SHARED,
+   LOCK_ACTION_TRYLOCK_EXCLUSIVE,
+   LOCK_ACTION_TRYLOCK_SHARED,
    NUM_LOCK_ACTIONS
 };
 # define Lock()    DeadlockFinderLockWrapper   (__FILE__, __LINE__)
@@ -139,7 +142,7 @@ public:
       const status_t ret = LockAux();
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
-      if (ret.IsOK()) LogDeadlockFinderEvent(LOCK_ACTION_LOCK, fileName, fileLine);
+      if (ret.IsOK()) LogDeadlockFinderEvent(LOCK_ACTION_LOCK_EXCLUSIVE, fileName, fileLine);
 #endif
       return ret;
    }
@@ -157,7 +160,7 @@ public:
       const status_t ret = TryLockAux();
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging after we are locked, otherwise our counter can suffer from race conditions
-      if (ret.IsOK()) LogDeadlockFinderEvent(LOCK_ACTION_TRYLOCK, fileName, fileLine);
+      if (ret.IsOK()) LogDeadlockFinderEvent(LOCK_ACTION_TRYLOCK_EXCLUSIVE, fileName, fileLine);
 #endif
       return ret;
    }
@@ -175,7 +178,7 @@ public:
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       // We gotta do the logging while we are still are locked, otherwise our counter can suffer from race conditions
-      LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK, fileName, fileLine);
+      LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_EXCLUSIVE, fileName, fileLine);
 #endif
 
       return UnlockAux();
@@ -398,7 +401,7 @@ public:
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
       if (_mutex.LockAux().IsError()) MCRASH("MutexGuard:  Mutex Lock() failed!\n");
-      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_LOCK, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the Mutex is locked
+      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_LOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the Mutex is locked
 #else
       if (_mutex.Lock().IsError())    MCRASH("MutexGuard:  Mutex Lock() failed!\n");
 #endif
@@ -408,7 +411,7 @@ public:
    ~MutexGuard()
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the Mutex is locked
+      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the Mutex is locked
       if (_mutex.UnlockAux().IsError()) MCRASH("MutexGuard:  Mutex Unlock() failed!\n");
 #else
       if (_mutex.Unlock().IsError())    MCRASH("MutexGuard:  Mutex Unlock() failed!\n");

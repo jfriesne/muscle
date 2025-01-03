@@ -5,6 +5,11 @@ key:  - new feature
       * bug fixed
       o other
 
+   * The deadlock finder no longer warns about inconsistent
+     locking orders that consist entirely of shared/read-only locks.
+   * The deadlock finder no longer considers TryLock() calls at
+     the end of a locking-sequence to be significant, as they
+     can't affect the deadlocking behavior of the app.
    * Fixed capitalization of Emscripten callback method names.
 
 9.50 - Released 12/31/2024

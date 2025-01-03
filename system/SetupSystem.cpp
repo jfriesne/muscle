@@ -470,7 +470,7 @@ public:
 
    void AddEvent(uint32 lockActionType, const void * mutexPtr, const char * fileName, int fileLine)
    {
-      if (lockActionType != LOCK_ACTION_UNLOCK)
+      if ((lockActionType != LOCK_ACTION_UNLOCK_EXCLUSIVE)&&(lockActionType != LOCK_ACTION_UNLOCK_SHARED))
       {
          if (_numHeldLocks >= ARRAYITEMS(_heldLocks))
          {
@@ -563,7 +563,7 @@ private:
    private:
       static const char * GetLockActionTypeString(uint32 lockActionType)
       {
-         static const char * _strs[] = {"Unlock", "Lock", "TryLock"};
+         static const char * _strs[] = {"Unlock", "UnlockShared", "Lock", "LockShared", "TryLock", "TryLockShared"};
          MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_strs, NUM_LOCK_ACTIONS);
          return (lockActionType < ARRAYITEMS(_strs)) ? _strs[lockActionType] : "???";
       }
@@ -608,19 +608,25 @@ private:
 
             if ((q.EnsureSize(seqLen).IsOK())&&(details.EnsureSize(seqLen).IsOK()))
             {
+               uint32 numTrailingTryLocks = 0;
                for (uint32 j=sequenceStartIdx; j<afterSequenceEndIndex; j++)
                {
                   const MutexLockRecord & mlr = _events[j];
-                  if (mlr.GetLockActionType() == LOCK_ACTION_LOCK)  // LOCK_ACTION_TRYLOCK actions can't cause a deadlock since they will time out instead
+                  const uint32 lat = mlr.GetLockActionType();
+                  if ((lat != LOCK_ACTION_UNLOCK_EXCLUSIVE)&&(lat != LOCK_ACTION_UNLOCK_SHARED))
                   {
                      (void) q.AddTail(mlr.GetMutexPointer());  // guaranteed not to fail
                      (void) details.AddTail(mlr.GetDetails()); // guaranteed not to fail
+                     if ((lat == LOCK_ACTION_TRYLOCK_EXCLUSIVE)||(lat == LOCK_ACTION_TRYLOCK_SHARED)) numTrailingTryLocks++;
+                                                                                                 else numTrailingTryLocks = 0;
                   }
                }
+printf("XXX numTrailingTryLocks=%u\n", numTrailingTryLocks);
 
+               for (uint32 i=0; i<numTrailingTryLocks; i++) (void) q.RemoveTail();  // Trylocks at the end of the sequence don't count, as they won't block
                RemoveDuplicateItemsFromSequence(q);
 
-               Hashtable<muscle_thread_id, Queue<String> > * tab = capturedResults.GetOrPut(q);
+               Hashtable<muscle_thread_id, Queue<String> > * tab = (q.GetNumItems() > 1) ? capturedResults.GetOrPut(q) : NULL;
                if (tab)
                {
                   const Queue<String> * oldDetails = tab->Get(threadID);
@@ -780,6 +786,18 @@ static bool SequencesAreInconsistent(const Queue<const void *> & seqA, const Que
    return false;
 }
 
+// Returns true iff at least one details-string isn't a shared-string
+static bool SequenceHasExclusiveLock(const Hashtable<muscle_thread_id, Queue<String> > & table)
+{
+   for (HashtableIterator<muscle_thread_id, Queue<String> > iter(table); iter.HasData(); iter++)
+   {
+      const Queue<String> & q = iter.GetValue();
+      for (uint32 i=0; i<q.GetNumItems(); i++) if (q[i].EndsWith("Shared") == false) return true;
+   }
+   return false;
+}
+
+
 static void PrintSequenceReport(const char * desc, const Queue<const void *> & seq, const Hashtable<muscle_thread_id, Queue<String> > & detailsTable)
 {
    printf("  %s: [%s] was executed by " UINT32_FORMAT_SPEC " threads:\n", desc, LockSequenceToString(seq)(), detailsTable.GetNumItems());
@@ -816,15 +834,18 @@ void PrintMutexLockingReport()
       LogTime(MUSCLE_LOG_INFO, "LockSequence [%s] was executed by " UINT32_FORMAT_SPEC " threads\n", LockSequenceToString(iter.GetKey())(), iter.GetValue().GetNumItems());
 
    // Now we check for inconsistent locking order.  Two sequences are inconsistent with each other if they lock the same two mutexes
-   // but lock them in a different order
+   // but lock them in a different order, and at least one lock-action in the sequence is exclusive.
    Hashtable<uint32, uint32> inconsistentSequencePairs;  // smaller key-position -> larger key-position
    {
       uint32 idxA = 0;
       for (HashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > iterA(capturedResults); iterA.HasData(); iterA++,idxA++)
       {
+         const bool iterAHasExclusiveLock = SequenceHasExclusiveLock(iterA.GetValue());
+
          uint32 idxB = 0;
          for (HashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > iterB(capturedResults); ((idxB < idxA)&&(iterB.HasData())); iterB++,idxB++)
-            if (SequencesAreInconsistent(iterB.GetKey(), iterA.GetKey())) (void) inconsistentSequencePairs.Put(idxB, idxA);
+            if (((iterAHasExclusiveLock)||(SequenceHasExclusiveLock(iterB.GetValue())))&&(SequencesAreInconsistent(iterB.GetKey(), iterA.GetKey())))
+              (void) inconsistentSequencePairs.Put(idxB, idxA);
       }
    }
 
