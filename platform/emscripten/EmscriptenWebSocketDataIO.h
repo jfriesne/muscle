@@ -3,10 +3,6 @@
 #ifndef EMSCRIPTEN_WEBSOCKET_DATAIO_H
 #define EMSCRIPTEN_WEBSOCKET_DATAIO_H
 
-#if defined(__EMSCRIPTEN__)
-# include <emscripten/websocket.h>
-#endif
-
 #include "dataio/DataIO.h"
 #include "reflector/AbstractReflectSession.h"
 #include "util/Hashtable.h"
@@ -49,10 +45,10 @@ private:
 
 public:
 #if defined(__EMSCRIPTEN__)
-   bool EmscriptenWebSocketConnectionOpened(int eventType, const EmscriptenWebSocketOpenEvent    & evt);
-   bool EmscriptenWebSocketMessageReceived( int eventType, const EmscriptenWebSocketMessageEvent & evt);
-   bool EmscriptenWebSocketErrorOccurred(   int eventType, const EmscriptenWebSocketErrorEvent   & evt);
-   bool EmscriptenWebSocketConnectionClosed(int eventType, const EmscriptenWebSocketCloseEvent   & evt);
+   void EmscriptenWebSocketConnectionOpened();
+   void EmscriptenWebSocketMessageReceived(const uint8 * dataBytes, uint32 numDataBytes, bool isText);
+   void EmscriptenWebSocketErrorOccurred();
+   void EmscriptenWebSocketConnectionClosed();
 #endif
 };
 DECLARE_REFTYPES(EmscriptenWebSocket);
@@ -74,35 +70,26 @@ protected:
 #if defined(__EMSCRIPTEN__) || defined(DOXYGEN_SHOULD_IGNORE_THIS)
    /** This callback is called when a websocket connection becomes connected to a server.
      * @param webSock the socket that is now connected to the server
-     * @param eventType the EMSCRIPTEN_EVENT_* value that represents this callback.  (Typically EMSCRIPTEN_EVENT_WEB_SOCKET_OPEN)
-     * @param evt an EmscriptenWebSocketOpenEvent object containing more information about the event.
-     * @return true to allow this event to be propagated to other listeners as well, or false to prevent further propagation of this event.
      */
-   virtual bool EmscriptenWebSocketConnectionOpened(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketOpenEvent & evt) = 0;
+   virtual void EmscriptenWebSocketConnectionOpened(EmscriptenWebSocket & webSock) = 0;
 
    /** This callback is called when a websocket receives some data from the server.
      * @param webSock the socket that the data was received on
-     * @param eventType the EMSCRIPTEN_EVENT_* value that represents this callback.  (Typically EMSCRIPTEN_EVENT_WEB_SOCKET_MESSAGE)
-     * @param evt an EmscriptenWebSocketMessageEvent object containing more information about the event.
-     * @return true to allow this event to be propagated to other listeners as well, or false to prevent further propagation of this event.
+     * @param data pointer to the received data bytes
+     * @param numDataBytes how many data-bytes (data) points to
+     * @param isText true if the received data is text, or false if it's binary data.
      */
-   virtual bool EmscriptenWebSocketMessageReceived(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketMessageEvent & evt) = 0;
+   virtual void EmscriptenWebSocketMessageReceived(EmscriptenWebSocket & webSock, const uint8 * data, uint32 numDataBytes, bool isText) = 0;
 
    /** This callback is called when a websocket reports an error condition.
      * @param webSock the socket that the error was received on
-     * @param eventType the EMSCRIPTEN_EVENT_* value that represents this callback.  (Typically EMSCRIPTEN_EVENT_WEB_SOCKET_ERROR)
-     * @param evt an EmscriptenWebSocketErrorEvent object containing more information about the error.
-     * @return true to allow this event to be propagated to other listeners as well, or false to prevent further propagation of this event.
      */
-   virtual bool EmscriptenWebSocketErrorOccurred(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketErrorEvent & evt) = 0;
+   virtual void EmscriptenWebSocketErrorOccurred(EmscriptenWebSocket & webSock) = 0;
 
    /** This callback is called when a websocket becomes disconnected from the server.
      * @param webSock the socket that is no longer connected to the server
-     * @param eventType the EMSCRIPTEN_EVENT_* value that represents this callback.  (Typically EMSCRIPTEN_EVENT_WEB_SOCKET_CLOSE)
-     * @param evt an EmscriptenWebSocketCloseEvent object containing more information about the event.
-     * @return true to allow this event to be propagated to other listeners as well, or false to prevent further propagation of this event.
      */
-   virtual bool EmscriptenWebSocketConnectionClosed(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketCloseEvent & evt) = 0;
+   virtual void EmscriptenWebSocketConnectionClosed(EmscriptenWebSocket & webSock) = 0;
 #endif
 
 private:
@@ -141,10 +128,10 @@ private:
    Hashtable<ByteBufferRef, uint32> _receivedData;  // buffer -> bytes already read
 
 #if defined(__EMSCRIPTEN__)
-   virtual bool EmscriptenWebSocketConnectionOpened(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketOpenEvent    & evt);
-   virtual bool EmscriptenWebSocketMessageReceived( EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketMessageEvent & evt);
-   virtual bool EmscriptenWebSocketErrorOccurred(   EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketErrorEvent   & evt);
-   virtual bool EmscriptenWebSocketConnectionClosed(EmscriptenWebSocket & webSock, int eventType, const EmscriptenWebSocketCloseEvent   & evt);
+   virtual void EmscriptenWebSocketConnectionOpened(EmscriptenWebSocket & webSock);
+   virtual void EmscriptenWebSocketMessageReceived( EmscriptenWebSocket & webSock, const uint8 * data, uint32 numDataBytes, bool isText);
+   virtual void EmscriptenWebSocketErrorOccurred(   EmscriptenWebSocket & webSock);
+   virtual void EmscriptenWebSocketConnectionClosed(EmscriptenWebSocket & webSock);
 #endif
 };
 

@@ -43,24 +43,28 @@ EmscriptenWebSocket :: ~EmscriptenWebSocket()
 }
 
 #if defined(__EMSCRIPTEN__)
-static EM_BOOL em_websocket_onmessage_callback(int eventType, const EmscriptenWebSocketMessageEvent * evt, void * userData)
+static EM_BOOL em_websocket_onmessage_callback(int /*eventType*/, const EmscriptenWebSocketMessageEvent * evt, void * userData)
 {
-   return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmscriptenWebSocketMessageReceived(eventType, *evt) ? EM_TRUE : EM_FALSE;
+   reinterpret_cast<EmscriptenWebSocket *>(userData)->EmscriptenWebSocketMessageReceived(evt->data, evt->numBytes, evt->isText);
+   return EM_TRUE;
 }
 
-static EM_BOOL em_websocket_onopen_callback(int eventType, const EmscriptenWebSocketOpenEvent * evt, void * userData)
+static EM_BOOL em_websocket_onopen_callback(int /*eventType*/, const EmscriptenWebSocketOpenEvent * /*evt*/, void * userData)
 {
-   return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmscriptenWebSocketConnectionOpened(eventType, *evt) ? EM_TRUE : EM_FALSE;
+   reinterpret_cast<EmscriptenWebSocket *>(userData)->EmscriptenWebSocketConnectionOpened();
+   return EM_TRUE;
 }
 
-static EM_BOOL em_websocket_onerror_callback(int eventType, const EmscriptenWebSocketErrorEvent * evt, void * userData)
+static EM_BOOL em_websocket_onerror_callback(int /*eventType*/, const EmscriptenWebSocketErrorEvent * /*evt*/, void * userData)
 {
-   return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmscriptenWebSocketErrorOccurred(eventType, *evt) ? EM_TRUE : EM_FALSE;
+   reinterpret_cast<EmscriptenWebSocket *>(userData)->EmscriptenWebSocketErrorOccurred();
+   return EM_TRUE;
 }
 
-static EM_BOOL em_websocket_onclose_callback(int eventType, const EmscriptenWebSocketCloseEvent * evt, void * userData)
+static EM_BOOL em_websocket_onclose_callback(int /*eventType*/, const EmscriptenWebSocketCloseEvent * /*evt*/, void * userData)
 {
-   return reinterpret_cast<EmscriptenWebSocket *>(userData)->EmscriptenWebSocketConnectionClosed(eventType, *evt) ? EM_TRUE : EM_FALSE;
+   reinterpret_cast<EmscriptenWebSocket *>(userData)->EmscriptenWebSocketConnectionClosed();
+   return EM_TRUE;
 }
 
 static status_t GetStatusForEmscriptenResult(EMSCRIPTEN_RESULT r)
@@ -100,10 +104,10 @@ io_status_t EmscriptenWebSocket :: Write(const void * data, uint32 numBytes)
 
 
 #if defined(__EMSCRIPTEN__)
-bool EmscriptenWebSocket :: EmscriptenWebSocketConnectionOpened(int eventType, const EmscriptenWebSocketOpenEvent    & evt) {return _sub ? _sub->EmscriptenWebSocketConnectionOpened(*this, eventType, evt) : false;}
-bool EmscriptenWebSocket :: EmscriptenWebSocketMessageReceived( int eventType, const EmscriptenWebSocketMessageEvent & evt) {return _sub ? _sub->EmscriptenWebSocketMessageReceived( *this, eventType, evt) : false;}
-bool EmscriptenWebSocket :: EmscriptenWebSocketErrorOccurred(   int eventType, const EmscriptenWebSocketErrorEvent   & evt) {return _sub ? _sub->EmscriptenWebSocketErrorOccurred   (*this, eventType, evt) : false;}
-bool EmscriptenWebSocket :: EmscriptenWebSocketConnectionClosed(int eventType, const EmscriptenWebSocketCloseEvent   & evt) {return _sub ? _sub->EmscriptenWebSocketConnectionClosed(*this, eventType, evt) : false;}
+void EmscriptenWebSocket :: EmscriptenWebSocketConnectionOpened() {if (_sub) _sub->EmscriptenWebSocketConnectionOpened(*this);}
+void EmscriptenWebSocket :: EmscriptenWebSocketErrorOccurred(   ) {if (_sub) _sub->EmscriptenWebSocketErrorOccurred   (*this);}
+void EmscriptenWebSocket :: EmscriptenWebSocketConnectionClosed() {if (_sub) _sub->EmscriptenWebSocketConnectionClosed(*this);}
+void EmscriptenWebSocket :: EmscriptenWebSocketMessageReceived(const uint8 * dataBytes, uint32 numDataBytes, bool isText) {if (_sub) _sub->EmscriptenWebSocketMessageReceived(*this, dataBytes, numDataBytes, isText);}
 #endif
 
 EmscriptenWebSocketDataIO :: EmscriptenWebSocketDataIO(const String & host, uint16 port, AbstractReflectSession * optSession, EmscriptenAsyncCallback * optAsyncCallback)
@@ -150,24 +154,22 @@ void EmscriptenWebSocketDataIO :: Shutdown()
 }
 
 #if defined(__EMSCRIPTEN__)
-bool EmscriptenWebSocketDataIO :: EmscriptenWebSocketConnectionOpened(EmscriptenWebSocket & /*webSock*/, int /*eventType*/, const EmscriptenWebSocketOpenEvent & /*evt*/)
+void EmscriptenWebSocketDataIO :: EmscriptenWebSocketConnectionOpened(EmscriptenWebSocket & webSock)
 {
+   LogTime(MUSCLE_LOG_DEBUG, "EmscriptenWebSocketConnectionOpened:  web socket %i session opened!\n", webSock.GetConstSocketRef().GetFileDescriptor());
+
    if (_optSession) _optSession->AsyncConnectCompleted();
    if (_optAsyncCallback) (void) _optAsyncCallback->SetAsyncCallbackTime(0);
-   return true;
 }
 
-bool EmscriptenWebSocketDataIO :: EmscriptenWebSocketMessageReceived(EmscriptenWebSocket & /*webSock*/, int /*eventType*/, const EmscriptenWebSocketMessageEvent & evt)
+void EmscriptenWebSocketDataIO :: EmscriptenWebSocketMessageReceived(EmscriptenWebSocket & /*webSock*/, const uint8 * dataBytes, uint32 numDataBytes, bool isText)
 {
    io_status_t ret;
 
-   if ((_optSession)&&(evt.numBytes > 0)&&(evt.isText == false))
+   if ((_optSession)&&(numDataBytes > 0)&&(isText == false))
    {
-      const uint8 * newData = evt.data;
-      const uint32 newNumBytes = evt.numBytes;
-
       // Hopefully all the new data will be read synchronously, and we can avoid a data-copy here
-      ByteBuffer tempBuf; tempBuf.AdoptBuffer(evt.numBytes, evt.data);
+      ByteBuffer tempBuf; tempBuf.AdoptBuffer(numDataBytes, const_cast<uint8 *>(dataBytes));
       DummyByteBufferRef dummyBuffer(tempBuf);
       if (_receivedData.Put(dummyBuffer, 0).IsOK())
       {
@@ -203,24 +205,20 @@ bool EmscriptenWebSocketDataIO :: EmscriptenWebSocketMessageReceived(EmscriptenW
    // now that we've done our reading, schedule an iteration of the ReflectServer's
    // event loop in case any Pulse() calls need to be computed and scheduled as well
    if (_optAsyncCallback) (void) _optAsyncCallback->SetAsyncCallbackTime(0);
-
-   return ret.IsOK();
 }
 
-bool EmscriptenWebSocketDataIO :: EmscriptenWebSocketErrorOccurred(EmscriptenWebSocket & /*webSock*/, int eventType, const EmscriptenWebSocketErrorEvent & /*evt*/)
+void EmscriptenWebSocketDataIO :: EmscriptenWebSocketErrorOccurred(EmscriptenWebSocket & webSock)
 {
-   LogTime(MUSCLE_LOG_ERROR, "EmscriptenWebSocketErrorOccurred:  Error %i on web socket!\n", eventType);
+   LogTime(MUSCLE_LOG_ERROR, "EmscriptenWebSocketErrorOccurred:  Error reported on web socket %i!\n", webSock.GetConstSocketRef().GetFileDescriptor());
    if (_optSession)       (void) _optSession->ClientConnectionClosed();
    if (_optAsyncCallback) (void) _optAsyncCallback->SetAsyncCallbackTime(0);
-   return true;
 }
 
-bool EmscriptenWebSocketDataIO :: EmscriptenWebSocketConnectionClosed(EmscriptenWebSocket & /*webSock*/, int /*eventType*/, const EmscriptenWebSocketCloseEvent & /*evt*/)
+void EmscriptenWebSocketDataIO :: EmscriptenWebSocketConnectionClosed(EmscriptenWebSocket & webSock)
 {
-   LogTime(MUSCLE_LOG_DEBUG, "EmscriptenWebSocketConnectionClosed:  web socket session ended!\n");
+   LogTime(MUSCLE_LOG_DEBUG, "EmscriptenWebSocketConnectionClosed:  web socket %i session closed!\n", webSock.GetConstSocketRef().GetFileDescriptor());
    if (_optSession)       (void) _optSession->ClientConnectionClosed();
    if (_optAsyncCallback) (void) _optAsyncCallback->SetAsyncCallbackTime(0);
-   return true;
 }
 #endif
 
