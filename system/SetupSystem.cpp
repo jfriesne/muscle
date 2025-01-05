@@ -457,6 +457,61 @@ static String LockSequenceToString(const Queue<const void *> & seq)
    return ret;
 }
 
+/** Records useful information about the locking of a particular mutex */
+class MutexLockRecord
+{
+public:
+   MutexLockRecord() {Set(NULL, NULL, 0, NUM_LOCK_ACTIONS);}
+   MutexLockRecord(const void * mutexPtr, const char * fileName, uint32 fileLine, uint32 lockActionType) {Set(mutexPtr, fileName, fileLine, lockActionType);}
+
+   void Set(const void * mutexPtr, const char * fileName, uint32 fileLine, uint32 lockActionType)
+   {
+      _fileLine       = fileLine;
+      _mutexPtr       = mutexPtr;
+      _lockActionType = lockActionType;
+
+      if (fileName)
+      {
+         const char * lastSlash = strrchr(fileName, '/');
+         if (lastSlash) fileName = lastSlash+1;
+
+         lastSlash = strrchr(fileName, '\\');
+         if (lastSlash) fileName = lastSlash+1;
+
+         _fileName = fileName;
+      }
+      else _fileName = "<unspecified>";
+   }
+
+   bool operator == (const MutexLockRecord & rhs) const {return ((_fileLine == rhs._fileLine)&&(_mutexPtr == rhs._mutexPtr)&&(_lockActionType == rhs._lockActionType)&&(strcmp(_fileName, rhs._fileName)==0));}
+   bool operator != (const MutexLockRecord & rhs) const {return !(*this==rhs);}
+
+   uint32 HashCode() const
+   {
+      return CalculateHashCode(_fileLine) + GetLockActionType() + CalculateHashCode(_mutexPtr) + CalculateHashCode(_fileName, strlen(_fileName));
+   }
+
+   uint32 GetFileLine()           const {return _fileLine;}
+   uint32 GetLockActionType()     const {return _lockActionType;}
+   const void * GetMutexPointer() const {return _mutexPtr;}
+   const char * GetFileName()     const {return _fileName;}
+
+   String ToString() const {return String("mutex %1 @ %2:%3 %4").Arg(_mutexPtr).Arg(_fileName).Arg(_fileLine).Arg(GetLockActionTypeString(_lockActionType));}
+
+private:
+   static const char * GetLockActionTypeString(uint32 lockActionType)
+   {
+      static const char * _strs[] = {"Unlock", "UnlockShared", "Lock", "LockShared", "TryLock", "TryLockShared"};
+      MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_strs, NUM_LOCK_ACTIONS);
+      return (lockActionType < ARRAYITEMS(_strs)) ? _strs[lockActionType] : "???";
+   }
+
+   const void * _mutexPtr;
+   const char * _fileName;
+   uint32 _fileLine;
+   uint32 _lockActionType;
+};
+
 /** Gotta do a custom data structure because we can't use the standard new/delete/muscleAlloc()/muscleFree() memory operators,
   * because to do so would cause an infinite regress when they call through to Mutex::Lock() or Mutex::Unlock()
   */
@@ -515,7 +570,7 @@ public:
       }
    }
 
-   void CaptureResults(Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > & capturedResults) const
+   void CaptureResults(Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > & capturedResults) const
    {
       MutexLockSequencesRecord * meb = _headMLSRecord;
       while(meb)
@@ -526,54 +581,6 @@ public:
    }
 
 private:
-   /** Records useful information about the locking of a particular mutex */
-   class MutexLockRecord
-   {
-   public:
-      MutexLockRecord() {Set(NULL, NULL, 0, NUM_LOCK_ACTIONS);}
-      MutexLockRecord(const void * mutexPtr, const char * fileName, uint32 fileLine, uint32 lockActionType) {Set(mutexPtr, fileName, fileLine, lockActionType);}
-
-      void Set(const void * mutexPtr, const char * fileName, uint32 fileLine, uint32 lockActionType)
-      {
-         _fileLine       = fileLine;
-         _mutexPtr       = mutexPtr;
-         _lockActionType = lockActionType;
-
-         if (fileName)
-         {
-            const char * lastSlash = strrchr(fileName, '/');
-            if (lastSlash) fileName = lastSlash+1;
-
-            muscleStrncpy(_fileName, fileName, sizeof(_fileName));
-            _fileName[sizeof(_fileName)-1] = '\0';
-         }
-         else _fileName[0] = '\0';
-      }
-
-      String GetDetails() const {return String("mutex %1 @ %2:%3 %4").Arg(_mutexPtr).Arg(_fileName).Arg(_fileLine).Arg(GetLockActionTypeString(_lockActionType));}
-
-      bool operator == (const MutexLockRecord & rhs) const {return ((_fileLine == rhs._fileLine)&&(_mutexPtr == rhs._mutexPtr)&&(_lockActionType == rhs._lockActionType)&&(strcmp(_fileName, rhs._fileName)==0));}
-      bool operator != (const MutexLockRecord & rhs) const {return !(*this==rhs);}
-
-      uint32 GetFileLine()           const {return _fileLine;}
-      uint32 GetLockActionType()     const {return _lockActionType;}
-      const void * GetMutexPointer() const {return _mutexPtr;}
-      const char * GetFileName()     const {return _fileName;}
-
-   private:
-      static const char * GetLockActionTypeString(uint32 lockActionType)
-      {
-         static const char * _strs[] = {"Unlock", "UnlockShared", "Lock", "LockShared", "TryLock", "TryLockShared"};
-         MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_strs, NUM_LOCK_ACTIONS);
-         return (lockActionType < ARRAYITEMS(_strs)) ? _strs[lockActionType] : "???";
-      }
-
-      const void * _mutexPtr;
-      uint32 _fileLine;
-      uint32 _lockActionType;
-      char _fileName[48];
-   };
-
    class MutexLockSequencesRecord
    {
    public:
@@ -593,10 +600,10 @@ private:
          return B_NO_ERROR;
       }
 
-      void CaptureResults(muscle_thread_id threadID, Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > & capturedResults) const
+      void CaptureResults(muscle_thread_id threadID, Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > & capturedResults) const
       {
          Queue<const void *> q;
-         Queue<String> details;
+         Queue<MutexLockRecord> details;
          for (uint32 i=0; i<_numValidSequenceStartIndices; i++)
          {
             const uint32 sequenceStartIdx      = _sequenceStartIndices[i];
@@ -616,7 +623,7 @@ private:
                   if ((lat != LOCK_ACTION_UNLOCK_EXCLUSIVE)&&(lat != LOCK_ACTION_UNLOCK_SHARED))
                   {
                      (void) q.AddTail(mlr.GetMutexPointer());  // guaranteed not to fail
-                     (void) details.AddTail(mlr.GetDetails()); // guaranteed not to fail
+                     (void) details.AddTail(mlr);              // guaranteed not to fail
                      if ((lat == LOCK_ACTION_TRYLOCK_EXCLUSIVE)||(lat == LOCK_ACTION_TRYLOCK_SHARED)) numTrailingTryLocks++;
                                                                                                  else numTrailingTryLocks = 0;
                   }
@@ -625,10 +632,10 @@ private:
                for (uint32 i=0; i<numTrailingTryLocks; i++) (void) q.RemoveTail();  // Trylocks at the end of the sequence don't count, as they won't block
                RemoveDuplicateItemsFromSequence(q);
 
-               Hashtable<muscle_thread_id, Queue<String> > * tab = (q.GetNumItems() > 1) ? capturedResults.GetOrPut(q) : NULL;
+               Hashtable<muscle_thread_id, Queue<MutexLockRecord> > * tab = (q.GetNumItems() > 1) ? capturedResults.GetOrPut(q) : NULL;
                if (tab)
                {
-                  const Queue<String> * oldDetails = tab->Get(threadID);
+                  const Queue<MutexLockRecord> * oldDetails = tab->Get(threadID);
                   if ((oldDetails == NULL)||(details.GetNumItems() < oldDetails->GetNumItems())) (void) tab->Put(threadID, details);
                }
             }
@@ -786,33 +793,44 @@ static bool SequencesAreInconsistent(const Queue<const void *> & seqA, const Que
 }
 
 // Returns true iff at least one details-string isn't a shared-string
-static bool SequenceHasExclusiveLock(const Hashtable<muscle_thread_id, Queue<String> > & table)
+static bool SequenceHasExclusiveLock(const Hashtable<muscle_thread_id, Queue<MutexLockRecord> > & table)
 {
-   for (HashtableIterator<muscle_thread_id, Queue<String> > iter(table); iter.HasData(); iter++)
+   for (HashtableIterator<muscle_thread_id, Queue<MutexLockRecord> > iter(table); iter.HasData(); iter++)
    {
-      const Queue<String> & q = iter.GetValue();
-      for (uint32 i=0; i<q.GetNumItems(); i++) if (q[i].EndsWith("Shared") == false) return true;
+      const Queue<MutexLockRecord> & q = iter.GetValue();
+      for (uint32 i=0; i<q.GetNumItems(); i++)
+      {
+         switch(q[i].GetLockActionType())
+         {
+            case LOCK_ACTION_UNLOCK_EXCLUSIVE:
+            case LOCK_ACTION_LOCK_EXCLUSIVE:
+            case LOCK_ACTION_TRYLOCK_EXCLUSIVE:
+               return true;
+
+            default:
+               return false;
+         }
+      }
    }
    return false;
 }
 
-
-static void PrintSequenceReport(const char * desc, const Queue<const void *> & seq, const Hashtable<muscle_thread_id, Queue<String> > & detailsTable)
+static void PrintSequenceReport(const char * desc, const Queue<const void *> & seq, const Hashtable<muscle_thread_id, Queue<MutexLockRecord> > & detailsTable)
 {
    printf("  %s: [%s] was executed by " UINT32_FORMAT_SPEC " threads:\n", desc, LockSequenceToString(seq)(), detailsTable.GetNumItems());
 
-   Hashtable<Queue<String>, Queue<muscle_thread_id> > detailsToThreads;
-   for (HashtableIterator<muscle_thread_id, Queue<String> > iter(detailsTable); iter.HasData(); iter++) (void) detailsToThreads.GetOrPut(iter.GetValue())->AddTailIfNotAlreadyPresent(iter.GetKey());
+   Hashtable<Queue<MutexLockRecord>, Queue<muscle_thread_id> > detailsToThreads;
+   for (HashtableIterator<muscle_thread_id, Queue<MutexLockRecord> > iter(detailsTable); iter.HasData(); iter++) (void) detailsToThreads.GetOrPut(iter.GetValue())->AddTailIfNotAlreadyPresent(iter.GetKey());
 
-   for (HashtableIterator<Queue<String>, Queue<muscle_thread_id> > iter(detailsToThreads); iter.HasData(); iter++)
+   for (HashtableIterator<Queue<MutexLockRecord>, Queue<muscle_thread_id> > iter(detailsToThreads); iter.HasData(); iter++)
    {
       Queue<muscle_thread_id> & threadsList = iter.GetValue();
       threadsList.Sort();
 
       printf("    Thread%s [%s] locked mutexes in this order:\n", (threadsList.GetNumItems()==1)?"s":"", ThreadsListToString(threadsList)());
-      const Queue<String> & details = iter.GetKey();
+      const Queue<MutexLockRecord> & details = iter.GetKey();
 
-      for (uint32 i=0; i<details.GetNumItems(); i++) printf("       " UINT32_FORMAT_SPEC ": %s\n", i, details[i]());
+      for (uint32 i=0; i<details.GetNumItems(); i++) printf("       " UINT32_FORMAT_SPEC ": %s\n", i, details[i].ToString()());
    }
 }
 
@@ -821,7 +839,7 @@ static void PrintSequenceReport(const char * desc, const Queue<const void *> & s
 void PrintMutexLockingReport()
 {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > capturedResults;  // mutex-sequence -> (threadID -> details)
+   Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > capturedResults;  // mutex-sequence -> (threadID -> details)
    {
       DECLARE_MUTEXGUARD(_mutexLogTableMutex);
       for (uint32 i=0; i<_mutexLogTable.GetNumItems(); i++) _mutexLogTable[i]->CaptureResults(capturedResults);
@@ -829,7 +847,7 @@ void PrintMutexLockingReport()
 
    printf("\n");
    LogTime(MUSCLE_LOG_INFO, "------------------- " UINT32_FORMAT_SPEC " UNIQUE LOCK SEQUENCES DETECTED -----------------\n", capturedResults.GetNumItems());
-   for (HashtableIterator< Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > iter(capturedResults); iter.HasData(); iter++)
+   for (HashtableIterator< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iter(capturedResults); iter.HasData(); iter++)
       LogTime(MUSCLE_LOG_INFO, "LockSequence [%s] was executed by " UINT32_FORMAT_SPEC " threads\n", LockSequenceToString(iter.GetKey())(), iter.GetValue().GetNumItems());
 
    // Now we check for inconsistent locking order.  Two sequences are inconsistent with each other if they lock the same two mutexes
@@ -837,12 +855,12 @@ void PrintMutexLockingReport()
    Hashtable<uint32, uint32> inconsistentSequencePairs;  // smaller key-position -> larger key-position
    {
       uint32 idxA = 0;
-      for (HashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > iterA(capturedResults); iterA.HasData(); iterA++,idxA++)
+      for (HashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iterA(capturedResults); iterA.HasData(); iterA++,idxA++)
       {
          const bool iterAHasExclusiveLock = SequenceHasExclusiveLock(iterA.GetValue());
 
          uint32 idxB = 0;
-         for (HashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<String> > > iterB(capturedResults); ((idxB < idxA)&&(iterB.HasData())); iterB++,idxB++)
+         for (HashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iterB(capturedResults); ((idxB < idxA)&&(iterB.HasData())); iterB++,idxB++)
             if (((iterAHasExclusiveLock)||(SequenceHasExclusiveLock(iterB.GetValue())))&&(SequencesAreInconsistent(iterB.GetKey(), iterA.GetKey())))
               (void) inconsistentSequencePairs.Put(idxB, idxA);
       }
