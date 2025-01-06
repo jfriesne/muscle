@@ -2015,7 +2015,12 @@ public:
 private:
    typedef typename HashtableBase<KeyType,ValueType,HashFunctorType>::HashtableEntryBase HashtableEntryBaseType;
 
-   HashtableMid(uint32 tableSize) : HashtableBase<KeyType,ValueType,HashFunctorType>(tableSize) {/* empty */}
+   explicit HashtableMid(uint32 tableSize) : HashtableBase<KeyType,ValueType,HashFunctorType>(tableSize) {/* empty */}
+
+   explicit HashtableMid(PreallocatedItemSlotsCount preallocatedItemSlotsCount) : HashtableBase<KeyType,ValueType,HashFunctorType>(0)
+   {
+      (void) EnsureSize(preallocatedItemSlotsCount.GetNumItemSlotsToPreallocate());
+   }
 
    // Only these classes are allowed to construct a HashtableMid object
    template<class HisKeyType, class HisValueType, class HisHashFunctorType> friend class Hashtable;
@@ -2102,6 +2107,11 @@ public:
 
    /** Default constructor. */
    Hashtable() : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(MUSCLE_HASHTABLE_DEFAULT_CAPACITY) {/* empty */}
+
+   /** Explicitly-sized constructor
+     * @param preallocatedItemSlotsCount how many slots should be preallocated for this table
+     */
+   explicit Hashtable(PreallocatedItemSlotsCount preallocatedItemSlotsCount) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(preallocatedItemSlotsCount) {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    Hashtable(const Hashtable & rhs) : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(rhs.GetNumAllocatedItemSlots()) {(void) this->CopyFrom(rhs);}
@@ -2262,6 +2272,7 @@ private:
    template<class HisKeyType, class HisValueType, class HisValueCompareFunctorType, class HisHashFunctorType> friend class OrderedValuesHashtable;
 
    OrderedHashtable(uint32 tableSize, const EntryCompareFunctorType & efc, void * optCompareCookie = NULL) : HashtableMidType(tableSize), _entryCompareFunctor(efc), _autoSortEnabled(true), _compareCookie(optCompareCookie) {/* empty */}
+   OrderedHashtable(PreallocatedItemSlotsCount tableSize, const EntryCompareFunctorType & efc, void * optCompareCookie = NULL) : HashtableMidType(tableSize), _entryCompareFunctor(efc), _autoSortEnabled(true), _compareCookie(optCompareCookie) {/* empty */}
 
    const EntryCompareFunctorType _entryCompareFunctor;
 
@@ -2293,6 +2304,12 @@ public:
      * @param optCompareCookie the value that will be passed to our compare functor.  Defaults to NULL.
      */
    OrderedKeysHashtable(void * optCompareCookie = NULL) : OrderedHashtableType(MUSCLE_HASHTABLE_DEFAULT_CAPACITY, ByKeyEntryCompareFunctorType(_keyCompareFunctor), optCompareCookie), _keyCompareFunctor() {/* empty */}
+
+   /** Explicitly-sized constructor
+     * @param preallocatedItemSlotsCount how many slots should be preallocated for this table
+     * @param optCompareCookie the value that will be passed to our compare functor.  Defaults to NULL.
+     */
+   OrderedKeysHashtable(PreallocatedItemSlotsCount preallocatedItemSlotsCount, void * optCompareCookie = NULL) : OrderedHashtableType(preallocatedItemSlotsCount, ByKeyEntryCompareFunctorType(_keyCompareFunctor), optCompareCookie), _keyCompareFunctor() {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    OrderedKeysHashtable(const OrderedKeysHashtable & rhs) : OrderedHashtableType(rhs.GetNumAllocatedItemSlots(), ByKeyEntryCompareFunctorType(_keyCompareFunctor), rhs.GetCompareCookie()), _keyCompareFunctor() {(void) this->CopyFrom(rhs);}
@@ -2370,6 +2387,12 @@ public:
      * @param optCompareCookie the value that will be passed to our compare functor.  Defaults to NULL.
      */
    OrderedValuesHashtable(void * optCompareCookie = NULL) : OrderedHashtableType(MUSCLE_HASHTABLE_DEFAULT_CAPACITY, ByValueEntryCompareFunctorType(_valueCompareFunctor), optCompareCookie), _valueCompareFunctor() {/* empty */}
+
+   /** Explicitly-sized constructor
+     * @param preallocatedItemSlotsCount how many slots should be preallocated for this table
+     * @param optCompareCookie the value that will be passed to our compare functor.  Defaults to NULL.
+     */
+   OrderedValuesHashtable(PreallocatedItemSlotsCount preallocatedItemSlotsCount, void * optCompareCookie = NULL) : OrderedHashtableType(preallocatedItemSlotsCount, ByValueEntryCompareFunctorType(_valueCompareFunctor), optCompareCookie), _valueCompareFunctor() {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    OrderedValuesHashtable(const OrderedValuesHashtable & rhs) : OrderedHashtableType(rhs.GetNumAllocatedItemSlots(), ByValueEntryCompareFunctorType(_valueCompareFunctor), rhs.GetCompareCookie()), _valueCompareFunctor() {(void) this->CopyFrom(rhs);}
@@ -3662,7 +3685,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAux(uint32 hash
          const ValueType tempVal = value;
          return PutAux(hash, tempKey, tempVal, optSetPreviousValue, optReplacedFlag);  // go again
       }
-      return (EnsureSize(this->_tableSize*2).IsOK()) ? PutAux(hash, HT_ForwardKey(key), HT_ForwardValue(value), optSetPreviousValue, optReplacedFlag) : NULL;
+      return EnsureSize(this->_tableSize*2).IsOK() ? PutAux(hash, HT_ForwardKey(key), HT_ForwardValue(value), optSetPreviousValue, optReplacedFlag) : NULL;
    }
 
    e = this->PutAuxAux(hash, HT_ForwardKey(key), HT_ForwardValue(value));

@@ -734,7 +734,7 @@ int main(int argc, char ** argv)
       Hashtable<String, double> tallies;
       for (uint32 t=0; t<NUM_RUNS; t++)
       {
-         Hashtable<uint32, uint32> iTable; (void) iTable.EnsureSize(NUM_ITEMS);
+         Hashtable<uint32, uint32> iTable(PreallocatedItemSlotsCount(NUM_ITEMS));
          printf("SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          uint64 startTime = GetRunTime64();
@@ -775,7 +775,7 @@ int main(int argc, char ** argv)
       Hashtable<String, double> tallies;
       for (uint32 t=0; t<NUM_RUNS; t++)
       {
-         Hashtable<String, String> sTable; (void) sTable.EnsureSize(NUM_ITEMS);
+         Hashtable<String, String> sTable(PreallocatedItemSlotsCount(NUM_ITEMS));
          printf("STRING SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          uint64 startTime = GetRunTime64();

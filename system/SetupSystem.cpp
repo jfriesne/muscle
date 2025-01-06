@@ -668,8 +668,7 @@ private:
       // Gotta remove all the duplicates while keeping the first instances of each pointer in the same order as before
       void RemoveDuplicateItemsFromSequence(Queue<const void *> & seq) const
       {
-         Hashtable<const void *, uint32> histogram;
-         (void) histogram.EnsureSize(seq.GetNumItems());
+         Hashtable<const void *, uint32> histogram(PreallocatedItemSlotsCount(seq.GetNumItems()));
          for (uint32 i=0; i<seq.GetNumItems(); i++)
          {
             uint32 * count = histogram.GetOrPut(seq[i]);
@@ -762,7 +761,7 @@ private:
 
 static ThreadLocalStorage<MutexLockRecordLog> _mutexEventsLog(false);  // false argument is necessary otherwise we can't read the threads' logs after they've gone away!
 static Mutex _mutexLogTableMutex;
-static Hashtable<muscle_thread_id, MutexLockRecordLog *> _mutexLogTable;  // read at process-shutdown time
+static Hashtable<muscle_thread_id, MutexLockRecordLog *> _mutexLogTable(PreallocatedItemSlotsCount(4096));  // preallocated here to avoid a memory-allocation inside DeadlockFinder_AddEvent()
 
 void DeadlockFinder_LogEvent(uint32 lockActionType, const void * mutexPtr, const char * fileName, int fileLine)
 {

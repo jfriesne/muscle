@@ -140,6 +140,21 @@ public:
       if (str) (void) SetCstr(str, maxLen);
    }
 
+   /** Explicitely-sized constructor.
+     * @param preallocatedBytesCount Contains the value to pass to Prealloc() as part of our construction
+     * @param str If non-NULL, the initial value for this String.
+     * @param maxLen The maximum number of characters to place into
+     *               this String (not including the NUL terminator byte).
+     *               Default is unlimited (ie scan the entire string no matter how long it is)
+     */
+   String(PreallocatedItemSlotsCount preallocatedBytesCount, const char * str = NULL, uint32 maxLen = MUSCLE_NO_LIMIT) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
+   {
+      MUSCLE_INCREMENT_STRING_OP_COUNT(str?STRING_OP_CSTR_CTOR:STRING_OP_DEFAULT_CTOR);
+      ClearSmallBuffer();
+      (void) Prealloc(preallocatedBytesCount.GetNumItemSlotsToPreallocate());
+      if (str) (void) SetCstr(str, maxLen);
+   }
+
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    String(const String & rhs) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
    {

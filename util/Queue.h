@@ -45,6 +45,11 @@ public:
    /** Default constructor.  */
    Queue();
 
+   /** Explicitly-sized constructor
+     * @param preallocatedItemSlotsCount how many slots should be preallocated for this table
+     */
+   explicit Queue(PreallocatedItemSlotsCount preallocatedItemSlotsCount);
+
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    Queue(const Queue& rhs);
 
@@ -892,6 +897,18 @@ Queue<ItemType>::Queue()
    , _tailIndex(0)
 {
    // coverity[uninit_member] - _smallQueue doesn't need to be initialized
+}
+
+template <class ItemType>
+Queue<ItemType>::Queue(PreallocatedItemSlotsCount preallocatedItemSlotsCount)
+   : _queue(NULL)
+   , _queueSize(0)
+   , _itemCount(0)
+   , _headIndex(0)
+   , _tailIndex(0)
+{
+   // coverity[uninit_member] - _smallQueue doesn't need to be initialized
+   (void) EnsureSize(preallocatedItemSlotsCount.GetNumItemSlotsToPreallocate());
 }
 
 template <class ItemType>

@@ -261,7 +261,7 @@ String EscapeRegexTokens(const String & s, const char * optTokens)
 String RemoveEscapeChars(const String & s)
 {
    const uint32 len = s.Length();
-   String ret; (void) ret.Prealloc(len);
+   String ret((PreallocatedItemSlotsCount(len)));  // extra parens to avoid most-vexing-parse problem
    bool lastWasEscape = false;
    for (uint32 i=0; i<len; i++)
    {

@@ -306,8 +306,7 @@ String String :: WithCharsEscaped(const char * charsToEscape, char escapeChar) c
    const uint32 numBackslashes = GetNumInstancesOf(escapeChar);
    if ((numSeps == 0)&&(numBackslashes == 0)) return *this;  // nothing to do!
 
-   String escapedName;
-   (void) escapedName.Prealloc(Length()+(2*(numSeps+numBackslashes)));  // conservative estimate, to avoid any reallocs below
+   String escapedName(PreallocatedItemSlotsCount(Length()+(2*(numSeps+numBackslashes))));  // conservative estimate, to avoid any reallocs below
 
    const char * thisStr   = Cstr();
    bool prevCharWasEscape = false;

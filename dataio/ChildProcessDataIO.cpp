@@ -170,7 +170,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                else
                {
                   const char ** argv = (const char **) args;
-                  Queue<String> tmpQ; (void) tmpQ.EnsureSize(argc);
+                  Queue<String> tmpQ(PreallocatedItemSlotsCount(argc));
                   for (int i=0; i<argc; i++) (void) tmpQ.AddTail(argv[i]);
                   cmd = UnparseArgs(tmpQ);
                }

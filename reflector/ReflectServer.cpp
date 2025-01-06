@@ -269,12 +269,10 @@ ReflectServer :: ReflectServer()
    , _doLogging(true)
    , _serverSessionID(GetCurrentTime64()+GetRunTime64()+GetInsecurePseudoRandomNumber())
    , _computerIsAboutToSleep(false)
+   , _lameDuckSessions(PreallocatedItemSlotsCount(256)) // make sure _lameDuckSessions has plenty of memory available in advance (we need might need it in a tight spot later!)
+   , _lameDuckFactories(PreallocatedItemSlotsCount(16))
 {
    if (_serverSessionID == 0) _serverSessionID++;  // paranoia:  make sure 0 can be used as a guard value
-
-   // make sure _lameDuckSessions has plenty of memory available in advance (we need might need it in a tight spot later!)
-   (void) _lameDuckSessions.EnsureSize(256);
-   (void) _lameDuckFactories.EnsureSize(16);
 }
 
 ReflectServer :: ~ReflectServer()

@@ -583,7 +583,7 @@ public:
      */
    String ToHexString(bool suppressLeadingZeroes = false) const
    {
-      String ret; (void) ret.Prealloc(1+(NUM_BYTES*3));
+      String ret(PreallocatedItemSlotsCount(1+(NUM_BYTES*3)));
       for (int32 i=NUM_BYTES-1; i>=0; i--)
       {
          const uint8 b = GetByte(i);
@@ -628,7 +628,7 @@ public:
    /** Returns a fixed-length binary representation of this bit-chord. */
    String ToBinaryString() const
    {
-      String ret; (void) ret.Prealloc(NumBits+1);
+      String ret(PreallocatedItemSlotsCount(NumBits+1));
       for (int32 i=NumBits-1; i>=0; i--) ret += IsBitSet(i)?'1':'0';
       return ret;
    }

@@ -5,6 +5,11 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a PreallocatedItemSlotsCount class to MuscleSupport.h
+     which can be used to explicitly specify how many item-slots
+     a container's constructor should preallocate space for.
+   - Added constructors to the Queue, Hashtable, and String classes
+     that take a PreallocatedItemSlotsCount as an argument.
    o Simplified the EmscriptenWebSocket callback API.
    o Replaced overloaded_preprocessor_macro.h with conditional
      usage of the comma-swallowing operator (##__VA_ARGS__).

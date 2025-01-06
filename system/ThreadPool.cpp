@@ -32,9 +32,10 @@ ThreadPool :: ThreadPool(uint32 maxThreadCount)
    : _maxThreadCount(maxThreadCount)
    , _shuttingDown(false)
    , _threadIDCounter(0)
+   , _availableThreads(PreallocatedItemSlotsCount(maxThreadCount))
+   , _activeThreads(PreallocatedItemSlotsCount(maxThreadCount))
 {
-   (void) _availableThreads.EnsureSize(maxThreadCount);
-   (void) _activeThreads.EnsureSize(maxThreadCount);
+   // empty
 }
 
 ThreadPool :: ~ThreadPool()

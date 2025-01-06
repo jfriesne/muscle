@@ -1833,6 +1833,27 @@ static inline void StoreTraceValue(uint32 v) {(void) v;}  /* named param is nece
 
 #ifdef __cplusplus
 
+/** This class simply holds a user-specified uint32 indicating how many item-slots a container's constructor
+  * should preallocate space for.  The only reason for passing that value via this class (as opposed to
+  * just having the container's constructor take a uint32 argument) is that this class forces the caller
+  * to specify explicitly that the passed value is intended to be a preallocation-size and not something
+  * else, to reduce the chances of passing e.g. an item-value as a preallocation-size by mistake.
+  */
+class PreallocatedItemSlotsCount
+{
+public:
+   /** Explicit constructor
+     * @param numItemSlotsToPreallocate the value that should be passed to the container's EnsureSize() method.
+     */
+   explicit PreallocatedItemSlotsCount(uint32 numItemSlotsToPreallocate) : _numItemSlotsToPreallocate(numItemSlotsToPreallocate) {/* empty */}
+
+   /** Returns the value specified in our constructor */
+   uint32 GetNumItemSlotsToPreallocate() const {return _numItemSlotsToPreallocate;}
+
+private:
+   uint32 _numItemSlotsToPreallocate;
+};
+
 /** This templated class is used as a "comparison callback" for sorting items in a Queue or Hashtable.
   * For many types, this default CompareFunctor template will do the job, but you also have the option of specifying
   * a different custom CompareFunctor for times when you want to sort in ways other than simply using the

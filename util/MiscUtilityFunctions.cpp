@@ -843,7 +843,7 @@ String CleanupDNSLabel(const String & s, const String & optAdditionalAllowedChar
 
 String CleanupDNSPath(const String & orig, const String & optAdditionalAllowedChars)
 {
-   String ret; (void) ret.Prealloc(orig.Length());
+   String ret(PreallocatedItemSlotsCount(orig.Length()));
 
    const char * s;
    StringTokenizer tok(orig(), ".");
