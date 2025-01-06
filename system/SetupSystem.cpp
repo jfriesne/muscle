@@ -9,6 +9,7 @@
 #include "util/ByteBuffer.h"
 #include "util/DebugTimer.h"
 #include "util/CountedObject.h"
+#include "util/Hashtable.h"
 #include "util/MiscUtilityFunctions.h"     // for PrintHexBytes()
 #include "util/NetworkUtilityFunctions.h"  // for IPAddressAndPort
 #include "util/String.h"
@@ -747,7 +748,7 @@ private:
 
 static ThreadLocalStorage<MutexLockRecordLog> _mutexEventsLog(false);  // false argument is necessary otherwise we can't read the threads' logs after they've gone away!
 static Mutex _mutexLogTableMutex;
-static Queue<MutexLockRecordLog *> _mutexLogTable;  // read at process-shutdown time (I use a Queue rather than a Hashtable because muscle_thread_id isn't usable as a Hashtable key)
+static Hashtable<muscle_thread_id, MutexLockRecordLog *> _mutexLogTable;  // read at process-shutdown time
 
 void DeadlockFinder_LogEvent(uint32 lockActionType, const void * mutexPtr, const char * fileName, int fileLine)
 {
@@ -757,11 +758,13 @@ void DeadlockFinder_LogEvent(uint32 lockActionType, const void * mutexPtr, const
       unsigned char * newBuf = (unsigned char *) malloc(sizeof(MutexLockRecordLog));  // MUST CALL malloc() here to avoid inappropriate re-entrancy!
       if (newBuf)
       {
-         mel = new (newBuf) MutexLockRecordLog(muscle_thread_id::GetCurrentThreadID());
+         const muscle_thread_id tid = muscle_thread_id::GetCurrentThreadID();
+
+         mel = new (newBuf) MutexLockRecordLog(tid);
          (void) _mutexEventsLog.SetThreadLocalObject(mel);
          if (_mutexLogTableMutex.Lock().IsOK())
          {
-            (void) _mutexLogTable.AddTail(mel);
+            (void) _mutexLogTable.Put(tid, mel);
             (void) _mutexLogTableMutex.Unlock();
          }
       }
@@ -850,7 +853,7 @@ void PrintMutexLockingReport()
    Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > capturedResults;  // mutex-sequence -> (threadID -> details)
    {
       DECLARE_MUTEXGUARD(_mutexLogTableMutex);
-      for (uint32 i=0; i<_mutexLogTable.GetNumItems(); i++) _mutexLogTable[i]->CaptureResults(capturedResults);
+      for (HashtableIterator<muscle_thread_id, MutexLockRecordLog *> iter(_mutexLogTable); iter.HasData(); iter++) iter.GetValue()->CaptureResults(capturedResults);
    }
 
    printf("\n");
