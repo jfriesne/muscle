@@ -518,10 +518,14 @@ private:
 class MutexLockRecordLog
 {
 public:
-   // Note:  You MUST call Initialize() after creating a MutexLockRecordLog object!
-   MutexLockRecordLog() {/* empty */}
-
-   void Initialize(const muscle_thread_id & id) {_threadID = id; _headMLSRecord = _tailMLSRecord = NULL; _numHeldLocks = 0;}
+   MutexLockRecordLog(const muscle_thread_id & id)
+      : _threadID(id)
+      , _headMLSRecord(NULL)
+      , _tailMLSRecord(NULL)
+      , _numHeldLocks(0)
+   {
+      // empty
+   }
 
    void AddEvent(uint32 lockActionType, const void * mutexPtr, const char * fileName, int fileLine)
    {
@@ -538,10 +542,10 @@ public:
 
             if ((ContainsSequence(_heldLocks, _numHeldLocks) == false)&&((_tailMLSRecord == NULL)||(_tailMLSRecord->AddLockSequence(_heldLocks, _numHeldLocks).IsError())))
             {
-               MutexLockSequencesRecord * newMLSRecord = static_cast<MutexLockSequencesRecord *>(malloc(sizeof(MutexLockSequencesRecord)));  // THIS LINE CAN ONLY CALL plain old malloc() and nothing else!!!
-               if (newMLSRecord)
+               unsigned char * newBuf = (unsigned char *) malloc(sizeof(MutexLockSequencesRecord));  // Gotta use malloc() here instead of new to avoid any potential GlobalMemoryAllocator callbacks, etc
+               if (newBuf)
                {
-                  newMLSRecord->Initialize();
+                  MutexLockSequencesRecord * newMLSRecord = new (newBuf) MutexLockSequencesRecord;  // placement-new is required to construct the MutexLockSequencesRecord on top of the memory-buffer we allocated.
                   if (_headMLSRecord == NULL) _headMLSRecord = newMLSRecord;
                   if (_tailMLSRecord) _tailMLSRecord->_nextMLSRecord = newMLSRecord;
                   _tailMLSRecord = newMLSRecord;
@@ -551,7 +555,7 @@ public:
                }
                else
                {
-                  printf("MutexLockRecordLog ERROR:  malloc() of new MutexLockSequencesRecord failed!\n");   // what else to do?  Even MWARN_OUT_OF_MEMORY isn't safe here
+                  printf("MutexLockRecordLog ERROR:  malloc() of new MutexLockSequencesRecord buffer failed!\n");   // what else to do?  Even MWARN_OUT_OF_MEMORY isn't safe here
                   return;
                }
             }
@@ -584,9 +588,13 @@ private:
    class MutexLockSequencesRecord
    {
    public:
-      MutexLockSequencesRecord() {Initialize();}
-
-      void Initialize() {_numValidRecords = 0; _numValidSequenceStartIndices = 0; _nextMLSRecord = NULL;}
+      MutexLockSequencesRecord()
+         : _numValidRecords(0)
+         , _numValidSequenceStartIndices(0)
+         , _nextMLSRecord(NULL)
+      {
+         // empty
+      }
 
       status_t AddLockSequence(const MutexLockRecord * lockSequence, uint32 seqLen)
       {
@@ -746,10 +754,10 @@ void DeadlockFinder_LogEvent(uint32 lockActionType, const void * mutexPtr, const
    MutexLockRecordLog * mel = _mutexEventsLog.GetThreadLocalObject();
    if (mel == NULL)
    {
-      mel = static_cast<MutexLockRecordLog *>(malloc(sizeof(MutexLockRecordLog)));  // MUST CALL malloc() here to avoid inappropriate re-entrancy!
-      if (mel)
+      unsigned char * newBuf = (unsigned char *) malloc(sizeof(MutexLockRecordLog));  // MUST CALL malloc() here to avoid inappropriate re-entrancy!
+      if (newBuf)
       {
-         mel->Initialize(muscle_thread_id::GetCurrentThreadID());
+         mel = new (newBuf) MutexLockRecordLog(muscle_thread_id::GetCurrentThreadID());
          (void) _mutexEventsLog.SetThreadLocalObject(mel);
          if (_mutexLogTableMutex.Lock().IsOK())
          {
