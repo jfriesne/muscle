@@ -530,48 +530,62 @@ public:
 
    void AddEvent(uint32 lockActionType, const void * mutexPtr, const char * fileName, int fileLine)
    {
-      if ((lockActionType != LOCK_ACTION_UNLOCK_EXCLUSIVE)&&(lockActionType != LOCK_ACTION_UNLOCK_SHARED))
+      switch(lockActionType)
       {
-         if (_numHeldLocks >= ARRAYITEMS(_heldLocks))
+         case LOCK_ACTION_UNLOCK_EXCLUSIVE:
+         case LOCK_ACTION_UNLOCK_SHARED:
          {
-            char tempBuf[20];
-            printf("MutexLockRecordLog ERROR: Maximum simultaneous-held-locks (" UINT32_FORMAT_SPEC ") reached by thread [%s] trying to lock mutex %p at [%s:%i]!\n", ARRAYITEMS(_heldLocks), _threadID.ToString(tempBuf), mutexPtr, fileName, fileLine);
-         }
-         else
-         {
-            _heldLocks[_numHeldLocks++].Set(mutexPtr, fileName, fileLine, lockActionType);
-
-            if ((ContainsSequence(_heldLocks, _numHeldLocks) == false)&&((_tailMLSRecord == NULL)||(_tailMLSRecord->AddLockSequence(_heldLocks, _numHeldLocks).IsError())))
+            // Remove the most recent instance of (mutexPtr) from our _heldLocks array
+            const int32 mostRecentLockIdx = FindMostRecentInstanceOfHeldLock(mutexPtr);
+            if (mostRecentLockIdx >= 0) RemoveHeldLockInstanceAt(mostRecentLockIdx);
+            else
             {
-               unsigned char * newBuf = (unsigned char *) malloc(sizeof(MutexLockSequencesRecord));  // Gotta use malloc() here instead of new to avoid any potential GlobalMemoryAllocator callbacks, etc
-               if (newBuf)
-               {
-                  MutexLockSequencesRecord * newMLSRecord = new (newBuf) MutexLockSequencesRecord;  // placement-new is required to construct the MutexLockSequencesRecord on top of the memory-buffer we allocated.
-                  if (_headMLSRecord == NULL) _headMLSRecord = newMLSRecord;
-                  if (_tailMLSRecord) _tailMLSRecord->_nextMLSRecord = newMLSRecord;
-                  _tailMLSRecord = newMLSRecord;
+               char tempBuf[20];
+               printf("MutexLockRecordLog ERROR:  Thread [%s] is trying to unlock unacquired mutex %p at [%s:%i]!\n", _threadID.ToString(tempBuf), mutexPtr, fileName, fileLine);
+            }
+         }
+         break;
 
-                  status_t ret;
-                  if (_tailMLSRecord->AddLockSequence(_heldLocks, _numHeldLocks).IsError(ret)) printf("MutexLockRecordLog ERROR:  AddLockSequence() failed [%s] for sequence of " UINT32_FORMAT_SPEC " locks\n", ret(), _numHeldLocks);
-               }
-               else
+         case LOCK_ACTION_LOCK_EXCLUSIVE:
+         case LOCK_ACTION_LOCK_SHARED:
+         case LOCK_ACTION_TRYLOCK_EXCLUSIVE:
+         case LOCK_ACTION_TRYLOCK_SHARED:
+         {
+            if (_numHeldLocks >= ARRAYITEMS(_heldLocks))
+            {
+               char tempBuf[20];
+               printf("MutexLockRecordLog ERROR: Maximum simultaneous-held-locks (" UINT32_FORMAT_SPEC ") reached by thread [%s] trying to lock mutex %p at [%s:%i]!\n", ARRAYITEMS(_heldLocks), _threadID.ToString(tempBuf), mutexPtr, fileName, fileLine);
+            }
+            else
+            {
+               _heldLocks[_numHeldLocks++].Set(mutexPtr, fileName, fileLine, lockActionType);
+
+               if ((ContainsSequence(_heldLocks, _numHeldLocks) == false)&&((_tailMLSRecord == NULL)||(_tailMLSRecord->AddLockSequence(_heldLocks, _numHeldLocks).IsError())))
                {
-                  printf("MutexLockRecordLog ERROR:  malloc() of new MutexLockSequencesRecord buffer failed!\n");   // what else to do?  Even MWARN_OUT_OF_MEMORY isn't safe here
-                  return;
+                  unsigned char * newBuf = (unsigned char *) malloc(sizeof(MutexLockSequencesRecord));  // Gotta use malloc() here instead of new to avoid any potential GlobalMemoryAllocator callbacks, etc
+                  if (newBuf)
+                  {
+                     MutexLockSequencesRecord * newMLSRecord = new (newBuf) MutexLockSequencesRecord;  // placement-new is required to construct the MutexLockSequencesRecord on top of the memory-buffer we allocated.
+                     if (_headMLSRecord == NULL) _headMLSRecord = newMLSRecord;
+                     if (_tailMLSRecord) _tailMLSRecord->_nextMLSRecord = newMLSRecord;
+                     _tailMLSRecord = newMLSRecord;
+
+                     status_t ret;
+                     if (_tailMLSRecord->AddLockSequence(_heldLocks, _numHeldLocks).IsError(ret)) printf("MutexLockRecordLog ERROR:  AddLockSequence() failed [%s] for sequence of " UINT32_FORMAT_SPEC " locks\n", ret(), _numHeldLocks);
+                  }
+                  else
+                  {
+                     printf("MutexLockRecordLog ERROR:  malloc() of new MutexLockSequencesRecord buffer failed!\n");   // what else to do?  Even MWARN_OUT_OF_MEMORY isn't safe here
+                     return;
+                  }
                }
             }
          }
-      }
-      else
-      {
-         // Remove the most recent instance of (mutexPtr) from our _heldLocks array
-         const int32 mostRecentLockIdx = FindMostRecentInstanceOfHeldLock(mutexPtr);
-         if (mostRecentLockIdx >= 0) RemoveHeldLockInstanceAt(mostRecentLockIdx);
-         else
-         {
-            char tempBuf[20];
-            printf("MutexLockRecordLog ERROR:  Thread [%s] is trying to unlock unacquired mutex %p at [%s:%i]!\n", _threadID.ToString(tempBuf), mutexPtr, fileName, fileLine);
-         }
+         break;
+
+         default:
+            printf("MutexLockRecordLog ERROR:  Unknown lockActionType " UINT32_FORMAT_SPEC " for mutex %p at [%s:%i]\n", lockActionType, mutexPtr, fileName, fileLine);
+         break;
       }
    }
 
