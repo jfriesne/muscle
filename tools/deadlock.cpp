@@ -40,13 +40,16 @@ public:
 
 // This program is designed to sometimes deadlock!  Compile it with -DMUSCLE_ENABLE_DEADLOCK_FINDER
 // and watch its output -- if it doesn't deadlock and hang, it should exit quickly and report the potential deadlock instead.
-int main(int /*argc*/, char ** /*argv*/)
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    _enableDeadlockFinderPrints = true;
 #endif
+
+   Message args; (void) ParseArgs(argc, argv, args);
+   (void) HandleStandardDaemonArgs(args);
 
    printf("Deadlocking program begins!  This program might run to completion, or it might deadlock and hang, you never know!\n");
    TestThread threads[10];

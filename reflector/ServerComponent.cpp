@@ -2,12 +2,9 @@
 
 #include <typeinfo>   // For typeid().name()
 
-#if defined(__GNUC__)
-# include <cxxabi.h>  // for abi::__cxa_demangle()
-#endif
-
 #include "reflector/ServerComponent.h"
 #include "reflector/ReflectServer.h"
+#include "util/MiscUtilityFunctions.h"  // for GetUnmangledSymbolName()
 
 namespace muscle {
 
@@ -25,22 +22,6 @@ ServerComponent ::
    MASSERT(_owner == NULL, "ServerComponent deleted while still attached to its ReflectServer!  Maybe you did not call Cleanup() on the ReflectServer object, or did not forward an AboutToDetachFromServer() call to your superclass's implementation?");
 }
 
-static String DemangleTypeName(const char * mangled_name)
-{
-   String ret = mangled_name;
-
-#if defined(__GNUC__)
-   // Stolen from Wikipedia:  https://en.wikipedia.org/wiki/Name_mangling#Standardised_name_mangling_in_C++
-   int status = -1;
-   char *demangled_name = abi::__cxa_demangle(ret(), NULL, NULL, &status);
-   ret = demangled_name;
-   free(demangled_name);
-#endif
-
-   const int32 doubleColonIdx = ret.IndexOf("::");
-   return (doubleColonIdx >= 0) ? ret.Substring(doubleColonIdx+2) : std_move_if_available(ret);   // remove namespace prefix
-}
-
 status_t
 ServerComponent ::
 AttachedToServer()
@@ -52,7 +33,7 @@ const char *
 ServerComponent ::
 GetTypeName() const
 {
-   if ((_fullyAttached == false)||(_rttiTypeName.IsEmpty())) _rttiTypeName = DemangleTypeName(typeid(*this).name());
+   if ((_fullyAttached == false)||(_rttiTypeName.IsEmpty())) _rttiTypeName = GetUnmangledSymbolName(typeid(*this).name());
    return _rttiTypeName();
 }
 

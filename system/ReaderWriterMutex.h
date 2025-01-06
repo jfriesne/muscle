@@ -229,7 +229,7 @@ private:
    friend class ReadWriteMutexGuard;
 
    void Cleanup();
-   
+
 #ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
    void CheckForLockingViolation(const char * methodName) const
    {

@@ -22,6 +22,15 @@
 # endif
 #endif
 
+#if defined(__APPLE__)
+# include "AvailabilityMacros.h"  // so we can find out if this version of MacOS/X is new enough to include backtrace() and friends
+#endif
+
+#if (defined(__linux__) && !defined(ANDROID)) || (defined(MAC_OS_X_VERSION_10_5) && defined(MAC_OS_X_VERSION_MAX_ALLOWED) && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5))
+# include <execinfo.h>
+# define MUSCLE_USE_BACKTRACE 1
+#endif
+
 #ifdef __linux__
 # include <time.h>   // for clock_nanosleep()
 #endif
@@ -482,6 +491,16 @@ public:
          _fileName = fileName;
       }
       else _fileName = "<unspecified>";
+
+#ifdef MUSCLE_USE_BACKTRACE
+      if ((_mutexPtr)&&(GetMaxLogLevel() >= MUSCLE_LOG_DEBUG))
+      {
+         const int btRet = backtrace(_backtraceSymbols, ARRAYITEMS(_backtraceSymbols));
+         if (btRet < 0) perror("backtrace");
+                   else _numValidBacktraceSymbols = (uint32) btRet;
+      }
+      else _numValidBacktraceSymbols = 0;
+#endif
    }
 
    bool operator == (const MutexLockRecord & rhs) const {return ((_fileLine == rhs._fileLine)&&(_mutexPtr == rhs._mutexPtr)&&(_lockActionType == rhs._lockActionType)&&(strcmp(_fileName, rhs._fileName)==0));}
@@ -499,6 +518,47 @@ public:
 
    String ToString() const {return String("mutex %1 @ %2:%3 %4").Arg(_mutexPtr).Arg(_fileName).Arg(_fileLine).Arg(GetLockActionTypeString(_lockActionType));}
 
+   String GetStackTrace() const
+   {
+#ifdef MUSCLE_USE_BACKTRACE
+      if (_numValidBacktraceSymbols > 0)
+      {
+         char ** strings = backtrace_symbols(_backtraceSymbols, _numValidBacktraceSymbols);
+         if (strings)
+         {
+            String ret;
+            for (uint32 i=3; i<_numValidBacktraceSymbols; i++)  // starting at #3 because the first three functions are just deadlock-recorder functions
+            {
+               if (ret.HasChars()) ret += " <- ";
+
+               StringTokenizer tok(strings[i], " ");
+               (void) tok(); // frame index
+               (void) tok(); // library name
+               (void) tok(); // hex address
+               const char * fName = tok();
+               if (fName)
+               {
+                  if (strstr(fName, "__thread_proxy") != NULL)
+                  {
+                     ret += "<pthread_entry>";  // because the pthreads scaffolding makes my eyes bleed
+                     break;
+                  }
+                  else ret += GetUnmangledSymbolName(fName);
+               }
+               else ret += String("???");
+
+            }
+            free(strings);
+            return ret;
+         }
+         else return "<backtrace_symbols() failed>";
+      }
+      else return "<No backtrace present>";
+#else
+      return GetEmptyString();
+#endif
+   }
+
 private:
    static const char * GetLockActionTypeString(uint32 lockActionType)
    {
@@ -511,6 +571,11 @@ private:
    const char * _fileName;
    uint32 _fileLine;
    uint32 _lockActionType;
+
+#ifdef MUSCLE_USE_BACKTRACE
+   void * _backtraceSymbols[32];
+   uint32 _numValidBacktraceSymbols;
+#endif
 };
 
 /** Gotta do a custom data structure because we can't use the standard new/delete/muscleAlloc()/muscleFree() memory operators,
@@ -604,9 +669,9 @@ private:
    {
    public:
       MutexLockSequencesRecord()
-         : _numValidRecords(0)
+         : _nextMLSRecord(NULL)
+         , _numValidRecords(0)
          , _numValidSequenceStartIndices(0)
-         , _nextMLSRecord(NULL)
       {
          // empty
       }
@@ -652,7 +717,7 @@ private:
                   }
                }
 
-               for (uint32 i=0; i<numTrailingTryLocks; i++) (void) q.RemoveTail();  // Trylocks at the end of the sequence don't count, as they won't block
+               (void) q.RemoveTailMulti(numTrailingTryLocks);  // Trylocks at the end of the sequence don't count, as they won't block
                RemoveDuplicateItemsFromSequence(q);
 
                Hashtable<muscle_thread_id, Queue<MutexLockRecord> > * tab = (q.GetNumItems() > 1) ? capturedResults.GetOrPut(q) : NULL;
@@ -854,7 +919,15 @@ static void PrintSequenceReport(const char * desc, const Queue<const void *> & s
       printf("    Thread%s [%s] locked mutexes in this order:\n", (threadsList.GetNumItems()==1)?"s":"", ThreadsListToString(threadsList)());
       const Queue<MutexLockRecord> & details = iter.GetKey();
 
-      for (uint32 i=0; i<details.GetNumItems(); i++) printf("       " UINT32_FORMAT_SPEC ": %s\n", i, details[i].ToString()());
+#ifdef MUSCLE_USE_BACKTRACE
+      const bool printStackTraces = (GetMaxLogLevel() >= MUSCLE_LOG_DEBUG);
+#endif
+      for (uint32 i=0; i<details.GetNumItems(); i++)
+      {
+         printf("       " UINT32_FORMAT_SPEC ": %s", i, details[i].ToString()());
+         if (printStackTraces) printf(" [%s]\n", details[i].GetStackTrace()());
+                          else printf("\n");
+      }
    }
 }
 

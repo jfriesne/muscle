@@ -713,6 +713,13 @@ static inline uint32 GetInsecurePseudoRandomNumber(uint32 maxVal = MUSCLE_NO_LIM
    return (maxVal == MUSCLE_NO_LIMIT) ? r : (r%maxVal);
 }
 
+/** Given a mangled C++ symbol, tries to return a more human-readable (aka unmangled) form of it.
+  * @param mangledName a mangled C++ symbol-name
+  * @returns a more human-readable string representing the type.
+  *          In the worse case it will be the same as the argument that was passed in.
+  */
+String GetUnmangledSymbolName(const char * mangledName);
+
 /** @} */ // end of miscutilityfunctions doxygen group
 
 } // end namespace muscle

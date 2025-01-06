@@ -515,7 +515,7 @@ int hextermmain(const char * argv0, const Message & args)
    if (forceSharePort) LogTime(MUSCLE_LOG_INFO, "shareport arg specified:  UDP sockets will enable SO_REUSEADDRESS\n");
 
    const IPAddress localNicIP = IPAddress(args.GetString("localnicip"));
- 
+
    status_t ret;
 
    String arg;

@@ -41,7 +41,7 @@ status_t ReaderWriterMutex :: LockReadOnlyAux(uint64 optTimeoutTimestamp) const
          (void) _stateMutex.Unlock();
          return B_OUT_OF_MEMORY;
       }
-      
+
       RefCountableWaitConditionRef tempWCRef = ts->_waitConditionRef;  // avoid race condition after we unlock _stateMutex below
       (void) _stateMutex.Unlock();   // necessary because we don't want to be holding this mutex while we Wait() for possibly a long time
 
@@ -123,7 +123,7 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
          for (uint32 i=0; i<readOnlyRecurseCount; i++) (void) UnlockReadOnly();
          MRETURN_ON_ERROR(LockReadWriteAux(optTimeoutTimestamp));
          for (uint32 i=0; i<readOnlyRecurseCount; i++) (void) LockReadOnly();  // safe because at this point we know we're the sole writer
-         return B_NO_ERROR; 
+         return B_NO_ERROR;
       }
    }
    else if (IsOkayForWriterThreadToExecuteNow(tid))
@@ -299,5 +299,5 @@ ReaderWriterMutex::ThreadState * ReaderWriterMutex :: GetOrAllocateThreadState(H
 }
 
 #endif // MUSCLE_SINGLE_THREAD_ONLY
-         
+
 } // end namespace muscle
