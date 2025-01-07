@@ -170,7 +170,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                else
                {
                   const char ** argv = (const char **) args;
-                  Queue<String> tmpQ(PreallocatedItemSlotsCount(argc));
+                  Queue<String> tmpQ((PreallocatedItemSlotsCount(argc)));  // avoid most-vexing parse under MSVC?
                   for (int i=0; i<argc; i++) (void) tmpQ.AddTail(argv[i]);
                   cmd = UnparseArgs(tmpQ);
                }
