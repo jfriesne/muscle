@@ -15,6 +15,7 @@ key:  - new feature
    - When debug or trace output is enabled, the deadlock finder
      will now capture stack traces and print them out as part of
      its detected-deadlock output.
+   - Added a copy constructor to the ICallbackSubscriber class.
    o Simplified the EmscriptenWebSocket callback API.
    o Replaced overloaded_preprocessor_macro.h with conditional
      usage of the comma-swallowing operator (##__VA_ARGS__).

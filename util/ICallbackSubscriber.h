@@ -22,6 +22,12 @@ public:
      */
    ICallbackSubscriber(ICallbackMechanism * mechanism) : _mechanism(NULL) {SetCallbackMechanism(mechanism);}
 
+   /** Copy constructor
+     * @param rhs the ICallbackSubscriber to copy from.  This subscriber will register with the same
+     *            ICallbackMechanism that (rhs) is registered with.
+     */
+   ICallbackSubscriber(const ICallbackSubscriber & rhs) : _mechanism(NULL) {SetCallbackMechanism(rhs.GetCallbackMechanism());}
+
    /** Destructor.  Calls SetCallbackMechanism(NULL). */
    virtual ~ICallbackSubscriber() {SetCallbackMechanism(NULL);}
 
