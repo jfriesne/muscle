@@ -22,13 +22,7 @@ public:
    }
 
 protected:
-   virtual void SignalDispatchThread()
-   {
-      qApp->postEvent(this, new QEvent((QEvent::Type)CALLBACKMECHANISM_EVENT_CODE));
-#if defined(__EMSCRIPTEN__)
-      //qApp->jaf_hack_maintainTimers();  // TODO find a better way to do this
-#endif
-   }
+   virtual void SignalDispatchThread() {qApp->postEvent(this, new QEvent((QEvent::Type)CALLBACKMECHANISM_EVENT_CODE));}
 
    virtual bool event(QEvent * e)
    {

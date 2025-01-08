@@ -1264,10 +1264,14 @@ int64 GetPerProcessRunTime64Offset() {return _perProcessRunTimeOffset;}
 
 status_t Snooze64(uint64 micros)
 {
-   if (micros == MUSCLE_TIME_NEVER)
+   // Hopefully this long-delay-chunk duration is long enough that waking up this often
+   // won't be significant, but also short enough that we're unlikely to come across
+   // any OS-specific sleep-API that can't handle it
+   const uint64 longTimeMicros = DaysToMicros(1);
+   while(micros >= longTimeMicros)
    {
-      while(Snooze64(DaysToMicros(1)).IsOK()) {/* empty */}
-      return B_ERROR;  // we should never exit the while loop above; so if we got here, it's an error
+      MRETURN_ON_ERROR(Snooze64(longTimeMicros));
+      if (micros != MUSCLE_TIME_NEVER) micros -= longTimeMicros;
    }
 
 #if WIN32
