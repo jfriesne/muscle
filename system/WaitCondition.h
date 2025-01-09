@@ -56,7 +56,7 @@ public:
    /** Constructor */
    WaitCondition() : _pendingNotificationsCount(0) {Setup();}
 
-   /** Destructor.  If a WaitCondition is destroyed while another thread is blocking in its Lock() method,
+   /** Destructor.  If a WaitCondition is destroyed while another thread is blocking in its Wait() method,
      * the results are undefined.
      */
    ~WaitCondition() {Cleanup();}

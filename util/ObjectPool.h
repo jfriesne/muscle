@@ -176,15 +176,14 @@ public:
       return ret;
 #else
       Object * ret = NULL;
-      if (_mutex.Lock().IsOK())
       {
+         DECLARE_MUTEXGUARD(_mutex);
          ret = ObtainObjectAux();
-         (void) _mutex.Unlock();
       }
+
       if (ret) ret->SetManager(this);
           else MWARN_OUT_OF_MEMORY;
 
-      // coverity[missing_unlock : FALSE] - we called Unlock() above, iff Lock() succeeded
       return ret;
 #endif
    }
@@ -206,18 +205,12 @@ public:
          *obj = GetDefaultObject();  // necessary so that eg if (obj) is holding any Refs, it will release them now
          obj->SetManager(NULL);
 
-         if (_mutex.Lock().IsOK())
-         {
-            ObjectSlab * slabToDelete = ReleaseObjectAux(obj);
-            (void) _mutex.Unlock();
-            delete slabToDelete;  // do this outside the critical section, for better concurrency
-         }
-         else MWARN_OUT_OF_MEMORY;  // critical error -- not really out of memory but still
-
+         DECLARE_NAMED_MUTEXGUARD(mg, _mutex);
+         ObjectSlab * slabToDelete = ReleaseObjectAux(obj);
+         mg.UnlockEarly();  // so that the delete call can happen outside the critical section, for better concurrency
+         delete slabToDelete;
 #endif
       }
-
-      // coverity[missing_unlock : FALSE] - we already unlocked above, iff Lock() succeeded
    }
 
    /** AbstractObjectGenerator API:  Useful for polymorphism */
@@ -234,24 +227,21 @@ public:
    /** Implemented to perform various sanity-checks on the ObjectSlab's cached metadata, and call MCRASH with a diagnostic if any memory-corruption is found */
    virtual void PerformSanityCheck() const
    {
-      if (_mutex.Lock().IsOK())
+      DECLARE_MUTEXGUARD(_mutex);
+
+      ObjectSlab * slab = _firstSlab;
+      ObjectSlab * prevSlab = NULL;
+      while(slab)
       {
-         ObjectSlab * slab = _firstSlab;
-         ObjectSlab * prevSlab = NULL;
-         while(slab)
+         if (prevSlab != slab->GetPrev())
          {
-            if (prevSlab != slab->GetPrev())
-            {
-               LogTime(MUSCLE_LOG_CRITICALERROR, "ObjectPool::PerformSanityCheck:  ObjectSlab %p in ObjectPool %p (%s) has unexpected previous-slab pointer %p (expected %p)!\n", slab, this, GetObjectClassName(), slab->GetPrev(), prevSlab);
-               MCRASH("ObjectPool::PerformSanityCheck() detected memory corruption of ObjectSlab's previous-slab-pointer!");
-            }
-            slab->PerformSanityCheck(this);
-            prevSlab = slab;
-            slab = slab->GetNext();
+            LogTime(MUSCLE_LOG_CRITICALERROR, "ObjectPool::PerformSanityCheck:  ObjectSlab %p in ObjectPool %p (%s) has unexpected previous-slab pointer %p (expected %p)!\n", slab, this, GetObjectClassName(), slab->GetPrev(), prevSlab);
+            MCRASH("ObjectPool::PerformSanityCheck() detected memory corruption of ObjectSlab's previous-slab-pointer!");
          }
-         (void) _mutex.Unlock();
+         slab->PerformSanityCheck(this);
+         prevSlab = slab;
+         slab = slab->GetNext();
       }
-      else MCRASH("ObjectPool::PerformSanityCheck:  Couldn't lock Mutex!");
    }
 
    /** Returns the name of the class of objects this pool is designed to hold. */
@@ -264,8 +254,8 @@ public:
       uint32 minItemsInUseInSlab = MUSCLE_NO_LIMIT;
       uint32 maxItemsInUseInSlab = 0;
       uint32 totalItemsInUse     = 0;
-      if (_mutex.Lock().IsOK())
       {
+         DECLARE_MUTEXGUARD(_mutex);
          const ObjectSlab * slab = _firstSlab;
          while(slab)
          {
@@ -273,7 +263,6 @@ public:
             slab->GetUsageStats(minItemsInUseInSlab, maxItemsInUseInSlab, totalItemsInUse);
             slab = slab->GetNext();
          }
-         (void) _mutex.Unlock();
       }
       if (minItemsInUseInSlab == MUSCLE_NO_LIMIT) minItemsInUseInSlab = 0;  // just to avoid questions
 
@@ -284,46 +273,43 @@ public:
    /** Removes all "spare" objects from the pool and deletes them.
      * This method is thread-safe.
      * @param optSetNumDrained If non-NULL, this value will be set to the number of objects destroyed.
-     * @returns B_NO_ERROR on success, or B_LOCK_FAILED if it couldn't lock the lock for some reason.
      */
-   status_t Drain(uint32 * optSetNumDrained = NULL)
+   void Drain(uint32 * optSetNumDrained = NULL)
    {
-      if (_mutex.Lock().IsOK())
+      DECLARE_NAMED_MUTEXGUARD(mg, _mutex);
+
+      // This will be our linked list of slabs to delete, later
+      ObjectSlab * toDelete = NULL;
+
+      // Pull out all the slabs that are not currently in use
+      ObjectSlab * slab = _firstSlab;
+      while(slab)
       {
-         // This will be our linked list of slabs to delete, later
-         ObjectSlab * toDelete = NULL;
-
-         // Pull out all the slabs that are not currently in use
-         ObjectSlab * slab = _firstSlab;
-         while(slab)
+         ObjectSlab * nextSlab = slab->GetNext();
+         if (slab->IsInUse() == false)
          {
-            ObjectSlab * nextSlab = slab->GetNext();
-            if (slab->IsInUse() == false)
-            {
-               slab->RemoveFromSlabList();
-               slab->SetNext(toDelete);
-               toDelete = slab;
-               _curPoolSize -= NUM_OBJECTS_PER_SLAB;
-            }
-            slab = nextSlab;
+            slab->RemoveFromSlabList();
+            slab->SetNext(toDelete);
+            toDelete = slab;
+            _curPoolSize -= NUM_OBJECTS_PER_SLAB;
          }
-         (void) _mutex.Unlock();
-
-         // Do the actual slab deletions outside of the critical section, for better concurrency
-         uint32 numObjectsDeleted = 0;
-         while(toDelete)
-         {
-            ObjectSlab * nextSlab = toDelete->GetNext();
-            numObjectsDeleted += NUM_OBJECTS_PER_SLAB;
-
-            delete toDelete;
-            toDelete = nextSlab;
-         }
-
-         if (optSetNumDrained) *optSetNumDrained = numObjectsDeleted;
-         return B_NO_ERROR;
+         slab = nextSlab;
       }
-      else return B_LOCK_FAILED;
+
+      mg.UnlockEarly();
+
+      // Do the actual slab deletions outside of the critical section, for better concurrency
+      uint32 numObjectsDeleted = 0;
+      while(toDelete)
+      {
+         ObjectSlab * nextSlab = toDelete->GetNext();
+         numObjectsDeleted += NUM_OBJECTS_PER_SLAB;
+
+         delete toDelete;
+         toDelete = nextSlab;
+      }
+
+      if (optSetNumDrained) *optSetNumDrained = numObjectsDeleted;
    }
 
    /** Pre-allocates objects until there are (desiredPrefilledSize)
@@ -346,7 +332,7 @@ public:
 #ifdef DISABLE_OBJECT_POOLING // it would be pointless to prefill a fake pool!
       (void) desiredPrefilledSize;
 #else
-      MRETURN_ON_ERROR(_mutex.Lock());
+      DECLARE_MUTEXGUARD(_mutex);
 
       desiredPrefilledSize = muscleMin(desiredPrefilledSize, _maxPoolSize);
 
@@ -386,8 +372,6 @@ public:
             if (arrayPtr != stackArray) delete [] arrayPtr;
          }
       }
-
-      (void) _mutex.Unlock();
 #endif
 
       return ret;
@@ -418,15 +402,12 @@ public:
    MUSCLE_NODISCARD uint32 GetTotalDataSize() const
    {
       uint32 ret = sizeof(*this);
-      if (_mutex.Lock().IsOK())
+      DECLARE_MUTEXGUARD(_mutex);
+      ObjectSlab * slab = _firstSlab;
+      while(slab)
       {
-         ObjectSlab * slab = _firstSlab;
-         while(slab)
-         {
-            ret += slab->GetTotalDataSize();
-            slab = slab->GetNext();
-         }
-         (void) _mutex.Unlock();
+         ret += slab->GetTotalDataSize();
+         slab = slab->GetNext();
       }
       return ret;
    }
@@ -436,16 +417,13 @@ public:
      */
    MUSCLE_NODISCARD uint32 GetNumAllocatedItemSlots() const
    {
+      DECLARE_MUTEXGUARD(_mutex);
       uint32 ret = 0;
-      if (_mutex.Lock().IsOK())
+      ObjectSlab * slab = _firstSlab;
+      while(slab)
       {
-         ObjectSlab * slab = _firstSlab;
-         while(slab)
-         {
-            ret += NUM_OBJECTS_PER_SLAB;
-            slab = slab->GetNext();
-         }
-         (void) _mutex.Unlock();
+         ret += NUM_OBJECTS_PER_SLAB;
+         slab = slab->GetNext();
       }
       return ret;
    }

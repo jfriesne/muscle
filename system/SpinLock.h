@@ -77,32 +77,41 @@ public:
    /** Constructor.  Locks the specified SpinLock.
      * @param sl The SpinLock to lock.
      */
-   SpinLockGuard(const SpinLock & sl) : _spinlock(sl)
+   SpinLockGuard(const SpinLock & sl) : _spinlock(&sl)
    {
-      status_t ret;
-      if (_spinlock.Lock().IsOK(ret)) _isSpinLockLocked = true;
-      else
+      const status_t ret = _spinlock->Lock();
+      if (ret.IsError())
       {
-         _isSpinLockLocked = false;
-         printf("SpinLockGuard %p:  could not lock spinlock %p! [%s]\n", this, &_spinlock, ret());
+         printf("SpinLockGuard %p:  could not lock spinlock %p! [%s]\n", this, _spinlock, ret());
+         _spinLock = NULL;
       }
    }
 
    /** Destructor.  Unlocks the SpinLock previously specified in the constructor. */
-   ~SpinLockGuard()
-   {
-      status_t ret;
-      if ((_isSpinLockLocked)&&(_spinlock.Unlock().IsError(ret))) printf("SpinLockGuard %p:  could not unlock spinlock %p! [%s]\n", this, &_spinlock, ret());
-   }
+   ~SpinLockGuard() {UnlockAux();}
 
    /** Returns true iff we successfully locked our SpinLock. */
    MUSCLE_NODISCARD bool IsSpinLockLocked() const {return _isSpinLockLocked;}
 
+   /** Call this to unlock our guarded SpinLock "early" (i.e. right now, instead of when our destructor executes)
+     * If called more than once, the second and further calls will have no effect.
+     */
+   void UnlockEarly() {UnlockAux();}
+
 private:
    SpinLockGuard(const SpinLockGuard &);  // copy ctor, deliberately inaccessible
 
-   const SpinLock & _spinlock;
-   bool _isSpinLockLocked;
+   void UnlockAux()
+   {
+      if (_spinlock)
+      {
+         const status_t ret = _spinlock->Unlock();
+         if (ret.IsError())) printf("SpinLockGuard %p:  could not unlock spinlock %p! [%s]\n", this, _spinlock, ret());
+         _spinlock = NULL;
+      }
+   }
+
+   const SpinLock * _spinlock;
 };
 
 /** A macro to quickly and safely put a SpinLockGuard on the stack for the given SpinLock.
@@ -111,7 +120,13 @@ private:
   *       would result in an anonymous temporary SpinLockGuard object that wouldn't keep
   *       the SpinLock locked until the end of the scope)
   */
-#define DECLARE_SPINLOCKGUARD(spinlock) muscle::SpinLockGuard MUSCLE_UNIQUE_NAME(spinlock)
+#define DECLARE_SPINLOCKGUARD(spinlock) DECLARE_NAMED_SPINLOCKGUARD(MUSCLE_UNIQUE_NAME, spinlock)
+
+/** This macro is the same as DECLARE_SPINLOCKGUARD() (above) except that it allows the caller
+  * to specify the name of the SpinLockGuard stack-object.
+  * This is useful in cases where you need to make method calls on the SpinLockGuard object later.
+  */
+#define DECLARE_NAMED_SPINLOCKGUARD(guardName, spinlock) muscle::SpinLockGuard guardName(spinlock)
 
 }  // end namespace muscle
 

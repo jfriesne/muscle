@@ -40,10 +40,9 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
       while(ReadFile(_stdinHandle, buf, sizeof(buf), &numBytesRead, NULL))
       {
          // Grab a temporary copy of the listeners-set.  That we we don't risk blocking in SendData() while holding the mutex.
-         if (_slaveSocketsMutex.Lock().IsOK())
          {
+            DECLARE_MUTEXGUARD(_slaveSocketsMutex);
             temp = _slaveSockets;
-            (void) _slaveSocketsMutex.Unlock();
          }
 
          // Now send the data we read from stdin to all the registered sockets
@@ -52,14 +51,14 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
 
          // Lastly, remove from the registered-sockets-set any sockets that SendData() errored out on.
          // This will cause the socket connection to be closed and the master thread(s) to be notified.
-         if ((trim)&&(_slaveSocketsMutex.Lock().IsOK()))
+         if (trim)
          {
+            DECLARE_MUTEXGUARD(_slaveSocketsMutex);
             for (HashtableIterator<uint32, ConstSocketRef> iter(_slaveSockets); iter.HasData(); iter++)
             {
                const ConstSocketRef * v = temp.Get(iter.GetKey());
                if ((v)&&(v->IsValid() == false)) (void) _slaveSockets.Remove(iter.GetKey());
             }
-            (void) _slaveSocketsMutex.Unlock();
          }
 
          temp.Clear();  // it's important not to have extra Refs hanging around in case the process exits!
@@ -70,25 +69,21 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
    }
 
    // Oops, stdin failed... clear the slave sockets table so that the client objects will know to close up shop
-   if (_slaveSocketsMutex.Lock().IsOK())
+   DECLARE_MUTEXGUARD(_slaveSocketsMutex);
+   _stdinThreadStatus = STDIN_THREAD_STATUS_EXITED;
+   _slaveSockets.Clear();
+
+   // We'll close our own handle, thankyouverymuch
+   if (_slaveThread != INVALID_HANDLE_VALUE)
    {
-      _stdinThreadStatus = STDIN_THREAD_STATUS_EXITED;
-      _slaveSockets.Clear();
+      CloseHandle(_slaveThread);
+      _slaveThread = INVALID_HANDLE_VALUE;
+   }
 
-      // We'll close our own handle, thankyouverymuch
-      if (_slaveThread != INVALID_HANDLE_VALUE)
-      {
-         CloseHandle(_slaveThread);
-         _slaveThread = INVALID_HANDLE_VALUE;
-      }
-
-      if (_stdinHandle != INVALID_HANDLE_VALUE)
-      {
-         CloseHandle(_stdinHandle);
-         _stdinHandle = INVALID_HANDLE_VALUE;
-      }
-
-      (void) _slaveSocketsMutex.Unlock();
+   if (_stdinHandle != INVALID_HANDLE_VALUE)
+   {
+      CloseHandle(_stdinHandle);
+      _stdinHandle = INVALID_HANDLE_VALUE;
    }
    return 0;
 }
@@ -119,8 +114,10 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
       status_t ret;
       bool okay = false;
       ConstSocketRef slaveSocket;
-      if ((CreateConnectedSocketPair(_masterSocket, slaveSocket, false).IsOK(ret))&&(SetSocketBlockingEnabled(slaveSocket, true).IsOK(ret))&&(_slaveSocketsMutex.Lock().IsOK(ret)))
+      if ((CreateConnectedSocketPair(_masterSocket, slaveSocket, false).IsOK(ret))&&(SetSocketBlockingEnabled(slaveSocket, true).IsOK(ret)))
       {
+         DECLARE_NAMED_MUTEXGUARD(mg, _slaveSocketsMutex);
+
          bool threadCreated = false;
          if (_stdinThreadStatus == STDIN_THREAD_STATUS_UNINITIALIZED)
          {
@@ -143,8 +140,6 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
             okay = true;
          }
          else LogTime(MUSCLE_LOG_ERROR, "StdinDataIO:  Could not start stdin thread!\n");
-
-         (void) _slaveSocketsMutex.Unlock();
 
          // We don't start the thread running until here, that way there's no chance of race conditions if the thread exits immediately
          if (threadCreated) ResumeThread(_slaveThread);
@@ -170,10 +165,10 @@ void StdinDataIO :: Shutdown()
 void StdinDataIO :: Close()
 {
 #ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
-   if ((_stdinBlocking == false)&&(_slaveSocketsMutex.Lock().IsOK()))
+   if (_stdinBlocking == false)
    {
+      DECLARE_MUTEXGUARD(_slaveSocketsMutex);
       (void) _slaveSockets.Remove(_slaveSocketTag);
-      (void) _slaveSocketsMutex.Unlock();
       // Note that I deliberately let the Stdin thread keep running, since there's no clean way to stop it from another thread.
    }
 #else

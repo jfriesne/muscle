@@ -177,12 +177,12 @@ status_t Thread :: SendMessageAux(int whichQueue, const MessageRef & replyRef)
 {
    ThreadSpecificData & tsd = _threadData[whichQueue];
 
-   // coverity[missing_unlock : FALSE] - on error-return, lock was never locked so doesn't need to be unlocked
-   MRETURN_ON_ERROR(tsd._queueLock.Lock());
-
-   status_t ret;
-   const bool sendNotification = ((tsd._messages.AddTail(replyRef).IsOK(ret))&&(tsd._messages.GetNumItems() == 1));  // don't reorder this!  AddTail() has to be first!
-   (void) tsd._queueLock.Unlock();
+   bool sendNotification;
+   {
+      DECLARE_MUTEXGUARD(tsd._queueLock);
+      MRETURN_ON_ERROR(tsd._messages.AddTail(replyRef));
+      sendNotification = (tsd._messages.GetNumItems() == 1);
+   }
 
    if (sendNotification)
    {
@@ -261,12 +261,12 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
       (void) recv_ignore_eintr(tsd._messageSocket.GetFileDescriptor(), (char *)bytes, sizeof(bytes), 0);
    }
 
-   // coverity[missing_unlock : FALSE] - on error-return, lock was never locked so doesn't need an unlock
-   MRETURN_ON_ERROR(tsd._queueLock.Lock());
-
-   status_t ret = tsd._messages.RemoveHead(ref);
-   if (optRetNumMessagesLeftInQueue) *optRetNumMessagesLeftInQueue = tsd._messages.GetNumItems();
-   (void) tsd._queueLock.Unlock();
+   status_t ret;
+   {
+      DECLARE_MUTEXGUARD(tsd._queueLock);
+      ret = tsd._messages.RemoveHead(ref);
+      if (optRetNumMessagesLeftInQueue) *optRetNumMessagesLeftInQueue = tsd._messages.GetNumItems();
+   }
 
    if (ret.IsOK())      return ret;
    if (wakeupTime == 0) return B_TIMED_OUT;
@@ -437,10 +437,9 @@ void Thread::InternalThreadEntryAux()
    _threadStackBase = &threadStackBase;  // remember this stack location so GetCurrentStackUsage() can reference it later on
 
    muscle_thread_key curThreadKey = GetCurrentThreadKey();
-   if (_curThreadsMutex.Lock().IsOK())
    {
+      DECLARE_MUTEXGUARD(_curThreadsMutex);
       (void) _curThreads.Put(curThreadKey, this);
-      (void) _curThreadsMutex.Unlock();
    }
 
    status_t ret;
@@ -453,10 +452,9 @@ void Thread::InternalThreadEntryAux()
    InternalThreadEntry();
    _threadData[MESSAGE_THREAD_INTERNAL]._messageSocket.Reset();  // this will wake up the owner thread with EOF on socket
 
-   if (_curThreadsMutex.Lock().IsOK())
    {
+      DECLARE_MUTEXGUARD(_curThreadsMutex);
       (void) _curThreads.Remove(curThreadKey);
-      (void) _curThreadsMutex.Unlock();
    }
 
    _threadStackBase = NULL;

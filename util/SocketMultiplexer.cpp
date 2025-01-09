@@ -17,15 +17,13 @@ static Mutex _multiplexersListMutex;
 static SocketMultiplexer * _headMultiplexer = NULL;
 void NotifySocketMultiplexersThatSocketIsClosed(int fd)
 {
-   if (_multiplexersListMutex.Lock().IsOK())
+   DECLARE_MUTEXGUARD(_multiplexersListMutex);
+
+   SocketMultiplexer * sm = _headMultiplexer;
+   while(sm)
    {
-      SocketMultiplexer * sm = _headMultiplexer;
-      while(sm)
-      {
-         sm->NotifySocketClosed(fd);
-         sm = sm->_nextMultiplexer;
-      }
-      _multiplexersListMutex.Unlock();
+      sm->NotifySocketClosed(fd);
+      sm = sm->_nextMultiplexer;
    }
 }
 #endif

@@ -840,11 +840,9 @@ void DeadlockFinder_LogEvent(uint32 lockActionType, const void * mutexPtr, const
 
          mel = new (newBuf) MutexLockRecordLog(tid);
          (void) _mutexEventsLog.SetThreadLocalObject(mel);
-         if (_mutexLogTableMutex.Lock().IsOK())
-         {
-            (void) _mutexLogTable.Put(tid, mel);
-            (void) _mutexLogTableMutex.Unlock();
-         }
+
+         DECLARE_MUTEXGUARD(_mutexLogTableMutex);
+         (void) _mutexLogTable.Put(tid, mel);
       }
    }
    if (mel) mel->AddEvent(lockActionType, mutexPtr, fileName, fileLine);
@@ -897,7 +895,8 @@ static bool SequenceHasExclusiveLock(const Hashtable<muscle_thread_id, Queue<Mut
                return true;
 
             default:
-               return false;
+               // empty
+            break;
          }
       }
    }
@@ -958,7 +957,7 @@ void PrintMutexLockingReport()
 
          uint32 idxB = 0;
          for (HashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iterB(capturedResults); ((idxB < idxA)&&(iterB.HasData())); iterB++,idxB++)
-            if (((iterAHasExclusiveLock)||(SequenceHasExclusiveLock(iterB.GetValue())))&&(SequencesAreInconsistent(iterB.GetKey(), iterA.GetKey())))
+            if (((iterAHasExclusiveLock)||(SequenceHasExclusiveLock(iterB.GetValue())))&&(SequencesAreInconsistent(iterA.GetKey(), iterB.GetKey())))
               (void) inconsistentSequencePairs.Put(idxB, idxA);
       }
    }
@@ -1153,52 +1152,49 @@ static uint64 GetRunTime64Aux()
 {
 #if defined(WIN32)
    uint64 ret = 0;
-   if (_rtMutex.Lock().IsOK())
-   {
+   DECLARE_MUTEXGUARD(_rtMutex);
 # ifdef MUSCLE_USE_QUERYPERFORMANCECOUNTER
-      if (_qpcTicksPerSecond == 0) InitClockFrequency();  // in case we got called before main()
+   if (_qpcTicksPerSecond == 0) InitClockFrequency();  // in case we got called before main()
 
-      static int64 _brokenQPCOffset = 0;
-      if (_brokenQPCOffset != 0) ret = (((uint64)timeGetTime())*1000) + _brokenQPCOffset;
-      else
+   static int64 _brokenQPCOffset = 0;
+   if (_brokenQPCOffset != 0) ret = (((uint64)timeGetTime())*1000) + _brokenQPCOffset;
+   else
+   {
+      LARGE_INTEGER curTicks;
+      if ((_qpcTicksPerSecond > 0)&&(QueryPerformanceCounter(&curTicks)))
       {
-         LARGE_INTEGER curTicks;
-         if ((_qpcTicksPerSecond > 0)&&(QueryPerformanceCounter(&curTicks)))
+         const uint64 checkGetTime = ((uint64)timeGetTime())*1000;
+         ret = (curTicks.QuadPart*MICROS_PER_SECOND)/_qpcTicksPerSecond;
+
+         // Hack-around for evil Windows/hardware bug in QueryPerformanceCounter().
+         // see http://support.microsoft.com/default.aspx?scid=kb;en-us;274323
+         static uint64 _lastCheckGetTime = 0;
+         static uint64 _lastCheckQPCTime = 0;
+         if (_lastCheckGetTime > 0)
          {
-            const uint64 checkGetTime = ((uint64)timeGetTime())*1000;
-            ret = (curTicks.QuadPart*MICROS_PER_SECOND)/_qpcTicksPerSecond;
-
-            // Hack-around for evil Windows/hardware bug in QueryPerformanceCounter().
-            // see http://support.microsoft.com/default.aspx?scid=kb;en-us;274323
-            static uint64 _lastCheckGetTime = 0;
-            static uint64 _lastCheckQPCTime = 0;
-            if (_lastCheckGetTime > 0)
+            const uint64 getTimeElapsed = checkGetTime - _lastCheckGetTime;
+            const uint64 qpcTimeElapsed = ret          - _lastCheckQPCTime;
+            if ((muscleMax(getTimeElapsed, qpcTimeElapsed) - muscleMin(getTimeElapsed, qpcTimeElapsed)) > 500000)
             {
-               const uint64 getTimeElapsed = checkGetTime - _lastCheckGetTime;
-               const uint64 qpcTimeElapsed = ret          - _lastCheckQPCTime;
-               if ((muscleMax(getTimeElapsed, qpcTimeElapsed) - muscleMin(getTimeElapsed, qpcTimeElapsed)) > 500000)
-               {
-                  //LogTime(MUSCLE_LOG_DEBUG, "QueryPerformanceCounter() is buggy, reverting to timeGetTime() method instead!\n");
-                  _brokenQPCOffset = (_lastCheckQPCTime-_lastCheckGetTime);
-                  ret = (((uint64)timeGetTime())*1000) + _brokenQPCOffset;
-               }
+               //LogTime(MUSCLE_LOG_DEBUG, "QueryPerformanceCounter() is buggy, reverting to timeGetTime() method instead!\n");
+               _brokenQPCOffset = (_lastCheckQPCTime-_lastCheckGetTime);
+               ret = (((uint64)timeGetTime())*1000) + _brokenQPCOffset;
             }
-            _lastCheckGetTime = checkGetTime;
-            _lastCheckQPCTime = ret;
          }
+         _lastCheckGetTime = checkGetTime;
+         _lastCheckQPCTime = ret;
       }
+   }
 # endif
-      if (ret == 0)
-      {
-         static uint32 _prevVal    = 0;
-         static uint64 _wrapOffset = 0;
+   if (ret == 0)
+   {
+      static uint32 _prevVal    = 0;
+      static uint64 _wrapOffset = 0;
 
-         const uint32 newVal = (uint32) timeGetTime();
-         if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32);
-         ret = (_wrapOffset+newVal)*1000;  // convert to microseconds
-         _prevVal = newVal;
-      }
-      (void) _rtMutex.Unlock();
+      const uint32 newVal = (uint32) timeGetTime();
+      if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32);
+      ret = (_wrapOffset+newVal)*1000;  // convert to microseconds
+      _prevVal = newVal;
    }
    return ret;
 #elif defined(__APPLE__)
@@ -1237,22 +1233,19 @@ static uint64 GetRunTime64Aux()
    else
    {
       // Oops, clock_t is skinny enough that it might wrap.  So we need to watch for that.
-      if (_rtMutex.Lock().IsOK())
-      {
-         static uint32 _prevVal;
-         static uint64 _wrapOffset = 0;
+      DECLARE_MUTEXGUARD(_rtMutex);
 
-         struct tms junk; memset(&junk, 0, sizeof(junk));
-         clock_t newTicks = (clock_t) times(&junk);
-         const uint32 newVal = (uint32) newTicks;
-         if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32);
-         const uint64 ret = ((_wrapOffset+newVal)*MICROS_PER_SECOND)/_posixTicksPerSecond;  // convert to microseconds
-         _prevVal = newTicks;
+      static uint32 _prevVal;
+      static uint64 _wrapOffset = 0;
 
-         (void) _rtMutex.Unlock();
-         return ret;
-      }
-      else return 0;  // Oops?
+      struct tms junk; memset(&junk, 0, sizeof(junk));
+      clock_t newTicks = (clock_t) times(&junk);
+      const uint32 newVal = (uint32) newTicks;
+      if (newVal < _prevVal) _wrapOffset += (((uint64)1)<<32);
+      const uint64 ret = ((_wrapOffset+newVal)*MICROS_PER_SECOND)/_posixTicksPerSecond;  // convert to microseconds
+      _prevVal = newTicks;
+
+      return ret;
    }
 #endif
 }

@@ -30,14 +30,11 @@ static ThreadLocalStorage<ZLibCodec> _codecs[10];  // using ThreadLocalStorage =
 #ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
 static void FreeZLibCodecs()
 {
-   if (_zlibLock.Lock().IsOK())  // probably isn't necessary since this only gets called during shutdown... but just in case
+   DECLARE_MUTEXGUARD(_zlibLock);  // probably isn't necessary since this only gets called during shutdown... but just in case
+   for (uint32 i=0; i<ARRAYITEMS(_codecs); i++)
    {
-      for (uint32 i=0; i<ARRAYITEMS(_codecs); i++)
-      {
-         delete _codecs[i];
-         _codecs[i] = NULL;
-      }
-      (void) _zlibLock.Unlock();
+      delete _codecs[i];
+      _codecs[i] = NULL;
    }
 }
 
@@ -46,8 +43,9 @@ static void EnsureCleanupCallbackInstalled()
    if (_cleanupCallbackInstalled == false)  // check once without locking, to avoid locking every time
    {
       const Mutex * m = GetGlobalMuscleLock();
-      if ((m)&&(m->Lock().IsOK()))
+      if (m)
       {
+         DELARE_MUTEXGUARD(*m);
          if (_cleanupCallbackInstalled == false)  // in case we got scooped before could aquire the lock
          {
             CompleteSetupSystem * css = CompleteSetupSystem::GetCurrentCompleteSetupSystem();
@@ -57,7 +55,6 @@ static void EnsureCleanupCallbackInstalled()
                if (css->GetCleanupCallbacks().AddTail(DummyGenericCallbackRef(_freeCodecsCallback)).IsOK()) _cleanupCallbackInstalled = true;
             }
          }
-         (void) m->Unlock();
       }
    }
 }
@@ -83,13 +80,11 @@ ByteBufferRef DeflateByteBuffer(const uint8 * buf, uint32 numBytes, int compress
 {
    ByteBufferRef ret;
 #ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
-   if (_zlibLock.Lock().IsOK())  // serialize so that it's thread safe!
-   {
-      ZLibCodec * codec = GetZLibCodec(compressionLevel);
-      if (codec) ret = codec->Deflate(buf, numBytes, true, addHeaderBytes, addFooterBytes);
-      (void) _zlibLock.Unlock();
-      if (codec) EnsureCleanupCallbackInstalled();  // do this outside of the ZLib lock!
-   }
+   DECLARE_NAMED_MUTEXGUARD(mg, _zlibLock);
+   ZLibCodec * codec = GetZLibCodec(compressionLevel);
+   if (codec) ret = codec->Deflate(buf, numBytes, true, addHeaderBytes, addFooterBytes);
+   mg.UnlockEarly();  // because we want the line below to execute the outside of the critical section
+   if (codec) EnsureCleanupCallbackInstalled();
 #else
    ZLibCodec * codec = GetZLibCodec(compressionLevel);
    if (codec) ret = codec->Deflate(buf, numBytes, true, addHeaderBytes, addFooterBytes);
@@ -101,13 +96,11 @@ ByteBufferRef InflateByteBuffer(const uint8 * buf, uint32 numBytes)
 {
    ByteBufferRef ret;
 #ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
-   if (_zlibLock.Lock().IsOK())  // serialize so that it's thread safe!
-   {
-      ZLibCodec * codec = GetZLibCodec(6);  // doesn't matter which compression-level/codec we use, any of them can inflate anything
-      if (codec) ret = codec->Inflate(buf, numBytes);
-      (void) _zlibLock.Unlock();
-      if (codec) EnsureCleanupCallbackInstalled();  // do this outside of the ZLib lock!
-   }
+   DECLARE_NAMED_MUTEXGUARD mg(_zlibLock);
+   ZLibCodec * codec = GetZLibCodec(6);  // doesn't matter which compression-level/codec we use, any of them can inflate anything
+   if (codec) ret = codec->Inflate(buf, numBytes);
+   mg.UnlockEarly();  // because we want the line below to execute the outside of the critical section
+   if (codec) EnsureCleanupCallbackInstalled();
 #else
    ZLibCodec * codec = GetZLibCodec(6);  // doesn't matter which compression-level/codec we use, any of them can inflate anything
    if (codec) ret = codec->Inflate(buf, numBytes);

@@ -329,34 +329,45 @@ public:
      * @param m The ReaderWriterMutex to on which we will call LockReadOnly() and UnlockReadOnly().
      */
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   ReadOnlyMutexGuard(const ReaderWriterMutex & m, const char * optFileName = NULL, int fileLine = 0) : _mutex(m), _optFileName(optFileName), _fileLine(fileLine)
+   ReadOnlyMutexGuard(const ReaderWriterMutex & m, const char * optFileName = NULL, int fileLine = 0) : _mutex(&m), _optFileName(optFileName), _fileLine(fileLine)
 #else
-   ReadOnlyMutexGuard(const ReaderWriterMutex & m) : _mutex(m)
+   ReadOnlyMutexGuard(const ReaderWriterMutex & m) : _mutex(&m)
 #endif
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      if (_mutex.LockReadOnlyAux(MUSCLE_TIME_NEVER).IsError()) MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex LockReadOnly() failed!\n");
-      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_LOCK_SHARED, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
+      if (_mutex->LockReadOnlyAux(MUSCLE_TIME_NEVER).IsError()) MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex LockReadOnly() failed!\n");
+      _mutex->LogDeadlockFinderEvent(LOCK_ACTION_LOCK_SHARED, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
 #else
-      if (_mutex.LockReadOnly().IsError())    MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex LockReadOnly() failed!\n");
+      if (_mutex->LockReadOnly().IsError())    MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex LockReadOnly() failed!\n");
 #endif
    }
 
    /** Destructor.  Unlocks the ReaderWriterMutex previously specified in the constructor. */
-   ~ReadOnlyMutexGuard()
-   {
-#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_SHARED, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
-      if (_mutex.UnlockReadOnlyAux().IsError()) MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex UnlockReadOnly() failed!\n");
-#else
-      if (_mutex.UnlockReadOnly().IsError())    MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex UnlockReadOnly() failed!\n");
-#endif
-   }
+   ~ReadOnlyMutexGuard() {UnlockAux();}
+
+   /** Call this to unlock our guarded Mutex "early" (i.e. right now, instead of when our destructor executes)
+     * If called more than once, the second and further calls will have no effect.
+     */
+   void UnlockEarly() {UnlockAux();}
 
 private:
    ReadOnlyMutexGuard(const ReadOnlyMutexGuard &);  // copy ctor, deliberately inaccessible
 
-   const ReaderWriterMutex & _mutex;
+   void UnlockAux()
+   {
+      if (_mutex)
+      {
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+         _mutex->LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_SHARED, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
+         if (_mutex->UnlockReadOnlyAux().IsError()) MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex UnlockReadOnly() failed!\n");
+#else
+         if (_mutex->UnlockReadOnly().IsError())    MCRASH("ReadOnlyMutexGuard:  ReaderWriterMutex UnlockReadOnly() failed!\n");
+#endif
+         _mutex = NULL;
+      }
+   }
+
+   const ReaderWriterMutex * _mutex;
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    const char * _optFileName;
@@ -380,34 +391,45 @@ public:
      * @param m The ReaderWriterMutex to on which we will call LockReadWrite() and UnlockReadWrite().
      */
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   ReadWriteMutexGuard(const ReaderWriterMutex & m, const char * optFileName = NULL, int fileLine = 0) : _mutex(m), _optFileName(optFileName), _fileLine(fileLine)
+   ReadWriteMutexGuard(const ReaderWriterMutex & m, const char * optFileName = NULL, int fileLine = 0) : _mutex(&m), _optFileName(optFileName), _fileLine(fileLine)
 #else
-   ReadWriteMutexGuard(const ReaderWriterMutex & m) : _mutex(m)
+   ReadWriteMutexGuard(const ReaderWriterMutex & m) : _mutex(&m)
 #endif
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      if (_mutex.LockReadWriteAux(MUSCLE_TIME_NEVER).IsError()) MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex LockReadWrite() failed!\n");
-      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_LOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
+      if (_mutex->LockReadWriteAux(MUSCLE_TIME_NEVER).IsError()) MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex LockReadWrite() failed!\n");
+      _mutex->LogDeadlockFinderEvent(LOCK_ACTION_LOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the ReaderWriterMutex is locked
 #else
-      if (_mutex.LockReadWrite().IsError())    MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex LockReadWrite() failed!\n");
+      if (_mutex->LockReadWrite().IsError())    MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex LockReadWrite() failed!\n");
 #endif
    }
 
    /** Destructor.  Unlocks the ReaderWriterMutex previously specified in the constructor. */
-   ~ReadWriteMutexGuard()
-   {
-#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
-      if (_mutex.UnlockReadWriteAux().IsError()) MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex UnlockReadWrite() failed!\n");
-#else
-      if (_mutex.UnlockReadWrite().IsError())    MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex UnlockReadWrite() failed!\n");
-#endif
-   }
+   ~ReadWriteMutexGuard() {UnlockAux();}
+
+   /** Call this to unlock our guarded Mutex "early" (i.e. right now, instead of when our destructor executes)
+     * If called more than once, the second and further calls will have no effect.
+     */
+   void UnlockEarly() {UnlockAux();}
 
 private:
    ReadWriteMutexGuard(const ReadWriteMutexGuard &);  // copy ctor, deliberately inaccessible
 
-   const ReaderWriterMutex & _mutex;
+   void UnlockAux()
+   {
+      if (_mutex)
+      {
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+         _mutex->LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the ReaderWriterMutex is locked
+         if (_mutex->UnlockReadWriteAux().IsError()) MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex UnlockReadWrite() failed!\n");
+#else
+         if (_mutex->UnlockReadWrite().IsError())    MCRASH("ReadWriteMutexGuard:  ReaderWriterMutex UnlockReadWrite() failed!\n");
+#endif
+         _mutex = NULL;
+      }
+   }
+
+   const ReaderWriterMutex * _mutex;
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    const char * _optFileName;
@@ -426,10 +448,16 @@ private:
   *       via -DWITH_DEADLOCK_FINDER=ON in CMake, or by passing -DMUSCLE_ENABLE_DEADLOCK_FINDER
   *       as a compiler-argument)
   */
+#define DECLARE_READONLY_MUTEXGUARD(mutex) DECLARE_NAMED_READONLY_MUTEXGUARD(MUSCLE_UNIQUE_NAME, mutex)
+
+/** This macro is the same as DECLARE_READONLY_MUTEXGUARD() (above) except that it allows the caller
+  * to specify the name of the ReadOnlyMutexGuard stack-object.
+  * This is useful in cases where you need to make method calls on the ReadOnlyMutexGuard object later.
+  */
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-# define DECLARE_READONLY_MUTEXGUARD(mutex) muscle::ReadOnlyMutexGuard MUSCLE_UNIQUE_NAME(mutex, __FILE__, __LINE__)
+# define DECLARE_NAMED_READONLY_MUTEXGUARD(guardName, mutex) muscle::ReadOnlyMutexGuard guardName(mutex, __FILE__, __LINE__)
 # else
-# define DECLARE_READONLY_MUTEXGUARD(mutex) muscle::ReadOnlyMutexGuard MUSCLE_UNIQUE_NAME(mutex)
+# define DECLARE_NAMED_READONLY_MUTEXGUARD(guardName, mutex) muscle::ReadOnlyMutexGuard guardName(mutex)
 #endif
 
 /** A macro to quickly and safely put a ReadWriteMutexGuard on the stack for the given ReaderWriterMutex.
@@ -443,10 +471,16 @@ private:
   *       via -DWITH_DEADLOCK_FINDER=ON in CMake, or by passing -DMUSCLE_ENABLE_DEADLOCK_FINDER
   *       as a compiler-argument)
   */
+#define DECLARE_READWRITE_MUTEXGUARD(mutex) DECLARE_NAMED_READWRITE_MUTEXGUARD(MUSCLE_UNIQUE_NAME, mutex)
+
+/** This macro is the same as DECLARE_READWRITE_MUTEXGUARD() (above) except that it allows the caller
+  * to specify the name of the ReadWriteMutexGuard stack-object.
+  * This is useful in cases where you need to make method calls on the ReadWriteMutexGuard object later.
+  */
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-# define DECLARE_READWRITE_MUTEXGUARD(mutex) muscle::ReadWriteMutexGuard MUSCLE_UNIQUE_NAME(mutex, __FILE__, __LINE__)
+# define DECLARE_NAMED_READWRITE_MUTEXGUARD(guardName, mutex) muscle::ReadWriteMutexGuard guardName(mutex, __FILE__, __LINE__)
 # else
-# define DECLARE_READWRITE_MUTEXGUARD(mutex) muscle::ReadWriteMutexGuard MUSCLE_UNIQUE_NAME(mutex)
+# define DECLARE_NAMED_READWRITE_MUTEXGUARD(guardName, mutex) muscle::ReadWriteMutexGuard guardName(mutex)
 #endif
 
 } // end namespace muscle

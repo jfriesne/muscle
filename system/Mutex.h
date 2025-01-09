@@ -394,34 +394,45 @@ public:
      * @param m The Mutex to lock.
      */
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-   MutexGuard(const Mutex & m, const char * optFileName = NULL, int fileLine = 0) : _mutex(m), _optFileName(optFileName), _fileLine(fileLine)
+   MutexGuard(const Mutex & m, const char * optFileName = NULL, int fileLine = 0) : _mutex(&m), _optFileName(optFileName), _fileLine(fileLine)
 #else
-   MutexGuard(const Mutex & m) : _mutex(m)
+   MutexGuard(const Mutex & m) : _mutex(&m)
 #endif
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      if (_mutex.LockAux().IsError()) MCRASH("MutexGuard:  Mutex Lock() failed!\n");
-      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_LOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the Mutex is locked
+      if (_mutex->LockAux().IsError()) MCRASH("MutexGuard:  Mutex Lock() failed!\n");
+      _mutex->LogDeadlockFinderEvent(LOCK_ACTION_LOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the Mutex is locked
 #else
-      if (_mutex.Lock().IsError())    MCRASH("MutexGuard:  Mutex Lock() failed!\n");
+      if (_mutex->Lock().IsError())    MCRASH("MutexGuard:  Mutex Lock() failed!\n");
 #endif
    }
 
    /** Destructor.  Unlocks the Mutex previously specified in the constructor. */
-   ~MutexGuard()
-   {
-#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      _mutex.LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the Mutex is locked
-      if (_mutex.UnlockAux().IsError()) MCRASH("MutexGuard:  Mutex Unlock() failed!\n");
-#else
-      if (_mutex.Unlock().IsError())    MCRASH("MutexGuard:  Mutex Unlock() failed!\n");
-#endif
-   }
+   ~MutexGuard() {UnlockAux();}
+
+   /** Call this to unlock our guarded Mutex "early" (i.e. right now, instead of when our destructor executes)
+     * If called more than once, the second and further calls will have no effect.
+     */
+   void UnlockEarly() {UnlockAux();}
 
 private:
    MutexGuard(const MutexGuard &);  // copy ctor, deliberately inaccessible
 
-   const Mutex & _mutex;
+   void UnlockAux()
+   {
+      if (_mutex)
+      {
+#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+         _mutex->LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the Mutex is locked
+         if (_mutex->UnlockAux().IsError()) MCRASH("MutexGuard:  Mutex Unlock() failed!\n");
+#else
+         if (_mutex->Unlock().IsError())    MCRASH("MutexGuard:  Mutex Unlock() failed!\n");
+#endif
+         _mutex = NULL;
+      }
+   }
+
+   const Mutex * _mutex;
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    const char * _optFileName;
@@ -446,10 +457,16 @@ void PrintMutexLockingReport();
   *       via -DWITH_DEADLOCK_FINDER=ON in CMake, or by passing -DMUSCLE_ENABLE_DEADLOCK_FINDER
   *       as a compiler-argument)
   */
+#define DECLARE_MUTEXGUARD(mutex) DECLARE_NAMED_MUTEXGUARD(MUSCLE_UNIQUE_NAME, mutex)
+
+/** This macro is the same as DECLARE_MUTEXGUARD() (above) except that it allows the caller
+  * to specify the name of the MutexGuard stack-object.
+  * This is useful in cases where you need to make method calls on the MutexGuard object later.
+  */
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-# define DECLARE_MUTEXGUARD(mutex) muscle::MutexGuard MUSCLE_UNIQUE_NAME(mutex, __FILE__, __LINE__)
+# define DECLARE_NAMED_MUTEXGUARD(guardName, mutex) muscle::MutexGuard guardName(mutex, __FILE__, __LINE__)
 # else
-# define DECLARE_MUTEXGUARD(mutex) muscle::MutexGuard MUSCLE_UNIQUE_NAME(mutex)
+# define DECLARE_NAMED_MUTEXGUARD(guardName, mutex) muscle::MutexGuard guardName(mutex)
 #endif
 
 } // end namespace muscle

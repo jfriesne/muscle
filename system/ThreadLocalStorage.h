@@ -120,8 +120,7 @@ public:
       return SetThreadLocalObjectAux(newObj);   // pthreads and Qt manage memory so we don't have to
 #else
 
-      // coverity[missing_unlock : FALSE] - on error return the lock was never locked anyway
-      MRETURN_ON_ERROR(_allocedObjsMutex.Lock());
+      DECLARE_NAMED_MUTEXGUARD(mg, _allocedObjsMutex);
 
       status_t ret;
       if (SetThreadLocalObjectAux(newObj).IsOK(ret))  // SetThreadLocalObjectAux() MUST be called first to avoid re-entrancy trouble!
@@ -135,7 +134,7 @@ public:
          else if (newObj) (void) _allocedObjs.AddTail(newObj);
       }
 
-      (void) _allocedObjsMutex.Unlock();
+      mg.UnlockEarly();
       if (ret.IsOK()) delete oldObj;
       return ret;
 #endif
