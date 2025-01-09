@@ -264,13 +264,13 @@ AttachNewSession(const AbstractReflectSessionRef & ref)
 }
 
 ReflectServer :: ReflectServer()
-   : _keepServerGoing(true)
+   : _lameDuckFactories(PreallocatedItemSlotsCount(16))
+   , _lameDuckSessions(PreallocatedItemSlotsCount(256)) // make sure _lameDuckSessions has plenty of memory available in advance (we need might need it in a tight spot later!)
+   , _keepServerGoing(true)
    , _serverStartedAt(0)
    , _doLogging(true)
    , _serverSessionID(GetCurrentTime64()+GetRunTime64()+GetInsecurePseudoRandomNumber())
    , _computerIsAboutToSleep(false)
-   , _lameDuckSessions(PreallocatedItemSlotsCount(256)) // make sure _lameDuckSessions has plenty of memory available in advance (we need might need it in a tight spot later!)
-   , _lameDuckFactories(PreallocatedItemSlotsCount(16))
 {
    if (_serverSessionID == 0) _serverSessionID++;  // paranoia:  make sure 0 can be used as a guard value
 }
