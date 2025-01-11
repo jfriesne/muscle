@@ -180,10 +180,10 @@ snoopsharedmem: $(STDOBJS) SysLog.o SharedMemory.o snoopsharedmem.o String.o Mis
 erasesharedmem: $(STDOBJS) SysLog.o SharedMemory.o erasesharedmem.o String.o MiscUtilityFunctions.o SetupSystem.o ByteBuffer.o Message.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-deadlock: $(STDOBJS) deadlock.o SysLog.o String.o SetupSystem.o Thread.o Message.o ByteBuffer.o
+deadlock: $(STDOBJS) deadlock.o SysLog.o String.o SetupSystem.o Thread.o Message.o ByteBuffer.o MiscUtilityFunctions.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-rwdeadlock: $(STDOBJS) rwdeadlock.o SysLog.o String.o SetupSystem.o Thread.o Message.o ByteBuffer.o ReaderWriterMutex.o
+rwdeadlock: $(STDOBJS) rwdeadlock.o SysLog.o String.o SetupSystem.o Thread.o Message.o ByteBuffer.o ReaderWriterMutex.o MiscUtilityFunctions.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 clean :

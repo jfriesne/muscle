@@ -129,7 +129,7 @@ testfilepathinfo : $(STDOBJS) testfilepathinfo.o FilePathInfo.o SetupSystem.o St
 testthread : $(STDOBJS) testthread.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testserverthread : $(STDOBJS) testserverthread.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o AbstractReflectSession.o AbstractMessageIOGateway.o MessageIOGateway.o TemplatingMessageIOGateway.o PulseNode.o ServerComponent.o ReflectServer.o ZLibCodec.o
+testserverthread : $(STDOBJS) testserverthread.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o AbstractReflectSession.o AbstractMessageIOGateway.o MessageIOGateway.o TemplatingMessageIOGateway.o PulseNode.o ServerComponent.o ReflectServer.o ZLibCodec.o MiscUtilityFunctions.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testreaderwritermutex : $(STDOBJS) testreaderwritermutex.o SetupSystem.o Message.o MiscUtilityFunctions.o String.o ByteBuffer.o SysLog.o Thread.o AbstractReflectSession.o AbstractMessageIOGateway.o MessageIOGateway.o ReaderWriterMutex.o TemplatingMessageIOGateway.o PulseNode.o ServerComponent.o ReflectServer.o ZLibCodec.o

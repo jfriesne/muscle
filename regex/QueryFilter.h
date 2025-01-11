@@ -83,6 +83,25 @@ public:
      * @param what the type-code to check for acceptability
      */
    MUSCLE_NODISCARD virtual bool AcceptsTypeCode(uint32 what) const {return TypeCode() == what;}
+
+   /** @copydoc DoxyTemplate::CalculateChecksum() const
+     * Default implementation returns a checksum based on our TypeCode() only
+     */
+   MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const {return TypeCode();}
+
+   /** Should be implemented to return true iff this QueryFilter is equal to (rhs).
+     * @param rhs the QueryFilter to compare against this one.
+     * @note default implementation returns true iff the values returned by TypeCode() are equal.
+     */
+   MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const {return (TypeCode() == rhs.TypeCode());}
+
+   /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const
+     * @note this operator is implemented to call our IsEqualTo() virtual method
+     */
+   MUSCLE_NODISCARD bool operator ==(const QueryFilter & rhs) const {return IsEqualTo(rhs);}
+
+   /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
+   MUSCLE_NODISCARD bool operator !=(const QueryFilter & rhs) const {return !(*this==rhs);}
 };
 DECLARE_REFTYPES(QueryFilter);
 
@@ -105,6 +124,9 @@ public:
    virtual status_t SetFromArchive(const Message & archive);
    MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const {(void) optNode; return muscleInRange(msg()->what, _minWhatCode, _maxWhatCode);}
    MUSCLE_NODISCARD virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_WHATCODE;}
+
+   MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
+   MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
 
 private:
    uint32 _minWhatCode;
@@ -144,6 +166,9 @@ public:
    /** Returns the current field name, as set by SetFieldName() or in our constructor. */
    MUSCLE_NODISCARD const String & GetFieldName() const {return _fieldName;}
 
+   MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
+   MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
+
 private:
    String _fieldName;
    uint32 _index;
@@ -180,6 +205,9 @@ public:
      * Note that this method is different from TypeCode()!
      */
    MUSCLE_NODISCARD uint32 GetTypeCode() const {return _typeCode;}
+
+   MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
+   MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
 
 private:
    uint32 _typeCode;
@@ -370,6 +398,30 @@ public:
    /** Returns this QueryFilter's current mask value. */
    MUSCLE_NODISCARD uint8 GetMaskValue() const {return _mask;}
 
+   /** @copydoc DoxyTemplate::CalculateChecksum() const */
+   MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const
+   {
+      return ValueQueryFilter::CalculateChecksum()
+           + CalculatePODChecksum(_value)
+           + CalculatePODChecksum(_mask)
+           + (uint32)_op
+           + (uint32)_maskOp
+           + (_assumeDefault?1:0)
+           + CalculatePODChecksum(_default);
+   }
+
+   MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const
+   {
+      const NumericQueryFilter * nrhs = ValueQueryFilter::IsEqualTo(rhs) ? dynamic_cast<const NumericQueryFilter *>(&rhs) : NULL;
+      return (nrhs != NULL)
+          && (_value         == nrhs->_value)
+          && (_mask          == nrhs->_mask)
+          && (_op            == nrhs->_op)
+          && (_maskOp        == nrhs->_maskOp)
+          && (_assumeDefault == nrhs->_assumeDefault)
+          && (_default       == nrhs->_default);
+   }
+
 private:
    MUSCLE_NODISCARD bool MatchesAux(const DataType & valueInMsg) const
    {
@@ -449,6 +501,9 @@ public:
    /** Returns a read/write reference to our Queue of child ConstQueryFilterRefs. */
    MUSCLE_NODISCARD Queue<ConstQueryFilterRef> & GetChildren() {return _children;}
 
+   MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
+   MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
+
 private:
    Queue<ConstQueryFilterRef> _children;
 };
@@ -499,6 +554,9 @@ public:
    /** Returns the minimum-match-count for this filter, as specified in the constructor or by SetMinMatchCount(). */
    MUSCLE_NODISCARD uint32 GetMinMatchCount() const {return _minMatches;}
 
+   MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
+   MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
+
 private:
    uint32 _minMatches;
 };
@@ -547,6 +605,9 @@ public:
 
    /** Returns the maximum-match-count for this filter, as specified in the constructor or by SetMaxMatchCount(). */
    MUSCLE_NODISCARD uint32 GetMaxMatchCount() const {return _maxMatches;}
+
+   MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
+   MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
 
 private:
    uint32 _maxMatches;
@@ -916,6 +977,9 @@ public:
    /** Returns our current sub-filter as set in our constructor or in SetChildFilter() */
    const ConstQueryFilterRef & GetChildFilter() const {return _childFilter;}
 
+   MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
+   MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
+
 private:
    ConstQueryFilterRef _childFilter;
 };
@@ -1023,6 +1087,9 @@ public:
      * @returns true if the string matches, or false if it doesn't match
      */
    MUSCLE_NODISCARD bool MatchesString(const String & s) const;
+
+   MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
+   MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
 
 private:
    void FreeMatcher();
@@ -1148,6 +1215,9 @@ public:
 
    /** Returns the current assumed default value, or a NULL reference if there is none. */
    MUSCLE_NODISCARD const ConstByteBufferRef & GetAssumedDefault() const {return _default;}
+
+   MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
+   MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
 
 private:
    ConstByteBufferRef _value;

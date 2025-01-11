@@ -301,7 +301,7 @@ public:
    MUSCLE_NODISCARD static uint32 FlattenedSize() {return GetNumItemsInTuple()*sizeof(float);}
 
    /** @copydoc DoxyTemplate::CalculateChecksum() const */
-   MUSCLE_NODISCARD uint32 CalculateChecksum() const {return CalculateChecksumForFloat(left()) + (3*CalculateChecksumForFloat(top())) + (5*CalculateChecksumForFloat(right())) + (7*CalculateChecksumForFloat(bottom()));}
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const {return CalculatePODChecksum(left()) + (3*CalculatePODChecksum(top())) + (5*CalculatePODChecksum(right())) + (7*CalculatePODChecksum(bottom()));}
 
    /** @copydoc DoxyTemplate::Flatten(DataFlattener) const */
    void Flatten(DataFlattener flat) const {flat.WriteFloats(GetItemPointer(0), GetNumItemsInTuple());}

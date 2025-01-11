@@ -1958,14 +1958,21 @@ MUSCLE_NODISCARD uint64 CalculateHashCode64(const void * key, unsigned int numBy
   */
 MUSCLE_NODISCARD static inline uint32 CalculateChecksum(const void * buffer, uint32 numBytes) {return CalculateHashCode(buffer, numBytes);}
 
-/** Convenience method:  Given a uint64, returns a corresponding 32-bit checksum value */
-MUSCLE_NODISCARD static inline uint32 CalculateChecksumForUint64(uint64 v) {const uint64 le = B_HOST_TO_LENDIAN_INT64(v); return CalculateChecksum(&le, sizeof(le));}
-
-/** Convenience method:  Given a float, returns a corresponding 32-bit checksum value */
-MUSCLE_NODISCARD static inline uint32 CalculateChecksumForFloat(float v)   {const uint32 le = (v==0.0f) ? 0 : B_HOST_TO_LENDIAN_IFLOAT(v); return CalculateChecksum(&le, sizeof(le));}  // yes, the special case for 0.0f IS necessary, because the sign-bit might be set.  :(
-
-/** Convenience method:  Given a double, returns a corresponding 32-bit checksum value */
-MUSCLE_NODISCARD static inline uint32 CalculateChecksumForDouble(double v) {const uint64 le = (v==0.0) ? 0 : B_HOST_TO_LENDIAN_IDOUBLE(v); return CalculateChecksum(&le, sizeof(le));}  // yes, the special case for 0.0 IS necessary, because the sign-bit might be set.  :(
+/** Convenience methods:  Given a POD value of a particular type, returns a reasonable 32-bit checksum for that value
+  * @note if the passed argument is a class or struct, this method will call its CalculateChecksum() method and return that value.
+  */
+template<typename T> MUSCLE_NODISCARD typename std::enable_if<std::is_same<T,bool>  ::value, uint32>::type CalculatePODChecksum(T v) {return (uint32) (v?1:0);}
+template<typename T> MUSCLE_NODISCARD typename std::enable_if<std::is_same<T,int8>  ::value, uint32>::type CalculatePODChecksum(T v) {return (uint32) v;}
+template<typename T> MUSCLE_NODISCARD typename std::enable_if<std::is_same<T,uint8> ::value, uint32>::type CalculatePODChecksum(T v) {return (uint32) v;}
+template<typename T> MUSCLE_NODISCARD typename std::enable_if<std::is_same<T,int16> ::value, uint32>::type CalculatePODChecksum(T v) {return (uint32) v;}
+template<typename T> MUSCLE_NODISCARD typename std::enable_if<std::is_same<T,uint16>::value, uint32>::type CalculatePODChecksum(T v) {return (uint32) v;}
+template<typename T> MUSCLE_NODISCARD typename std::enable_if<std::is_same<T,int32> ::value, uint32>::type CalculatePODChecksum(T v) {return (uint32) v;}
+template<typename T> MUSCLE_NODISCARD typename std::enable_if<std::is_same<T,uint32>::value, uint32>::type CalculatePODChecksum(T v) {return (uint32) v;}
+template<typename T> MUSCLE_NODISCARD typename std::enable_if<std::is_same<T,int64> ::value, uint32>::type CalculatePODChecksum(T v) {return ((uint32)((((uint64)v)>>32)&0xFFFFFFFF)) | ~((uint32)(((uint64)v)&0xFFFFFFFF));}
+template<typename T> MUSCLE_NODISCARD typename std::enable_if<std::is_same<T,uint64>::value, uint32>::type CalculatePODChecksum(T v) {return ((uint32)((((uint64)v)>>32)&0xFFFFFFFF)) | ~((uint32)(((uint64)v)&0xFFFFFFFF));}
+template<typename T> MUSCLE_NODISCARD typename std::enable_if<std::is_same<T,float> ::value, uint32>::type CalculatePODChecksum(T v) {return (v==0.0f) ? 0 : CalculatePODChecksum(B_REINTERPRET_FLOAT_AS_INT32(v));}  // special case for 0 avoids +0.0 and -0.0 having different checksums
+template<typename T> MUSCLE_NODISCARD typename std::enable_if<std::is_same<T,double>::value, uint32>::type CalculatePODChecksum(T v) {return (v==0.0 ) ? 0 : CalculatePODChecksum(B_REINTERPRET_DOUBLE_AS_INT64(v));} // ditto
+template<typename T> MUSCLE_NODISCARD typename std::enable_if<std::is_class<T>      ::value, uint32>::type CalculatePODChecksum(const T & v) {return v.CalculateChecksum();}
 
 /** This hashing functor type handles the trivial cases, where the KeyType is
  *  Plain Old Data that we can just feed directly into the CalculateHashCode() function.

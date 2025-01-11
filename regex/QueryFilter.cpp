@@ -35,6 +35,17 @@ status_t WhatCodeQueryFilter :: SetFromArchive(const Message & archive)
    return B_NO_ERROR;
 }
 
+uint32 WhatCodeQueryFilter :: CalculateChecksum() const
+{
+   return QueryFilter::CalculateChecksum() + _minWhatCode + _maxWhatCode;
+}
+
+bool WhatCodeQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
+{
+   const WhatCodeQueryFilter * wcrhs = QueryFilter::IsEqualTo(rhs) ? dynamic_cast<const WhatCodeQueryFilter *>(&rhs) : NULL;
+   return ((wcrhs)&&(_minWhatCode == wcrhs->_minWhatCode)&&(_maxWhatCode == wcrhs->_maxWhatCode));
+}
+
 status_t ValueQueryFilter :: SaveToArchive(Message & archive) const
 {
    MRETURN_ON_ERROR(QueryFilter::SaveToArchive(archive));
@@ -51,6 +62,17 @@ status_t ValueQueryFilter :: SetFromArchive(const Message & archive)
    return archive.FindString("fn", _fieldName);
 }
 
+uint32 ValueQueryFilter :: CalculateChecksum() const
+{
+   return QueryFilter::CalculateChecksum() + _fieldName.CalculateChecksum() + _index;
+}
+
+bool ValueQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
+{
+   const ValueQueryFilter * vrhs = QueryFilter::IsEqualTo(rhs) ? dynamic_cast<const ValueQueryFilter *>(&rhs) : NULL;
+   return ((vrhs)&&(_fieldName == vrhs->_fieldName)&&(_index == vrhs->_index));
+}
+
 status_t ValueExistsQueryFilter :: SaveToArchive(Message & archive) const
 {
    MRETURN_ON_ERROR(ValueQueryFilter::SaveToArchive(archive));
@@ -64,6 +86,17 @@ status_t ValueExistsQueryFilter :: SetFromArchive(const Message & archive)
 
    _typeCode = archive.GetInt32("type", B_ANY_TYPE);
    return B_NO_ERROR;
+}
+
+uint32 ValueExistsQueryFilter :: CalculateChecksum() const
+{
+   return ValueQueryFilter::CalculateChecksum() + _typeCode;
+}
+
+bool ValueExistsQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
+{
+   const ValueExistsQueryFilter * verhs = QueryFilter::IsEqualTo(rhs) ? dynamic_cast<const ValueExistsQueryFilter *>(&rhs) : NULL;
+   return ((verhs)&&(_typeCode == verhs->_typeCode));
 }
 
 status_t MultiQueryFilter :: SaveToArchive(Message & archive) const
@@ -94,6 +127,21 @@ status_t MultiQueryFilter :: SetFromArchive(const Message & archive)
    return B_NO_ERROR;
 }
 
+uint32 MultiQueryFilter :: CalculateChecksum() const
+{
+   uint32 ret = QueryFilter::CalculateChecksum();
+   for (uint32 i=0; i<_children.GetNumItems(); i++) ret += (i+1)*(_children[i]()->CalculateChecksum());
+   return ret;
+}
+
+bool MultiQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
+{
+   const MultiQueryFilter * mrhs = QueryFilter::IsEqualTo(rhs) ? dynamic_cast<const MultiQueryFilter *>(&rhs) : NULL;
+   if ((mrhs==NULL)||(_children.GetNumItems() != mrhs->_children.GetNumItems())) return false;
+   for (uint32 i=0; i<_children.GetNumItems(); i++) if (_children[i].IsDeeplyEqualTo(mrhs->_children[i]) == false) return false;
+   return true;
+}
+
 status_t MinimumThresholdQueryFilter :: SaveToArchive(Message & archive) const
 {
    MRETURN_ON_ERROR(MultiQueryFilter::SaveToArchive(archive));
@@ -107,6 +155,17 @@ status_t MinimumThresholdQueryFilter :: SetFromArchive(const Message & archive)
 
    _minMatches = archive.GetInt32("min", MUSCLE_NO_LIMIT);
    return B_NO_ERROR;
+}
+
+uint32 MinimumThresholdQueryFilter :: CalculateChecksum() const
+{
+   return MultiQueryFilter::CalculateChecksum() + _minMatches;
+}
+
+bool MinimumThresholdQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
+{
+   const MinimumThresholdQueryFilter * mrhs = MultiQueryFilter::IsEqualTo(rhs) ? dynamic_cast<const MinimumThresholdQueryFilter *>(&rhs) : NULL;
+   return ((mrhs)&&(_minMatches == mrhs->_minMatches));
 }
 
 static bool ThresholdMaxAux(const Queue<ConstQueryFilterRef> & kids, uint32 numMatches, ConstMessageRef & msg, const DataNode * optNode)
@@ -149,6 +208,17 @@ status_t MaximumThresholdQueryFilter :: SetFromArchive(const Message & archive)
 
    _maxMatches = archive.GetInt32("max");
    return B_NO_ERROR;
+}
+
+uint32 MaximumThresholdQueryFilter :: CalculateChecksum() const
+{
+   return MultiQueryFilter::CalculateChecksum() + _maxMatches;
+}
+
+bool MaximumThresholdQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
+{
+   const MaximumThresholdQueryFilter * mrhs = MultiQueryFilter::IsEqualTo(rhs) ? dynamic_cast<const MaximumThresholdQueryFilter *>(&rhs) : NULL;
+   return ((mrhs)&&(_maxMatches == mrhs->_maxMatches));
 }
 
 bool XorQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) const
@@ -197,6 +267,17 @@ bool MessageQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNo
    return _childFilter()->Matches(constSubMsg, optNode);
 }
 
+uint32 MessageQueryFilter :: CalculateChecksum() const
+{
+   return ValueQueryFilter::CalculateChecksum() + (_childFilter()?_childFilter()->CalculateChecksum():0);
+}
+
+bool MessageQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
+{
+   const MessageQueryFilter * mrhs = ValueQueryFilter::IsEqualTo(rhs) ? dynamic_cast<const MessageQueryFilter *>(&rhs) : NULL;
+   return ((mrhs)&&(_childFilter.IsDeeplyEqualTo(mrhs->_childFilter)));
+}
+
 status_t StringQueryFilter :: SaveToArchive(Message & archive) const
 {
    MRETURN_ON_ERROR(ValueQueryFilter::SaveToArchive(archive));
@@ -215,6 +296,25 @@ status_t StringQueryFilter :: SetFromArchive(const Message & archive)
 
    status_t ret;
    return archive.FindString("val", _value).IsOK(ret) ? archive.FindInt8("op", _op) : ret;
+}
+
+uint32 StringQueryFilter :: CalculateChecksum() const
+{
+   return ValueQueryFilter::CalculateChecksum()
+        + _value.CalculateChecksum()
+        + (uint32) _op
+        + (_assumeDefault?1:0)
+        + _default.CalculateChecksum();  // deliberately not including _matcher as it's only an optimization
+}
+
+bool StringQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
+{
+   const StringQueryFilter * srhs = ValueQueryFilter::IsEqualTo(rhs) ? dynamic_cast<const StringQueryFilter *>(&rhs) : NULL;
+   return (srhs           != NULL)
+       && (_value         == srhs->_value)
+       && (_op            == srhs->_op)
+       && (_assumeDefault == srhs->_assumeDefault)
+       && (_default       == srhs->_default);  // deliberately not including _matcher as it's only an optimization
 }
 
 bool NodeNameQueryFilter :: Matches(ConstMessageRef &, const DataNode * dataNode) const
@@ -408,6 +508,24 @@ bool RawDataQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) cons
       default:              /* do nothing */  break;
    }
    return false;
+}
+
+uint32 RawDataQueryFilter :: CalculateChecksum() const
+{
+   uint32 ret = ValueQueryFilter::CalculateChecksum() + ((uint32)_op) + ((uint32)_typeCode);
+   if (_value())   ret += _value()->CalculateChecksum();
+   if (_default()) ret += _default()->CalculateChecksum();
+   return ret;
+}
+
+bool RawDataQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
+{
+   const RawDataQueryFilter * rrhs = ValueQueryFilter::IsEqualTo(rhs) ? dynamic_cast<const RawDataQueryFilter *>(&rhs) : NULL;
+   return (rrhs      != NULL)
+       && (_op       == rrhs->_op)
+       && (_typeCode == rrhs->_typeCode)
+       && (_value.IsDeeplyEqualTo(rrhs->_value))
+       && (_default.IsDeeplyEqualTo(rrhs->_default));
 }
 
 bool ChildCountQueryFilter :: Matches(ConstMessageRef & /*msg*/, const DataNode * optNode) const

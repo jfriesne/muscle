@@ -506,7 +506,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*CalculateChecksumForUint64(_data[i]));
+      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*CalculatePODChecksum(_data[i]));
       return ret;
    }
 };
@@ -527,7 +527,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*CalculateChecksumForFloat(_data[i]));
+      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*CalculatePODChecksum(_data[i]));
       return ret;
    }
 };
@@ -548,7 +548,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*CalculateChecksumForDouble(_data[i]));
+      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*CalculatePODChecksum(_data[i]));
       return ret;
    }
 };
@@ -2480,9 +2480,9 @@ uint32 MessageField :: SingleCalculateChecksum(bool countNonFlattenableFields) c
    switch(_typeCode)
    {
       case B_BOOL_TYPE:    ret += (uint32) (GetInlineItemAsBool() ? 1 : 0);            break;
-      case B_DOUBLE_TYPE:  ret += CalculateChecksumForDouble(GetInlineItemAsDouble()); break;
-      case B_FLOAT_TYPE:   ret += CalculateChecksumForFloat(GetInlineItemAsFloat());   break;
-      case B_INT64_TYPE:   ret += CalculateChecksumForUint64(GetInlineItemAsInt64());  break;
+      case B_DOUBLE_TYPE:  ret += CalculatePODChecksum(GetInlineItemAsDouble());     break;
+      case B_FLOAT_TYPE:   ret += CalculatePODChecksum(GetInlineItemAsFloat());      break;
+      case B_INT64_TYPE:   ret += CalculatePODChecksum(GetInlineItemAsInt64());      break;
       case B_INT32_TYPE:   ret += (uint32) GetInlineItemAsInt32();                     break;
       case B_INT16_TYPE:   ret += (uint32) GetInlineItemAsInt16();                     break;
       case B_INT8_TYPE:    ret += (uint32) GetInlineItemAsInt8();                      break;
