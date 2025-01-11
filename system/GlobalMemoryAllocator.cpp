@@ -197,7 +197,7 @@ char * muscleStrdup(const char * s, bool retryOnFailure)
 {
    const size_t sLen = s ? strlen(s) : 0;
    char * dupStr = (char *) muscleAlloc(sLen+1, retryOnFailure);  // +1 for the NUL terminator byte
-   if (dupStr) muscleStrcpy(dupStr, s);
+   if ((s)&&(dupStr)) memcpy(dupStr, s, sLen+1);
    return dupStr;
 }
 
