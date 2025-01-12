@@ -122,7 +122,7 @@ public:
 
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
-   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const {(void) optNode; return muscleInRange(msg()->what, _minWhatCode, _maxWhatCode);}
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
    MUSCLE_NODISCARD virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_WHATCODE;}
 
    MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
@@ -194,7 +194,7 @@ public:
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
    MUSCLE_NODISCARD virtual uint32 TypeCode() const {return QUERY_FILTER_TYPE_VALUEEXISTS;}
-   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const {(void) optNode; const void * junk; return (msg()->FindData(GetFieldName(), _typeCode, &junk, NULL).IsOK());}
+   MUSCLE_NODISCARD virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const;
 
    /** Sets the type code that we will look for in the target Message.
      * @param typeCode the type code to look for.  Use B_ANY_TYPE to indicate that you don't care what the type code is.

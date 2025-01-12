@@ -35,6 +35,11 @@ status_t WhatCodeQueryFilter :: SetFromArchive(const Message & archive)
    return B_NO_ERROR;
 }
 
+bool WhatCodeQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * /*optNode*/) const
+{
+   return muscleInRange(msg()->what, _minWhatCode, _maxWhatCode);
+}
+
 uint32 WhatCodeQueryFilter :: CalculateChecksum() const
 {
    return QueryFilter::CalculateChecksum() + _minWhatCode + _maxWhatCode;
@@ -86,6 +91,12 @@ status_t ValueExistsQueryFilter :: SetFromArchive(const Message & archive)
 
    _typeCode = archive.GetInt32("type", B_ANY_TYPE);
    return B_NO_ERROR;
+}
+
+bool ValueExistsQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * /*optNode*/) const
+{
+   const void * junk;
+   return msg()->FindData(GetFieldName(), _typeCode, &junk, NULL).IsOK();
 }
 
 uint32 ValueExistsQueryFilter :: CalculateChecksum() const
