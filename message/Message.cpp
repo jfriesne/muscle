@@ -2479,18 +2479,18 @@ uint32 MessageField :: SingleCalculateChecksum(bool countNonFlattenableFields) c
    uint32 ret = _typeCode + 1;  // +1 is for the one item we have
    switch(_typeCode)
    {
-      case B_BOOL_TYPE:    ret += (uint32) (GetInlineItemAsBool() ? 1 : 0);            break;
-      case B_DOUBLE_TYPE:  ret += CalculatePODChecksum(GetInlineItemAsDouble());     break;
-      case B_FLOAT_TYPE:   ret += CalculatePODChecksum(GetInlineItemAsFloat());      break;
-      case B_INT64_TYPE:   ret += CalculatePODChecksum(GetInlineItemAsInt64());      break;
-      case B_INT32_TYPE:   ret += (uint32) GetInlineItemAsInt32();                     break;
-      case B_INT16_TYPE:   ret += (uint32) GetInlineItemAsInt16();                     break;
-      case B_INT8_TYPE:    ret += (uint32) GetInlineItemAsInt8();                      break;
+      case B_BOOL_TYPE:    ret += (uint32) (GetInlineItemAsBool() ? 1 : 0);      break;
+      case B_DOUBLE_TYPE:  ret += CalculatePODChecksum(GetInlineItemAsDouble()); break;
+      case B_FLOAT_TYPE:   ret += CalculatePODChecksum(GetInlineItemAsFloat());  break;
+      case B_INT64_TYPE:   ret += CalculatePODChecksum(GetInlineItemAsInt64());  break;
+      case B_INT32_TYPE:   ret += (uint32) GetInlineItemAsInt32();               break;
+      case B_INT16_TYPE:   ret += (uint32) GetInlineItemAsInt16();               break;
+      case B_INT8_TYPE:    ret += (uint32) GetInlineItemAsInt8();                break;
       case B_MESSAGE_TYPE: ret += static_cast<const Message *>(GetInlineItemAsRefCountableRef()())->CalculateChecksum(countNonFlattenableFields); break;
-      case B_POINTER_TYPE: /* do nothing */;                                           break;
-      case B_POINT_TYPE:   ret += GetInlineItemAsPoint().CalculateChecksum();          break;
-      case B_RECT_TYPE:    ret += GetInlineItemAsRect().CalculateChecksum();           break;
-      case B_STRING_TYPE:  ret += GetInlineItemAsString().CalculateChecksum();         break;
+      case B_POINTER_TYPE: /* do nothing */;                                     break;
+      case B_POINT_TYPE:   ret += GetInlineItemAsPoint().CalculateChecksum();    break;
+      case B_RECT_TYPE:    ret += GetInlineItemAsRect().CalculateChecksum();     break;
+      case B_STRING_TYPE:  ret += GetInlineItemAsString().CalculateChecksum();   break;
       case B_TAG_TYPE:     /* do nothing */ break;
 
       default:
