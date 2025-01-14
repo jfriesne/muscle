@@ -21,13 +21,14 @@ class DataIO;
 class ByteBuffer;
 class Flattenable;
 
-/** This class is here to support lightweight subclasses that want to have a Flattenable-like
-  * API (Flatten(), Unflatten(), etc) without incurring the one-word-per-object memory
-  * overhead caused by the presence of virtual methods.  To use this class, subclass your
-  * class from this one and declare Flatten(), Unflatten(), FlattenedSize(), etc methods
-  * in your class, but don't make them virtual.  That will be enough to allow you to
-  * use Message::AddFlat(), Message::FindFlat(), etc on your objects, with no extra
-  * memory overhead.  See the MUSCLE Point and Rect classes for examples of this technique.
+/** This class is here to support lightweight, non-polymorphic classes that want to declare
+  * their support for a Flattenable-type API (Flatten(), Unflatten(), etc) without incurring
+  * the one-word-per-object memory overhead caused by the presence of virtual methods.
+  * To use this class, subclass your class from this one and declare Flatten(), Unflatten(),
+  * FlattenedSize(), etc methods in your class, but don't make them virtual.  That will be
+  * enough to allow you to use Message::AddFlat(), Message::FindFlat(), etc with your objects,
+  * with no extra memory overhead.  See the MUSCLE Point and Rect classes for examples of this
+  * technique.
   * @tparam SubclassType the class that is subclassing PseudoFlattenable (used for CRTP purposes)
   */
 template <class SubclassType> class PseudoFlattenable
@@ -37,7 +38,7 @@ public:
     * Dummy implemention of CopyFrom().  It's here only so that Message::FindFlat() will
     * compile when called with a PseudoFlattenable object as an argument.
     * @param copyFrom This parameter is ignored.
-    * @returns B_UNIMPLEMENTED always, because given that this object is not a Flattenable object,
+    * @returns B_UNIMPLEMENTED always, because given that this object doesn't subclass Flattenable,
     *          it's assumed that it can't receive the state of a Flattenable object either.
     *          (but if that's not the case for your class, your subclass can implement its
     *           own CopyFrom() method to taste)
