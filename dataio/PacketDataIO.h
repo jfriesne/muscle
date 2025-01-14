@@ -70,7 +70,7 @@ public:
       return WriteTo(buffer, size, GetPacketSendDestination());
    }
 
-   /** Tries to the data from an incoming packet into (buffer).  Returns the
+   /** Tries to read the data from an incoming packet into (buffer).  Returns the
     *  actual number of bytes placed, or an error code if there was an error.
     *  Default implementation calls Read(), and then calls GetSourceOfLastReadPacket()
     *  to fill out the (retPacketSource argument).
