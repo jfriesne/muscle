@@ -903,9 +903,33 @@ static bool SequenceHasExclusiveLock(const Hashtable<muscle_thread_id, Queue<Mut
    return false;
 }
 
-static void PrintSequenceReport(const char * desc, const Queue<const void *> & seq, const Hashtable<muscle_thread_id, Queue<MutexLockRecord> > & detailsTable)
+static void SPrintf(String * optStr, const char * fmt, ...)
 {
-   printf("  %s: [%s] was executed by " UINT32_FORMAT_SPEC " threads:\n", desc, LockSequenceToString(seq)(), detailsTable.GetNumItems());
+   va_list va;
+   va_start(va, fmt);
+
+   if (optStr)
+   {
+      char buf[1024];
+#if __STDC_WANT_SECURE_LIB__
+      (void) _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va);
+#elif WIN32
+      (void) _vsnprintf(  buf, sizeof(buf),            fmt, va);
+#else
+      (void)  vsnprintf(  buf, sizeof(buf),            fmt, va);
+#endif
+      buf[sizeof(buf)-1] = '\0';  // paranoia
+
+      (*optStr) += buf;
+   }
+   else vprintf(fmt, va);
+
+   va_end(va);
+}
+
+static void PrintSequenceReport(String * optStr, const char * desc, const Queue<const void *> & seq, const Hashtable<muscle_thread_id, Queue<MutexLockRecord> > & detailsTable)
+{
+   SPrintf(optStr, "  %s: [%s] was executed by " UINT32_FORMAT_SPEC " threads:\n", desc, LockSequenceToString(seq)(), detailsTable.GetNumItems());
 
    Hashtable<Queue<MutexLockRecord>, Queue<muscle_thread_id> > detailsToThreads;
    for (HashtableIterator<muscle_thread_id, Queue<MutexLockRecord> > iter(detailsTable); iter.HasData(); iter++) (void) detailsToThreads.GetOrPut(iter.GetValue())->AddTailIfNotAlreadyPresent(iter.GetKey());
@@ -915,7 +939,7 @@ static void PrintSequenceReport(const char * desc, const Queue<const void *> & s
       Queue<muscle_thread_id> & threadsList = iter.GetValue();
       threadsList.Sort();
 
-      printf("    Thread%s [%s] locked mutexes in this order:\n", (threadsList.GetNumItems()==1)?"s":"", ThreadsListToString(threadsList)());
+      SPrintf(optStr, "    Thread%s [%s] locked mutexes in this order:\n", (threadsList.GetNumItems()==1)?"s":"", ThreadsListToString(threadsList)());
       const Queue<MutexLockRecord> & details = iter.GetKey();
 
 #ifdef MUSCLE_USE_BACKTRACE
@@ -923,16 +947,16 @@ static void PrintSequenceReport(const char * desc, const Queue<const void *> & s
 #endif
       for (uint32 i=0; i<details.GetNumItems(); i++)
       {
-         printf("       " UINT32_FORMAT_SPEC ": %s", i, details[i].ToString()());
-         if (printStackTraces) printf(" [%s]\n", details[i].GetStackTrace()());
-                          else printf("\n");
+         SPrintf(optStr, "       " UINT32_FORMAT_SPEC ": %s", i, details[i].ToString()());
+         if (printStackTraces) SPrintf(optStr, " [%s]\n", details[i].GetStackTrace()());
+                          else SPrintf(optStr, "\n");
       }
    }
 }
 
 #endif
 
-void PrintMutexLockingReport()
+static status_t PrintMutexLockingReportAux(String * optStr)
 {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > capturedResults;  // mutex-sequence -> (threadID -> details)
@@ -941,10 +965,10 @@ void PrintMutexLockingReport()
       for (HashtableIterator<muscle_thread_id, MutexLockRecordLog *> iter(_mutexLogTable); iter.HasData(); iter++) iter.GetValue()->CaptureResults(capturedResults);
    }
 
-   printf("\n");
-   LogTime(MUSCLE_LOG_INFO, "------------------- " UINT32_FORMAT_SPEC " UNIQUE LOCK SEQUENCES DETECTED -----------------\n", capturedResults.GetNumItems());
+   if (optStr == NULL) SPrintf(optStr, "\n");
+   SPrintf(optStr, "------------------- " UINT32_FORMAT_SPEC " UNIQUE LOCK SEQUENCES DETECTED -----------------\n", capturedResults.GetNumItems());
    for (HashtableIterator< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iter(capturedResults); iter.HasData(); iter++)
-      LogTime(MUSCLE_LOG_INFO, "LockSequence [%s] was executed by " UINT32_FORMAT_SPEC " threads\n", LockSequenceToString(iter.GetKey())(), iter.GetValue().GetNumItems());
+      SPrintf(optStr, "LockSequence [%s] was executed by " UINT32_FORMAT_SPEC " threads\n", LockSequenceToString(iter.GetKey())(), iter.GetValue().GetNumItems());
 
    // Now we check for inconsistent locking order.  Two sequences are inconsistent with each other if they lock the same two mutexes
    // but lock them in a different order, and at least one lock-action in the sequence is exclusive.
@@ -958,38 +982,50 @@ void PrintMutexLockingReport()
          uint32 idxB = 0;
          for (HashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iterB(capturedResults); ((idxB < idxA)&&(iterB.HasData())); iterB++,idxB++)
             if (((iterAHasExclusiveLock)||(SequenceHasExclusiveLock(iterB.GetValue())))&&(SequencesAreInconsistent(iterA.GetKey(), iterB.GetKey())))
-              (void) inconsistentSequencePairs.Put(idxB, idxA);
+              MRETURN_ON_ERROR(inconsistentSequencePairs.Put(idxB, idxA));
       }
    }
 
    bool foundProblems = false;
    if (inconsistentSequencePairs.HasItems())
    {
-      printf("\n");
-      LogTime(MUSCLE_LOG_WARNING, "--------- WARNING: " UINT32_FORMAT_SPEC " INCONSISTENT LOCK SEQUENCE%s DETECTED --------------\n", inconsistentSequencePairs.GetNumItems(), (inconsistentSequencePairs.GetNumItems()==1)?"":"S");
+      SPrintf(optStr, "\n");
+      SPrintf(optStr, "--------- WARNING: " UINT32_FORMAT_SPEC " INCONSISTENT LOCK SEQUENCE%s DETECTED --------------\n", inconsistentSequencePairs.GetNumItems(), (inconsistentSequencePairs.GetNumItems()==1)?"":"S");
       uint32 idx = 0;
       for (HashtableIterator<uint32, uint32> iter(inconsistentSequencePairs); iter.HasData(); iter++,idx++)
       {
-         printf("\n");
-         LogTime(MUSCLE_LOG_WARNING, "INCONSISTENT LOCKING ORDER REPORT #" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " --------\n", idx+1, inconsistentSequencePairs.GetNumItems());
+         SPrintf(optStr, "\n");
+         SPrintf(optStr, "INCONSISTENT LOCKING ORDER REPORT #" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " --------\n", idx+1, inconsistentSequencePairs.GetNumItems());
          const Queue<const void *> & seqA = *capturedResults.GetKeyAt(iter.GetKey());
          const Queue<const void *> & seqB = *capturedResults.GetKeyAt(iter.GetValue());
-         PrintSequenceReport("SequenceA", seqA, capturedResults[seqA]);
-         PrintSequenceReport("SequenceB", seqB, capturedResults[seqB]);
+         PrintSequenceReport(optStr, "SequenceA", seqA, capturedResults[seqA]);
+         PrintSequenceReport(optStr, "SequenceB", seqB, capturedResults[seqB]);
          foundProblems = true;
       }
    }
 
    if (foundProblems == false)
    {
-      printf("\n");
-      LogTime(MUSCLE_LOG_INFO, "No Mutex-acquisition ordering inconsistencies detected, yay!\n");
+      SPrintf(optStr, "\n");
+      SPrintf(optStr, "No Mutex-acquisition ordering inconsistencies detected, yay!\n");
    }
 
-   printf("\n\n");
+   if (optStr == NULL) SPrintf(optStr, "\n\n");
 #else
-   printf("PrintMutexLockingReport:  MUSCLE_ENABLE_DEADLOCK_FINDER wasn't specified during compilation, so no locking-logs were recorded.\n");
+   SPrintf(optStr, "PrintMutexLockingReport:  MUSCLE_ENABLE_DEADLOCK_FINDER wasn't specified during compilation, so no locking-logs were recorded.\n");
 #endif
+
+   return B_NO_ERROR;
+}
+
+void PrintMutexLockingReport()
+{
+   (void) PrintMutexLockingReportAux(NULL);
+}
+
+status_t GetMutexLockingReport(String & retStr)
+{
+   return PrintMutexLockingReportAux(&retStr);
 }
 
 ThreadSetupSystem :: ThreadSetupSystem(bool muscleSingleThreadOnly)

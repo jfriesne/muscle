@@ -24,6 +24,8 @@ key:  - new feature
    - Added CalculateChecksum() methods to the QueryFilter classes.
    - Added equality-test operators and an IsEqualTo() virtual method
      to the QueryFilter classes.
+   - Added a GetMutexLockingReport() function for those who don't
+     want to print their Mutex-locking reports to stdout.
    o Tweaked Snooze64() to handle long snooze times a bit better.
    o Simplified the EmscriptenWebSocket callback API.
    o Replaced overloaded_preprocessor_macro.h with conditional

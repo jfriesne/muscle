@@ -51,6 +51,8 @@ extern bool IsOkayToAccessMuscleMutex(const muscle::Mutex * m, const char * meth
 
 namespace muscle {
 
+class String;
+
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
 enum {
    LOCK_ACTION_UNLOCK_EXCLUSIVE = 0,
@@ -445,6 +447,13 @@ private:
   * any inconsistent locking ordering has been detected.  Otherwise an error message will be printed.
   */
 void PrintMutexLockingReport();
+
+/** Same as PrintMutexLockingReport(), except the report text is appended to
+  * the passed-in String, rather than printed to stdout.
+  * @param retStr on successful return, this String will contain the text report.
+  * @returns B_NO_ERROR on success, or some other value on failure.
+  */
+status_t GetMutexLockingReport(String & retStr);
 
 /** A macro to quickly and safely put a MutexGuard on the stack for the given Mutex.
   * @note Using this macro is better than just declaring a MutexGuard object directly in
