@@ -454,6 +454,30 @@ TimeSetupSystem :: ~TimeSetupSystem()
    // empty
 }
 
+static void SPrintf(String * optStr, const char * fmt, ...)
+{
+   va_list va;
+   va_start(va, fmt);
+
+   if (optStr)
+   {
+      char buf[1024];
+#if __STDC_WANT_SECURE_LIB__
+      (void) _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va);
+#elif WIN32
+      (void) _vsnprintf(  buf, sizeof(buf),            fmt, va);
+#else
+      (void)  vsnprintf(  buf, sizeof(buf),            fmt, va);
+#endif
+      buf[sizeof(buf)-1] = '\0';  // paranoia
+
+      (*optStr) += buf;
+   }
+   else vprintf(fmt, va);
+
+   va_end(va);
+}
+
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
 
 static String LockSequenceToString(const Queue<const void *> & seq)
@@ -901,30 +925,6 @@ static bool SequenceHasExclusiveLock(const Hashtable<muscle_thread_id, Queue<Mut
       }
    }
    return false;
-}
-
-static void SPrintf(String * optStr, const char * fmt, ...)
-{
-   va_list va;
-   va_start(va, fmt);
-
-   if (optStr)
-   {
-      char buf[1024];
-#if __STDC_WANT_SECURE_LIB__
-      (void) _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va);
-#elif WIN32
-      (void) _vsnprintf(  buf, sizeof(buf),            fmt, va);
-#else
-      (void)  vsnprintf(  buf, sizeof(buf),            fmt, va);
-#endif
-      buf[sizeof(buf)-1] = '\0';  // paranoia
-
-      (*optStr) += buf;
-   }
-   else vprintf(fmt, va);
-
-   va_end(va);
 }
 
 static void PrintSequenceReport(String * optStr, const char * desc, const Queue<const void *> & seq, const Hashtable<muscle_thread_id, Queue<MutexLockRecord> > & detailsTable)
