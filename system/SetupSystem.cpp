@@ -2969,4 +2969,34 @@ String GetEnvironmentVariableValue(const String & envVarName, const String & def
 #endif
 }
 
+void Sfprintf(String * optStr, FILE * optFile, const char * fmt, ...)
+{
+   if (optStr)
+   {
+      va_list va;
+      va_start(va, fmt);
+
+      char buf[1024];
+#if __STDC_WANT_SECURE_LIB__
+      (void) _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va);
+#elif WIN32
+      (void) _vsnprintf(  buf, sizeof(buf),            fmt, va);
+#else
+      (void)  vsnprintf(  buf, sizeof(buf),            fmt, va);
+#endif
+      buf[sizeof(buf)-1] = '\0';  // paranoia
+
+      (*optStr) += buf;
+      va_end(va);
+   }
+
+   if (optFile)
+   {
+      va_list va;
+      va_start(va, fmt);
+      vfprintf(optFile, fmt, va);
+      va_end(va);
+   }
+}
+
 } // end namespace muscle
