@@ -1235,7 +1235,7 @@ static ByteBufferRef Base64DecodeAux(const char * base64String, uint32 numBytes)
    const uint8 * in    = start;
    while((in-start)<numBytes)
    {
-      uint8 a[4], b[4];
+      uint8 a[4] = {0,0,0,0}, b[4] = {0,0,0,0};
       for (uint32 i=0; i<4; i++)
       {
          const uint8 c = *in++;
