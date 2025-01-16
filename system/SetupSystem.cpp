@@ -1815,16 +1815,18 @@ void Win32AllocateStdioConsole(const char * optArg)
 }
 #endif
 
-static void PrintHexBytesAux(const OutputPrinter & p, const void * vbuf, uint32 numBytes, const char * optDesc, uint32 numColumns)
+static void PrintHexBytesAux(const OutputPrinter & p, const void * vbuf1, uint32 numBytes1, const void * vbuf2, uint32 numBytes2, const char * optDesc, uint32 numColumns)
 {
-   const uint8 * buf = (const uint8 *) vbuf;
+   const uint32 numBytes = numBytes1+numBytes2;
+   const uint8 * buf1 = (const uint8 *) vbuf1;
+   const uint8 * buf2 = (const uint8 *) vbuf2;
 
    if (numColumns == 0)
    {
       // A simple, single-line format
       if (optDesc) p.printf("%s: ", optDesc);
       p.printf("[");
-      if (buf) for (uint32 i=0; i<numBytes; i++) p.printf("%s%02x", (i==0)?"":" ", buf[i]);
+      if (buf1) for (uint32 i=0; i<numBytes; i++) p.printf("%s%02x", (i==0)?"":" ", (i<numBytes1)?buf1[i]:buf2[i-numBytes1]);
           else p.printf("NULL buffer");
       p.printf("]\n");
    }
@@ -1839,7 +1841,7 @@ static void PrintHexBytesAux(const OutputPrinter & p, const void * vbuf, uint32 
       const int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
       for (int i=0; i<numDashes; i++) p.printf("-");
       p.printf("\n");
-      if (buf)
+      if (buf1)
       {
          char * ascBuf = newnothrow_array(char, numColumns+1);
          char * hexBuf = newnothrow_array(char, hexBufSize);
@@ -1850,10 +1852,10 @@ static void PrintHexBytesAux(const OutputPrinter & p, const void * vbuf, uint32 
             uint32 idx = 0;
             while(idx<numBytes)
             {
-               const uint8 c = buf[idx];
+               const uint8 c = (idx<numBytes1)?buf1[idx]:buf2[idx-numBytes1];
                ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
                const size_t hexBufLen = strlen(hexBuf);
-               muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
+               muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)c)&0xFF));
                idx++;
                if ((idx%numColumns) == 0) FlushAsciiChars(p, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
             }
@@ -1871,7 +1873,7 @@ static void PrintHexBytesAux(const OutputPrinter & p, const void * vbuf, uint32 
 
 void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uint32 numColumns, FILE * optFile)
 {
-   PrintHexBytesAux(optFile?optFile:stdout, vbuf, numBytes, optDesc, numColumns);
+   PrintHexBytesAux(optFile?optFile:stdout, vbuf, numBytes, NULL, 0, optDesc, numColumns);
 }
 
 void PrintHexBytes(const ByteBuffer & bb, const char * optDesc, uint32 numColumns, FILE * optFile)
@@ -1886,50 +1888,10 @@ void PrintHexBytes(const ConstByteBufferRef & bbRef, const char * optDesc, uint3
 
 static void PrintHexBytesAux(const OutputPrinter & p, const Queue<uint8> & buf, const char * optDesc, uint32 numColumns)
 {
-   const uint32 numBytes = buf.GetNumItems();
-   if (numColumns == 0)
-   {
-      // A simple, single-line format
-      if (optDesc) p.printf("%s: ", optDesc);
-      p.printf("[");
-      for (uint32 i=0; i<numBytes; i++) p.printf("%s%02x", (i==0)?"":" ", (unsigned int) buf[i]);
-      p.printf("]\n");
-   }
-   else
-   {
-      // A more useful columnar format with ASCII sidebar
-      char headBuf[256];
-      muscleSprintf(headBuf, "--- %s (" UINT32_FORMAT_SPEC " bytes): ", ((optDesc)&&(strlen(optDesc)<200))?optDesc:"", numBytes);
-      p.printf("%s", headBuf);
-
-      const int hexBufSize = (numColumns*8)+1;
-      const int numDashes = 8+(4*numColumns)-(int)strlen(headBuf);
-      for (int i=0; i<numDashes; i++) p.printf("-");
-      p.printf("\n");
-      char * ascBuf = newnothrow_array(char, numColumns+1);
-      char * hexBuf = newnothrow_array(char, hexBufSize);
-      if ((ascBuf)&&(hexBuf))
-      {
-         ascBuf[0] = hexBuf[0] = '\0';
-
-         uint32 idx = 0;
-         while(idx<numBytes)
-         {
-            const uint8 c = buf[idx];
-            ascBuf[idx%numColumns] = muscleInRange(c,(uint8)' ',(uint8)'~')?c:'.';
-            const size_t hexBufLen = strlen(hexBuf);
-            muscleSnprintf(hexBuf+hexBufLen, hexBufSize-hexBufLen, "%s%02x", ((idx%numColumns)==0)?"":" ", (unsigned int)(((uint32)buf[idx])&0xFF));
-            idx++;
-            if ((idx%numColumns) == 0) FlushAsciiChars(p, idx-numColumns, ascBuf, hexBuf, numColumns, numColumns);
-         }
-         const uint32 leftovers = (numBytes%numColumns);
-         if (leftovers > 0) FlushAsciiChars(p, numBytes-leftovers, ascBuf, hexBuf, leftovers, numColumns);
-      }
-      else MWARN_OUT_OF_MEMORY;
-
-      delete [] ascBuf;
-      delete [] hexBuf;
-   }
+   uint32 numBytes1 = 0, numBytes2 = 0;
+   const uint8 * buf1 = buf.GetArrayPointer(0, numBytes1);
+   const uint8 * buf2 = buf.GetArrayPointer(1, numBytes2);
+   PrintHexBytesAux(p, buf1, numBytes1, buf2, numBytes2, optDesc, numColumns);
 }
 
 void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numColumns, FILE * optFile)
@@ -1939,7 +1901,7 @@ void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numCol
 
 void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * optDesc, uint32 numColumns)
 {
-   PrintHexBytesAux(logLevel, vbuf, numBytes, optDesc, numColumns);
+   PrintHexBytesAux(logLevel, vbuf, numBytes, NULL, 0, optDesc, numColumns);
 }
 
 void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, uint32 numColumns)
@@ -1960,7 +1922,7 @@ void LogHexBytes(int logLevel, const ConstByteBufferRef & bbRef, const char * op
 String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char * optDesc, uint32 numColumns)
 {
    String ret;
-   PrintHexBytesAux(ret, vbuf, numBytes, optDesc, numColumns);
+   PrintHexBytesAux(ret, vbuf, numBytes, NULL, 0, optDesc, numColumns);
    return ret;
 }
 
