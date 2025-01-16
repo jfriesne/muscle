@@ -12,6 +12,7 @@
 #include "util/Hashtable.h"
 #include "util/MiscUtilityFunctions.h"     // for PrintHexBytes()
 #include "util/NetworkUtilityFunctions.h"  // for IPAddressAndPort
+#include "util/OutputPrinter.h"
 #include "util/String.h"
 
 #ifdef MUSCLE_ENABLE_SSL
@@ -903,9 +904,9 @@ static bool SequenceHasExclusiveLock(const Hashtable<muscle_thread_id, Queue<Mut
    return false;
 }
 
-static void PrintSequenceReport(String * optStr, FILE * optFile, const char * desc, const Queue<const void *> & seq, const Hashtable<muscle_thread_id, Queue<MutexLockRecord> > & detailsTable)
+static void PrintSequenceReport(const OutputPrinter & p, const char * desc, const Queue<const void *> & seq, const Hashtable<muscle_thread_id, Queue<MutexLockRecord> > & detailsTable)
 {
-   Sfprintf(optStr, optFile, "  %s: [%s] was executed by " UINT32_FORMAT_SPEC " threads:\n", desc, LockSequenceToString(seq)(), detailsTable.GetNumItems());
+   p.printf("  %s: [%s] was executed by " UINT32_FORMAT_SPEC " threads:\n", desc, LockSequenceToString(seq)(), detailsTable.GetNumItems());
 
    Hashtable<Queue<MutexLockRecord>, Queue<muscle_thread_id> > detailsToThreads;
    for (HashtableIterator<muscle_thread_id, Queue<MutexLockRecord> > iter(detailsTable); iter.HasData(); iter++) (void) detailsToThreads.GetOrPut(iter.GetValue())->AddTailIfNotAlreadyPresent(iter.GetKey());
@@ -915,7 +916,7 @@ static void PrintSequenceReport(String * optStr, FILE * optFile, const char * de
       Queue<muscle_thread_id> & threadsList = iter.GetValue();
       threadsList.Sort();
 
-      Sfprintf(optStr, optFile, "    Thread%s [%s] locked mutexes in this order:\n", (threadsList.GetNumItems()==1)?"s":"", ThreadsListToString(threadsList)());
+      p.printf("    Thread%s [%s] locked mutexes in this order:\n", (threadsList.GetNumItems()==1)?"s":"", ThreadsListToString(threadsList)());
       const Queue<MutexLockRecord> & details = iter.GetKey();
 
 #ifdef MUSCLE_USE_BACKTRACE
@@ -923,16 +924,16 @@ static void PrintSequenceReport(String * optStr, FILE * optFile, const char * de
 #endif
       for (uint32 i=0; i<details.GetNumItems(); i++)
       {
-         Sfprintf(optStr, optFile, "       " UINT32_FORMAT_SPEC ": %s", i, details[i].ToString()());
-         if (printStackTraces) Sfprintf(optStr, optFile, " [%s]\n", details[i].GetStackTrace()());
-                          else Sfprintf(optStr, optFile, "\n");
+         p.printf("       " UINT32_FORMAT_SPEC ": %s", i, details[i].ToString()());
+         if (printStackTraces) p.printf(" [%s]\n", details[i].GetStackTrace()());
+                          else p.printf("\n");
       }
    }
 }
 
 #endif
 
-static status_t PrintMutexLockingReportAux(String * optStr, FILE * optFile)
+static status_t PrintMutexLockingReportAux(const OutputPrinter & p)
 {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > capturedResults;  // mutex-sequence -> (threadID -> details)
@@ -941,10 +942,10 @@ static status_t PrintMutexLockingReportAux(String * optStr, FILE * optFile)
       for (HashtableIterator<muscle_thread_id, MutexLockRecordLog *> iter(_mutexLogTable); iter.HasData(); iter++) iter.GetValue()->CaptureResults(capturedResults);
    }
 
-   if (optStr == NULL) Sfprintf(optStr, optFile, "\n");
-   Sfprintf(optStr, optFile, "------------------- " UINT32_FORMAT_SPEC " UNIQUE LOCK SEQUENCES DETECTED -----------------\n", capturedResults.GetNumItems());
+   if (p.GetString() == NULL) p.printf("\n");
+   p.printf("------------------- " UINT32_FORMAT_SPEC " UNIQUE LOCK SEQUENCES DETECTED -----------------\n", capturedResults.GetNumItems());
    for (HashtableIterator< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iter(capturedResults); iter.HasData(); iter++)
-      Sfprintf(optStr, optFile, "LockSequence [%s] was executed by " UINT32_FORMAT_SPEC " threads\n", LockSequenceToString(iter.GetKey())(), iter.GetValue().GetNumItems());
+      p.printf("LockSequence [%s] was executed by " UINT32_FORMAT_SPEC " threads\n", LockSequenceToString(iter.GetKey())(), iter.GetValue().GetNumItems());
 
    // Now we check for inconsistent locking order.  Two sequences are inconsistent with each other if they lock the same two mutexes
    // but lock them in a different order, and at least one lock-action in the sequence is exclusive.
@@ -965,30 +966,30 @@ static status_t PrintMutexLockingReportAux(String * optStr, FILE * optFile)
    bool foundProblems = false;
    if (inconsistentSequencePairs.HasItems())
    {
-      Sfprintf(optStr, optFile, "\n");
-      Sfprintf(optStr, optFile, "--------- WARNING: " UINT32_FORMAT_SPEC " INCONSISTENT LOCK SEQUENCE%s DETECTED --------------\n", inconsistentSequencePairs.GetNumItems(), (inconsistentSequencePairs.GetNumItems()==1)?"":"S");
+      p.printf("\n");
+      p.printf("--------- WARNING: " UINT32_FORMAT_SPEC " INCONSISTENT LOCK SEQUENCE%s DETECTED --------------\n", inconsistentSequencePairs.GetNumItems(), (inconsistentSequencePairs.GetNumItems()==1)?"":"S");
       uint32 idx = 0;
       for (HashtableIterator<uint32, uint32> iter(inconsistentSequencePairs); iter.HasData(); iter++,idx++)
       {
-         Sfprintf(optStr, optFile, "\n");
-         Sfprintf(optStr, optFile, "INCONSISTENT LOCKING ORDER REPORT #" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " --------\n", idx+1, inconsistentSequencePairs.GetNumItems());
+         p.printf("\n");
+         p.printf("INCONSISTENT LOCKING ORDER REPORT #" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " --------\n", idx+1, inconsistentSequencePairs.GetNumItems());
          const Queue<const void *> & seqA = *capturedResults.GetKeyAt(iter.GetKey());
          const Queue<const void *> & seqB = *capturedResults.GetKeyAt(iter.GetValue());
-         PrintSequenceReport(optStr, optFile, "SequenceA", seqA, capturedResults[seqA]);
-         PrintSequenceReport(optStr, optFile, "SequenceB", seqB, capturedResults[seqB]);
+         PrintSequenceReport(p, "SequenceA", seqA, capturedResults[seqA]);
+         PrintSequenceReport(p, "SequenceB", seqB, capturedResults[seqB]);
          foundProblems = true;
       }
    }
 
    if (foundProblems == false)
    {
-      Sfprintf(optStr, optFile, "\n");
-      Sfprintf(optStr, optFile, "No Mutex-acquisition ordering inconsistencies detected, yay!\n");
+      p.printf("\n");
+      p.printf("No Mutex-acquisition ordering inconsistencies detected, yay!\n");
    }
 
-   if (optStr == NULL) Sfprintf(optStr, optFile, "\n\n");
+   if (p.GetString() == NULL) p.printf("\n\n");
 #else
-   Sfprintf(optStr, optFile, "PrintMutexLockingReport:  MUSCLE_ENABLE_DEADLOCK_FINDER wasn't specified during compilation, so no locking-logs were recorded.\n");
+   p.printf("PrintMutexLockingReport:  MUSCLE_ENABLE_DEADLOCK_FINDER wasn't specified during compilation, so no locking-logs were recorded.\n");
 #endif
 
    return B_NO_ERROR;
@@ -996,12 +997,12 @@ static status_t PrintMutexLockingReportAux(String * optStr, FILE * optFile)
 
 void PrintMutexLockingReport()
 {
-   (void) PrintMutexLockingReportAux(NULL, stdout);
+   (void) PrintMutexLockingReportAux(stdout);
 }
 
 status_t GetMutexLockingReport(String & retStr)
 {
-   return PrintMutexLockingReportAux(&retStr, NULL);
+   return PrintMutexLockingReportAux(retStr);
 }
 
 ThreadSetupSystem :: ThreadSetupSystem(bool muscleSingleThreadOnly)
@@ -2969,32 +2970,38 @@ String GetEnvironmentVariableValue(const String & envVarName, const String & def
 #endif
 }
 
-void Sfprintf(String * optStr, FILE * optFile, const char * fmt, ...)
+void OutputPrinter :: printf(const char * fmt, ...) const
 {
-   if (optStr)
+   if ((_addToString)||(_logSeverity > MUSCLE_LOG_NONE))
    {
       va_list va;
       va_start(va, fmt);
 
       char buf[1024];
 #if __STDC_WANT_SECURE_LIB__
-      (void) _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va);
+      const int numChars = _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va);
 #elif WIN32
-      (void) _vsnprintf(  buf, sizeof(buf),            fmt, va);
+      const int numChars = _vsnprintf(  buf, sizeof(buf),            fmt, va);
 #else
-      (void)  vsnprintf(  buf, sizeof(buf),            fmt, va);
+      const int numChars =  vsnprintf(  buf, sizeof(buf),            fmt, va);
 #endif
       buf[sizeof(buf)-1] = '\0';  // paranoia
 
-      (*optStr) += buf;
+      if (_addToString) (*_addToString) += buf;
+      if (_logSeverity > MUSCLE_LOG_NONE)
+      {
+         if (_isStartOfLine) LogTime(_logSeverity, "%s", buf);
+                        else LogPlain(_logSeverity, "%s", buf);
+         _isStartOfLine = ((numChars > 0)&&(buf[numChars-1] == '\n'));
+      }
       va_end(va);
    }
 
-   if (optFile)
+   if (_file)
    {
       va_list va;
       va_start(va, fmt);
-      vfprintf(optFile, fmt, va);
+      vfprintf(_file, fmt, va);
       va_end(va);
    }
 }

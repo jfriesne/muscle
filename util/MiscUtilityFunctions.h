@@ -713,14 +713,6 @@ static inline uint32 GetInsecurePseudoRandomNumber(uint32 maxVal = MUSCLE_NO_LIM
    return (maxVal == MUSCLE_NO_LIMIT) ? r : (r%maxVal);
 }
 
-/** Convenience method:  Writes the specified printf()-style text to a file, or appends it to a String, or both.
-  * @param optAddToString if non-NULL, the printf()-style text will be appended to this String
-  * @param optWriteToFile if non-NULL, the printf()-style text will be fprintf()'d to this FILE
-  * @param fmt a printf()-style format-specified (optionally followed by printf()-style arguments)
-  */
-MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(3,4)
-void Sfprintf(String * optAddToString, FILE * optWriteToFile, const char * fmt, ...);
-
 /** Given a mangled C++ symbol, tries to return a more human-readable (aka unmangled) form of it.
   * @param mangledName a mangled C++ symbol-name
   * @returns a more human-readable string representing the type.
