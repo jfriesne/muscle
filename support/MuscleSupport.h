@@ -2031,20 +2031,20 @@ template<typename T, size_t size1, size_t size2, size_t size3> MUSCLE_NODISCARD 
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
-template <typename T> uint32 CalculatePODChecksums(const T & o) {return CalculatePODChecksum(o);}
+template <typename T> uint32 CalculatePODChecksums(T&& o) {return CalculatePODChecksum(o);}
 #endif
 /** Convenience function:  Given a list of POD objects, calls CalculatePODChecksum() on each of them and returns the sum of all the checksums */
-template <typename First, typename... Rest> uint32 CalculatePODChecksums(First first, Rest... rest) {return CalculatePODChecksums(first) + CalculatePODChecksums(rest...);}
+template <typename First, typename... Rest> uint32 CalculatePODChecksums(First&& first, Rest&&... rest) {return CalculatePODChecksums(std::forward<First>(first)) + CalculatePODChecksums(std::forward<Rest>(rest)...);}
 #else
 /** Hack work-around for lack of variadic templates in C++03 */
-template <typename T1> uint32 CalculatePODChecksums(T1 t1) {return CalculatePODChecksum(t1);}
-template <typename T1, typename T2> uint32 CalculatePODChecksums(T1 t1, T2 t2) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2);}
-template <typename T1, typename T2, typename T3> uint32 CalculatePODChecksums(T1 t1, T2 t2, T3 t3) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatEPODChecksum(t3);}
-template <typename T1, typename T2, typename T3, typename T4> uint32 CalculatePODChecksums(T1 t1, T2 t2, T3 t3, T4 t4) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3)+CalculatePODChecksum(t4);}
-template <typename T1, typename T2, typename T3, typename T4, typename T5> uint32 CalculatePODChecksums(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3)+CalculatePODChecksum(t4)+CalculatePODChecksum(t5);}
-template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> uint32 CalculatePODChecksums(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3)+CalculatePODChecksum(t4)+CalculatePODChecksum(t5)+CalculatePODChecksum(t6);}
-template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7> uint32 CalculatePODChecksums(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3)+CalculatePODChecksum(t4)+CalculatePODChecksum(t5)+CalculatePODChecksum(t6)+CalculatePODChecksum(t7);}
-template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8> uint32 CalculatePODChecksums(T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3)+CalculatePODChecksum(t4)+CalculatePODChecksum(t5)+CalculatePODChecksum(t6)+CalculatePODChecksum(t7)+CalculatePODChecksum(t8);}
+template <typename T1> uint32 CalculatePODChecksums(const T1 & t1) {return CalculatePODChecksum(t1);}
+template <typename T1, typename T2> uint32 CalculatePODChecksums(const T1 & t1, const T2 & t2) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2);}
+template <typename T1, typename T2, typename T3> uint32 CalculatePODChecksums(const T1 & t1, const T2 & t2, const T3 & t3) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatPODChecksum(t3);}
+template <typename T1, typename T2, typename T3, typename T4> uint32 CalculatePODChecksums(const T1 & t1, const T2 & t2, const T3 & t3, const T4 & t4) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3)+CalculatePODChecksum(t4);}
+template <typename T1, typename T2, typename T3, typename T4, typename T5> uint32 CalculatePODChecksums(const T1 & t1, const T2 & t2, const T3 & t3, const T4 & t4, const T5 & t5) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3)+CalculatePODChecksum(t4)+CalculatePODChecksum(t5);}
+template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> uint32 CalculatePODChecksums(const T1 & t1, const T2 & t2, const T3 & t3, const T4 & t4, const T5 & t5, const T6 & t6) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3)+CalculatePODChecksum(t4)+CalculatePODChecksum(t5)+CalculatePODChecksum(t6);}
+template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7> uint32 CalculatePODChecksums(const T1 & t1, const T2 & t2, const T3 & t3, const T4 & t4, const T5 & t5, const T6 & t6, const T7 & t7) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3)+CalculatePODChecksum(t4)+CalculatePODChecksum(t5)+CalculatePODChecksum(t6)+CalculatePODChecksum(t7);}
+template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8> uint32 CalculatePODChecksums(const T1 & t1, const T2 & t2, const T3 & t3, const T4 & t4, const T5 & t5, const T6 & t6, const T7 & t7, const T8 & t8) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3)+CalculatePODChecksum(t4)+CalculatePODChecksum(t5)+CalculatePODChecksum(t6)+CalculatePODChecksum(t7)+CalculatePODChecksum(t8);}
 #endif
 
 /** This hashing functor type handles the trivial cases, where the KeyType is

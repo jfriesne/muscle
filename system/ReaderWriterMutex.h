@@ -255,15 +255,16 @@ private:
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    void LogDeadlockFinderEvent(uint32 lockActionType, const char * fileName, int fileLine) const
    {
-      if (_deadlockFinderMutex.LockAux().IsOK())  // calling LockAux() only to keep _deadlockFinderMutex out of the deadlock-reports
+      if (_deadlockFinderMutex.LockAux().IsOK())  // calling LockAux() instead of Lock() just to keep _deadlockFinderMutex out of the deadlock-reports
       {
          if ((_enableDeadlockFinderPrints)&&(!_inDeadlockFinderCallback.IsInBatch()))
          {
             NestCountGuard ncg(_inDeadlockFinderCallback);
             DeadlockFinder_LogEvent(lockActionType, this, fileName, fileLine);
          }
-         (void) _deadlockFinderMutex.UnlockAux();  // calling UnlockAux() only to keep _deadlockFinderMutex out of the deadlock-reports
+         (void) _deadlockFinderMutex.UnlockAux();  // calling UnlockAux() instead of Unlock() just to keep _deadlockFinderMutex out of the deadlock-reports
       }
+      // coverity[missing_unlock : FALSE] - We called UnlockAux() if necessary, above
    }
 
    mutable NestCount _inDeadlockFinderCallback;

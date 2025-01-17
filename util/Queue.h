@@ -930,6 +930,7 @@ Queue<ItemType>::Queue(const Queue& rhs)
    , _tailIndex(0)
 {
    *this = rhs;
+   // coverity[uninit_member] - no need to initialize _smallQueue, because we promise to always assign to its item(s) before try to we read from them
 }
 
 template <class ItemType>

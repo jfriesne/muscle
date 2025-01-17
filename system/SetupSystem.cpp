@@ -721,7 +721,7 @@ private:
                (void) q.RemoveTailMulti(numTrailingTryLocks);  // Trylocks at the end of the sequence don't count, as they won't block
                RemoveDuplicateItemsFromSequence(q);
 
-               Hashtable<muscle_thread_id, Queue<MutexLockRecord> > * tab = (q.GetNumItems() > 1) ? capturedResults.GetOrPut(q) : NULL;
+               Hashtable<muscle_thread_id, Queue<MutexLockRecord> > * tab = (q.GetNumItems() > 1) ? capturedResults.GetOrPut(std_move_if_available(q)) : NULL;
                if (tab)
                {
                   const Queue<MutexLockRecord> * oldDetails = tab->Get(threadID);
