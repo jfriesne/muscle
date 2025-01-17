@@ -81,7 +81,7 @@ public:
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    inline Point & operator = (const Point & rhs) {Set(rhs.x(), rhs.y()); return *this;}
 
-   /** @copydoc DoxyTemplate::PrintToStream(const OutputPrinter &) */
+   /** @copydoc DoxyTemplate::PrintToStream(const OutputPrinter &) const */
    void PrintToStream(const OutputPrinter & p = stdout) const {p.printf("Point: %f %f\n", x(), y());}
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns true */

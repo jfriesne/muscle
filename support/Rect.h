@@ -102,7 +102,7 @@ public:
       SetBottom(b);
    }
 
-   /** @copydoc DoxyTemplate::PrintToStream(const OutputPrinter &) */
+   /** @copydoc DoxyTemplate::PrintToStream(const OutputPrinter &) const */
    void PrintToStream(const OutputPrinter & p = stdout) const {p.printf("Rect: leftTop=(%f,%f) rightBottom=(%f,%f)\n", left(), top(), right(), bottom());}
 
    /** Returns the left top corner of the rectangle. */
