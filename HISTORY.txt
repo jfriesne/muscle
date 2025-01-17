@@ -33,6 +33,8 @@ key:  - new feature
      without having to write three different implementations.
    - Added a CalculatePODChecksums() convenience function for summing
      multiple checksums together.
+   - Updated various PrintToStream() methods to take an optional
+     OutputPrinter object rather than a (FILE *).
    o Tweaked Snooze64() to handle long snooze times a bit better.
    o Simplified the EmscriptenWebSocket callback API.
    o Replaced overloaded_preprocessor_macro.h with conditional

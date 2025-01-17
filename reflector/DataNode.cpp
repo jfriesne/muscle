@@ -358,30 +358,27 @@ uint32 DataNode :: CalculateChecksum(uint32 maxRecursionDepth) const
    }
 }
 
-static void PrintIndent(FILE * file, int indentLevel) {for (int i=0; i<indentLevel; i++) fputc(' ', file);}
-
-void DataNode :: PrintToStream(FILE * optFile, uint32 maxRecursionDepth, int indentLevel) const
+void DataNode :: PrintToStream(const OutputPrinter & p, uint32 maxRecursionDepth, int indentLevel) const
 {
-   if (optFile == NULL) optFile = stdout;
-
-   PrintIndent(optFile, indentLevel);
+   p.putc(' ', indentLevel);
    String np; (void) GetNodePath(np);
-   fprintf(optFile, "DataNode [%s] numChildren=" UINT32_FORMAT_SPEC " orderedIndex=" INT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC " msgChecksum=" UINT32_FORMAT_SPEC "\n", np(), _children?_children->GetNumItems():0, _orderedIndex?(int32)_orderedIndex->GetNumItems():(int32)-1, CalculateChecksum(maxRecursionDepth), _data()?_data()->CalculateChecksum():0);
-   if (_data()) _data()->PrintToStream(optFile, true, indentLevel+1);
+   p.printf("DataNode [%s] numChildren=" UINT32_FORMAT_SPEC " orderedIndex=" INT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC " msgChecksum=" UINT32_FORMAT_SPEC "\n", np(), _children?_children->GetNumItems():0, _orderedIndex?(int32)_orderedIndex->GetNumItems():(int32)-1, CalculateChecksum(maxRecursionDepth), _data()?_data()->CalculateChecksum():0);
+   if (_data()) _data()->PrintToStream(p, true, indentLevel+1);
    if (maxRecursionDepth > 0)
    {
       if (_orderedIndex)
       {
          for (uint32 i=0; i<_orderedIndex->GetNumItems(); i++)
          {
-            PrintIndent(optFile, indentLevel);
-            fprintf(optFile, "   Index slot " UINT32_FORMAT_SPEC " = %s\n", i, (*_orderedIndex)[i]()->GetNodeName()());
+            p.putc(' ', indentLevel);
+            p.printf("   Index slot " UINT32_FORMAT_SPEC " = %s\n", i, (*_orderedIndex)[i]()->GetNodeName()());
          }
       }
       if (_children)
       {
-         PrintIndent(optFile, indentLevel); fprintf(optFile, "Children for node [%s] follow:\n", np());
-         for (HashtableIterator<const String *, DataNodeRef> iter(*_children); iter.HasData(); iter++) iter.GetValue()()->PrintToStream(optFile, maxRecursionDepth-1, indentLevel+2);
+         p.putc(' ', indentLevel);
+         p.printf("Children for node [%s] follow:\n", np());
+         for (HashtableIterator<const String *, DataNodeRef> iter(*_children); iter.HasData(); iter++) iter.GetValue()()->PrintToStream(p, maxRecursionDepth-1, indentLevel+2);
       }
    }
 }

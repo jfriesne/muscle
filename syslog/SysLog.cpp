@@ -1439,10 +1439,10 @@ void UpdateAllocationStackTrace(bool isAllocation, String * & s)
    }
 }
 
-void PrintAllocationStackTrace(const void * slabThis, const void * obj, uint32 slabIdx, uint32 numObjectsPerSlab, const String & stackStr)
+void PrintAllocationStackTrace(const void * slabThis, const OutputPrinter & p, const void * obj, uint32 slabIdx, uint32 numObjectsPerSlab, const String & stackStr)
 {
-   printf("\nObjectSlab %p:  Object %p (#" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") was allocated at this location:\n", slabThis, obj, slabIdx, numObjectsPerSlab);
-   puts(stackStr());
+   p.printf("\nObjectSlab %p:  Object %p (#" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") was allocated at this location:\n", slabThis, obj, slabIdx, numObjectsPerSlab);
+   p.puts(stackStr());
 }
 #endif
 

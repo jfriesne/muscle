@@ -5,6 +5,7 @@
 
 #include <typeinfo>   // So we can use typeid().name() in the assertion failures
 #include "system/Mutex.h"
+#include "util/OutputPrinter.h"
 
 namespace muscle {
 
@@ -23,7 +24,7 @@ namespace muscle {
 
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
 class String;
-extern void PrintAllocationStackTrace(const void * slabThis, const void * obj, uint32 slabIdx, uint32 numObjectsPerSlab, const String & optStackStr);
+extern void PrintAllocationStackTrace(const void * slabThis, const OutputPrinter & p, const void * obj, uint32 slabIdx, uint32 numObjectsPerSlab, const String & optStackStr);
 #endif
 
 /** An interface that must be implemented by all ObjectPool classes.
@@ -70,8 +71,8 @@ public:
      */
    virtual uint32 FlushCachedObjects() = 0;
 
-   /** Should print this object's state to stdout.  Used for debugging. */
-   virtual void PrintToStream() const = 0;
+   /** @copydoc DoxyTemplate::PrintToStream(const OutputPrinter &) */
+   virtual void PrintToStream(const OutputPrinter & p = OutputPrinter(stdout)) const = 0;
 
    /** May be implemented to perform a sanity-check to make sure cached data
      * structures haven't been corrupted, and trigger the printing of debug
@@ -248,7 +249,7 @@ public:
    MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * GetObjectClassName() const {return typeid(Object).name();}
 
    /** Prints this object's state to stdout.  Used for debugging. */
-   virtual void PrintToStream() const
+   virtual void PrintToStream(const OutputPrinter & p = stdout) const
    {
       uint32 numSlabs            = 0;
       uint32 minItemsInUseInSlab = MUSCLE_NO_LIMIT;
@@ -267,7 +268,7 @@ public:
       if (minItemsInUseInSlab == MUSCLE_NO_LIMIT) minItemsInUseInSlab = 0;  // just to avoid questions
 
       const uint32 slabSizeItems = NUM_OBJECTS_PER_SLAB;
-      printf("ObjectPool<%s> contains " UINT32_FORMAT_SPEC " " UINT32_FORMAT_SPEC "-slot slabs, with " UINT32_FORMAT_SPEC " total items in use (%.1f%% loading, " UINT32_FORMAT_SPEC " total bytes).   LightestSlab=" UINT32_FORMAT_SPEC ", HeaviestSlab=" UINT32_FORMAT_SPEC " (" UINT32_FORMAT_SPEC " bytes per item)\n", GetObjectClassName(), numSlabs, slabSizeItems, totalItemsInUse, (numSlabs>0)?(100.0f*(((float)totalItemsInUse)/(numSlabs*slabSizeItems))):0.0f, (uint32)(numSlabs*sizeof(ObjectSlab)), minItemsInUseInSlab, maxItemsInUseInSlab, (uint32) sizeof(Object));
+      p.printf("ObjectPool<%s> contains " UINT32_FORMAT_SPEC " " UINT32_FORMAT_SPEC "-slot slabs, with " UINT32_FORMAT_SPEC " total items in use (%.1f%% loading, " UINT32_FORMAT_SPEC " total bytes).   LightestSlab=" UINT32_FORMAT_SPEC ", HeaviestSlab=" UINT32_FORMAT_SPEC " (" UINT32_FORMAT_SPEC " bytes per item)\n", GetObjectClassName(), numSlabs, slabSizeItems, totalItemsInUse, (numSlabs>0)?(100.0f*(((float)totalItemsInUse)/(numSlabs*slabSizeItems))):0.0f, (uint32)(numSlabs*sizeof(ObjectSlab)), minItemsInUseInSlab, maxItemsInUseInSlab, (uint32) sizeof(Object));
    }
 
    /** Removes all "spare" objects from the pool and deletes them.
@@ -604,18 +605,18 @@ private:
          }
       }
 
-      void PrintToStream() const
+      void PrintToStream(const OutputPrinter & p = stdout) const
       {
-         printf("   ObjectSlab %p:  %u nodes in use\n", this, _data.GetNumNodesInUse());
+         p.printf("   ObjectSlab %p:  %u nodes in use\n", this, _data.GetNumNodesInUse());
          for (uint32 i=0; i<NUM_OBJECTS_PER_SLAB; i++)
          {
             const ObjectNode * n = &_nodes[i];
             if (n->GetNextIndex() == INVALID_NODE_INDEX)
             {
-               printf("      " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":   %s %p is possibly still in use?\n", i, (uint32)NUM_OBJECTS_PER_SLAB, GetObjectClassName(), n);
+               p.printf("      " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":   %s %p is possibly still in use?\n", i, (uint32)NUM_OBJECTS_PER_SLAB, GetObjectClassName(), n);
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
                const Object * o = &n->GetObject();
-               if (o->GetAllocationLocation() != NULL) PrintAllocationStackTrace(this, o, i, NUM_OBJECTS_PER_SLAB, *o->GetAllocationLocation());
+               if (o->GetAllocationLocation() != NULL) PrintAllocationStackTrace(this, p, o, i, NUM_OBJECTS_PER_SLAB, *o->GetAllocationLocation());
 #endif
             }
          }
@@ -625,9 +626,10 @@ private:
 
       MUSCLE_NODISCARD bool HasAvailableNodes() const {return _data.HasAvailableNodes();}
       MUSCLE_NODISCARD bool IsInUse() const           {return _data.IsInUse();}
-      void RemoveFromSlabList()      {_data.RemoveFromSlabList();}
-      void AppendToSlabList()        {_data.AppendToSlabList(this);}
-      void PrependToSlabList()       {_data.PrependToSlabList(this);}
+
+      void RemoveFromSlabList() {_data.RemoveFromSlabList();}
+      void AppendToSlabList()   {_data.AppendToSlabList(this);}
+      void PrependToSlabList()  {_data.PrependToSlabList(this);}
 
       MUSCLE_NODISCARD uint32 GetTotalDataSize() const
       {

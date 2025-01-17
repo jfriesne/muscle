@@ -13,6 +13,7 @@
 
 #include "support/PseudoFlattenable.h"
 #include "support/Point.h"
+#include "util/OutputPrinter.h"
 
 namespace muscle {
 
@@ -101,14 +102,8 @@ public:
       SetBottom(b);
    }
 
-   /** Print debug information about this rectangle to stdout or to a file you specify.
-     * @param optFile If non-NULL, the text will be printed to this file.  If left as NULL, stdout will be used as a default.
-     */
-   void PrintToStream(FILE * optFile = NULL) const
-   {
-      if (optFile == NULL) optFile = stdout;
-      fprintf(optFile, "Rect: leftTop=(%f,%f) rightBottom=(%f,%f)\n", left(), top(), right(), bottom());
-    }
+   /** @copydoc DoxyTemplate::PrintToStream(const OutputPrinter &) */
+   void PrintToStream(const OutputPrinter & p = stdout) const {p.printf("Rect: leftTop=(%f,%f) rightBottom=(%f,%f)\n", left(), top(), right(), bottom());}
 
    /** Returns the left top corner of the rectangle. */
    MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline Point LeftTop() const {return Point(left(), top());}

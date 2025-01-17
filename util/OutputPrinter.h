@@ -4,9 +4,10 @@
 #define MuscleOutputPrinter_h
 
 #include "support/MuscleSupport.h"
-#include "util/String.h"
 
 namespace muscle {
+
+class String;
 
 /** This is a convenience class for code that wants to output text to either a String, to stdout, or to the Log.
   * By using this class, you only have to write that code once, rather than three times.
@@ -42,6 +43,18 @@ public:
    MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
    void printf(const char * fmt, ...) const;
 
+   /** Writes out a single character.
+     * @param c the character to write
+     * @param repeatCount the number of times this character should be written.  Defaults to 1.
+     */
+   void putc(char c, uint32 repeatCount=1) const {const char pc[] = {c, '\0'}; puts(pc, repeatCount);}
+
+   /** Writes out a single string.
+     * @param s the NULL-terminated string to write
+     * @param repeatCount the number of times this string should be written.  Defaults to 1.
+     */
+   void puts(const char * s, uint32 repeatCount=1) const;
+
    /** Returns a pointer to the String passed in to our constructor, or NULL. */
    String * GetString() const {return _addToString;}
 
@@ -52,6 +65,8 @@ public:
    int GetLogSeverity() const {return _logSeverity;}
 
 private:
+   void LogLineAux(const char * buf, uint32 numChars) const;
+
    int _logSeverity;
    String * _addToString;
    FILE * _file;

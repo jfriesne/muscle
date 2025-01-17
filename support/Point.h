@@ -14,6 +14,7 @@
 #include <math.h>  // for sqrt()
 #include "support/PseudoFlattenable.h"
 #include "support/Tuple.h"
+#include "util/OutputPrinter.h"
 
 namespace muscle {
 
@@ -80,14 +81,8 @@ public:
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    inline Point & operator = (const Point & rhs) {Set(rhs.x(), rhs.y()); return *this;}
 
-   /** Print debug information about the point to stdout or to a file you specify.
-     * @param optFile If non-NULL, the text will be printed to this file.  If left as NULL, stdout will be used as a default.
-     */
-   void PrintToStream(FILE * optFile = NULL) const
-   {
-      if (optFile == NULL) optFile = stdout;
-      fprintf(optFile, "Point: %f %f\n", x(), y());
-   }
+   /** @copydoc DoxyTemplate::PrintToStream(const OutputPrinter &) */
+   void PrintToStream(const OutputPrinter & p = stdout) const {p.printf("Point: %f %f\n", x(), y());}
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns true */
    MUSCLE_NODISCARD bool IsFixedSize() const {return true;}

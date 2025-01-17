@@ -4,6 +4,7 @@
 #define MuscleByteBuffer_h
 
 #include "util/FlatCountable.h"
+#include "util/OutputPrinter.h"
 #include "util/String.h"
 
 namespace muscle {
@@ -115,10 +116,10 @@ public:
      *                        that by default we will always print every byte held by this ByteBuffer.
      * @param numColumns The number of columns to format the bytes into.  Defaults to 16.  See the documentation for
      *                   the PrintHexBytes() function for further details.
-     * @param optFile If specified, the bytes will be printed to this file.  Defaults to NULL, meaning that the bytes
-     *                will be printed to stdout.
+     * @param p The OutputPrinter to use for printing.  A FILE (e.g. stdout), a String, or a MUSCLE_LOG_SEVERITY_* value can 
+     *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
      */
-   void PrintToStream(uint32 maxBytesToPrint = MUSCLE_NO_LIMIT, uint32 numColumns = 16, FILE * optFile = NULL) const;
+   void PrintToStream(uint32 maxBytesToPrint = MUSCLE_NO_LIMIT, uint32 numColumns = 16, const OutputPrinter & p = stdout) const;
 
    /** Returns the contents of this ByteBuffer as a human-readable hexadecimal string
      * @param maxBytesToInclude optional maximum number of byte-values to include in the string.  Defaults to MUSCLE_NO_LIMIT.

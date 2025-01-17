@@ -1859,19 +1859,19 @@ static void PrintHexBytesAux(const OutputPrinter & p, const void * vbuf1, uint32
    }
 }
 
-void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uint32 numColumns, FILE * optFile)
+void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uint32 numColumns, const OutputPrinter & p)
 {
-   PrintHexBytesAux(optFile?optFile:stdout, vbuf, numBytes, NULL, 0, optDesc, numColumns);
+   PrintHexBytesAux(p, vbuf, numBytes, NULL, 0, optDesc, numColumns);
 }
 
-void PrintHexBytes(const ByteBuffer & bb, const char * optDesc, uint32 numColumns, FILE * optFile)
+void PrintHexBytes(const ByteBuffer & bb, const char * optDesc, uint32 numColumns, const OutputPrinter & p)
 {
-   PrintHexBytes(bb.GetBuffer(), bb.GetNumBytes(), optDesc, numColumns, optFile);
+   PrintHexBytes(bb.GetBuffer(), bb.GetNumBytes(), optDesc, numColumns, p);
 }
 
-void PrintHexBytes(const ConstByteBufferRef & bbRef, const char * optDesc, uint32 numColumns, FILE * optFile)
+void PrintHexBytes(const ConstByteBufferRef & bbRef, const char * optDesc, uint32 numColumns, const OutputPrinter & p)
 {
-   PrintHexBytes(bbRef()?bbRef()->GetBuffer():NULL, bbRef()?bbRef()->GetNumBytes():0, optDesc, numColumns, optFile);
+   PrintHexBytes(bbRef()?bbRef()->GetBuffer():NULL, bbRef()?bbRef()->GetNumBytes():0, optDesc, numColumns, p);
 }
 
 static void PrintHexBytesAux(const OutputPrinter & p, const Queue<uint8> & buf, const char * optDesc, uint32 numColumns)
@@ -1882,9 +1882,9 @@ static void PrintHexBytesAux(const OutputPrinter & p, const Queue<uint8> & buf, 
    PrintHexBytesAux(p, buf1, numBytes1, buf2, numBytes2, optDesc, numColumns);
 }
 
-void PrintHexBytes(const Queue<uint8> & buf, const char * optDesc, uint32 numColumns, FILE * optFile)
+void PrintHexBytes(const Queue<uint8> & bytes, const char * optDesc, uint32 numColumns, const OutputPrinter & p)
 {
-   PrintHexBytesAux(optFile?optFile:stdout, buf, optDesc, numColumns);
+   PrintHexBytesAux(p, bytes, optDesc, numColumns);
 }
 
 void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * optDesc, uint32 numColumns)
@@ -2751,12 +2751,7 @@ void OutputPrinter :: printf(const char * fmt, ...) const
       buf[sizeof(buf)-1] = '\0';  // paranoia
 
       if (_addToString) (*_addToString) += buf;
-      if (_logSeverity > MUSCLE_LOG_NONE)
-      {
-         if (_isStartOfLine) LogTime(_logSeverity, "%s", buf);
-                        else LogPlain(_logSeverity, "%s", buf);
-         _isStartOfLine = ((numChars > 0)&&(buf[numChars-1] == '\n'));
-      }
+      if (_logSeverity > MUSCLE_LOG_NONE) LogLineAux(buf, numChars);
       va_end(va);
    }
 
@@ -2766,6 +2761,27 @@ void OutputPrinter :: printf(const char * fmt, ...) const
       va_start(va, fmt);
       vfprintf(_file, fmt, va);
       va_end(va);
+   }
+}
+
+void OutputPrinter :: LogLineAux(const char * buf, uint32 numChars) const
+{
+   if (numChars > 0)
+   {
+      if (_isStartOfLine) LogTime(_logSeverity, "%s", buf);
+                     else LogPlain(_logSeverity, "%s", buf);
+      _isStartOfLine = (buf[numChars-1] == '\n');
+   }
+}
+
+void OutputPrinter :: puts(const char * s, uint32 repeatCount) const
+{
+   const uint32 numChars = (_logSeverity > MUSCLE_LOG_NONE) ? strlen(s) : 0;
+   for (uint32 i=0; i<repeatCount; i++)
+   {
+      if (_addToString) (*_addToString) += s;
+      if (_logSeverity > MUSCLE_LOG_NONE) LogLineAux(s, numChars);
+      if (_file) fputs(s, _file);
    }
 }
 

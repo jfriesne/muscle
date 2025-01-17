@@ -18,6 +18,7 @@
 *******************************************************************************/
 
 #include "message/MessageImpl.h" // this is the only place that MessageImpl.h should ever be #included!
+#include "util/OutputPrinter.h"
 
 namespace muscle {
 
@@ -304,12 +305,13 @@ public:
      */
    MUSCLE_NODISCARD uint32 GetFieldTypeForName(const String & fieldName, uint32 defaultTypeCode = B_ANY_TYPE) const;
 
-   /** Prints debug info describing the contents of this Message to stdout.
-     * @param optFile If non-NULL, the text will be printed to this file.  If left as NULL, stdout will be used as a default.
+   /** Prints debug info describing the contents of this Message using an OutputPrinter.
+     * @param p The OutputPrinter to use for printing.  A FILE (e.g. stdout), a String, or a MUSCLE_LOG_SEVERITY_* value can
+     *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
      * @param maxRecurseLevel The maximum level of nested sub-Messages that we will print.  Defaults to MUSCLE_NO_LIMIT.
      * @param indentLevel Number of spaces to indent each printed line.  Used while recursing to format nested messages text nicely
      */
-   void PrintToStream(FILE * optFile = NULL, uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
+   void PrintToStream(const OutputPrinter & p = OutputPrinter(stdout), uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
 
    /** Same as PrintToStream(), only the state of the Message is returned
     *  as a String instead of being printed to stdout.
@@ -318,14 +320,6 @@ public:
     *  @returns a String representation of this Message, for debugging
     */
    String ToString(uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
-
-   /** Same as ToString(), except the text is added to the given String instead
-    *  of being returned as a new String.
-    *  @param s the String to add our generated text to
-     * @param maxRecurseLevel The maximum level of nested sub-Messages that we will generate.  Defaults to MUSCLE_NO_LIMIT.
-     * @param indentLevel Number of spaces to indent each generate line.  Used while recursing to format nested messages text nicely
-    */
-   void AddToString(String & s, uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
 
    /** Renames a field.
     *  @param old_entry Field name to rename from.
