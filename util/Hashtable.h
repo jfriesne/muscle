@@ -1700,11 +1700,7 @@ public:
    {
       uint32 ret = 0;
       for (HashtableIterator<KeyType, ValueType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
-      {
-         const uint32 keyChk = CalculatePODChecksum(iter.GetKey());
-         const uint32 valChk = CalculatePODChecksum(iter.GetValue());
-         ret += (keyChk?keyChk:1)*(valChk?valChk:1);
-      }
+         ret += CalculatePODChecksum(iter.GetKey()) + CalculatePODChecksum(iter.GetValue());
       return ret;
    }
 
