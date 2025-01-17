@@ -628,7 +628,7 @@ public:
 
                if ((ContainsSequence(_heldLocks, _numHeldLocks) == false)&&((_tailMLSRecord == NULL)||(_tailMLSRecord->AddLockSequence(_heldLocks, _numHeldLocks).IsError())))
                {
-                  unsigned char * newBuf = (unsigned char *) malloc(sizeof(MutexLockSequencesRecord));  // Gotta use malloc() here instead of new to avoid any potential GlobalMemoryAllocator callbacks, etc
+                  MutexLockSequencesRecord * newBuf = (MutexLockSequencesRecord *) malloc(sizeof(MutexLockSequencesRecord));  // Gotta use malloc() here instead of new to avoid any potential GlobalMemoryAllocator callbacks, etc
                   if (newBuf)
                   {
                      MutexLockSequencesRecord * newMLSRecord = new (newBuf) MutexLockSequencesRecord;  // placement-new is required to construct the MutexLockSequencesRecord on top of the memory-buffer we allocated.
@@ -834,7 +834,7 @@ void DeadlockFinder_LogEvent(uint32 lockActionType, const void * mutexPtr, const
    MutexLockRecordLog * mel = _mutexEventsLog.GetThreadLocalObject();
    if (mel == NULL)
    {
-      unsigned char * newBuf = (unsigned char *) malloc(sizeof(MutexLockRecordLog));  // MUST CALL malloc() here to avoid inappropriate re-entrancy!
+      MutexLockRecordLog * newBuf = (MutexLockRecordLog *) malloc(sizeof(MutexLockRecordLog));  // MUST CALL malloc() here to avoid inappropriate re-entrancy!
       if (newBuf)
       {
          const muscle_thread_id tid = muscle_thread_id::GetCurrentThreadID();
