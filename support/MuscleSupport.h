@@ -2203,7 +2203,7 @@ template<typename T> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T & 
 template<typename T, int size1> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T (&theArray)[size1])
 {
    typename DEFAULT_HASH_FUNCTOR(T) hashFunctor;
-   uint32 ret = size1;
+   uint32 ret = 0;
    for (int i=0; i<size1; i++) ret += ((i+1)*hashFunctor(theArray[i]));
    return ret;
 }
@@ -2217,11 +2217,29 @@ template<typename T, int size1> MUSCLE_NODISCARD inline uint32 CalculateHashCode
 template<typename T, int size1, int size2> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T (&theArray)[size1][size2])
 {
    typename DEFAULT_HASH_FUNCTOR(T) hashFunctor;
-   uint32 c = 0;
-   uint32 ret = (size1+1)*(size2+1);
+   uint32 idx = 0;
+   uint32 ret = 0;
    for (int i=0; i<size1; i++)
       for (int j=0; j<size2; j++)
-         ret += ((++c)*hashFunctor(theArray[i][j]));
+         ret += ((++idx)*hashFunctor(theArray[i][j]));
+   return ret;
+}
+
+/** Convenience method; returns a hash code for the given array.
+  * @param theArray The array to calculate a hash code for.  If the array-items are of a class
+  *                 that declares a "uint32 HashCode() const" method, that method will be called
+  *                 on each array item; otherwise a PODHashFunctor object will be used.
+  * @returns a hash code for the array.
+  */
+template<typename T, int size1, int size2, int size3> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T (&theArray)[size1][size2][size3])
+{
+   typename DEFAULT_HASH_FUNCTOR(T) hashFunctor;
+   uint32 idx = 0;
+   uint32 ret = 0;
+   for (int i=0; i<size1; i++)
+      for (int j=0; j<size2; j++)
+         for (int k=0; k<size3; k++)
+         ret += ((++idx)*hashFunctor(theArray[i][j][k]));
    return ret;
 }
 

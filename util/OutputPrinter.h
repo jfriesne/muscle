@@ -36,7 +36,7 @@ public:
      */
    OutputPrinter(int optLogSeverity, String * optAddToString, FILE * optWriteToFile) : _logSeverity(optLogSeverity), _addToString(optAddToString), _file(optWriteToFile), _isStartOfLine(true) {/* empty */}
 
-   /** Convenience method:  Writes the specified printf()-style text to a file, or appends it to a String, or both.
+   /** Writes the specified printf()-style text to a file, and/or appends it to a String and/or prints it to the Log.
      * @param fmt a printf()-style format-specified (optionally followed by printf()-style arguments)
      */
    MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)

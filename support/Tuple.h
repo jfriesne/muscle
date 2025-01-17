@@ -250,7 +250,7 @@ public:
    MUSCLE_NODISCARD uint32 CalculateChecksum() const
    {
       uint32 ret = 0;
-      for (uint32 i=0; i<NumItems; i++) ret += CalculatePODChecksum((*this)[i]);
+      for (uint32 i=0; i<NumItems; i++) ret += (i+1)*CalculatePODChecksum((*this)[i]);
       return ret;
    }
 
