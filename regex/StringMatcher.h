@@ -134,6 +134,9 @@ public:
    /** @copydoc DoxyTemplate::HashCode() const */
    MUSCLE_NODISCARD inline uint32 HashCode() const {return _pattern.HashCode() + _flags.HashCode();}
 
+   /** @copydoc DoxyTemplate::CalculateChecksum() const */
+   MUSCLE_NODISCARD inline uint32 CalculateChecksum() const {return CalculatePODChecksums(_pattern, _flags);}
+
    /** Efficiently swaps our state with the state of the StringMatcher passed in as an argument.
      * @param withMe the StringMatcher whose state should be swapped with our own.
      */

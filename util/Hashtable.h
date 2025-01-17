@@ -1693,6 +1693,21 @@ public:
       return HashCode(hashFunctor);
    }
 
+   /** Calculates and returns a checksum for this Hashtable by calling CalculatePODHashCode() on each key and value.
+     * @note the ordering of the items in the Hashtable is NOT significant in the computation of the checksum
+     */
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const
+   {
+      uint32 ret = 0;
+      for (HashtableIterator<KeyType, ValueType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+      {
+         const uint32 keyChk = CalculatePODChecksum(iter.GetKey());
+         const uint32 valChk = CalculatePODChecksum(iter.GetValue());
+         ret += (keyChk?keyChk:1)*(valChk?valChk:1);
+      }
+      return ret;
+   }
+
    /** Makes this table into a copy of a table passed in as an argument.
      * @param rhs The HashtableMid to make this HashtableMid a copy of.  Note that only (rhs)'s items are
      *            copied in; other settings such as sort mode and key/value cookies are not copied in.
@@ -2262,6 +2277,22 @@ public:
          return B_NO_ERROR;
       }
       else return B_DATA_NOT_FOUND;
+   }
+
+   /** Calculates and returns a checksum for this Hashtable by calling CalculatePODHashCode() on each key and value.
+     * @note the ordering of the items in the OrderedHashtable is significant in the computation of the checksum
+     */
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const
+   {
+      uint32 idx = 0;
+      uint32 ret = 0;
+      for (HashtableIterator<KeyType, ValueType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+      {
+         const uint32 keyChk = CalculatePODChecksum(iter.GetKey());
+         const uint32 valChk = CalculatePODChecksum(iter.GetValue());
+         ret += (++idx)*(keyChk?keyChk:1)*(valChk?valChk:1);
+      }
+      return ret;
    }
 
 private:

@@ -127,6 +127,16 @@ public:
       return HashCode<>(hashFunctor);
    }
 
+   /** Calculates and returns a checksum for this Queue by calling CalculatePODHashCode() on each item.
+     * @note the ordering of the items in the Queue is significant in the computation of the checksum
+     */
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const
+   {
+      uint32 ret = 0;
+      for (uint32 i=0; i<GetNumItems(); i++) ret += ((i+1)*CalculatePODChecksum((*this)[i]));
+      return ret;
+   }
+
    /** Similar to the assignment operator, except this method returns a status code.
      * @param rhs This Queue's contents will become a copy of (rhs)'s items.
      * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.

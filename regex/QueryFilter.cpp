@@ -42,7 +42,7 @@ bool WhatCodeQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * /*op
 
 uint32 WhatCodeQueryFilter :: CalculateChecksum() const
 {
-   return QueryFilter::CalculateChecksum() + _minWhatCode + _maxWhatCode;
+   return QueryFilter::CalculateChecksum() + CalculatePODChecksums(_minWhatCode, _maxWhatCode);
 }
 
 bool WhatCodeQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
@@ -69,7 +69,7 @@ status_t ValueQueryFilter :: SetFromArchive(const Message & archive)
 
 uint32 ValueQueryFilter :: CalculateChecksum() const
 {
-   return QueryFilter::CalculateChecksum() + _fieldName.CalculateChecksum() + _index;
+   return QueryFilter::CalculateChecksum() + CalculatePODChecksums(_fieldName, _index);
 }
 
 bool ValueQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
@@ -101,7 +101,7 @@ bool ValueExistsQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * /
 
 uint32 ValueExistsQueryFilter :: CalculateChecksum() const
 {
-   return ValueQueryFilter::CalculateChecksum() + _typeCode;
+   return ValueQueryFilter::CalculateChecksum() + CalculatePODChecksum(_typeCode);
 }
 
 bool ValueExistsQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
@@ -140,9 +140,7 @@ status_t MultiQueryFilter :: SetFromArchive(const Message & archive)
 
 uint32 MultiQueryFilter :: CalculateChecksum() const
 {
-   uint32 ret = QueryFilter::CalculateChecksum();
-   for (uint32 i=0; i<_children.GetNumItems(); i++) ret += (i+1)*(_children[i]()->CalculateChecksum());
-   return ret;
+   return QueryFilter::CalculateChecksum() + CalculatePODChecksum(_children);
 }
 
 bool MultiQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
@@ -170,7 +168,7 @@ status_t MinimumThresholdQueryFilter :: SetFromArchive(const Message & archive)
 
 uint32 MinimumThresholdQueryFilter :: CalculateChecksum() const
 {
-   return MultiQueryFilter::CalculateChecksum() + _minMatches;
+   return MultiQueryFilter::CalculateChecksum() + CalculatePODChecksum(_minMatches);
 }
 
 bool MinimumThresholdQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
@@ -223,7 +221,7 @@ status_t MaximumThresholdQueryFilter :: SetFromArchive(const Message & archive)
 
 uint32 MaximumThresholdQueryFilter :: CalculateChecksum() const
 {
-   return MultiQueryFilter::CalculateChecksum() + _maxMatches;
+   return MultiQueryFilter::CalculateChecksum() + CalculatePODChecksum(_maxMatches);
 }
 
 bool MaximumThresholdQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
@@ -280,7 +278,7 @@ bool MessageQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNo
 
 uint32 MessageQueryFilter :: CalculateChecksum() const
 {
-   return ValueQueryFilter::CalculateChecksum() + (_childFilter()?_childFilter()->CalculateChecksum():0);
+   return ValueQueryFilter::CalculateChecksum() + CalculatePODChecksum(_childFilter);
 }
 
 bool MessageQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
@@ -311,11 +309,7 @@ status_t StringQueryFilter :: SetFromArchive(const Message & archive)
 
 uint32 StringQueryFilter :: CalculateChecksum() const
 {
-   return ValueQueryFilter::CalculateChecksum()
-        + _value.CalculateChecksum()
-        + (uint32) _op
-        + (_assumeDefault?1:0)
-        + _default.CalculateChecksum();  // deliberately not including _matcher as it's only an optimization
+   return ValueQueryFilter::CalculateChecksum() + CalculatePODChecksums(_value, _op, _assumeDefault, _default); // deliberately not including _matcher as it's only an optimization
 }
 
 bool StringQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
@@ -523,10 +517,7 @@ bool RawDataQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) cons
 
 uint32 RawDataQueryFilter :: CalculateChecksum() const
 {
-   uint32 ret = ValueQueryFilter::CalculateChecksum() + ((uint32)_op) + ((uint32)_typeCode);
-   if (_value())   ret += _value()->CalculateChecksum();
-   if (_default()) ret += _default()->CalculateChecksum();
-   return ret;
+   return ValueQueryFilter::CalculateChecksum() + CalculatePODChecksums(_op, _typeCode, _value, _default);
 }
 
 bool RawDataQueryFilter :: IsEqualTo(const QueryFilter & rhs) const

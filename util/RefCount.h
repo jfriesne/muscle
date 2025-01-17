@@ -457,10 +457,16 @@ public:
               else MRETURN_OUT_OF_MEMORY;
    }
 
-   /** This method allows Refs to be keys in Hashtables.  Node that we hash on the pointer's value, not the object it points to!
+   /** This method allows Refs and ConstRefs to be keys in Hashtables.
+     * @note hash on the pointer-value, NOT on the object our pointer points to!
      * @note error-status-codes are not considered when computing the hash
      */
    MUSCLE_NODISCARD uint32 HashCode() const {return CalculateHashCode(this->GetItemPointer());}
+
+   /** This method allows Refs and ConstRefs to be passed to CalculatePODChecksum, etc.
+     * @returns the checksum of the object we point to, or 0 if we are a NULL Ref
+     */
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const {return CalculatePODChecksum(this->GetItemPointer());}
 
 private:
    friend class DummyConstRef<Item>;

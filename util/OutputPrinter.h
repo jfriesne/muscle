@@ -30,13 +30,13 @@ public:
    OutputPrinter(FILE * addToFile) : _logSeverity(MUSCLE_LOG_NONE), _addToString(NULL), _file(addToFile), _isStartOfLine(true) {/* empty */}
 
    /** Constructor for "printing" that writes to multiple targets
-     * @param addToFile the file to add to
-     */
-   OutputPrinter(int optLogSeverity, String * optAddToString, FILE * optAddToFile) : _logSeverity(optLogSeverity), _addToString(optAddToString), _file(optAddToFile), _isStartOfLine(true) {/* empty */}
-
-   /** Convenience method:  Writes the specified printf()-style text to a file, or appends it to a String, or both.
+     * @param optLogSeverity if a value other thatn MUSCLE_LOG_NONE, printf()-style text will be passed to LogTime() and/or LogPlain() at this severity-level
      * @param optAddToString if non-NULL, the printf()-style text will be appended to this String
      * @param optWriteToFile if non-NULL, the printf()-style text will be fprintf()'d to this FILE
+     */
+   OutputPrinter(int optLogSeverity, String * optAddToString, FILE * optWriteToFile) : _logSeverity(optLogSeverity), _addToString(optAddToString), _file(optWriteToFile), _isStartOfLine(true) {/* empty */}
+
+   /** Convenience method:  Writes the specified printf()-style text to a file, or appends it to a String, or both.
      * @param fmt a printf()-style format-specified (optionally followed by printf()-style arguments)
      */
    MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)

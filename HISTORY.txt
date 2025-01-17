@@ -22,6 +22,8 @@ key:  - new feature
      DECLARE_NAMED_READWRITE_MUTEXGUARD and DECLARE_NAMED_SPINLOCKGUARD
      macros.
    - Added CalculateChecksum() methods to the QueryFilter classes.
+   - Added CalculateChecksum() methods to the Queue, Hashtable, ConstRef,
+     StringMatcher, Tuple, and Void classes.
    - Added equality-test operators and an IsEqualTo() virtual method
      to the QueryFilter classes.
    - Added a GetMutexLockingReport() function for those who don't
@@ -29,6 +31,8 @@ key:  - new feature
    - Added an OutputPrinter convenience class (in util/OutputPrinter.h)
      for code that wants to print to a FILE or a String or to the Log
      without having to write three different implementations.
+   - Added a CalculatePODChecksums() convenience function for summing
+     multiple checksums together.
    o Tweaked Snooze64() to handle long snooze times a bit better.
    o Simplified the EmscriptenWebSocket callback API.
    o Replaced overloaded_preprocessor_macro.h with conditional

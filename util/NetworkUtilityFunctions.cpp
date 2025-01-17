@@ -2322,7 +2322,7 @@ String IPAddressAndPort :: ToString(bool includePort, bool preferIPv4Style) cons
 
 uint32 IPAddress :: CalculateChecksum() const
 {
-   return CalculatePODChecksum(_lowBits) + CalculatePODChecksum(_highBits) + _interfaceIndex;
+   return CalculatePODChecksums(_lowBits, _highBits, _interfaceIndex);
 }
 
 void IPAddress :: Flatten(DataFlattener flat) const

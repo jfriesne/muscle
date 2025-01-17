@@ -1702,18 +1702,6 @@ void Socket :: SetFileDescriptor(int newFD, bool okayToClose)
    _okayToClose = okayToClose;
 }
 
-static void FlushStringAsciiChars(String & s, int idx, char * ascBuf, char * hexBuf, uint32 count, uint32 numColumns)
-{
-   while(count<numColumns) ascBuf[count++] = ' ';
-   ascBuf[count] = '\0';
-   char tempBuf[32]; muscleSprintf(tempBuf, "%04i: ", idx); s += tempBuf;
-   s += ascBuf;
-   s += " [";
-   s += hexBuf;
-   s += "]\n";
-   hexBuf[0] = '\0';
-}
-
 static void FlushAsciiChars(const OutputPrinter & p, int idx, char * ascBuf, char * hexBuf, uint32 count, uint32 numColumns)
 {
    while(count<numColumns) ascBuf[count++] = ' ';

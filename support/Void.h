@@ -28,6 +28,9 @@ public:
 
    /** Always returns 0 -- implemented only so that Voids can be used as values in an ImmutableHashtablePool */
    MUSCLE_NODISCARD uint32 HashCode() const {return 0;}
+
+   /** Always returns 0 -- implemented only so that Hashtables with Void values can be passed to CalculatePODChecksum() */
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const {return 0;}
 };
 
 } // end namespace muscle
