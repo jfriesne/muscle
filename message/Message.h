@@ -311,7 +311,7 @@ public:
      * @param maxRecurseLevel The maximum level of nested sub-Messages that we will print.  Defaults to MUSCLE_NO_LIMIT.
      * @param indentLevel Number of spaces to indent each printed line.  Used while recursing to format nested messages text nicely
      */
-   void PrintToStream(const OutputPrinter & p = OutputPrinter(stdout), uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
+   void PrintToStream(const OutputPrinter & p = stdout, uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
 
    /** Same as PrintToStream(), only the state of the Message is returned
     *  as a String instead of being printed to stdout.

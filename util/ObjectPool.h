@@ -72,7 +72,7 @@ public:
    virtual uint32 FlushCachedObjects() = 0;
 
    /** @copydoc DoxyTemplate::PrintToStream(const OutputPrinter &) */
-   virtual void PrintToStream(const OutputPrinter & p = OutputPrinter(stdout)) const = 0;
+   virtual void PrintToStream(const OutputPrinter & p = stdout) const = 0;
 
    /** May be implemented to perform a sanity-check to make sure cached data
      * structures haven't been corrupted, and trigger the printing of debug
