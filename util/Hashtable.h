@@ -447,7 +447,7 @@ public:
      * @return an iterator object that can be used to examine the items in the hash table, starting at
      *         the specified key.  If the specified key is not in this table, an empty iterator will be returned.
      */
-   HT_UniversalSinkKeyRef MUSCLE_NODISCARD IteratorType GetIteratorAt(HT_KeyParam startAt, uint32 flags = 0) const
+   HT_UniversalSinkKeyRef MUSCLE_NODISCARD IteratorType GetIteratorAt(HT_SinkKeyParam startAt, uint32 flags = 0) const
    {
       return IteratorType(*this, HT_ForwardKey(startAt), flags);
    }
@@ -1823,7 +1823,7 @@ public:
     *  @param key The key to look for a value with
     *  @returns a Pointer to the retrieved or placed value.
     */
-   HT_UniversalSinkKeyRef MUSCLE_NODISCARD ValueType * GetOrPut(HT_KeyParam key)
+   HT_UniversalSinkKeyRef MUSCLE_NODISCARD ValueType * GetOrPut(HT_SinkKeyParam key)
    {
       const uint32 hash = this->ComputeHash(key);
       HashtableEntryBaseType * e = this->GetEntry(hash, key);
