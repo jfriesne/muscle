@@ -27,6 +27,7 @@ public:
 
    /** Constructor for "printing" that writes the printed text to a FILE
      * @param addToFile the file to add to
+     * @note we do NOT take ownership of the file handle; it remains up to to the calling code to close it when appropriate.
      */
    OutputPrinter(FILE * addToFile) : _logSeverity(MUSCLE_LOG_NONE), _addToString(NULL), _file(addToFile), _isStartOfLine(true) {/* empty */}
 
@@ -36,6 +37,9 @@ public:
      * @param optWriteToFile if non-NULL, the printf()-style text will be fprintf()'d to this FILE
      */
    OutputPrinter(int optLogSeverity, String * optAddToString, FILE * optWriteToFile) : _logSeverity(optLogSeverity), _addToString(optAddToString), _file(optWriteToFile), _isStartOfLine(true) {/* empty */}
+
+   /** Destructor -- doesn't do anything */
+   ~OutputPrinter() {/* empty */}
 
    /** Writes the specified printf()-style text to a file, and/or appends it to a String and/or prints it to the Log.
      * @param fmt a printf()-style format-specified (optionally followed by printf()-style arguments)
