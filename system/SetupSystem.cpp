@@ -2774,13 +2774,26 @@ void OutputPrinter :: LogLineAux(const char * buf, uint32 numChars) const
    }
 }
 
+void OutputPrinter :: putc(char c, uint32 repeatCount) const
+{
+   char buf[256];
+   while(repeatCount > 0)
+   {
+      const uint32 charsToWrite = muscleMin(repeatCount, (uint32)(sizeof(buf)-1));
+      memset(buf, c, charsToWrite);
+      buf[charsToWrite] = '\0';
+      puts(buf);
+      repeatCount -= charsToWrite;
+   }
+}
+
 void OutputPrinter :: puts(const char * s, uint32 repeatCount) const
 {
-   const uint32 numChars = (_logSeverity > MUSCLE_LOG_NONE) ? strlen(s) : 0;
+   const uint32 numCharsToLog = (_logSeverity > MUSCLE_LOG_NONE) ? strlen(s) : 0;
    for (uint32 i=0; i<repeatCount; i++)
    {
       if (_addToString) (*_addToString) += s;
-      if (_logSeverity > MUSCLE_LOG_NONE) LogLineAux(s, numChars);
+      if (_logSeverity > MUSCLE_LOG_NONE) LogLineAux(s, numCharsToLog);
       if (_file) fputs(s, _file);
    }
 }

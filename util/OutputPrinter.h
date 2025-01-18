@@ -47,7 +47,7 @@ public:
      * @param c the character to write
      * @param repeatCount the number of times this character should be written.  Defaults to 1.
      */
-   void putc(char c, uint32 repeatCount=1) const {const char pc[] = {c, '\0'}; puts(pc, repeatCount);}
+   void putc(char c, uint32 repeatCount=1) const;
 
    /** Writes out a single string.
      * @param s the NULL-terminated string to write
