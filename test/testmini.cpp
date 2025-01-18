@@ -252,10 +252,10 @@ int main(int, char **)
       uint32 bufSize = 0, mmBufSize = 0, mmBuf2Size = 0;
 
       printf("---------------------------------MMsg:\n");
-      MMPrintToStream(mmsg, NULL);
+      MMPrint(mmsg, NULL);
 
       printf("---------------------------------Msg:\n");
-      m.PrintToStream();
+      m.Print();
 
       printf("---------------------------------MMsg:\n");
       {
@@ -276,7 +276,7 @@ int main(int, char **)
                   if (mmBuf2Size == mmBufSize)
                   {
                      printf("Unflattened Message:\n");
-                     MMPrintToStream(mmsg2, NULL);
+                     MMPrint(mmsg2, NULL);
 
                      {
                         MMessage * mmsg3 = MMCloneMessage(mmsg);

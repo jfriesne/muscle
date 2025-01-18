@@ -1405,7 +1405,7 @@ void AbstractObjectRecycler :: GlobalPrintRecyclersToStream()
    const AbstractObjectRecycler * r = _firstRecycler;
    while(r)
    {
-      r->PrintToStream();
+      r->Print();
       r = r->_next;
    }
 

@@ -25,7 +25,7 @@ int main(int argc, char ** argv)
       uint32 numBytes = bbRef()->GetNumBytes();
       for (uint32 i=0; i<numBytes; i++) b[i] = (uint8) i;
 
-      bbRef()->PrintToStream();
+      bbRef()->Print();
    }
    else MWARN_OUT_OF_MEMORY;
 

@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
    (void) myConfig.AddMessage("run_flags", subConfig);
 
    printf("Here is the Message we are going to save as an ASCII text file:\n");
-   myConfig.PrintToStream();
+   myConfig.Print();
 
    FILE * fpOut = muscleFopen("test_config.txt", "w");
    if (fpOut == NULL)
@@ -88,7 +88,7 @@ int main(int argc, char ** argv)
    Message readInMsg;
    if (ParseFile(fpIn, readInMsg).IsOK())
    {
-      readInMsg.PrintToStream();
+      readInMsg.Print();
    }
    else printf("Error, ParseFile() failed!\n");
 

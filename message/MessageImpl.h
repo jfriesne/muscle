@@ -135,8 +135,8 @@ public:
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    MessageField & operator = (const MessageField & rhs);
 
-   /** @copydoc DoxyTemplate::PrintToStream(const OutputPrinter &) const */
-   void PrintToStream(const OutputPrinter & p = stdout) const;
+   /** @copydoc DoxyTemplate::Print(const OutputPrinter &) const */
+   void Print(const OutputPrinter & p = stdout) const;
 
    /** Returns a human-readable string representing our state (for debugging) */
    String ToString() const;

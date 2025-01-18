@@ -100,7 +100,7 @@ ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const Messag
    const uint32 mySize  = retBuf()->GetNumBytes();
    const uint32 oldSize = msgRef()->FlattenedSize()+(3*sizeof(uint32));
    printf("SENT (down %.0f%%): outgoingTableSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " templateID=" UINT64_FORMAT_SPEC " createTemplate=%i templateMsgRef=%p bufSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", 100.0f*(1.0f-(((float)mySize)/oldSize)), _outgoingTemplates.GetNumItems(), _outgoingTemplatesTotalSizeBytes, templateID, createTemplate, templateMsgRef, mySize, oldSize);
-   //retBuf()->PrintToStream();
+   //retBuf()->Print();
 #endif
 
    return retBuf;
@@ -220,7 +220,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
    const uint32 mySize  = bufRef()->GetNumBytes();
    const uint32 oldSize = (retMsg()?retMsg()->FlattenedSize():0)+(3*sizeof(uint32));
    printf("RECEIVED (down %.0f%%): incomingTable=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " createTemplate=%i templateID=" UINT64_FORMAT_SPEC " bufSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", 100.0f*(1.0f-(((float)mySize)/oldSize)), _incomingTemplates.GetNumItems(), _incomingTemplatesTotalSizeBytes, createTemplate, templateID, mySize, oldSize);
-   //bufRef()->PrintToStream();
+   //bufRef()->Print();
 #endif
    return retMsg;
 }

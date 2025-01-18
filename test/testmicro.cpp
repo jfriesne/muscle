@@ -168,10 +168,10 @@ int main(int, char **)
    CreateTestMessage(2, m, &um);
 
    printf("\n---------------------------------UMsg:\n");
-   UMPrintToStream(&um, NULL);
+   UMPrint(&um, NULL);
 
    printf("\n---------------------------------Msg:\n");
-   m.PrintToStream();
+   m.Print();
 
    printf("\n---------------------------------UMsg:\n");
    const uint8 * umPtr = UMGetFlattenedBuffer(&um);

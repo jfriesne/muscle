@@ -37,7 +37,7 @@ public:
          (void) AddOutgoingMessage(msg);
 #ifdef PLAIN_TEXT_CLIENT_DEMO_MODE
          printf("Forwarding client's text to the upstream-server as this Message:\n");
-         msg()->PrintToStream();
+         msg()->Print();
 #endif
       }
    }

@@ -119,7 +119,7 @@ public:
      * @param p The OutputPrinter to use for printing.  A FILE (e.g. stdout), a String, or a MUSCLE_LOG_SEVERITY_* value can 
      *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
      */
-   void PrintToStream(uint32 maxBytesToPrint = MUSCLE_NO_LIMIT, uint32 numColumns = 16, const OutputPrinter & p = stdout) const;
+   void Print(uint32 maxBytesToPrint = MUSCLE_NO_LIMIT, uint32 numColumns = 16, const OutputPrinter & p = stdout) const;
 
    /** Returns the contents of this ByteBuffer as a human-readable hexadecimal string
      * @param maxBytesToInclude optional maximum number of byte-values to include in the string.  Defaults to MUSCLE_NO_LIMIT.

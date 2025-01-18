@@ -56,7 +56,7 @@ public:
 
       printf("\n");
       LogTime(MUSCLE_LOG_INFO, "Sending the following Message to the dumb server:\n");
-      msg()->PrintToStream();
+      msg()->Print();
 
       // DumbReflectSession::MessageReceivedFromGateway() will forward this Message
       // on to all the other sessions that live on our ReflectServer.  (In our case
@@ -71,7 +71,7 @@ public:
    {
       printf("\n");
       LogTime(MUSCLE_LOG_INFO, "Received Message from the dumb server:\n");
-      msg()->PrintToStream();
+      msg()->Print();
    }
 
    // If stdin is closed (e.g. via the user pressing CTRL-D)

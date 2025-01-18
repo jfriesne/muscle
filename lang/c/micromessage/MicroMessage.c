@@ -758,7 +758,7 @@ static void PrintUMessageToStreamAux(const UMessage * msg, FILE * file, int inde
    }
 }
 
-void UMPrintToStream(const UMessage * msg, FILE * optFile)
+void UMPrint(const UMessage * msg, FILE * optFile)
 {
    PrintUMessageToStreamAux(msg, optFile?optFile:stdout, 0);
 }

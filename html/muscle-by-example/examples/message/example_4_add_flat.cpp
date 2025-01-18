@@ -69,7 +69,7 @@ public:
    }
 
    // Print our current state to stdout
-   void PrintToStream() const
+   void Print() const
    {
       printf("      name = %s\n", _name());
       printf("   address = %s\n", _address());
@@ -107,7 +107,7 @@ int main(int argc, char ** argv)
 
    // Let's review our order
    printf("Our pizza-order Message is:\n");
-   orderPizzaMsg.PrintToStream();
+   orderPizzaMsg.Print();
 
    // Now let's flatten the Message into a ByteBuffer and see what it looks like as flattened data
    ByteBuffer buf(orderPizzaMsg.FlattenedSize());
@@ -123,7 +123,7 @@ int main(int argc, char ** argv)
    {
       printf("\n");
       printf("Unflattened the ByteBuffer back into anotherMsg.  anotherMsg now contains this:\n");
-      anotherMsg.PrintToStream();
+      anotherMsg.Print();
    }
    else printf("Error, unable to Unflatten the byte-buffer back to anotherMsg?!\n");
 
@@ -156,7 +156,7 @@ int main(int argc, char ** argv)
    {
       printf("\n");
       printf("DELIVER TO:\n");
-      anotherDeliveryInfo.PrintToStream();
+      anotherDeliveryInfo.Print();
    }
    else printf("No delivery_info sub-Message was present in (anotherMsg) !?\n");
 

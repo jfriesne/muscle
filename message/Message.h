@@ -228,7 +228,7 @@ private:
  *  or in-RAM data storage.
  *
  *  Note that for quick debugging purposes, it is possible to dump a Message's contents to stdout
- *  at any time by calling PrintToStream() on the Message.
+ *  at any time by calling Print() on the Message.
  */
 class MUSCLE_NODISCARD Message MUSCLE_FINAL_CLASS : public FlatCountable, public Cloneable
 {
@@ -311,9 +311,9 @@ public:
      * @param maxRecurseLevel The maximum level of nested sub-Messages that we will print.  Defaults to MUSCLE_NO_LIMIT.
      * @param indentLevel Number of spaces to indent each printed line.  Used while recursing to format nested messages text nicely
      */
-   void PrintToStream(const OutputPrinter & p = stdout, uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
+   void Print(const OutputPrinter & p = stdout, uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
 
-   /** Same as PrintToStream(), only the state of the Message is returned
+   /** Same as Print(), only the state of the Message is returned
     *  as a String instead of being printed to stdout.
     *  @param maxRecurseLevel The maximum level of nested sub-Messages that we will generate.  Defaults to MUSCLE_NO_LIMIT.
     *  @param indentLevel Number of spaces to indent each generate line.  Used while recursing to format nested messages text nicely

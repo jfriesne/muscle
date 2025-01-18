@@ -275,7 +275,7 @@ int main(int argc, char ** argv)
                if (send)
                {
                   printf("Sending message...\n");
-                  MMPrintToStream(msg, stdout);
+                  MMPrint(msg, stdout);
                   MGAddOutgoingMessage(gw, msg);
                }
                MMFreeMessage(msg);
@@ -293,7 +293,7 @@ int main(int argc, char ** argv)
                if (incomingMsg)
                {
                   printf("Heard message from server:-----------------------------------\n");
-                  MMPrintToStream(incomingMsg, stdout);
+                  MMPrint(incomingMsg, stdout);
                   printf("-------------------------------------------------------------\n");
                   MMFreeMessage(incomingMsg);
                }

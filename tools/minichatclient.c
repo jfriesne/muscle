@@ -544,7 +544,7 @@ int main(int argc, char ** argv)
                if (sendMsg)
                {
 /* printf("Sending message...\n"); */
-/* MMPrintToStream(sendMsg); */
+/* MMPrint(sendMsg); */
                   MGAddOutgoingMessage(gw, sendMsg);
                   MMFreeMessage(sendMsg);  /* yes, we are still responsible for freeing sendMsg! */
                }
@@ -560,7 +560,7 @@ int main(int argc, char ** argv)
                if (msg)
                {
 /* printf("Heard message from server:-----------------------------------\n"); */
-/* MMPrintToStream(msg); */
+/* MMPrint(msg); */
 /* printf("-------------------------------------------------------------\n"); */
                   switch(MMGetWhat(msg))
                   {

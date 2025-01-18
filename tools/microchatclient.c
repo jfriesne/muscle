@@ -460,7 +460,7 @@ int main(int argc, char ** argv)
                if (UMIsMessageValid(&msg))
                {
 /* printf("Heard message from server:-----------------------------------\n"); */
-/* UMPrintToStream(&msg, stdout);                                             */
+/* UMPrint(&msg, stdout);                                             */
 /* printf("-------------------------------------------------------------\n"); */
                   switch(UMGetWhatCode(&msg))
                   {

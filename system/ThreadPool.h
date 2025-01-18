@@ -99,8 +99,8 @@ public:
    /** Returns the maximum number of threads this ThreadPool is allowed to keep around at once time (as specified in the constructor) */
    MUSCLE_NODISCARD uint32 GetMaxThreadCount() const {return _maxThreadCount;}
 
-   /** @copydoc DoxyTemplate::PrintToStream(const OutputPrinter &) const */
-   virtual void PrintToStream(const OutputPrinter & p = stdout) const
+   /** @copydoc DoxyTemplate::Print(const OutputPrinter &) const */
+   virtual void Print(const OutputPrinter & p = stdout) const
    {
       p.printf("ThreadPool %p:  _maxThreadCount=" UINT32_FORMAT_SPEC ", _shuttingDown=%i, _threadIDCounter=" UINT32_FORMAT_SPEC ", _availableThreads=" UINT32_FORMAT_SPEC ", _activeThreads=" UINT32_FORMAT_SPEC ", _registeredClients=" UINT32_FORMAT_SPEC ", _pendingMessages=" UINT32_FORMAT_SPEC ", _deferredMessages=" UINT32_FORMAT_SPEC ", _waitingForCompletion=" UINT32_FORMAT_SPEC "\n", this, _maxThreadCount, _shuttingDown, _threadIDCounter, _availableThreads.GetNumItems(), _activeThreads.GetNumItems(), _registeredClients.GetNumItems(), _pendingMessages.GetNumItems(), _deferredMessages.GetNumItems(), _waitingForCompletion.GetNumItems());
    }

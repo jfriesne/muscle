@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
 
    // Let's review our order
    printf("Our pizza-order Message is:\n");
-   orderPizzaMsg.PrintToStream();
+   orderPizzaMsg.Print();
 
    printf("\n");
    printf("The Field names present in (orderPizzaMsg) are:\n");

@@ -829,7 +829,7 @@ public:
          char tcbuf[5]; MakePrettyTypeCodeString(msg->what, tcbuf);
          p.printf("[what='%s' (" INT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), flattenedSize=" UINT32_FORMAT_SPEC ", numFields=" UINT32_FORMAT_SPEC "]\n", tcbuf, msg->what, msg->what, msg->FlattenedSize(), msg->GetNumNames());
 
-         if (maxRecurseLevel > 0) msg->PrintToStream(p, maxRecurseLevel-1, indent+3);
+         if (maxRecurseLevel > 0) msg->Print(p, maxRecurseLevel-1, indent+3);
       }
       else p.puts("[NULL]\n");
    }
@@ -1043,11 +1043,11 @@ uint32 Message :: GetNumNames(uint32 type) const
 String Message :: ToString(uint32 maxRecurseLevel, int indent) const
 {
    String s;
-   PrintToStream(s, maxRecurseLevel, indent);
+   Print(s, maxRecurseLevel, indent);
    return s;
 }
 
-void Message :: PrintToStream(const OutputPrinter & p, uint32 maxRecurseLevel, int indent) const
+void Message :: Print(const OutputPrinter & p, uint32 maxRecurseLevel, int indent) const
 {
    TCHECKPOINT;
 

@@ -68,7 +68,7 @@ public:
       printf("\n");
       LogTime(MUSCLE_LOG_INFO, "MyDumbReflectSession(%p)::MessageReceivedFromGateway(%p,%p) called\n", this, msg(), userData);
       LogTime(MUSCLE_LOG_INFO, "The Message from session #" UINT32_FORMAT_SPEC "'s client is:\n", GetSessionID());
-      msg()->PrintToStream();
+      msg()->Print();
       DumbReflectSession::MessageReceivedFromGateway(msg, userData);  // will call MessageReceivedFromSession(*this, msg, userData) on all other attached session objects
    }
 
@@ -77,7 +77,7 @@ public:
       printf("\n");
       LogTime(MUSCLE_LOG_INFO, "MyDumbReflectSession(%p)::MessageReceivedSession(%p,%p,%p) called\n", this, &from, msg(), userData);
       LogTime(MUSCLE_LOG_INFO, "The Message from session #" UINT32_FORMAT_SPEC " is:\n", from.GetSessionID());
-      msg()->PrintToStream();
+      msg()->Print();
       LogTime(MUSCLE_LOG_INFO, "Forwarding the Message on to our own client (of session #" UINT32_FORMAT_SPEC ")\n", GetSessionID());
       DumbReflectSession::MessageReceivedFromSession(from, msg, userData);  // will call AddOutgoingMesssage(msg) on this session
    }

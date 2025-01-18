@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
    (void) testMsg.AddInt32("answer", 42);
 
    LogTime(MUSCLE_LOG_INFO, "Today's test Message is:\n");
-   testMsg.PrintToStream();
+   testMsg.Print();
    printf("\n");
 
    // Let's create a QueryFilter that only returns true if the Message

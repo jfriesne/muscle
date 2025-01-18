@@ -31,7 +31,7 @@ int main(int argc, char ** argv)
    printf("\n");
 
    Message msg;
-   if (ParseArgs(argc, argv, msg).IsOK()) msg.PrintToStream();
+   if (ParseArgs(argc, argv, msg).IsOK()) msg.Print();
                                      else printf("ParseArgs() failed!\n");
 
    return 0;

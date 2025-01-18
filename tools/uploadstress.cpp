@@ -71,7 +71,7 @@ int main(int argc, char ** argv)
          while(inQueue.RemoveHead(incoming).IsOK())
          {
             printf("Heard message from server:-----------------------------------\n");
-            incoming()->PrintToStream();
+            incoming()->Print();
             printf("-------------------------------------------------------------\n");
          }
       }

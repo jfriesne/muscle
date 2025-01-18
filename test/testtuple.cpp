@@ -41,7 +41,7 @@ public:
       _count = counter++;
    }
 
-   void PrintToStream() const
+   void Print() const
    {
       printf("{");
       for (uint32 i=0; i<GetNumItemsInTuple(); i++) printf("%.1f%s", (*this)[i], (i==GetNumItemsInTuple()-1)?"":",");
@@ -57,11 +57,11 @@ DECLARE_ALL_TUPLE_OPERATORS(MyTupleSubclass, float);
 static void PrintEquation2(const char * op, const MyTupleSubclass & a, const MyTupleSubclass & b, const MyTupleSubclass & c);
 static void PrintEquation2(const char * op, const MyTupleSubclass & a, const MyTupleSubclass & b, const MyTupleSubclass & c)
 {
-   a.PrintToStream();
+   a.Print();
    printf(" %s ", op);
-   b.PrintToStream();
+   b.Print();
    printf(" = ");
-   c.PrintToStream();
+   c.Print();
    printf("\n");
 }
 
@@ -78,7 +78,7 @@ public:
       (*this)[2] = s3;
    }
 
-   void PrintToStream() const
+   void Print() const
    {
       printf("{");
       for (uint32 i=0; i<GetNumItemsInTuple(); i++) printf("[%s]%s", (*this)[i](), (i==GetNumItemsInTuple()-1)?"":",");
@@ -93,33 +93,33 @@ DECLARE_SUBTRACTION_TUPLE_OPERATORS(StringTupleSubclass, String);
 static void PrintEquation3(const char * op, const StringTupleSubclass & a, const StringTupleSubclass & b, const StringTupleSubclass & c);
 static void PrintEquation3(const char * op, const StringTupleSubclass & a, const StringTupleSubclass & b, const StringTupleSubclass & c)
 {
-   a.PrintToStream();
+   a.Print();
    printf(" %s ", op);
-   b.PrintToStream();
+   b.Print();
    printf(" = ");
-   c.PrintToStream();
+   c.Print();
    printf("\n");
 }
 
 static void PrintEquation4(const char * op, const Point & a, const Point & b, const Point & c);
 static void PrintEquation4(const char * op, const Point & a, const Point & b, const Point & c)
 {
-   a.PrintToStream();
+   a.Print();
    printf(" %s ", op);
-   b.PrintToStream();
+   b.Print();
    printf(" = ");
-   c.PrintToStream();
+   c.Print();
    printf("\n");
 }
 
 static void PrintEquation5(const char * op, const Rect & a, const Rect & b, const Rect & c);
 static void PrintEquation5(const char * op, const Rect & a, const Rect & b, const Rect & c)
 {
-   a.PrintToStream();
+   a.Print();
    printf(" %s ", op);
-   b.PrintToStream();
+   b.Print();
    printf(" = ");
-   c.PrintToStream();
+   c.Print();
    printf("\n");
 }
 
@@ -191,11 +191,11 @@ int main(int, char **)
       MyTupleSubclass a(5.0f);
       MyTupleSubclass b(1.0f);
 
-      printf("a=");   a.PrintToStream();     printf("\n");
-      printf("a+3="); (a+3).PrintToStream(); printf("\n");
-      printf("a-3="); (a-3).PrintToStream(); printf("\n");
-      printf("a*3="); (a*3).PrintToStream(); printf("\n");
-      printf("a/3="); (a/3).PrintToStream(); printf("\n");
+      printf("a=");   a.Print();     printf("\n");
+      printf("a+3="); (a+3).Print(); printf("\n");
+      printf("a-3="); (a-3).Print(); printf("\n");
+      printf("a*3="); (a*3).Print(); printf("\n");
+      printf("a/3="); (a/3).Print(); printf("\n");
 
       PrintEquation2("+", a, b, a+b);
       PrintEquation2("-", a, b, a-b);
@@ -214,9 +214,9 @@ int main(int, char **)
       StringTupleSubclass a("red", "green", "blue");
       StringTupleSubclass b("light", "grass", "rinse");
 
-      printf("a=");   a.PrintToStream();     printf("\n");
-      printf("a+'b'="); (a+"b").PrintToStream(); printf("\n");
-      printf("a-'b'="); (a-"b").PrintToStream(); printf("\n");
+      printf("a=");   a.Print();     printf("\n");
+      printf("a+'b'="); (a+"b").Print(); printf("\n");
+      printf("a-'b'="); (a-"b").Print(); printf("\n");
 
       PrintEquation3("+", a, b, a+b);
       PrintEquation3("-", a, b, a-b);
@@ -230,11 +230,11 @@ int main(int, char **)
       Point a(5.0f, 6.0f);
       Point b(2.0f, 3.0f);
 
-      printf("a=");   a.PrintToStream();     printf("\n");
-      printf("a+3="); (a+3.0f).PrintToStream(); printf("\n");
-      printf("a-3="); (a-3.0f).PrintToStream(); printf("\n");
-      printf("a*3="); (a*3.0f).PrintToStream(); printf("\n");
-      printf("a/3="); (a/3.0f).PrintToStream(); printf("\n");
+      printf("a=");   a.Print();     printf("\n");
+      printf("a+3="); (a+3.0f).Print(); printf("\n");
+      printf("a-3="); (a-3.0f).Print(); printf("\n");
+      printf("a*3="); (a*3.0f).Print(); printf("\n");
+      printf("a/3="); (a/3.0f).Print(); printf("\n");
 
       PrintEquation4("+", a, b, a+b);
       PrintEquation4("-", a, b, a-b);
@@ -253,11 +253,11 @@ int main(int, char **)
       Rect a(5,6,7,8);
       Rect b(5,4,3,2);
 
-      printf("a=");   a.PrintToStream();     printf("\n");
-      printf("a+3="); (a+3.0f).PrintToStream(); printf("\n");
-      printf("a-3="); (a-3.0f).PrintToStream(); printf("\n");
-      printf("a*3="); (a*3.0f).PrintToStream(); printf("\n");
-      printf("a/3="); (a/3.0f).PrintToStream(); printf("\n");
+      printf("a=");   a.Print();     printf("\n");
+      printf("a+3="); (a+3.0f).Print(); printf("\n");
+      printf("a-3="); (a-3.0f).Print(); printf("\n");
+      printf("a*3="); (a*3.0f).Print(); printf("\n");
+      printf("a/3="); (a/3.0f).Print(); printf("\n");
 
       PrintEquation5("+", a, b, a+b);
       PrintEquation5("-", a, b, a-b);

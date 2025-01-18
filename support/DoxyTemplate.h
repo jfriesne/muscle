@@ -173,7 +173,7 @@ public:
      * @param p The OutputPrinter to use for printing.  A FILE (e.g. stdout), a String, or a MUSCLE_LOG_SEVERITY_* value can 
      *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
      */
-   void PrintToStream(const OutputPrinter & p) const;
+   void Print(const OutputPrinter & p) const;
 
    /** Writes this object's state out to the given Message object.
     *  @param archive the Message to write our state into.

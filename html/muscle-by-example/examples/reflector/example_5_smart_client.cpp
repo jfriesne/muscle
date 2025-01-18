@@ -67,7 +67,7 @@ public:
    {
       printf("\n");
       LogTime(MUSCLE_LOG_INFO, "Received Message from the smart server:\n");
-      msg()->PrintToStream();
+      msg()->Print();
    }
 
    // If stdin is closed (e.g. via the user pressing CTRL-D)
@@ -200,7 +200,7 @@ private:
       BroadcastToAllSessionsOfType<DumbReflectSession>(msg); // send this Message to the tcpSession (and from there to the server)
 
       LogTime(MUSCLE_LOG_INFO, "Sent the following Message to the smart server:\n");
-      msg()->PrintToStream();
+      msg()->Print();
       printf("\n");
    }
 };

@@ -140,7 +140,7 @@ void ByteBuffer :: Clear(bool releaseBuffers)
    else (void) SetNumBytes(0, false);
 }
 
-void ByteBuffer :: PrintToStream(uint32 maxBytesToPrint, uint32 numColumns, const OutputPrinter & p) const
+void ByteBuffer :: Print(uint32 maxBytesToPrint, uint32 numColumns, const OutputPrinter & p) const
 {
    PrintHexBytes(GetBuffer(), muscleMin(maxBytesToPrint, GetNumBytes()), "ByteBuffer", numColumns, p);
 }

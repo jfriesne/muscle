@@ -187,7 +187,7 @@ const uint8 * UMGetFlattenedBuffer(const UMessage * msg);
   * @param msg The MicroMessage to print the contents of to stdout.
   * @param optFile If non-NULL, the file to print the output to.  If NULL, the output will go to stdout.
   */
-void UMPrintToStream(const UMessage * msg, FILE * optFile);
+void UMPrint(const UMessage * msg, FILE * optFile);
 
 /** Returns the 'what code' from the data buffer associated with (msg)
   * @param msg The UMessage associated with the data buffer.

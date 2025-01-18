@@ -33,7 +33,7 @@ This is a partial list -- the full list of result codes can be seen [here](https
          {
             printf("Subscribed node at path [%s] was updated!\n", np());
             printf("New Message payload for that path is:\n");
-            dataMsg()->PrintToStream();
+            dataMsg()->Print();
          }
       }
    }

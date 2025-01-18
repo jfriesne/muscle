@@ -336,7 +336,7 @@ int main(int argc, char ** argv)
             if (send)
             {
                printf("Sending message...\n");
-               ref()->PrintToStream();
+               ref()->Print();
                (void) gatewayRef()->AddOutgoingMessage(ref);
             }
          }
@@ -357,7 +357,7 @@ int main(int argc, char ** argv)
       while(tcpInQueue.RemoveHead(msgFromTCP).IsOK())
       {
          printf("Heard message from server:-----------------------------------\n");
-         msgFromTCP()->PrintToStream();
+         msgFromTCP()->Print();
          printf("-------------------------------------------------------------\n");
       }
    }

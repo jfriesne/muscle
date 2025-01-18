@@ -23,7 +23,7 @@ protected:
       if (msgRef())
       {
          printf("MyThread::MessageReceivedFromOwner(): MyThread %p received the following Message from the main thread (with " UINT32_FORMAT_SPEC " Messages still left in our command queue after this one)\n", this, numLeft);
-         msgRef()->PrintToStream();
+         msgRef()->Print();
 
          printf("MyThread internal thread sleeping for 1 second, just to demonstrate the asynchronous nature of things...\n");
          (void) Snooze64(SecondsToMicros(1));

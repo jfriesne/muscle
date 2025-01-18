@@ -58,7 +58,7 @@ int main(int argc, char ** argv)
          while(g.DoInput(inQueue).IsOK())
          {
             MessageRef msgRef;
-            while(inQueue.RemoveHead(msgRef).IsOK()) msgRef()->PrintToStream();
+            while(inQueue.RemoveHead(msgRef).IsOK()) msgRef()->Print();
          }
 
          printf("Done Reading!\n");
@@ -80,7 +80,7 @@ int main(int argc, char ** argv)
             {
                printf("Read " UINT32_FORMAT_SPEC " bytes...\n", readBytes);
                MessageRef msgRef;
-               while(inQueue.RemoveHead(msgRef).IsOK()) msgRef()->PrintToStream();
+               while(inQueue.RemoveHead(msgRef).IsOK()) msgRef()->Print();
             }
             printf("Done Reading file [%s]!\n", argv[i]);
          }

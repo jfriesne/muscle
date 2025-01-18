@@ -36,17 +36,17 @@ int main(int argc, char ** argv)
    }
 
    LogTime(MUSCLE_LOG_INFO, "Original Message is:\n");
-   rawMsg()->PrintToStream();
+   rawMsg()->Print();
 
    printf("\n");
    LogTime(MUSCLE_LOG_INFO, "Deflated Message is:\n");
    ConstMessageRef deflatedMsg = DeflateMessage(rawMsg, 9);
-   deflatedMsg()->PrintToStream();
+   deflatedMsg()->Print();
 
    printf("\n");
    LogTime(MUSCLE_LOG_INFO, "Re-inflated Message is:\n");
    ConstMessageRef reinflatedMsg = InflateMessage(rawMsg);
-   reinflatedMsg()->PrintToStream();
+   reinflatedMsg()->Print();
 
    return 0;
 }

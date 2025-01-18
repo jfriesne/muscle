@@ -247,7 +247,7 @@ int main(int argc, char ** argv)
                if (send)
                {
                   printf("Sending message...\n");
-                  UMPrintToStream(&msg, stdout);
+                  UMPrint(&msg, stdout);
                   UGOutgoingMessagePrepared(&gw, &msg);
                }
                else UGOutgoingMessageCancelled(&gw, &msg);
@@ -265,7 +265,7 @@ int main(int argc, char ** argv)
                if (UMIsMessageValid(&incomingMsg))
                {
                   printf("Heard message from server:-----------------------------------\n");
-                  UMPrintToStream(&incomingMsg, stdout);
+                  UMPrint(&incomingMsg, stdout);
                   printf("-------------------------------------------------------------\n");
                }
 

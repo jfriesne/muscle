@@ -1324,7 +1324,7 @@ static void PrintMMessageToStreamAux(const MMessage * msg, FILE * file, int inde
    }
 }
 
-void MMPrintToStream(const MMessage * msg, FILE * optFile)
+void MMPrint(const MMessage * msg, FILE * optFile)
 {
    PrintMMessageToStreamAux(msg, optFile?optFile:stdout, 0);
 }

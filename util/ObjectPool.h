@@ -71,8 +71,8 @@ public:
      */
    virtual uint32 FlushCachedObjects() = 0;
 
-   /** @copydoc DoxyTemplate::PrintToStream(const OutputPrinter &) const */
-   virtual void PrintToStream(const OutputPrinter & p = stdout) const = 0;
+   /** @copydoc DoxyTemplate::Print(const OutputPrinter &) const */
+   virtual void Print(const OutputPrinter & p = stdout) const = 0;
 
    /** May be implemented to perform a sanity-check to make sure cached data
      * structures haven't been corrupted, and trigger the printing of debug
@@ -154,7 +154,7 @@ public:
          if (_firstSlab->IsInUse())
          {
             LogTime(MUSCLE_LOG_CRITICALERROR, "~ObjectPool %p (%s):  slab %p is still in use when we destroy it!\n", this, _firstSlab->GetObjectClassName(), _firstSlab);
-            _firstSlab->PrintToStream();
+            _firstSlab->Print();
             MCRASH("ObjectPool destroyed while its objects were still in use (CompleteSetupSystem object not declared at the top of main(), or Ref objects were leaked?)");
          }
          ObjectSlab * nextSlab = _firstSlab->GetNext();
@@ -249,7 +249,7 @@ public:
    MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * GetObjectClassName() const {return typeid(Object).name();}
 
    /** Prints this object's state to stdout.  Used for debugging. */
-   virtual void PrintToStream(const OutputPrinter & p = stdout) const
+   virtual void Print(const OutputPrinter & p = stdout) const
    {
       uint32 numSlabs            = 0;
       uint32 minItemsInUseInSlab = MUSCLE_NO_LIMIT;
@@ -605,7 +605,7 @@ private:
          }
       }
 
-      void PrintToStream(const OutputPrinter & p = stdout) const
+      void Print(const OutputPrinter & p = stdout) const
       {
          p.printf("   ObjectSlab %p:  %u nodes in use\n", this, _data.GetNumNodesInUse());
          for (uint32 i=0; i<NUM_OBJECTS_PER_SLAB; i++)

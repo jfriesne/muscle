@@ -25,17 +25,17 @@ int main(int argc, char ** argv)
    {
       for (uint32 i=0; i<buf.GetNumBytes(); i++) b[i] = i;
    }
-   buf.PrintToStream(); // let's view its contents
+   buf.Print(); // let's view its contents
 
    printf("\n");
    printf("Appending 10 more bytes to it...\n");
    for (uint32 i=0; i<10; i++) buf += (uint8) i;
-   buf.PrintToStream();
+   buf.Print();
 
    printf("\n");
    printf("Resizing it up to 128 bytes...\n");
    (void) buf.SetNumBytes(128, true);  // true == retain existing data in the buffer
-   buf.PrintToStream();
+   buf.Print();
 
    return 0;
 }

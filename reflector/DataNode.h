@@ -293,7 +293,7 @@ public:
      *                          MUSCLE_NO_LIMIT.
      * @param indentLevel how many spaces to indent the generated text
      */
-   void PrintToStream(const OutputPrinter & p = stdout, uint32 maxRecursionDepth = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
+   void Print(const OutputPrinter & p = stdout, uint32 maxRecursionDepth = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
 
 private:
    friend class StorageReflectSession;

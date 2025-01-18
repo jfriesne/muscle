@@ -221,7 +221,7 @@ int main(int argc, char ** argv)
             if (msgToSend())
             {
                printf("Calling mtt.SendMessageToSessions() with the following Message:\n");
-               msgToSend()->PrintToStream();
+               msgToSend()->Print();
                (void) mtt.SendMessageToSessions(msgToSend);
             }
          }
@@ -254,7 +254,7 @@ int main(int argc, char ** argv)
                default:                              codeStr = String("\'%1\'").Arg(GetTypeCodeString(code)); break;
             }
             printf("Event from MTT:  type=[%s], session=[%s] factoryID=[" UINT32_FORMAT_SPEC "] location=[%s]\n", codeStr(), session(), factoryID, location.ToString()());
-            if (ref()) ref()->PrintToStream();
+            if (ref()) ref()->Print();
          }
       }
    }

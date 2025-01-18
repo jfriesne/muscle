@@ -13,8 +13,8 @@ using namespace muscle;
 
 #define TEST(x) if ((x).IsError()) {printf("Test failed, line %i\n",__LINE__); ExitWithoutCleanup(10);}
 
-void PrintToStream(const Queue<int> & q);
-void PrintToStream(const Queue<int> & q)
+void Print(const Queue<int> & q);
+void Print(const Queue<int> & q)
 {
    printf("Queue state is:\n");
    for (uint32 i=0; i<q.GetNumItems(); i++)
@@ -125,18 +125,18 @@ static status_t UnitTestQueue(bool isFromScript)
 
    printf("AddTail array hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    MPRINT_ON_ERROR("AddTailMulti", q.AddTailMulti(vars, ARRAYITEMS(vars)));
-   PrintToStream(q);
+   Print(q);
 
    printf("AddHead array hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    MPRINT_ON_ERROR("AddHeadMulti", q.AddHeadMulti(vars, ARRAYITEMS(vars)));
-   PrintToStream(q);
+   Print(q);
 
    printf("REPLACEITEMAT TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    {
       for (int i=0; i<testSize; i++)
       {
          TEST(q.ReplaceItemAt(i, i+10));
-         PrintToStream(q);
+         Print(q);
       }
    }
 
@@ -145,7 +145,7 @@ static status_t UnitTestQueue(bool isFromScript)
       for (int i=0; i<testSize; i++)
       {
          TEST(q.InsertItemAt(i,i));
-         PrintToStream(q);
+         Print(q);
       }
    }
 
@@ -154,7 +154,7 @@ static status_t UnitTestQueue(bool isFromScript)
       for (int i=0; i<testSize; i++)
       {
          TEST(q.RemoveItemAt(i));
-         PrintToStream(q);
+         Print(q);
       }
    }
 

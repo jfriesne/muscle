@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
    {
       printf("Here's the ByteBuffer containing three big-endian int32's, followed by\n");
       printf("2 big-endian int16's, pi as a big-endian float, and finally an ASCII string:\n\n");
-      buf.PrintToStream();
+      buf.Print();
    }
    else printf("There was an error writing big-endian data into the ByteBuffer!  [%s]\n", flat.GetStatus()());
 

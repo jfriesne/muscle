@@ -543,7 +543,7 @@ MBool MMAreMessagesEqual(const MMessage * msg1, const MMessage * msg2);
   * @param msg The MMessage to print the contents of to stdout.
   * @param optFile If non-NULL, the file to print the output to.  If NULL, the output will go to stdout.
   */
-void MMPrintToStream(const MMessage * msg, FILE * optFile);
+void MMPrint(const MMessage * msg, FILE * optFile);
 
 /** Returns an iterator object that you can use to iterator over the field names of this MMessage.
   * @param msg The MMessage object over whose field names you wish to iterate.
