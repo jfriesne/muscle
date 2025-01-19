@@ -1222,16 +1222,17 @@ public:
    template<class T> String Arg(const T & t) const {return Arg(t.ToString());}
 
    /** A templated convenience-method for a pointer of any type.
-     * Equivalent to calling Arg((const void *)tpr).
      * @param tptr A pointer of some arbitrary type.
+     * @returns the String corresponding to the object (tptr) points to, or an empty String if (tptr) is NULL.
      */
-   template<class T> String Arg(const T * tptr) const {return Arg((const void *)tptr);}
+   template<class T> String Arg(const T * tptr) const {return tptr ? Arg(*tptr) : ArgAux("");}
 
    /** A templated convenience-method for a const pointer of any type.
-     * Equivalent to calling Arg((const T *)tpr).
+     * Equivalent to calling Arg(const_cast<const T *>(tpr)).
      * @param tptr A pointer of some arbitrary type.
+     * @returns the String corresponding to the object (tptr) points to, or an empty String if (tptr) is NULL.
      */
-   template<class T> String Arg(T * tptr) const {return Arg((const T *)tptr);}
+   template<class T> String Arg(T * tptr) const {return Arg(const_cast<const T *>(tptr));}
 
    /** If this string already ends with the specified character, returns this string verbatim.
      * Otherwise, returns a String equivalent to this one but with the specified character appended.

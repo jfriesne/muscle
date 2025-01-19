@@ -33,6 +33,8 @@ key:  - new feature
      multiple checksums together.
    - Updated various PrintToStream() methods to take an optional
      OutputPrinter object rather than a (FILE *).
+   o String::Arg(T* t) now expands to string returned by String::Arg(*t),
+     or to an empty String if t is NULL.
    o Renamed all PrintToStream() methods to Print(), as they no longer
      necessarily are printing to a stream.
    o Tweaked Snooze64() to handle long snooze times a bit better.
