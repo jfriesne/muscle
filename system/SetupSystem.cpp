@@ -2744,7 +2744,7 @@ void OutputPrinter :: putsAux(const char * s, uint32 numChars) const
 {
    if (_isAtStartOfLine)
    {
-      if (_logSeverity > MUSCLE_LOG_NONE) LogTime(_logSeverity, "");  // generate the log-timestamp-preamble at the left edge, before the indent
+      if (_logSeverity > MUSCLE_LOG_NONE) LogTime(_logSeverity, GetEmptyString()(), "");  // generate the log-timestamp-preamble at the left edge, before the indent
       _isAtStartOfLine = false;
       if (_indent > 0) putc(' ', _indent);
    }
