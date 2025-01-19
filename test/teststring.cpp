@@ -124,10 +124,10 @@ static status_t UnitTestString()
    const String oss1 = "This is string 1", oss2 = "This is string 2";
    String ss1 = oss1, ss2 = oss2;
 
-   PrintAndClearStringCopyCounts("Before Swap");
+   PrintAndClearStringCopyCounts(stdout, "Before Swap");
    muscleSwap(ss1, ss2);
 
-   PrintAndClearStringCopyCounts("After Swap");
+   PrintAndClearStringCopyCounts(stdout, "After Swap");
    printf("ss1=[%s] ss2=[%s]\n", ss1(), ss2());
 
    if (ss1 != oss2) return B_LOGIC_ERROR;

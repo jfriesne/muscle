@@ -122,9 +122,9 @@ int main(int, char **)
       Message m1(1), m2(2);
       (void) m1.AddString("blah", "m1");
       (void) m2.AddString("blah", "m2");
-      PrintAndClearStringCopyCounts("Before muscleSwap()");
+      PrintAndClearStringCopyCounts(stdout, "Before muscleSwap()");
       muscleSwap(m1, m2);
-      PrintAndClearStringCopyCounts("After muscleSwap()");
+      PrintAndClearStringCopyCounts(stdout, "After muscleSwap()");
       if ((m1.what != 2)||(m2.what != 1)||(m1.GetString("blah") != "m2")||(m2.GetString("blah") != "m1"))
       {
          printf("Oh no, muscleSwap is broken for Message objects!\n");

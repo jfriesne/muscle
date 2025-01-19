@@ -324,12 +324,12 @@ template<class T> void TestMuscleSwap(const char * desc)
 
    char buf[256];
    muscleSprintf(buf, "Before muscleSwap[%s] test", desc);
-   PrintAndClearStringCopyCounts(buf);
+   PrintAndClearStringCopyCounts(stdout, buf);
 
    muscleSwap(m1, m2);
 
    muscleSprintf(buf, "After muscleSwap[%s] test", desc);
-   PrintAndClearStringCopyCounts(buf);
+   PrintAndClearStringCopyCounts(stdout, buf);
 
    if ((m1.GetWithDefault("m2") != "m2")||(m2.GetWithDefault("m1") != "m1")||(m1.GetNumItems() != 1)||(m2.GetNumItems() != 1))
    {
@@ -768,7 +768,7 @@ int main(int argc, char ** argv)
    // Now some timing test with String keys and values, for testing of the C++11 move semantics
    if (!isFromScript)
    {
-      PrintAndClearStringCopyCounts("Before String Sort test");
+      PrintAndClearStringCopyCounts(stdout, "Before String Sort test");
       const uint32 NUM_ITEMS = 1000000;
       const uint32 NUM_RUNS  = 3;
       Hashtable<String, String> testCopy;
@@ -804,7 +804,7 @@ int main(int argc, char ** argv)
       }
       printf("STRING GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC " RUNS ARE:\n", NUM_RUNS);
       for (HashtableIterator<String, double> iter(tallies); iter.HasData(); iter++) printf("   STRING %f items/second for %s\n", iter.GetValue()/NUM_RUNS, iter.GetKey()());
-      PrintAndClearStringCopyCounts("After String Sort test");
+      PrintAndClearStringCopyCounts(stdout, "After String Sort test");
    }
 
    _state = 4;

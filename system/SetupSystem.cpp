@@ -369,32 +369,32 @@ SanitySetupSystem :: SanitySetupSystem()
 SanitySetupSystem :: ~SanitySetupSystem()
 {
 #ifdef MUSCLE_COUNT_STRING_COPY_OPERATIONS
-   PrintAndClearStringCopyCounts("At end of main()");
+   PrintAndClearStringCopyCounts(stdout, "At end of main()");
 #endif
 }
 
 #ifdef MUSCLE_COUNT_STRING_COPY_OPERATIONS
-void PrintAndClearStringCopyCounts(const char * optDesc)
+void PrintAndClearStringCopyCounts(const OutputPrinter & p, const char * optDesc)
 {
    const uint32 * s = _stringOpCounts;  // just to save chars
    const uint32 totalCopies = s[STRING_OP_COPY_CTOR] + s[STRING_OP_PARTIAL_COPY_CTOR] + s[STRING_OP_SET_FROM_STRING];
    const uint32 totalMoves  = s[STRING_OP_MOVE_CTOR] + s[STRING_OP_MOVE_FROM_STRING];
 
-   printf("String Op Counts [%s]\n", optDesc?optDesc:"Untitled");
-   printf("# Default Ctors = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_DEFAULT_CTOR]);
-   printf("# Cstr Ctors    = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_CSTR_CTOR]);
-   printf("# Copy Ctors    = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_COPY_CTOR]);
-   printf("# PtCopy Ctors  = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_PARTIAL_COPY_CTOR]);
-   printf("# Set from Cstr = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_SET_FROM_CSTR]);
-   printf("# Set from Str  = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_SET_FROM_STRING]);
-   printf("# Move Ctor     = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_MOVE_CTOR]);
-   printf("# Move from Str = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_MOVE_FROM_STRING]);
-   printf("# Dtors         = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_DTOR]);
-   printf("-----------------------------\n");
-   printf("# Total Copies  = " UINT32_FORMAT_SPEC "\n", totalCopies);
-   printf("# Total Moves   = " UINT32_FORMAT_SPEC "\n", totalMoves);
-   printf("# Total Either  = " UINT32_FORMAT_SPEC "\n", totalCopies+totalMoves);
-   printf("\n");
+   p.printf("String Op Counts [%s]\n", optDesc?optDesc:"Untitled");
+   p.printf("# Default Ctors = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_DEFAULT_CTOR]);
+   p.printf("# Cstr Ctors    = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_CSTR_CTOR]);
+   p.printf("# Copy Ctors    = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_COPY_CTOR]);
+   p.printf("# PtCopy Ctors  = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_PARTIAL_COPY_CTOR]);
+   p.printf("# Set from Cstr = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_SET_FROM_CSTR]);
+   p.printf("# Set from Str  = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_SET_FROM_STRING]);
+   p.printf("# Move Ctor     = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_MOVE_CTOR]);
+   p.printf("# Move from Str = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_MOVE_FROM_STRING]);
+   p.printf("# Dtors         = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_DTOR]);
+   p.printf("-----------------------------\n");
+   p.printf("# Total Copies  = " UINT32_FORMAT_SPEC "\n", totalCopies);
+   p.printf("# Total Moves   = " UINT32_FORMAT_SPEC "\n", totalMoves);
+   p.printf("# Total Either  = " UINT32_FORMAT_SPEC "\n", totalCopies+totalMoves);
+   p.printf("\n");
 
    for (uint32 i=0; i<NUM_STRING_OPS; i++) _stringOpCounts[i] = 0;  // reset counts for next time
 }

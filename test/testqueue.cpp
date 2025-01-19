@@ -260,7 +260,7 @@ static status_t UnitTestQueue(bool isFromScript)
 
    if (!isFromScript)
    {
-      PrintAndClearStringCopyCounts("Before String Sort Tests");
+      PrintAndClearStringCopyCounts(stdout, "Before String Sort Tests");
       const uint32 NUM_ITEMS = 1000000;
       const uint32 NUM_RUNS  = 3;
       Queue<String> qq; (void) qq.EnsureSize(NUM_ITEMS, true);
@@ -280,7 +280,7 @@ static status_t UnitTestQueue(bool isFromScript)
          tally += itemsPerSecond;
       }
       printf("STRING GRAND AVERAGE ITEMS PER SECOND WAS %f items per second\n", tally/NUM_RUNS);
-      PrintAndClearStringCopyCounts("After String Sort Tests");
+      PrintAndClearStringCopyCounts(stdout, "After String Sort Tests");
    }
 
    printf("REVERSE TEST\n");

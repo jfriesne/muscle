@@ -41,11 +41,11 @@ enum {
    NUM_STRING_OPS
 };
 extern uint32 _stringOpCounts[NUM_STRING_OPS];
-extern void PrintAndClearStringCopyCounts(const char * optDesc = NULL);
+extern void PrintAndClearStringCopyCounts(const OutputPrinter & p, const char * optDesc = NULL);
 #  define MUSCLE_INCREMENT_STRING_OP_COUNT(which) _stringOpCounts[which]++
 # else
 #  define MUSCLE_INCREMENT_STRING_OP_COUNT(which)
-static inline void PrintAndClearStringCopyCounts(const char * optDesc = NULL) {(void) optDesc;}
+static inline void PrintAndClearStringCopyCounts(const OutputPrinter & p, const char * optDesc = NULL) {(void) p; (void) optDesc;}
 # endif
 #endif
 
