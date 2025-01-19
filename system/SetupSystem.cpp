@@ -4,7 +4,6 @@
 #include "support/Flattenable.h"
 #include "dataio/SeekableDataIO.h"
 #include "reflector/SignalHandlerSession.h"  // for SetMainReflectServerCatchSignals()
-#include "system/SystemInfo.h"             // for GetBuildFlags()
 #include "util/ObjectPool.h"
 #include "util/ByteBuffer.h"
 #include "util/DebugTimer.h"
@@ -2358,7 +2357,7 @@ public:
    }
 };
 
-void PrintCountedObjectInfo()
+void PrintCountedObjectInfo(const OutputPrinter & p)
 {
 #ifdef MUSCLE_ENABLE_OBJECT_COUNTING
    uint64 totalNumObjects = 0;
@@ -2376,18 +2375,18 @@ void PrintCountedObjectInfo()
          totalNumBytes   += ((uint64)objSize)*((uint64)objCount);
       }
 
-      printf("Counted Object Info report follows: (" UINT32_FORMAT_SPEC " types counted, " UINT64_FORMAT_SPEC " total objects, %.02f total MB, average " UINT64_FORMAT_SPEC " bytes/object)\n", table.GetNumItems(), totalNumObjects, ((double)totalNumBytes)/(1024*1024), (uint64)((totalNumObjects>0)?(totalNumBytes/totalNumObjects):0));
+      p.printf("Counted Object Info report follows: (" UINT32_FORMAT_SPEC " types counted, " UINT64_FORMAT_SPEC " total objects, %.02f total MB, average " UINT64_FORMAT_SPEC " bytes/object)\n", table.GetNumItems(), totalNumObjects, ((double)totalNumBytes)/(1024*1024), (uint64)((totalNumObjects>0)?(totalNumBytes/totalNumObjects):0));
       for (HashtableIterator<const char *, uint64> iter(table, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
       {
          const uint64 v        = iter.GetValue();
          const uint32 objSize  = ((v>>32) & 0xFFFFFFFF);
          const uint32 objCount = ((v>>00) & 0xFFFFFFFF);
-         printf("   %6" UINT32_FORMAT_SPEC_NOPERCENT " %s (" UINT32_FORMAT_SPEC " bytes/object, %ikB used))\n", objCount, iter.GetKey(), objSize, (int)((512+(((uint64)objSize)*((uint64)objCount)))/1024));
+         p.printf("   %6" UINT32_FORMAT_SPEC_NOPERCENT " %s (" UINT32_FORMAT_SPEC " bytes/object, %ikB used))\n", objCount, iter.GetKey(), objSize, (int)((512+(((uint64)objSize)*((uint64)objCount)))/1024));
       }
    }
-   else printf("PrintCountedObjectInfo:  GetCountedObjectInfo() failed!\n");
+   else p.printf("PrintCountedObjectInfo:  GetCountedObjectInfo() failed!\n");
 #else
-   printf("Counted Object Info report not available, because MUSCLE was compiled without -DMUSCLE_ENABLE_OBJECT_COUNTING\n");
+   p.printf("Counted Object Info report not available, because MUSCLE was compiled without -DMUSCLE_ENABLE_OBJECT_COUNTING\n");
 #endif
 }
 
@@ -2667,19 +2666,10 @@ Queue<String> GetBuildFlags()
    return q;
 }
 
-void LogBuildFlags(int logLevel)
-{
-   if (GetMaxLogLevel() >= logLevel)
-   {
-      Queue<String> flagStrs = GetBuildFlags();
-      for (uint32 i=0; i<flagStrs.GetNumItems(); i++) LogTime(logLevel, "MUSCLE code was compiled with preprocessor flag -D%s\n", flagStrs[i]());
-   }
-}
-
-void PrintBuildFlags()
+void PrintBuildFlags(const OutputPrinter & p)
 {
    Queue<String> flagStrs = GetBuildFlags();
-   for (uint32 i=0; i<flagStrs.GetNumItems(); i++) printf("MUSCLE code was compiled with preprocessor flag -D%s\n", flagStrs[i]());
+   for (uint32 i=0; i<flagStrs.GetNumItems(); i++) p.printf("MUSCLE code was compiled with preprocessor flag -D%s\n", flagStrs[i]());
 }
 
 uint64 GetProcessMemoryUsage()

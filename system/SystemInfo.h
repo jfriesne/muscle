@@ -64,23 +64,10 @@ MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL inline const char * GetFilePathSepara
 #endif
 }
 
-/** Convenience method for debugging.  Returns a list of human-readable strings
-  * of the various MUSCLE-specific build flags (as documented in COMPILEROPTIONS.txt)
-  * that the MUSCLE codebase was compiled.
+/** Prints a summary of our build flags using the passed-in OutputPrinter.
+  * @param p the OutputPrinter to use for printing.
   */
-Queue<String> GetBuildFlags();
-
-/** Convenience method for debugging.  Dumps a human-readable record of the
-  * various MUSCLE-specific build flags (as documented in COMPILEROPTIONS.txt)
-  * that the MUSCLE codebase was compiled with to the log, at the specified log level.
-  * @param logLevel Optional MUSCLE_LOG_* value to log at.  Defaults to MUSCLE_LOG_INFO.
-  */
-void LogBuildFlags(int logLevel = MUSCLE_LOG_INFO);
-
-/** Same as LogBuildFlags() except the text is printed directly to stdout
-  * rather than going through the LogTime() logging function.
-  */
-void PrintBuildFlags();
+void PrintBuildFlags(const OutputPrinter & p);
 
 /** @} */ // end of systeminfo doxygen group
 

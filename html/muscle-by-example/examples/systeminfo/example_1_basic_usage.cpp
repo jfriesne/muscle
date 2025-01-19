@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
 
    printf("\n");
    printf("Build flags our code was compiled with follow:\n");
-   PrintBuildFlags();
+   PrintBuildFlags(stdout);
 
    return 0;
 }

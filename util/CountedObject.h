@@ -121,8 +121,10 @@ public:
   */
 status_t GetCountedObjectInfo(Hashtable<const char *, uint64> & results);
 
-/** Convenience function.  Calls GetCountedObjectInfo() and pretty-prints the results to stdout. */
-void PrintCountedObjectInfo();
+/** Convenience function.  Calls GetCountedObjectInfo() and pretty-prints the results.
+  * @param p the OutputPrinter to use for printing
+  */
+void PrintCountedObjectInfo(const OutputPrinter & p);
 
 #if defined(MUSCLE_ENABLE_OBJECT_COUNTING)
 # define DECLARE_COUNTED_OBJECT(className) CountedObject<className> _declaredCountedObject /**< Macro to declare CountedObject<className> as a member variable, iff MUSCLE_ENABLE_OBJECT_COUNTING is defined */

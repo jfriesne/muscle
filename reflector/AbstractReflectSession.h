@@ -483,16 +483,18 @@ public:
      */
    MUSCLE_NODISCARD const ConstSocketRef & GetSessionWriteSelectSocket() const;
 
-   /** Prints to stdout a report of what sessions are currently present on this server, and how
+   /** Prints a report of what sessions are currently present on this server, and how
      * much memory each of them is currently using for various things.  Useful for understanding
      * what your RAM is being used for.
+     * @param p the OutputPrinter to use for printing the text
      */
-   void PrintSessionsInfo() const;
+   void PrintSessionsInfo(const OutputPrinter & p) const;
 
-   /** Prints to stdout a report of what ReflectSessionFactories are currently present on this server,
+   /** Prints a report of what ReflectSessionFactories are currently present on this server,
      * and what interfaces and ports they are listening on.
+     * @param p the OutputPrinter to use for printing the text
      */
-   void PrintFactoriesInfo() const;
+   void PrintFactoriesInfo(const OutputPrinter & p) const;
 
    /** Returns the GetRunTime64()-style timestamp of the when this session most recently received data,
      * or MUSCLE_TIME_NEVER if has never received any data.
