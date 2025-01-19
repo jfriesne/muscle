@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates using the CPULoadMeter class to measure the host computer's CPU usage percentage.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates using the CPULoadMeter class to measure the host computer's CPU usage percentage.\n");
+   p.printf("\n");
 }
 
 /* This little program demonstrates basic usage of the muscle::CPULoadMeter class */
@@ -16,7 +16,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    CPULoadMeter meter;
    while(true)

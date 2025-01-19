@@ -3,18 +3,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates basic usage of the muscle::IPAddress and muscle::IPAddressAndPort classes.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates basic usage of the muscle::IPAddress and muscle::IPAddressAndPort classes.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Some well-known IP addresses, exported as globals for convenience
    printf("invalidIP=[%s] (all zeroes)\n", invalidIP.ToString()());

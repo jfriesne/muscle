@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates basic usage of the muscle::QueryFilter class to test whether a Message object matches various test-conditions.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates basic usage of the muscle::QueryFilter class to test whether a Message object matches various test-conditions.\n");
+   p.printf("\n");
 }
 
 static void TestTheMessage(const Message & msg, const char * filterDescription, const QueryFilter & qf)
@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    Message testMsg(1234);
    (void) testMsg.AddString("Friendship is", "magic");

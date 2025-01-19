@@ -72,6 +72,12 @@ if (WITH_EXAMPLES)
    add_executable(directory_example_1_basic_usage directory/example_1_basic_usage.cpp)
    target_link_libraries(directory_example_1_basic_usage muscle)
 
+   add_executable(outputprinter_example_1_basic_usage outputprinter/example_1_basic_usage.cpp)
+   target_link_libraries(outputprinter_example_1_basic_usage muscle)
+
+   add_executable(outputprinter_example_2_indentation outputprinter/example_2_indentation.cpp)
+   target_link_libraries(outputprinter_example_2_indentation muscle)
+
    add_executable(filepathinfo_example_1_basic_usage filepathinfo/example_1_basic_usage.cpp)
    target_link_libraries(filepathinfo_example_1_basic_usage muscle)
 

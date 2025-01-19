@@ -3,25 +3,25 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates some basic blocking-I/O UDP unicast usage of the NetworkUtilityFunctions API.\n");
-   printf("It takes one optional argument, which is a port number on localhost to send a UDP packet to on startup.\n");
-   printf("\n");
-   printf("Once it is running, it will bind to a UDP port and listen for incoming UDP packets on that port.\n");
-   printf("Any UDP packet it receives, it will echo back to the sender.\n");
-   printf("\n");
-   printf("Run two or more instances of this program simultaneously and point them at each other's UDP ports,\n");
-   printf("in order to enjoy a nice game of ping-pong.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates some basic blocking-I/O UDP unicast usage of the NetworkUtilityFunctions API.\n");
+   p.printf("It takes one optional argument, which is a port number on localhost to send a UDP packet to on startup.\n");
+   p.printf("\n");
+   p.printf("Once it is running, it will bind to a UDP port and listen for incoming UDP packets on that port.\n");
+   p.printf("Any UDP packet it receives, it will echo back to the sender.\n");
+   p.printf("\n");
+   p.printf("Run two or more instances of this program simultaneously and point them at each other's UDP ports,\n");
+   p.printf("in order to enjoy a nice game of ping-pong.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    ConstSocketRef udpSock = CreateUDPSocket();
    if (udpSock() == NULL)

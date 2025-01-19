@@ -4,18 +4,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates basic blocking-I/O usage of the muscle::DataIO interface\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates basic blocking-I/O usage of the muscle::DataIO interface\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("This program will accept input from stdin and write it to a file named example_1_dataio_output.txt.\n");
    printf("So go ahead and type whatever you want, and press CTRL-D when you are done.\n");

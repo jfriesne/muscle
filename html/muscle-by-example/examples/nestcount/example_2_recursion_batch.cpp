@@ -4,13 +4,13 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates how a NestCount and NestCountGuard can be used to\n");
-   printf("run special routines at the beginning and/or the end of the execution of a\n");
-   printf("a tree of recursive-method-calls.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates how a NestCount and NestCountGuard can be used to\n");
+   p.printf("run special routines at the beginning and/or the end of the execution of a\n");
+   p.printf("a tree of recursive-method-calls.\n");
+   p.printf("\n");
 }
 
 class MyClass
@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    MyClass c;
 

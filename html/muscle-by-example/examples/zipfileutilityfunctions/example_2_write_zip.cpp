@@ -3,11 +3,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates using ZipFileUtilityFunctions to write out a .zip file\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates using ZipFileUtilityFunctions to write out a .zip file\n");
+   p.printf("\n");
 }
 
 static void AddFileToDir(Message & dirMsg, const String & fileName, uint32 fileLenBytes)
@@ -31,7 +31,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    if (argc != 2)
    {

@@ -4,14 +4,14 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates the Flattenable interface by making up an\n");
-   printf("example class (GPSCoordinate) that implements the Flattenable interface,\n");
-   printf("and using that interface to convert a GPSCoordinate object into a flat\n");
-   printf("array of uint8's, and then restoring it back from them.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates the Flattenable interface by making up an\n");
+   p.printf("example class (GPSCoordinate) that implements the Flattenable interface,\n");
+   p.printf("and using that interface to convert a GPSCoordinate object into a flat\n");
+   p.printf("array of uint8's, and then restoring it back from them.\n");
+   p.printf("\n");
 }
 
 enum {
@@ -86,7 +86,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    GPSCoordinate gps(50.2390641f, -119.2671924f, 500.0f);
    printf("Original GPS is: %s\n", gps.ToString()());

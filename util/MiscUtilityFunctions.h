@@ -243,17 +243,27 @@ MUSCLE_NODISCARD bool ParseBool(const String & word, bool defaultValue=true);
 /** Looks for some globally useful startup arguments in the (args)
  *  Message and handles them by calling the appropriate setup routines.
  *  Recognized arguments currently include the following:
- *     daemon                -- Non-Windows only:  Run this process in the background
- *     localhost=ip          -- Treat connections from localhost as if they were coming from (ip)
- *     displaylevel=levelstr -- Set the stdout output display filter level to (levelstr)
- *     filelevel=levelstr    -- Set the output log file filter level to (levelstr)
- *     logfile=levelstr      -- Force the log file to have this name/location
- *     nice[=niceLevel]      -- Linux/OSX only: makes this process nicer (ie lower priority)
- *     mean[=meanLevel]      -- Linux/OSX only: makes this process meaner (ie higher priority)
- *     realtime[=priority]   -- Linux only: makes this process real-time (requires root access)
- *     debugcrashes          -- Linux only: print a stack trace when a crash occurs
- *     console               -- Windows only:  open a DOS box to display this window's output
- *  @param args an arguments Message, as produced by ParseArgs() or ParseFile() or etc.
+ *   - daemon                 -- Non-Windows only:  Run this process in the background
+ *   - localhost=ip           -- Treat connections from localhost as if they were coming from (ip)
+ *   - displaylevel=levelstr  -- Set the stdout output display filter level to (levelstr)
+ *   - filelevel=levelstr     -- Set the output log file filter level to (levelstr)
+ *   - logfile=levelstr       -- Force the log file to have this name/location
+ *   - nice[=niceLevel]       -- Linux/OSX only: makes this process nicer (ie lower priority)
+ *   - mean[=meanLevel]       -- Linux/OSX only: makes this process meaner (ie higher priority)
+ *   - realtime[=priority]    -- Linux only: makes this process real-time (requires root access)
+ *   - debugcrashes           -- Linux only: print a stack trace when a crash occurs
+ *   - console                -- Windows only:  open a DOS box to display this window's output
+ *   - disablestderr          -- Disable any further output to stderr
+ *   - disablestdout          -- Disable any further output to stdout
+ *   - logtostderr            -- Direct output of the Log()/LogTime() calls to stderr rather than stdout
+ *   - maxlogfiles            -- Maximum number of log files to create before starting to remove old ones
+ *   - maxlogfilesize         -- How large (in kB) a log file can grow before we open a new one
+ *   - compresslogfiles       -- If specified, completed log files will be gzipped to save space
+ *   - dnscache=timestr       -- How long DNS lookup results should be cached for potential reuse
+ *   - dontcatchsignals       -- Disable the default signal-handling code (if it was enabled by default)
+ *   - catchsignals           -- Enable the default signal-handling code (if it was disabled by default)
+ *   - printnetworkinterfaces -- Print all the detected network interface adaptors on startup
+ *  @param args an arguments Message with String fields, as produced by ParseArgs() or ParseFile() or etc.
  */
 void HandleStandardDaemonArgs(const Message & args);
 
@@ -671,7 +681,7 @@ static inline uint32 GetInsecurePseudoRandomNumber(uint32 maxVal = MUSCLE_NO_LIM
 /** Given a mangled C++ symbol, tries to return a more human-readable (aka unmangled) form of it.
   * @param mangledName a mangled C++ symbol-name
   * @returns a more human-readable string representing the type.
-  *          In the worse case it will be the same as the argument that was passed in.
+  *          In the worst-case, it will be the same as the string that was passed in.
   */
 String GetUnmangledSymbolName(const char * mangledName);
 

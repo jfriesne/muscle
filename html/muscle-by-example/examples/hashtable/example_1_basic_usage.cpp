@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates the basic usage of a Hashtable for storing and retrieving key->value pairs.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates the basic usage of a Hashtable for storing and retrieving key->value pairs.\n");
+   p.printf("\n");
 }
 
 /* This little program demonstrates basic usage of the muscle::Hashtable class */
@@ -16,7 +16,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("Basic Hashtable<String,int> declaration and population:\n");
 

@@ -91,6 +91,7 @@ nav:
    - DataFlattener: 'dataflattener.md'
    - DataUnflattener: 'dataunflattener.md'
    - LogTime/LogCallback: 'logtime.md'
+   - OutputPrinter: 'outputprinter.md'
    - NestCount/NestCountGuard: 'nestcount.md'
    - MiscUtilityFunctions: 'miscutilityfunctions.md'
    - TimeUtilityFunctions: 'timeutilityfunctions.md'

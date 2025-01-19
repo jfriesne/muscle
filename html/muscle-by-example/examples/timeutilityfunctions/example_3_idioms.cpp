@@ -6,18 +6,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates various minor time-related features available in the TimeUtilityFunctions API\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates various minor time-related features available in the TimeUtilityFunctions API\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("The OnceEvery() function returns true once every so-many microseconds.  It can be used to generate output at a measured pace:\n");
    uint64 prevTime = 0;

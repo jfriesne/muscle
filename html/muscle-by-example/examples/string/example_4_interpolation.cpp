@@ -3,18 +3,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates sprintf()/QString-style variable interpolation using the .Arg() method\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates sprintf()/QString-style variable interpolation using the .Arg() method\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    const String truth = String("The moon is made of %1 cheese, and weighs %2 pounds.").Arg("green").Arg(42);
    printf("%s\n", truth());

@@ -3,11 +3,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates the basic usage of a ByteBuffer object to hold binary bytes\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates the basic usage of a ByteBuffer object to hold binary bytes\n");
+   p.printf("\n");
 }
 
 /* This little program demonstrates basic usage of the muscle::ByteBuffer class */
@@ -15,7 +15,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("Example ByteBuffer containing 64 bytes...\n");
 

@@ -7,23 +7,23 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program implements a \"smart\" Message server that uses\n");
-   printf("a DetectNetworkConfigChangesSession to detect when the network\n");
-   printf("configuration has changed, or when the computer is about to go\n");
-   printf("to sleep (or has just woken up).\n");
-   printf("\n");
-   printf("In this implementation, we don't even bother to subclass DetectNetworkConfigChangesSession;\n");
-   printf("instead we just add a default DetectNetworkConfigChangesSession session to the\n");
-   printf("ReflectServer.  The default DetectNetworkConfigChangesSession session will try\n");
-   printf("to call the appropriate functions on any other attached session objects that\n");
-   printf("inherit from INetworkConfigChangesTarget, so for our purposes, just having\n");
-   printf("MyRandomSession subclass INetworkConfigChangesTarget is sufficient.\n");
-   printf("\n");
-   printf("It's otherwise identical to the reflector/example_4_smart_server.cpp example.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program implements a \"smart\" Message server that uses\n");
+   p.printf("a DetectNetworkConfigChangesSession to detect when the network\n");
+   p.printf("configuration has changed, or when the computer is about to go\n");
+   p.printf("to sleep (or has just woken up).\n");
+   p.printf("\n");
+   p.printf("In this implementation, we don't even bother to subclass DetectNetworkConfigChangesSession;\n");
+   p.printf("instead we just add a default DetectNetworkConfigChangesSession session to the\n");
+   p.printf("ReflectServer.  The default DetectNetworkConfigChangesSession session will try\n");
+   p.printf("to call the appropriate functions on any other attached session objects that\n");
+   p.printf("inherit from INetworkConfigChangesTarget, so for our purposes, just having\n");
+   p.printf("MyRandomSession subclass INetworkConfigChangesTarget is sufficient.\n");
+   p.printf("\n");
+   p.printf("It's otherwise identical to the reflector/example_4_smart_server.cpp example.\n");
+   p.printf("\n");
 }
 
 static const uint16 SMART_SERVER_TCP_PORT = 9876;  // arbitrary port number for the "smart" server
@@ -60,7 +60,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Let's enable a bit of debug-output, just to see what the server is doing
    SetConsoleLogLevel(MUSCLE_LOG_DEBUG);

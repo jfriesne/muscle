@@ -5,11 +5,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example program spawns two threads and lets them play a few rounds of ping-pong using Wait() and Notify()\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example program spawns two threads and lets them play a few rounds of ping-pong using Wait() and Notify()\n");
+   p.printf("\n");
 }
 
 /** This class will just call Wait() on the supplied WaitCondition, and then exit after Wait() returns */
@@ -63,7 +63,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    status_t ret;
 

@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example program demonstrates basic usage of the muscle::Thread class to spawn a captive thread.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example program demonstrates basic usage of the muscle::Thread class to spawn a captive thread.\n");
+   p.printf("\n");
 }
 
 /** This class will implement my own thread's functionality */
@@ -43,7 +43,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    status_t ret;
 

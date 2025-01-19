@@ -3,18 +3,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates basic usage of the muscle::Queue class to store an ordered list of data items.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates basic usage of the muscle::Queue class to store an ordered list of data items.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("Basic Queue declaration and appending:\n");
    {

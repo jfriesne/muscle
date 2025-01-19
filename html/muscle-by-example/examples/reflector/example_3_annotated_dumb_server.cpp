@@ -5,15 +5,15 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program is the same as example_1_dumb_server except in this version\n");
-   printf("we create our own DumbReflectSessionFactory and DumbReflectSession subclasses\n");
-   printf("instead of using the ones built in to the MUSCLE codebase.  That way we can\n");
-   printf("override all of their methods to print debug output and that way we can see\n");
-   printf("when their various methods are called.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program is the same as example_1_dumb_server except in this version\n");
+   p.printf("we create our own DumbReflectSessionFactory and DumbReflectSession subclasses\n");
+   p.printf("instead of using the ones built in to the MUSCLE codebase.  That way we can\n");
+   p.printf("override all of their methods to print debug output and that way we can see\n");
+   p.printf("when their various methods are called.\n");
+   p.printf("\n");
 }
 
 static const uint16 DUMB_SERVER_TCP_PORT = 8765;  // arbitrary port number for the "dumb" server
@@ -117,7 +117,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // This object contains our server's event loop.
    ReflectServer reflectServer;

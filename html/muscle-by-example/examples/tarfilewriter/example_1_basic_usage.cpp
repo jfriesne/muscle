@@ -8,11 +8,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This demonstrates basic usage of the muscle::TarFileWriter class by writing out a .tar file\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This demonstrates basic usage of the muscle::TarFileWriter class by writing out a .tar file\n");
+   p.printf("\n");
 }
 
 static status_t WriteFakeFileDataToTarFile(TarFileWriter & writer, const char * fakeFileName)
@@ -37,7 +37,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    status_t ret;
 

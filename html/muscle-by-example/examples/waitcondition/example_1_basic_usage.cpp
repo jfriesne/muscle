@@ -5,11 +5,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example program demonstrates basic usage of the muscle::WaitCondition class to block a thread until Notify() is called.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example program demonstrates basic usage of the muscle::WaitCondition class to block a thread until Notify() is called.\n");
+   p.printf("\n");
 }
 
 /** This class will just call Wait() on the supplied WaitCondition, and then exit after Wait() returns */
@@ -35,7 +35,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    status_t ret;
 

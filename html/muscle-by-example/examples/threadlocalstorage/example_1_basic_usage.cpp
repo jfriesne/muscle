@@ -4,13 +4,13 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates basic usage of the muscle::ThreadLocalStorage class\n");
-   printf("Note that although each thread is accessing the same global g_perThreadVariable,\n");
-   printf("each thread is \"seeing\" a different value from the others.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates basic usage of the muscle::ThreadLocalStorage class\n");
+   p.printf("Note that although each thread is accessing the same global g_perThreadVariable,\n");
+   p.printf("each thread is \"seeing\" a different value from the others.\n");
+   p.printf("\n");
 }
 
 static ThreadLocalStorage<int> g_perThreadVariable;
@@ -54,7 +54,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    const int NUM_THREADS = 5;
 

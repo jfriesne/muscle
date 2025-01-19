@@ -3,18 +3,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example program demonstrates generation of substrings from a muscle::String\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example program demonstrates generation of substrings from a muscle::String\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("String construction from only the first N chars of a C string:\n");
    {

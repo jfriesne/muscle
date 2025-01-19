@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates how the contents of a Hashtable can be sorted by key or by value, or manually re-ordered.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates how the contents of a Hashtable can be sorted by key or by value, or manually re-ordered.\n");
+   p.printf("\n");
 }
 
 void PrintTable(const char * desc, const Hashtable<String, int> & table); // forward declaration; see bottom of file
@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    Hashtable<String, int> table;
    (void) table.Put("Five",     5);

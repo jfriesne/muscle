@@ -6,14 +6,14 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program implements a \"smart\" Message server.  This server implements\n");
-   printf("the standard MUSCLE StorageReflectSession features (it's quite similar to \n");
-   printf("the standard muscled; the main difference is that it doesn't accept any\n");
-   printf("command line options, for simplicity)\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program implements a \"smart\" Message server.  This server implements\n");
+   p.printf("the standard MUSCLE StorageReflectSession features (it's quite similar to \n");
+   p.printf("the standard muscled; the main difference is that it doesn't accept any\n");
+   p.printf("command line options, for simplicity)\n");
+   p.printf("\n");
 }
 
 static const uint16 SMART_SERVER_TCP_PORT = 9876;  // arbitrary port number for the "smart" server
@@ -22,7 +22,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Let's enable a bit of debug-output, just to see what the server is doing
    SetConsoleLogLevel(MUSCLE_LOG_DEBUG);

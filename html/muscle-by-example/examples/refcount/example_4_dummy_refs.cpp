@@ -3,12 +3,12 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This demonstrates the use of a \"dummy Ref\" in conjunction with a stack object.\n");
-   printf("This Ref won't ever call delete on the pointer you pass in to its constructor\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This demonstrates the use of a \"dummy Ref\" in conjunction with a stack object.\n");
+   p.printf("This Ref won't ever call delete on the pointer you pass in to its constructor\n");
+   p.printf("\n");
 }
 
 class MyClass : public RefCountable
@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Say we've got an API (like SomeFunctionThatTakesAMyClassRef(), above)
    // that takes a MyClassRef as an argument.  As long as our MyClass object

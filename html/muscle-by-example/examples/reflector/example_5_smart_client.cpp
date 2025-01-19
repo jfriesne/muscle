@@ -9,15 +9,15 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program implements a \"smart\" Message client.  It will connect to\n");
-   printf("the same TCP port that the example_4_smart_server listens on, and then\n");
-   printf("send a Message objects to the server whenever you type a line of text on\n");
-   printf("stdin.  It will also receive Messages from the server and print them\n");
-   printf("to stdout.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program implements a \"smart\" Message client.  It will connect to\n");
+   p.printf("the same TCP port that the example_4_smart_server listens on, and then\n");
+   p.printf("send a Message objects to the server whenever you type a line of text on\n");
+   p.printf("stdin.  It will also receive Messages from the server and print them\n");
+   p.printf("to stdout.\n");
+   p.printf("\n");
 }
 
 static const uint16 SMART_SERVER_TCP_PORT = 9876;  // arbitrary port number for the "smart" server
@@ -209,7 +209,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Let's enable a bit of debug-output, just to see what the client is doing
    SetConsoleLogLevel(MUSCLE_LOG_DEBUG);

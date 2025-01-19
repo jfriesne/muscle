@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program slightly modifies the previous example to do Mutex-locking \"RAII-style\" using a MutexGuard.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program slightly modifies the previous example to do Mutex-locking \"RAII-style\" using a MutexGuard.\n");
+   p.printf("\n");
 }
 
 static Mutex g_theMutex;  // will be used by all threads
@@ -72,7 +72,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    const int NUM_THREADS = 10;
 

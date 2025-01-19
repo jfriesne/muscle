@@ -4,18 +4,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates basic logging to a file (in addition to stdout).\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates basic logging to a file (in addition to stdout).\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    (void) SetFileLogName("example_2_log_file.txt");
    (void) SetFileLogLevel(MUSCLE_LOG_INFO);  // enable output-to-file of any lines with severity MUSCLE_LOG_INFO or higher

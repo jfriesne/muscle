@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates basic usage of the muscle::ReaderWriterMutex class to implement shared and exclusive access to data.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates basic usage of the muscle::ReaderWriterMutex class to implement shared and exclusive access to data.\n");
+   p.printf("\n");
 }
 
 static ReaderWriterMutex g_theRWMutex;  // will be used by all threads
@@ -56,7 +56,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    const int NUM_THREADS = 10;
 

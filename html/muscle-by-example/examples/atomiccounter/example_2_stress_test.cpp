@@ -4,15 +4,15 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program stress-tests an AtomicCounter by having multiple threads\n");
-   printf("incrementing it and decrementing it simultaneously.\n");
-   printf("\n");
-   printf("After that, this program does the same thing with a plain-old-int\n");
-   printf("counter to demonstrate the difference in behavior.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program stress-tests an AtomicCounter by having multiple threads\n");
+   p.printf("incrementing it and decrementing it simultaneously.\n");
+   p.printf("\n");
+   p.printf("After that, this program does the same thing with a plain-old-int\n");
+   p.printf("counter to demonstrate the difference in behavior.\n");
+   p.printf("\n");
 }
 
 // This will be modified by all threads without any synchronization (okay to do!)
@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    const int NUM_THREADS = 10;
 

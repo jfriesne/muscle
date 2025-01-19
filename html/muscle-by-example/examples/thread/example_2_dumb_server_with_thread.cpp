@@ -10,19 +10,19 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program implements a \"dumb\" Message server (as in the\n");
-   printf("reflector/example_1_dumb_server.cpp program) except this one\n");
-   printf("will also add a session that represents a separate Thread.\n");
-   printf("\n");
-   printf("Any time a Message is received from a client, that Message will\n");
-   printf("be passed to the Thread, which will then wait for a second or two\n");
-   printf("(to simulate data processing, and demonstrate that it is asynchronous\n");
-   printf("from the main thread's event loop) before passing back a response to\n");
-   printf("the client that originated the command Message.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program implements a \"dumb\" Message server (as in the\n");
+   p.printf("reflector/example_1_dumb_server.cpp program) except this one\n");
+   p.printf("will also add a session that represents a separate Thread.\n");
+   p.printf("\n");
+   p.printf("Any time a Message is received from a client, that Message will\n");
+   p.printf("be passed to the Thread, which will then wait for a second or two\n");
+   p.printf("(to simulate data processing, and demonstrate that it is asynchronous\n");
+   p.printf("from the main thread's event loop) before passing back a response to\n");
+   p.printf("the client that originated the command Message.\n");
+   p.printf("\n");
 }
 
 static const uint16 DUMB_SERVER_TCP_PORT = 8765;  // arbitrary port number for the "dumb" server
@@ -133,7 +133,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Let's enable a bit of debug-output, just to see what the server is doing
    SetConsoleLogLevel(MUSCLE_LOG_DEBUG);

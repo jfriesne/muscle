@@ -3,12 +3,12 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates which Ref assignment-conversions are allowed and which are compile-time errors\n");
-   printf("(the rules are very similar to the rules enforced by the compiler for raw pointers)\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates which Ref assignment-conversions are allowed and which are compile-time errors\n");
+   p.printf("(the rules are very similar to the rules enforced by the compiler for raw pointers)\n");
+   p.printf("\n");
 }
 
 /** An example of a class we want to allocate objects of from the heap,
@@ -35,7 +35,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    MyBaseClassRef myBaseClass1(new MyBaseClass);
 

@@ -3,11 +3,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates basic usage of the muscle::Ref and muscle::RefCountable classes\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates basic usage of the muscle::Ref and muscle::RefCountable classes\n");
+   p.printf("\n");
 }
 
 static int g_myClassCounter = 0;  // this will keep track of how many MyClass objects currently exist
@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("At top of main\n");
    printf("\n");

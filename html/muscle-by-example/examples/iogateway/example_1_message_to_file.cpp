@@ -5,20 +5,20 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates using a MessageIOGateway to write\n");
-   printf("a stream of Messages to a file and then read them back in and\n");
-   printf("print them out.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates using a MessageIOGateway to write\n");
+   p.printf("a stream of Messages to a file and then read them back in and\n");
+   p.printf("print them out.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // This scope is the "output some data" phase of this program
    {

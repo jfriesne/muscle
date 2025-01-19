@@ -7,33 +7,33 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates using a PlainTextMessageIOGateway to send\n");
-   printf("and receive plain text over a TCP connection.\n");
-   printf("\n");
-   printf("Note that in this example, we set the TCPSocketDataIO to be in\n");
-   printf("non-blocking mode.  The benefit here is that the PlainTextMessageIOGateway \n");
-   printf("will handle all of the byte-queueing and text-line-reassembly steps for us.  \n");
-   printf("Those are the things that make non-blocking mode such a PITA otherwise.\n");
-   printf("\n");
-   printf("Note that in a real program you probably wouldn't want to do it \n");
-   printf("this way; you'd use a ReflectServer and a session object instead, \n");
-   printf("and you'd set the session object's gateway to use a \n");
-   printf("PlainTextMessageIOGateway, and you wouldn't have to write all of \n");
-   printf("this I/O-handling code yourself.\n");
-   printf("\n");
-   printf("This example is written to use the PlainTextMessageIOGateway API directly\n");
-   printf("just to demonstrate how a PlainTextMessageIOGateway works.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates using a PlainTextMessageIOGateway to send\n");
+   p.printf("and receive plain text over a TCP connection.\n");
+   p.printf("\n");
+   p.printf("Note that in this example, we set the TCPSocketDataIO to be in\n");
+   p.printf("non-blocking mode.  The benefit here is that the PlainTextMessageIOGateway \n");
+   p.printf("will handle all of the byte-queueing and text-line-reassembly steps for us.  \n");
+   p.printf("Those are the things that make non-blocking mode such a PITA otherwise.\n");
+   p.printf("\n");
+   p.printf("Note that in a real program you probably wouldn't want to do it \n");
+   p.printf("this way; you'd use a ReflectServer and a session object instead, \n");
+   p.printf("and you'd set the session object's gateway to use a \n");
+   p.printf("PlainTextMessageIOGateway, and you wouldn't have to write all of \n");
+   p.printf("this I/O-handling code yourself.\n");
+   p.printf("\n");
+   p.printf("This example is written to use the PlainTextMessageIOGateway API directly\n");
+   p.printf("just to demonstrate how a PlainTextMessageIOGateway works.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    ConstSocketRef tcpSock;
 

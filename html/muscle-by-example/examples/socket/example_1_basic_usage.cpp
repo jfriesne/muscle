@@ -4,18 +4,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates basic usage of the muscle::Socket class and ConstSocketRef\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates basic usage of the muscle::Socket class and ConstSocketRef\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Atypical usage:  Capturing a file descriptor into a Socket object so that
    // it will be automatically close()'d when the execution leaves the enclosing scope

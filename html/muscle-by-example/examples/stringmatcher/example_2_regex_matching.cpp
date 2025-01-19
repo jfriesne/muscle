@@ -6,18 +6,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates regex matching using the StringMatcher class.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates regex matching using the StringMatcher class.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("Enter a regex pattern and I'll print out\n");
    printf("the word that match that pattern from the list of some\n");

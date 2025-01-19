@@ -5,20 +5,20 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program implements a version of \"Core War\" using the SharedMemory class.\n");
-   printf("\n");
-   printf("It will open a SharedMemory region, and every 100mS it will lock the region for\n");
-   printf("read/write access, and write its chosen letter to a random location inside that region.\n");
-   printf("\n");
-   printf("Then it will unlock the region, lock it for read-only access, and print out the\n");
-   printf("current contents of the region via a call to PrintHexBytes().\n");
-   printf("\n");
-   printf("Run multiple copies of the program simultaneously to see them fight for control of\n");
-   printf("the shared memory region!\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program implements a version of \"Core War\" using the SharedMemory class.\n");
+   p.printf("\n");
+   p.printf("It will open a SharedMemory region, and every 100mS it will lock the region for\n");
+   p.printf("read/write access, and write its chosen letter to a random location inside that region.\n");
+   p.printf("\n");
+   p.printf("Then it will unlock the region, lock it for read-only access, and print out the\n");
+   p.printf("current contents of the region via a call to PrintHexBytes().\n");
+   p.printf("\n");
+   p.printf("Run multiple copies of the program simultaneously to see them fight for control of\n");
+   p.printf("the shared memory region!\n");
+   p.printf("\n");
 }
 
 /* This little program demonstrates basic usage of the muscle::SharedMemory class */
@@ -26,7 +26,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
    (void) Snooze64(SecondsToMicros(5));  // give the user a bit of time to read the example description!
 
    srand((unsigned)time(NULL));

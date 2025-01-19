@@ -6,22 +6,22 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program is the same as the example_1_tcp_echo_server program, except\n");
-   printf("that it also wakes up once every 2 seconds to increment a timer value.\n");
-   printf("Its purpose is just to demonstrate how you can use the (timeoutAtTime)\n");
-   printf("argument of the SocketMultiplexer::WaitForEvents() method to efficiently\n");
-   printf("handle both I/O-driven events and time-driven events in a single thread.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program is the same as the example_1_tcp_echo_server program, except\n");
+   p.printf("that it also wakes up once every 2 seconds to increment a timer value.\n");
+   p.printf("Its purpose is just to demonstrate how you can use the (timeoutAtTime)\n");
+   p.printf("argument of the SocketMultiplexer::WaitForEvents() method to efficiently\n");
+   p.printf("handle both I/O-driven events and time-driven events in a single thread.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    const int TCP_PORT                 = 9999;
    const uint64 TIMER_INTERVAL_MICROS = SecondsToMicros(2);

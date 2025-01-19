@@ -3,18 +3,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates basic usage of the muscle::String class\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates basic usage of the muscle::String class\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("Basic String declaration and concatenation:\n");
    {

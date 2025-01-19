@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates sorting the contents of a muscle::Queue\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates sorting the contents of a muscle::Queue\n");
+   p.printf("\n");
 }
 
 void PrintQueue(const char * desc, const Queue<int>    & q); // forward declaration (see bottom of file)
@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
    Queue<int> iq;  // sigh

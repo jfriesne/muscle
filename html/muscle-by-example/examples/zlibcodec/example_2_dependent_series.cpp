@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates using a muscle::ZLibCodec to deflate a stream of data more efficiently by using dependent-coding\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates using a muscle::ZLibCodec to deflate a stream of data more efficiently by using dependent-coding\n");
+   p.printf("\n");
 }
 
 static ByteBufferRef GenerateMoreRawData()
@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    FileDataIO outputFile(muscleFopen("./example_2_output.bin", "wb"));
    if (outputFile.GetFile() == NULL)

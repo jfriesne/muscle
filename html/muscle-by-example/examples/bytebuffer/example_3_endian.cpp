@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates adding big-endian numbers to a ByteBuffer using a CheckedBigEndianDataFlattener\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates adding big-endian numbers to a ByteBuffer using a CheckedBigEndianDataFlattener\n");
+   p.printf("\n");
 }
 
 /* This program demonstrates the use of the CheckedBigEndianDataFlattener class
@@ -19,7 +19,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    ByteBuffer buf;
 

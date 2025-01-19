@@ -3,18 +3,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates basic usage of the SystemInfo API to gather system details.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates basic usage of the SystemInfo API to gather system details.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("Here's some information about your system:\n");
 

@@ -3,24 +3,24 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This little program demonstrates basic usage of the muscle::AtomicCounter class.\n");
-   printf("\n");
-   printf("Note that this program calls AtomicCounter::GetCount() just to show what is going\n");
-   printf("on with the counter's value -- that's okay because this example uses only a single\n");
-   printf("thread, but in the more usual multi-threaded context, it's better to not call\n");
-   printf("AtomicCounter::GetCount() if you can avoid it, since the value you get back may\n");
-   printf("be obsolete (due to race conditions) by the time you examine it.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This little program demonstrates basic usage of the muscle::AtomicCounter class.\n");
+   p.printf("\n");
+   p.printf("Note that this program calls AtomicCounter::GetCount() just to show what is going\n");
+   p.printf("on with the counter's value -- that's okay because this example uses only a single\n");
+   p.printf("thread, but in the more usual multi-threaded context, it's better to not call\n");
+   p.printf("AtomicCounter::GetCount() if you can avoid it, since the value you get back may\n");
+   p.printf("be obsolete (due to race conditions) by the time you examine it.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    AtomicCounter ac;
    printf("AtomicCounter's initial value is %i\n", ac.GetCount());

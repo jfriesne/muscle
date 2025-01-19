@@ -11,16 +11,16 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program is the same as example_4_smart_server except in this example\n");
-   printf("we also add in a UDPPingPongSession that knows how to play the \"UDP ping pong\"\n");
-   printf("game from the networkutilityfunctions example folder.\n");
-   printf("\n");
-   printf("This is just to demonstrate how the high-level API can be expanded to do\n");
-   printf("multiple tasks at once, without having to modify the code for the existing tasks.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program is the same as example_4_smart_server except in this example\n");
+   p.printf("we also add in a UDPPingPongSession that knows how to play the \"UDP ping pong\"\n");
+   p.printf("game from the networkutilityfunctions example folder.\n");
+   p.printf("\n");
+   p.printf("This is just to demonstrate how the high-level API can be expanded to do\n");
+   p.printf("multiple tasks at once, without having to modify the code for the existing tasks.\n");
+   p.printf("\n");
 }
 
 static const uint16 SMART_SERVER_TCP_PORT = 9876;  // arbitrary port number for the "smart" server
@@ -123,7 +123,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Let's enable a bit of debug-output, just to see what the server is doing
    SetConsoleLogLevel(MUSCLE_LOG_DEBUG);

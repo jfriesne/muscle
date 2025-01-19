@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program allows you to interactively invoke the IPAddress class's string-parser.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program allows you to interactively invoke the IPAddress class's string-parser.\n");
+   p.printf("\n");
 }
 
 /* This little program demonstrates the parsing of IPAddress strings */
@@ -16,7 +16,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    while(1)
    {

@@ -4,18 +4,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates some handy idioms/tricks using the DataIO classes\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates some handy idioms/tricks using the DataIO classes\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("Read the entire contents of a file into a ByteBuffer, in two lines:\n");
    const char * inputFileName = "example_4_idioms.cpp";

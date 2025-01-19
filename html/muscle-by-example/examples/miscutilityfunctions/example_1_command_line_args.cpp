@@ -3,14 +3,14 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates how command-line arguments get parsed into a Message by ParseArgs().\n");
-   printf("\n");
-   printf("Try running this program with various command line arguments\n");
-   printf("e.g. ./example_1_command_line_args foo bar baz=blorp baz=burf\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates how command-line arguments get parsed into a Message by ParseArgs().\n");
+   p.printf("\n");
+   p.printf("Try running this program with various command line arguments\n");
+   p.printf("e.g. ./example_1_command_line_args foo bar baz=blorp baz=burf\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
@@ -19,7 +19,7 @@ int main(int argc, char ** argv)
 
    if (argc == 1)
    {
-      PrintExampleDescription();
+      PrintExampleDescription(stdout);
       return 5;
    }
 

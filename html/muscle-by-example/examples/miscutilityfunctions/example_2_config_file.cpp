@@ -5,19 +5,19 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates writing and reading of an ASCII config file\n");
-   printf("using UnparseFile() and ParseFile()\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates writing and reading of an ASCII config file\n");
+   p.printf("using UnparseFile() and ParseFile()\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("First, we'll create a sample Message containing some imaginary configuration info.\n");
    printf("\n");

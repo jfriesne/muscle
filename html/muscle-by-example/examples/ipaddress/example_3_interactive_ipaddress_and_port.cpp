@@ -4,18 +4,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program allows you to interactively invoke the IPAddressAndPort class's string-parser.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program allows you to interactively invoke the IPAddressAndPort class's string-parser.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    while(1)
    {

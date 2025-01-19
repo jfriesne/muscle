@@ -7,16 +7,16 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program is the same as example_4_smart_server, except in this version\n");
-   printf("our server will send a Message to each client once per second containing\n");
-   printf("a counter.\n");
-   printf("\n");
-   printf("This is mainly just to demonstrate the use of the GetPulseTime() and Pulse()\n");
-   printf("methods to have method-callbacks called at well-defined intervals.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program is the same as example_4_smart_server, except in this version\n");
+   p.printf("our server will send a Message to each client once per second containing\n");
+   p.printf("a counter.\n");
+   p.printf("\n");
+   p.printf("This is mainly just to demonstrate the use of the GetPulseTime() and Pulse()\n");
+   p.printf("methods to have method-callbacks called at well-defined intervals.\n");
+   p.printf("\n");
 }
 
 static const uint16 SMART_SERVER_TCP_PORT = 9876;  // arbitrary port number for the "smart" server
@@ -88,7 +88,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Let's enable a bit of debug-output, just to see what the server is doing
    SetConsoleLogLevel(MUSCLE_LOG_DEBUG);

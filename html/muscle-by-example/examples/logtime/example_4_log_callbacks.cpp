@@ -4,12 +4,12 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates LogCallbacks for custom logging functionality.\n");
-   printf("You can use callbacks to e.g. forward LogTime() output to syslogd, or to a TCP socket, or etc.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates LogCallbacks for custom logging functionality.\n");
+   p.printf("You can use callbacks to e.g. forward LogTime() output to syslogd, or to a TCP socket, or etc.\n");
+   p.printf("\n");
 }
 
 // This callback is called whenever LogPlain() or LogTime() is called; it's a bit low-level but the most flexible */
@@ -51,7 +51,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Install a per-Log()-call LogCallback, just to demonstrate with
    MyLogCallback myLogCallback;

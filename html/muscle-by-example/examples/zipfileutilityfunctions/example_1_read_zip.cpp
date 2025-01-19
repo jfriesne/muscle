@@ -3,18 +3,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates using ZipFileUtilityFunctions to read in and parse a .zip file\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates using ZipFileUtilityFunctions to read in and parse a .zip file\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    if (argc != 2)
    {

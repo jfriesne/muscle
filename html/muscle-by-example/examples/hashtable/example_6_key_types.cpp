@@ -5,14 +5,14 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates how to use various types as keys in a Hashtable.\n");
-   printf("The basic rules are:  simple POD types will \"just work\", but for non-POD\n");
-   printf("types (e.g. classes) you need to define the == operator and a method named\n");
-   printf("\"uint32 HashCode() const\" that returns a hash code for the object.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates how to use various types as keys in a Hashtable.\n");
+   p.printf("The basic rules are:  simple POD types will \"just work\", but for non-POD\n");
+   p.printf("types (e.g. classes) you need to define the == operator and a method named\n");
+   p.printf("\"uint32 HashCode() const\" that returns a hash code for the object.\n");
+   p.printf("\n");
 }
 
 /** Example of a class that is suitable for use as a Key type in a Hashtable */
@@ -53,7 +53,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // In order to use a type as a Key in a Hashtable, that type must have
    // two properties:  There must be a way to compute a hash-code for any

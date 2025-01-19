@@ -3,11 +3,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates the basic functionality of the LogPlain() and LogTime() functions.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates the basic functionality of the LogPlain() and LogTime() functions.\n");
+   p.printf("\n");
 }
 
 static int SomeFunction(int val)
@@ -20,7 +20,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    LogTime(MUSCLE_LOG_INFO,    "This is an informational message.\n");
    LogTime(MUSCLE_LOG_WARNING, "This is a warning message.\n");

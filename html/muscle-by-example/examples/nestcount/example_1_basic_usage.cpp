@@ -3,12 +3,12 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates basic usage of the muscle::NestCount and muscle::NestCountGuard\n");
-   printf("classes, by showing how DoSomethingElse() can behave differently based on who called it.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates basic usage of the muscle::NestCount and muscle::NestCountGuard\n");
+   p.printf("classes, by showing how DoSomethingElse() can behave differently based on who called it.\n");
+   p.printf("\n");
 }
 
 class MyClass
@@ -40,7 +40,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    MyClass c;
 

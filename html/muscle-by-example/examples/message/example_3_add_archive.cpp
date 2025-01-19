@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("In this program, we demonstrate the AddArchiveMessage()/FindArchiveMessage() idiom for mapping a C++ class to a sub-Message\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("In this program, we demonstrate the AddArchiveMessage()/FindArchiveMessage() idiom for mapping a C++ class to a sub-Message\n");
+   p.printf("\n");
 }
 
 enum {
@@ -79,7 +79,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Let's create a Message and add some data to it
    Message orderPizzaMsg(COMMAND_CODE_ORDER_PIZZA);

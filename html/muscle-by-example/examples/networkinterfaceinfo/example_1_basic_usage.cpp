@@ -6,11 +6,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This programs demonstrates the use of GetNetworkInterfaceInfos() to gather information about available network interfaces.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This programs demonstrates the use of GetNetworkInterfaceInfos() to gather information about available network interfaces.\n");
+   p.printf("\n");
 }
 
 void PrintNetworkInterfaceInfos(const Queue<NetworkInterfaceInfo> & ifs, const char * desc);  // forward declaration (see bottom of file)
@@ -19,7 +19,7 @@ int main(int, char **)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("Querying local host's network interfaces:\n");
    printf("\n");

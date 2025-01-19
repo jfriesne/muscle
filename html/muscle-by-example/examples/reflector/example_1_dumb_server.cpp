@@ -6,14 +6,14 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program implements a \"dumb\" Message server.  All this server will\n");
-   printf("do is take any Messages sent to it from any client and forward them to\n");
-   printf("all of the other clients.  This program is designed to be run in conjunction\n");
-   printf("with multiple instances of the example_2_dumb_client example program.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program implements a \"dumb\" Message server.  All this server will\n");
+   p.printf("do is take any Messages sent to it from any client and forward them to\n");
+   p.printf("all of the other clients.  This program is designed to be run in conjunction\n");
+   p.printf("with multiple instances of the example_2_dumb_client example program.\n");
+   p.printf("\n");
 }
 
 static const uint16 DUMB_SERVER_TCP_PORT = 8765;  // arbitrary port number for the "dumb" server
@@ -22,7 +22,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Let's enable a bit of debug-output, just to see what the server is doing
    (void) SetConsoleLogLevel(MUSCLE_LOG_DEBUG);

@@ -6,23 +6,23 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates using a ChildProcessDataIO object to launch a child\n");
-   printf("process and then communicate with it by writing data to its stdin and reading\n");
-   printf("data from its stdout.\n");
-   printf("\n");
-   printf("This program will launch the \"example_2_tcp_server\" program as a child\n");
-   printf("process, and then let you interact with it in the usual way.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates using a ChildProcessDataIO object to launch a child\n");
+   p.printf("process and then communicate with it by writing data to its stdin and reading\n");
+   p.printf("data from its stdout.\n");
+   p.printf("\n");
+   p.printf("This program will launch the \"example_2_tcp_server\" program as a child\n");
+   p.printf("process, and then let you interact with it in the usual way.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
 #ifdef WIN32
    const String childExeName = ".\\example_2_tcp_server.exe";

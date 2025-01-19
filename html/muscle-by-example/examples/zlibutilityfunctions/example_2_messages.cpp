@@ -3,18 +3,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates the use of DeflateMessage() and InflateMessage() to make a Message object smaller.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates the use of DeflateMessage() and InflateMessage() to make a Message object smaller.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // First let's create an example Message object.
    MessageRef rawMsg = GetMessageFromPool(1234);

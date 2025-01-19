@@ -5,21 +5,21 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates the wall/calendar-clock provided by GetCurrentTime64()\n");
-   printf("\n");
-   printf("Try changing your computer's system-clock date/time while this program is running.\n");
-   printf("You should see the output of this program change when you do that.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates the wall/calendar-clock provided by GetCurrentTime64()\n");
+   p.printf("\n");
+   p.printf("Try changing your computer's system-clock date/time while this program is running.\n");
+   p.printf("You should see the output of this program change when you do that.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    (void) Snooze64(SecondsToMicros(1));
 

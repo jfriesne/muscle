@@ -3,18 +3,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates some basic usage of the NetworkUtilityFunctions API by downloading the search-page HTML from www.google.com and printing it to stdout.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates some basic usage of the NetworkUtilityFunctions API by downloading the search-page HTML from www.google.com and printing it to stdout.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    LogTime(MUSCLE_LOG_INFO, "Downloading the HTML data from www.google.com port 80...\n");
 

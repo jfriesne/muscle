@@ -3,11 +3,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates the behavior of various String accessor-methods.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates the behavior of various String accessor-methods.\n");
+   p.printf("\n");
 }
 
 void PrintSingleStringInfo(const char * desc, const String & s);   // forward declaration -- see bottom of this file
@@ -16,7 +16,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("Please enter any string: ");
    fflush(stdout);

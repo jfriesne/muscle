@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates using a RefCountable class in conjunction with an ObjectPool to minimize object (de)allocations at runtime\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates using a RefCountable class in conjunction with an ObjectPool to minimize object (de)allocations at runtime\n");
+   p.printf("\n");
 }
 
 static int g_myClassCounter = 0;  // let's keep track of how many MyClass objects there are
@@ -47,7 +47,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    printf("At top of main\n");
    printf("\n");

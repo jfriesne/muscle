@@ -3,18 +3,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates basic usage of the muscle::StringTokenizer class.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates basic usage of the muscle::StringTokenizer class.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    const char * someCString = "   One, Two, Three,,, Four, Five   ";
    printf("Here is the string we want to parse tokens out of:\n");

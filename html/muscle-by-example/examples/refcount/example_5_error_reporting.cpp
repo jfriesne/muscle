@@ -4,13 +4,13 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates a toy factory-function that randomly either\n");
-   printf("succeeds and returns a valid reference to a newly constructed MyClass object,\n");
-   printf("or fails and returns a B_ACCESS_DENIED error-code instead.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates a toy factory-function that randomly either\n");
+   p.printf("succeeds and returns a valid reference to a newly constructed MyClass object,\n");
+   p.printf("or fails and returns a B_ACCESS_DENIED error-code instead.\n");
+   p.printf("\n");
 }
 
 class MyClass : public RefCountable
@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    srand(time(NULL));
 

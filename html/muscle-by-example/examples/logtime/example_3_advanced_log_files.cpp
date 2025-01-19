@@ -6,19 +6,19 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates advanced file logging (including enforcement of\n");
-   printf("maximum-log-file-sizes, log-file rotation, etc etc)\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates advanced file logging (including enforcement of\n");
+   p.printf("maximum-log-file-sizes, log-file rotation, etc etc)\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    SetConsoleLogLevel(MUSCLE_LOG_TRACE); // log any messages of MUSCLE_LOG_TRACE or higher to stdout (i.e. log everything)
 

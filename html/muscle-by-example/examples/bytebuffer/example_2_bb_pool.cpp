@@ -3,11 +3,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates getting a ByteBuffer from the ByteBuffer pool\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates getting a ByteBuffer from the ByteBuffer pool\n");
+   p.printf("\n");
 }
 
 /* This little program demonstrates using the byte-buffers pool */
@@ -15,7 +15,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Grab a 128-byte ByteBuffer from the ByteBuffer pool
    ByteBufferRef bbRef = GetByteBufferFromPool(128);

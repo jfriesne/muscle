@@ -4,18 +4,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates  various minor convenience-methods in the Hashtable class.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates  various minor convenience-methods in the Hashtable class.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    Hashtable<String, int> table;
 

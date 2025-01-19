@@ -3,18 +3,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates the use of DeflateByteBuffer() and InflateByteBuffer() to deflate/inflate data\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates the use of DeflateByteBuffer() and InflateByteBuffer() to deflate/inflate data\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Let's create a big buffer of raw data to test with
    ByteBufferRef rawDataBuffer = GetByteBufferFromPool(100*1024);

@@ -7,14 +7,14 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program implements a \"smart\" Message server that catches SIGINT\n");
-   printf("and other signals and reacts simply by printing to stdout.\n");
-   printf("This demonstrates how to use a SignalHandlerSession to add customized\n");
-   printf("signal-handling to a ReflectServer.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program implements a \"smart\" Message server that catches SIGINT\n");
+   p.printf("and other signals and reacts simply by printing to stdout.\n");
+   p.printf("This demonstrates how to use a SignalHandlerSession to add customized\n");
+   p.printf("signal-handling to a ReflectServer.\n");
+   p.printf("\n");
 }
 
 static const uint16 SMART_SERVER_TCP_PORT = 9876;  // arbitrary port number for the "smart" server
@@ -37,7 +37,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Let's enable a bit of debug-output, just to see what the server is doing
    SetConsoleLogLevel(MUSCLE_LOG_DEBUG);

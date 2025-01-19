@@ -4,14 +4,14 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates the use of a NestCount without a NestCountGuard\n");
-   printf("(Sometimes you can't use a NestCountGuard because your processing-batches\n");
-   printf("are spread out across function calls that you don't directly control,\n");
-   printf("and thus you can't easily put a NestCountGuard high enough up in the call tree)\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates the use of a NestCount without a NestCountGuard\n");
+   p.printf("(Sometimes you can't use a NestCountGuard because your processing-batches\n");
+   p.printf("are spread out across function calls that you don't directly control,\n");
+   p.printf("and thus you can't easily put a NestCountGuard high enough up in the call tree)\n");
+   p.printf("\n");
 }
 
 class MyClass
@@ -54,7 +54,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    MyClass c;
 

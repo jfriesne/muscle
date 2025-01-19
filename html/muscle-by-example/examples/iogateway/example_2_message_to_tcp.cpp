@@ -7,34 +7,34 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates using a MessageIOGateway to send\n");
-   printf("and receive Message objects over a TCP connection.\n");
-   printf("\n");
-   printf("Note that in this example, we set the TCPSocketDataIO to be in\n");
-   printf("non-blocking mode.  The benefit here is that the MessageIOGateway \n");
-   printf("will handle all of the byte-queueing, message-framing, and \n");
-   printf("message-reassembly steps for us.  Those are the things that \n");
-   printf("make non-blocking mode such a PITA otherwise.\n");
-   printf("\n");
-   printf("Note that in a real program you probably wouldn't want to do it \n");
-   printf("this way; you'd use a ReflectServer and a session object instead, \n");
-   printf("and the session object would use the MessageIOGateway object \n");
-   printf("implicitly, and you wouldn't have to write all of this I/O-handling \n");
-   printf("code yourself.\n");
-   printf("\n");
-   printf("This example is written to use the MessageIOGateway API directly\n");
-   printf("just to demonstrate how a MessageIOGateway works.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates using a MessageIOGateway to send\n");
+   p.printf("and receive Message objects over a TCP connection.\n");
+   p.printf("\n");
+   p.printf("Note that in this example, we set the TCPSocketDataIO to be in\n");
+   p.printf("non-blocking mode.  The benefit here is that the MessageIOGateway \n");
+   p.printf("will handle all of the byte-queueing, message-framing, and \n");
+   p.printf("message-reassembly steps for us.  Those are the things that \n");
+   p.printf("make non-blocking mode such a PITA otherwise.\n");
+   p.printf("\n");
+   p.printf("Note that in a real program you probably wouldn't want to do it \n");
+   p.printf("this way; you'd use a ReflectServer and a session object instead, \n");
+   p.printf("and the session object would use the MessageIOGateway object \n");
+   p.printf("implicitly, and you wouldn't have to write all of this I/O-handling \n");
+   p.printf("code yourself.\n");
+   p.printf("\n");
+   p.printf("This example is written to use the MessageIOGateway API directly\n");
+   p.printf("just to demonstrate how a MessageIOGateway works.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    ConstSocketRef tcpSock;
 

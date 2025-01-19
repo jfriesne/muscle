@@ -3,18 +3,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates various methods for viewing raw binary data\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates various methods for viewing raw binary data\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    const uint8 myBuf[] = "This is a buffer of raw binary data.  It just so happens to also be ASCII text, but we will ignore that happy coincidence for now -- it could just as well be any 8-bit bytes.";
 

@@ -7,18 +7,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program implements a limited \"smart\" Message client with a QueryFilter.\n");
-   printf("\n");
-   printf("It will connect to the same TCP port that the example_4_smart_server listens on,\n");
-   printf("and subscribe to all client-supplied nodes that match the subscription-path\n");
-   printf("AND whose current Message contains a field named \"User String\" whose\n");
-   printf("contents contain the word \"magic\".\n");
-   printf("\n");
-   printf("Any nodes that don't meet those criteria will not be subscribed to or printed out.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program implements a limited \"smart\" Message client with a QueryFilter.\n");
+   p.printf("\n");
+   p.printf("It will connect to the same TCP port that the example_4_smart_server listens on,\n");
+   p.printf("and subscribe to all client-supplied nodes that match the subscription-path\n");
+   p.printf("AND whose current Message contains a field named \"User String\" whose\n");
+   p.printf("contents contain the word \"magic\".\n");
+   p.printf("\n");
+   p.printf("Any nodes that don't meet those criteria will not be subscribed to or printed out.\n");
+   p.printf("\n");
 }
 
 static const uint16 SMART_SERVER_TCP_PORT = 9876;  // arbitrary port number for the "smart" server
@@ -41,7 +41,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Let's enable a bit of debug-output, just to see what the client is doing
    SetConsoleLogLevel(MUSCLE_LOG_DEBUG);

@@ -4,11 +4,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates nesting of Messages by extending the previous Message example to include the user's address info in a sub-Message\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates nesting of Messages by extending the previous Message example to include the user's address info in a sub-Message\n");
+   p.printf("\n");
 }
 
 enum {
@@ -20,7 +20,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Let's create a Message and add some data to it
    Message orderPizzaMsg(COMMAND_CODE_ORDER_PIZZA);

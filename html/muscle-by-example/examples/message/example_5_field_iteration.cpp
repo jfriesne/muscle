@@ -3,11 +3,11 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("In this program, we demonstrate how to iterate over the field names in a Message\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("In this program, we demonstrate how to iterate over the field names in a Message\n");
+   p.printf("\n");
 }
 
 enum {
@@ -19,7 +19,7 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // Let's create a Message and add some data to it
    Message orderPizzaMsg(COMMAND_CODE_ORDER_PIZZA);

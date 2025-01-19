@@ -6,31 +6,31 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates the use of a SocketMultiplexer object to allow a single\n");
-   printf("thread to handle multiple Sockets simultaneously.  This program will listen for\n");
-   printf("incoming TCP connections on port 9999, and will echo any data received on a given\n");
-   printf("TCP connection back to its own connecting client program.\n");
-   printf("\n");
-   printf("Test this program by running it in one Terminal window, and doing a 'telnet localhost 9999'\n");
-   printf("in one or more other Terminal windows.  Each telnet session should see its own data echoed\n");
-   printf("back to it.\n");
-   printf("\n");
-   printf("Note that for simplicity's sake, this program is programmed to use blocking I/O.\n");
-   printf("A production-grade server would likely use non-blocking I/O instead, so that one\n");
-   printf("slow or malfunctioning client wouldn't be able to block the server's event-loop\n");
-   printf("and therefore deny service to all the other clients.  (Handling non-blocking I/O\n");
-   printf("correctly is beyond the scope of this example, however)\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates the use of a SocketMultiplexer object to allow a single\n");
+   p.printf("thread to handle multiple Sockets simultaneously.  This program will listen for\n");
+   p.printf("incoming TCP connections on port 9999, and will echo any data received on a given\n");
+   p.printf("TCP connection back to its own connecting client program.\n");
+   p.printf("\n");
+   p.printf("Test this program by running it in one Terminal window, and doing a 'telnet localhost 9999'\n");
+   p.printf("in one or more other Terminal windows.  Each telnet session should see its own data echoed\n");
+   p.printf("back to it.\n");
+   p.printf("\n");
+   p.printf("Note that for simplicity's sake, this program is programmed to use blocking I/O.\n");
+   p.printf("A production-grade server would likely use non-blocking I/O instead, so that one\n");
+   p.printf("slow or malfunctioning client wouldn't be able to block the server's event-loop\n");
+   p.printf("and therefore deny service to all the other clients.  (Handling non-blocking I/O\n");
+   p.printf("correctly is beyond the scope of this example, however)\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    const int TCP_PORT = 9999;
 

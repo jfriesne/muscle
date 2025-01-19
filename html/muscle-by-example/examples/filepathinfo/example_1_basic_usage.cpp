@@ -5,19 +5,19 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates basic usage of the muscle::FilePathInfo class\n");
-   printf("by printing out info about the files/directories specified by its argument(s).\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates basic usage of the muscle::FilePathInfo class\n");
+   p.printf("by printing out info about the files/directories specified by its argument(s).\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    if (argc < 2)
    {

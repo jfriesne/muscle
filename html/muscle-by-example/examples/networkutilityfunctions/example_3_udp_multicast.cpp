@@ -11,23 +11,23 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates some basic UDP multicast usage of the NetworkUtilityFunctions API.\n");
-   printf("Each instance of the program will send out one multicast packet every 5 seconds, and print all of the\n");
-   printf("multicast packets it receives.\n");
-   printf("\n");
-   printf("Running a few instances of this program (either all on the same machine, or on different machines on\n");
-   printf("the same LAN) makes for a fun party.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates some basic UDP multicast usage of the NetworkUtilityFunctions API.\n");
+   p.printf("Each instance of the program will send out one multicast packet every 5 seconds, and print all of the\n");
+   p.printf("multicast packets it receives.\n");
+   p.printf("\n");
+   p.printf("Running a few instances of this program (either all on the same machine, or on different machines on\n");
+   p.printf("the same LAN) makes for a fun party.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    const IPAddressAndPort multicastGroup("ff12::1234", 7777, false);  // arbitrary
 

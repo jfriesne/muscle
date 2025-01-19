@@ -4,20 +4,20 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This example demonstrates the OrderedKeysHashtable and OrderedValuesHashtable classes\n");
-   printf("They are subclasses of Hashtable, and work the same as a Hashtable except that they\n");
-   printf("automatically keep their key/value pairs in sorted order as new items are inserted.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This example demonstrates the OrderedKeysHashtable and OrderedValuesHashtable classes\n");
+   p.printf("They are subclasses of Hashtable, and work the same as a Hashtable except that they\n");
+   p.printf("automatically keep their key/value pairs in sorted order as new items are inserted.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    // The OrderedKeysHashtable class is the same as the Hashtable class, except
    // that it makes sure to always keep its key/value pairs in sorted-by-keys

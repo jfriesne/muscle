@@ -3,18 +3,18 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates the use of a SeekableDataIO object (in particular, a FileDataIO) to write/seek/read in a file.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates the use of a SeekableDataIO object (in particular, a FileDataIO) to write/seek/read in a file.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    FileDataIO fileDataIO(muscleFopen("example_3_seekable_dataio.txt", "w+"));  // "w+" lets us write, read, and update
    if (fileDataIO.GetFile() == NULL)

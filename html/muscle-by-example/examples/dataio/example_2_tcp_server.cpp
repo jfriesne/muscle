@@ -6,26 +6,26 @@
 
 using namespace muscle;
 
-static void PrintExampleDescription()
+static void PrintExampleDescription(const OutputPrinter & p)
 {
-   printf("\n");
-   printf("This program demonstrates using DataIO objects to multiplex TCP connections with stdin input.\n");
-   printf("\n");
-   printf("The program will listen for incoming TCP connections on port 9999, and print any data they\n");
-   printf("send to us stdout.  It will also allow you to enter input on stdin, and anything you type will\n");
-   printf("be sent out to all connected TCP clients.\n");
-   printf("\n");
-   printf("Note that this program uses SocketMultiplexer (i.e. select()) to multiplex stdin with the\n");
-   printf("TCP socket I/O, which is supposed to be impossible under Windows.  StdinDataIO makes it\n");
-   printf("work under Windows anyway, via clever magic.\n");
-   printf("\n");
+   p.printf("\n");
+   p.printf("This program demonstrates using DataIO objects to multiplex TCP connections with stdin input.\n");
+   p.printf("\n");
+   p.printf("The program will listen for incoming TCP connections on port 9999, and print any data they\n");
+   p.printf("send to us stdout.  It will also allow you to enter input on stdin, and anything you type will\n");
+   p.printf("be sent out to all connected TCP clients.\n");
+   p.printf("\n");
+   p.printf("Note that this program uses SocketMultiplexer (i.e. select()) to multiplex stdin with the\n");
+   p.printf("TCP socket I/O, which is supposed to be impossible under Windows.  StdinDataIO makes it\n");
+   p.printf("work under Windows anyway, via clever magic.\n");
+   p.printf("\n");
 }
 
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   PrintExampleDescription();
+   PrintExampleDescription(stdout);
 
    const int tcpPort = 9999;
    ConstSocketRef acceptSock = CreateAcceptingSocket(tcpPort);
