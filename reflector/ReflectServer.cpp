@@ -7,7 +7,7 @@
 #include "reflector/SignalHandlerSession.h"
 #include "system/SetupSystem.h"  // for IsCurrentThreadMainThread()
 #endif
-#include "system/SystemInfo.h"   // for LogBuildFlags()
+#include "system/SystemInfo.h"   // for PrintBuildFlags()
 #include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
 #include "util/NetworkUtilityFunctions.h"
 #include "util/MemoryAllocator.h"
@@ -688,7 +688,7 @@ status_t ReflectServer :: DoFirstTimeServerSetup()
       const char * ipState = "enabled";
 #endif
       LogTime(MUSCLE_LOG_DEBUG, "The server was compiled with MUSCLE version %s.  IPv6 support is %s.\n", MUSCLE_VERSION_STRING, ipState);
-      LogBuildFlags(MUSCLE_LOG_DEBUG);
+      PrintBuildFlags(OutputPrinter(MUSCLE_LOG_DEBUG));
       LogTime(MUSCLE_LOG_DEBUG, "This server's session ID is " UINT64_FORMAT_SPEC ".\n", GetServerSessionID());
    }
 
