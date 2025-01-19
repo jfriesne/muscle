@@ -84,7 +84,7 @@ public:
    MUSCLE_NODISCARD virtual bool IsFlattenable() const = 0;
 
    // For debugging:  returns a description of our contents as a String
-   virtual void Print(const OutputPrinter & p, uint32 maxRecurseLevel, int indent) const = 0;
+   virtual void Print(const OutputPrinter & p, uint32 maxRecurseLevel) const = 0;
 
    // Returns true iff this field is identical to (rhs).  If (compareContents) is false,
    // only the field lengths and type codes are checked, not the data itself.
@@ -164,7 +164,7 @@ public:
    MUSCLE_NODISCARD bool ElementsAreFixedSize() const {return HasArray() ? GetArray()->ElementsAreFixedSize() : SingleElementsAreFixedSize();}
    MUSCLE_NODISCARD bool IsFixedSize() const {return false;}
    MUSCLE_NODISCARD bool IsFlattenable() const {return HasArray() ? GetArray()->IsFlattenable() : SingleIsFlattenable();}
-   void Print(const OutputPrinter & p, uint32 maxRecurseLevel, int indent) const;
+   void Print(const OutputPrinter & p, uint32 maxRecurseLevel) const;
    MUSCLE_NODISCARD bool IsEqualTo(const MessageField & rhs, bool compareContents) const;
    status_t EnsurePrivate();  // un-shares our data, if necessary
 
@@ -203,7 +203,7 @@ private:
    MUSCLE_NODISCARD uint32 SingleCalculateChecksum(bool countNonFlattenableFields) const;
    MUSCLE_NODISCARD bool SingleElementsAreFixedSize() const;
    MUSCLE_NODISCARD bool SingleIsFlattenable() const;
-   void SinglePrint(const OutputPrinter & p, uint32 maxRecurseLevel, int indent) const;
+   void SinglePrint(const OutputPrinter & p, uint32 maxRecurseLevel) const;
    void SingleSetValue(const void * data, uint32 numBytes);
    AbstractDataArrayRef CreateDataArray(uint32 typeCode) const;
    void ChangeType(uint8 newType);

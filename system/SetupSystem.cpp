@@ -933,7 +933,7 @@ static void PrintSequenceReport(const OutputPrinter & p, const char * desc, cons
 
 #endif
 
-static status_t PrintMutexLockingReportAux(const OutputPrinter & p)
+status_t PrintMutexLockingReport(const OutputPrinter & p)
 {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
    Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > capturedResults;  // mutex-sequence -> (threadID -> details)
@@ -942,7 +942,7 @@ static status_t PrintMutexLockingReportAux(const OutputPrinter & p)
       for (HashtableIterator<muscle_thread_id, MutexLockRecordLog *> iter(_mutexLogTable); iter.HasData(); iter++) iter.GetValue()->CaptureResults(capturedResults);
    }
 
-   if (p.GetString() == NULL) p.printf("\n");
+   if (p.GetAddToString() == NULL) p.printf("\n");
    p.printf("------------------- " UINT32_FORMAT_SPEC " UNIQUE LOCK SEQUENCES DETECTED -----------------\n", capturedResults.GetNumItems());
    for (HashtableIterator< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iter(capturedResults); iter.HasData(); iter++)
       p.printf("LockSequence [%s] was executed by " UINT32_FORMAT_SPEC " threads\n", LockSequenceToString(iter.GetKey())(), iter.GetValue().GetNumItems());
@@ -987,22 +987,12 @@ static status_t PrintMutexLockingReportAux(const OutputPrinter & p)
       p.printf("No Mutex-acquisition ordering inconsistencies detected, yay!\n");
    }
 
-   if (p.GetString() == NULL) p.printf("\n\n");
+   if (p.GetAddToString() == NULL) p.printf("\n\n");
 #else
    p.printf("PrintMutexLockingReport:  MUSCLE_ENABLE_DEADLOCK_FINDER wasn't specified during compilation, so no locking-logs were recorded.\n");
 #endif
 
    return B_NO_ERROR;
-}
-
-void PrintMutexLockingReport()
-{
-   (void) PrintMutexLockingReportAux(stdout);
-}
-
-status_t GetMutexLockingReport(String & retStr)
-{
-   return PrintMutexLockingReportAux(retStr);
 }
 
 ThreadSetupSystem :: ThreadSetupSystem(bool muscleSingleThreadOnly)
@@ -1036,7 +1026,7 @@ ThreadSetupSystem :: ~ThreadSetupSystem()
       _muscleLock = NULL;
 
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-     PrintMutexLockingReport();
+      (void) PrintMutexLockingReport(stdout);
 #endif
    }
 }
@@ -2735,67 +2725,65 @@ String GetEnvironmentVariableValue(const String & envVarName, const String & def
 
 void OutputPrinter :: printf(const char * fmt, ...) const
 {
-   if ((_addToString)||(_logSeverity > MUSCLE_LOG_NONE))
-   {
-      va_list va;
-      va_start(va, fmt);
+   char buf[4096];
 
-      char buf[1024];
+   va_list va;
+   va_start(va, fmt);
 #if __STDC_WANT_SECURE_LIB__
-      const int numChars = _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va);
+   const int numChars = _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va);
 #elif WIN32
-      const int numChars = _vsnprintf(  buf, sizeof(buf),            fmt, va);
+   const int numChars = _vsnprintf(  buf, sizeof(buf),            fmt, va);
 #else
-      const int numChars =  vsnprintf(  buf, sizeof(buf),            fmt, va);
+   const int numChars =  vsnprintf(  buf, sizeof(buf),            fmt, va);
 #endif
-      buf[sizeof(buf)-1] = '\0';  // paranoia
+   va_end(va);
 
-      if (_addToString) (*_addToString) += buf;
-      if (_logSeverity > MUSCLE_LOG_NONE) LogLineAux(buf, numChars);
-      va_end(va);
-   }
-
-   if (_file)
-   {
-      va_list va;
-      va_start(va, fmt);
-      vfprintf(_file, fmt, va);
-      va_end(va);
-   }
-}
-
-void OutputPrinter :: LogLineAux(const char * buf, uint32 numChars) const
-{
    if (numChars > 0)
    {
-      if (_isStartOfLine) LogTime(_logSeverity, "%s", buf);
-                     else LogPlain(_logSeverity, "%s", buf);
-      _isStartOfLine = (buf[numChars-1] == '\n');
+      buf[sizeof(buf)-1] = '\0';  // paranoia
+      putsAux(buf, numChars);
    }
 }
 
 void OutputPrinter :: putc(char c, uint32 repeatCount) const
 {
+   uint32 numCharsWritten = 0;
+
    char buf[256];
    while(repeatCount > 0)
    {
       const uint32 charsToWrite = muscleMin(repeatCount, (uint32)(sizeof(buf)-1));
-      memset(buf, c, charsToWrite);
+      if (numCharsWritten < charsToWrite)
+      {
+         memset(buf, c, charsToWrite);
+         numCharsWritten = charsToWrite;
+      }
       buf[charsToWrite] = '\0';
-      puts(buf);
+      putsAux(buf, charsToWrite);
       repeatCount -= charsToWrite;
    }
 }
 
 void OutputPrinter :: puts(const char * s, uint32 repeatCount) const
 {
-   const uint32 numCharsToLog = (_logSeverity > MUSCLE_LOG_NONE) ? strlen(s) : 0;
-   for (uint32 i=0; i<repeatCount; i++)
+   const uint32 numChars = s ? (uint32)strlen(s) : 0;
+   if (numChars > 0) for (uint32 i=0; i<repeatCount; i++) putsAux(s, numChars);
+}
+
+void OutputPrinter :: putsAux(const char * s, uint32 numChars) const
+{
+   if (_isAtStartOfLine)
    {
-      if (_addToString) (*_addToString) += s;
-      if (_logSeverity > MUSCLE_LOG_NONE) LogLineAux(s, numCharsToLog);
-      if (_file) fputs(s, _file);
+      if (_logSeverity > MUSCLE_LOG_NONE) LogTime(_logSeverity, "");  // generate the log-timestamp-preamble at the left edge, before the indent
+      _isAtStartOfLine = false;
+      if (_indent > 0) putc(' ', _indent);
    }
+
+   if (_addToString) (*_addToString) += s;
+   if (_logSeverity > MUSCLE_LOG_NONE) LogPlain(_logSeverity, "%s", s);
+   if (_file) fputs(s, _file);
+
+   _isAtStartOfLine = ((numChars > 0)&&(s[numChars-1] == '\n'));
 }
 
 } // end namespace muscle

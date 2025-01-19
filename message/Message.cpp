@@ -186,9 +186,8 @@ protected:
    Queue<DataType> _data;
 };
 
-static void PrintItemPreamble(uint32 indent, uint32 idx, const OutputPrinter & p)
+static void PrintItemPreamble(uint32 idx, const OutputPrinter & p)
 {
-   p.putc(' ', indent);
    p.printf("    " UINT32_FORMAT_SPEC ". ", idx);
 }
 
@@ -227,17 +226,17 @@ public:
 
    virtual RefCountableRef GetItemAtAsRefCountableRef(uint32 idx) const {return ItemAt(idx);}
 
-   static void PrintItemDescription(uint32 indent, uint32 idx, const RefCountableRef & tag, const OutputPrinter & p)
+   static void PrintItemDescription(uint32 idx, const RefCountableRef & tag, const OutputPrinter & p)
    {
-      PrintItemPreamble(indent, idx, p);
+      PrintItemPreamble(idx, p);
       p.printf("%p\n", tag());
    }
 
 protected:
-   virtual void Print(const OutputPrinter & p, uint32, int indent) const
+   virtual void Print(const OutputPrinter & p, uint32) const
    {
       const uint32 numItems = GetNumItems();
-      for (uint32 i=0; i<numItems; i++) PrintItemDescription(indent, i, _data[i], p);
+      for (uint32 i=0; i<numItems; i++) PrintItemDescription(i, _data[i], p);
    }
 };
 DECLAREFIELDTYPE(TagDataArray);
@@ -291,12 +290,12 @@ public:
    virtual uint32 TypeCode() const {return ItemTypeCode;}
 
 protected:
-   virtual void Print(const OutputPrinter & p, uint32, int indent) const
+   virtual void Print(const OutputPrinter & p, uint32) const
    {
       const uint32 numItems = this->GetNumItems();
       for (uint32 i=0; i<numItems; i++)
       {
-         PrintItemPreamble(indent, i, p);
+         PrintItemPreamble(i, p);
          PrintItem(p, this->_data[i]);
          p.putc('\n');
       }
@@ -345,12 +344,12 @@ public:
 protected:
    virtual const char * GetFormatString() const = 0;
 
-   virtual void Print(const OutputPrinter & p, uint32, int indent) const
+   virtual void Print(const OutputPrinter & p, uint32) const
    {
       const uint32 numItems = this->GetNumItems();
       for (uint32 i=0; i<numItems; i++)
       {
-         PrintItemPreamble(indent, i, p);
+         PrintItemPreamble(i, p);
 
          p.putc('[');
          p.printf(GetFormatString(), this->ItemAt(i));
@@ -585,12 +584,12 @@ public:
    }
 
 protected:
-   virtual void Print(const OutputPrinter & p, uint32, int indent) const
+   virtual void Print(const OutputPrinter & p, uint32) const
    {
       const uint32 numItems = this->GetNumItems();
       for (uint32 i=0; i<numItems; i++)
       {
-         PrintItemPreamble(indent, i, p);
+         PrintItemPreamble(i, p);
          p.printf("[%p]\n", this->ItemAt(i));
       }
    }
@@ -704,9 +703,9 @@ public:
       return unflat.GetStatus();
    }
 
-   static void PrintItemDescription(uint32 indent, uint32 idx, const FlatCountableRef & fcRef, const OutputPrinter & p)
+   static void PrintItemDescription(uint32 idx, const FlatCountableRef & fcRef, const OutputPrinter & p)
    {
-      PrintItemPreamble(indent, idx, p);
+      PrintItemPreamble(idx, p);
 
       FlatCountable * fc = fcRef();
       ByteBuffer temp;
@@ -740,10 +739,10 @@ public:
       p.putc('\n');
    }
 
-   virtual void Print(const OutputPrinter & p, uint32, int indent) const
+   virtual void Print(const OutputPrinter & p, uint32) const
    {
       const uint32 numItems = GetNumItems();
-      for (uint32 i=0; i<numItems; i++) PrintItemDescription(indent, i, ItemAt(i), p);
+      for (uint32 i=0; i<numItems; i++) PrintItemDescription(i, ItemAt(i), p);
    }
 
    virtual AbstractDataArrayRef Clone() const;
@@ -819,9 +818,9 @@ public:
       return unflat.GetStatus();
    }
 
-   static void PrintItemDescription(uint32 indent, uint32 i, const MessageRef & msgRef, const OutputPrinter & p, uint32 maxRecurseLevel)
+   static void PrintItemDescription(uint32 i, const MessageRef & msgRef, const OutputPrinter & p, uint32 maxRecurseLevel)
    {
-      PrintItemPreamble(indent, i, p);
+      PrintItemPreamble(i, p);
 
       const Message * msg = msgRef();
       if (msg)
@@ -829,15 +828,15 @@ public:
          char tcbuf[5]; MakePrettyTypeCodeString(msg->what, tcbuf);
          p.printf("[what='%s' (" INT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), flattenedSize=" UINT32_FORMAT_SPEC ", numFields=" UINT32_FORMAT_SPEC "]\n", tcbuf, msg->what, msg->what, msg->FlattenedSize(), msg->GetNumNames());
 
-         if (maxRecurseLevel > 0) msg->Print(p, maxRecurseLevel-1, indent+3);
+         if (maxRecurseLevel > 0) msg->Print(p.WithIndent(), maxRecurseLevel-1);
       }
       else p.puts("[NULL]\n");
    }
 
-   virtual void Print(const OutputPrinter & p, uint32 maxRecurseLevel, int indent) const
+   virtual void Print(const OutputPrinter & p, uint32 maxRecurseLevel) const
    {
       const uint32 numItems = GetNumItems();
-      for (uint32 i=0; i<numItems; i++) PrintItemDescription(indent, i, ItemAt(i), p, maxRecurseLevel);
+      for (uint32 i=0; i<numItems; i++) PrintItemDescription(i, ItemAt(i), p, maxRecurseLevel);
    }
 
    virtual AbstractDataArrayRef Clone() const;
@@ -921,15 +920,15 @@ public:
 
    virtual AbstractDataArrayRef Clone() const;
 
-   virtual void Print(const OutputPrinter & p, uint32, int indent) const
+   virtual void Print(const OutputPrinter & p, uint32) const
    {
       const uint32 numItems = GetNumItems();
-      for (uint32 i=0; i<numItems; i++) AddDataItemToString(indent, i, ItemAt(i), p);
+      for (uint32 i=0; i<numItems; i++) AddDataItemToString(i, ItemAt(i), p);
    }
 
-   static void AddDataItemToString(uint32 indent, uint32 i, const String & nextStr, const OutputPrinter & p)
+   static void AddDataItemToString(uint32 i, const String & nextStr, const OutputPrinter & p)
    {
-      PrintItemPreamble(indent, i, p);
+      PrintItemPreamble(i, p);
       p.printf("[%s]\n", nextStr());
    }
 
@@ -1040,14 +1039,14 @@ uint32 Message :: GetNumNames(uint32 type) const
    return total;
 }
 
-String Message :: ToString(uint32 maxRecurseLevel, int indent) const
+String Message :: ToString(uint32 maxRecurseLevel) const
 {
    String s;
-   Print(s, maxRecurseLevel, indent);
+   Print(s, maxRecurseLevel);
    return s;
 }
 
-void Message :: Print(const OutputPrinter & p, uint32 maxRecurseLevel, int indent) const
+void Message :: Print(const OutputPrinter & p, uint32 maxRecurseLevel) const
 {
    TCHECKPOINT;
 
@@ -1056,18 +1055,15 @@ void Message :: Print(const OutputPrinter & p, uint32 maxRecurseLevel, int inden
    char prettyTypeCodeBuf[5];
    MakePrettyTypeCodeString(what, prettyTypeCodeBuf);
 
-   p.putc(' ', indent);
    p.printf("Message:  what='%s' (" INT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), entryCount=" INT32_FORMAT_SPEC ", flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", prettyTypeCodeBuf, what, what, GetNumNames(B_ANY_TYPE), FlattenedSize(), CalculateChecksum());
 
    for (HashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
-      p.putc(' ', indent);
-
       const MessageField & mf = iter.GetValue();
       const uint32 tc = mf.TypeCode();
       MakePrettyTypeCodeString(tc, prettyTypeCodeBuf);
       p.printf("  Entry: Name=[%s], GetNumItems()=" INT32_FORMAT_SPEC ", TypeCode()='%s' (" INT32_FORMAT_SPEC ") flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", iter.GetKey()(), mf.GetNumItems(), prettyTypeCodeBuf, tc, mf.FlattenedSize(), mf.CalculateChecksum(false));
-      mf.Print(p, maxRecurseLevel, indent);
+      mf.Print(p, maxRecurseLevel);
    }
 }
 
@@ -2508,53 +2504,53 @@ bool MessageField :: SingleIsFlattenable() const
    return ((_typeCode != B_TAG_TYPE)&&(_typeCode != B_POINTER_TYPE));
 }
 
-static void PrintSingleItem(uint32 indent, const String & itemStr, const OutputPrinter & p)
+static void PrintSingleItem(const String & itemStr, const OutputPrinter & p)
 {
-   PrintItemPreamble(indent, 0, p);
+   PrintItemPreamble(0, p);
    p.puts(itemStr());
    p.putc('\n');
 }
 
-template <typename T> void PrintFormattedSingleItem(uint32 indent, const char * fmt, T val, const OutputPrinter & p)
+template <typename T> void PrintFormattedSingleItem(const char * fmt, T val, const OutputPrinter & p)
 {
    char buf[64]; muscleSprintf(buf, fmt, val);
-   PrintSingleItem(indent, buf, p);
+   PrintSingleItem(buf, p);
 }
 
-void MessageField :: Print(const OutputPrinter & p, uint32 maxRecurseLevel, int indent) const
+void MessageField :: Print(const OutputPrinter & p, uint32 maxRecurseLevel) const
 {
-   if (HasArray()) GetArray()->Print(p, maxRecurseLevel, indent);
-              else SinglePrint(p, maxRecurseLevel, indent);
+   if (HasArray()) GetArray()->Print(p, maxRecurseLevel);
+              else SinglePrint(p, maxRecurseLevel);
 }
 
-void MessageField :: SinglePrint(const OutputPrinter & p, uint32 maxRecurseLevel, int indent) const
+void MessageField :: SinglePrint(const OutputPrinter & p, uint32 maxRecurseLevel) const
 {
    if (_state == FIELD_STATE_INLINE)  // paranoia
    {
       switch(_typeCode)
       {
-         case B_BOOL_TYPE:    PrintFormattedSingleItem(indent, "[%i]", GetInlineItemAsBool(),                     p); break;
-         case B_DOUBLE_TYPE:  PrintFormattedSingleItem(indent, "[%f]", GetInlineItemAsDouble(),                   p); break;
-         case B_FLOAT_TYPE:   PrintFormattedSingleItem(indent, "[%f]", GetInlineItemAsFloat(),                    p); break;
-         case B_INT64_TYPE:   PrintFormattedSingleItem(indent, "[" INT64_FORMAT_SPEC "]", GetInlineItemAsInt64(), p); break;
-         case B_INT32_TYPE:   PrintFormattedSingleItem(indent, "[" INT32_FORMAT_SPEC "]", GetInlineItemAsInt32(), p); break;
-         case B_INT16_TYPE:   PrintFormattedSingleItem(indent, "[%i]", GetInlineItemAsInt16(),                    p); break;
-         case B_INT8_TYPE:    PrintFormattedSingleItem(indent, "[%i]", GetInlineItemAsInt8(),                     p); break;
+         case B_BOOL_TYPE:    PrintFormattedSingleItem("[%i]", GetInlineItemAsBool(),                     p); break;
+         case B_DOUBLE_TYPE:  PrintFormattedSingleItem("[%f]", GetInlineItemAsDouble(),                   p); break;
+         case B_FLOAT_TYPE:   PrintFormattedSingleItem("[%f]", GetInlineItemAsFloat(),                    p); break;
+         case B_INT64_TYPE:   PrintFormattedSingleItem("[" INT64_FORMAT_SPEC "]", GetInlineItemAsInt64(), p); break;
+         case B_INT32_TYPE:   PrintFormattedSingleItem("[" INT32_FORMAT_SPEC "]", GetInlineItemAsInt32(), p); break;
+         case B_INT16_TYPE:   PrintFormattedSingleItem("[%i]", GetInlineItemAsInt16(),                    p); break;
+         case B_INT8_TYPE:    PrintFormattedSingleItem("[%i]", GetInlineItemAsInt8(),                     p); break;
 
          case B_MESSAGE_TYPE:
-            MessageDataArray::PrintItemDescription(indent, 0, GetInlineItemAsRefCountableRef().DowncastTo<MessageRef>(), p, maxRecurseLevel);
+            MessageDataArray::PrintItemDescription(0, GetInlineItemAsRefCountableRef().DowncastTo<MessageRef>(), p, maxRecurseLevel);
          break;
 
-         case B_POINTER_TYPE: PrintFormattedSingleItem(indent, "[%p]", GetInlineItemAsPointer(),                p); break;
-         case B_POINT_TYPE:   PrintSingleItem(indent, PointToString(GetInlineItemAsPoint()),                    p); break;
-         case B_RECT_TYPE:    PrintSingleItem(indent, RectToString(GetInlineItemAsRect()),                      p); break;
-         case B_STRING_TYPE:  PrintSingleItem(indent, GetInlineItemAsString().WithPrepend("[").WithAppend("]"), p); break;
+         case B_POINTER_TYPE: PrintFormattedSingleItem("[%p]", GetInlineItemAsPointer(),                p); break;
+         case B_POINT_TYPE:   PrintSingleItem(PointToString(GetInlineItemAsPoint()),                    p); break;
+         case B_RECT_TYPE:    PrintSingleItem(RectToString(GetInlineItemAsRect()),                      p); break;
+         case B_STRING_TYPE:  PrintSingleItem(GetInlineItemAsString().WithPrepend("[").WithAppend("]"), p); break;
 
          default:
          {
             const ByteBuffer * bb = dynamic_cast<const ByteBuffer *>(GetInlineItemAsRefCountableRef()());
-            if (bb) ByteBufferDataArray::PrintItemDescription(indent, 0, GetInlineItemAsRefCountableRef().DowncastTo<FlatCountableRef>(), p);
-               else PrintFormattedSingleItem(indent, "%p", GetInlineItemAsRefCountableRef()(), p);
+            if (bb) ByteBufferDataArray::PrintItemDescription(0, GetInlineItemAsRefCountableRef().DowncastTo<FlatCountableRef>(), p);
+               else PrintFormattedSingleItem("%p", GetInlineItemAsRefCountableRef()(), p);
          }
          break;
       }

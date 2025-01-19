@@ -26,8 +26,6 @@ key:  - new feature
      StringMatcher, Tuple, and Void classes.
    - Added equality-test operators and an IsEqualTo() virtual method
      to the QueryFilter classes.
-   - Added a GetMutexLockingReport() function for those who don't
-     want to print their Mutex-locking reports to stdout.
    - Added an OutputPrinter convenience class (in util/OutputPrinter.h)
      for code that wants to print to a FILE or a String or to the Log
      without having to write three different implementations.

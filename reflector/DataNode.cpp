@@ -363,7 +363,7 @@ void DataNode :: Print(const OutputPrinter & p, uint32 maxRecursionDepth, int in
    p.putc(' ', indentLevel);
    String np; (void) GetNodePath(np);
    p.printf("DataNode [%s] numChildren=" UINT32_FORMAT_SPEC " orderedIndex=" INT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC " msgChecksum=" UINT32_FORMAT_SPEC "\n", np(), _children?_children->GetNumItems():0, _orderedIndex?(int32)_orderedIndex->GetNumItems():(int32)-1, CalculateChecksum(maxRecursionDepth), _data()?_data()->CalculateChecksum():0);
-   if (_data()) _data()->Print(p, true, indentLevel+1);
+   if (_data()) _data()->Print(p.WithIndent(1), true);
    if (maxRecursionDepth > 0)
    {
       if (_orderedIndex)

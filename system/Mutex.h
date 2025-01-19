@@ -6,6 +6,7 @@
 #include "support/MuscleSupport.h"  // needed for WIN32 defines, etc
 #include "support/NotCopyable.h"
 #include "util/NestCount.h"
+#include "util/OutputPrinter.h"
 
 #ifndef MUSCLE_SINGLE_THREAD_ONLY
 # if defined(QT_CORE_LIB)  // is Qt4 available?
@@ -445,15 +446,10 @@ private:
 /** If MUSCLE_ENABLE_DEADLOCK_FINDER was defined during compilation, this function will print
   * to stdout a human-readable report about how Mutexes have been locked so far, and whether
   * any inconsistent locking ordering has been detected.  Otherwise an error message will be printed.
+  * @param p the OutputPrinter to use for printing the output.
+  * @returns B_NO_ERROR on success, or another value on failure.
   */
-void PrintMutexLockingReport();
-
-/** Same as PrintMutexLockingReport(), except the report text is appended to
-  * the passed-in String, rather than printed to stdout.
-  * @param retStr on successful return, this String will contain the text report.
-  * @returns B_NO_ERROR on success, or some other value on failure.
-  */
-status_t GetMutexLockingReport(String & retStr);
+status_t PrintMutexLockingReport(const OutputPrinter & p);
 
 /** A macro to quickly and safely put a MutexGuard on the stack for the given Mutex.
   * @note Using this macro is better than just declaring a MutexGuard object directly in

@@ -309,17 +309,14 @@ public:
      * @param p The OutputPrinter to use for printing.  A FILE (e.g. stdout), a String, or a MUSCLE_LOG_SEVERITY_* value can
      *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
      * @param maxRecurseLevel The maximum level of nested sub-Messages that we will print.  Defaults to MUSCLE_NO_LIMIT.
-     * @param indentLevel Number of spaces to indent each printed line.  Used while recursing to format nested messages text nicely
      */
-   void Print(const OutputPrinter & p = stdout, uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
+   void Print(const OutputPrinter & p = stdout, uint32 maxRecurseLevel = MUSCLE_NO_LIMIT) const;
 
-   /** Same as Print(), only the state of the Message is returned
-    *  as a String instead of being printed to stdout.
+   /** Same as Print(), only the state of the Message is returned as a String instead of being printed to stdout.
     *  @param maxRecurseLevel The maximum level of nested sub-Messages that we will generate.  Defaults to MUSCLE_NO_LIMIT.
-    *  @param indentLevel Number of spaces to indent each generate line.  Used while recursing to format nested messages text nicely
     *  @returns a String representation of this Message, for debugging
     */
-   String ToString(uint32 maxRecurseLevel = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
+   String ToString(uint32 maxRecurseLevel = MUSCLE_NO_LIMIT) const;
 
    /** Renames a field.
     *  @param old_entry Field name to rename from.

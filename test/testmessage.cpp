@@ -454,7 +454,7 @@ int main(int, char **)
    }
 
    printf("\n\nFinal contents of (msg) are:\n");
-   msg.Print();
+   msg.Print(MUSCLE_LOG_INFO);
 
    return 0;
 }
