@@ -82,7 +82,7 @@ template<class EndianConverter> status_t TestHelpers()
    }
 
    // Print out the serialized bytes in hexadecimal, so we can see how they were written
-   PrintHexBytes(buf, numValidBytesInBuf);
+   PrintHexBytes(stdout, buf, numValidBytesInBuf);
 
    // Read the serialized bytes back in as POD data again so we can verify it is the same as before
    DataUnflattenerHelper<EndianConverter> unflat(buf, numValidBytesInBuf);
@@ -158,7 +158,7 @@ int main(int argc, char ** argv)
          if (buf())
          {
             printf("File [%s] is " UINT32_FORMAT_SPEC " bytes long.  Contents of the file are as follows:\n", fileName, buf()->GetNumBytes());
-            PrintHexBytes(buf);
+            PrintHexBytes(stdout, buf);
             return 0;
          }
          else printf("Error reading file [%s]\n", fileName);

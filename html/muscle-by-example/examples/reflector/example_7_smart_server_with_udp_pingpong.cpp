@@ -70,7 +70,7 @@ public:
          if (msg()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, sourceIAP).IsOK())
          {
             printf("Received from [%s]:\n", sourceIAP.ToString()());
-            PrintHexBytes(receivedData);
+            PrintHexBytes(stdout, receivedData);
 
             // If we wanted to reply immediately, we could just call AddOutgoingMessage(msg) right here
             // But example_2_udp_pingpong waits 100mS before sending back the reply, so let's do that
@@ -105,7 +105,7 @@ public:
 
                printf("Sending UDP reply to [%s]:\n", dest.ToString()());
                ByteBufferRef msgData; (void) msgToSend()->FindFlat(PR_NAME_DATA_CHUNKS, msgData);
-               PrintHexBytes(msgData);
+               PrintHexBytes(stdout, msgData);
 
                // Hand the Message off to the RawMessageDataGateway for immediate transmission
                (void) AddOutgoingMessage(msgToSend);

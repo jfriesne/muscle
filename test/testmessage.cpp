@@ -80,17 +80,17 @@ static void TestTemplatedFlatten(const Message & m, int lineNumber)
    printf("TEMPLATE TEST at line %i:  templatedFlatSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " (%.0f%% size reduction)\n", lineNumber, templatedFlatSize, regularFlatSize, 100.0*(1.0-((float)templatedFlatSize/regularFlatSize)));
 
    printf("Message is:\n");
-   m.Print();
+   m.Print(stdout);
 
    ByteBufferRef buf = GetByteBufferFromPool(templatedFlatSize);
    memset(buf()->GetBuffer(), 'X', buf()->GetNumBytes());  // just to make any unwritten-to-bytes more obvious
    m.TemplatedFlatten(*messageTemplate(), DataFlattener(buf()->GetBuffer(), templatedFlatSize));
 
    //printf("Template Message is:\n");
-   //messageTemplate()->Print();
+   //messageTemplate()->Print(stdout);
 
    printf("Templated flattened buffer is:\n");
-   PrintHexBytes(buf);
+   PrintHexBytes(stdout, buf);
 
    status_t ret;
    Message newMsg;
@@ -100,7 +100,7 @@ static void TestTemplatedFlatten(const Message & m, int lineNumber)
       if (newMsg != m)
       {
          printf("Template test failed (line %i), Unflattened Message didn't match the original!  Unflattened Message is:\n", lineNumber);
-         newMsg.Print();
+         newMsg.Print(stdout);
          exit(10);
       }
    }
@@ -140,8 +140,8 @@ int main(int, char **)
 
       status_t ret = m1.SwapName("blah", m2);
       printf("SwapName(\"blah\") returned %s\n", ret());
-      printf("m1 is now:\n"); m1.Print();
-      printf("m2 is now:\n"); m2.Print();
+      printf("m1 is now:\n"); m1.Print(stdout);
+      printf("m2 is now:\n"); m2.Print(stdout);
    }
 
    Message m1;
@@ -166,7 +166,7 @@ int main(int, char **)
    (void) butter.ReplaceRect(true, "rect", Rect(5,6,7,8));
    TestTemplatedFlatten(butter, __LINE__);
    (void) butter.ReplacePointer(true, "pointer", &butter);
-   butter.Print();
+   butter.Print(stdout);
 
    (void) butter.ReplaceInt16(true, "int16", 0, 17);
    (void) butter.ReplaceInt16(true, "int16", 1, 18);
@@ -175,7 +175,7 @@ int main(int, char **)
    (void) butter.AddTag("Tag", RefCountableRef(GetMessageFromPool(6666)()));
    (void) butter.AddTag("Tag", RefCountableRef(GetMessageFromPool(7777)()));
    (void) butter.AddPointer("pointer", &butter);
-   butter.Print();
+   butter.Print(stdout);
 
    void * t;
    if ((butter.FindPointer("pointer", t).IsError())||(t != &butter)) printf("Error retrieving pointer!\n");
@@ -263,7 +263,7 @@ int main(int, char **)
    {for (int i=0; i<10; i++) TEST(msg.AddBool("TestBool", (i!=0)));}
 
    printf("Finished message:\n");
-   msg.Print();
+   msg.Print(stdout);
 
    printSep("Testing RemoveName, RemoveData, Replace*()...");
    TEST(msg.RemoveData("TestInt8", 5));
@@ -286,7 +286,7 @@ int main(int, char **)
    printf("EQMSG=msg == %i\n", eqMsg==msg);
 
    printf("Replaced message:\n");
-   msg.Print();
+   msg.Print(stdout);
 
    printSep("Testing the Find() commands...");
    String strResult;
@@ -340,11 +340,11 @@ int main(int, char **)
 
    Rect rectResult;
    TEST(msg.FindRect("rect2345", rectResult));
-   printf("TestRect: "); rectResult.Print();
+   printf("TestRect: "); rectResult.Print(stdout);
 
    Point pointResult;
    TEST(msg.FindPoint("point12", 1, pointResult));
-   printf("TestPoint: "); pointResult.Print();
+   printf("TestPoint: "); pointResult.Print(stdout);
 
    (void) msg.AddTag("ThisShouldn'tBeBackAfterUnflatten", RefCountableRef(NULL));
 
@@ -361,23 +361,23 @@ int main(int, char **)
    printSep("Testing misc");
 
    printf("There are " UINT32_FORMAT_SPEC " string entries\n", msg.GetNumNames(B_STRING_TYPE));
-   msg.Print();
+   msg.Print(stdout);
    Message tryMe = msg;
    printf("Msg is " UINT32_FORMAT_SPEC " bytes.\n",msg.FlattenedSize());
    (void) msg.AddTag("anothertag", RefCountableRef(GetMessageFromPool()()));
    printf("After adding tag, msg is (hopefully still) " UINT32_FORMAT_SPEC " bytes.\n",msg.FlattenedSize());
-   tryMe.Print();
+   tryMe.Print(stdout);
 
    printf("Extracting...\n");
    Message extract;
    TEST(tryMe.FindMessage("subMessage", extract));
    printSep("Extracted subMessage!\n");
-   extract.Print();
+   extract.Print(stdout);
 
    Message subExtract;
    TEST(extract.FindMessage("subsubMessage", subExtract));
    printSep("Extracted subsubMessage!\n");
-   subExtract.Print();
+   subExtract.Print(stdout);
 
    const uint32 flatSize = msg.FlattenedSize();
    printf("FlatSize=" UINT32_FORMAT_SPEC "\n",flatSize);
@@ -389,16 +389,16 @@ int main(int, char **)
    {for (uint32 i=flatSize; i<flatSize*10; i++) if (buf[i] != 'J') printf("OVERWRITE ON BYTE " UINT32_FORMAT_SPEC "\n",i);}
    printf("\n====\n");
 
-   PrintHexBytes(buf, flatSize);
+   PrintHexBytes(stdout, buf, flatSize);
 
    Message copy;
    if (copy.UnflattenFromBytes(buf, flatSize).IsOK())
    {
       printf("****************************\n");
-      copy.Print();
+      copy.Print(stdout);
       printf("***************************2\n");
       Message dup(copy);
-      dup.Print();
+      dup.Print(stdout);
    }
    else printf("Rats, Unflatten did not work.  :^(\n");
    delete [] buf;

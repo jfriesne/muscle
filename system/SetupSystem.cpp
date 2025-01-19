@@ -1394,7 +1394,7 @@ void AbstractObjectRecycler :: GlobalPrintRecyclersToStream()
    const AbstractObjectRecycler * r = _firstRecycler;
    while(r)
    {
-      r->Print();
+      r->Print(stdout);
       r = r->_next;
    }
 
@@ -1848,19 +1848,19 @@ static void PrintHexBytesAux(const OutputPrinter & p, const void * vbuf1, uint32
    }
 }
 
-void PrintHexBytes(const void * vbuf, uint32 numBytes, const char * optDesc, uint32 numColumns, const OutputPrinter & p)
+void PrintHexBytes(const OutputPrinter & p, const void * vbuf, uint32 numBytes, const char * optDesc, uint32 numColumns)
 {
    PrintHexBytesAux(p, vbuf, numBytes, NULL, 0, optDesc, numColumns);
 }
 
-void PrintHexBytes(const ByteBuffer & bb, const char * optDesc, uint32 numColumns, const OutputPrinter & p)
+void PrintHexBytes(const OutputPrinter & p, const ByteBuffer & bb, const char * optDesc, uint32 numColumns)
 {
-   PrintHexBytes(bb.GetBuffer(), bb.GetNumBytes(), optDesc, numColumns, p);
+   PrintHexBytes(p, bb.GetBuffer(), bb.GetNumBytes(), optDesc, numColumns);
 }
 
-void PrintHexBytes(const ConstByteBufferRef & bbRef, const char * optDesc, uint32 numColumns, const OutputPrinter & p)
+void PrintHexBytes(const OutputPrinter & p, const ConstByteBufferRef & bbRef, const char * optDesc, uint32 numColumns)
 {
-   PrintHexBytes(bbRef()?bbRef()->GetBuffer():NULL, bbRef()?bbRef()->GetNumBytes():0, optDesc, numColumns, p);
+   PrintHexBytes(p, bbRef()?bbRef()->GetBuffer():NULL, bbRef()?bbRef()->GetNumBytes():0, optDesc, numColumns);
 }
 
 static void PrintHexBytesAux(const OutputPrinter & p, const Queue<uint8> & buf, const char * optDesc, uint32 numColumns)
@@ -1871,29 +1871,9 @@ static void PrintHexBytesAux(const OutputPrinter & p, const Queue<uint8> & buf, 
    PrintHexBytesAux(p, buf1, numBytes1, buf2, numBytes2, optDesc, numColumns);
 }
 
-void PrintHexBytes(const Queue<uint8> & bytes, const char * optDesc, uint32 numColumns, const OutputPrinter & p)
+void PrintHexBytes(const OutputPrinter & p, const Queue<uint8> & bytes, const char * optDesc, uint32 numColumns)
 {
    PrintHexBytesAux(p, bytes, optDesc, numColumns);
-}
-
-void LogHexBytes(int logLevel, const void * vbuf, uint32 numBytes, const char * optDesc, uint32 numColumns)
-{
-   PrintHexBytesAux(logLevel, vbuf, numBytes, NULL, 0, optDesc, numColumns);
-}
-
-void LogHexBytes(int logLevel, const Queue<uint8> & buf, const char * optDesc, uint32 numColumns)
-{
-   PrintHexBytesAux(logLevel, buf, optDesc, numColumns);
-}
-
-void LogHexBytes(int logLevel, const ByteBuffer & bb, const char * optDesc, uint32 numColumns)
-{
-   LogHexBytes(logLevel, bb.GetBuffer(), bb.GetNumBytes(), optDesc, numColumns);
-}
-
-void LogHexBytes(int logLevel, const ConstByteBufferRef & bbRef, const char * optDesc, uint32 numColumns)
-{
-   LogHexBytes(logLevel, bbRef()?bbRef()->GetBuffer():NULL, bbRef()?bbRef()->GetNumBytes():0, optDesc, numColumns);
 }
 
 String HexBytesToAnnotatedString(const void * vbuf, uint32 numBytes, const char * optDesc, uint32 numColumns)

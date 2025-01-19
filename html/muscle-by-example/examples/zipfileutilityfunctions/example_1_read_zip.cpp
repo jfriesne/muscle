@@ -26,7 +26,7 @@ int main(int argc, char ** argv)
    if (msg())
    {
       LogTime(MUSCLE_LOG_INFO, "Read file [%s] as a .zip file.  The contents of the file are:\n", argv[1]);
-      msg()->Print();
+      msg()->Print(stdout);
    }
    else LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't read file [%s], perhaps it is not a .zip file?\n", argv[1]);
 

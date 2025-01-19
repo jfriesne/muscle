@@ -103,7 +103,7 @@ public:
    }
 
    /** @copydoc DoxyTemplate::Print(const OutputPrinter &) const */
-   void Print(const OutputPrinter & p = stdout) const {p.printf("Rect: leftTop=(%f,%f) rightBottom=(%f,%f)\n", left(), top(), right(), bottom());}
+   void Print(const OutputPrinter & p) const {p.printf("Rect: leftTop=(%f,%f) rightBottom=(%f,%f)\n", left(), top(), right(), bottom());}
 
    /** Returns the left top corner of the rectangle. */
    MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline Point LeftTop() const {return Point(left(), top());}

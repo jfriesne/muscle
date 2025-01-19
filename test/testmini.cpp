@@ -255,7 +255,7 @@ int main(int, char **)
       MMPrint(mmsg, NULL);
 
       printf("---------------------------------Msg:\n");
-      m.Print();
+      m.Print(stdout);
 
       printf("---------------------------------MMsg:\n");
       {

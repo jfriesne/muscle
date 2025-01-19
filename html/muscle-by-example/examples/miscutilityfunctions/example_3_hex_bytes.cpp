@@ -47,7 +47,7 @@ int main(int argc, char ** argv)
    printf("\n");
    printf("And finally, our buffer printed out with annotation using PrintHexBytes():\n");
    printf("\n");
-   PrintHexBytes(myBuf, sizeof(myBuf));
+   PrintHexBytes(stdout, myBuf, sizeof(myBuf));
    printf("\n");
 
    return 0;

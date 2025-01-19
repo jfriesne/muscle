@@ -81,7 +81,7 @@ status_t ThreadedInternalSession :: MessageReceivedFromOwner(const MessageRef & 
 
          default:
             printf("internal-slave-thread-%s received the following unknown Message from the MUSCLE thread:\n", muscle_thread_id::GetCurrentThreadID().ToString(buf));
-            msgRef()->Print();
+            msgRef()->Print(stdout);
          break;
       }
       return B_NO_ERROR;  // message processed, indicate this thread should keep running
@@ -109,7 +109,7 @@ void ThreadedInternalSession :: InternalThreadEntry()
    if (_args())
    {
       printf("Startup arguments for internal-slave-thread %s are:\n", _threadIDString);
-      _args()->Print();  // a real program would probably use some data from here, not just print it out
+      _args()->Print(stdout);  // a real program would probably use some data from here, not just print it out
    }
 
 #if defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)

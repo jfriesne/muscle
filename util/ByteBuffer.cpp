@@ -140,9 +140,9 @@ void ByteBuffer :: Clear(bool releaseBuffers)
    else (void) SetNumBytes(0, false);
 }
 
-void ByteBuffer :: Print(uint32 maxBytesToPrint, uint32 numColumns, const OutputPrinter & p) const
+void ByteBuffer :: Print(const OutputPrinter & p, uint32 maxBytesToPrint, uint32 numColumns) const
 {
-   PrintHexBytes(GetBuffer(), muscleMin(maxBytesToPrint, GetNumBytes()), "ByteBuffer", numColumns, p);
+   PrintHexBytes(p, GetBuffer(), muscleMin(maxBytesToPrint, GetNumBytes()), "ByteBuffer", numColumns);
 }
 
 String ByteBuffer :: ToHexString(uint32 maxBytesToInclude, bool withSpaces) const

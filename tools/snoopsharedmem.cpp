@@ -48,7 +48,7 @@ int snoopsharedmemmain(const Message & args)
       while(1)
       {
          (void) Snooze64(delayMicros);
-         LogHexBytes(MUSCLE_LOG_INFO, a, muscleMin(memSize, maxBytesToPrint));
+         PrintHexBytes(MUSCLE_LOG_INFO, a, muscleMin(memSize, maxBytesToPrint));
          if (isClear) memset(a, 0, memSize);
       }
    }

@@ -51,7 +51,7 @@ public:
          if (msgFromOwner())
          {
             printf("Child thread received the following Message from the main thread:\n");
-            msgFromOwner()->Print();
+            msgFromOwner()->Print(stdout);
          }
          else
          {

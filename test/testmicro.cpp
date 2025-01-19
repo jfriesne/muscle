@@ -171,16 +171,16 @@ int main(int, char **)
    UMPrint(&um, NULL);
 
    printf("\n---------------------------------Msg:\n");
-   m.Print();
+   m.Print(stdout);
 
    printf("\n---------------------------------UMsg:\n");
    const uint8 * umPtr = UMGetFlattenedBuffer(&um);
    const uint32 umFlatSize = UMGetFlattenedSize(&um);
-   PrintHexBytes(umPtr, umFlatSize);
+   PrintHexBytes(stdout, umPtr, umFlatSize);
 
    ByteBufferRef bufRef = GetFlattenedByteBufferFromPool(m);
    printf("\n---------------------------------Msg:\n");
-   PrintHexBytes(bufRef);
+   PrintHexBytes(stdout, bufRef);
 
    uint8 * mPtr = bufRef()->GetBuffer();
    const uint32 mFlatSize = bufRef()->GetNumBytes();

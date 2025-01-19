@@ -40,7 +40,7 @@ public:
    }
    TestArgsA(const char * s, int i) : _s(s), _i(i) {/* empty */}
 
-   void Print() const {printf("TestArgsA:  [%s] %i\n", _s, _i);}
+   void Print(const OutputPrinter & p) const {p.printf("TestArgsA:  [%s] %i\n", _s, _i);}
 
 private:
    const char * _s;
@@ -54,8 +54,8 @@ public:
    virtual ~TestArgsABatchOperator() {printf("TestArgsABatchOperator dtor %p\n", this);}
 
 protected:
-   virtual void BatchBegins(const TestArgsA & args) {printf("TestArgsABatchOperator::BatchBegins %p args=", this); args.Print();}
-   virtual void BatchEnds(const TestArgsA & args)   {printf("TestArgsABatchOperator::BatchEnds %p args=",   this); args.Print();}
+   virtual void BatchBegins(const TestArgsA & args) {printf("TestArgsABatchOperator::BatchBegins %p args=", this); args.Print(stdout);}
+   virtual void BatchEnds(const TestArgsA & args)   {printf("TestArgsABatchOperator::BatchEnds %p args=",   this); args.Print(stdout);}
 };
 
 class TestArgsB
@@ -69,7 +69,7 @@ public:
    }
    TestArgsB(const char * s, int i) : _s(s), _i(i) {/* empty */}
 
-   void Print() const {printf("TestArgsB:  [%s] %i\n", _s, _i);}
+   void Print(const OutputPrinter & p) const {p.printf("TestArgsB:  [%s] %i\n", _s, _i);}
 
 private:
    const char * _s;
@@ -83,8 +83,8 @@ public:
    virtual ~TestArgsBBatchOperator() {printf("TestArgsBBatchOperator dtor %p\n", this);}
 
 protected:
-   virtual void BatchBegins(const TestArgsB & args) {printf("TestArgsBBatchOperator::BatchBegins %p args=", this); args.Print();}
-   virtual void BatchEnds(const TestArgsB & args)   {printf("TestArgsBBatchOperator::BatchEnds %p args=",   this); args.Print();}
+   virtual void BatchBegins(const TestArgsB & args) {printf("TestArgsBBatchOperator::BatchBegins %p args=", this); args.Print(stdout);}
+   virtual void BatchEnds(const TestArgsB & args)   {printf("TestArgsBBatchOperator::BatchEnds %p args=",   this); args.Print(stdout);}
 };
 
 class CombinedBatchOperator : public TestArgsABatchOperator, public TestArgsBBatchOperator

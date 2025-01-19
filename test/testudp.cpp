@@ -225,7 +225,7 @@ int main(int argc, char ** argv)
                   if (send)
                   {
                      printf("Sending message...\n");
-//                   ref()->Print();
+//                   ref()->Print(stdout);
                      (void) agw()->AddOutgoingMessage(ref);
                   }
                }
@@ -249,7 +249,7 @@ int main(int argc, char ** argv)
             (void) incoming()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, iap);
 
             printf("Incoming message from %s:-----------------------------------\n", iap.ToString()());
-            incoming()->Print();
+            incoming()->Print(stdout);
             printf("-------------------------------------------------------------\n");
          }
 

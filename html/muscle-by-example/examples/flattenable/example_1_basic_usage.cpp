@@ -97,7 +97,7 @@ int main(int argc, char ** argv)
 
    printf("\n");
    printf("Flattened representation is:\n");
-   PrintHexBytes(tempBuf, gps.FlattenedSize());
+   PrintHexBytes(stdout, tempBuf, gps.FlattenedSize());
    printf("\n");
 
    // Now let's Unflatten() the data again, retrieving it back from the byte-buffer

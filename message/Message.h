@@ -310,7 +310,7 @@ public:
      *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
      * @param maxRecurseLevel The maximum level of nested sub-Messages that we will print.  Defaults to MUSCLE_NO_LIMIT.
      */
-   void Print(const OutputPrinter & p = stdout, uint32 maxRecurseLevel = MUSCLE_NO_LIMIT) const;
+   void Print(const OutputPrinter & p, uint32 maxRecurseLevel = MUSCLE_NO_LIMIT) const;
 
    /** Same as Print(), only the state of the Message is returned as a String instead of being printed to stdout.
     *  @param maxRecurseLevel The maximum level of nested sub-Messages that we will generate.  Defaults to MUSCLE_NO_LIMIT.

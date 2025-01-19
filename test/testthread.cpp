@@ -40,8 +40,8 @@ public:
        MRETURN_OOM_ON_NULL(tls);
 
        if (hasValue == false) *tls = 12;
-       if (msgRef()) {printf("threadTLS=%i: Internal thread saw: ",     *tls); msgRef()->Print(); return B_NO_ERROR;}
-                else {printf("threadTLS=%i: Internal thread exiting\n", *tls);                    return B_SHUTTING_DOWN;}
+       if (msgRef()) {printf("threadTLS=%i: Internal thread saw: ",     *tls); msgRef()->Print(stdout); return B_NO_ERROR;}
+                else {printf("threadTLS=%i: Internal thread exiting\n", *tls);                          return B_SHUTTING_DOWN;}
    }
 };
 

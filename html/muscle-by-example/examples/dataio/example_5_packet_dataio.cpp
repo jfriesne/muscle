@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
       const IPAddressAndPort source = udpIO.GetSourceOfLastReadPacket();
 
       printf("Received a %i-byte UDP packet from %s:\n", numBytesRead, source.ToString()());
-      PrintHexBytes(inputBuf, numBytesRead);
+      PrintHexBytes(stdout, inputBuf, numBytesRead);
 
       (void) udpIO.SetPacketSendDestination(source);
       const io_status_t numBytesSent = udpIO.Write(inputBuf, numBytesRead);

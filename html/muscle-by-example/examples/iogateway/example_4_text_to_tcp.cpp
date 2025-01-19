@@ -147,7 +147,7 @@ int main(int argc, char ** argv)
             // And queue it up in the gateway for transmission ASAP
             printf("Your outgoing Message has been queued for transmission ASAP!\n");
             printf("Your outgoing Message is:\n");
-            userMsg()->Print();
+            userMsg()->Print(stdout);
 
             (void) gateway.AddOutgoingMessage(userMsg);
          }
@@ -183,7 +183,7 @@ int main(int argc, char ** argv)
          {
             printf("\n");
             printf("Received the following Message via TCP:\n");
-            nextMsg()->Print();
+            nextMsg()->Print(stdout);
          }
       }
 

@@ -42,7 +42,7 @@ int main(int argc, char ** argv)
 
    // Let's review our order
    printf("Our pizza-order Message is:\n");
-   orderPizzaMsg.Print();
+   orderPizzaMsg.Print(stdout);
 
    // Now let's flatten the Message into a ByteBuffer and see what it looks like as flattened data
    ByteBuffer buf(orderPizzaMsg.FlattenedSize());
@@ -50,7 +50,7 @@ int main(int argc, char ** argv)
 
    printf("\n");
    printf("In Flattened/serialized form, the data looks like this:\n");
-   PrintHexBytes(buf);
+   PrintHexBytes(stdout, buf);
 
    // Next we'll parse the flattened bytes back in to a separate Message object, just to show that we can
    Message anotherMsg;
@@ -58,7 +58,7 @@ int main(int argc, char ** argv)
    {
       printf("\n");
       printf("Unflattened the ByteBuffer back into anotherMsg.  anotherMsg now contains this:\n");
-      anotherMsg.Print();
+      anotherMsg.Print(stdout);
    }
    else printf("Error, unable to Unflatten the byte-buffer back to anotherMsg?!\n");
 

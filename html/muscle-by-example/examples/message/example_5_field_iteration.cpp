@@ -1,6 +1,5 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "message/Message.h"
-#include "util/MiscUtilityFunctions.h"  // for PrintHexBytes()
 
 using namespace muscle;
 
@@ -42,7 +41,7 @@ int main(int argc, char ** argv)
 
    // Let's review our order
    printf("Our pizza-order Message is:\n");
-   orderPizzaMsg.Print();
+   orderPizzaMsg.Print(stdout);
 
    printf("\n");
    printf("The Field names present in (orderPizzaMsg) are:\n");

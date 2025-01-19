@@ -80,7 +80,7 @@ int main(int argc, char ** argv)
       while(qReceiver.RemoveHead(nextMsg).IsOK())
       {
          printf("\n");
-         nextMsg()->Print();
+         nextMsg()->Print(stdout);
       }
    }
 

@@ -7,6 +7,7 @@
 #include "support/NotCopyable.h"
 #include "system/AtomicCounter.h"
 #include "util/Hashtable.h"
+#include "util/OutputPrinter.h"
 
 namespace muscle {
 

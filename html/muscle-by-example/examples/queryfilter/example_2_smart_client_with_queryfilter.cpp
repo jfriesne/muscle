@@ -33,7 +33,7 @@ public:
    {
       printf("\n");
       LogTime(MUSCLE_LOG_INFO, "Received the following Message from the server:\n");
-      msg()->Print();
+      msg()->Print(stdout);
    }
 };
 
@@ -72,7 +72,7 @@ int main(int argc, char ** argv)
 
       // Send off our subscription request
       LogTime(MUSCLE_LOG_INFO, "Sending StringQueryFiltered-subscription request message to server:\n");
-      subscribeToNodesMsg()->Print();
+      subscribeToNodesMsg()->Print(stdout);
 
       // Send off our subscription request
       if (tcpSession.AddOutgoingMessage(subscribeToNodesMsg).IsError(ret))

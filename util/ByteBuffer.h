@@ -112,14 +112,13 @@ public:
    status_t AppendBytes(const ByteBuffer & bb, bool allocExtra = true) {return AppendBytes(bb.GetBuffer(), bb.GetNumBytes(), allocExtra);}
 
    /** Prints the contents of this ByteBuffer to stdout, or to the specified file.  Useful for quick debugging.
+     * @param p The OutputPrinter to use for printing.
      * @param maxBytesToPrint The maximum number of bytes we should actually print.  Defaults to MUSCLE_NO_LIMIT, meaning
      *                        that by default we will always print every byte held by this ByteBuffer.
      * @param numColumns The number of columns to format the bytes into.  Defaults to 16.  See the documentation for
      *                   the PrintHexBytes() function for further details.
-     * @param p The OutputPrinter to use for printing.  A FILE (e.g. stdout), a String, or a MUSCLE_LOG_SEVERITY_* value can 
-     *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
      */
-   void Print(uint32 maxBytesToPrint = MUSCLE_NO_LIMIT, uint32 numColumns = 16, const OutputPrinter & p = stdout) const;
+   void Print(const OutputPrinter & p, uint32 maxBytesToPrint = MUSCLE_NO_LIMIT, uint32 numColumns = 16) const;
 
    /** Returns the contents of this ByteBuffer as a human-readable hexadecimal string
      * @param maxBytesToInclude optional maximum number of byte-values to include in the string.  Defaults to MUSCLE_NO_LIMIT.

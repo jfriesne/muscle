@@ -394,6 +394,7 @@ MUSCLE_NODISCARD const uint8 * MemMem(const uint8 * lookIn, uint32 numLookInByte
 /** This is a convenience function for debugging.  It will print to stdout the
   * specified array of bytes in human-readable hexadecimal format, along with
   * an ASCII sidebar when possible.
+  * @param p The OutputPrinter to use for printing.
   * @param bytes The bytes to print out.  May be NULL.
   * @param numBytes How many bytes (bytes) points to
   * @param optDesc if non-NULL, this will be used as a prefix/title string.
@@ -401,89 +402,39 @@ MUSCLE_NODISCARD const uint8 * MemMem(const uint8 * lookIn, uint32 numLookInByte
   *                   out with this many bytes per row.  Defaults to 16.
   *                   If set to zero, then all the output will be placed
   *                   on a single line, using a simpler hex-only format.
-  * @param p The OutputPrinter to use for printing.  A FILE (e.g. stdout), a String, or a MUSCLE_LOG_SEVERITY_* value can 
-  *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
   */
-void PrintHexBytes(const void * bytes, uint32 numBytes, const char * optDesc = NULL, uint32 numColumns = 16, const OutputPrinter & p = stdout);
+void PrintHexBytes(const OutputPrinter & p, const void * bytes, uint32 numBytes, const char * optDesc = NULL, uint32 numColumns = 16);
 
 /** This is a convenience function for debugging.  It will print to stdout the
   * specified array of bytes in human-readable hexadecimal format, along with
   * an ASCII sidebar when possible.
+  * @param p The OutputPrinter to use for printing.
   * @param bbRef A ByteBufferRef referencing the bytes to print.  May be NULL.
   * @param optDesc if non-NULL, this will be used as a prefix/title string.
   * @param numColumns If specified non zero, then the bytes will be printed
   *                   out with this many bytes per row.  Defaults to 16.
   *                   If set to zero, then all the output will be placed
   *                   on a single line, using a simpler hex-only format.
-  * @param p The OutputPrinter to use for printing.  A FILE (e.g. stdout), a String, or a MUSCLE_LOG_SEVERITY_* value can 
-  *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
   */
-void PrintHexBytes(const ConstByteBufferRef & bbRef, const char * optDesc = NULL, uint32 numColumns = 16, const OutputPrinter & p = stdout);
+void PrintHexBytes(const OutputPrinter & p, const ConstByteBufferRef & bbRef, const char * optDesc = NULL, uint32 numColumns = 16);
 
 /** This is a convenience function for debugging.  It will print to stdout the
   * specified array of bytes in human-readable hexadecimal format, along with
   * an ASCII sidebar when possible.
+  * @param p The OutputPrinter to use for printing.
   * @param bb A ByteBufferRef referencing the bytes to print.
   * @param optDesc if non-NULL, this will be used as a prefix/title string.
   * @param numColumns If specified non zero, then the bytes will be printed
   *                   out with this many bytes per row.  Defaults to 16.
   *                   If set to zero, then all the output will be placed
   *                   on a single line, using a simpler hex-only format.
-  * @param p The OutputPrinter to use for printing.  A FILE (e.g. stdout), a String, or a MUSCLE_LOG_SEVERITY_* value can 
-  *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
   */
-void PrintHexBytes(const ByteBuffer & bb, const char * optDesc = NULL, uint32 numColumns = 16, const OutputPrinter & p = stdout);
+void PrintHexBytes(const OutputPrinter & p, const ByteBuffer & bb, const char * optDesc = NULL, uint32 numColumns = 16);
 
 /** This is a convenience function for debugging.  It will print to stdout the
   * specified array of bytes in human-readable hexadecimal format, along with
   * an ASCII sidebar when possible.
-  * @param bytes A Queue of uint8s representing the bytes to print out.
-  * @param optDesc if non-NULL, this will be used as a prefix/title string.
-  * @param numColumns If specified non zero, then the bytes will be printed
-  *                   out with this many bytes per row.  Defaults to 16.
-  *                   If set to zero, then all the output will be placed
-  *                   on a single line, using a simpler hex-only format.
-  * @param p The OutputPrinter to use for printing.  A FILE (e.g. stdout), a String, or a MUSCLE_LOG_SEVERITY_* value can 
-  *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
-  */
-void PrintHexBytes(const Queue<uint8> & bytes, const char * optDesc = NULL, uint32 numColumns = 16, const OutputPrinter & p = stdout);
-
-/** This function is the same as PrintHexBytes(), but the output is sent to LogPlain() instead of fprintf().
-  * @param logLevel The MUSCLE_LOG_* value indicating the severity level to log the hex bytes at.
-  * @param bytes The bytes to print out.  May be NULL.
-  * @param numBytes How many bytes (bytes) points to
-  * @param optDesc if non-NULL, this will be used as a prefix/title string.
-  * @param numColumns If specified non zero, then the bytes will be printed
-  *                   out with this many bytes per row.  Defaults to 16.
-  *                   If set to zero, then all the output will be placed
-  *                   on a single line, using a simpler hex-only format.
-  */
-void LogHexBytes(int logLevel, const void * bytes, uint32 numBytes, const char * optDesc = NULL, uint32 numColumns = 16);
-
-/** This function is the same as PrintHexBytes(), but the output is sent to LogPlain() instead of fprintf().
-  * @param logLevel The MUSCLE_LOG_* value indicating the severity level to log the hex bytes at.
-  * @param bbRef Reference to the ByteBuffer to print out.  May be a NULL reference.
-  * @param optDesc if non-NULL, this will be used as a prefix/title string.
-  * @param numColumns If specified non zero, then the bytes will be printed
-  *                   out with this many bytes per row.  Defaults to 16.
-  *                   If set to zero, then all the output will be placed
-  *                   on a single line, using a simpler hex-only format.
-  */
-void LogHexBytes(int logLevel, const ConstByteBufferRef & bbRef, const char * optDesc = NULL, uint32 numColumns = 16);
-
-/** This function is the same as PrintHexBytes(), but the output is sent to LogPlain() instead of fprintf().
-  * @param logLevel The MUSCLE_LOG_* value indicating the severity level to log the hex bytes at.
-  * @param bb The ByteBuffer to print out.
-  * @param optDesc if non-NULL, this will be used as a prefix/title string.
-  * @param numColumns If specified non zero, then the bytes will be printed
-  *                   out with this many bytes per row.  Defaults to 16.
-  *                   If set to zero, then all the output will be placed
-  *                   on a single line, using a simpler hex-only format.
-  */
-void LogHexBytes(int logLevel, const ByteBuffer & bb, const char * optDesc = NULL, uint32 numColumns = 16);
-
-/** This function is the same as PrintHexBytes(), but the output is sent to LogPlain() instead of fprintf().
-  * @param logLevel The MUSCLE_LOG_* value indicating the severity level to log the hex bytes at.
+  * @param p The OutputPrinter to use for printing.
   * @param bytes A Queue of uint8s representing the bytes to print out.
   * @param optDesc if non-NULL, this will be used as a prefix/title string.
   * @param numColumns If specified non zero, then the bytes will be printed
@@ -491,7 +442,7 @@ void LogHexBytes(int logLevel, const ByteBuffer & bb, const char * optDesc = NUL
   *                   If set to zero, then all the output will be placed
   *                   on a single line, using a simpler hex-only format.
   */
-void LogHexBytes(int logLevel, const Queue<uint8> & bytes, const char * optDesc = NULL, uint32 numColumns = 16);
+void PrintHexBytes(const OutputPrinter & p, const Queue<uint8> & bytes, const char * optDesc = NULL, uint32 numColumns = 16);
 
 /** This function is the same as PrintHexBytes(), but the output is returned as a String.
   * @param bytes The bytes to return a structured-text description of.  May be NULL.

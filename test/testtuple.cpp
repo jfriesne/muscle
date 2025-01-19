@@ -41,11 +41,11 @@ public:
       _count = counter++;
    }
 
-   void Print() const
+   void Print(const OutputPrinter & p) const
    {
-      printf("{");
-      for (uint32 i=0; i<GetNumItemsInTuple(); i++) printf("%.1f%s", (*this)[i], (i==GetNumItemsInTuple()-1)?"":",");
-      printf("}(c=" UINT32_FORMAT_SPEC ")", _count);
+      p.printf("{");
+      for (uint32 i=0; i<GetNumItemsInTuple(); i++) p.printf("%.1f%s", (*this)[i], (i==GetNumItemsInTuple()-1)?"":",");
+      p.printf("}(c=" UINT32_FORMAT_SPEC ")", _count);
    }
 
 private:
@@ -57,12 +57,14 @@ DECLARE_ALL_TUPLE_OPERATORS(MyTupleSubclass, float);
 static void PrintEquation2(const char * op, const MyTupleSubclass & a, const MyTupleSubclass & b, const MyTupleSubclass & c);
 static void PrintEquation2(const char * op, const MyTupleSubclass & a, const MyTupleSubclass & b, const MyTupleSubclass & c)
 {
-   a.Print();
-   printf(" %s ", op);
-   b.Print();
-   printf(" = ");
-   c.Print();
-   printf("\n");
+   const OutputPrinter p(stdout);
+
+   a.Print(p);
+   p.printf(" %s ", op);
+   b.Print(p);
+   p.printf(" = ");
+   c.Print(p);
+   p.printf("\n");
 }
 
 // test subclassing
@@ -78,11 +80,11 @@ public:
       (*this)[2] = s3;
    }
 
-   void Print() const
+   void Print(const OutputPrinter & p) const
    {
-      printf("{");
-      for (uint32 i=0; i<GetNumItemsInTuple(); i++) printf("[%s]%s", (*this)[i](), (i==GetNumItemsInTuple()-1)?"":",");
-      printf("}");
+      p.printf("{");
+      for (uint32 i=0; i<GetNumItemsInTuple(); i++) p.printf("[%s]%s", (*this)[i](), (i==GetNumItemsInTuple()-1)?"":",");
+      p.printf("}");
    }
 
 private:
@@ -93,34 +95,37 @@ DECLARE_SUBTRACTION_TUPLE_OPERATORS(StringTupleSubclass, String);
 static void PrintEquation3(const char * op, const StringTupleSubclass & a, const StringTupleSubclass & b, const StringTupleSubclass & c);
 static void PrintEquation3(const char * op, const StringTupleSubclass & a, const StringTupleSubclass & b, const StringTupleSubclass & c)
 {
-   a.Print();
-   printf(" %s ", op);
-   b.Print();
-   printf(" = ");
-   c.Print();
-   printf("\n");
+   const OutputPrinter p(stdout);
+   a.Print(p);
+   p.printf(" %s ", op);
+   b.Print(p);
+   p.printf(" = ");
+   c.Print(p);
+   p.printf("\n");
 }
 
 static void PrintEquation4(const char * op, const Point & a, const Point & b, const Point & c);
 static void PrintEquation4(const char * op, const Point & a, const Point & b, const Point & c)
 {
-   a.Print();
-   printf(" %s ", op);
-   b.Print();
-   printf(" = ");
-   c.Print();
-   printf("\n");
+   const OutputPrinter p(stdout);
+   a.Print(p);
+   p.printf(" %s ", op);
+   b.Print(p);
+   p.printf(" = ");
+   c.Print(p);
+   p.printf("\n");
 }
 
 static void PrintEquation5(const char * op, const Rect & a, const Rect & b, const Rect & c);
 static void PrintEquation5(const char * op, const Rect & a, const Rect & b, const Rect & c)
 {
-   a.Print();
-   printf(" %s ", op);
-   b.Print();
-   printf(" = ");
-   c.Print();
-   printf("\n");
+   const OutputPrinter p(stdout);
+   a.Print(p);
+   p.printf(" %s ", op);
+   b.Print(p);
+   p.printf(" = ");
+   c.Print(p);
+   p.printf("\n");
 }
 
 class FiveTuple : public Tuple<5,int>
@@ -191,11 +196,11 @@ int main(int, char **)
       MyTupleSubclass a(5.0f);
       MyTupleSubclass b(1.0f);
 
-      printf("a=");   a.Print();     printf("\n");
-      printf("a+3="); (a+3).Print(); printf("\n");
-      printf("a-3="); (a-3).Print(); printf("\n");
-      printf("a*3="); (a*3).Print(); printf("\n");
-      printf("a/3="); (a/3).Print(); printf("\n");
+      printf("a=");   a.Print(stdout);     printf("\n");
+      printf("a+3="); (a+3).Print(stdout); printf("\n");
+      printf("a-3="); (a-3).Print(stdout); printf("\n");
+      printf("a*3="); (a*3).Print(stdout); printf("\n");
+      printf("a/3="); (a/3).Print(stdout); printf("\n");
 
       PrintEquation2("+", a, b, a+b);
       PrintEquation2("-", a, b, a-b);
@@ -214,12 +219,12 @@ int main(int, char **)
       StringTupleSubclass a("red", "green", "blue");
       StringTupleSubclass b("light", "grass", "rinse");
 
-      printf("a=");   a.Print();     printf("\n");
-      printf("a+'b'="); (a+"b").Print(); printf("\n");
-      printf("a-'b'="); (a-"b").Print(); printf("\n");
+      printf("a=");           a.Print(stdout); printf("\n");
+      printf("a+'b'="); (a+"b").Print(stdout); printf("\n");
+      printf("a-'b'="); (a-"b").Print(stdout); printf("\n");
 
-      PrintEquation3("+", a, b, a+b);
-      PrintEquation3("-", a, b, a-b);
+      PrintEquation3("+",  a, b, a+b);
+      PrintEquation3("-",  a, b, a-b);
       PrintEquation3("++", a, b, a+b+b);
       PrintEquation3("+-", a, b, a+b-b);
       printf("max value in a is %s, max in b is %s\n", a.GetMaximumValue()(), b.GetMaximumValue()());
@@ -230,16 +235,16 @@ int main(int, char **)
       Point a(5.0f, 6.0f);
       Point b(2.0f, 3.0f);
 
-      printf("a=");   a.Print();     printf("\n");
-      printf("a+3="); (a+3.0f).Print(); printf("\n");
-      printf("a-3="); (a-3.0f).Print(); printf("\n");
-      printf("a*3="); (a*3.0f).Print(); printf("\n");
-      printf("a/3="); (a/3.0f).Print(); printf("\n");
+      printf("a=");          a.Print(stdout); printf("\n");
+      printf("a+3="); (a+3.0f).Print(stdout); printf("\n");
+      printf("a-3="); (a-3.0f).Print(stdout); printf("\n");
+      printf("a*3="); (a*3.0f).Print(stdout); printf("\n");
+      printf("a/3="); (a/3.0f).Print(stdout); printf("\n");
 
-      PrintEquation4("+", a, b, a+b);
-      PrintEquation4("-", a, b, a-b);
-      PrintEquation4("*", a, b, a*b);
-      PrintEquation4("/", a, b, a/b);
+      PrintEquation4("+",  a, b, a+b);
+      PrintEquation4("-",  a, b, a-b);
+      PrintEquation4("*",  a, b, a*b);
+      PrintEquation4("/",  a, b, a/b);
       PrintEquation4("++", a, b, a+b+b);
       PrintEquation4("+-", a, b, a+b-b);
       PrintEquation4("u-", a, a, -a);
@@ -253,16 +258,16 @@ int main(int, char **)
       Rect a(5,6,7,8);
       Rect b(5,4,3,2);
 
-      printf("a=");   a.Print();     printf("\n");
-      printf("a+3="); (a+3.0f).Print(); printf("\n");
-      printf("a-3="); (a-3.0f).Print(); printf("\n");
-      printf("a*3="); (a*3.0f).Print(); printf("\n");
-      printf("a/3="); (a/3.0f).Print(); printf("\n");
+      printf("a=");          a.Print(stdout); printf("\n");
+      printf("a+3="); (a+3.0f).Print(stdout); printf("\n");
+      printf("a-3="); (a-3.0f).Print(stdout); printf("\n");
+      printf("a*3="); (a*3.0f).Print(stdout); printf("\n");
+      printf("a/3="); (a/3.0f).Print(stdout); printf("\n");
 
-      PrintEquation5("+", a, b, a+b);
-      PrintEquation5("-", a, b, a-b);
-      PrintEquation5("*", a, b, a*b);
-      PrintEquation5("/", a, b, a/b);
+      PrintEquation5("+",  a, b, a+b);
+      PrintEquation5("-",  a, b, a-b);
+      PrintEquation5("*",  a, b, a*b);
+      PrintEquation5("/",  a, b, a/b);
       PrintEquation5("++", a, b, a+b+b);
       PrintEquation5("+-", a, b, a+b-b);
       PrintEquation5("u-", a, a, -a);

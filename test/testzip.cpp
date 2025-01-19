@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
    if (msg())
    {
       printf("Contents of [%s] as a Message are:\n", argv[1]);
-      msg()->Print();
+      msg()->Print(stdout);
 
       if (argc > 2)
       {

@@ -64,7 +64,7 @@ static void LogBytes(const uint8 * buf, uint32 numBytes, const char * optDesc)
 {
    if (g_useHex)
    {
-      if (!g_quietSend) LogHexBytes(MUSCLE_LOG_INFO, buf, numBytes, optDesc);
+      if (!g_quietSend) PrintHexBytes(MUSCLE_LOG_INFO, buf, numBytes, optDesc);
       if (g_printChecksums) LogChecksum(buf, numBytes);
    }
    else

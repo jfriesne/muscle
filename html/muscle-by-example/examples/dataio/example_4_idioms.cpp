@@ -24,7 +24,7 @@ int main(int argc, char ** argv)
    if (bbRef())
    {
       printf("Here are the contents of this program's source file, as a hex dump:\n");
-      bbRef()->Print();
+      bbRef()->Print(stdout);
    }
    else
    {

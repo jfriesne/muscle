@@ -82,7 +82,7 @@ public:
    inline Point & operator = (const Point & rhs) {Set(rhs.x(), rhs.y()); return *this;}
 
    /** @copydoc DoxyTemplate::Print(const OutputPrinter &) const */
-   void Print(const OutputPrinter & p = stdout) const {p.printf("Point: %f %f\n", x(), y());}
+   void Print(const OutputPrinter & p) const {p.printf("Point: %f %f\n", x(), y());}
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns true */
    MUSCLE_NODISCARD bool IsFixedSize() const {return true;}

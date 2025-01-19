@@ -44,7 +44,7 @@ protected:
          const String * nextLine;
          for (int32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &nextLine).IsOK(); i++) HandleTextLineFromStdin(*nextLine);
       }
-      else if (msg()) msg()->Print();  // Any other Messages presumably came from the server, we'll just print them out
+      else if (msg()) msg()->Print(stdout);  // Any other Messages presumably came from the server, we'll just print them out
    }
 
    virtual void EndMessageBatch()
@@ -95,7 +95,7 @@ protected:
    virtual void OutputQueuesDrained(const MessageRef & ref)
    {
       printf("Callback called in main thread:  OutputQueuesDrained(%p)\n", ref());
-      if (ref()) ref()->Print();
+      if (ref()) ref()->Print(stdout);
    }
 
 private:
@@ -354,7 +354,7 @@ void TestCallbackMessageTransceiverThread :: HandleTextLineFromStdin(const Strin
    if (send)
    {
       printf("Sending outgoing Message to I/O session [%s]...\n", _tcpSessionRootPath());
-      ref()->Print();
+      ref()->Print(stdout);
       if (SendMessageToMuscleServer(ref).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SendMessageToMuscleServer() failed!  [%s]\n", ret());
    }
 }

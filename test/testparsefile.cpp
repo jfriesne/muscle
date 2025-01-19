@@ -33,7 +33,7 @@ int main(int argc, char ** argv)
                if (ParseFile(fpIn, msg).IsOK(ret))
                {
                   LogTime(MUSCLE_LOG_INFO, "Parsed contents of file [%s]:\n", argv[i]);
-                  msg.Print();
+                  msg.Print(stdout);
                   printf("\n");
 
                   const String s = UnparseFile(msg);
@@ -60,7 +60,7 @@ int main(int argc, char ** argv)
                   if (ParseFile(s, msg).IsOK(ret))
                   {
                      LogTime(MUSCLE_LOG_INFO, "Parsed contents of file [%s]:\n", argv[i]);
-                     msg.Print();
+                     msg.Print(stdout);
                      printf("\n");
 
                      const String ss = UnparseFile(msg);

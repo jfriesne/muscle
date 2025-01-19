@@ -42,6 +42,7 @@ key:  - new feature
    o Simplified mutex-Locking code via MutexGuards where possible.
    o Replaced CalculateChecksumForFloat() and CalculateChecksumForDouble()
      with a general/templatized CalculatePODChecksum() method.
+   o Removed LogHexBytes() since PrintHexBytes() can now do the same thing.
    * The deadlock finder no longer warns about inconsistent
      locking orders that consist entirely of shared/read-only locks.
    * The deadlock finder no longer considers TryLock() calls at

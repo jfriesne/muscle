@@ -73,7 +73,7 @@ int main(int argc, char ** argv)
       if (sm.LockAreaReadOnly().IsOK(ret))
       {
          printf("\nREADING shared memory area, its contents are as follows:\n");
-         PrintHexBytes(sm(), sm.GetAreaSize());
+         PrintHexBytes(stdout, sm(), sm.GetAreaSize());
          sm.UnlockArea();
       }
       else printf("LockAreaReadOnly() failed?! [%s]\n", ret());
