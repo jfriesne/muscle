@@ -2734,6 +2734,12 @@ void OutputPrinter :: putc(char c, uint32 repeatCount) const
    }
 }
 
+void OutputPrinter :: fflush() const
+{
+   if (_file) ::fflush(_file);
+   if (_logSeverity > MUSCLE_LOG_NONE) LogFlush();
+}
+
 void OutputPrinter :: puts(const char * s, uint32 repeatCount) const
 {
    const uint32 numChars = s ? (uint32)strlen(s) : 0;

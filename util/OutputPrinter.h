@@ -32,7 +32,7 @@ public:
    OutputPrinter(FILE * addToFile) : _logSeverity(MUSCLE_LOG_NONE), _addToString(NULL), _file(addToFile), _indent(0), _isAtStartOfLine(true) {/* empty */}
 
    /** Constructor for "printing" that writes to multiple targets
-     * @param optLogSeverity if a value other thatn MUSCLE_LOG_NONE, printf()-style text will be passed to LogTime() and/or LogPlain() at this severity-level
+     * @param optLogSeverity if a value other than MUSCLE_LOG_NONE, printf()-style text will be passed to LogTime() and/or LogPlain() at this severity-level
      * @param optAddToString if non-NULL, the printf()-style text will be appended to this String
      * @param optWriteToFile if non-NULL, the printf()-style text will be fprintf()'d to this FILE
      * @param indent how many spaces we should automatically insert at the start of each line
@@ -60,6 +60,9 @@ public:
      * @param repeatCount the number of times this string should be written.  Defaults to 1.
      */
    void puts(const char * s, uint32 repeatCount=1) const;
+
+   /** Calls fflush() on our output stream(s) where possible */
+   void fflush() const;
 
    /** Returns the pointer to the String passed in to our constructor, or NULL. */
    String * GetAddToString() const {return _addToString;}
