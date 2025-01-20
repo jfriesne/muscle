@@ -240,9 +240,9 @@ public:
    Message() : what(0) {/* empty */}
 
    /** Constructor.
-    *  @param what The 'what' member variable will be set to the value you specify here.
+    *  @param theWhat The 'what' member variable will be set to the value you specify here.
     */
-   explicit Message(uint32 what) : what(what) {/* empty */}
+   explicit Message(uint32 theWhat) : what(theWhat) {/* empty */}
 
    /** Explicitly-sized Constructor.
     *  @param numNameSlotsToPreallocate how many item-slots to preallocate for field-names in our field-names table
@@ -251,9 +251,9 @@ public:
 
    /** Explicitly-sized Constructor.
     *  @param numNameSlotsToPreallocate how many item-slots to preallocate for field-names in our field-names table
-    *  @param what The 'what' member variable will be set to the value you specify here.
+    *  @param theWhat The 'what' member variable will be set to the value you specify here.
     */
-   Message(PreallocatedItemSlotsCount numNameSlotsToPreallocate, uint32 what) : what(what), _entries(numNameSlotsToPreallocate) {/* empty */}
+   Message(PreallocatedItemSlotsCount numNameSlotsToPreallocate, uint32 theWhat) : what(theWhat), _entries(numNameSlotsToPreallocate) {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    Message(const Message & rhs) : FlatCountable(), Cloneable() {*this = rhs;}
