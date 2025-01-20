@@ -2712,7 +2712,7 @@ void OutputPrinter :: printf(const char * fmt, ...) const
 
    if (numChars1 > 0)
    {
-      if ((numChars1+1) >= sizeof(buf))
+      if (((size_t)(numChars1+1)) >= sizeof(buf))
       {
          // Oops, (buf) wasn't large enough!  So we will
          // heap-allocate a large-enough buffer and try again.
