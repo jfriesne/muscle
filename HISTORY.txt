@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added AppendChars() and PrependChars() methods to the String
+     class, to support efficient concatenation of partial strings.
    - Removed the 4096-char restriction for OutputPrinter::printf().
 
 9.60 - Released 12/31/2024

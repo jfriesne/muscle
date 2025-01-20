@@ -645,6 +645,33 @@ String String :: WithPrepend(const String & str, uint32 count) const
    return ret;
 }
 
+status_t String :: PrependChars(const char * str, uint32 maxCharsToPrepend)
+{
+   TCHECKPOINT;
+
+        if ((str == NULL)||(*str == '\0')||(maxCharsToPrepend == 0)) return B_NO_ERROR;
+   else if (IsCharInLocalArray(str))
+   {
+      (*this) += String(str, maxCharsToPrepend); // avoid self-entanglement!
+      return B_NO_ERROR;
+   }
+   else
+   {
+      const uint32 numCharsToPrepend = muscleMin(maxCharsToPrepend, (uint32) strlen(str));
+      const uint32 newLen            = numCharsToPrepend+Length();
+      MRETURN_ON_ERROR(Prealloc(newLen));
+
+      char * b = GetBuffer();
+      memmove(b+numCharsToPrepend, b,   Length());          // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
+      memcpy( b,                   str, numCharsToPrepend); // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
+
+      _length    = newLen;
+      b[_length] = '\0';   // terminate the string
+
+      return B_NO_ERROR;
+   }
+}
+
 String String :: WithPrepend(const char * str, uint32 count) const
 {
    TCHECKPOINT;
@@ -678,6 +705,32 @@ String String :: WithPrepend(const char * str, uint32 count) const
          afterBuf[ret._length] = '\0';   // terminate the string
       }
       return ret;
+   }
+}
+
+status_t String :: AppendChars(const char * str, uint32 maxCharsToAppend)
+{
+   TCHECKPOINT;
+
+        if ((str == NULL)||(*str == '\0')||(maxCharsToAppend == 0)) return B_NO_ERROR;
+   else if (IsCharInLocalArray(str))
+   {
+      (*this) += String(str, maxCharsToAppend); // avoid self-entanglement!
+      return B_NO_ERROR;
+   }
+   else
+   {
+      const uint32 numCharsToAppend = muscleMin(maxCharsToAppend, (uint32) strlen(str));
+      const uint32 newLen           = Length()+numCharsToAppend;
+      MRETURN_ON_ERROR(Prealloc(newLen));
+
+      char * b = GetBuffer();
+      memcpy(b+_length, str, numCharsToAppend); // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
+
+      _length    = newLen;
+      b[_length] = '\0';   // terminate the string
+
+      return B_NO_ERROR;
    }
 }
 

@@ -178,6 +178,15 @@ static status_t UnitTestString()
    String s3;
    printf("[%s]\n", s1.WithAppendedWord(s2, ", ").WithAppendedWord(s3, ", ")());
 
+   String q;
+   MPRINT_ON_ERROR("AppendChars",  q.AppendChars("this is a test",        8));
+   MPRINT_ON_ERROR("AppendChars",  q.AppendChars("not going to end well", 4));
+   MPRINT_ON_ERROR("PrependChars", q.PrependChars("if only",              3));
+   MPRINT_ON_ERROR("PrependChars", q.PrependChars("what is going on?",    5));
+   MPRINT_ON_ERROR("AppendChars",  q.AppendChars("right"));
+   printf("q=[%s]\n", q());
+   if (q != "what if this is not right") return B_LOGIC_ERROR;
+
    return B_NO_ERROR;
 }
 

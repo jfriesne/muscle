@@ -657,9 +657,18 @@ public:
    MUSCLE_NODISCARD bool StartsWith(const char * prefix) const
    {
       if (prefix == NULL) prefix = "";
-      uint32 prefixLen = (uint32) strlen(prefix);
+      const uint32 prefixLen = (uint32) strlen(prefix);
       return (Length() < prefixLen) ? false : (strncmp(Cstr(), prefix, prefixLen) == 0);
    }
+
+   /** Prepends up to (maxCharsToPrepend) chars from the given C string to this String.
+     * @param str Pointer to the C string to prepend
+     * @param maxCharsToPrepend maximum number of characters to prepend.  Fewer many may
+     *                          be prepended if strlen(str) is shorter than this value.
+     *                          Defaults to MUSCLE_NO_LIMIT.
+     * @returns B_NO_ERROR on success, or an error code (B_OUT_OF_MEMORY?) on failure.
+     */
+   status_t PrependChars(const char * str, uint32 maxCharsToPrepend = MUSCLE_NO_LIMIT);
 
    /** Returns a string that consists of (count) copies of (str), followed by this string.
      * @param str The string to prepend
@@ -685,6 +694,15 @@ public:
      * @returns a reference to this object, which will have had the specified string prepended, with an inserted (sep) infix if necessary.
      */
    String WithPrependedWord(const String & str, const char * sep = " ") const {return str.WithAppendedWord(*this, sep);}
+
+   /** Appends up to (maxCharsToAppend) chars from the given C string to this String.
+     * @param str Pointer to the C string to prepend
+     * @param maxCharsToAppend maximum number of characters to prepend.  Fewer many may
+     *                         be prepended if strlen(str) is shorter than this value.
+     *                         Defaults to MUSCLE_NO_LIMIT.
+     * @returns B_NO_ERROR on success, or an error code (B_OUT_OF_MEMORY?) on failure.
+     */
+   status_t AppendChars(const char * str, uint32 maxCharsToAppend = MUSCLE_NO_LIMIT);
 
    /** Returns a string that consists of this string followed by (count) copies of (str).
      * @param str A string to append to the end of this string.
