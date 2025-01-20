@@ -44,7 +44,6 @@ public:
 
    /** Writes the specified printf()-style text to a file, and/or appends it to a String and/or prints it to the Log.
      * @param fmt a printf()-style format-specified (followed by zero or more printf()-style arguments to be used for string interpolation)
-     * @note this function is currently limited to generating less than 4096 bytes of output per call.
      */
    MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(2,3)
    void printf(const char * fmt, ...) const;

@@ -2695,23 +2695,52 @@ String GetEnvironmentVariableValue(const String & envVarName, const String & def
 
 void OutputPrinter :: printf(const char * fmt, ...) const
 {
-   char buf[4096];
+   char buf[1024];  // big enough that it won't usually be exceeded, but small enough to fit on the stack
 
-   va_list va;
-   va_start(va, fmt);
+   // Note that (numChars1) gets set to the number of bytes that *should have*
+   // been printed, not including the NUL terminator byte.
+   // So if (buf) is too small, it's possible that (numChars1 >= sizeof(buf))
+   va_list va1; va_start(va1, fmt);
 #if __STDC_WANT_SECURE_LIB__
-   const int numChars = _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va);
+   const int numChars1 = _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va1);
 #elif WIN32
-   const int numChars = _vsnprintf(  buf, sizeof(buf),            fmt, va);
+   const int numChars1 = _vsnprintf(  buf, sizeof(buf),            fmt, va1);
 #else
-   const int numChars =  vsnprintf(  buf, sizeof(buf),            fmt, va);
+   const int numChars1 =  vsnprintf(  buf, sizeof(buf),            fmt, va1);
 #endif
-   va_end(va);
+   va_end(va1);
 
-   if (numChars > 0)
+   if (numChars1 > 0)
    {
-      buf[sizeof(buf)-1] = '\0';  // paranoia
-      putsAux(buf, numChars);
+      if ((numChars1+1) >= sizeof(buf))
+      {
+         // Oops, (buf) wasn't large enough!  So we will
+         // heap-allocate a large-enough buffer and try again.
+         const size_t heapBufSize = numChars1+1;
+         char * heapBuf = (char *) muscleAlloc(heapBufSize);
+         if (heapBuf)
+         {
+            va_list va2; va_start(va2, fmt);
+#if __STDC_WANT_SECURE_LIB__
+            const int numChars2 = _vsnprintf_s(heapBuf, heapBufSize, _TRUNCATE, fmt, va2);
+#elif WIN32
+            const int numChars2 = _vsnprintf(  heapBuf, heapBufSize,            fmt, va2);
+#else
+            const int numChars2 =  vsnprintf(  heapBuf, heapBufSize,            fmt, va2);
+#endif
+            va_end(va2);
+
+            if (numChars2 > 0)
+            {
+               heapBuf[heapBufSize-1] = '\0'; // paranoia
+               putsAux(heapBuf, muscleMin((uint32)numChars2, (uint32)(heapBufSize-1)));
+            }
+
+            free(heapBuf);
+         }
+         else MWARN_OUT_OF_MEMORY;
+      }
+      else putsAux(buf, numChars1);  // easy case -- all the output fit into (buf)
    }
 }
 
