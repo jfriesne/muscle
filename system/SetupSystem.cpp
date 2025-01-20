@@ -2786,7 +2786,7 @@ void OutputPrinter :: putsAux(const char * s, uint32 numChars) const
 
    if (_addToString) (*_addToString) += s;
    if (_logSeverity > MUSCLE_LOG_NONE) LogPlain(_logSeverity, "%s", s);
-   if (_file) fputs(s, _file);
+   if (_file) (void) fwrite(s, 1, numChars, _file);  // Calling fwrite() instead of fputs() since we already know the string's length
 
    _isAtStartOfLine = ((numChars > 0)&&(s[numChars-1] == '\n'));
 }
