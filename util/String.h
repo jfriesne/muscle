@@ -721,26 +721,30 @@ public:
      */
    MUSCLE_NODISCARD bool StartsWith(const char * prefix) const {return StrStartsWith(Cstr(), Length(), prefix, prefix?strlen(prefix):0);}
 
-   /** Returns a string that consists of (count) copies of (str), followed by this string.
+   /** Returns a String that consists of some or all the chars in (str), followed by this String.
      * @param str The string to prepend
-     * @param count How many instances of (str) to prepend.  Defaults to 1.
+     * @param maxCharsToPrepend maximum number of characters to prepend.  Fewer chars may
+     *                          be prepended if str.Length() is shorter than this value.
+     *                          Defaults to MUSCLE_NO_LIMIT.
      * @returns the resulting String
      */
-   String WithPrepend(const String & str, uint32 count = 1) const {return WithInsert(0, str, count);}
+   String WithPrepend(const String & str, uint32 maxCharsToPrepend = MUSCLE_NO_LIMIT) const {return WithInsert(0, str, maxCharsToPrepend);}
 
-   /** Returns a string that consists of (count) copies of (str), followed by this string.
+   /** Returns a String that consists of some or all the chars in (str), followed by this String.
      * @param str Pointer to a C string to prepend.  NULL pointers are considered a synonym for "".
-     * @param count How many instances of (str) should be prepended to this string.  Defaults to 1.
+     * @param maxCharsToPrepend maximum number of characters to prepend.  Fewer chars may
+     *                          be prepended if strlen(str) is shorter than this value.
+     *                          Defaults to MUSCLE_NO_LIMIT.
      * @returns the resulting String
      */
-   String WithPrepend(const char * str, uint32 count = 1) const {return WithInsert(0, str, count);}
+   String WithPrepend(const char * str, uint32 maxCharsToPrepend = MUSCLE_NO_LIMIT) const {return WithInsert(0, str, maxCharsToPrepend);}
 
-   /** Returns a string that consists of (count) copies of (c), followed by this string.
+   /** Returns a String that consists of (count) copies of (c), followed by this string.
      * @param c The character to prepend.
      * @param count How many instances of (c) to prepend.  Defaults to 1.
      * @returns the resulting String
      */
-   String WithPrepend(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return WithPrepend(cc, count);}
+   String WithPrepend(char c, uint32 count = 1) const {return WithInsertAux(0, c, count);}
 
    /** Similar to WithPrepend(), but this version will insert a separator string between our current content and the prepended string, if necessary.
      * @param str A string to prepended to the end of this string.
@@ -751,33 +755,35 @@ public:
 
    /** Prepends up to (maxCharsToPrepend) chars from the given C string to this String.
      * @param str Pointer to the C string to prepend
-     * @param maxCharsToPrepend maximum number of characters to prepend.  Fewer many may
+     * @param maxCharsToPrepend maximum number of characters to prepend.  Fewer chars may
      *                          be prepended if strlen(str) is shorter than this value.
      *                          Defaults to MUSCLE_NO_LIMIT.
      * @returns B_NO_ERROR on success, or an error code (B_OUT_OF_MEMORY?) on failure.
      */
    status_t PrependChars(const char * str, uint32 maxCharsToPrepend = MUSCLE_NO_LIMIT) {return InsertChars(0, str, maxCharsToPrepend);}
 
-   /** Returns a string that consists of this string followed by (count) copies of (str).
+   /** Returns a String that consists of this String followed by some or all of the chars in (str).
      * @param str A string to append to the end of this string.
-     * @param count How many copies of (str) to append.  Defaults to 1.
+     * @param maxCharsToAppend maximum number of characters to append.  Fewer chars may be appended
+     *                         if str.Length() is less than this value.  Defaults to MUSCLE_NO_LIMIT.
      * @returns the resulting String
      */
-   String WithAppend(const String & str, uint32 count = 1) const {return WithInsert(MUSCLE_NO_LIMIT, str, count);}
+   String WithAppend(const String & str, uint32 maxCharsToAppend = MUSCLE_NO_LIMIT) const {return WithInsert(MUSCLE_NO_LIMIT, str, maxCharsToAppend);}
 
-   /** Returns a string that consists of this string followed by (count) copies of (str).
+   /** Returns a String that consists of this String followed by some or all of the chars in (str).
      * @param str Pointer to a C string to append.  NULL pointers are considered a synonym for "".
-     * @param count How many instances of (str) should be appended to this string.  Defaults to 1.
+     * @param maxCharsToAppend maximum number of characters to append.  Fewer chars may be appended
+     *                         if strlen(str) is less than this value.  Defaults to MUSCLE_NO_LIMIT.
      * @returns the resulting String
      */
-   String WithAppend(const char * str, uint32 count = 1) const {return WithInsert(MUSCLE_NO_LIMIT, str, count);}
+   String WithAppend(const char * str, uint32 maxCharsToAppend = MUSCLE_NO_LIMIT) const {return WithInsert(MUSCLE_NO_LIMIT, str, maxCharsToAppend);}
 
-   /** Returns a string that consists of this string followed by (count) copies of (c).
+   /** Returns a String that consists of this string followed by (count) copies of (c).
      * @param c The character to append
      * @param count How many instances of (c) to append.  Defaults to 1.
      * @returns the resulting String
      */
-   String WithAppend(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return WithAppend(cc, count);}
+   String WithAppend(char c, uint32 count = 1) const {return WithInsertAux(MUSCLE_NO_LIMIT, c, count);}
 
    /** Similar to WithAppend(), but this version will insert a separator between our current content and the appended string, if necessary.
      * @param str Pointer to a C string to return appended to this string.  NULL pointers are considered a synonym for "".
@@ -795,34 +801,36 @@ public:
 
    /** Appends up to (maxCharsToAppend) chars from the given C string to this String.
      * @param str Pointer to the C string to append.  NULL pointers are considered a synonym for "".
-     * @param maxCharsToAppend maximum number of characters to prepend.  Fewer many may
+     * @param maxCharsToAppend maximum number of characters to prepend.  Fewer chars may
      *                         be prepended if strlen(str) is shorter than this value.
      *                         Defaults to MUSCLE_NO_LIMIT.
      * @returns B_NO_ERROR on success, or an error code (B_OUT_OF_MEMORY?) on failure.
      */
    status_t AppendChars(const char * str, uint32 maxCharsToAppend = MUSCLE_NO_LIMIT) {return InsertChars(MUSCLE_NO_LIMIT, str, maxCharsToAppend);}
 
-   /** Returns a string that is equal to this String but with zero or more copies of (str) inserted into it.
+   /** Returns a String that is equal to this String but with some or all of the chars in (str) inserted into it.
      * @param insertAtIdx Position within this string to insert (0 == prepend, 1 == after the first
      *                    character, and so on).  If this value is greater than or equal to the
      *                    number of characters in this String, the new characters will be appended.
      * @param str The String to insert
-     * @param count How many instances of (str) to insert.  Defaults to 1.
+     * @param maxCharsToInsert maximum number of characters to insert.  Fewer chars may be inserted
+     *                         if str.Length() is less than this value.  Defaults to MUSCLE_NO_LIMIT.
      * @returns the resulting String
      */
-   String WithInsert(uint32 insertAtIdx, const String & str, uint32 count = 1) const {String ret = *this; (void) ret.InsertCharsAux(insertAtIdx, str(), str.Length(), count); return ret;}
+   String WithInsert(uint32 insertAtIdx, const String & str, uint32 maxCharsToInsert = MUSCLE_NO_LIMIT) const {String ret = *this; (void) ret.InsertCharsAux(insertAtIdx, str(), muscleMin(str.Length(),maxCharsToInsert), 1); return ret;}
 
-   /** Returns a string that is equal to this String but with zero or more copies of (str) inserted into it.
+   /** Returns a String that is equal to this String but with some or all of the chars in (str) inserted into it.
      * @param insertAtIdx Position within this string to insert (0 == prepend, 1 == after the first
      *                    character, and so on).  If this value is greater than or equal to the
      *                    number of characters in this String, the new characters will be appended.
      * @param str Pointer to a C string to insert.  NULL pointers are considered a synonym for "".
-     * @param count How many instances of (str) should be inserted into to this string.  Defaults to 1.
+     * @param maxCharsToInsert maximum number of characters to insert.  Fewer chars may be inserted
+     *                         if strlen(str) is less than this value.  Defaults to MUSCLE_NO_LIMIT.
      * @returns the resulting String
      */
-   String WithInsert(uint32 insertAtIdx, const char * str, uint32 count = 1) const {String ret = *this; (void) ret.InsertCharsAux(insertAtIdx, str, str?strlen(str):0, count); return ret;}
+   String WithInsert(uint32 insertAtIdx, const char * str, uint32 maxCharsToInsert = MUSCLE_NO_LIMIT) const {String ret = *this; (void) ret.InsertCharsAux(insertAtIdx, str, str?muscleMin((uint32)strlen(str),maxCharsToInsert):0, 1); return ret;}
 
-   /** Returns a string that is equal to this String but with zero or more copies of (c) inserted into it.
+   /** Returns a String that is equal to this String but with zero or more copies of (c) inserted into it.
      * @param insertAtIdx Position within this string to insert (0 == prepend, 1 == after the first
      *                    character, and so on).  If this value is greater than or equal to the
      *                    number of characters in this String, the new characters will be appended.
@@ -830,7 +838,7 @@ public:
      * @param count How many instances of (c) to insert.  Defaults to 1.
      * @returns the resulting String
      */
-   String WithInsert(uint32 insertAtIdx, char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return WithInsert(insertAtIdx, cc, count);}
+   String WithInsert(uint32 insertAtIdx, char c, uint32 count = 1) const {return WithInsertAux(insertAtIdx, c, count);}
 
    /** Similar to WithInsert(), but this version will insert separator strings between our current content and the inserted string, if necessary.
      * @param insertAtIdx Position within this string to insert (0 == prepend, 1 == after the first
@@ -865,7 +873,7 @@ public:
      */
    status_t InsertChars(uint32 insertAtIdx, const char * str, uint32 maxCharsToInsert = MUSCLE_NO_LIMIT);
 
-   /** Returns a string that is like this string, but padded out to the specified minimum length with (padChar).
+   /** Returns a String that is like this string, but padded out to the specified minimum length with (padChar).
     *  @param minLength Minimum length that the returned string should be.
     *  @param padOnRight If true, (padChar)s will be added to the right; if false (the default), they will be added on the left.
     *  @param padChar The character to pad out the string with.  Defaults to ' '.
@@ -873,7 +881,7 @@ public:
     */
    String PaddedBy(uint32 minLength, bool padOnRight = false, char padChar = ' ') const;
 
-   /** Returns a string that is the same as this one, except that the beginning of each line in the string has (numIndentChars)
+   /** Returns a String that is the same as this one, except that the beginning of each line in the string has (numIndentChars)
      * instances of (indentChar) prepended to it.
      * @param numIndentChars How many indent characters to prepend to each line
      * @param indentChar The character to use to make the indentations.  Defaults to ' '.
@@ -881,19 +889,19 @@ public:
      */
    String IndentedBy(uint32 numIndentChars, char indentChar = ' ') const;
 
-   /** Returns a string that consists of only the last part of this string, starting with index (beginIndex).  Does not modify the string it is called on.
+   /** Returns a String that consists of only the last part of this string, starting with index (beginIndex).  Does not modify the string it is called on.
      * @param beginIndex the index of the first character to include in the returned substring
      */
    String Substring(uint32 beginIndex) const {return String(*this, beginIndex);}
 
-   /** Returns a string that consists of only the characters in this string from range (beginIndex) to (endIndex-1).  Does not modify the string it is called on.
+   /** Returns a String that consists of only the characters in this string from range (beginIndex) to (endIndex-1).  Does not modify the string it is called on.
      * @param beginIndex the index of the first character to include in the returned substring
      * @param endIndex the index after the final character to include in the returned substring (if set to MUSCLE_NO_LIMIT, or any other too-large-value,
      *                 returned substring will include thi entire string starting with (beginIndex)
      */
    String Substring(uint32 beginIndex, uint32 endIndex) const {return String(*this, beginIndex, endIndex);}
 
-   /** Returns a string that consists of only the last part of this string, starting with the first character after the last instance of (markerString).
+   /** Returns a String that consists of only the last part of this string, starting with the first character after the last instance of (markerString).
     *  If (markerString) is not found in the string, then this entire String is returned.
     *  For example, String("this is a test").Substring("is a") returns " test".
     *  Does not modify the string it is called on.
@@ -912,7 +920,7 @@ public:
       return (idx >= 0) ? String(*this, idx+(int)strlen(markerString)) : *this;  // if (idx >= 0), then we know markerString is non-NULL
    }
 
-   /** Returns a string that consists of only the characters in the string from range (beginIndex) until the character just before
+   /** Returns a String that consists of only the characters in the string from range (beginIndex) until the character just before
     *  the first character in (markerString).  If (markerString) is not found, then the entire substring starting at (beginIndex) is returned.
     *  For example, String("this is a test").Substring(1, "is a") returns "his ".
     *  Does not modify the string it is called on.
@@ -1230,7 +1238,7 @@ public:
      */
    void TruncateToLength(uint32 maxLength) {_length = muscleMin(_length, maxLength); WriteNULTerminatorByte();}
 
-   /** Returns a string like this string, but with the appropriate %# tokens
+   /** Returns a String like this string, but with the appropriate %# tokens
      * replaced with a textual representation of the values passed in as (value).
      * For example, String("%1 is a %2").Arg(13).Arg("bakers dozen") would return
      * the string "13 is a bakers dozen".
@@ -1492,6 +1500,7 @@ public:
 
 private:
    status_t InsertCharsAux(uint32 insertAtIdx, const char * str, uint32 numCharsToInsert, uint32 insertCount);
+   String WithInsertAux(uint32 insertAtIdx, char c, uint32 numChars) const;
    String WithInsertedWordAux(uint32 insertAtIdx, const char * str, uint32 numChars, const char * sep) const;
    MUSCLE_NODISCARD bool IsSpaceChar(char c) const {return ((c==' ')||(c=='\t')||(c=='\r')||(c=='\n'));}
    status_t EnsureBufferSize(uint32 newBufLen, bool retainValue, bool allowShrink);

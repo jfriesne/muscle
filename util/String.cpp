@@ -603,6 +603,13 @@ uint32 String :: GetNumInstancesOf(const char * substring, uint32 fromIndex) con
    return ret;
 }
 
+String String :: WithInsertAux(uint32 insertAtIdx, char c, uint32 numChars) const
+{
+   String ret(*this, PreallocatedItemSlotsCount(numChars));
+   (void) ret.InsertCharsAux(insertAtIdx, &c, 1, numChars);
+   return ret;
+}
+
 String String :: WithInsertedWordAux(uint32 insertAtIdx, const char * str, uint32 numCharsToInsert, const char * sep) const
 {
    if ((str == NULL)||(numCharsToInsert == 0)) return *this;  // nothing to do
@@ -816,8 +823,7 @@ String String :: PaddedBy(uint32 minLength, bool padOnRight, char padChar) const
    if (Length() < minLength)
    {
       const uint32 padLen = minLength-Length();
-      String temp; temp += padChar;
-      return padOnRight ? WithAppend(temp, padLen) : WithPrepend(temp, padLen);
+      return padOnRight ? WithAppend(padChar, padLen) : WithPrepend(padChar, padLen);
    }
    else return *this;
 }
