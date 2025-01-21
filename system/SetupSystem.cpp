@@ -2781,13 +2781,27 @@ void OutputPrinter :: puts(const char * s, uint32 repeatCount) const
 
 void OutputPrinter :: putsAux(const char * s, uint32 numChars) const
 {
-   while(*s)
+   const char * orig = s;
+   while((*s)&&((s-orig) < numChars))
    {
       // Find the next newline, if any
       const char * pc = s;
-      while(*pc) {if (*pc == '\n') {pc++; break;} else pc++;}
-      putsAuxAux(s, pc-s);  // Call putsAuxAux() once for each line of text
-      s = pc;
+      while((*pc)&&((pc-orig)<numChars))
+      {
+         if (*pc == '\n')
+         {
+            pc++;
+            break;
+         }
+         else pc++;
+      }
+
+      if (pc > s)  // semi-paranoia
+      {
+         putsAuxAux(s, pc-s);  // Call putsAuxAux() once for each line of text
+         s = pc;
+      }
+      else break;  // paranoia:  avoid potential infinite loop
    }
 }
 
