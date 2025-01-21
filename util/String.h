@@ -578,7 +578,7 @@ public:
    MUSCLE_NODISCARD int LastIndexOf(const char * str) const
    {
       if (str == NULL) str = "";
-      uint32 strLen = (uint32) strlen(str);
+      const uint32 strLen = (uint32) strlen(str);
       return (strLen <= Length()) ? LastIndexOf(str, Length()-strLen) : -1;
    }
 
@@ -661,6 +661,34 @@ public:
       return (Length() < prefixLen) ? false : (strncmp(Cstr(), prefix, prefixLen) == 0);
    }
 
+   /** Returns a string that consists of (count) copies of (str), followed by this string.
+     * @param str The string to prepend
+     * @param count How many instances of (str) to prepend.  Defaults to 1.
+     * @returns the resulting String
+     */
+   String WithPrepend(const String & str, uint32 count = 1) const {return WithInsert(0, str, count);}
+
+   /** Returns a string that consists of (count) copies of (str), followed by this string.
+     * @param str Pointer to a C string to prepend.  NULL pointers are considered a synonym for "".
+     * @param count How many instances of (str) should be prepended to this string.  Defaults to 1.
+     * @returns the resulting String
+     */
+   String WithPrepend(const char * str, uint32 count = 1) const {return WithInsert(0, str, count);}
+
+   /** Returns a string that consists of (count) copies of (c), followed by this string.
+     * @param c The character to prepend.
+     * @param count How many instances of (c) to prepend.  Defaults to 1.
+     * @returns the resulting String
+     */
+   String WithPrepend(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return WithPrepend(cc, count);}
+
+   /** Similar to WithPrepend(), but this version will insert a separator string between our current content and the prepended string, if necessary.
+     * @param str A string to prepended to the end of this string.
+     * @param sep Pointer to the string used to separate words.  Defaults to " "
+     * @returns the resulting String
+     */
+   String WithPrependedWord(const String & str, const char * sep = " ") const {return WithInsertedWord(0, str, sep);}
+
    /** Prepends up to (maxCharsToPrepend) chars from the given C string to this String.
      * @param str Pointer to the C string to prepend
      * @param maxCharsToPrepend maximum number of characters to prepend.  Fewer many may
@@ -668,73 +696,114 @@ public:
      *                          Defaults to MUSCLE_NO_LIMIT.
      * @returns B_NO_ERROR on success, or an error code (B_OUT_OF_MEMORY?) on failure.
      */
-   status_t PrependChars(const char * str, uint32 maxCharsToPrepend = MUSCLE_NO_LIMIT);
-
-   /** Returns a string that consists of (count) copies of (str), followed by this string.
-     * @param str The string to prepend
-     * @param count How many instances of (str) to prepend.  Defaults to 1.
-     */
-   String WithPrepend(const String & str, uint32 count = 1) const;
-
-   /** Returns a string that consists of (count) copies of (str), followed by this string.
-     * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
-     * @param count How many instances of (str) should be prepended to this string.  Defaults to 1.
-     */
-   String WithPrepend(const char * str, uint32 count = 1) const;
-
-   /** Returns a string that consists of (count) copies of (c), followed by this string.
-     * @param c The character to prepend
-     * @param count How many instances of (c) to prepend.  Defaults to 1.
-     */
-   String WithPrepend(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return WithPrepend(cc, count);}
-
-   /** Similar to WithPrepend(), but this version will insert separator string between our current content and the prepended string, if necessary.
-     * @param str A string to prepended to the end of this string.
-     * @param sep Pointer to the string used to separate words.  Defaults to " "
-     * @returns a reference to this object, which will have had the specified string prepended, with an inserted (sep) infix if necessary.
-     */
-   String WithPrependedWord(const String & str, const char * sep = " ") const {return str.WithAppendedWord(*this, sep);}
-
-   /** Appends up to (maxCharsToAppend) chars from the given C string to this String.
-     * @param str Pointer to the C string to prepend
-     * @param maxCharsToAppend maximum number of characters to prepend.  Fewer many may
-     *                         be prepended if strlen(str) is shorter than this value.
-     *                         Defaults to MUSCLE_NO_LIMIT.
-     * @returns B_NO_ERROR on success, or an error code (B_OUT_OF_MEMORY?) on failure.
-     */
-   status_t AppendChars(const char * str, uint32 maxCharsToAppend = MUSCLE_NO_LIMIT);
+   status_t PrependChars(const char * str, uint32 maxCharsToPrepend = MUSCLE_NO_LIMIT) {return InsertChars(0, str, maxCharsToPrepend);}
 
    /** Returns a string that consists of this string followed by (count) copies of (str).
      * @param str A string to append to the end of this string.
      * @param count How many copies of (str) to append.  Defaults to 1.
+     * @returns the resulting String
      */
-   String WithAppend(const String & str, uint32 count = 1) const;
+   String WithAppend(const String & str, uint32 count = 1) const {return WithInsert(MUSCLE_NO_LIMIT, str, count);}
 
    /** Returns a string that consists of this string followed by (count) copies of (str).
-     * @param str Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
+     * @param str Pointer to a C string to append.  NULL pointers are considered a synonym for "".
      * @param count How many instances of (str) should be appended to this string.  Defaults to 1.
+     * @returns the resulting String
      */
-   String WithAppend(const char * str, uint32 count = 1) const;
+   String WithAppend(const char * str, uint32 count = 1) const {return WithInsert(MUSCLE_NO_LIMIT, str, count);}
 
    /** Returns a string that consists of this string followed by (count) copies of (c).
      * @param c The character to append
      * @param count How many instances of (c) to append.  Defaults to 1.
+     * @returns the resulting String
      */
    String WithAppend(char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return WithAppend(cc, count);}
 
    /** Similar to WithAppend(), but this version will insert a separator between our current content and the appended string, if necessary.
      * @param str Pointer to a C string to return appended to this string.  NULL pointers are considered a synonym for "".
      * @param sep Pointer to the string used to separate the appended content from the existing content, in the returned String.  Defaults to " "
-     * @returns a reference to this object, which will have had the specified string appended, with an inserted (sep) infix if necessary.
+     * @returns the resulting String
      */
-   String WithAppendedWord(const char * str, const char * sep = " ") const;
+   String WithAppendedWord(const char * str, const char * sep = " ") const {return WithInsertedWord(MUSCLE_NO_LIMIT, str, sep);}
 
    /** Similar to WithAppend(), but this version will insert a separator between our current content and the appended string, if necessary.
      * @param str A string to append to the end of this string.
      * @param sep Pointer to the string used to separate the appended content from the existing content, in the returned String.  Defaults to " "
-     * @returns a reference to this object, which will have had the specified string appended, with an inserted (sep) infix if necessary.
+     * @returns the resulting String
      */
-   String WithAppendedWord(const String & str, const char * sep = " ") const;
+   String WithAppendedWord(const String & str, const char * sep = " ") const {return WithInsertedWord(MUSCLE_NO_LIMIT, str, sep);}
+
+   /** Appends up to (maxCharsToAppend) chars from the given C string to this String.
+     * @param str Pointer to the C string to append.  NULL pointers are considered a synonym for "".
+     * @param maxCharsToAppend maximum number of characters to prepend.  Fewer many may
+     *                         be prepended if strlen(str) is shorter than this value.
+     *                         Defaults to MUSCLE_NO_LIMIT.
+     * @returns B_NO_ERROR on success, or an error code (B_OUT_OF_MEMORY?) on failure.
+     */
+   status_t AppendChars(const char * str, uint32 maxCharsToAppend = MUSCLE_NO_LIMIT) {return InsertChars(MUSCLE_NO_LIMIT, str, maxCharsToAppend);}
+
+   /** Returns a string that is equal to this String but with zero or more copies of (str) inserted into it.
+     * @param insertAtIdx Position within this string to insert (0 == prepend, 1 == after the first
+     *                    character, and so on).  If this value is greater than or equal to the
+     *                    number of characters in this String, the new characters will be appended.
+     * @param str The String to insert
+     * @param count How many instances of (str) to insert.  Defaults to 1.
+     * @returns the resulting String
+     */
+   String WithInsert(uint32 insertAtIdx, const String & str, uint32 count = 1) const {String ret = *this; (void) ret.InsertCharsAux(insertAtIdx, str(), str.Length(), count); return ret;}
+
+   /** Returns a string that is equal to this String but with zero or more copies of (str) inserted into it.
+     * @param insertAtIdx Position within this string to insert (0 == prepend, 1 == after the first
+     *                    character, and so on).  If this value is greater than or equal to the
+     *                    number of characters in this String, the new characters will be appended.
+     * @param str Pointer to a C string to insert.  NULL pointers are considered a synonym for "".
+     * @param count How many instances of (str) should be inserted into to this string.  Defaults to 1.
+     * @returns the resulting String
+     */
+   String WithInsert(uint32 insertAtIdx, const char * str, uint32 count = 1) const {String ret = *this; (void) ret.InsertCharsAux(insertAtIdx, str, str?strlen(str):0, count); return ret;}
+
+   /** Returns a string that is equal to this String but with zero or more copies of (c) inserted into it.
+     * @param insertAtIdx Position within this string to insert (0 == prepend, 1 == after the first
+     *                    character, and so on).  If this value is greater than or equal to the
+     *                    number of characters in this String, the new characters will be appended.
+     * @param c The character to insert
+     * @param count How many instances of (c) to insert.  Defaults to 1.
+     * @returns the resulting String
+     */
+   String WithInsert(uint32 insertAtIdx, char c, uint32 count = 1) const {const char cc[2] = {c, '\0'}; return WithInsert(insertAtIdx, cc, count);}
+
+   /** Similar to WithInsert(), but this version will insert separator strings between our current content and the inserted string, if necessary.
+     * @param insertAtIdx Position within this string to insert (0 == prepend, 1 == after the first
+     *                    character, and so on).  If this value is greater than or equal to the
+     *                    number of characters in this String, the new characters will be appended.
+     * @param str Pointer to the C string to insert
+     * @param sep Pointer to the string used to separate words.  Defaults to " "
+     * @returns the resulting String
+     */
+   String WithInsertedWord(uint32 insertAtIdx, const String & str, const char * sep = " ") const {return WithInsertedWordAux(insertAtIdx, str(), str.Length(), sep);}
+
+   /** Similar to WithInsert(), but this version will insert separator strings between our current content and the inserted string, if necessary.
+     * @param insertAtIdx Position within this string to insert (0 == prepend, 1 == after the first
+     *                    character, and so on).  If this value is greater than or equal to the
+     *                    number of characters in this String, the new characters will be appended.
+     * @param str Pointer to the C string to insert.  NULL pointers are considered a synonym for "".
+     * @param sep Pointer to the string used to separate words.  Defaults to " "
+     * @returns the resulting String
+     */
+   String WithInsertedWord(uint32 insertAtIdx, const char * str, const char * sep = " ") const {return WithInsertedWordAux(insertAtIdx, str, str?strlen(str):0, sep);}
+
+   /** Inserts up to (maxCharsToAppend) chars from the given C string into the given offset
+     * inside this String.
+     * @param insertAtIdx Position within this string to insert (0 == prepend, 1 == after the first
+     *                    character, and so on).  If this value is greater than or equal to the
+     *                    number of characters in this String, the new characters will be appended.
+     * @param str Pointer to the C string to insert.  NULL pointers are considered a synonym for "".
+     * @param maxCharsToInsert maximum number of characters to insert.  Fewer chars than this
+     *                         may be prepended if strlen(str) is less than this value.
+     *                         Defaults to MUSCLE_NO_LIMIT.
+     * @returns B_NO_ERROR on success, or an error code (B_OUT_OF_MEMORY?) on failure.
+     */
+   status_t InsertChars(uint32 insertAtIdx, const char * str, uint32 maxCharsToInsert = MUSCLE_NO_LIMIT);
 
    /** Returns a string that is like this string, but padded out to the specified minimum length with (padChar).
     *  @param minLength Minimum length that the returned string should be.
@@ -772,14 +841,14 @@ public:
     */
    String Substring(const String & markerString) const
    {
-      int idx = LastIndexOf(markerString);
+      const int idx = LastIndexOf(markerString);
       return (idx >= 0) ? String(*this, idx+markerString.Length()) : *this;
    }
 
    /** @copydoc String::Substring(const String &) const */
    String Substring(const char * markerString) const
    {
-      int idx = LastIndexOf(markerString);
+      const int idx = LastIndexOf(markerString);
       return (idx >= 0) ? String(*this, idx+(int)strlen(markerString)) : *this;  // if (idx >= 0), then we know markerString is non-NULL
    }
 
@@ -1362,6 +1431,8 @@ public:
    MUSCLE_NODISCARD bool IsCharInLocalArray(const char * s) const {const char * b = Cstr(); return muscleInRange(s, b, b+_length);}
 
 private:
+   status_t InsertCharsAux(uint32 insertAtIdx, const char * str, uint32 numCharsToInsert, uint32 insertCount);
+   String WithInsertedWordAux(uint32 insertAtIdx, const char * str, uint32 numChars, const char * sep) const;
    MUSCLE_NODISCARD bool IsSpaceChar(char c) const {return ((c==' ')||(c=='\t')||(c=='\r')||(c=='\n'));}
    status_t EnsureBufferSize(uint32 newBufLen, bool retainValue, bool allowShrink);
    String ArgAux(const char * buf) const;

@@ -5,9 +5,12 @@ key:  - new feature
       * bug fixed
       o other
 
-   - Added AppendChars() and PrependChars() methods to the String
-     class, to support efficient concatenation of partial strings.
-   - Removed the 4096-char restriction for OutputPrinter::printf().
+   - Added AppendChars() PrependChars(), and InsertChars() methods to
+     the String class, for efficient concatenation of partial strings.
+   - Added WithInsert() and WithInsertedWord() methods to the String class.
+   o Removed the 4096-char restriction for OutputPrinter::printf().
+   o Refactored String::Append*() and String::Prepend*() to be simple
+     inline wrappers around String::Insert*(), to reduce code size.
 
 9.60 - Released 12/31/2024
    - Added a PreallocatedItemSlotsCount class to MuscleSupport.h

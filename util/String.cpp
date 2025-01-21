@@ -612,206 +612,91 @@ uint32 String :: GetNumInstancesOf(const char * substring, uint32 fromIndex) con
    return ret;
 }
 
-String String :: WithPrepend(const String & str, uint32 count) const
+static bool CstrStartsWith(const char * cstr, uint32 cstrLen, const char * prefix, uint32 prefixLen)
 {
-   TCHECKPOINT;
-
-   if (&str == this) return WithPrepend(String(str), count);  // avoid self-entanglement
-
-   String ret;
-   const uint32 newLen = (count*str.Length())+Length();
-   if (ret.Prealloc(newLen).IsOK())
-   {
-      char * b = ret.GetBuffer();
-
-      if (str.HasChars())
-      {
-         for (uint32 i=0; i<count; i++)
-         {
-            memcpy(b, str(), str.Length());
-            b += str.Length();
-         }
-      }
-      if (HasChars())
-      {
-         memcpy(b, Cstr(), Length());
-         b += Length();
-      }
-
-      char * afterBuf = ret.GetBuffer();
-      ret._length = (uint32)(b-afterBuf);
-      afterBuf[ret._length] = '\0';   // terminate the string
-   }
-   return ret;
+   return ((cstrLen >= prefixLen)&&(strncmp(cstr, prefix, prefixLen) == 0));
 }
 
-status_t String :: PrependChars(const char * str, uint32 maxCharsToPrepend)
+static bool CstrEndsWith(const char * cstr, uint32 cstrLen, const char * suffix, uint32 suffixLen)
 {
-   TCHECKPOINT;
-
-        if ((str == NULL)||(*str == '\0')||(maxCharsToPrepend == 0)) return B_NO_ERROR;
-   else if (IsCharInLocalArray(str))
-   {
-      (*this) += String(str, maxCharsToPrepend); // avoid self-entanglement!
-      return B_NO_ERROR;
-   }
-   else
-   {
-      const uint32 numCharsToPrepend = muscleMin(maxCharsToPrepend, (uint32) strlen(str));
-      const uint32 newLen            = numCharsToPrepend+Length();
-      MRETURN_ON_ERROR(Prealloc(newLen));
-
-      char * b = GetBuffer();
-      memmove(b+numCharsToPrepend, b,   Length());          // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
-      memcpy( b,                   str, numCharsToPrepend); // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
-
-      _length    = newLen;
-      b[_length] = '\0';   // terminate the string
-
-      return B_NO_ERROR;
-   }
+   return ((cstrLen >= suffixLen)&&(strcmp(cstr+(cstrLen-suffixLen), suffix) == 0));
 }
 
-String String :: WithPrepend(const char * str, uint32 count) const
+String String :: WithInsertedWordAux(uint32 insertAtIdx, const char * str, uint32 numCharsToInsert, const char * sep) const
 {
-   TCHECKPOINT;
+   if ((str == NULL)||(numCharsToInsert == 0)) return *this;  // nothing to do
+   if (sep == NULL) sep = "";
 
-        if ((str == NULL)||(*str == '\0')) return *this;
-   else if (IsCharInLocalArray(str))       return WithPrepend(String(str), count);  // avoid self-entanglement!
-   else
+   const uint32 sepLen = strlen(sep);
+   if (insertAtIdx >= _length)
    {
-      const uint32 sLen = (uint32) strlen(str);
-      String ret;
-      const uint32 newLen = (count*sLen)+Length();
-      if (ret.Prealloc(newLen).IsOK())
-      {
-         char * b = ret.GetBuffer();
-
-         if (sLen > 0)
-         {
-            for (uint32 i=0; i<count; i++)
-            {
-               memcpy(b, str, sLen);  // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
-               b += sLen;
-            }
-         }
-         if (HasChars())
-         {
-            memcpy(b, Cstr(), Length());
-            b += Length();
-         }
-         char * afterBuf = ret.GetBuffer();
-         ret._length = (uint32)(b-afterBuf);
-         afterBuf[ret._length] = '\0';   // terminate the string
-      }
+      String ret = ((IsEmpty())||(CstrEndsWith(Cstr(), Length(), sep, sepLen))||(CstrStartsWith(str, numCharsToInsert, sep, sepLen))) ? *this : WithAppend(sep);
+      (void) ret.InsertCharsAux(MUSCLE_NO_LIMIT, str, numCharsToInsert, 1);  // append (str) without any more strlen() calls
       return ret;
    }
-}
-
-status_t String :: AppendChars(const char * str, uint32 maxCharsToAppend)
-{
-   TCHECKPOINT;
-
-        if ((str == NULL)||(*str == '\0')||(maxCharsToAppend == 0)) return B_NO_ERROR;
-   else if (IsCharInLocalArray(str))
+   else if (insertAtIdx == 0)
    {
-      (*this) += String(str, maxCharsToAppend); // avoid self-entanglement!
-      return B_NO_ERROR;
-   }
-   else
-   {
-      const uint32 numCharsToAppend = muscleMin(maxCharsToAppend, (uint32) strlen(str));
-      const uint32 newLen           = Length()+numCharsToAppend;
-      MRETURN_ON_ERROR(Prealloc(newLen));
-
-      char * b = GetBuffer();
-      memcpy(b+_length, str, numCharsToAppend); // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
-
-      _length    = newLen;
-      b[_length] = '\0';   // terminate the string
-
-      return B_NO_ERROR;
-   }
-}
-
-String String :: WithAppend(const String & str, uint32 count) const
-{
-   TCHECKPOINT;
-
-   if (&str == this) return WithAppend(String(str), count);  // avoid self-entanglement
-
-   String ret;
-   const uint32 newLen = Length()+(count*str.Length());
-   if (ret.Prealloc(newLen).IsOK())
-   {
-      char * b = ret.GetBuffer();
-      if (HasChars())
-      {
-         memcpy(b, Cstr(), Length());
-         b += Length();
-      }
-      if (str.HasChars())
-      {
-         for (uint32 i=0; i<count; i++)
-         {
-            memcpy(b, str(), str.Length());
-            b += str.Length();
-         }
-      }
-      char * afterBuf = ret.GetBuffer();
-      ret._length = (uint32)(b-afterBuf);
-      afterBuf[ret._length] = '\0';   // terminate the string
-   }
-   return ret;
-}
-
-String String :: WithAppend(const char * str, uint32 count) const
-{
-   TCHECKPOINT;
-
-        if ((str == NULL)||(*str == '\0')) return *this;
-   else if (IsCharInLocalArray(str))       return WithAppend(String(str), count);  // avoid self-entanglement!
-   else
-   {
-      const uint32 sLen = (uint32) strlen(str);
-      String ret;
-      const uint32 newLen = Length()+(count*sLen);
-      if (ret.Prealloc(newLen).IsOK())
-      {
-         char * b = ret.GetBuffer();
-         if (HasChars())
-         {
-            memcpy(b, Cstr(), Length());
-            b += Length();
-         }
-         if (sLen > 0)
-         {
-            for (uint32 i=0; i<count; i++)
-            {
-               memcpy(b, str, sLen);  // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
-               b += sLen;
-            }
-         }
-         char * afterBuf = ret.GetBuffer();
-         ret._length = (uint32) (b-afterBuf);
-         afterBuf[ret._length] = '\0';   // terminate the string
-      }
+      String ret = ((IsEmpty())||(CstrStartsWith(Cstr(), Length(), sep, sepLen))||(CstrEndsWith(str, numCharsToInsert, sep, sepLen))) ? *this : WithPrepend(sep);
+      (void) ret.InsertCharsAux(0, str, numCharsToInsert, 1);  // prepend (str) without any more strlen() calls
       return ret;
    }
+   else
+   {
+      // Ooh, a tricky case -- gotta insert (str) into the middle of our text!
+      // We might need to insert (sep) on one or both sides of (str).
+      // Since I think this code will not be used often, I'm going to keep the
+      // implementation simple, rather than try to maximize its efficiency.
+
+      String ret = Substring(0, insertAtIdx);
+      if ((ret.HasChars())&&(CstrEndsWith(ret(), ret.Length(), sep, sepLen) == false)&&(CstrStartsWith(str, numCharsToInsert, sep, sepLen) == false)) ret += sep;
+
+      (void) ret.InsertCharsAux(MUSCLE_NO_LIMIT, str, numCharsToInsert, 1);  // append (str) without any more strlen() calls
+
+      const String afterStr = Substring(insertAtIdx);
+      if ((afterStr.HasChars())&&(CstrEndsWith(ret(), ret.Length(), sep, sepLen) == false)&&(CstrStartsWith(afterStr(), afterStr.Length(), sep, sepLen) == false)) ret += sep;
+      return ret + afterStr;
+   }
 }
 
-String String :: WithAppendedWord(const char * str, const char * sep) const
+status_t String :: InsertChars(uint32 insertAtIdx, const char * str, uint32 maxCharsToInsert)
 {
-   if ((str == NULL)||(*str == '\0')) return *this;
-   if ((HasChars())&&(strncmp(str, sep, strlen(sep)) != 0)&&(EndsWith(sep) == false)) return String(*this).WithAppend(sep).WithAppend(str);
-                                                                                 else return String(*this).WithAppend(str);
+   if ((str == NULL)||(*str == '\0')||(maxCharsToInsert == 0)) return B_NO_ERROR;
+
+   return InsertCharsAux(insertAtIdx, str, muscleMin((uint32) strlen(str), maxCharsToInsert), 1);
 }
 
-String String :: WithAppendedWord(const String & str, const char * sep) const
+status_t String :: InsertCharsAux(uint32 insertAtIdx, const char * str, uint32 numCharsToInsert, uint32 insertCount)
 {
-   if (str.IsEmpty()) return *this;
-   if ((HasChars())&&(str.StartsWith(sep) == false)&&(EndsWith(sep) == false)) return String(*this).WithAppend(sep).WithAppend(str);
-                                                                          else return String(*this).WithAppend(str);
+   if ((str == NULL)||(*str == '\0')||(numCharsToInsert == 0)) return B_NO_ERROR;
+
+   if (IsCharInLocalArray(str))
+   {
+      const String tempStr(str, numCharsToInsert); // avoid self-entanglement!
+      return InsertCharsAux(insertAtIdx, tempStr(), muscleMin(tempStr.Length(), numCharsToInsert), insertCount);
+   }
+
+   const uint32 totalNumCharsToInsert = numCharsToInsert*insertCount;
+   if (totalNumCharsToInsert == 0) return B_NO_ERROR;  // nothing to do
+
+   const uint32 newLen = _length+totalNumCharsToInsert;
+   MRETURN_ON_ERROR(Prealloc(newLen));
+
+   insertAtIdx = muscleMin(insertAtIdx, _length);  // too-large index == append
+
+   char * b = GetBuffer();
+   memmove(b+insertAtIdx+totalNumCharsToInsert, b+insertAtIdx, _length-insertAtIdx); // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
+
+   char * c = b+insertAtIdx;
+   for (uint32 i=0; i<insertCount; i++)
+   {
+      memcpy(c, str, numCharsToInsert); // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
+      c += numCharsToInsert;
+   }
+
+   _length    = newLen;
+   b[_length] = '\0';   // terminate the string
+
+   return B_NO_ERROR;
 }
 
 static uint32 NextPowerOfTwo(uint32 n)
@@ -944,7 +829,7 @@ String String :: PaddedBy(uint32 minLength, bool padOnRight, char padChar) const
    {
       const uint32 padLen = minLength-Length();
       String temp; temp += padChar;
-      return (padOnRight) ? WithAppend(temp, padLen) : WithPrepend(temp, padLen);
+      return padOnRight ? WithAppend(temp, padLen) : WithPrepend(temp, padLen);
    }
    else return *this;
 }

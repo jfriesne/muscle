@@ -165,7 +165,7 @@ static status_t UnitTestString()
 #endif
 
    String test = "hello";
-   test = test + " and " + " goodbye " + '!' + SomeClass();
+   test = test + " and" + " goodbye" + '!' + " -> " + SomeClass();
    printf("test=[%s]\n", test());
 
    test.Replace(test, "foo");
@@ -176,7 +176,10 @@ static status_t UnitTestString()
    String s1("one");
    String s2("two");
    String s3;
-   printf("[%s]\n", s1.WithAppendedWord(s2, ", ").WithAppendedWord(s3, ", ")());
+   printf("[%s]\n", s1.WithAppendedWord(s2, ", ").WithAppendedWord(s3, ", ").WithPrependedWord("zero", ", ")());
+
+   String s4("there again");
+   printf("[%s]\n", s4.WithInsertedWord(5, "and back", " ")());
 
    String q;
    MPRINT_ON_ERROR("AppendChars",  q.AppendChars("this is a test",        8));
