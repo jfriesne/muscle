@@ -168,7 +168,7 @@ if (connectionSocket())
       while(inputQueue.GetMessages().RemoveHead(msg) == B_NO_ERROR)
       {
          printf("Received incoming TCP Message:\n");
-         if (msg()) msg()->PrintToStream();  // handle message here
+         if (msg()) msg()->Print(stdout);  // handle message here
       }
    }
    printf("Connection was closed!\n");

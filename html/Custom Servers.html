@@ -282,7 +282,7 @@ MyCallback(DataNode & node, void * userData)
    printf("MyCallback called for node: [%s]\n", node.GetNodePath());
    printf("Message for this node is: ");
    const Message * nodeData = node.GetData()->GetItemPointer();
-   if (nodeData) nodeData->PrintToStream();
+   if (nodeData) nodeData->Print(stdout);
             else printf("<null>\n");
    Queue<String> * myList = (Queue<String> *) userData;  // as passed in to DoTraversal()
    myList->AddTail(node.GetNodePath());
