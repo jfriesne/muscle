@@ -93,15 +93,6 @@ int String :: LastIndexOfIgnoreCase(char ch, uint32 f) const
    }
 }
 
-bool String :: EndsWithIgnoreCase(const char * s) const
-{
-   if (s==NULL) s="";
-
-   const uint32 slen = (uint32) strlen(s);
-   return ((Length() >= slen)&&(Strcasecmp(Cstr()+(Length()-slen), s) == 0));
-}
-
-
 void String :: ClearAndFlush()
 {
    if (IsArrayDynamicallyAllocated()) muscleFree(_strData._bigBuffer);
@@ -612,31 +603,28 @@ uint32 String :: GetNumInstancesOf(const char * substring, uint32 fromIndex) con
    return ret;
 }
 
-static bool CstrStartsWith(const char * cstr, uint32 cstrLen, const char * prefix, uint32 prefixLen)
-{
-   return ((cstrLen >= prefixLen)&&(strncmp(cstr, prefix, prefixLen) == 0));
-}
-
-static bool CstrEndsWith(const char * cstr, uint32 cstrLen, const char * suffix, uint32 suffixLen)
-{
-   return ((cstrLen >= suffixLen)&&(strcmp(cstr+(cstrLen-suffixLen), suffix) == 0));
-}
-
 String String :: WithInsertedWordAux(uint32 insertAtIdx, const char * str, uint32 numCharsToInsert, const char * sep) const
 {
    if ((str == NULL)||(numCharsToInsert == 0)) return *this;  // nothing to do
    if (sep == NULL) sep = "";
 
    const uint32 sepLen = strlen(sep);
-   if (insertAtIdx >= _length)
+   if (sepLen == 0)
    {
-      String ret = ((IsEmpty())||(CstrEndsWith(Cstr(), Length(), sep, sepLen))||(CstrStartsWith(str, numCharsToInsert, sep, sepLen))) ? *this : WithAppend(sep);
+      // With no separators, this call is equivalent to a regular WithInsert() call
+      String ret(*this, PreallocatedItemSlotsCount(numCharsToInsert));
+      (void) ret.InsertCharsAux(insertAtIdx, str, numCharsToInsert, 1);
+      return ret;
+   }
+   else if (insertAtIdx >= _length)
+   {
+      String ret(((IsEmpty())||(StrEndsWith(Cstr(), Length(), sep, sepLen))||(StrStartsWith(str, numCharsToInsert, sep, sepLen))) ? *this : WithAppend(sep), PreallocatedItemSlotsCount(numCharsToInsert));
       (void) ret.InsertCharsAux(MUSCLE_NO_LIMIT, str, numCharsToInsert, 1);  // append (str) without any more strlen() calls
       return ret;
    }
    else if (insertAtIdx == 0)
    {
-      String ret = ((IsEmpty())||(CstrStartsWith(Cstr(), Length(), sep, sepLen))||(CstrEndsWith(str, numCharsToInsert, sep, sepLen))) ? *this : WithPrepend(sep);
+      String ret(((IsEmpty())||(StrStartsWith(Cstr(), Length(), sep, sepLen))||(StrEndsWith(str, numCharsToInsert, sep, sepLen))) ? *this : WithPrepend(sep), PreallocatedItemSlotsCount(numCharsToInsert));
       (void) ret.InsertCharsAux(0, str, numCharsToInsert, 1);  // prepend (str) without any more strlen() calls
       return ret;
    }
@@ -647,13 +635,13 @@ String String :: WithInsertedWordAux(uint32 insertAtIdx, const char * str, uint3
       // Since I think this code will not be used often, I'm going to keep the
       // implementation simple, rather than try to maximize its efficiency.
 
-      String ret = Substring(0, insertAtIdx);
-      if ((ret.HasChars())&&(CstrEndsWith(ret(), ret.Length(), sep, sepLen) == false)&&(CstrStartsWith(str, numCharsToInsert, sep, sepLen) == false)) ret += sep;
+      const String afterStr = Substring(insertAtIdx);
+      String ret(Substring(0, insertAtIdx), PreallocatedItemSlotsCount(numCharsToInsert+afterStr.Length()+(sepLen*2)));
+      if ((ret.HasChars())&&(StrEndsWith(ret(), ret.Length(), sep, sepLen) == false)&&(StrStartsWith(str, numCharsToInsert, sep, sepLen) == false)) ret += sep;
 
       (void) ret.InsertCharsAux(MUSCLE_NO_LIMIT, str, numCharsToInsert, 1);  // append (str) without any more strlen() calls
 
-      const String afterStr = Substring(insertAtIdx);
-      if ((afterStr.HasChars())&&(CstrEndsWith(ret(), ret.Length(), sep, sepLen) == false)&&(CstrStartsWith(afterStr(), afterStr.Length(), sep, sepLen) == false)) ret += sep;
+      if ((afterStr.HasChars())&&(StrEndsWith(ret(), ret.Length(), sep, sepLen) == false)&&(StrStartsWith(afterStr(), afterStr.Length(), sep, sepLen) == false)) ret += sep;
       return ret + afterStr;
    }
 }

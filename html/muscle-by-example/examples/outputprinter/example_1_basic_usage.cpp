@@ -9,6 +9,7 @@ static void PrintExampleDescription(const OutputPrinter & p)
    p.printf("\n");
    p.printf("This example demonstrates basic usage of the muscle::OutputPrinter class\n");
    p.printf("by printing out this message in several different ways via OutputPrinter object.\n");
+   p.printf("\nEven calls with multiple\nlines get handled\ncorrectly!\n");
    p.printf("\n");
 }
 

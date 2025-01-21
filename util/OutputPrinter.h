@@ -83,6 +83,7 @@ public:
 
 private:
    void putsAux(const char * s, uint32 numChars) const;
+   void putsAuxAux(const char * s, uint32 numChars) const;
 
    int _logSeverity;
    String * _addToString;

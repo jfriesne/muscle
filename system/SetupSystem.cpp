@@ -385,6 +385,10 @@ void PrintAndClearStringCopyCounts(const OutputPrinter & p, const char * optDesc
    p.printf("# Cstr Ctors    = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_CSTR_CTOR]);
    p.printf("# Copy Ctors    = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_COPY_CTOR]);
    p.printf("# PtCopy Ctors  = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_PARTIAL_COPY_CTOR]);
+   p.printf("# PACopy Ctors  = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_PREALLOC_COPY_CTOR]);
+#ifdef __APPLE__
+   p.printf("# CFCopy Ctors  = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_CFSTR_COPY_CTOR]);
+#endif
    p.printf("# Set from Cstr = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_SET_FROM_CSTR]);
    p.printf("# Set from Str  = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_SET_FROM_STRING]);
    p.printf("# Move Ctor     = " UINT32_FORMAT_SPEC "\n", s[STRING_OP_MOVE_CTOR]);
@@ -2777,6 +2781,18 @@ void OutputPrinter :: puts(const char * s, uint32 repeatCount) const
 
 void OutputPrinter :: putsAux(const char * s, uint32 numChars) const
 {
+   while(*s)
+   {
+      // Find the next newline, if any
+      const char * pc = s;
+      while(*pc) {if (*pc == '\n') {pc++; break;} else pc++;}
+      putsAuxAux(s, pc-s);  // Call putsAuxAux() once for each line of text
+      s = pc;
+   }
+}
+
+void OutputPrinter :: putsAuxAux(const char * s, uint32 numChars) const
+{
    if (_isAtStartOfLine)
    {
       if (_logSeverity > MUSCLE_LOG_NONE) LogTime(_logSeverity, GetEmptyString()(), "");  // generate the log-timestamp-preamble at the left edge, before the indent
@@ -2784,8 +2800,12 @@ void OutputPrinter :: putsAux(const char * s, uint32 numChars) const
       if (_indent > 0) putc(' ', _indent);
    }
 
-   if (_addToString) (*_addToString) += s;
-   if (_logSeverity > MUSCLE_LOG_NONE) LogPlain(_logSeverity, "%s", s);
+   if (_addToString) (void) _addToString->AppendChars(s, numChars);
+   if (_logSeverity > MUSCLE_LOG_NONE)
+   {
+      char fmt[64] = "%."; muscleSnprintf(&fmt[2], sizeof(fmt)-2, UINT32_FORMAT_SPEC "s", numChars);  // keeping the %. separate to avoid confusing clang++
+      LogPlain(_logSeverity, fmt, s);
+   }
    if (_file) (void) fwrite(s, 1, numChars, _file);  // Calling fwrite() instead of fputs() since we already know the string's length
 
    _isAtStartOfLine = ((numChars > 0)&&(s[numChars-1] == '\n'));

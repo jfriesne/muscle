@@ -33,6 +33,8 @@ enum {
    STRING_OP_CSTR_CTOR,
    STRING_OP_COPY_CTOR,
    STRING_OP_PARTIAL_COPY_CTOR,
+   STRING_OP_PREALLOC_COPY_CTOR,
+   STRING_OP_CFSTR_COPY_CTOR,
    STRING_OP_SET_FROM_CSTR,
    STRING_OP_SET_FROM_STRING,
    STRING_OP_MOVE_CTOR,
@@ -119,6 +121,54 @@ MUSCLE_NODISCARD const char * Strcasestr(const char * haystack, const char * nee
   */
 MUSCLE_NODISCARD const char * StrcasestrEx(const char * haystack, uint32 haystackLen, const char * needle, uint32 needleLen, bool searchBackwards);
 
+/** Convenience function:  Returns true iff the C string (haystack) starts with the string (prefix).
+  * @param haystack the C string to check
+  * @param haystackLen The length of (haystack), in bytes, not including the NUL terminator byte.
+  * @param prefix the prefix to check for at the start of (haystack).  If NULL, this function will return true.
+  * @param prefixLen The length of (prefix), in bytes, not including the NUL terminator byte.
+  * @note the test is case-sensitive.
+  */
+MUSCLE_NODISCARD inline bool StrStartsWith(const char * haystack, uint32 haystackLen, const char * prefix, uint32 prefixLen)
+{
+   return ((prefix == NULL)||((haystackLen >= prefixLen)&&(strncmp(haystack, prefix, prefixLen) == 0)));
+}
+
+/** Convenience function:  Returns true iff the C string (haystack) ends with the string (suffix).
+  * @param haystack the C string to check
+  * @param haystackLen The length of (haystack), in bytes, not including the NUL terminator byte.
+  * @param suffix the suffix to check for at the ends of (haystack).  If NULL, this function will return true.
+  * @param suffixLen The length of (suffix), in bytes, not including the NUL terminator byte.
+  * @note the test is case-sensitive.
+  */
+MUSCLE_NODISCARD inline bool StrEndsWith(const char * haystack, uint32 haystackLen, const char * suffix, uint32 suffixLen)
+{
+   return ((suffix == NULL)||((haystackLen >= suffixLen)&&(strcmp(haystack+(haystackLen-suffixLen), suffix) == 0)));
+}
+
+/** Convenience function:  Returns true iff the C string (haystack) starts with the string (prefix).
+  * @param haystack the C string to check
+  * @param haystackLen The length of (haystack), in bytes, not including the NUL terminator byte.
+  * @param prefix the prefix to check for at the start of (haystack).  If NULL, this function will return true.
+  * @param prefixLen The length of (prefix), in bytes, not including the NUL terminator byte.
+  * @note the test is case-insensitive.
+  */
+MUSCLE_NODISCARD inline bool StrStartsWithIgnoreCase(const char * haystack, uint32 haystackLen, const char * prefix, uint32 prefixLen)
+{
+   return ((prefix == NULL)||((haystackLen >= prefixLen)&&(Strncasecmp(haystack, prefix, prefixLen) == 0)));
+}
+
+/** Convenience function:  Returns true iff the C string (haystack) ends with the string (suffix).
+  * @param haystack the C string to check
+  * @param haystackLen The length of (haystack), in bytes, not including the NUL terminator byte.
+  * @param suffix the suffix to check for at the ends of (haystack).  If NULL, this function will return true.
+  * @param suffixLen The length of (suffix), in bytes, not including the NUL terminator byte.
+  * @note the test is case-insensitive.
+  */
+MUSCLE_NODISCARD inline bool StrEndsWithIgnoreCase(const char * haystack, uint32 haystackLen, const char * suffix, uint32 suffixLen)
+{
+   return ((suffix == NULL)||((haystackLen >= suffixLen)&&(Strcasecmp(haystack+(haystackLen-suffixLen), suffix) == 0)));
+}
+
 /** An arbitrary-length character-string class.  Represents a dynamically resizable, NUL-terminated ASCII string.
   * This class can be used to hold UTF8-encoded strings as well, but because the code in this class is not
   * UTF8-aware, certain operations (such as Reverse() and ToLowerCase()) may not do the right thing when used in
@@ -143,8 +193,7 @@ public:
    /** Explicitely-sized constructor.
      * @param preallocatedBytesCount Contains the value to pass to Prealloc() as part of our construction
      * @param str If non-NULL, the initial value for this String.
-     * @param maxLen The maximum number of characters to place into
-     *               this String (not including the NUL terminator byte).
+     * @param maxLen The maximum number of characters to place into this String (not including the NUL terminator byte).
      *               Default is unlimited (ie scan the entire string no matter how long it is)
      */
    String(PreallocatedItemSlotsCount preallocatedBytesCount, const char * str = NULL, uint32 maxLen = MUSCLE_NO_LIMIT) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
@@ -159,7 +208,22 @@ public:
    String(const String & rhs) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_COPY_CTOR);
-      ClearSmallBuffer(); (void) SetFromString(rhs);
+      ClearSmallBuffer();
+      (void) SetFromString(rhs);
+   }
+
+   /** Pseudo-copy constructor.
+     * @param rhs the String to make this String a copy of
+     * @param extraBytesToPrealloc a count of additional bytes to preallocate up-front
+     * @note this constructor is useful if you know you are going to add some additional bytes to the String immediately after
+     *       construction, and you want to avoid an unnecessary memory reallocation
+     */
+   String(const String & rhs, PreallocatedItemSlotsCount extraBytesToPrealloc) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
+   {
+      MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_PREALLOC_COPY_CTOR);
+      ClearSmallBuffer();
+      (void) Prealloc(rhs.Length()+extraBytesToPrealloc.GetNumItemSlotsToPreallocate());
+      (void) SetFromString(rhs);
    }
 
    /** This constructor sets this String to be a substring of the specified String.
@@ -171,14 +235,20 @@ public:
    String(const String & str, uint32 beginIndex, uint32 endIndex=MUSCLE_NO_LIMIT) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_PARTIAL_COPY_CTOR);
-      ClearSmallBuffer(); (void) SetFromString(str, beginIndex, endIndex);
+      ClearSmallBuffer();
+      (void) SetFromString(str, beginIndex, endIndex);
    }
 
 #ifdef __APPLE__
    /** Special MACOS/X-only convenience constructor that sets our state from a UTF8 Core Foundation String
      * @param cfStringRef A CFStringRef that we will get our string value from
      */
-   String(const CFStringRef & cfStringRef) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0) {(void) SetFromCFStringRef(cfStringRef);}
+   String(const CFStringRef & cfStringRef) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
+   {
+      MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_CFSTR_COPY_CTOR);
+      ClearSmallBuffer();
+      (void) SetFromCFStringRef(cfStringRef);
+   }
 #endif
 
    /** Destructor. */
@@ -477,17 +547,12 @@ public:
    /** Returns true iff this string ends with (suffix)
      * @param suffix a String to check for at the end of this String.
      */
-   MUSCLE_NODISCARD bool EndsWith(const String & suffix) const {return ((Length() >= suffix.Length())&&(strcmp(Cstr()+(Length()-suffix.Length()), suffix.Cstr()) == 0));}
+   MUSCLE_NODISCARD bool EndsWith(const String & suffix) const {return StrEndsWith(Cstr(), Length(), suffix(), suffix.Length());}
 
    /** Returns true iff this string ends with (suffix)
      * @param suffix a String to check for at the end of this String.  NULL pointers are treated as a synonym for "".
      */
-   MUSCLE_NODISCARD bool EndsWith(const char * suffix) const
-   {
-      if (suffix == NULL) suffix = "";
-      const uint32 suffixLen = (uint32) strlen(suffix);
-      return (Length() < suffixLen) ? false : (strcmp(Cstr()+(Length()-suffixLen), suffix) == 0);
-   }
+   MUSCLE_NODISCARD bool EndsWith(const char * suffix) const {return StrEndsWith(Cstr(), Length(), suffix, suffix?strlen(suffix):0);}
 
    /** Returns true iff this string is equal to (string), as determined by strcmp().
      * @param str a String to compare this String with.
@@ -649,17 +714,12 @@ public:
    /** Returns true iff this string starts with (prefix)
      * @param prefix The prefix to see whether this string starts with or not
      */
-   MUSCLE_NODISCARD bool StartsWith(const String & prefix) const {return ((Length() >= prefix.Length())&&(strncmp(Cstr(), prefix(), prefix.Length()) == 0));}
+   MUSCLE_NODISCARD bool StartsWith(const String & prefix) const {return StrStartsWith(Cstr(), Length(), prefix(), prefix.Length());}
 
    /** Returns true iff this string starts with (prefix)
      * @param prefix Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
-   MUSCLE_NODISCARD bool StartsWith(const char * prefix) const
-   {
-      if (prefix == NULL) prefix = "";
-      const uint32 prefixLen = (uint32) strlen(prefix);
-      return (Length() < prefixLen) ? false : (strncmp(Cstr(), prefix, prefixLen) == 0);
-   }
+   MUSCLE_NODISCARD bool StartsWith(const char * prefix) const {return StrStartsWith(Cstr(), Length(), prefix, prefix?strlen(prefix):0);}
 
    /** Returns a string that consists of (count) copies of (str), followed by this string.
      * @param str The string to prepend
@@ -936,12 +996,12 @@ public:
    /** Like EndsWith(), but case insensitive.
      * @param s a suffix to check for at the end of this String.
      */
-   MUSCLE_NODISCARD bool EndsWithIgnoreCase(const String & s) const {return ((Length() >= s.Length())&&(Strcasecmp(Cstr()+(Length()-s.Length()), s()) == 0));}
+   MUSCLE_NODISCARD bool EndsWithIgnoreCase(const String & s) const {return StrEndsWithIgnoreCase(Cstr(), Length(), s(), s.Length());}
 
    /** Like EndsWith(), but case insensitive.
      * @param s a suffix to check for at the end of this String.
      */
-   MUSCLE_NODISCARD bool EndsWithIgnoreCase(const char * s) const;
+   MUSCLE_NODISCARD bool EndsWithIgnoreCase(const char * s) const {return StrEndsWithIgnoreCase(Cstr(), Length(), s, s?strlen(s):0);}
 
    /** Like Equals(), but case insensitive.
      * @param s a string to check for (case-insensitive) equality with this String
@@ -1020,12 +1080,12 @@ public:
    /** Like StartsWith(), but case insensitive.
      * @param s The prefix to see whether this string starts with or not
      */
-   MUSCLE_NODISCARD bool StartsWithIgnoreCase(const String & s) const {return ((Length() >= s.Length())&&(Strncasecmp(Cstr(), s(), s.Length()) == 0));}
+   MUSCLE_NODISCARD bool StartsWithIgnoreCase(const String & s) const {return StrStartsWithIgnoreCase(Cstr(), Length(), s(), s.Length());}
 
    /** Like StartsWith(), but case insensitive.
      * @param s The prefix to see whether this string starts with or not
      */
-   MUSCLE_NODISCARD bool StartsWithIgnoreCase(const char * s) const {if (s==NULL) s=""; return (Strncasecmp(Cstr(), s, strlen(s)) == 0);}
+   MUSCLE_NODISCARD bool StartsWithIgnoreCase(const char * s) const {return StrStartsWithIgnoreCase(Cstr(), Length(), s, s?strlen(s):0);}
 
    /** @copydoc DoxyTemplate::HashCode() const */
    MUSCLE_NODISCARD inline uint32 HashCode() const {return CalculateHashCode(Cstr(), Length());}
