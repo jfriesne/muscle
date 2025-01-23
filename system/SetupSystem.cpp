@@ -2781,28 +2781,32 @@ void OutputPrinter :: puts(const char * s, uint32 repeatCount) const
 
 void OutputPrinter :: putsAux(const char * s, uint32 numChars) const
 {
-   const char * orig = s;
-   while((*s)&&((s-orig) < numChars))
+   if ((_indent > 0)||(_logSeverity > MUSCLE_LOG_NONE))
    {
-      // Find the next newline, if any
-      const char * pc = s;
-      while((*pc)&&((pc-orig)<numChars))
+      const char * orig = s;
+      while((*s)&&((s-orig) < numChars))
       {
-         if (*pc == '\n')
+         // Find the next newline, if any
+         const char * pc = s;
+         while((*pc)&&((pc-orig)<numChars))
          {
-            pc++;
-            break;
+            if (*pc == '\n')
+            {
+               pc++;
+               break;
+            }
+            else pc++;
          }
-         else pc++;
-      }
 
-      if (pc > s)  // semi-paranoia
-      {
-         putsAuxAux(s, pc-s);  // Call putsAuxAux() once for each line of text
-         s = pc;
+         if (pc > s)  // semi-paranoia
+         {
+            putsAuxAux(s, pc-s);  // Call putsAuxAux() once for each line of text
+            s = pc;
+         }
+         else break;  // paranoia:  avoid potential infinite loop
       }
-      else break;  // paranoia:  avoid potential infinite loop
    }
+   else putsAuxAux(s, numChars); // no point in scanning for newlines if they won't affect our behavior anyway
 }
 
 void OutputPrinter :: putsAuxAux(const char * s, uint32 numChars) const
