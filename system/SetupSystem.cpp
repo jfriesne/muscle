@@ -2762,7 +2762,8 @@ void OutputPrinter :: putc(char c, uint32 repeatCount) const
          numCharsWritten = charsToWrite;
       }
       buf[charsToWrite] = '\0';
-      putsAux(buf, charsToWrite);
+      if (c == '\n') putsAux(buf, charsToWrite);
+                else putsAuxAux(buf, charsToWrite);  // no sense scanning for newlines, there aren't any
       repeatCount -= charsToWrite;
    }
 }
