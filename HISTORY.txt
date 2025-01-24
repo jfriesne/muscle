@@ -20,7 +20,7 @@ key:  - new feature
    * OutputPrinter::printf() and friends now handle calls with more
      than one line of text in them correctly.
 
-9.60 - Released 12/31/2024
+9.60 - Released 1/19/2025
    - Added a PreallocatedItemSlotsCount class to MuscleSupport.h
      which can be used to explicitly specify how many item-slots
      a container's constructor should preallocate space for.
