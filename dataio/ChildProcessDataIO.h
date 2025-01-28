@@ -187,19 +187,25 @@ public:
      */
    status_t WaitForChildProcessToExit(uint64 maxWaitTime = MUSCLE_TIME_NEVER);
 
-   /** Returns true iff our child-process-has-crashed flag was set to true.
-     * Note that this flag is set only when WaitForChildProcessToExit() is called
-     * (either directly by external code, or implicitly by a call to Close()).
-     * The flag is cleared whenever a new child process is launched.
+   /** Returns our child-process's exit code, as a byte-count, iff our child-process
+     * exited normally (i.e. by returning from main() or calling exit()).
+     *
+     * Otherwise, returns an error indicating what caused the child-process to
+     * exit (e.g. the name of the signal that killed the child process)
+     *
+     * @note that this value is set only when WaitForChildProcessToExit() is called
+     * (either directly by external code, or implicitly as part of a call to Close()).
+     *
+     * This value is cleared whenever a new child process is launched.
      *
      * @note The windows implementation of this method is based on the child
      *       process's exit code; any exit code that has the two highest bits
      *       set will be interpreted as a crashed process.  That is the
-     *       convention for exit codes under Windows, but it is possible
+     *       convention for exit-codes under Windows, but it is possible
      *       for the child process to flout convention, leading to false
-     *       positives or false negatives in this method's return value.
+     *       positives or false negatives in this method's return-value.
      */
-   MUSCLE_NODISCARD bool DidChildProcessCrash() const {return _childProcessCrashed;}
+   MUSCLE_NODISCARD io_status_t GetChildProcessExitReason() const {return _childProcessExitReason;}
 
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
    /** Currently implemented under MacOS/X only, and only if you set
@@ -343,7 +349,8 @@ private:
    bool _killChildOkay;
    uint64 _maxChildWaitTime;
    int _signalNumber;
-   bool _childProcessCrashed;
+
+   io_status_t _childProcessExitReason;
 
    bool _childProcessIsIndependent;
 

@@ -83,7 +83,16 @@ public:
       if (cpio)
       {
          (void) cpio->WaitForChildProcessToExit(SecondsToMicros(1));  // just so we can accurately report whether it crashed or not
-         LogTime(MUSCLE_LOG_WARNING, "Child Process [%s] just %s.  Will re-spawn in one second...\n", _processLabel(), cpio->DidChildProcessCrash()?"crashed":"exited");
+
+         String verb;
+         const io_status_t r = cpdio->GetChildProcessExitReason();
+         if (r.IsError()) verb = String("crashed (%1)").Arg(r());
+
+         const int32 exitCode = r.GetByteCount();
+         if (exitCode == 0) verb = "exited normally";
+                       else verb = String("exited (code %1)").Arg(exitCode);
+
+         LogTime(MUSCLE_LOG_WARNING, "Child Process [%s] just %s.  Will re-spawn in one second...\n", _processLabel(), verb());
       }
       return AbstractReflectSession::ClientConnectionClosed();
    }

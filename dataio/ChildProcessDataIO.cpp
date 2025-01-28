@@ -49,7 +49,6 @@ ChildProcessDataIO :: ChildProcessDataIO(bool blocking)
    , _killChildOkay(true)
    , _maxChildWaitTime(0)
    , _signalNumber(-1)
-   , _childProcessCrashed(false)
    , _childProcessIsIndependent(false)
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    , _readFromStdout(INVALID_HANDLE_VALUE), _writeToStdin(INVALID_HANDLE_VALUE), _ioThread(INVALID_HANDLE_VALUE), _wakeupSignal(INVALID_HANDLE_VALUE), _childProcess(INVALID_HANDLE_VALUE), _childThread(INVALID_HANDLE_VALUE)
@@ -100,7 +99,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
    TCHECKPOINT;
 
    Close();  // paranoia
-   _childProcessCrashed = false;  // we don't care about the crashed-flag of a previous process anymore!
+   _childProcessExitReason = io_status_t();  // we don't care about the exit-status of a previous process anymore!
 
 #ifdef MUSCLE_AVOID_FORKPTY
    launchFlags.ClearBit(CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY);   // no sense trying to use pseudo-terminals if they were forbidden at compile time
@@ -551,11 +550,22 @@ void ChildProcessDataIO :: DoGracefulChildShutdown()
    if ((WaitForChildProcessToExit(_maxChildWaitTime).IsError())&&(_killChildOkay)) (void) KillChildProcess();
 }
 
+#ifndef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
+static io_status_t GetExitReasonFromWaitPIDStatus(int status)
+{
+   if (WIFSIGNALED(status)) return io_status_t(strsignal(WTERMSIG(status)));
+   if (WIFSTOPPED(status))  return io_status_t(strsignal(WSTOPSIG(status)));
+   if (WCOREDUMP(status))   return io_status_t("core dumped");
+   if (WIFEXITED(status))   return io_status_t((int32) WEXITSTATUS(status));
+   return io_status_t();    // I guess?
+}
+#endif
+
 status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicros)
 {
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    if (_childProcess == INVALID_HANDLE_VALUE) return B_NO_ERROR; // a non-existent child process is an exited child process, if you ask me.
-   _childProcessCrashed = false;                                 // reset the flag only when there is an actual child process to wait for
+   _childProcessExitReason = io_status_t();                      // reset the exit-reason only when there is an actual child process to wait for
 
    if (WaitForSingleObject(_childProcess, (maxWaitTimeMicros==MUSCLE_TIME_NEVER)?INFINITE:((DWORD)(maxWaitTimeMicros/1000))) == WAIT_OBJECT_0)
    {
@@ -567,7 +577,8 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
          // this criterion as part of its normal exit(), and a crashed
          // program could (conceivably) have an exit code that doesn't
          // meet this criterion.  But in general this will work.  --jaf
-         _childProcessCrashed = ((exitCode & (0xC0000000)) != 0);
+         // TODO:  return different crashed-reason strings based on the precise exitCode value?
+         _childProcessExitReason = ((exitCode & (0xC0000000)) != 0) ? io_status_t("crashed") : io_status_t((int32)exitCode);
       }
       return B_NO_ERROR;
    }
@@ -599,8 +610,8 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
    }
 # endif
 
-   if (_childPID < 0) return B_NO_ERROR; // a non-existent child process is an exited child process, if you ask me.
-   _childProcessCrashed = false;         // reset the flag only when there is an actual child process to wait for
+   if (_childPID < 0) return B_NO_ERROR;    // a non-existent child process is an exited child process, if you ask me.
+   _childProcessExitReason = io_status_t(); // reset the exit-reason only when there is an actual child process to wait for
 
    if (maxWaitTimeMicros == MUSCLE_TIME_NEVER)
    {
@@ -608,7 +619,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
       const int pid = waitpid(_childPID, &status, 0);
       if (pid == _childPID)
       {
-         _childProcessCrashed = WIFSIGNALED(status);
+         _childProcessExitReason = GetExitReasonFromWaitPIDStatus(status);
          return B_NO_ERROR;
       }
    }
@@ -626,7 +637,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
          const int r = waitpid(_childPID, &status, WNOHANG);  // WNOHANG should guarantee that this call will not block
          if (r == _childPID)
          {
-            _childProcessCrashed = WIFSIGNALED(status);
+            _childProcessExitReason = GetExitReasonFromWaitPIDStatus(status);
             return B_NO_ERROR;  // yay, he exited!
          }
          else if (r == -1) break;      // fail on error

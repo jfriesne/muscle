@@ -12,13 +12,17 @@ key:  - new feature
      StrEndsWithIgnoreCase() helper functions.
    - Added a String pseudo-copy-constructor that also takes an argument
      for how much additional preallocated buffer space to allocate.
+   - Added an io_status_t constructor that takes a (const char *) argument.
    o Removed the 4096-char restriction for OutputPrinter::printf().
    o Refactored String::Append*() and String::Prepend*() to be simple
      inline wrappers around String::Insert*(), to reduce code size.
    o Changed the last argument of WithAppend() and WithPrepend() to
      specify a character-count instead of a string-repetition-count.
+   o Replaced ChildProcessDataIO::DidChildProcessCrash() with the
+     more-informative method GetChildProcessExitReason().
    * OutputPrinter::printf() and friends now handle calls with more
      than one line of text in them correctly.
+   * Fixed compiler warning for muscleStrcpy() and muscleStrncpy().
 
 9.60 - Released 1/19/2025
    - Added a PreallocatedItemSlotsCount class to MuscleSupport.h

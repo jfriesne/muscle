@@ -661,6 +661,12 @@ enum {
              */
            MUSCLE_CONSTEXPR io_status_t(int32 byteCount) : _status((byteCount<0)?B_IO_ERROR:B_NO_ERROR), _byteCount(byteCount) {/* empty */}
 
+           /** Explicit Constructor for an io_status_t representing an error.
+             * @param errorString a string describing the error condition, or NULL for no error condition
+             * @note with this constructor, our byte-count field will be set to 0 if (errorString) was NULL, or -1 otherwise.
+             */
+           MUSCLE_CONSTEXPR io_status_t(const char * errorString) : _status(errorString), _byteCount(errorString?-1:0) {/* empty */}
+
            /** Copy constructor
              * @param rhs the io_status_t to make this object a copy of
              */
@@ -1218,7 +1224,7 @@ template<size_t size> inline char * muscleStrcpy(char (&dst)[size], const char *
 # pragma warning( push )
 # pragma warning( disable: 4996 )
 #endif
-   char * ret = strncpy(dst, src, size);
+   char * ret = (size>0) ? strncpy(dst, src, size) : dst;  // conditional to avoid compiler warnings
 #ifdef _MSC_VER
 # pragma warning( pop )
 #endif
@@ -1238,7 +1244,7 @@ static inline char * muscleStrncpy(char * dst, const char * src, size_t dstLen)
 # pragma warning( push )
 # pragma warning( disable: 4996 )
 #endif
-   char * ret = strncpy(dst, src, dstLen);
+   char * ret = (dstLen>0) ? strncpy(dst, src, dstLen) : dst;  // conditional to avoid compiler warnings
 #ifdef _MSC_VER
 # pragma warning( pop )
 #endif
