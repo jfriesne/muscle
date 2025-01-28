@@ -85,7 +85,7 @@ public:
          (void) cpio->WaitForChildProcessToExit(SecondsToMicros(1));  // just so we can accurately report whether it crashed or not
 
          String verb;
-         const io_status_t r = cpdio->GetChildProcessExitReason();
+         const io_status_t r = cpio->GetChildProcessExitReason();
          if (r.IsError()) verb = String("crashed (%1)").Arg(r());
 
          const int32 exitCode = r.GetByteCount();
