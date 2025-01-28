@@ -53,7 +53,7 @@ ChildProcessDataIO :: ChildProcessDataIO(bool blocking)
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    , _readFromStdout(INVALID_HANDLE_VALUE), _writeToStdin(INVALID_HANDLE_VALUE), _ioThread(INVALID_HANDLE_VALUE), _wakeupSignal(INVALID_HANDLE_VALUE), _childProcess(INVALID_HANDLE_VALUE), _childThread(INVALID_HANDLE_VALUE)
 #else
-   , _childPID(-1)
+   , _childPID((muscle_pid_t)-1)
 #endif
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
    , _authRef(NULL)
@@ -299,7 +299,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
    if (_dialogPrompt.HasChars()) return LaunchPrivilegedChildProcess(argv);
 #endif
 
-   pid_t pid = (pid_t) -1;
+   muscle_pid_t pid = (muscle_pid_t) -1;
    if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY))
    {
 # ifdef MUSCLE_AVOID_FORKPTY
@@ -616,7 +616,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
    if (maxWaitTimeMicros == MUSCLE_TIME_NEVER)
    {
       int status = 0;
-      const int pid = waitpid(_childPID, &status, 0);
+      const muscle_pid_t pid = waitpid(_childPID, &status, 0);
       if (pid == _childPID)
       {
          _childProcessExitReason = GetExitReasonFromWaitPIDStatus(status);
@@ -634,7 +634,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
       while(1)
       {
          int status = 0;
-         const int r = waitpid(_childPID, &status, WNOHANG);  // WNOHANG should guarantee that this call will not block
+         const muscle_pid_t r = waitpid(_childPID, &status, WNOHANG);  // WNOHANG should guarantee that this call will not block
          if (r == _childPID)
          {
             _childProcessExitReason = GetExitReasonFromWaitPIDStatus(status);

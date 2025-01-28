@@ -711,7 +711,7 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, co
    // 1. fork() so the parent can exit, this returns control to the command line or shell invoking
    //    your program. This step is required so that the new process is guaranteed not to be a process
    //    group leader. The next step, setsid(), fails if you're a process group leader.
-   pid_t pid = fork();
+   muscle_pid_t pid = fork();
    if (pid < 0) return B_ERRNO;
    if (pid > 0)
    {

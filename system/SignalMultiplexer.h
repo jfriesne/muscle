@@ -3,11 +3,58 @@
 #ifndef MuscleSignalMultiplexer_h
 #define MuscleSignalMultiplexer_h
 
+#include "support/PseudoFlattenable.h"
 #include "system/Mutex.h"
 #include "system/AtomicCounter.h"
 #include "util/Queue.h"
 
 namespace muscle {
+
+enum {
+   SIGNAL_EVENT_INFO_TYPE = 1397049695, /**< Typecode for the SignalEventInfo class: 'SEI_' */
+};
+
+/** Class containing info related to a received-signal event */
+class MUSCLE_NODISCARD SignalEventInfo MUSCLE_FINAL_CLASS : public PseudoFlattenable<SignalEventInfo>
+{
+public:
+   /** Default constructor.  Sets our signal number to -1 and our fromProcessID to 0. */
+   SignalEventInfo() : _sigNum(-1), _fromProcessID(0) {/* empty */}
+
+   /** Explicit constructor.
+     * @param sigNum the signal number of the signal
+     * @param fromProcessID the process ID that sent us the signal, or 0 if that information isn't known.
+     */
+   SignalEventInfo(int sigNum, muscle_pid_t fromProcessID) : _sigNum(sigNum), _fromProcessID(fromProcessID) {/* empty */}
+
+   /** Returns the signal-number associated with this event (e.g. SIGBUS or SIGINT or etc) */
+   int GetSignalNumber() const {return _sigNum;}
+
+   /** Returns the process ID of the process that sent us the signal, or 0 if that informatin is unknown. */
+   muscle_pid_t GetFromProcessID() const {return _fromProcessID;}
+
+   /** Part of the PseudoFlattenable pseudo-interface:  Returns true */
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR bool IsFixedSize() {return true;}
+
+   /** Part of the PseudoFlattenable pseudo-interface:  Returns SIGNAL_EVENT_INFO_TYPE */
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR uint32 TypeCode() {return SIGNAL_EVENT_INFO_TYPE;}
+
+   /** Part of the PseudoFlattenable pseudo-interface */
+   MUSCLE_NODISCARD static MUSCLE_CONSTEXPR uint32 FlattenedSize() {return sizeof(int32) + sizeof(uint64);}
+
+   /** @copydoc DoxyTemplate::CalculateChecksum() const */
+   MUSCLE_NODISCARD uint32 CalculateChecksum() const {return CalculatePODChecksums((int32)_sigNum, (uint64)_fromProcessID);}
+
+   /** @copydoc DoxyTemplate::Flatten(DataFlattener flat) const */
+   void Flatten(DataFlattener flat) const;
+
+   /** @copydoc DoxyTemplate::Unflatten(DataUnflattener &) */
+   status_t Unflatten(DataUnflattener & unflat);
+
+private:
+   int _sigNum;
+   muscle_pid_t _fromProcessID;
+};
 
 /** This class is an interface that indicates an object that can receive signals from the SignalMultiplexer object. */
 class ISignalHandler
@@ -34,9 +81,9 @@ public:
      * and therefore most function calls are unsafe to call from here.
      * Typically you would want to have this function simply set a flag
      * or write a byte onto a socket, and do all the actual work somewhere else.
-     * @param whichSignal ID of the signal we just received (meaning is OS-specific)
+     * @param sei information the signal that was received
      */
-   virtual void SignalHandlerFunc(int whichSignal) = 0;
+   virtual void SignalHandlerFunc(const SignalEventInfo & sei) = 0;
 };
 
 /** This class is a singleton class that handles subscribing to POSIX signals (or under Windows, Console signals).
@@ -60,9 +107,9 @@ public:
 
    /** Calls all of our attached signal handlers' SignalHandlerFunc() method with the specified signal number.
      * This method is exposed as an implementation detail;  generally you would not need or want to call it directly.
-     * @param sigNum A signal number (SIGINT/SIGHUP/etc)
+     * @param sei information about the signal event that was received.
      */
-   void CallSignalHandlers(int sigNum);
+   void CallSignalHandlers(const SignalEventInfo & sei);
 
    /** Returns a reference to the singleton SignalMultiplexer object. */
    MUSCLE_NODISCARD static SignalMultiplexer & GetSignalMultiplexer() {return _signalMultiplexer;}

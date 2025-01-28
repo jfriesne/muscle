@@ -33,13 +33,13 @@ public:
    /** Destructor */
    virtual ~QSignalHandler();
 
-   virtual void SignalHandlerFunc(int sigNum);
+   virtual void SignalHandlerFunc(const SignalEventInfo & sei);
 
 signals:
    /** Emitted when a signal is received.
-     * @param sigNum The signal number received (eg SIGHUP, SIGINT, etc)
+     * @param sei info about what signal was received, and from whom.
      */
-   void SignalReceived(int sigNum);
+   void SignalReceived(const SignalEventInfo & sei);
 
 private slots:
    void SocketDataReady();
@@ -48,6 +48,13 @@ private:
    ConstSocketRef _mainThreadSocket;
    ConstSocketRef _handlerFuncSocket;
    QSocketNotifier * _socketNotifier;
+
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   uint8 _recvBuf[sizeof(int32)+sizeof(uint64)];  // ugly hack because C++03 doesn't know about constexpr methods
+#else
+   uint8 _recvBuf[SignalEventInfo::FlattenedSize()];
+#endif
+   uint32 _numValidRecvBytes;
 
    DECLARE_COUNTED_OBJECT(QSignalHandler);
 };

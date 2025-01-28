@@ -9,6 +9,19 @@
 
 namespace muscle {
 
+void SignalEventInfo :: Flatten(DataFlattener flat) const
+{
+   flat.WriteInt32((int32) _sigNum);
+   flat.WriteInt64((int64) _fromProcessID);
+}
+
+status_t SignalEventInfo :: Unflatten(DataUnflattener & unflat)
+{
+   _sigNum        = (int) unflat.ReadInt32();
+   _fromProcessID = (muscle_pid_t) unflat.ReadInt64();
+   return unflat.GetStatus();
+}
+
 status_t ISignalHandler :: GetNthSignalNumber(uint32 n, int & signalNumber) const
 {
 #if defined(WIN32)
@@ -34,9 +47,9 @@ status_t ISignalHandler :: GetNthSignalNumber(uint32 n, int & signalNumber) cons
 }
 
 #if defined(WIN32)
-static BOOL Win32SignalHandlerCallbackFunc(DWORD sigNum) {SignalMultiplexer::GetSignalMultiplexer().CallSignalHandlers(sigNum); return true;}
+static BOOL Win32SignalHandlerCallbackFunc(DWORD sigNum) {SignalMultiplexer::GetSignalMultiplexer().CallSignalHandlers(SignalEventInfo(sigNum, (muscle_pid_t)0)); return true;}
 #else
-static void POSIXSignalHandlerCallbackFunc(int sigNum)   {SignalMultiplexer::GetSignalMultiplexer().CallSignalHandlers(sigNum);}
+static void POSIXSignalHandlerCallbackFunc(int sigNum, siginfo_t * info, void *) {SignalMultiplexer::GetSignalMultiplexer().CallSignalHandlers(SignalEventInfo(sigNum, info->si_pid));}
 #endif
 
 status_t SignalMultiplexer :: AddHandler(ISignalHandler * s)
@@ -59,14 +72,16 @@ void SignalMultiplexer :: RemoveHandler(ISignalHandler * s)
    if (_handlers.RemoveFirstInstanceOf(s).IsOK()) (void) UpdateSignalSets();
 }
 
-void SignalMultiplexer :: CallSignalHandlers(int sigNum)
+void SignalMultiplexer :: CallSignalHandlers(const SignalEventInfo & sei)
 {
+   const int sigNum = sei.GetSignalNumber();
+
    (void) _totalSignalCounts.AtomicIncrement();
    if (muscleInRange(sigNum, 0, (int)(ARRAYITEMS(_signalCounts)-1))) (void) _signalCounts[sigNum].AtomicIncrement();
 
    // Can't lock the Mutex here because we are being called within a signal context!
    // So we just have to hope that _handlers won't change while we do this
-   for (uint32 i=0; i<_handlers.GetNumItems(); i++) _handlers[i]->SignalHandlerFunc(sigNum);
+   for (uint32 i=0; i<_handlers.GetNumItems(); i++) _handlers[i]->SignalHandlerFunc(sei);
 }
 
 status_t SignalMultiplexer :: UpdateSignalSets()
@@ -102,10 +117,11 @@ status_t SignalMultiplexer :: RegisterSignals()
    if (_currentSignalSet.IsEmpty()) return B_BAD_OBJECT;
    return SetConsoleCtrlHandler((PHANDLER_ROUTINE) Win32SignalHandlerCallbackFunc, true) ? B_NO_ERROR : B_ERRNO;
 #elif defined(MUSCLE_USE_POSIX_SIGNALS)
-   struct sigaction newact;
+   struct sigaction newact; memset(&newact, 0, sizeof(newact));
+   newact.sa_flags     = SA_SIGINFO;
+   newact.sa_sigaction = POSIXSignalHandlerCallbackFunc;  /*set the new handler*/
    sigemptyset(&newact.sa_mask);
-   newact.sa_flags   = 0;
-   newact.sa_handler = POSIXSignalHandlerCallbackFunc;  /*set the new handler*/
+
    for (uint32 i=0; i<_currentSignalSet.GetNumItems(); i++)
    {
       const int sigNum = _currentSignalSet[i];

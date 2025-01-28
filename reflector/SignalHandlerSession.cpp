@@ -6,6 +6,13 @@
 
 namespace muscle {
 
+SignalHandlerSession :: SignalHandlerSession() : _numValidRecvBytes(0)
+{
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   assert(sizeof(_recvBuf)==SignalEventInfo::FlattenedSize(), "C++03 compatibility hack is using the wrong buffer size");
+#endif
+}
+
 ConstSocketRef SignalHandlerSession :: CreateDefaultSocket()
 {
    ConstSocketRef sock;
@@ -18,12 +25,18 @@ io_status_t SignalHandlerSession :: DoInput(AbstractGatewayMessageReceiver &, ui
    io_status_t totalByteCount;
    while(1)
    {
-      char buf[64];
-      const io_status_t bytesReceived = ReceiveData(GetSessionReadSelectSocket(), buf, sizeof(buf), false);
+      const io_status_t bytesReceived = ReceiveData(GetSessionReadSelectSocket(), _recvBuf+_numValidRecvBytes, sizeof(_recvBuf)-_numValidRecvBytes, false);
       MTALLY_BYTES_OR_RETURN_ON_ERROR_OR_BREAK(totalByteCount, bytesReceived);
 
-      const uint32 br = bytesReceived.GetByteCount();
-      for (uint32 i=0; i<br; i++) SignalReceived(buf[i]);
+      _numValidRecvBytes += bytesReceived.GetByteCount();
+      if (_numValidRecvBytes >= sizeof(_recvBuf))
+      {
+         _numValidRecvBytes = 0;
+
+         SignalEventInfo sei;
+         DataUnflattener unflat(_recvBuf, sizeof(_recvBuf));
+         if (sei.Unflatten(unflat).IsOK()) SignalReceived(sei);
+      }
    }
    return totalByteCount;
 }
@@ -40,31 +53,38 @@ void SignalHandlerSession :: AboutToDetachFromServer()
    AbstractReflectSession::AboutToDetachFromServer();
 }
 
-void SignalHandlerSession :: SignalReceived(int whichSignal)
+void SignalHandlerSession :: SignalReceived(const SignalEventInfo & sei)
 {
-   LogTime(MUSCLE_LOG_CRITICALERROR, "Signal %i received, ending event loop!\n", whichSignal);
+   LogTime(MUSCLE_LOG_CRITICALERROR, "Signal #%i received from process #" UINT64_FORMAT_SPEC ", ending event loop!\n", sei.GetSignalNumber(), (uint64) sei.GetFromProcessID());
    EndServer();
 }
 
 static bool _wasSignalCaught = false;
 bool WasSignalCaught() {return _wasSignalCaught;}
 
-void SignalHandlerSession :: SignalHandlerFunc(int sigNum)
+void SignalHandlerSession :: SignalHandlerFunc(const SignalEventInfo & sei)
 {
    // Note that this method is called within the context of the POSIX/Win32 signal handler and thus we have to
-   // be very careful about what we do here!   Sending a byte on a socket should be okay though.  (there is the
-   // worry that the SignalHandlerSession object might have been deleted by the time we get here, but I don't
+   // be very careful about what we do here!   Sending a few bytes on a socket should be okay though.  (there is
+   // the worry that the SignalHandlerSession object might have been deleted by the time we get here, but I don't
    // think there is much I can do about that)
    if (IsAttachedToServer())
    {
       int nextSigNum;
       for (uint32 i=0; GetNthSignalNumber(i, nextSigNum).IsOK(); i++)
       {
-         if (sigNum == nextSigNum)
+         if (sei.GetSignalNumber() == nextSigNum)
          {
             _wasSignalCaught = true;
-            const char c = (char) sigNum;
-            (void) SendData(_handlerSocket, &c, 1, false);  // send the signal value to the main thread so it can handle it later
+
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+            uint8 buf[sizeof(int32)+sizeof(uint64)];  // ugly hack because C++03 doesn't know about constexpr methods
+            assert(sizeof(buf)==SignalEventInfo::FlattenedSize(), "C++03 compatibility hack is using the wrong buffer size");
+#else
+            uint8 buf[SignalEventInfo::FlattenedSize()];
+#endif
+            sei.Flatten(DataFlattener(buf, sizeof(buf)));
+            (void) SendData(_handlerSocket, buf, sizeof(buf), false);  // send the signal value to the main thread so it can handle it later
             break;
          }
       }

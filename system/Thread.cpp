@@ -604,7 +604,7 @@ pthread_t Thread :: GetPthreadID(bool calledFromInternalThread) const
 # endif
 }
 
-pid_t Thread :: GetThreadPIDT(bool calledFromInternalThread) const
+muscle_pid_t Thread :: GetThreadPIDT(bool calledFromInternalThread) const
 {
    if (calledFromInternalThread) return 0;  // "A zero value of who denotes the current process"
 
@@ -616,9 +616,9 @@ pid_t Thread :: GetThreadPIDT(bool calledFromInternalThread) const
 #  endif
 # elif defined(__APPLE__)
    uint64_t tid;
-   return (pthread_threadid_np(GetPthreadID(calledFromInternalThread), &tid) == 0) ? ((pid_t)tid) : ((pid_t)-1);
+   return (pthread_threadid_np(GetPthreadID(calledFromInternalThread), &tid) == 0) ? ((muscle_pid_t)tid) : ((muscle_pid_t)-1);
 # else
-   return (pid_t) -1;  // just to cause an error, since 0 has a valid value
+   return (muscle_pid_t) -1;  // just to cause an error, since 0 has a valid value
 #endif
 }
 

@@ -158,11 +158,14 @@ public:
    void SetChildProcessShutdownBehavior(bool okayToKillChild, int sendSignalNumber = -1, uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER);
 
    /** Returns the process ID of the child process. */
+   MUSCLE_NODISCARD muscle_pid_t GetChildProcessID() const
+   {
 #if defined(WIN32) || defined(CYGWIN)
-   MUSCLE_NODISCARD uint32 GetChildProcessID() const {return (uint32)GetProcessId(_childProcess);}
+      return GetProcessId(_childProcess);
 #else
-   MUSCLE_NODISCARD pid_t GetChildProcessID() const {return _childPID;}
+      return _childPID;
 #endif
+   }
 
    /** Tries to forcibly kill the child process immediately.
      * @returns B_NO_ERROR on success, or an error code on failure.
@@ -369,7 +372,7 @@ private:
    AtomicCounter _requestThreadExit;
 #else
    ConstSocketRef _handle;
-   pid_t _childPID;
+   muscle_pid_t _childPID;
 #endif
 
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)

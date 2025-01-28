@@ -605,8 +605,8 @@ private:
 
 private:
 #ifdef MUSCLE_USE_PTHREADS
-   pthread_t GetPthreadID( bool calledFromInternalThread) const;
-   pid_t     GetThreadPIDT(bool calledFromInternalThread) const;
+   pthread_t    GetPthreadID( bool calledFromInternalThread) const;
+   muscle_pid_t GetThreadPIDT(bool calledFromInternalThread) const;
 #endif
 #if defined(WIN32)
    HANDLE GetNativeThreadHandle(bool calledFromInternalThread);  // deliberately not tagged const
@@ -632,9 +632,9 @@ private:
 
 #if defined(__linux__)
 # if defined(MUSCLE_AVOID_CPLUSPLUS11)
-   volatile pid_t _threadTid;
+   volatile muscle_pid_t _threadTid;
 # else
-   std::atomic<pid_t> _threadTid;  // there must be a better way to handle this
+   std::atomic<muscle_pid_t> _threadTid;  // there must be a better way to handle this
 # endif
 #endif
 

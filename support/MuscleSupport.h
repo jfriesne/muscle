@@ -1678,6 +1678,12 @@ typedef uintptr_t uintptr; /**< uintptr is an unsigned integer type that is guar
 typedef ptrdiff_t ptrdiff; /**< ptrdiff is a signed integer type that is guaranteed to be able to hold the difference between two pointer values for the native CPU, without any data loss */
 #endif
 
+#if defined(WIN32) || defined(CYGWIN)
+typedef DWORD muscle_pid_t; /**< type to use for representing a process ID on the host OS */
+#else
+typedef pid_t muscle_pid_t; /**< type to use for representing a process ID on the host OS */
+#endif
+
 #ifdef __cplusplus
 # include "syslog/SysLog.h"  /* for LogTime() */
 #endif  /* __cplusplus */

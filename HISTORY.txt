@@ -13,6 +13,10 @@ key:  - new feature
    - Added a String pseudo-copy-constructor that also takes an argument
      for how much additional preallocated buffer space to allocate.
    - Added an io_status_t constructor that takes a (const char *) argument.
+   - Added a muscle_pid_t typedef to MuscleSupport.h.
+   o Changed the argument ISignalHandler::SignalReceived() and
+     SignalMultiplexer::CallSignalHandlers() from (int) to
+     (const SignalEventInfo &).
    o Removed the 4096-char restriction for OutputPrinter::printf().
    o Refactored String::Append*() and String::Prepend*() to be simple
      inline wrappers around String::Insert*(), to reduce code size.

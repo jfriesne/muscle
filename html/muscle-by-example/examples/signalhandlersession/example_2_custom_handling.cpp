@@ -25,11 +25,11 @@ public:
    MySignalHandlerSession() {/* empty */}
 
 protected:
-   virtual void SignalReceived(int whichSignal)
+   virtual void SignalReceived(const SignalEventInfo & sei)
    {
       // Note that this code runs within the main thread (not within the signal handler!)
       // so you can do anything you want to here without fear of trouble
-      LogTime(MUSCLE_LOG_INFO, "MySignalHandlerSession::SignalReceived(%i) was called!\n", whichSignal);
+      LogTime(MUSCLE_LOG_INFO, "MySignalHandlerSession::SignalReceived(%i) was called!  Signal was sent by process #" UINT64_FORMAT_SPEC "\n", sei.GetSignalNumber(), (uint64) sei.GetFromProcessID());
    }
 };
 

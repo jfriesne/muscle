@@ -16,7 +16,7 @@ class SignalHandlerSession : public AbstractReflectSession, public ISignalHandle
 {
 public:
    /** Default constructor. */
-   SignalHandlerSession() {/* empty */}
+   SignalHandlerSession();
 
    /** Destructor. */
    virtual ~SignalHandlerSession() {/* empty */}
@@ -28,22 +28,27 @@ public:
    virtual void MessageReceivedFromGateway(const MessageRef &, void *) {/* empty */}
    virtual status_t AttachedToServer();
    virtual void AboutToDetachFromServer();
-   virtual void SignalHandlerFunc(int whichSignal);
+   virtual void SignalHandlerFunc(const SignalEventInfo & sei);
 
 protected:
    /** This method is called in the main thread whenever a signal is received.
-     * @param whichSignal the number of the signal received, as provided by the OS.
-     *                    On POSIX OS's this might be SIGINT or SIGHUP; under Windows
-     *                    it would be something like CTRL_CLOSE_EVENT or CTRL_LOGOFF_EVENT.
+     * @param sei information about what signal was receive, and from whom.
      * Default behavior is to always just call EndServer() so that the server process
      * will exit cleanly as soon as possible.
      */
-   virtual void SignalReceived(int whichSignal);
+   virtual void SignalReceived(const SignalEventInfo & sei);
 
 private:
    ConstSocketRef _handlerSocket;
 
    DECLARE_COUNTED_OBJECT(SignalHandlerSession);
+
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   uint8 _recvBuf[sizeof(int32)+sizeof(uint64)];  // ugly hack because C++03 doesn't know about constexpr methods
+#else
+   uint8 _recvBuf[SignalEventInfo::FlattenedSize()];
+#endif
+   uint32 _numValidRecvBytes;
 };
 DECLARE_REFTYPES(SignalHandlerSession);
 
