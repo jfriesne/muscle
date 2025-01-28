@@ -578,7 +578,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
          // program could (conceivably) have an exit code that doesn't
          // meet this criterion.  But in general this will work.  --jaf
          // TODO:  return different crashed-reason strings based on the precise exitCode value?
-         _childProcessExitReason = ((exitCode & (0xC0000000)) != 0) ? io_status_t("crashed") : io_status_t((int32)exitCode);
+         _childProcessExitReason = ((exitCode & (0xC0000000)) != 0) ? io_status_t("exited abnormally") : io_status_t((int32)exitCode);
       }
       return B_NO_ERROR;
    }

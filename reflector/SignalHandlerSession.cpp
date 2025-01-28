@@ -63,7 +63,7 @@ void SignalHandlerSession :: SignalHandlerFunc(int sigNum)
          if (sigNum == nextSigNum)
          {
             _wasSignalCaught = true;
-            char c = (char) sigNum;
+            const char c = (char) sigNum;
             (void) SendData(_handlerSocket, &c, 1, false);  // send the signal value to the main thread so it can handle it later
             break;
          }
