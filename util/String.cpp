@@ -615,7 +615,7 @@ String String :: WithInsertedWordAux(uint32 insertAtIdx, const char * str, uint3
    if ((str == NULL)||(numCharsToInsert == 0)) return *this;  // nothing to do
    if (sep == NULL) sep = "";
 
-   const uint32 sepLen = strlen(sep);
+   const uint32 sepLen = (uint32) strlen(sep);
    if (sepLen == 0)
    {
       // With no separators, this call is equivalent to a regular WithInsert() call

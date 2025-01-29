@@ -1,6 +1,12 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#if defined(WIN32) || defined(__CYGWIN__)
+# include <process.h>  // for _beginthreadex()
+# include <ntstatus.h> // for STATUS_*
+#endif
 #include <limits.h>   // for PATH_MAX
+
+#define WIN32_NO_STATUS  // avoid "macro redefined" warnings... mon dieu, Win32 header files are a mess
 #include "dataio/ChildProcessDataIO.h"
 #include "util/MiscUtilityFunctions.h"     // for ExitWithoutCleanup()
 #include "util/NetworkUtilityFunctions.h"  // SendData() and ReceiveData()
@@ -11,7 +17,7 @@
 #endif
 
 #if defined(WIN32) || defined(__CYGWIN__)
-# include <process.h>     // for _beginthreadex()
+# include "system/ThreadLocalStorage.h"  // just so we can see if MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD is defined
 # if defined(_UNICODE) || defined(UNICODE)
 #  undef GetEnvironmentStrings   // here because Windows headers are FUBAR ( https://devblogs.microsoft.com/oldnewthing/20130117-00/?p=5533 )
 # endif
@@ -550,7 +556,65 @@ void ChildProcessDataIO :: DoGracefulChildShutdown()
    if ((WaitForChildProcessToExit(_maxChildWaitTime).IsError())&&(_killChildOkay)) (void) KillChildProcess();
 }
 
-#ifndef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
+#ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
+static io_status_t GetExitReasonFromWin32ProcessExitCode(DWORD exitCode)
+{
+   if (exitCode >= 0) return io_status_t((int32)exitCode);
+   else
+   {
+      // if it's one of the classic NTSTATUS codes, we'll return a human-readable string as our error code
+      switch(exitCode)
+      {
+         case STATUS_UNSUCCESSFUL:             return "STATUS_UNSUCCESSFUL";
+         case STATUS_NOT_IMPLEMENTED:          return "STATUS_NOT_IMPLEMENTED";
+         case STATUS_INVALID_INFO_CLASS:       return "STATUS_INVALID_INFO_CLASS";
+         case STATUS_INFO_LENGTH_MISMATCH:     return "STATUS_INFO_LENGTH_MISMATCH";
+         case STATUS_ACCESS_VIOLATION:         return "STATUS_ACCESS_VIOLATION";
+         case STATUS_IN_PAGE_ERROR:            return "STATUS_IN_PAGE_ERROR";
+         case STATUS_PAGEFILE_QUOTA:           return "STATUS_PAGEFILE_QUOTA";
+         case STATUS_INVALID_HANDLE:           return "STATUS_INVALID_HANDLE";
+         case STATUS_BAD_INITIAL_STACK:        return "STATUS_BAD_INITIAL_STACK";
+         case STATUS_BAD_INITIAL_PC:           return "STATUS_BAD_INITIAL_PC";
+         case STATUS_INVALID_CID:              return "STATUS_INVALID_CID";
+         case STATUS_INVALID_PARAMETER:        return "STATUS_INVALID_PARAMETER";
+         case STATUS_NO_MEMORY:                return "STATUS_NO_MEMORY";
+         case STATUS_ILLEGAL_INSTRUCTION:      return "STATUS_ILLEGAL_INSTRUCTION";
+         case STATUS_ACCESS_DENIED:            return "STATUS_ACCESS_DENIED";
+         case STATUS_NONCONTINUABLE_EXCEPTION: return "STATUS_NONCONTINUABLE_EXCEPTION";
+         case STATUS_BAD_STACK:                return "STATUS_BAD_STACK";
+         case STATUS_DISK_CORRUPT_ERROR:       return "STATUS_DISK_CORRUPT_ERROR";
+         case STATUS_SHARING_VIOLATION:        return "STATUS_SHARING_VIOLATION";
+         case STATUS_QUOTA_EXCEEDED:           return "STATUS_QUOTA_EXCEEDED";
+         case STATUS_INVALID_PAGE_PROTECTION:  return "STATUS_INVALID_PAGE_PROTECTION";
+         case STATUS_ARRAY_BOUNDS_EXCEEDED:    return "STATUS_ARRAY_BOUNDS_EXCEEDED";
+         case STATUS_FLOAT_DENORMAL_OPERAND:   return "STATUS_FLOAT_DENORMAL_OPERAND";
+         case STATUS_FLOAT_DIVIDE_BY_ZERO:     return "STATUS_FLOAT_DIVIDE_BY_ZERO";
+         case STATUS_FLOAT_INEXACT_RESULT:     return "STATUS_FLOAT_INEXACT_RESULT";
+         case STATUS_FLOAT_INVALID_OPERATION:  return "STATUS_FLOAT_INVALID_OPERATION";
+         case STATUS_FLOAT_OVERFLOW:           return "STATUS_FLOAT_OVERFLOW";
+         case STATUS_FLOAT_STACK_CHECK:        return "STATUS_FLOAT_STACK_CHECK";
+         case STATUS_FLOAT_UNDERFLOW:          return "STATUS_FLOAT_UNDERFLOW";
+         case STATUS_INTEGER_DIVIDE_BY_ZERO:   return "STATUS_INTEGER_DIVIDE_BY_ZERO";
+         case STATUS_INTEGER_OVERFLOW:         return "STATUS_INTEGER_OVERFLOW";
+         case STATUS_PRIVILEGED_INSTRUCTION:   return "STATUS_PRIVILEGED_INSTRUCTION";
+         case STATUS_INSUFFICIENT_RESOURCES:   return "STATUS_INSUFFICIENT_RESOURCES";
+         case STATUS_INTERNAL_ERROR:           return "STATUS_INTERNAL_ERROR";
+
+         default:
+         {
+#if defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD)
+            static char buf[64]; // This is a bit racy since it could get overwritten by another thread before use
+#else
+            static thread_local char buf[64];  // per-thread unique static buffer
+#endif
+            muscleSprintf(buf, "0x" XINT32_FORMAT_SPEC, (int32) exitCode);
+            return io_status_t(exitCode);
+         }
+         break;
+      }
+   }
+}
+#else
 static io_status_t GetExitReasonFromWaitPIDStatus(int status)
 {
    if (WIFSIGNALED(status)) return io_status_t(strsignal(WTERMSIG(status)));
@@ -577,8 +641,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
          // this criterion as part of its normal exit(), and a crashed
          // program could (conceivably) have an exit code that doesn't
          // meet this criterion.  But in general this will work.  --jaf
-         // TODO:  return different crashed-reason strings based on the precise exitCode value?
-         _childProcessExitReason = ((exitCode & (0xC0000000)) != 0) ? io_status_t("exited abnormally") : io_status_t((int32)exitCode);
+         _childProcessExitReason = GetExitReasonFromWin32ProcessExitCode(exitCode);
       }
       return B_NO_ERROR;
    }

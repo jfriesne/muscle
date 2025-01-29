@@ -38,7 +38,7 @@ int main(int argc, char ** argv)
 
    PrintExampleDescription(stdout);
 
-   srand(time(NULL));
+   srand((unsigned) time(NULL));
 
    MyClassRef ref = MyFactoryFunction();
    if (ref())

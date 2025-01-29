@@ -552,7 +552,7 @@ public:
    /** Returns true iff this string ends with (suffix)
      * @param suffix a String to check for at the end of this String.  NULL pointers are treated as a synonym for "".
      */
-   MUSCLE_NODISCARD bool EndsWith(const char * suffix) const {return StrEndsWith(Cstr(), Length(), suffix, suffix?strlen(suffix):0);}
+   MUSCLE_NODISCARD bool EndsWith(const char * suffix) const {return StrEndsWith(Cstr(), Length(), suffix, suffix?(uint32)strlen(suffix):0);}
 
    /** Returns true iff this string is equal to (string), as determined by strcmp().
      * @param str a String to compare this String with.
@@ -719,7 +719,7 @@ public:
    /** Returns true iff this string starts with (prefix)
      * @param prefix Pointer to a C string to compare to.  NULL pointers are considered a synonym for "".
      */
-   MUSCLE_NODISCARD bool StartsWith(const char * prefix) const {return StrStartsWith(Cstr(), Length(), prefix, prefix?strlen(prefix):0);}
+   MUSCLE_NODISCARD bool StartsWith(const char * prefix) const {return StrStartsWith(Cstr(), Length(), prefix, prefix?(uint32)strlen(prefix):0);}
 
    /** Returns a String that consists of some or all the chars in (str), followed by this String.
      * @param str The string to prepend
@@ -858,7 +858,7 @@ public:
      * @param sep Pointer to the string used to separate words.  Defaults to " "
      * @returns the resulting String
      */
-   String WithInsertedWord(uint32 insertAtIdx, const char * str, const char * sep = " ") const {return WithInsertedWordAux(insertAtIdx, str, str?strlen(str):0, sep);}
+   String WithInsertedWord(uint32 insertAtIdx, const char * str, const char * sep = " ") const {return WithInsertedWordAux(insertAtIdx, str, str?(uint32)strlen(str):0, sep);}
 
    /** Inserts up to (maxCharsToAppend) chars from the given C string into the given offset
      * inside this String.
@@ -1009,7 +1009,7 @@ public:
    /** Like EndsWith(), but case insensitive.
      * @param s a suffix to check for at the end of this String.
      */
-   MUSCLE_NODISCARD bool EndsWithIgnoreCase(const char * s) const {return StrEndsWithIgnoreCase(Cstr(), Length(), s, s?strlen(s):0);}
+   MUSCLE_NODISCARD bool EndsWithIgnoreCase(const char * s) const {return StrEndsWithIgnoreCase(Cstr(), Length(), s, s?(uint32)strlen(s):0);}
 
    /** Like Equals(), but case insensitive.
      * @param s a string to check for (case-insensitive) equality with this String
@@ -1093,7 +1093,7 @@ public:
    /** Like StartsWith(), but case insensitive.
      * @param s The prefix to see whether this string starts with or not
      */
-   MUSCLE_NODISCARD bool StartsWithIgnoreCase(const char * s) const {return StrStartsWithIgnoreCase(Cstr(), Length(), s, s?strlen(s):0);}
+   MUSCLE_NODISCARD bool StartsWithIgnoreCase(const char * s) const {return StrStartsWithIgnoreCase(Cstr(), Length(), s, s?(uint32)strlen(s):0);}
 
    /** @copydoc DoxyTemplate::HashCode() const */
    MUSCLE_NODISCARD inline uint32 HashCode() const {return CalculateHashCode(Cstr(), Length());}

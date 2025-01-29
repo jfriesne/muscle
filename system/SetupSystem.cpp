@@ -2801,7 +2801,7 @@ void OutputPrinter :: putsAux(const char * s, uint32 numChars) const
 
          if (pc > s)  // semi-paranoia
          {
-            putsAuxAux(s, pc-s);  // Call putsAuxAux() once for each line of text
+            putsAuxAux(s, (uint32)(pc-s));  // Call putsAuxAux() once for each line of text
             s = pc;
          }
          else break;  // paranoia:  avoid potential infinite loop
