@@ -15,6 +15,8 @@ key:  - new feature
    - Added an io_status_t constructor that takes a (const char *) argument.
    - Added a muscle_pid_t typedef to MuscleSupport.h.
    - Added MUSCLE_THREAD_LOCAL_OR_STATIC macro to ThreadLocalStorage.h.
+   - The string returned by io_status_t::GetDescription() now contains
+     the number of bytes written by the operation, on success.
    o Changed the argument ISignalHandler::SignalReceived() and
      SignalMultiplexer::CallSignalHandlers() from (int) to
      (const SignalEventInfo &).
@@ -24,7 +26,7 @@ key:  - new feature
    o Changed the last argument of WithAppend() and WithPrepend() to
      specify a character-count instead of a string-repetition-count.
    o Replaced ChildProcessDataIO::DidChildProcessCrash() with the
-     more-informative method GetChildProcessExitReason().
+     more-informative method GetChildProcessExitCode().
    * OutputPrinter::printf() and friends now handle calls with more
      than one line of text in them correctly.
    * Fixed compiler warning for muscleStrcpy() and muscleStrncpy().

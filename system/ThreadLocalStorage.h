@@ -3,34 +3,19 @@
 #ifndef MuscleThreadLocalStorage_h
 #define MuscleThreadLocalStorage_h
 
-#include "system/Thread.h"  // to get the #defines that are calculated in Thread.h
+#include "support/MuscleSupport.h"
 
-#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD) && defined(_MSC_VER) && (_MSC_VER < 1900)
-#  define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD  // MSVC2013 and earlier don't support thread_local, sigh
-# endif
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD) && defined(__apple_build_version__) && (__apple_build_version__ < 8000042)
-#  define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD  // XCode before 8.0 doesn't support thread_local, sigh
-# endif
-#elif defined(MUSCLE_USE_PTHREADS)
-  // deliberately empty
-#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS) || defined(MUSCLE_USE_PTHREADS) || defined(MUSCLE_PREFER_WIN32_OVER_QT)
   // deliberately empty
 #elif defined(MUSCLE_QT_HAS_THREADS) && (QT_VERSION >= 0x030200)
-#  if (QT_VERSION >= 0x040000)
-#   include <QThreadStorage>
-#  else
-#   include <qthreadstorage.h>
-#  endif
-#  define MUSCLE_USE_QT_THREADLOCALSTORAGE
+# if (QT_VERSION >= 0x040000)
+#  include <QThreadStorage>
+# else
+#  include <qthreadstorage.h>
+# endif
+# define MUSCLE_USE_QT_THREADLOCALSTORAGE
 #else
 # error "muscle/ThreadLocalStorage.h:  ThreadLocalStorage not implemented for this environment, sorry!"
-#endif
-
-#ifdef MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
-# define MUSCLE_THREAD_LOCAL_OR_STATIC static
-#else
-# define MUSCLE_THREAD_LOCAL_OR_STATIC thread_local
 #endif
 
 namespace muscle {

@@ -105,7 +105,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
    TCHECKPOINT;
 
    Close();  // paranoia
-   _childProcessExitReason = io_status_t();  // we don't care about the exit-status of a previous process anymore!
+   _childProcessExitCode = io_status_t();  // we don't care about the exit-status of a previous process anymore!
 
 #ifdef MUSCLE_AVOID_FORKPTY
    launchFlags.ClearBit(CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY);   // no sense trying to use pseudo-terminals if they were forbidden at compile time
@@ -557,7 +557,7 @@ void ChildProcessDataIO :: DoGracefulChildShutdown()
 }
 
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
-static io_status_t GetExitReasonFromWin32ProcessExitCode(DWORD exitCode)
+static io_status_t GetExitCodeFromWin32ProcessExitCode(DWORD exitCode)
 {
    if (exitCode >= 0) return io_status_t((int32)exitCode);
    else
@@ -611,13 +611,15 @@ static io_status_t GetExitReasonFromWin32ProcessExitCode(DWORD exitCode)
    }
 }
 #else
-static io_status_t GetExitReasonFromWaitPIDStatus(int status)
+static io_status_t GetExitCodeFromWaitPIDStatus(int status)
 {
    if (WIFSIGNALED(status)) return io_status_t(strsignal(WTERMSIG(status)));
    if (WIFSTOPPED(status))  return io_status_t(strsignal(WSTOPSIG(status)));
    if (WCOREDUMP(status))   return io_status_t("core dumped");
    if (WIFEXITED(status))   return io_status_t((int32) WEXITSTATUS(status));
-   return io_status_t();    // I guess?
+
+   const int32 es = (int32) WEXITSTATUS(status);
+   return io_status_t(muscleMax(es, (int32)0));
 }
 #endif
 
@@ -625,7 +627,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
 {
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    if (_childProcess == INVALID_HANDLE_VALUE) return B_NO_ERROR; // a non-existent child process is an exited child process, if you ask me.
-   _childProcessExitReason = io_status_t();                      // reset the exit-reason only when there is an actual child process to wait for
+   _childProcessExitCode = io_status_t();                        // reset the exit-reason only when there is an actual child process to wait for
 
    if (WaitForSingleObject(_childProcess, (maxWaitTimeMicros==MUSCLE_TIME_NEVER)?INFINITE:((DWORD)(maxWaitTimeMicros/1000))) == WAIT_OBJECT_0)
    {
@@ -637,7 +639,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
          // this criterion as part of its normal exit(), and a crashed
          // program could (conceivably) have an exit code that doesn't
          // meet this criterion.  But in general this will work.  --jaf
-         _childProcessExitReason = GetExitReasonFromWin32ProcessExitCode(exitCode);
+         _childProcessExitCode = GetExitCodeFromWin32ProcessExitCode(exitCode);
       }
       return B_NO_ERROR;
    }
@@ -669,8 +671,8 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
    }
 # endif
 
-   if (_childPID < 0) return B_NO_ERROR;    // a non-existent child process is an exited child process, if you ask me.
-   _childProcessExitReason = io_status_t(); // reset the exit-reason only when there is an actual child process to wait for
+   if (_childPID < 0) return B_NO_ERROR;  // a non-existent child process is an exited child process, if you ask me.
+   _childProcessExitCode = io_status_t(); // reset the exit-reason only when there is an actual child process to wait for
 
    if (maxWaitTimeMicros == MUSCLE_TIME_NEVER)
    {
@@ -678,7 +680,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
       const muscle_pid_t pid = waitpid(_childPID, &status, 0);
       if (pid == _childPID)
       {
-         _childProcessExitReason = GetExitReasonFromWaitPIDStatus(status);
+         _childProcessExitCode = GetExitCodeFromWaitPIDStatus(status);
          return B_NO_ERROR;
       }
    }
@@ -696,7 +698,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
          const muscle_pid_t r = waitpid(_childPID, &status, WNOHANG);  // WNOHANG should guarantee that this call will not block
          if (r == _childPID)
          {
-            _childProcessExitReason = GetExitReasonFromWaitPIDStatus(status);
+            _childProcessExitCode = GetExitCodeFromWaitPIDStatus(status);
             return B_NO_ERROR;  // yay, he exited!
          }
          else if (r == -1) break;      // fail on error

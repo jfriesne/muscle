@@ -193,7 +193,7 @@ public:
    /** Returns our child-process's exit code, as a byte-count, iff our child-process
      * exited normally (i.e. by returning from main() or calling exit()).
      *
-     * Otherwise, returns an error indicating what caused the child-process to
+     * Otherwise, returns an error describing what caused the child-process to
      * exit (e.g. the name of the signal that killed the child process)
      *
      * @note that this value is set only when WaitForChildProcessToExit() is called
@@ -208,7 +208,7 @@ public:
      *       for the child process to flout convention, leading to false
      *       positives or false negatives in this method's return-value.
      */
-   MUSCLE_NODISCARD io_status_t GetChildProcessExitReason() const {return _childProcessExitReason;}
+   MUSCLE_NODISCARD io_status_t GetChildProcessExitCode() const {return _childProcessExitCode;}
 
 #if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
    /** Currently implemented under MacOS/X only, and only if you set
@@ -353,7 +353,7 @@ private:
    uint64 _maxChildWaitTime;
    int _signalNumber;
 
-   io_status_t _childProcessExitReason;
+   io_status_t _childProcessExitCode;
 
    bool _childProcessIsIndependent;
 

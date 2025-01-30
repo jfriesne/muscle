@@ -13,7 +13,7 @@ static void PrintExampleDescription(const OutputPrinter & p)
    p.printf("process and then communicate with it by writing data to its stdin and reading\n");
    p.printf("data from its stdout.\n");
    p.printf("\n");
-   p.printf("This program will launch the \"example_2_tcp_server\" program as a child\n");
+   p.printf("This program will launch the \"dataio_example_2_tcp_server\" program as a child\n");
    p.printf("process, and then let you interact with it in the usual way.\n");
    p.printf("\n");
 }
@@ -25,9 +25,9 @@ int main(int argc, char ** argv)
    PrintExampleDescription(stdout);
 
 #ifdef WIN32
-   const String childExeName = ".\\example_2_tcp_server.exe";
+   const String childExeName = ".\\dataio_example_2_tcp_server.exe";
 #else
-   const String childExeName = "./example_2_tcp_server";
+   const String childExeName = "./dataio_example_2_tcp_server";
 #endif
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
@@ -89,6 +89,8 @@ int main(int argc, char ** argv)
       }
    }
 
-   printf("Program exiting.\n");
+   cpIO.Shutdown();  // only necessary so we can call GetChildProcessExitCode() and get a meaningful value
+
+   printf("Program exiting (child process exit code was %s).\n", cpIO.GetChildProcessExitCode()());
    return 0;
 }

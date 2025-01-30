@@ -137,7 +137,7 @@ int main(int argc, char ** argv)
    (void) testEnvVars.Put("Jelly", "Peanut Butter");
    (void) testEnvVars.Put("Oranges", "Grapes");
 
-   Queue<DataIORef> refs;
+   Queue<ChildProcessDataIORef> refs;
    for (uint32 i=0; i<numProcesses; i++)
    {
       ChildProcessDataIORef dio(new ChildProcessDataIO(false));

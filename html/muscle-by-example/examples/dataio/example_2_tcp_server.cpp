@@ -44,6 +44,7 @@ int main(int argc, char ** argv)
    printf("Listening for incoming TCP connections on port %i.\n", tcpPort);
    printf("telnet to that port in one or more other Terminal windows to connect.\n");
    printf("Also you can enter input into stdin here to send it to all connected TCP clients.\n");
+   printf("Enter quit to quit, or press Ctrl-D.\n");
    printf("\n");
 
    while(true)
@@ -77,16 +78,21 @@ int main(int argc, char ** argv)
       if (sm.IsSocketReadyForRead(stdinIO.GetReadSelectSocket().GetFileDescriptor()))
       {
          char inputBuf[1024];
-         const io_status_t numBytesRead = stdinIO.Read(inputBuf, sizeof(inputBuf));
-         if (numBytesRead.IsOK())
+         const io_status_t readRet = stdinIO.Read(inputBuf, sizeof(inputBuf));
+         if (readRet.IsOK())
          {
-            printf("Read %i bytes from stdin, forwarding them to " UINT32_FORMAT_SPEC " TCP clients.\n", numBytesRead.GetByteCount(), tcpClients.GetNumItems());
-            for (HashtableIterator<DataIORef, Void> iter(tcpClients); iter.HasData(); iter++)
+            if ((readRet.GetByteCount() >= 5)&&(strncmp(inputBuf, "quit", 4) == 0)&&((inputBuf[4] == '\r')||(inputBuf[4] == '\n')))
             {
-               const io_status_t numBytesWritten = iter.GetKey()()->Write(inputBuf, numBytesRead.GetByteCount());
-               if (numBytesWritten != numBytesRead)
+               printf("You entered quit, exiting!\n");
+               break;
+            }
+            else
+            {
+               printf("Read %i bytes from stdin, forwarding them to " UINT32_FORMAT_SPEC " TCP clients.\n", readRet.GetByteCount(), tcpClients.GetNumItems());
+               for (HashtableIterator<DataIORef, Void> iter(tcpClients); iter.HasData(); iter++)
                {
-                  printf("Error [%s] writing to TCP client %p\n", numBytesWritten.GetStatus()(), iter.GetKey()());
+                  const io_status_t writeRet = iter.GetKey()()->Write(inputBuf, readRet.GetByteCount());
+                  if (writeRet != readRet) printf("Error [%s] writing to TCP client %p\n", writeRet.GetStatus()(), iter.GetKey()());
                }
             }
          }
@@ -100,15 +106,15 @@ int main(int argc, char ** argv)
          if (sm.IsSocketReadyForRead(clientIO->GetReadSelectSocket().GetFileDescriptor()))
          {
             char inputBuf[1024];
-            const io_status_t numBytesRead = clientIO->Read(inputBuf, sizeof(inputBuf)-1);
-            if (numBytesRead.IsOK())
+            const io_status_t readRet = clientIO->Read(inputBuf, sizeof(inputBuf)-1);
+            if (readRet.IsOK())
             {
-               inputBuf[numBytesRead.GetByteCount()] = '\0';  // ensure NUL termination
+               inputBuf[readRet.GetByteCount()] = '\0';  // ensure NUL termination
                printf("TCP client %p:  sent this to me: [%s]\n", clientIO, String(inputBuf).Trimmed()());
             }
             else
             {
-               printf("TCP client %p closed his connection to the server. [%s]\n", clientIO, numBytesRead.GetStatus()());
+               printf("TCP client %p closed his connection to the server. [%s]\n", clientIO, readRet.GetStatus()());
                (void) tcpClients.Remove(iter.GetKey());  // buh-bye
             }
          }
@@ -116,5 +122,5 @@ int main(int argc, char ** argv)
    }
 
    printf("Program exiting.\n");
-   return 0;
+   return 6;  // returning 6 just for the benefit of example_6_child_process.cpp
 }

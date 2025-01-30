@@ -111,6 +111,21 @@
 # define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ "new" include file isn't available (eg because we're on an ancient platform) */
 #endif
 
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD) && defined(_MSC_VER) && (_MSC_VER < 1900)
+#  define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD  // MSVC2013 and earlier don't support thread_local, sigh
+# endif
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD) && defined(__apple_build_version__) && (__apple_build_version__ < 8000042)
+#  define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD  // XCode before 8.0 doesn't support thread_local, sigh
+# endif
+#endif
+
+#ifdef MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
+# define MUSCLE_THREAD_LOCAL_OR_STATIC static
+#else
+# define MUSCLE_THREAD_LOCAL_OR_STATIC thread_local
+#endif
+
 #if defined(MUSCLE_USE_CPLUSPLUS17)
 # define MUSCLE_CONSTEXPR_17 constexpr /**< Defined a constexpr in C++17 and above, and defined as empty otherwise */
 #else
@@ -708,13 +723,13 @@ enum {
            /** Returns the value of our status_t field (ie success/failure) */
            MUSCLE_CONSTEXPR status_t GetStatus() const {return _status;}
 
-           /** Returns "OK" if this io_status_t indicates success; otherwise returns the human-readable description
-             * of the error this status_t indicates.
+           /** Returns "OK: #" (where # is the value returned by our GetByteCount() method) if this io_status_t
+             * indicates success; otherwise returns the human-readable description of the error this io_status_t indicates.
              */
-           MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL MUSCLE_CONSTEXPR const char * GetDescription() const {return _status.GetDescription();}
+           MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL inline const char * GetDescription() const;
 
            /** Convenience method -- a synonym for GetDescription() */
-           MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL MUSCLE_CONSTEXPR const char * operator()() const {return GetDescription();}
+           MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL inline const char * operator()() const {return GetDescription();}
 
            /** Convenience method:  Returns true iff this object represents an ok/non-error status */
            MUSCLE_NODISCARD MUSCLE_CONSTEXPR bool IsOK() const {return _status.IsOK();}
@@ -1290,6 +1305,17 @@ static inline int muscleSnprintf(char * buf, size_t bufLen, const char * format,
    if (bufLen > 0) buf[bufLen-1] = '\0';                // so we'll manually place a NUL byte just to make sure (buf) is terminated in all cases
    va_end(va);
    return (bufLen > 0) ? muscleMin(ret, (int)(bufLen-1)) : 0;
+}
+
+const char * io_status_t :: GetDescription() const
+{
+   if (_status.IsError()) return _status.GetDescription();
+   else
+   {
+      MUSCLE_THREAD_LOCAL_OR_STATIC char _buf[64];
+      muscleSprintf(_buf, "OK: " INT32_FORMAT_SPEC, GetByteCount());
+      return _buf;
+   }
 }
 
 }; // end namespace muscle
