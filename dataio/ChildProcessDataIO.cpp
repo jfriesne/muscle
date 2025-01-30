@@ -17,7 +17,7 @@
 #endif
 
 #if defined(WIN32) || defined(__CYGWIN__)
-# include "system/ThreadLocalStorage.h"  // just so we can see if MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD is defined
+# include "system/ThreadLocalStorage.h"  // for MUSCLE_THREAD_LOCAL_OR_STATIC
 # if defined(_UNICODE) || defined(UNICODE)
 #  undef GetEnvironmentStrings   // here because Windows headers are FUBAR ( https://devblogs.microsoft.com/oldnewthing/20130117-00/?p=5533 )
 # endif
@@ -602,12 +602,8 @@ static io_status_t GetExitReasonFromWin32ProcessExitCode(DWORD exitCode)
 
          default:
          {
-#if defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD)
-            static char buf[64]; // This is a bit racy since it could get overwritten by another thread before use
-#else
-            static thread_local char buf[64];  // per-thread unique static buffer
-#endif
-            muscleSprintf(buf, "0x" XINT32_FORMAT_SPEC, (int32) exitCode);
+            MUSCLE_THREAD_LOCAL_OR_STATIC char _buf[64];
+            muscleSprintf(_buf, "Exit Code 0x" XINT32_FORMAT_SPEC, (int32) exitCode);
             return io_status_t(exitCode);
          }
          break;

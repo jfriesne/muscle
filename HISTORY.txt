@@ -14,6 +14,7 @@ key:  - new feature
      for how much additional preallocated buffer space to allocate.
    - Added an io_status_t constructor that takes a (const char *) argument.
    - Added a muscle_pid_t typedef to MuscleSupport.h.
+   - Added MUSCLE_THREAD_LOCAL_OR_STATIC macro to ThreadLocalStorage.h.
    o Changed the argument ISignalHandler::SignalReceived() and
      SignalMultiplexer::CallSignalHandlers() from (int) to
      (const SignalEventInfo &).

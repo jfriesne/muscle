@@ -27,6 +27,12 @@
 # error "muscle/ThreadLocalStorage.h:  ThreadLocalStorage not implemented for this environment, sorry!"
 #endif
 
+#ifdef MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
+# define MUSCLE_THREAD_LOCAL_OR_STATIC static
+#else
+# define MUSCLE_THREAD_LOCAL_OR_STATIC thread_local
+#endif
+
 namespace muscle {
 
 /** This class implements easy-to-use thread-local-storage.  Typically what you would do is
