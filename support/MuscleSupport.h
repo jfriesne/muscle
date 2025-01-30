@@ -118,6 +118,8 @@
 # if !defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD) && defined(__apple_build_version__) && (__apple_build_version__ < 8000042)
 #  define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD  // XCode before 8.0 doesn't support thread_local, sigh
 # endif
+#else
+# define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
 #endif
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
