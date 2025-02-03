@@ -4,7 +4,7 @@
 
 namespace muscle {
 
-/** This gateway can be used to communicate with incoming WebSocket connections. */
+/** This gateway can be used to communicate over WebSocket connections. */
 class WebSocketMessageIOGateway : public AbstractMessageIOGateway
 {
 public:

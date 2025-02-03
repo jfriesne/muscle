@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.61 - Released 2/3/2025
    - Added AppendChars() PrependChars(), and InsertChars() methods to
      the String class, for efficient concatenation of partial strings.
    - Added WithInsert() and WithInsertedWord() methods to the String class.
