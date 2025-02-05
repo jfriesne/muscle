@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   o Removed MUSCLE_AVOID_CLOCK_MONOTONIC_RAW and added
+     MUSCLE_USE_CLOCK_MONOTONIC_RAW in its place.
    * Removed the -fembed-bitcode flag for iOS builds from CMakeLists.txt.
 
 9.61 - Released 2/3/2025

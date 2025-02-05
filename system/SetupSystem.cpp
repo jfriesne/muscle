@@ -1220,10 +1220,10 @@ static uint64 GetRunTime64Aux()
       }
    }
 #elif defined(__EMSCRIPTEN__) || (defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK))
-# if defined(MUSCLE_AVOID_CLOCK_MONOTONIC_RAW) || defined(__EMSCRIPTEN__)  // Emscripten doesn't know about the monotonic_raw clock
-   const clockid_t clkid = CLOCK_MONOTONIC;
-# else
+# if defined(MUSCLE_USE_CLOCK_MONOTONIC_RAW)
    const clockid_t clkid = CLOCK_MONOTONIC_RAW;
+# else
+   const clockid_t clkid = CLOCK_MONOTONIC;
 # endif
    struct timespec ts;
    return (clock_gettime(clkid, &ts) == 0) ? (SecondsToMicros(ts.tv_sec)+NanosToMicros(ts.tv_nsec)) : 0;

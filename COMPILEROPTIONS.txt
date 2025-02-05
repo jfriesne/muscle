@@ -411,7 +411,7 @@ of your Makefile to alter muscle's behaviour:
    Android's MTE pointer-tagging feature) and to 0 when
    compiling under any other build environment.
 
--DMUSCLE_AVOID_CLOCK_MONOTONIC_RAW
+-DMUSCLE_USE_CLOCK_MONOTONIC_RAW
    If specified, then the librt implementation of
-   GetRunTim64() will use CLOCK_MONOTONIC instead of
-   CLOCK_MONOTONIC_RAW
+   GetRunTim64() will use CLOCK_MONOTONIC_RAW instead of
+   CLOCK_MONOTONIC.
