@@ -165,8 +165,6 @@ if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "iOS")
    add_library(muscle ${MUSCLE_SRCS})
 else ()
    add_library(muscle STATIC ${MUSCLE_SRCS})
-   target_compile_options(muscle PUBLIC -fembed-bitcode)
-   target_link_libraries(muscle -fembed-bitcode)
    set_target_properties(muscle PROPERTIES
         FRAMEWORK TRUE
         MACOSX_FRAMEWORK_IDENTIFIER com.meyersound.muscle

@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Removed the -fembed-bitcode flag for iOS builds from CMakeLists.txt.
+
 9.61 - Released 2/3/2025
    - Added AppendChars() PrependChars(), and InsertChars() methods to
      the String class, for efficient concatenation of partial strings.
