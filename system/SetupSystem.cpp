@@ -1267,7 +1267,7 @@ status_t Snooze64(uint64 micros)
    // won't be significant, but also short enough that we're unlikely to come across
    // any OS-specific sleep-API that can't handle it
    const uint64 longTimeMicros = DaysToMicros(1);
-   while(micros >= longTimeMicros)
+   while(micros > longTimeMicros)  // test must be strictly greater-than, or else we get infinite recursion
    {
       MRETURN_ON_ERROR(Snooze64(longTimeMicros));
       if (micros != MUSCLE_TIME_NEVER) micros -= longTimeMicros;

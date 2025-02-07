@@ -8,6 +8,8 @@ key:  - new feature
    o Removed MUSCLE_AVOID_CLOCK_MONOTONIC_RAW and added
      MUSCLE_USE_CLOCK_MONOTONIC_RAW in its place.
    * Removed the -fembed-bitcode flag for iOS builds from CMakeLists.txt.
+   * Fixed a bug that would cause an infinite recursion if Snooze64()
+     was called with a value greater than one day.
 
 9.61 - Released 2/3/2025
    - Added AppendChars() PrependChars(), and InsertChars() methods to
