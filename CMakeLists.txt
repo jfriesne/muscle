@@ -167,6 +167,7 @@ else ()
    add_library(muscle STATIC ${MUSCLE_SRCS})
    set_target_properties(muscle PROPERTIES
         FRAMEWORK TRUE
+        FRAMEWORK_VERSION A # Version "A" is macOS convention
         MACOSX_FRAMEWORK_IDENTIFIER com.meyersound.muscle
    )
    install(TARGETS muscle

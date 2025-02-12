@@ -783,6 +783,16 @@ enum {
              */
            MUSCLE_NODISCARD MUSCLE_CONSTEXPR io_status_t WithSubsequentError(status_t subsequentError) const {return (_byteCount == 0) ? io_status_t(subsequentError) : *this;}
 
+           /** Synonym for (*this = WithSubsequentError(rhs))
+             * @param rhs the second status_t to test this status_t against
+             */
+           io_status_t & operator |= (const status_t & rhs) {*this = WithSubsequentError(rhs); return *this;}
+
+           /** Synonym for (*this = WithSubsequentError(rhs))
+             * @param rhs the second status_t to test this status_t against
+             */
+           io_status_t & operator |= (const io_status_t & rhs) {*this = WithSubsequentError(rhs); return *this;}
+
         private:
            status_t _status;
            int32 _byteCount;
