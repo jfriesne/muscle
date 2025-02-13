@@ -15,7 +15,13 @@ class WaitConditionCallbackMechanism : public ICallbackMechanism
 {
 public:
    /** Default Constructor */
-   WaitConditionCallbackMechanism() {/* empty */}
+   WaitConditionCallbackMechanism() : _wcRef(_defaultWaitCondition) {/* empty */}
+
+   /** Explicit constructor
+     * @param wc WaitCondition that we should use for waiting and signalling, instead of our internal one
+     * @note that (wc) must remain valid for the lifetime of this object.
+     */
+   WaitConditionCallbackMechanism(WaitCondition & wc) : _wcRef(wc) {/* empty */}
 
    /** Destructor */
    virtual ~WaitConditionCallbackMechanism() {/* empty */}
@@ -33,14 +39,15 @@ public:
      *       That way the Wait()-ing thread doesn't have to worry about missing notifications if
      *       it was busy doing something else at the instant SignalDispatchThread() was called.
      */
-   status_t Wait(uint64 wakeupTime = MUSCLE_TIME_NEVER, uint32 * optRetNotificationsCount = NULL) const {return _waitCondition.Wait(wakeupTime, optRetNotificationsCount);}
+   status_t Wait(uint64 wakeupTime = MUSCLE_TIME_NEVER, uint32 * optRetNotificationsCount = NULL) const {return _wcRef.Wait(wakeupTime, optRetNotificationsCount);}
 
 protected:
    /** Overridden to call Notify() on our WaitCondition */
-   virtual void SignalDispatchThread() {(void) _waitCondition.Notify();}
+   virtual void SignalDispatchThread() {(void) _wcRef.Notify();}
 
 private:
-   WaitCondition _waitCondition;
+   WaitCondition _defaultWaitCondition;
+   WaitCondition & _wcRef;
 };
 
 };  // end muscle namespace

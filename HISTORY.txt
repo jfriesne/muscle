@@ -6,6 +6,8 @@ key:  - new feature
       o other
 
    - Added |= operators to the io_status_t class.
+   - Added a constructor to WaitConditionCallbackMechanism that
+     takes a reference to the WaitCondition to use.
    o Removed MUSCLE_AVOID_CLOCK_MONOTONIC_RAW and added
      MUSCLE_USE_CLOCK_MONOTONIC_RAW in its place.
    * Removed the -fembed-bitcode flag for iOS builds from CMakeLists.txt.
