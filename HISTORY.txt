@@ -10,6 +10,8 @@ key:  - new feature
      takes a reference to the WaitCondition to use.
    o Removed MUSCLE_AVOID_CLOCK_MONOTONIC_RAW and added
      MUSCLE_USE_CLOCK_MONOTONIC_RAW in its place.
+   o Made IsPerKeyClearNecessary() and IsPerValueClearNecessary() methods
+     static/constexpr in the Hashtable class.
    * Removed the -fembed-bitcode flag for iOS builds from CMakeLists.txt.
    * Fixed a bug that would cause an infinite recursion if Snooze64()
      was called with a value greater than one day.

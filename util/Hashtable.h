@@ -1210,7 +1210,7 @@ private:
       }
 
       /** Returns true iff we need to set our KeyType objects to their default-constructed state when we're done using them */
-      MUSCLE_NODISCARD inline bool IsPerKeyClearNecessary() const
+      MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR bool IsPerKeyClearNecessary()
       {
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
          return !std::is_trivial<KeyType>::value;
@@ -1220,7 +1220,7 @@ private:
       }
 
       /** Returns true iff we need to set our ValueType objects to their default-constructed state when we're done using them */
-      MUSCLE_NODISCARD inline bool IsPerValueClearNecessary() const
+      MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR bool IsPerValueClearNecessary()
       {
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
          return !std::is_trivial<ValueType>::value;
