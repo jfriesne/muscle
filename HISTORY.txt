@@ -15,6 +15,7 @@ key:  - new feature
    * Removed the -fembed-bitcode flag for iOS builds from CMakeLists.txt.
    * Fixed a bug that would cause an infinite recursion if Snooze64()
      was called with a value greater than one day.
+   * Fixed an error in SignalMultiplexer.cpp when building under Emscripten.
 
 9.61 - Released 2/3/2025
    - Added AppendChars() PrependChars(), and InsertChars() methods to

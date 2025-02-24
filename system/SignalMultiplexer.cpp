@@ -48,7 +48,7 @@ status_t ISignalHandler :: GetNthSignalNumber(uint32 n, int & signalNumber) cons
 
 #if defined(WIN32)
 static BOOL Win32SignalHandlerCallbackFunc(DWORD sigNum) {SignalMultiplexer::GetSignalMultiplexer().CallSignalHandlers(SignalEventInfo(sigNum, (muscle_pid_t)0)); return true;}
-#else
+#elif defined(MUSCLE_USE_POSIX_SIGNALS)
 static void POSIXSignalHandlerCallbackFunc(int sigNum, siginfo_t * info, void *) {SignalMultiplexer::GetSignalMultiplexer().CallSignalHandlers(SignalEventInfo(sigNum, info->si_pid));}
 #endif
 
