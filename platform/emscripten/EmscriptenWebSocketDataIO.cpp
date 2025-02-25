@@ -7,7 +7,6 @@
 #include "platform/emscripten/EmscriptenAsyncCallback.h"
 #include "platform/emscripten/EmscriptenWebSocketDataIO.h"
 #include "util/String.h"
-#include "util/MiscUtilityFunctions.h" // TEMP REMOVE THIS
 
 namespace muscle {
 

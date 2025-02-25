@@ -4,7 +4,8 @@
 #if defined(__EMSCRIPTEN__)
 # include <emscripten/emscripten.h>
 #endif
-# include "platform/emscripten/EmscriptenAsyncCallback.h"
+
+#include "platform/emscripten/EmscriptenAsyncCallback.h"
 #include "util/String.h"  // So we can call GetHumanReadableTimeIntervalString()
 
 namespace muscle {
