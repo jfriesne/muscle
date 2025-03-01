@@ -1285,6 +1285,16 @@ MUSCLE_NODISCARD const QueryFilterFactoryRef & GetGlobalQueryFilterFactory();
   */
 void SetGlobalQueryFilterFactory(const QueryFilterFactoryRef & newFactory);
 
+/** Convenience method:  Given a predicate expression String
+  * (like "(age >= 53)"), creates and returns a QueryFilter that
+  * implements the specified logic, or a NULL QueryFilterRef on
+  * parse failure.
+  * @param expressionStr a predicate expression String to parse.
+  * @returns the created QueryFilterRef, or a NULL Ref.
+  * @todo document the expression String syntax here!
+  */
+QueryFilterRef CreateQueryFilterFromExpression(const String & expressionStr);
+
 } // end namespace muscle
 
 #endif

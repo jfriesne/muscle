@@ -588,4 +588,190 @@ void SetGlobalQueryFilterFactory(const QueryFilterFactoryRef & newFactory)
    _customQueryFilterFactoryRef = newFactory;
 }
 
+enum {
+   LTOKEN_LPAREN = 0,      // (
+   LTOKEN_RPAREN,          // )
+   LTOKEN_LEQ,             // <=
+   LTOKEN_GEQ,             // >=
+   LTOKEN_NEQ,             // !=
+   LTOKEN_AND,             // &&
+   LTOKEN_OR ,             // ||
+   LTOKEN_XOR,             // ^
+   LTOKEN_STARTSWITH,      // startswith
+   LTOKEN_ENDSWITH,        // endswith
+   LTOKEN_CONTAINS,        // contains
+   LTOKEN_ISSTARTOF,       // isstartof
+   LTOKEN_ISENDOF,         // isendof
+   LTOKEN_ISSUBSTRINGOF,   // issubstringof
+   LTOKEN_MATCHES,         // matches
+   LTOKEN_REGEXMATCHES,    // regexmatches
+   LTOKEN_BOOL,            // (bool)
+   LTOKEN_DOUBLE,          // (double)
+   LTOKEN_FLOAT,           // (float)
+   LTOKEN_INT64,           // (int64)
+   LTOKEN_INT32,           // (int32)
+   LTOKEN_INT16,           // (int16)
+   LTOKEN_INT8,            // (int8)
+   LTOKEN_POINT,           // (point)
+   LTOKEN_RECT,            // (rect)
+   LTOKEN_STRING,          // (string)
+   LTOKEN_WHAT,            // what
+   LTOKEN_HAS,             // has
+   LTOKEN_VALUESTRING,     // some other token supplied by the user
+   NUM_LTOKENS
+};
+
+static const char * _tokStrs[] =
+{
+   "(",              // LTOKEN_LPAREN
+   ")",              // LTOKEN_RPAREN
+   "==",             // LTOKEN_LEQ
+   ">=",             // LTOKEN_GEQ
+   "!=",             // LTOKEN_NEQ
+   "&&",             // LTOKEN_AND
+   "||",             // LTOKEN_OR
+   "^",              // LTOKEN_XOR
+   "startswith ",    // LTOKEN_STARTSWITH    (space intentional)
+   "endswith ",      // LTOKEN_ENDSWITH      (space intentional)
+   "contains ",      // LTOKEN_CONTAINS      (space intentional)
+   "isstartof ",     // LTOKEN_ISSTARTOF     (space intentional)
+   "isendof ",       // LTOKEN_ISENDOF       (space intentional)
+   "issubstringof ", // LTOKEN_ISSUBSTRINGOF (space intentional)
+   "matches ",       // LTOKEN_MATCHES       (space intentional)
+   "regexmatches ",  // LTOKEN_REGEXMATCHES  (space intentional)
+   "(bool)",         // LTOKEN_BOOL
+   "(double)",       // LTOKEN_DOUBLE
+   "(float)",        // LTOKEN_FLOAT
+   "(int64)",        // LTOKEN_INT64
+   "(int32)",        // LTOKEN_INT32
+   "(int16)",        // LTOKEN_INT16
+   "(int8)",         // LTOKEN_INT8
+   "(point)",        // LTOKEN_POINT
+   "(rect)",         // LTOKEN_RECT
+   "(string)",       // LTOKEN_STRING
+   "what",           // LTOKEN_WHAT (lack of space intentional)
+   "has ",           // LTOKEN_HAS  (space intentional)
+   NULL,             // LTOKEN_VALUESTRING
+};
+MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_tokStrs, NUM_LTOKENS);
+
+static bool _tokStrlensNeedsInit = true;
+static size_t _tokStrlens[NUM_LTOKENS] ;
+
+class LexerToken
+{
+public:
+   LexerToken() : _tok(NUM_LTOKENS) {/* empty */}
+   LexerToken(uint32 tok) : _tok(tok) {/* empty */}
+   LexerToken(uint32 tok, const String & valStr) : _tok(tok), _valStr(valStr) {/* empty */}
+
+   uint32 GetToken() const {return _tok;}
+   const String & GetValueString() const {return _valStr;}
+
+   String ToString() const
+   {
+      const String tokStr = (_tok < NUM_LTOKENS) ? _tokStrs[_tok] : "???";
+      return _valStr.HasChars() ? (tokStr+String(" %1").Arg(_valStr)) : tokStr;
+   }
+
+private:
+   uint32 _tok;
+   String _valStr;
+};
+
+class Lexer
+{
+public:
+   Lexer(const String & expression) : _expression(expression), _curPos(0)
+   {
+      if (_tokStrlensNeedsInit)
+      {
+         for (uint32 i=0; i<ARRAYITEMS(_tokStrlens); i++) _tokStrlens[i] = _tokStrs[i] ? strlen(_tokStrs[i]) : 0;
+         _tokStrlensNeedsInit = false;
+      }
+   }
+
+   status_t GetNextToken(LexerToken & retTok)
+   {
+      while(_curPos < _expression.Length())
+      {
+         // Try to find the next fixed-format token
+         const char * s = _expression()+_curPos;
+         for (int32 i=ARRAYITEMS(_tokStrs)-1; i>=0; i--)
+         {
+            const char * ts    = _tokStrs[i];
+            const size_t tsLen = _tokStrlens[i];
+            if ((tsLen > 0)&&(Strncasecmp(s, ts, tsLen) == 0))
+            {
+               _curPos += tsLen;
+               retTok = LexerToken(i);
+               return B_NO_ERROR;
+            }
+         }
+
+         // if we got here, we didn't find any fixed-format token, so we'll have to do some custom handling instead
+         switch(*s)
+         {
+            case '\"':
+            {
+               s++;  // move past initial quote
+               const char * endQuote = strchr(s, '\"');
+               if (endQuote == NULL) return B_BAD_DATA;  // no closing quote
+
+               retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, endQuote-s));
+               _curPos += retTok.GetValueString().Length()+2;  // +2 for the two quotes
+            }
+            return B_NO_ERROR;
+
+            case ' ': case '\t': case '\r': case '\n':
+               _curPos++;  // ignore whitespace
+            break;
+
+            default:
+            {
+               // For anything else we just parse until the first whitespace char or rparen
+               String retStr;
+               const char * t = s;
+               int lparenCount = 0;
+               while(1)  // we'll handle the NUL char inside the switch statement
+               {
+                  switch(*t)
+                  {
+                     case ')':
+                        if (--lparenCount >= 0) {t++; break;}
+                     // fall through
+                     case ' ': case '\0':
+                        retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, t-s));
+                        _curPos += retTok.GetValueString().Length();
+                        return B_NO_ERROR;
+
+                     case '(':
+                        lparenCount++;
+                     // fall through
+                     default:
+                        t++;  // keep going!
+                     break;
+                  }
+               }
+            }
+            break;
+         }
+      }
+
+      return B_DATA_NOT_FOUND;
+   }
+
+private:
+   String _expression;
+   uint32 _curPos;
+};
+
+QueryFilterRef CreateQueryFilterFromExpression(const String & expression)
+{
+   Lexer lexer(expression);
+   LexerToken nextTok;
+   while(lexer.GetNextToken(nextTok).IsOK()) printf(" -> %s\n", nextTok.ToString()());
+   return QueryFilterRef();
+}
+
 } // end namespace muscle

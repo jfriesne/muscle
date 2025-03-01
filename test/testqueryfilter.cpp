@@ -53,9 +53,28 @@ static void TestQueryFilter(MultiQueryFilter & qf, const char * desc, const char
 }
 
 // This program exercises some of the QueryFilter classes.
-int main(int, char **)
+int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
+
+   if ((argc >= 2)&&(strcmp(argv[1], "parse") == 0))
+   {
+      while(1)
+      {
+         printf("Enter an expression to parse: "); fflush(stdout);
+
+         char buf[1024];
+         if (fgets(buf, sizeof(buf), stdin))
+         {
+            String s = buf; s = s.Trimmed();
+            printf("You entered:  [%s]\n", s());
+
+            QueryFilterRef qfRef = CreateQueryFilterFromExpression(s);
+            printf("CreateQueryFilterFromExpression returned %p\n", qfRef());
+         }
+         else return 10;
+      }
+   }
 
    {OrQueryFilter   qf; TestQueryFilter(qf, "OR",   "return true iff at least one child returns true", 0);}
    {AndQueryFilter  qf; TestQueryFilter(qf, "AND",  "return true iff all children return true", 0);}
