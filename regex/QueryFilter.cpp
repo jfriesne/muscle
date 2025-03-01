@@ -615,6 +615,7 @@ enum {
    LTOKEN_BOOL,            // (bool)
    LTOKEN_FLOAT,           // (float)
    LTOKEN_DOUBLE,          // (double)
+   LTOKEN_NOT,             // not
    LTOKEN_WHAT,            // what
    LTOKEN_EXISTS,          // exists
    LTOKEN_VALUESTRING,     // some other token supplied by the user
@@ -649,6 +650,7 @@ static const char * _tokStrs[] =
    "(bool)",         // LTOKEN_BOOL
    "(float)",        // LTOKEN_FLOAT
    "(double)",       // LTOKEN_DOUBLE
+   "not",            // LTOKEN_NOT
    "what",           // LTOKEN_WHAT    (lack of space is intentional)
    "exists ",        // LTOKEN_EXISTS  (space is intentional)
    NULL,             // LTOKEN_VALUESTRING
@@ -774,6 +776,17 @@ private:
    }
 };
 
+static int32 GetMatchingToken(const char * s)
+{
+   for (int32 i=ARRAYITEMS(_tokStrs)-1; i>=0; i--)
+   {
+      const char * ts    = _tokStrs[i];
+      const size_t tsLen = _tokStrlens[i];
+      if ((tsLen > 0)&&(Strncasecmp(s, ts, tsLen) == 0)) return i;
+   }
+   return -1;
+}
+
 class Lexer
 {
 public:
@@ -792,16 +805,12 @@ public:
       {
          // Try to find the next fixed-format token
          const char * s = _expression()+_curPos;
-         for (int32 i=ARRAYITEMS(_tokStrs)-1; i>=0; i--)
+         const int32 matchedTok = GetMatchingToken(s);
+         if (matchedTok >= 0)
          {
-            const char * ts    = _tokStrs[i];
-            const size_t tsLen = _tokStrlens[i];
-            if ((tsLen > 0)&&(Strncasecmp(s, ts, tsLen) == 0))
-            {
-               _curPos += tsLen;
-               retTok = LexerToken(i);
-               return B_NO_ERROR;
-            }
+            _curPos += _tokStrlens[matchedTok];
+            retTok   = LexerToken(matchedTok);
+            return B_NO_ERROR;
          }
 
          // if we got here, we didn't find any fixed-format token, so we'll have to do some custom handling instead
@@ -824,35 +833,23 @@ public:
 
             default:
             {
-               // For anything else we just parse until the first whitespace char or rparen
+               // For anything else we just parse until the first known token or whitespace
                String retStr;
                const char * t = s;
-               int lparenCount = 0;
-               while(1)  // we'll handle the NUL char inside the switch statement
+               while(1)  // we'll handle the NUL char in the if statement below
                {
-                  switch(*t)
+                  if (((*t == '\0')||(isspace(*t)))||(GetMatchingToken(t) >= 0))
                   {
-                     case ')':
-                        if (--lparenCount >= 0) {t++; break;}
-                     // fall through
-                     case ' ': case '\0':
-                        retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, t-s), false);
-                        _curPos += retTok.GetValueString().Length();
-                        return B_NO_ERROR;
-
-                     case '(':
-                        lparenCount++;
-                     // fall through
-                     default:
-                        t++;  // keep going!
-                     break;
+                     retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, t-s), false);
+                     _curPos += retTok.GetValueString().Length();
+                     return B_NO_ERROR;
                   }
+                  else t++;
                }
             }
             break;
          }
       }
-
       return B_DATA_NOT_FOUND;
    }
 
@@ -861,25 +858,30 @@ private:
    uint32 _curPos;
 };
 
+static QueryFilterRef MaybeNegate(bool doNegate, const QueryFilterRef & qf) {return doNegate ? QueryFilterRef(new NorQueryFilter(qf)) : qf;}
+
 static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
 {
    Queue<LexerToken> localToks;
 
-   bool keepGoing = true;
+   bool keepGoing = true, isNegated = false;
    LexerToken nextTok;
    while((keepGoing)&&(lexer.GetNextToken(nextTok).IsOK()))
    {
       switch(nextTok.GetToken())
       {
+         case LTOKEN_NOT:
+            if (localToks.HasItems()) return B_ERROR("'not' must be the first token in a subexpression");
+            isNegated = !isNegated;
+         break;
+
          case LTOKEN_LPAREN:          // (
          {
             QueryFilterRef subRet = CreateQueryFilterFromExpressionAux(lexer);
-printf(" lParen subRet=%p\n", subRet());
          }
          break;
 
          case LTOKEN_RPAREN:          // )
-printf("rParen!\n");
             keepGoing = false; // our subexpression ends here
          break;
 
@@ -915,7 +917,7 @@ printf("rParen!\n");
          String fieldName;
          uint32 subIdx = 0;
          MRETURN_ON_ERROR(localToks[1].ParseFieldName(fieldName, subIdx, NULL));
-         return QueryFilterRef(new ValueExistsQueryFilter(fieldName, explicitCastType, subIdx));
+         return MaybeNegate(isNegated, QueryFilterRef(new ValueExistsQueryFilter(fieldName, explicitCastType, subIdx)));
       }
       break;
 
@@ -925,7 +927,7 @@ printf("rParen!\n");
          const LexerToken & infixOpTok   = localToks[1];
          const LexerToken & valTok       = localToks[2];
 
-printf("fieldNameTok=[%s] infixOpTok=[%s] valTok=[%s]\n", fieldNameTok.ToString()(), infixOpTok.ToString()(), valTok.ToString()());
+printf("fieldNameTok=[%s] infixOpTok=[%s] valTok=[%s] isNegated=%i\n", fieldNameTok.ToString()(), infixOpTok.ToString()(), valTok.ToString()(), isNegated);
          String fieldName;
          uint32 subIdx = 0;
          LexerToken optDefaultValue;
@@ -955,7 +957,7 @@ printf("fieldNameTok=[%s] infixOpTok=[%s] valTok=[%s]\n", fieldNameTok.ToString(
 
                QueryFilterRef ret(new WhatCodeQueryFilter(minWhat, maxWhat));
                if (infixOpTok.GetToken() == LTOKEN_NEQ) ret.SetRef(new NorQueryFilter(ret));
-               return ret;
+               return MaybeNegate(isNegated, ret);
             }
             break;
 
@@ -968,7 +970,7 @@ printf("fieldNameTok=[%s] infixOpTok=[%s] valTok=[%s]\n", fieldNameTok.ToString(
 
                   StringQueryFilterRef ret(new StringQueryFilter(fieldName, stringOp, valTok.GetValueString(), subIdx));
                   if (optDefaultValue.GetToken() == LTOKEN_VALUESTRING) ret()->SetAssumedDefault(optDefaultValue.GetValueString());
-                  return ret;
+                  return MaybeNegate(isNegated, ret);
                }
                else
                {
