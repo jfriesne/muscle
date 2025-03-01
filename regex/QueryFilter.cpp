@@ -591,6 +591,9 @@ void SetGlobalQueryFilterFactory(const QueryFilterFactoryRef & newFactory)
 enum {
    LTOKEN_LPAREN = 0,      // (
    LTOKEN_RPAREN,          // )
+   LTOKEN_LT,              // <
+   LTOKEN_GT,              // >
+   LTOKEN_EQ,              // ==
    LTOKEN_LEQ,             // <=
    LTOKEN_GEQ,             // >=
    LTOKEN_NEQ,             // !=
@@ -604,19 +607,16 @@ enum {
    LTOKEN_ISENDOF,         // isendof
    LTOKEN_ISSUBSTRINGOF,   // issubstringof
    LTOKEN_MATCHES,         // matches
-   LTOKEN_REGEXMATCHES,    // regexmatches
-   LTOKEN_BOOL,            // (bool)
-   LTOKEN_DOUBLE,          // (double)
-   LTOKEN_FLOAT,           // (float)
+   LTOKEN_MATCHESREGEX,    // matchesregex
    LTOKEN_INT64,           // (int64)
    LTOKEN_INT32,           // (int32)
    LTOKEN_INT16,           // (int16)
    LTOKEN_INT8,            // (int8)
-   LTOKEN_POINT,           // (point)
-   LTOKEN_RECT,            // (rect)
-   LTOKEN_STRING,          // (string)
+   LTOKEN_BOOL,            // (bool)
+   LTOKEN_FLOAT,           // (float)
+   LTOKEN_DOUBLE,          // (double)
    LTOKEN_WHAT,            // what
-   LTOKEN_HAS,             // has
+   LTOKEN_EXISTS,          // exists
    LTOKEN_VALUESTRING,     // some other token supplied by the user
    NUM_LTOKENS
 };
@@ -625,32 +625,32 @@ static const char * _tokStrs[] =
 {
    "(",              // LTOKEN_LPAREN
    ")",              // LTOKEN_RPAREN
-   "==",             // LTOKEN_LEQ
+   "<",              // LTOKEN_LT
+   ">",              // LTOKEN_GT
+   "==",             // LTOKEN_EQ
+   "<=",             // LTOKEN_LEQ
    ">=",             // LTOKEN_GEQ
    "!=",             // LTOKEN_NEQ
    "&&",             // LTOKEN_AND
    "||",             // LTOKEN_OR
    "^",              // LTOKEN_XOR
-   "startswith ",    // LTOKEN_STARTSWITH    (space intentional)
-   "endswith ",      // LTOKEN_ENDSWITH      (space intentional)
-   "contains ",      // LTOKEN_CONTAINS      (space intentional)
-   "isstartof ",     // LTOKEN_ISSTARTOF     (space intentional)
-   "isendof ",       // LTOKEN_ISENDOF       (space intentional)
-   "issubstringof ", // LTOKEN_ISSUBSTRINGOF (space intentional)
-   "matches ",       // LTOKEN_MATCHES       (space intentional)
-   "regexmatches ",  // LTOKEN_REGEXMATCHES  (space intentional)
-   "(bool)",         // LTOKEN_BOOL
-   "(double)",       // LTOKEN_DOUBLE
-   "(float)",        // LTOKEN_FLOAT
+   "startswith ",    // LTOKEN_STARTSWITH    (space is intentional)
+   "endswith ",      // LTOKEN_ENDSWITH      (space is intentional)
+   "contains ",      // LTOKEN_CONTAINS      (space is intentional)
+   "isstartof ",     // LTOKEN_ISSTARTOF     (space is intentional)
+   "isendof ",       // LTOKEN_ISENDOF       (space is intentional)
+   "issubstringof ", // LTOKEN_ISSUBSTRINGOF (space is intentional)
+   "matches ",       // LTOKEN_MATCHES       (space is intentional)
+   "matchesregex ",  // LTOKEN_MATCHESREGEX  (space is intentional)
    "(int64)",        // LTOKEN_INT64
    "(int32)",        // LTOKEN_INT32
    "(int16)",        // LTOKEN_INT16
    "(int8)",         // LTOKEN_INT8
-   "(point)",        // LTOKEN_POINT
-   "(rect)",         // LTOKEN_RECT
-   "(string)",       // LTOKEN_STRING
-   "what",           // LTOKEN_WHAT (lack of space intentional)
-   "has ",           // LTOKEN_HAS  (space intentional)
+   "(bool)",         // LTOKEN_BOOL
+   "(float)",        // LTOKEN_FLOAT
+   "(double)",       // LTOKEN_DOUBLE
+   "what",           // LTOKEN_WHAT    (lack of space is intentional)
+   "exists ",        // LTOKEN_EXISTS  (space is intentional)
    NULL,             // LTOKEN_VALUESTRING
 };
 MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_tokStrs, NUM_LTOKENS);
@@ -661,9 +661,9 @@ static size_t _tokStrlens[NUM_LTOKENS] ;
 class LexerToken
 {
 public:
-   LexerToken() : _tok(NUM_LTOKENS) {/* empty */}
-   LexerToken(uint32 tok) : _tok(tok) {/* empty */}
-   LexerToken(uint32 tok, const String & valStr) : _tok(tok), _valStr(valStr) {/* empty */}
+   LexerToken() : _tok(NUM_LTOKENS), _wasQuoted(false) {/* empty */}
+   LexerToken(uint32 tok) : _tok(tok), _wasQuoted(false) {/* empty */}
+   LexerToken(uint32 tok, const String & valStr, bool wasQuoted) : _tok(tok), _valStr(valStr), _wasQuoted(wasQuoted) {/* empty */}
 
    uint32 GetToken() const {return _tok;}
    const String & GetValueString() const {return _valStr;}
@@ -674,9 +674,104 @@ public:
       return _valStr.HasChars() ? (tokStr+String(" %1").Arg(_valStr)) : tokStr;
    }
 
+   // Convenience method:  Given a token like "myfield:4", returns the field name "myfield" and the retIdx=4
+   status_t ParseFieldName(String & retFieldName, uint32 & retIdx, LexerToken * optRetDefaultValue) const {return ParseFieldNameAux(_valStr, retFieldName, retIdx, optRetDefaultValue);}
+
+   // returns the B_*_TYPE code representing our value's type, or B_ANY_TYPE on failure/unknown
+   uint32 GetValueStringType(uint32 explicitCastType) const
+   {
+      if (_tok != LTOKEN_VALUESTRING) return B_ANY_TYPE;
+      if (_wasQuoted) return (explicitCastType == B_ANY_TYPE) ? B_STRING_TYPE : B_ANY_TYPE;  // (int16)"hi" is too weird to let slide
+      if (explicitCastType != B_ANY_TYPE) return explicitCastType;
+      if ((_valStr.EqualsIgnoreCase("true"))||(_valStr.EqualsIgnoreCase("false"))) return B_BOOL_TYPE;
+
+      switch(_valStr.GetNumInstancesOf(','))
+      {
+         case 0:
+         {
+            if (_valStr.Contains('.'))
+            {
+               return _valStr.EndsWith('f') ? B_FLOAT_TYPE : B_DOUBLE_TYPE;
+            }
+            else return B_INT32_TYPE;  // I guess this is a good default?
+         }
+         break;
+
+         case 1:  return B_POINT_TYPE;
+         case 3:  return B_RECT_TYPE;
+         default: return B_ANY_TYPE;
+      }
+   }
+
+   // Returns the StringQueryFilter::OP_* value associated with this infix operator, or StringQueryFilter::NUM_STRING_OPERATORS on failure
+   uint8 GetStringQueryFilterOp(bool isIgnoreCase) const
+   {
+      switch(GetToken())
+      {
+         case LTOKEN_EQ:            return isIgnoreCase ? StringQueryFilter::OP_EQUAL_TO_IGNORECASE                 : StringQueryFilter::OP_EQUAL_TO;                 // ==
+         case LTOKEN_LT:            return isIgnoreCase ? StringQueryFilter::OP_LESS_THAN_IGNORECASE                : StringQueryFilter::OP_LESS_THAN;                // ==
+         case LTOKEN_GT:            return isIgnoreCase ? StringQueryFilter::OP_GREATER_THAN_IGNORECASE             : StringQueryFilter::OP_GREATER_THAN;             // ==
+         case LTOKEN_LEQ:           return isIgnoreCase ? StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO_IGNORECASE    : StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO;    // <=
+         case LTOKEN_GEQ:           return isIgnoreCase ? StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO_IGNORECASE : StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO; // >=
+         case LTOKEN_NEQ:           return isIgnoreCase ? StringQueryFilter::OP_NOT_EQUAL_TO_IGNORECASE             : StringQueryFilter::OP_NOT_EQUAL_TO;             // !=
+         case LTOKEN_STARTSWITH:    return isIgnoreCase ? StringQueryFilter::OP_STARTS_WITH_IGNORECASE              : StringQueryFilter::OP_STARTS_WITH;              // startswith
+         case LTOKEN_ENDSWITH:      return isIgnoreCase ? StringQueryFilter::OP_ENDS_WITH_IGNORECASE                : StringQueryFilter::OP_ENDS_WITH;                // endswith
+         case LTOKEN_CONTAINS:      return isIgnoreCase ? StringQueryFilter::OP_CONTAINS_IGNORECASE                 : StringQueryFilter::OP_CONTAINS;                 // contains
+         case LTOKEN_ISSTARTOF:     return isIgnoreCase ? StringQueryFilter::OP_START_OF_IGNORECASE                 : StringQueryFilter::OP_START_OF;                 // isstartof
+         case LTOKEN_ISENDOF:       return isIgnoreCase ? StringQueryFilter::OP_END_OF_IGNORECASE                   : StringQueryFilter::OP_END_OF;                   // isendof
+         case LTOKEN_ISSUBSTRINGOF: return isIgnoreCase ? StringQueryFilter::OP_SUBSTRING_OF_IGNORECASE             : StringQueryFilter::OP_SUBSTRING_OF;             // issubstringof
+         case LTOKEN_MATCHES:       return StringQueryFilter::OP_SIMPLE_WILDCARD_MATCH;    // matches
+         case LTOKEN_MATCHESREGEX:  return StringQueryFilter::OP_REGULAR_EXPRESSION_MATCH; // matchesregex
+         default:                   return StringQueryFilter::NUM_STRING_OPERATORS;        // failure
+      }
+   }
+
+   // Returns the B_*_TYPE associated with this token if this token is an explicit-cast, or B_ANY_TYPE otherwise
+   uint32 GetExplicitCastTypeCode() const
+   {
+      switch(_tok)
+      {
+         case LTOKEN_INT64:  return B_INT64_TYPE;
+         case LTOKEN_INT32:  return B_INT32_TYPE;
+         case LTOKEN_INT16:  return B_INT16_TYPE;
+         case LTOKEN_INT8:   return B_INT8_TYPE;
+         case LTOKEN_BOOL:   return B_BOOL_TYPE;
+         case LTOKEN_FLOAT:  return B_FLOAT_TYPE;
+         case LTOKEN_DOUBLE: return B_DOUBLE_TYPE;
+         default:            return B_ANY_TYPE;
+      }
+   }
+
 private:
    uint32 _tok;
    String _valStr;
+   bool _wasQuoted;
+
+   status_t ParseFieldNameAux(const String & valStr, String & retFieldName, uint32 & retIdx, LexerToken * optRetDefaultValue) const
+   {
+      if ((_tok != LTOKEN_VALUESTRING)||((_wasQuoted == false)&&(valStr.IsEmpty()))) return B_BAD_ARGUMENT;
+
+      const int32 barIdx = ((_wasQuoted == false)&&(optRetDefaultValue)) ? valStr.LastIndexOf('|') : -1;
+      if (barIdx >= 0)
+      {
+         *optRetDefaultValue = LexerToken(LTOKEN_VALUESTRING, valStr.Substring(barIdx+1), false);
+         return ParseFieldNameAux(valStr.Substring(0, barIdx), retFieldName, retIdx, NULL);
+      }
+
+      const int32 colIdx = _wasQuoted ? -1 : valStr.LastIndexOf(':');
+      if (colIdx > 0)
+      {
+         retFieldName = valStr.Substring(0, colIdx);
+         retIdx       = (uint32) atol(valStr()+colIdx+1);
+      }
+      else
+      {
+         retFieldName = valStr;
+         retIdx       = 0;
+      }
+
+      return B_NO_ERROR;
+   }
 };
 
 class Lexer
@@ -718,7 +813,7 @@ public:
                const char * endQuote = strchr(s, '\"');
                if (endQuote == NULL) return B_BAD_DATA;  // no closing quote
 
-               retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, endQuote-s));
+               retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, endQuote-s), true);
                _curPos += retTok.GetValueString().Length()+2;  // +2 for the two quotes
             }
             return B_NO_ERROR;
@@ -741,7 +836,7 @@ public:
                         if (--lparenCount >= 0) {t++; break;}
                      // fall through
                      case ' ': case '\0':
-                        retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, t-s));
+                        retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, t-s), false);
                         _curPos += retTok.GetValueString().Length();
                         return B_NO_ERROR;
 
@@ -766,12 +861,137 @@ private:
    uint32 _curPos;
 };
 
+static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
+{
+   Queue<LexerToken> localToks;
+
+   bool keepGoing = true;
+   LexerToken nextTok;
+   while((keepGoing)&&(lexer.GetNextToken(nextTok).IsOK()))
+   {
+      switch(nextTok.GetToken())
+      {
+         case LTOKEN_LPAREN:          // (
+         {
+            QueryFilterRef subRet = CreateQueryFilterFromExpressionAux(lexer);
+printf(" lParen subRet=%p\n", subRet());
+         }
+         break;
+
+         case LTOKEN_RPAREN:          // )
+printf("rParen!\n");
+            keepGoing = false; // our subexpression ends here
+         break;
+
+         default:
+            MRETURN_ON_ERROR(localToks.AddTail(nextTok));
+            if (localToks.GetNumItems() > 4) return B_ERROR("Subexpression cannot contain more than four tokens");
+         break;
+      }
+   }
+
+   if (localToks.GetNumItems() < 2) return B_ERROR("Subexpression must contain at least two tokens");
+
+   uint32 explicitCastType = B_ANY_TYPE;
+   {
+      // See if there is an explicit cast; if so, we'll make a note of it, and then remove it,
+      // in order to simplify the rest of the parsing
+      const uint32 castIdx = (localToks[0].GetToken() == LTOKEN_EXISTS) ? 1 : 2;
+      if (castIdx < localToks.GetNumItems())
+      {
+         explicitCastType = localToks[castIdx].GetExplicitCastTypeCode();
+         if (explicitCastType != B_ANY_TYPE) (void) localToks.RemoveItemAt(castIdx);
+      }
+   }
+   if (localToks.GetNumItems() >= 4) return B_ERROR("Subexpression without an explicit cast cannot contain more than three tokens");
+
+   // At this point the only remaining options are 2 or 3
+   switch(localToks.GetNumItems())
+   {
+      case 2:
+      {
+         if (localToks[0].GetToken() != LTOKEN_EXISTS) return B_ERROR("Two-token subexpression must start with 'exists'");
+
+         String fieldName;
+         uint32 subIdx = 0;
+         MRETURN_ON_ERROR(localToks[1].ParseFieldName(fieldName, subIdx, NULL));
+         return QueryFilterRef(new ValueExistsQueryFilter(fieldName, explicitCastType, subIdx));
+      }
+      break;
+
+      case 3:
+      {
+         const LexerToken & fieldNameTok = localToks[0];
+         const LexerToken & infixOpTok   = localToks[1];
+         const LexerToken & valTok       = localToks[2];
+
+printf("fieldNameTok=[%s] infixOpTok=[%s] valTok=[%s]\n", fieldNameTok.ToString()(), infixOpTok.ToString()(), valTok.ToString()());
+         String fieldName;
+         uint32 subIdx = 0;
+         LexerToken optDefaultValue;
+         if (fieldNameTok.GetToken() != LTOKEN_WHAT) MRETURN_ON_ERROR(fieldNameTok.ParseFieldName(fieldName, subIdx, &optDefaultValue));
+
+         const uint32 valueType = valTok.GetValueStringType(explicitCastType);
+         if (valueType == B_ANY_TYPE) return B_ERROR("Unable to determine type of value-token at end of subexpression");
+
+         switch(fieldNameTok.GetToken())
+         {
+            case LTOKEN_WHAT:
+            {
+               if (valueType != B_INT32_TYPE) return B_ERROR("'what' keyword requires a value of type int32");
+
+               const uint32 whatVal = (uint32) atol(valTok.GetValueString()());
+
+               uint32 minWhat = 0, maxWhat = MUSCLE_NO_LIMIT;
+               switch(infixOpTok.GetToken())
+               {
+                  case LTOKEN_NEQ: // fall through
+                  case LTOKEN_EQ:  minWhat = maxWhat = whatVal; break;
+                  case LTOKEN_LT:  maxWhat = (whatVal-1);       break;
+                  case LTOKEN_GT:  minWhat = (whatVal+1);       break;
+                  case LTOKEN_LEQ: maxWhat = whatVal;           break;
+                  case LTOKEN_GEQ: minWhat = whatVal;           break;
+               }
+
+               QueryFilterRef ret(new WhatCodeQueryFilter(minWhat, maxWhat));
+               if (infixOpTok.GetToken() == LTOKEN_NEQ) ret.SetRef(new NorQueryFilter(ret));
+               return ret;
+            }
+            break;
+
+            case LTOKEN_VALUESTRING:
+            {
+               if (valueType == B_STRING_TYPE)
+               {
+                  const uint8 stringOp = infixOpTok.GetStringQueryFilterOp(false);  // TODO:  figure out a syntax for ignore-case option
+                  if (stringOp == StringQueryFilter::NUM_STRING_OPERATORS) return B_ERROR("Unsupported infix operator for value type string");
+
+                  StringQueryFilterRef ret(new StringQueryFilter(fieldName, stringOp, valTok.GetValueString(), subIdx));
+                  if (optDefaultValue.GetToken() == LTOKEN_VALUESTRING) ret()->SetAssumedDefault(optDefaultValue.GetValueString());
+                  return ret;
+               }
+               else
+               {
+                  return B_ERROR("TODO:  implement me");
+               }
+            }
+            break;
+
+            default:
+               return B_ERROR("Unspported first token for three-token subexpression");
+         }
+      }
+   }
+
+   return B_LOGIC_ERROR;
+}
+
 QueryFilterRef CreateQueryFilterFromExpression(const String & expression)
 {
    Lexer lexer(expression);
-   LexerToken nextTok;
-   while(lexer.GetNextToken(nextTok).IsOK()) printf(" -> %s\n", nextTok.ToString()());
-   return QueryFilterRef();
+   //while(lexer.GetNextToken(nextTok).IsOK()) printf(" -> %s\n", nextTok.ToString()());
+   return CreateQueryFilterFromExpressionAux(lexer);
 }
+
 
 } // end namespace muscle

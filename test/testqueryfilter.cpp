@@ -70,7 +70,7 @@ int main(int argc, char ** argv)
             printf("You entered:  [%s]\n", s());
 
             QueryFilterRef qfRef = CreateQueryFilterFromExpression(s);
-            printf("CreateQueryFilterFromExpression returned %p\n", qfRef());
+            printf("CreateQueryFilterFromExpression returned [%s]\n", qfRef.GetStatus()());
          }
          else return 10;
       }
