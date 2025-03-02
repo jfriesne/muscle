@@ -34,6 +34,8 @@ static status_t UnitTestString()
 {
    CompleteSetupSystem css;
 
+   LogTime(MUSCLE_LOG_INFO, "sizeof(String) is %zu\n", sizeof(String));
+
    // First, make sure that our logging doesn't evaluate arguments unless it needs to
    LogPlain(MUSCLE_LOG_INFO,  "Testing LogPlain() argument evaluation:  %i\n", ThisFunctionsArgumentMustBeZero(0));  // ThisFunctionsArgumentMustBeZero() SHOULD be called here!
    LogPlain(MUSCLE_LOG_DEBUG, "Testing LogPlain() argument evaluation:  %i\n", ThisFunctionsArgumentMustBeZero(1));  // ThisFunctionsArgumentMustBeZero() should NOT be called here!
@@ -48,7 +50,7 @@ static status_t UnitTestString()
       printf("Before copy-from-empty:   longString [%s] bufSize=" UINT32_FORMAT_SPEC ", emptyString [%s] bufSize=" UINT32_FORMAT_SPEC "\n", longString(), longString.GetNumAllocatedBytes(), emptyString(), emptyString.GetNumAllocatedBytes());
       longString = emptyString;
       printf(" After copy-from-empty:   longString [%s] bufSize=" UINT32_FORMAT_SPEC ", emptyString [%s] bufSize=" UINT32_FORMAT_SPEC "\n", longString(), longString.GetNumAllocatedBytes(), emptyString(), emptyString.GetNumAllocatedBytes());
-      if (longString.GetNumAllocatedBytes() > (SMALL_MUSCLE_STRING_LENGTH+1)) return B_ERROR("String set from empty sting still has a non-default buffer!");
+      if (longString.GetNumAllocatedBytes() > (String::GetMaxShortStringLength()+1)) return B_ERROR("String set from empty string still has a non-default buffer!");
    }
 
    {

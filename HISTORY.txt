@@ -12,6 +12,12 @@ key:  - new feature
      MUSCLE_USE_CLOCK_MONOTONIC_RAW in its place.
    o Made IsPerKeyClearNecessary() and IsPerValueClearNecessary() methods
      static/constexpr in the Hashtable class.
+   o Rewrote the String class's short-string optimization so that a String can
+     now hold up to 14 characters without a separate heap-allocation, rather
+     than 7.  One minor tradeoff:  the maximum String length is now 2GB rather
+     than 4GB.
+   o Removed the SMALL_MUSCLE_STRING_LENGTH preprocessor constant, and instead
+     added a GetMaxShortStringLength() static method to the String class.
    * Removed the -fembed-bitcode flag for iOS builds from CMakeLists.txt.
    * Fixed a bug that would cause an infinite recursion if Snooze64()
      was called with a value greater than one day.

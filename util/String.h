@@ -54,11 +54,6 @@ static inline void PrintAndClearStringCopyCounts(const OutputPrinter & p, const 
 class Point;
 class Rect;
 
-#ifndef SMALL_MUSCLE_STRING_LENGTH
-/** Defines the number of ASCII characters that may be held "inline" in a String object, without requiring a separate heap allocation.  If not specified explicitly via a compiler argument (eg -DSMALL_MUSCLE_STRING_LENGTH=15), it defaults to 7, and 7 ASCII-chars plus one NUL byte exactly match the space required for a 64-bit pointer, and thus can be used with no space-penalty.  Beware that setting this to a value greater than 7 will cause sizeof(String) to increase.  */
-# define SMALL_MUSCLE_STRING_LENGTH 7
-#endif
-
 /** Same as strcmp(), except that it will sort numbers within the string numerically rather than lexically.
   * @param s1 The first of the two strings to compare using the number-aware comparison algorithm.
   * @param s2 The second of the two strings to compare using the number-aware comparison algorithm.
@@ -183,10 +178,10 @@ public:
     *                this String (not including the NUL terminator byte).
     *                Default is unlimited (ie scan the entire string no matter how long it is)
     */
-   String(const char * str = NULL, uint32 maxLen = MUSCLE_NO_LIMIT) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
+   String(const char * str = NULL, uint32 maxLen = MUSCLE_NO_LIMIT)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(str?STRING_OP_CSTR_CTOR:STRING_OP_DEFAULT_CTOR);
-      ClearSmallBuffer();
+      ClearShortStringBuffer();
       if (str) (void) SetCstr(str, maxLen);
    }
 
@@ -196,19 +191,19 @@ public:
      * @param maxLen The maximum number of characters to place into this String (not including the NUL terminator byte).
      *               Default is unlimited (ie scan the entire string no matter how long it is)
      */
-   String(PreallocatedItemSlotsCount preallocatedBytesCount, const char * str = NULL, uint32 maxLen = MUSCLE_NO_LIMIT) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
+   String(PreallocatedItemSlotsCount preallocatedBytesCount, const char * str = NULL, uint32 maxLen = MUSCLE_NO_LIMIT)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(str?STRING_OP_CSTR_CTOR:STRING_OP_DEFAULT_CTOR);
-      ClearSmallBuffer();
+      ClearShortStringBuffer();
       (void) Prealloc(preallocatedBytesCount.GetNumItemSlotsToPreallocate());
       if (str) (void) SetCstr(str, maxLen);
    }
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   String(const String & rhs) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
+   String(const String & rhs)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_COPY_CTOR);
-      ClearSmallBuffer();
+      ClearShortStringBuffer();
       (void) SetFromString(rhs);
    }
 
@@ -218,10 +213,10 @@ public:
      * @note this constructor is useful if you know you are going to add some additional bytes to the String immediately after
      *       construction, and you want to avoid an unnecessary memory reallocation
      */
-   String(const String & rhs, PreallocatedItemSlotsCount extraBytesToPrealloc) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
+   String(const String & rhs, PreallocatedItemSlotsCount extraBytesToPrealloc)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_PREALLOC_COPY_CTOR);
-      ClearSmallBuffer();
+      ClearShortStringBuffer();
       (void) Prealloc(rhs.Length()+extraBytesToPrealloc.GetNumItemSlotsToPreallocate());
       (void) SetFromString(rhs);
    }
@@ -232,10 +227,10 @@ public:
      * @param endIndex Index after the last character in (str) to include.
      *                 Defaults to a very large number, so that by default the entire remainder of the string is included.
      */
-   String(const String & str, uint32 beginIndex, uint32 endIndex=MUSCLE_NO_LIMIT) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
+   String(const String & str, uint32 beginIndex, uint32 endIndex=MUSCLE_NO_LIMIT)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_PARTIAL_COPY_CTOR);
-      ClearSmallBuffer();
+      ClearShortStringBuffer();
       (void) SetFromString(str, beginIndex, endIndex);
    }
 
@@ -243,10 +238,10 @@ public:
    /** Special MACOS/X-only convenience constructor that sets our state from a UTF8 Core Foundation String
      * @param cfStringRef A CFStringRef that we will get our string value from
      */
-   String(const CFStringRef & cfStringRef) : _bufferLen(sizeof(_strData._smallBuffer)), _length(0)
+   String(const CFStringRef & cfStringRef)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_CFSTR_COPY_CTOR);
-      ClearSmallBuffer();
+      ClearShortStringBuffer();
       (void) SetFromCFStringRef(cfStringRef);
    }
 #endif
@@ -255,7 +250,7 @@ public:
    ~String()
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_DTOR);
-      if (IsArrayDynamicallyAllocated()) muscleFree(_strData._bigBuffer);
+      if (IsArrayDynamicallyAllocated()) muscleFree(_stringData._longStringData._bigBuffer);
    }
 
    /** Assignment Operator.
@@ -299,9 +294,11 @@ public:
     */
    String & operator += (char ch)
    {
-      if (EnsureBufferSize(Length()+2, true, false).IsOK())
+      const uint32 length = Length();
+      if (EnsureBufferSize(length+2, true, false).IsOK())
       {
-         GetBuffer()[_length++] = ch;
+         GetBuffer()[length] = ch;
+         SetStringLength(length+1);
          WriteNULTerminatorByte();
       }
       return *this;
@@ -477,13 +474,13 @@ public:
    MUSCLE_NODISCARD int NumericAwareCompareTo(const char * rhs) const {return NumericAwareStrcmp(Cstr(), rhs?rhs:"");}
 
    /** Returns a read-only C-style pointer to our held character string. */
-   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * Cstr() const {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * Cstr() const {return IsArrayDynamicallyAllocated() ? _stringData._longStringData._bigBuffer : _stringData._shortStringData._smallBuffer;}
 
    /** Convenience synonym for Cstr(). */
    MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * operator()() const {return Cstr();}
 
    /** Clears this string so that it contains no characters.  Equivalent to setting this string to "". */
-   void Clear() {_length = 0; WriteNULTerminatorByte();}
+   void Clear() {SetStringLength(0); WriteNULTerminatorByte();}
 
    /** Similar to Clear(), except this version also frees up any dynamically allocated character array we may have cached. */
    void ClearAndFlush();
@@ -529,7 +526,7 @@ public:
 #endif
 
    /** Returns true iff this string is a zero-length string. */
-   MUSCLE_NODISCARD bool IsEmpty() const {return (_length == 0);}
+   MUSCLE_NODISCARD bool IsEmpty() const {return (Length() == 0);}
 
    /** Returns true iff this string starts with a number.
      * @param allowNegativeValues if true, negative values will be considered as numbers also.  Defaults to true.
@@ -537,12 +534,12 @@ public:
    MUSCLE_NODISCARD bool StartsWithNumber(bool allowNegativeValues = true) const {const char * s = Cstr(); return ((isdigit(*s))||((allowNegativeValues)&&(s[0]=='-')&&(isdigit(s[1]))));}
 
    /** Returns true iff this string is not a zero-length string. */
-   MUSCLE_NODISCARD bool HasChars() const {return (_length > 0);}
+   MUSCLE_NODISCARD bool HasChars() const {return (Length() > 0);}
 
    /** Returns true iff this string starts with (prefix)
      * @param c a character to check for at the end of this String.
      */
-   MUSCLE_NODISCARD bool EndsWith(char c) const {return (_length > 0)&&(Cstr()[_length-1] == c);}
+   MUSCLE_NODISCARD bool EndsWith(char c) const {const uint32 len = Length(); return ((len > 0)&&(Cstr()[len-1] == c));}
 
    /** Returns true iff this string ends with (suffix)
      * @param suffix a String to check for at the end of this String.
@@ -567,7 +564,7 @@ public:
    /** Returns true iff this string contains a single character (c).
      * @param c a character to compare this String with.
      */
-   MUSCLE_NODISCARD bool Equals(char c) const {return (_length == 1)&&(Cstr()[0] == c);}
+   MUSCLE_NODISCARD bool Equals(char c) const {return ((Length() == 1)&&(Cstr()[0] == c));}
 
    /** Returns the first index of (ch) in this string starting at or after (fromIndex), or -1 if not found.
      * @param ch A character to look for in this string.
@@ -660,13 +657,13 @@ public:
    MUSCLE_NODISCARD int LastIndexOf(const char * str, uint32 fromIndex) const;
 
    /** Returns the number of characters in the string (not including the terminating NUL byte) */
-   MUSCLE_NODISCARD uint32 Length() const {return _length;}
+   MUSCLE_NODISCARD uint32 Length() const {return IsArrayDynamicallyAllocated() ? _stringData._longStringData._strlen : (_stringData._shortStringData._strlenWithHighBitSet & ~0x80);}
 
    /** Returns the number of bytes of storage we have allocated.  Note that this value will often
      * be greater than the value returned by Length(), since we allocate extra bytes to minimize
      * the number of reallocations that must be done as data is being added to a String.
      */
-   MUSCLE_NODISCARD uint32 GetNumAllocatedBytes() const {return _bufferLen;}
+   MUSCLE_NODISCARD uint32 GetNumAllocatedBytes() const {return IsArrayDynamicallyAllocated() ? B_LENDIAN_TO_HOST_INT32(_stringData._longStringData._littleEndianBufferLen) : sizeof(_stringData._shortStringData._smallBuffer);}
 
    /** Returns the number of instances of (c) in this string.
      * @param ch The character to count the number of instances of in this String.
@@ -947,19 +944,14 @@ public:
    /** Swaps the state of this string with (swapWithMe).  Very efficient since little or no data copying is required.
      * @param swapWithMe the String to swap contents with
      */
-   inline void SwapContents(String & swapWithMe) MUSCLE_NOEXCEPT
-   {
-      muscleSwap(_strData,   swapWithMe._strData);
-      muscleSwap(_bufferLen, swapWithMe._bufferLen);
-      muscleSwap(_length,    swapWithMe._length);   // always do this
-   }
+   inline void SwapContents(String & swapWithMe) MUSCLE_NOEXCEPT {muscleSwap(_stringData, swapWithMe._stringData);}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   String(String && rhs) MUSCLE_NOEXCEPT : _bufferLen(0), _length(0)
+   String(String && rhs) MUSCLE_NOEXCEPT
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_MOVE_CTOR);
-      ClearSmallBuffer();
+      ClearShortStringBuffer();
       SwapContents(rhs);
    }
 
@@ -999,7 +991,7 @@ public:
    /** Like EndsWith(), but case insensitive.
      * @param c a character to check for at the end of this String.
      */
-   MUSCLE_NODISCARD bool EndsWithIgnoreCase(char c) const {return (HasChars())&&(tolower(Cstr()[_length-1]) == tolower(c));}
+   MUSCLE_NODISCARD bool EndsWithIgnoreCase(char c) const {return (HasChars())&&(tolower(Cstr()[Length()-1]) == tolower(c));}
 
    /** Like EndsWith(), but case insensitive.
      * @param s a suffix to check for at the end of this String.
@@ -1024,7 +1016,7 @@ public:
    /** Like Equals(), but case insensitive.
      * @param c a character to check for (case-insensitive) equality with this String.
      */
-   MUSCLE_NODISCARD bool EqualsIgnoreCase(char c) const {return (_length==1)&&(tolower(Cstr()[0])==tolower(c));}
+   MUSCLE_NODISCARD bool EqualsIgnoreCase(char c) const {return ((Length()==1)&&(tolower(Cstr()[0])==tolower(c)));}
 
    /** Like Contains(), but case insensitive.
      * @param s A String to look for in this string.
@@ -1083,7 +1075,7 @@ public:
    /** Like StartsWith(), but case insensitive.
      * @param c The character to see if this string starts with or not
      */
-   MUSCLE_NODISCARD bool StartsWithIgnoreCase(char c) const {return (_length > 0)&&(tolower(Cstr()[0]) == tolower(c));}
+   MUSCLE_NODISCARD bool StartsWithIgnoreCase(char c) const {return ((Length() > 0)&&(tolower(Cstr()[0]) == tolower(c)));}
 
    /** Like StartsWith(), but case insensitive.
      * @param s The prefix to see whether this string starts with or not
@@ -1230,13 +1222,13 @@ public:
      * @param numCharsToTruncate How many characters to truncate.  If greater than the
      *                           length of this String, this String will become empty.
      */
-   void TruncateChars(uint32 numCharsToTruncate) {_length -= muscleMin(_length, numCharsToTruncate); WriteNULTerminatorByte();}
+   void TruncateChars(uint32 numCharsToTruncate) {const uint32 length = Length(); SetStringLength(length-muscleMin(length, numCharsToTruncate)); WriteNULTerminatorByte();}
 
    /** Makes sure this string is no longer than (maxLength) characters long by truncating
      * any extra characters, if necessary
      * @param maxLength Maximum length that this string should be allowed to be.
      */
-   void TruncateToLength(uint32 maxLength) {_length = muscleMin(_length, maxLength); WriteNULTerminatorByte();}
+   void TruncateToLength(uint32 maxLength) {SetStringLength(muscleMin(Length(), maxLength)); WriteNULTerminatorByte();}
 
    /** Returns a String like this string, but with the appropriate %# tokens
      * replaced with a textual representation of the values passed in as (value).
@@ -1496,7 +1488,12 @@ public:
    /** Returns true iff the given pointer points into our held character array.
      * @param s A character pointer.  It will not be dereferenced by this call.
      */
-   MUSCLE_NODISCARD bool IsCharInLocalArray(const char * s) const {const char * b = Cstr(); return muscleInRange(s, b, b+_length);}
+   MUSCLE_NODISCARD bool IsCharInLocalArray(const char * s) const {const char * b = Cstr(); return muscleInRange(s, b, b+Length());}
+
+   /** Returns the maximum number of characters of String-data (not including the NUL terminator byte) that a String object
+     * can hold without having to do a heap allocation.
+     */
+   MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uint32 GetMaxShortStringLength() {return sizeof(_stringData._shortStringData._smallBuffer)-1;}
 
 private:
    status_t InsertCharsAux(uint32 insertAtIdx, const char * str, uint32 numCharsToInsert, uint32 insertCount);
@@ -1505,36 +1502,61 @@ private:
    MUSCLE_NODISCARD bool IsSpaceChar(char c) const {return ((c==' ')||(c=='\t')||(c=='\r')||(c=='\n'));}
    status_t EnsureBufferSize(uint32 newBufLen, bool retainValue, bool allowShrink);
    String ArgAux(const char * buf) const;
-   MUSCLE_NODISCARD bool IsArrayDynamicallyAllocated() const {return (_bufferLen>sizeof(_strData._smallBuffer));}
-   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL char * GetBuffer() {return IsArrayDynamicallyAllocated() ? _strData._bigBuffer : _strData._smallBuffer;}
-   void ClearSmallBuffer()
+   MUSCLE_NODISCARD bool IsArrayDynamicallyAllocated() const {return ((_stringData._shortStringData._strlenWithHighBitSet & 0x80) == 0);}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL char * GetBuffer() {return IsArrayDynamicallyAllocated() ? _stringData._longStringData._bigBuffer : _stringData._shortStringData._smallBuffer;}
+   MUSCLE_NODISCARD static uint32 GetNextBufferSize(uint32 bufLen);
+
+   void ClearShortStringBuffer()
    {
-      memset(_strData._smallBuffer, 0, sizeof(_strData._smallBuffer));
-#ifdef __clang_analyzer__
-      _strData._bigBuffer = NULL;  // just to avoid an unitialized-value warning from clang-tidy
-#endif
+      _stringData._shortStringData._smallBuffer[0]       = '\0';
+      _stringData._shortStringData._strlenWithHighBitSet = 0x80;
    }
-   void WriteNULTerminatorByte() {GetBuffer()[_length] = '\0';}
+
+   // Sets our _strlen or _strlenWithHighBitSet field to (len) as appropriate
+   void SetStringLength(uint32 len)
+   {
+      if (IsArrayDynamicallyAllocated()) _stringData._longStringData._strlen                = len;
+                                    else _stringData._shortStringData._strlenWithHighBitSet = (0x80 | ((uint8)len));
+   }
+
+
+   void WriteNULTerminatorByte() {GetBuffer()[Length()] = '\0';}
    MUSCLE_NODISCARD int32 ReplaceAux(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount, String & writeTo) const;
 
-#ifdef __clang_analyzer__
-   struct ShortStringOptimizationData {  // ClangSA gets confused by unions, so we'll avoid SSO during Clang analysis
-#else
-   union ShortStringOptimizationData {
-#endif
-      char * _bigBuffer;                                // Pointer to allocated array.  Valid iff (_bufferLen >  sizeof(_smallBuffer))
-      char _smallBuffer[SMALL_MUSCLE_STRING_LENGTH+1];  // inline character array.      Valid iff (_bufferLen <= sizeof(_smallBuffer))
-   } _strData;
+   // Our data-layout for non-SSO "long" strings.  The intent is for this to be 16 bytes long (on a 64-bit system)
+   struct LongStringData
+   {
+      char * _bigBuffer;  // pointer to heap allocation
+      uint32 _strlen;     // cached strlen(GetByteBuffer())
+      uint32 _littleEndianBufferLen;  // number of bytes pointed to by (_bigBuffer).  Must be last, and must be little-endian!
+   };
 
-   uint32 _bufferLen;         // Number of bytes pointed to by (GetBuffer())
-   uint32 _length;            // cached strlen(GetBuffer())
+   // Our data-layout for SSO "short" strings.
+   struct ShortStringData
+   {
+      char _smallBuffer[sizeof(LongStringData)-sizeof(uint8)];
+      uint8 _strlenWithHighBitSet;  // high bit is set to make it easy to detect when we're in short-string mode.  Aliases with most-significant-byte of _littleEndianBufferLen!
+   };
+
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+   static_assert(sizeof(ShortStringData) == sizeof(LongStringData), "sizeof(ShortStringData) != sizeof(LongStringData)");
+#endif
+
+#ifdef __clang_analyzer__
+   struct StringData {  // ClangSA gets confused by unions, so we'll avoid SSO during Clang analysis
+#else
+   union StringData {
+#endif
+      LongStringData  _longStringData;
+      ShortStringData _shortStringData;
+   } _stringData;
 
    void VerifyIndex(uint32 index) const
    {
 #ifdef MUSCLE_AVOID_ASSERTIONS
       (void) index;  // avoid compiler warnings
 #else
-      MASSERT(index < _length, "Index Out Of Bounds Exception");
+      MASSERT(index < Length(), "String Index Out Of Bounds");
 #endif
    }
 };

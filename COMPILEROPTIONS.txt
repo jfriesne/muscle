@@ -200,9 +200,6 @@ of your Makefile to alter muscle's behaviour:
 -DSMALL_QUEUE_SIZE=N
    Number of value slots to initially pre-allocate in a Queue, by default.  (defaults to 3)
 
--DSMALL_MUSCLE_STRING_LENGTH=N
-   strings <= this length will be stored inline in the String object to avoid a malloc()... default is 7
-
 -DMUSCLE_USE_QUERYPERFORMANCECOUNTER
    Tells MUSCLE's GetRunTime64() to use the higher-resolution
    QueryPerformanceCounter() API instead of timeGetTime() when running under Windows.

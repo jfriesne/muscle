@@ -95,10 +95,8 @@ int String :: LastIndexOfIgnoreCase(char ch, uint32 f) const
 
 void String :: ClearAndFlush()
 {
-   if (IsArrayDynamicallyAllocated()) muscleFree(_strData._bigBuffer);
-   ClearSmallBuffer();
-   _bufferLen = sizeof(_strData._smallBuffer);
-   _length = 0;
+   if (IsArrayDynamicallyAllocated()) muscleFree(_stringData._longStringData._bigBuffer);
+   ClearShortStringBuffer();
 }
 
 status_t String :: SetFromString(const String & s, uint32 firstChar, uint32 afterLastChar)
@@ -112,7 +110,7 @@ status_t String :: SetFromString(const String & s, uint32 firstChar, uint32 afte
       char * b = GetBuffer();
       memmove(b, s()+firstChar, len);  // memmove() is used in case (&s==this)
       b[len]  = '\0';
-      _length = len;
+      SetStringLength(len);
    }
    else ClearAndFlush();
 
@@ -136,7 +134,7 @@ status_t String :: SetCstr(const char * str, uint32 maxLen)
       char * b = GetBuffer();
       memmove(b, str, maxLen-1);  // memmove() is used in case (str) points into our array
       b[maxLen-1] = '\0';
-      _length = maxLen-1;
+      SetStringLength(maxLen-1);
    }
    else Clear();
 
@@ -149,8 +147,9 @@ String :: operator+=(const String &other)
    const uint32 otherLen = other.Length();  // save this value first, in case (&other==this)
    if ((otherLen > 0)&&(EnsureBufferSize(Length()+otherLen+1, true, false).IsOK()))
    {
-      memmove(GetBuffer()+_length, other(), otherLen+1);  // memmove() is used in case (&other==this)
-      _length += otherLen;
+      const uint32 len = Length();
+      memmove(GetBuffer()+len, other(), otherLen+1);  // memmove() is used in case (&other==this)
+      SetStringLength(len+otherLen);
    }
    return *this;
 }
@@ -165,8 +164,9 @@ String :: operator+=(const char * other)
       if (IsCharInLocalArray(other)) return operator+=(String(other,otherLen));  // avoid potential free-ing of (other) inside EnsureBufferSize()
       if (EnsureBufferSize(Length()+otherLen+1, true, false).IsOK())
       {
-         memcpy(GetBuffer()+_length, other, otherLen+1);
-         _length += otherLen;
+         const uint32 len = Length();
+         memcpy(GetBuffer()+len, other, otherLen+1);
+         SetStringLength(len+otherLen);
       }
    }
    return *this;
@@ -178,8 +178,9 @@ String & String :: operator-=(const char aChar)
    if (idx >= 0)
    {
       char * b = GetBuffer();
-      memmove(b+idx, b+idx+1, _length-idx);
-      --_length;
+      const uint32 len = Length();
+      memmove(b+idx, b+idx+1, len-idx);
+      SetStringLength(len-1);
    }
    return *this;
 }
@@ -194,8 +195,9 @@ String & String :: operator-=(const String &other)
       {
          const uint32 newEndIdx = idx+other.Length();
          char * b = GetBuffer();
-         memmove(b+idx, b+newEndIdx, 1+_length-newEndIdx);
-         _length -= other.Length();
+         const int32 len = Length();
+         memmove(b+idx, b+newEndIdx, 1+len-newEndIdx);
+         SetStringLength(len-other.Length());
       }
    }
    return *this;
@@ -211,8 +213,9 @@ String & String :: operator-=(const char * other)
       {
          const uint32 newEndIdx = idx+otherLen;
          char * b = GetBuffer();
-         memmove(b+idx, b+newEndIdx, 1+_length-newEndIdx);
-         _length -= otherLen;
+         const uint32 len = Length();
+         memmove(b+idx, b+newEndIdx, 1+len-newEndIdx);
+         SetStringLength(len-otherLen);
       }
    }
    return *this;
@@ -376,10 +379,10 @@ int32 String :: Replace(const String & replaceMe, const String & withMe, uint32 
             *writePtr = '\0';
             if (perInstanceDelta > 0)
             {
-               temp._length = (uint32) (writePtr-temp());
+               temp.SetStringLength((uint32)(writePtr-temp()));
                SwapContents(temp);
             }
-            else _length = (uint32) (writePtr-Cstr());
+            else SetStringLength((uint32)(writePtr-Cstr()));
          }
          return ret;
       }
@@ -623,7 +626,7 @@ String String :: WithInsertedWordAux(uint32 insertAtIdx, const char * str, uint3
       (void) ret.InsertCharsAux(insertAtIdx, str, numCharsToInsert, 1);
       return ret;
    }
-   else if (insertAtIdx >= _length)
+   else if (insertAtIdx >= Length())
    {
       String ret(((IsEmpty())||(StrEndsWith(Cstr(), Length(), sep, sepLen))||(StrStartsWith(str, numCharsToInsert, sep, sepLen))) ? *this : WithAppend(sep), PreallocatedItemSlotsCount(numCharsToInsert));
       (void) ret.InsertCharsAux(MUSCLE_NO_LIMIT, str, numCharsToInsert, 1);  // append (str) without any more strlen() calls
@@ -673,13 +676,14 @@ status_t String :: InsertCharsAux(uint32 insertAtIdx, const char * str, uint32 n
    const uint32 totalNumCharsToInsert = numCharsToInsert*insertCount;
    if (totalNumCharsToInsert == 0) return B_NO_ERROR;  // nothing to do
 
-   const uint32 newLen = _length+totalNumCharsToInsert;
+   const uint32 oldLen = Length();
+   const uint32 newLen = oldLen+totalNumCharsToInsert;
    MRETURN_ON_ERROR(Prealloc(newLen));
 
-   insertAtIdx = muscleMin(insertAtIdx, _length);  // too-large index == append
+   insertAtIdx = muscleMin(insertAtIdx, oldLen);  // too-large index == append
 
    char * b = GetBuffer();
-   memmove(b+insertAtIdx+totalNumCharsToInsert, b+insertAtIdx, _length-insertAtIdx); // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
+   memmove(b+insertAtIdx+totalNumCharsToInsert, b+insertAtIdx, oldLen-insertAtIdx); // NOLINT(bugprone-not-null-terminated-result) -- the NUL-termination is done below
 
    char * c = b+insertAtIdx;
    for (uint32 i=0; i<insertCount; i++)
@@ -688,8 +692,8 @@ status_t String :: InsertCharsAux(uint32 insertAtIdx, const char * str, uint32 n
       c += numCharsToInsert;
    }
 
-   _length    = newLen;
-   b[_length] = '\0';   // terminate the string
+   SetStringLength(newLen);
+   b[newLen] = '\0';   // terminate the string
 
    return B_NO_ERROR;
 }
@@ -710,10 +714,10 @@ static uint32 NextPowerOfTwo(uint32 n)
    return n;
 }
 
-static uint32 GetNextBufferSize(uint32 bufLen)
+uint32 String :: GetNextBufferSize(uint32 bufLen)
 {
    // For very small strings, we'll try to conserve memory by betting that they won't expand much more
-   if (bufLen < 32) return bufLen+SMALL_MUSCLE_STRING_LENGTH;
+   if (bufLen < 32) return bufLen+GetMaxShortStringLength();
 
    static const uint32 STRING_PAGE_SIZE       = 4096;
    static const uint32 STRING_MALLOC_OVERHEAD = 12;  // we assume that malloc() might need as many as 12 bytes for book keeping
@@ -738,39 +742,48 @@ static uint32 GetNextBufferSize(uint32 bufLen)
 // will be retained; otherwise it should be set right after this call returns...
 status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bool allowShrink)
 {
-   if (allowShrink ? (requestedBufLen == _bufferLen) : (requestedBufLen <= _bufferLen)) return B_NO_ERROR;
+   const uint32 bufferLen = GetNumAllocatedBytes();
+   if (allowShrink ? (requestedBufLen == bufferLen) : (requestedBufLen <= bufferLen)) return B_NO_ERROR;
 
    // If we're doing a first-time allocation or a shrink, allocate exactly the number of the bytes requested.
    // If it's a re-allocation, allocate more than requested in the hopes avoiding another realloc in the future.
    char * newBuf = NULL;
    const bool arrayWasDynamicallyAllocated = IsArrayDynamicallyAllocated();
-   const uint32 newBufLen = ((allowShrink)||(requestedBufLen <= SMALL_MUSCLE_STRING_LENGTH+1)||((IsEmpty())&&(!arrayWasDynamicallyAllocated))) ? requestedBufLen : GetNextBufferSize(requestedBufLen);
+   const uint32 newBufLen = ((allowShrink)||(requestedBufLen <= GetMaxShortStringLength()+1)||((IsEmpty())&&(!arrayWasDynamicallyAllocated))) ? requestedBufLen : GetNextBufferSize(requestedBufLen);
    if (newBufLen == 0)
    {
       ClearAndFlush();
       return B_NO_ERROR;
    }
 
-   const bool goToSmallBufferMode = ((allowShrink)&&(newBufLen <= (SMALL_MUSCLE_STRING_LENGTH+1)));
-   const uint32 newMaxLength = newBufLen-1;
+   // Our short-string optimization uses the high bit of the buffer-size word as a tag-byte for our unions.
+   // That means we can't use it as part of the actual buffer-size, which means our maximum buffer length is
+   // just under 2GB instead of just under 4GB.
+   if ((newBufLen & (1<<31)) != 0) return B_RESOURCE_LIMIT;
+
+   const uint32 oldStrlen         = Length();
+   const bool goToSmallBufferMode = ((allowShrink)&&(newBufLen <= (GetMaxShortStringLength()+1)));
+   const uint32 newMaxLength      = newBufLen-1;
    if (retainValue)
    {
       if (arrayWasDynamicallyAllocated)
       {
          if (goToSmallBufferMode)
          {
-            char * bigBuffer = _strData._bigBuffer; // guaranteed not to be equal to _strData._smallBuffer.  Gotta make this copy now because the memcpy() below will munge the pointer
-            memcpy(_strData._smallBuffer, bigBuffer, newBufLen);  // copy the data back into our inline array
-            _strData._smallBuffer[newMaxLength] = '\0';  // make sure we're terminated (could be an issue if we're shrinking)
-            _length    = muscleMin(_length, newMaxLength);
-            _bufferLen = sizeof(_strData._smallBuffer);
+            // Gotta cache these values beforehand, because the memcpy() below will munge them.
+            char * bigBuffer = _stringData._longStringData._bigBuffer;  // can't be const
+
+            memcpy(_stringData._shortStringData._smallBuffer, bigBuffer, newBufLen);  // copy the data back into our inline array
+            _stringData._shortStringData._smallBuffer[newMaxLength] = '\0';  // make sure we're NUL terminated (could be an issue if we're shrinking)
+            _stringData._shortStringData._strlenWithHighBitSet = (0x80 | ((uint8)muscleMin(oldStrlen, newMaxLength)));
+
             muscleFree(bigBuffer);   // get rid of the dynamically allocated array we were using before
-            return B_NO_ERROR;       // return now to avoid setting _strData._bigBuffer below
+            return B_NO_ERROR;       // return now to avoid setting _stringData._longStringData._bigBuffer below
          }
          else
          {
             // Here we call muscleRealloc() to (hopefully) avoid unnecessary data copying
-            newBuf = (char *) muscleRealloc(_strData._bigBuffer, newBufLen);
+            newBuf = (char *) muscleRealloc(_stringData._longStringData._bigBuffer, newBufLen);
             MRETURN_OOM_ON_NULL(newBuf);
          }
       }
@@ -779,17 +792,16 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
          if (goToSmallBufferMode)
          {
             // In the was-small-buffer, still-is-small-buffer case, all we need to do is truncate the string
-            _strData._smallBuffer[newMaxLength] = '\0';
-            _length = muscleMin(Length(), newMaxLength);
-            // Setting _bufferLen isn't necessary here, since we are already in small-mode
-            return B_NO_ERROR;       // return now to avoid setting _strData._bigBuffer below
+            _stringData._shortStringData._smallBuffer[newMaxLength] = '\0';
+            _stringData._shortStringData._strlenWithHighBitSet      = (0x80 | ((uint8)muscleMin(oldStrlen, newMaxLength)));
+            return B_NO_ERROR; // return now to avoid setting _stringData._longStringData._bigBuffer below
          }
          else
          {
             // Oops, muscleRealloc() won't do in this case.... we'll just have to copy the bytes over
             newBuf = (char *) muscleAlloc(newBufLen);
             MRETURN_OOM_ON_NULL(newBuf);
-            memcpy(newBuf, GetBuffer(), muscleMin(Length()+1, newBufLen));
+            memcpy(newBuf, GetBuffer(), muscleMin(oldStrlen+1, newBufLen));
          }
       }
    }
@@ -800,20 +812,21 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
       if (goToSmallBufferMode)
       {
          ClearAndFlush();    // might as well just dump everything
-         return B_NO_ERROR;  // return now to avoid setting _strData._bigBuffer below
+         return B_NO_ERROR;  // return now to avoid setting _stringData._longStringData._bigBuffer below
       }
       else
       {
          newBuf = (char *) muscleAlloc(newBufLen);
          MRETURN_OOM_ON_NULL(newBuf);
          newBuf[0] = '\0';  // avoid potential user-visible garbage bytes
-         if (arrayWasDynamicallyAllocated) muscleFree(_strData._bigBuffer);
+         if (arrayWasDynamicallyAllocated) muscleFree(_stringData._longStringData._bigBuffer);
       }
    }
 
    newBuf[muscleMin(Length(), newMaxLength)] = '\0';   // ensure new char array is terminated (it might not be if allowShrink is true)
-   _strData._bigBuffer = newBuf;
-   _bufferLen          = newBufLen;
+   _stringData._longStringData._bigBuffer             = newBuf;
+   _stringData._longStringData._strlen                = oldStrlen;
+   _stringData._longStringData._littleEndianBufferLen = B_HOST_TO_LENDIAN_INT32(newBufLen);
 
    return B_NO_ERROR;
 }
