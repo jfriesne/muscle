@@ -926,9 +926,7 @@ enum {
    B_POINT_TYPE    = 1112559188, /**< 'BPNT' = Point objects (each Point has two floats)   */
    B_RECT_TYPE     = 1380270932, /**< 'RECT' = Rect objects (each Rect has four floats)    */
    B_STRING_TYPE   = 1129534546, /**< 'CSTR' = String objects (variable length)            */
-   B_OBJECT_TYPE   = 1330664530, /**< 'OPTR' = Flattened user objects (obsolete)           */
    B_RAW_TYPE      = 1380013908, /**< 'RAWT' = Raw data (variable number of bytes)         */
-   B_MIME_TYPE     = 1296649541, /**< 'MIME' = MIME strings (obsolete)                     */
    B_BITCHORD_TYPE = 1112818504, /**< 'BTCH' = BitChord type                               */
    B_TAG_TYPE      = 1297367367  /**< 'MTAG' = new for v2.00; for in-mem-only tags         */
 };
@@ -2089,7 +2087,7 @@ template <typename First, typename... Rest> uint32 CalculatePODChecksums(First&&
 /** Hack work-around for lack of variadic templates in C++03 */
 template <typename T1> uint32 CalculatePODChecksums(const T1 & t1) {return CalculatePODChecksum(t1);}
 template <typename T1, typename T2> uint32 CalculatePODChecksums(const T1 & t1, const T2 & t2) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2);}
-template <typename T1, typename T2, typename T3> uint32 CalculatePODChecksums(const T1 & t1, const T2 & t2, const T3 & t3) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatPODChecksum(t3);}
+template <typename T1, typename T2, typename T3> uint32 CalculatePODChecksums(const T1 & t1, const T2 & t2, const T3 & t3) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3);}
 template <typename T1, typename T2, typename T3, typename T4> uint32 CalculatePODChecksums(const T1 & t1, const T2 & t2, const T3 & t3, const T4 & t4) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3)+CalculatePODChecksum(t4);}
 template <typename T1, typename T2, typename T3, typename T4, typename T5> uint32 CalculatePODChecksums(const T1 & t1, const T2 & t2, const T3 & t3, const T4 & t4, const T5 & t5) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3)+CalculatePODChecksum(t4)+CalculatePODChecksum(t5);}
 template <typename T1, typename T2, typename T3, typename T4, typename T5, typename T6> uint32 CalculatePODChecksums(const T1 & t1, const T2 & t2, const T3 & t3, const T4 & t4, const T5 & t5, const T6 & t6) {return CalculatePODChecksum(t1)+CalculatePODChecksum(t2)+CalculatePODChecksum(t3)+CalculatePODChecksum(t4)+CalculatePODChecksum(t5)+CalculatePODChecksum(t6);}

@@ -276,10 +276,12 @@ template<> MUSCLE_NODISCARD inline float  NQFDoMaskOp(uint8 /*maskOp*/, const fl
 template<> MUSCLE_NODISCARD inline double NQFDoMaskOp(uint8 /*maskOp*/, const double & /*msgVal*/, const double & /*argVal*/) {return double();}
 
 /** This templated class is used to generate a number of numeric-comparison-query classes, all of which are quite similar to each other. */
-template <typename DataType, uint32 DataTypeCode, uint32 ClassTypeCode>
+template <typename DataTypeParam, uint32 DataTypeCode, uint32 ClassTypeCode>
 class NumericQueryFilter : public ValueQueryFilter
 {
 public:
+   typedef DataTypeParam DataType;
+
    /** Default constructor.  Sets our value to its default (usually zero), and the operator to OP_EQUAL_TO. */
    NumericQueryFilter() : _value(), _mask(), _op(OP_EQUAL_TO), _maskOp(NQF_MASK_OP_NONE), _assumeDefault(false), _default() {/* empty */}
 
@@ -437,7 +439,14 @@ public:
    virtual void Print(const OutputPrinter & p) const
    {
       ValueQueryFilter::Print(p);
-      p.printf(" _op=%u _maskOp=%u _assumeDefault=%i\n", _op, _maskOp, _assumeDefault);
+      p.printf(" _op=%u _maskOp=%u value=", _op, _maskOp);
+      p.PrintPODValue(_value);
+      if (_assumeDefault)
+      {
+         p.printf(" defaultValue=");
+         p.PrintPODValue(_default);
+      }
+      p.printf("\n");
    }
 
 private:
@@ -472,7 +481,7 @@ typedef NumericQueryFilter<int32,  B_INT32_TYPE,  QUERY_FILTER_TYPE_INT32>  Int3
 typedef NumericQueryFilter<int16,  B_INT16_TYPE,  QUERY_FILTER_TYPE_INT16>  Int16QueryFilter;  DECLARE_REFTYPES(Int16QueryFilter);
 typedef NumericQueryFilter<int8,   B_INT8_TYPE,   QUERY_FILTER_TYPE_INT8>   Int8QueryFilter;   DECLARE_REFTYPES(Int8QueryFilter);
 typedef NumericQueryFilter<Point,  B_POINT_TYPE,  QUERY_FILTER_TYPE_POINT>  PointQueryFilter;  DECLARE_REFTYPES(PointQueryFilter);
-typedef NumericQueryFilter<Point,  B_RECT_TYPE,   QUERY_FILTER_TYPE_RECT>   RectQueryFilter;   DECLARE_REFTYPES(RectQueryFilter);
+typedef NumericQueryFilter<Rect,   B_RECT_TYPE,   QUERY_FILTER_TYPE_RECT>   RectQueryFilter;   DECLARE_REFTYPES(RectQueryFilter);
 
 /** This QueryFilter makes decisions about a node based on the number of child-nodes the node currently has.
   * It doesn't pay any attention to the node's Message-payload.

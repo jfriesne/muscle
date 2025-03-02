@@ -415,9 +415,6 @@ int main(int, char **)
    printf("Testing field name iterator... B_INT8_TYPE\n");
    for (MessageFieldNameIterator it = copy.GetFieldNameIterator(B_INT8_TYPE); it.HasData(); it++) printf("--> [%s]\n", it.GetFieldName()());
 
-   printf("Testing field name iterator... B_OBJECT_TYPE (should have no results)\n");
-   for (MessageFieldNameIterator it = copy.GetFieldNameIterator(B_OBJECT_TYPE); it.HasData(); it++) printf("--> [%s]\n", it.GetFieldName()());
-
    printf("Testing adding and retrieval of FlatCountableRefs by reference\n");
    TestFlatCountableRef tfcRef(new TestFlatCountable("Hello", 5));
    if (msg.AddFlat("tfc", tfcRef).IsOK())

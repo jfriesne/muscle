@@ -1495,6 +1495,9 @@ public:
      */
    MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uint32 GetMaxShortStringLength() {return sizeof(ShortStringData)-2;}  // -1 for the NUL byte and another -1 for _strlenWithHighBitSet
 
+   /** @copydoc DoxyTemplate::Print(const OutputPrinter &) const */
+   void Print(const OutputPrinter & p) const {p.printf("%s", Cstr());}
+
 private:
    status_t InsertCharsAux(uint32 insertAtIdx, const char * str, uint32 numCharsToInsert, uint32 insertCount);
    String WithInsertAux(uint32 insertAtIdx, char c, uint32 numChars) const;

@@ -5,6 +5,7 @@
 #include "regex/StringMatcher.h"
 #include "util/MiscUtilityFunctions.h"  // for MemMem()
 #include "util/OutputPrinter.h"
+#include "util/StringTokenizer.h"
 
 namespace muscle {
 
@@ -114,7 +115,8 @@ status_t ValueExistsQueryFilter :: SetFromArchive(const Message & archive)
 void ValueExistsQueryFilter :: Print(const OutputPrinter & p) const
 {
    ValueQueryFilter::Print(p);
-   p.printf(" _typeCode=" UINT32_FORMAT_SPEC "\n", _typeCode);
+   char buf[5]; MakePrettyTypeCodeString(_typeCode, buf);
+   p.printf(" _typeCode=" UINT32_FORMAT_SPEC "/%s\n", _typeCode, buf);
 }
 
 bool ValueExistsQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * /*optNode*/) const
@@ -668,6 +670,9 @@ enum {
    LTOKEN_BOOL,            // (bool)
    LTOKEN_FLOAT,           // (float)
    LTOKEN_DOUBLE,          // (double)
+   LTOKEN_STRING,          // (string)
+   LTOKEN_POINT,           // (point)
+   LTOKEN_RECT,            // (rect)
    LTOKEN_NOT,             // not
    LTOKEN_WHAT,            // what
    LTOKEN_EXISTS,          // exists
@@ -703,6 +708,9 @@ static const char * _tokStrs[] =
    "(bool)",         // LTOKEN_BOOL
    "(float)",        // LTOKEN_FLOAT
    "(double)",       // LTOKEN_DOUBLE
+   "(string)",       // LTOKEN_STRING
+   "(point)",        // LTOKEN_POINT
+   "(rect)",         // LTOKEN_RECT
    "not",            // LTOKEN_NOT
    "what",           // LTOKEN_WHAT    (lack of space is intentional)
    "exists ",        // LTOKEN_EXISTS  (space is intentional)
@@ -740,45 +748,27 @@ public:
       if (explicitCastType != B_ANY_TYPE) return explicitCastType;
       if ((_valStr.EqualsIgnoreCase("true"))||(_valStr.EqualsIgnoreCase("false"))) return B_BOOL_TYPE;
 
-      switch(_valStr.GetNumInstancesOf(','))
+      const char c = _valStr.HasChars() ? _valStr[0] : '\0';
+      if ((isdigit(c))||(c=='-')||(c=='.')||(c=='+'))
       {
-         case 0:
+         switch(_valStr.GetNumInstancesOf(','))
          {
-            if (_valStr.Contains('.'))
+            case 0:
             {
-               return _valStr.EndsWith('f') ? B_FLOAT_TYPE : B_DOUBLE_TYPE;
+               if (_valStr.Contains('.'))
+               {
+                  return _valStr.EndsWith('f') ? B_FLOAT_TYPE : B_DOUBLE_TYPE;
+               }
+               else return B_INT32_TYPE;  // I guess this is a good default?
             }
-            else return B_INT32_TYPE;  // I guess this is a good default?
+            break;
+
+            case 1:  return B_POINT_TYPE;
+            case 3:  return B_RECT_TYPE;
+            default: return B_ANY_TYPE;
          }
-         break;
-
-         case 1:  return B_POINT_TYPE;
-         case 3:  return B_RECT_TYPE;
-         default: return B_ANY_TYPE;
       }
-   }
-
-   // Returns the StringQueryFilter::OP_* value associated with this infix operator, or StringQueryFilter::NUM_STRING_OPERATORS on failure
-   uint8 GetStringQueryFilterOp(bool isIgnoreCase) const
-   {
-      switch(GetToken())
-      {
-         case LTOKEN_EQ:            return isIgnoreCase ? StringQueryFilter::OP_EQUAL_TO_IGNORECASE                 : StringQueryFilter::OP_EQUAL_TO;                 // ==
-         case LTOKEN_LT:            return isIgnoreCase ? StringQueryFilter::OP_LESS_THAN_IGNORECASE                : StringQueryFilter::OP_LESS_THAN;                // ==
-         case LTOKEN_GT:            return isIgnoreCase ? StringQueryFilter::OP_GREATER_THAN_IGNORECASE             : StringQueryFilter::OP_GREATER_THAN;             // ==
-         case LTOKEN_LEQ:           return isIgnoreCase ? StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO_IGNORECASE    : StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO;    // <=
-         case LTOKEN_GEQ:           return isIgnoreCase ? StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO_IGNORECASE : StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO; // >=
-         case LTOKEN_NEQ:           return isIgnoreCase ? StringQueryFilter::OP_NOT_EQUAL_TO_IGNORECASE             : StringQueryFilter::OP_NOT_EQUAL_TO;             // !=
-         case LTOKEN_STARTSWITH:    return isIgnoreCase ? StringQueryFilter::OP_STARTS_WITH_IGNORECASE              : StringQueryFilter::OP_STARTS_WITH;              // startswith
-         case LTOKEN_ENDSWITH:      return isIgnoreCase ? StringQueryFilter::OP_ENDS_WITH_IGNORECASE                : StringQueryFilter::OP_ENDS_WITH;                // endswith
-         case LTOKEN_CONTAINS:      return isIgnoreCase ? StringQueryFilter::OP_CONTAINS_IGNORECASE                 : StringQueryFilter::OP_CONTAINS;                 // contains
-         case LTOKEN_ISSTARTOF:     return isIgnoreCase ? StringQueryFilter::OP_START_OF_IGNORECASE                 : StringQueryFilter::OP_START_OF;                 // isstartof
-         case LTOKEN_ISENDOF:       return isIgnoreCase ? StringQueryFilter::OP_END_OF_IGNORECASE                   : StringQueryFilter::OP_END_OF;                   // isendof
-         case LTOKEN_ISSUBSTRINGOF: return isIgnoreCase ? StringQueryFilter::OP_SUBSTRING_OF_IGNORECASE             : StringQueryFilter::OP_SUBSTRING_OF;             // issubstringof
-         case LTOKEN_MATCHES:       return StringQueryFilter::OP_SIMPLE_WILDCARD_MATCH;    // matches
-         case LTOKEN_MATCHESREGEX:  return StringQueryFilter::OP_REGULAR_EXPRESSION_MATCH; // matchesregex
-         default:                   return StringQueryFilter::NUM_STRING_OPERATORS;        // failure
-      }
+      else return _valStr.HasChars() ? B_STRING_TYPE : B_ANY_TYPE;
    }
 
    // Returns the B_*_TYPE associated with this token if this token is an explicit-cast, or B_ANY_TYPE otherwise
@@ -793,8 +783,62 @@ public:
          case LTOKEN_BOOL:   return B_BOOL_TYPE;
          case LTOKEN_FLOAT:  return B_FLOAT_TYPE;
          case LTOKEN_DOUBLE: return B_DOUBLE_TYPE;
+         case LTOKEN_STRING: return B_STRING_TYPE;
+         case LTOKEN_POINT:  return B_POINT_TYPE;
+         case LTOKEN_RECT:   return B_RECT_TYPE;
          default:            return B_ANY_TYPE;
       }
+   }
+
+   template<typename T> T GetValueAs() const;
+   template<> bool GetValueAs()   const {return    ParseBool(_valStr());}
+   template<> double GetValueAs() const {return (float) atof(_valStr());}
+   template<> float GetValueAs()  const {return         atof(_valStr());}
+   template<> int64 GetValueAs()  const {return        Atoll(_valStr());}
+   template<> int32 GetValueAs()  const {return (int32) atol(_valStr());}
+   template<> int16 GetValueAs()  const {return (int16) atol(_valStr());}
+   template<> int8 GetValueAs()   const {return (int8)  atol(_valStr());}
+
+   template<> Point GetValueAs() const
+   {
+      StringTokenizer tok(_valStr(), ",");
+      const char * xStr = tok();
+      const char * yStr = tok();
+      return Point(xStr ? (float) atof(xStr) : 0.0f, yStr ? (float) atof(yStr) : 0.0f);
+   }
+
+   template<> Rect GetValueAs() const
+   {
+      StringTokenizer tok(_valStr(), ",");
+      const char * lStr = tok();
+      const char * tStr = tok();
+      const char * rStr = tok();
+      const char * bStr = tok();
+      return Rect(lStr ? (float) atof(lStr) : 0.0f,
+                   tStr ? (float) atof(tStr) : 0.0f,
+                   rStr ? (float) atof(rStr) : 0.0f,
+                   bStr ? (float) atof(bStr) : 0.0f);
+   }
+
+   template<typename NQFType> QueryFilterRef GetNumericQueryFilter(const LexerToken & infixOpTok, const String & fieldName, uint32 subIdx, const LexerToken & optDefaultValue) const
+   {
+      const uint8 numOp = infixOpTok.GetNumericQueryFilterOp();
+      if (numOp == NQFType::NUM_NUMERIC_OPERATORS) return B_ERROR("Unsupported infix operator for numeric value type");
+
+      typedef typename NQFType::DataType ValType;
+      return (optDefaultValue.GetToken() == LTOKEN_VALUESTRING)
+           ? QueryFilterRef(new NQFType(fieldName, numOp, this->GetValueAs<ValType>(), subIdx, optDefaultValue.GetValueAs<ValType>()))
+           : QueryFilterRef(new NQFType(fieldName, numOp, this->GetValueAs<ValType>(), subIdx));
+   }
+
+   QueryFilterRef GetStringQueryFilter(const LexerToken & infixOpTok, const String & fieldName, uint32 subIdx, const LexerToken & optDefaultValue) const
+   {
+      const uint8 stringOp = infixOpTok.GetStringQueryFilterOp(false);  // TODO:  figure out a reasonable syntax to specify the ignore-case options
+      if (stringOp == StringQueryFilter::NUM_STRING_OPERATORS) return B_ERROR("Unsupported infix operator for value type string");
+
+      StringQueryFilterRef sqf(new StringQueryFilter(fieldName, stringOp, GetValueString(), subIdx));
+      if (optDefaultValue.GetToken() == LTOKEN_VALUESTRING) sqf()->SetAssumedDefault(optDefaultValue.GetValueString());
+      return sqf;
    }
 
 private:
@@ -826,6 +870,45 @@ private:
       }
 
       return B_NO_ERROR;
+   }
+
+   // Returns the StringQueryFilter::OP_* value associated with this infix operator, or StringQueryFilter::NUM_STRING_OPERATORS on failure
+   uint8 GetStringQueryFilterOp(bool isIgnoreCase) const
+   {
+      switch(GetToken())
+      {
+         case LTOKEN_EQ:            return isIgnoreCase ? StringQueryFilter::OP_EQUAL_TO_IGNORECASE                 : StringQueryFilter::OP_EQUAL_TO;                 // ==
+         case LTOKEN_LT:            return isIgnoreCase ? StringQueryFilter::OP_LESS_THAN_IGNORECASE                : StringQueryFilter::OP_LESS_THAN;                // <
+         case LTOKEN_GT:            return isIgnoreCase ? StringQueryFilter::OP_GREATER_THAN_IGNORECASE             : StringQueryFilter::OP_GREATER_THAN;             // >
+         case LTOKEN_LEQ:           return isIgnoreCase ? StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO_IGNORECASE    : StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO;    // <=
+         case LTOKEN_GEQ:           return isIgnoreCase ? StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO_IGNORECASE : StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO; // >=
+         case LTOKEN_NEQ:           return isIgnoreCase ? StringQueryFilter::OP_NOT_EQUAL_TO_IGNORECASE             : StringQueryFilter::OP_NOT_EQUAL_TO;             // !=
+         case LTOKEN_STARTSWITH:    return isIgnoreCase ? StringQueryFilter::OP_STARTS_WITH_IGNORECASE              : StringQueryFilter::OP_STARTS_WITH;              // startswith
+         case LTOKEN_ENDSWITH:      return isIgnoreCase ? StringQueryFilter::OP_ENDS_WITH_IGNORECASE                : StringQueryFilter::OP_ENDS_WITH;                // endswith
+         case LTOKEN_CONTAINS:      return isIgnoreCase ? StringQueryFilter::OP_CONTAINS_IGNORECASE                 : StringQueryFilter::OP_CONTAINS;                 // contains
+         case LTOKEN_ISSTARTOF:     return isIgnoreCase ? StringQueryFilter::OP_START_OF_IGNORECASE                 : StringQueryFilter::OP_START_OF;                 // isstartof
+         case LTOKEN_ISENDOF:       return isIgnoreCase ? StringQueryFilter::OP_END_OF_IGNORECASE                   : StringQueryFilter::OP_END_OF;                   // isendof
+         case LTOKEN_ISSUBSTRINGOF: return isIgnoreCase ? StringQueryFilter::OP_SUBSTRING_OF_IGNORECASE             : StringQueryFilter::OP_SUBSTRING_OF;             // issubstringof
+         case LTOKEN_MATCHES:       return StringQueryFilter::OP_SIMPLE_WILDCARD_MATCH;    // matches
+         case LTOKEN_MATCHESREGEX:  return StringQueryFilter::OP_REGULAR_EXPRESSION_MATCH; // matchesregex
+         default:                   return StringQueryFilter::NUM_STRING_OPERATORS;        // failure
+      }
+   }
+
+   // Returns the NumericQueryFilter::OP_* value associated with this infix operator, or NumericQueryFilter::NUM_STRING_OPERATORS on failure
+   uint8 GetNumericQueryFilterOp() const
+   {
+      // Note that I just chose Int32QueryFilter here arbitrarily for convenience; the OP_* values are the same for all NumericQueryFilter template-instantiations
+      switch(GetToken())
+      {
+         case LTOKEN_EQ:  return Int32QueryFilter::OP_EQUAL_TO;                 // ==
+         case LTOKEN_LT:  return Int32QueryFilter::OP_LESS_THAN;                // <
+         case LTOKEN_GT:  return Int32QueryFilter::OP_GREATER_THAN;             // >
+         case LTOKEN_LEQ: return Int32QueryFilter::OP_LESS_THAN_OR_EQUAL_TO;    // <=
+         case LTOKEN_GEQ: return Int32QueryFilter::OP_GREATER_THAN_OR_EQUAL_TO; // >=
+         case LTOKEN_NEQ: return Int32QueryFilter::OP_NOT_EQUAL_TO;             // !=
+         default:         return Int32QueryFilter::NUM_NUMERIC_OPERATORS;       // failure
+      }
    }
 };
 
@@ -911,7 +994,7 @@ private:
    uint32 _curPos;
 };
 
-static QueryFilterRef MaybeNegate(bool doNegate, const QueryFilterRef & qf) {return doNegate ? QueryFilterRef(new NorQueryFilter(qf)) : qf;}
+static QueryFilterRef MaybeNegate(bool doNegate, const QueryFilterRef & qf) {return ((doNegate)&&(qf())) ? QueryFilterRef(new NorQueryFilter(qf)) : qf;}
 
 static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
 {
@@ -989,6 +1072,7 @@ printf("fieldNameTok=[%s] infixOpTok=[%s] valTok=[%s] isNegated=%i\n", fieldName
          const uint32 valueType = valTok.GetValueStringType(explicitCastType);
          if (valueType == B_ANY_TYPE) return B_ERROR("Unable to determine type of value-token at end of subexpression");
 
+         QueryFilterRef ret;
          switch(fieldNameTok.GetToken())
          {
             case LTOKEN_WHAT:
@@ -1008,26 +1092,26 @@ printf("fieldNameTok=[%s] infixOpTok=[%s] valTok=[%s] isNegated=%i\n", fieldName
                   case LTOKEN_GEQ: minWhat = whatVal;           break;
                }
 
-               QueryFilterRef ret(new WhatCodeQueryFilter(minWhat, maxWhat));
+               ret.SetRef(new WhatCodeQueryFilter(minWhat, maxWhat));
                if (infixOpTok.GetToken() == LTOKEN_NEQ) ret.SetRef(new NorQueryFilter(ret));
-               return MaybeNegate(isNegated, ret);
             }
             break;
 
             case LTOKEN_VALUESTRING:
             {
-               if (valueType == B_STRING_TYPE)
+               switch(valueType)
                {
-                  const uint8 stringOp = infixOpTok.GetStringQueryFilterOp(false);  // TODO:  figure out a syntax for ignore-case option
-                  if (stringOp == StringQueryFilter::NUM_STRING_OPERATORS) return B_ERROR("Unsupported infix operator for value type string");
-
-                  StringQueryFilterRef ret(new StringQueryFilter(fieldName, stringOp, valTok.GetValueString(), subIdx));
-                  if (optDefaultValue.GetToken() == LTOKEN_VALUESTRING) ret()->SetAssumedDefault(optDefaultValue.GetValueString());
-                  return MaybeNegate(isNegated, ret);
-               }
-               else
-               {
-                  return B_ERROR("TODO:  implement me");
+                  case B_STRING_TYPE: ret = valTok.GetStringQueryFilter                     (infixOpTok, fieldName, subIdx, optDefaultValue); break;
+                  case B_BOOL_TYPE:   ret = valTok.GetNumericQueryFilter<BoolQueryFilter>   (infixOpTok, fieldName, subIdx, optDefaultValue); break;
+                  case B_DOUBLE_TYPE: ret = valTok.GetNumericQueryFilter<DoubleQueryFilter> (infixOpTok, fieldName, subIdx, optDefaultValue); break;
+                  case B_FLOAT_TYPE:  ret = valTok.GetNumericQueryFilter<FloatQueryFilter>  (infixOpTok, fieldName, subIdx, optDefaultValue); break;
+                  case B_INT64_TYPE:  ret = valTok.GetNumericQueryFilter<Int64QueryFilter>  (infixOpTok, fieldName, subIdx, optDefaultValue); break;
+                  case B_INT32_TYPE:  ret = valTok.GetNumericQueryFilter<Int32QueryFilter>  (infixOpTok, fieldName, subIdx, optDefaultValue); break;
+                  case B_INT16_TYPE:  ret = valTok.GetNumericQueryFilter<Int16QueryFilter>  (infixOpTok, fieldName, subIdx, optDefaultValue); break;
+                  case B_INT8_TYPE:   ret = valTok.GetNumericQueryFilter<Int8QueryFilter>   (infixOpTok, fieldName, subIdx, optDefaultValue); break;
+                  case B_POINT_TYPE:  ret = valTok.GetNumericQueryFilter<PointQueryFilter>  (infixOpTok, fieldName, subIdx, optDefaultValue); break;
+                  case B_RECT_TYPE:   ret = valTok.GetNumericQueryFilter<RectQueryFilter>   (infixOpTok, fieldName, subIdx, optDefaultValue); break;
+                  default:            return B_ERROR("Unsupported value-type");
                }
             }
             break;
@@ -1035,6 +1119,8 @@ printf("fieldNameTok=[%s] infixOpTok=[%s] valTok=[%s] isNegated=%i\n", fieldName
             default:
                return B_ERROR("Unspported first token for three-token subexpression");
          }
+
+         return MaybeNegate(isNegated, ret);
       }
    }
 
@@ -1047,6 +1133,5 @@ QueryFilterRef CreateQueryFilterFromExpression(const String & expression)
    //while(lexer.GetNextToken(nextTok).IsOK()) printf(" -> %s\n", nextTok.ToString()());
    return CreateQueryFilterFromExpressionAux(lexer);
 }
-
 
 } // end namespace muscle

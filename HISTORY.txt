@@ -10,6 +10,9 @@ key:  - new feature
      takes a reference to the WaitCondition to use.
    - Added Print(const OutputPrinter &) methods to the QueryFilter classes,
      for easier debugging.
+   - Added some templated PrintPODValue() methods to the OutputPrinter
+     class, for easier output from templated code.
+   - Added a Print(const OutputPrinter &) method to the String class.
    o Removed MUSCLE_AVOID_CLOCK_MONOTONIC_RAW and added
      MUSCLE_USE_CLOCK_MONOTONIC_RAW in its place.
    o Made IsPerKeyClearNecessary() and IsPerValueClearNecessary() methods
@@ -20,10 +23,12 @@ key:  - new feature
      than 4GB.
    o Removed the SMALL_MUSCLE_STRING_LENGTH preprocessor constant, and instead
      added a GetMaxShortStringLength() static method to the String class.
+   o Removed obsolete B_MIME_TYPE and B_OBJECT_TYPE values from the enum.
    * Removed the -fembed-bitcode flag for iOS builds from CMakeLists.txt.
    * Fixed a bug that would cause an infinite recursion if Snooze64()
      was called with a value greater than one day.
    * Fixed an error in SignalMultiplexer.cpp when building under Emscripten.
+   * RectQueryFilter was declared incorrectly.  Fixed.
 
 9.61 - Released 2/3/2025
    - Added AppendChars() PrependChars(), and InsertChars() methods to
