@@ -50,7 +50,7 @@ static status_t UnitTestString()
       printf("Before copy-from-empty:   longString [%s] bufSize=" UINT32_FORMAT_SPEC ", emptyString [%s] bufSize=" UINT32_FORMAT_SPEC "\n", longString(), longString.GetNumAllocatedBytes(), emptyString(), emptyString.GetNumAllocatedBytes());
       longString = emptyString;
       printf(" After copy-from-empty:   longString [%s] bufSize=" UINT32_FORMAT_SPEC ", emptyString [%s] bufSize=" UINT32_FORMAT_SPEC "\n", longString(), longString.GetNumAllocatedBytes(), emptyString(), emptyString.GetNumAllocatedBytes());
-      if (longString.GetNumAllocatedBytes() > (String::GetMaxShortStringLength()+1)) return B_ERROR("String set from empty string still has a non-default buffer!");
+      if (longString.GetNumAllocatedBytes() > (longString.GetMaxShortStringLength()+1)) return B_ERROR("String set from empty string still has a non-default buffer!");
    }
 
    {
