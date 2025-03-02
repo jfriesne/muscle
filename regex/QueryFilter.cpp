@@ -721,6 +721,36 @@ MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_tokStrs, NUM_LTOKENS);
 static bool _tokStrlensNeedsInit = true;
 static size_t _tokStrlens[NUM_LTOKENS] ;
 
+template<typename T> T GetValueAs(const String & v);
+template<> bool   GetValueAs(const String & v) {return    ParseBool(v());}
+template<> double GetValueAs(const String & v) {return (float) atof(v());}
+template<> float  GetValueAs(const String & v) {return         atof(v());}
+template<> int64  GetValueAs(const String & v) {return        Atoll(v());}
+template<> int32  GetValueAs(const String & v) {return (int32) atol(v());}
+template<> int16  GetValueAs(const String & v) {return (int16) atol(v());}
+template<> int8   GetValueAs(const String & v) {return (int8)  atol(v());}
+
+template<> Point GetValueAs(const String & v)
+{
+   StringTokenizer tok(v(), ",");
+   const char * xStr = tok();
+   const char * yStr = tok();
+   return Point(xStr ? (float) atof(xStr) : 0.0f, yStr ? (float) atof(yStr) : 0.0f);
+}
+
+template<> Rect GetValueAs(const String & v)
+{
+   StringTokenizer tok(v(), ",");
+   const char * lStr = tok();
+   const char * tStr = tok();
+   const char * rStr = tok();
+   const char * bStr = tok();
+   return Rect(lStr ? (float) atof(lStr) : 0.0f,
+               tStr ? (float) atof(tStr) : 0.0f,
+               rStr ? (float) atof(rStr) : 0.0f,
+               bStr ? (float) atof(bStr) : 0.0f);
+}
+
 class LexerToken
 {
 public:
@@ -790,36 +820,6 @@ public:
       }
    }
 
-   template<typename T> T GetValueAs() const;
-   template<> bool GetValueAs()   const {return    ParseBool(_valStr());}
-   template<> double GetValueAs() const {return (float) atof(_valStr());}
-   template<> float GetValueAs()  const {return         atof(_valStr());}
-   template<> int64 GetValueAs()  const {return        Atoll(_valStr());}
-   template<> int32 GetValueAs()  const {return (int32) atol(_valStr());}
-   template<> int16 GetValueAs()  const {return (int16) atol(_valStr());}
-   template<> int8 GetValueAs()   const {return (int8)  atol(_valStr());}
-
-   template<> Point GetValueAs() const
-   {
-      StringTokenizer tok(_valStr(), ",");
-      const char * xStr = tok();
-      const char * yStr = tok();
-      return Point(xStr ? (float) atof(xStr) : 0.0f, yStr ? (float) atof(yStr) : 0.0f);
-   }
-
-   template<> Rect GetValueAs() const
-   {
-      StringTokenizer tok(_valStr(), ",");
-      const char * lStr = tok();
-      const char * tStr = tok();
-      const char * rStr = tok();
-      const char * bStr = tok();
-      return Rect(lStr ? (float) atof(lStr) : 0.0f,
-                   tStr ? (float) atof(tStr) : 0.0f,
-                   rStr ? (float) atof(rStr) : 0.0f,
-                   bStr ? (float) atof(bStr) : 0.0f);
-   }
-
    template<typename NQFType> QueryFilterRef GetNumericQueryFilter(const LexerToken & infixOpTok, const String & fieldName, uint32 subIdx, const LexerToken & optDefaultValue) const
    {
       const uint8 numOp = infixOpTok.GetNumericQueryFilterOp();
@@ -827,8 +827,8 @@ public:
 
       typedef typename NQFType::DataType ValType;
       return (optDefaultValue.GetToken() == LTOKEN_VALUESTRING)
-           ? QueryFilterRef(new NQFType(fieldName, numOp, this->GetValueAs<ValType>(), subIdx, optDefaultValue.GetValueAs<ValType>()))
-           : QueryFilterRef(new NQFType(fieldName, numOp, this->GetValueAs<ValType>(), subIdx));
+           ? QueryFilterRef(new NQFType(fieldName, numOp, GetValueAs<ValType>(GetValueString()), subIdx, GetValueAs<ValType>(optDefaultValue.GetValueString())))
+           : QueryFilterRef(new NQFType(fieldName, numOp, GetValueAs<ValType>(GetValueString()), subIdx));
    }
 
    QueryFilterRef GetStringQueryFilter(const LexerToken & infixOpTok, const String & fieldName, uint32 subIdx, const LexerToken & optDefaultValue) const
