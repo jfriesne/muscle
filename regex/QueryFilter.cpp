@@ -785,10 +785,8 @@ public:
          {
             case 0:
             {
-               if (_valStr.Contains('.'))
-               {
-                  return _valStr.EndsWith('f') ? B_FLOAT_TYPE : B_DOUBLE_TYPE;
-               }
+                    if (_valStr.EndsWith('f')) return B_FLOAT_TYPE;
+               else if (_valStr.Contains('.')) return B_DOUBLE_TYPE;
                else return B_INT32_TYPE;  // I guess this is a good default?
             }
             break;
@@ -1000,6 +998,11 @@ static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
 {
    Queue<LexerToken> localToks;
 
+   LexerToken conjunctionTok;
+   MultiQueryFilterRef conjunctionRef;
+
+   QueryFilterRef subRef;  // if we recursed downwards into a (subexpression), we placed the result here
+
    bool keepGoing = true, isNegated = false;
    LexerToken nextTok;
    while((keepGoing)&&(lexer.GetNextToken(nextTok).IsOK()))
@@ -1012,21 +1015,53 @@ static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
          break;
 
          case LTOKEN_LPAREN:          // (
-         {
-            QueryFilterRef subRet = CreateQueryFilterFromExpressionAux(lexer);
-         }
+            subRef = CreateQueryFilterFromExpressionAux(lexer);
+            MRETURN_ON_ERROR(subRef);
          break;
 
          case LTOKEN_RPAREN:          // )
             keepGoing = false; // our subexpression ends here
          break;
 
+         case LTOKEN_AND:             // &&
+         case LTOKEN_OR:              // ||
+         case LTOKEN_XOR:             // ^
+         {
+            if (subRef() == NULL) return B_ERROR("Conjunction-operator must appear after a subexpression");
+            if ((conjunctionRef())&&(conjunctionTok.GetToken() != nextTok.GetToken())) return B_ERROR("Mixed-operator conjunctions aren't supported, use parentheses to disambiguate");
+            if (conjunctionRef() == NULL)
+            {
+               switch(nextTok.GetToken())
+               {
+                  case LTOKEN_AND: conjunctionRef.SetRef(new AndQueryFilter); break;
+                  case LTOKEN_OR:  conjunctionRef.SetRef(new  OrQueryFilter); break;
+                  case LTOKEN_XOR: conjunctionRef.SetRef(new XorQueryFilter); break;
+                  default:         return B_LOGIC_ERROR;  // unreachable!
+               }
+               conjunctionTok = nextTok;
+            }
+            MRETURN_ON_ERROR(conjunctionRef()->GetChildren().AddTail(subRef));
+            subRef.Reset();
+         }
+         break;
+
          default:
+            if (conjunctionRef()) return B_ERROR("Non-subexpression token not permitted within a conjunction");
             MRETURN_ON_ERROR(localToks.AddTail(nextTok));
             if (localToks.GetNumItems() > 4) return B_ERROR("Subexpression cannot contain more than four tokens");
          break;
       }
    }
+   if (conjunctionRef())
+   {
+      if (subRef())
+      {
+         MRETURN_ON_ERROR(conjunctionRef()->GetChildren().AddTail(subRef));
+         return conjunctionRef;
+      }
+      else return B_ERROR("No subexpression after conjunction-operator");
+   }
+   else if (subRef()) return MaybeNegate(isNegated, subRef);
 
    if (localToks.GetNumItems() < 2) return B_ERROR("Subexpression must contain at least two tokens");
 
@@ -1063,7 +1098,6 @@ static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
          const LexerToken & infixOpTok   = localToks[1];
          const LexerToken & valTok       = localToks[2];
 
-printf("fieldNameTok=[%s] infixOpTok=[%s] valTok=[%s] isNegated=%i\n", fieldNameTok.ToString()(), infixOpTok.ToString()(), valTok.ToString()(), isNegated);
          String fieldName;
          uint32 subIdx = 0;
          LexerToken optDefaultValue;

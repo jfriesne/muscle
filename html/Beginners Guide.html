@@ -76,42 +76,43 @@ Once you have your MessageTransceiverThread object, you can tell it that you wan
 
 <LI><i>Sending messages.</i><p>
 To send a message to the server, just call the MessageTransceiverThread's SendMessageToSessions() method.  This method will return immediately, but the message you specify will be placed in an outbound-message queue for sending as soon as possible.  Messages are passed in using a MessageRef reference object, to avoid needless data-copying.  For example:
-<p>
-<pre>MessageRef newMsg = GetMessageFromPool('HELO');
-if (newMsg())
-{
-   newMsg()->AddString("testing", "please");
-   if (myTransceiver.SendMessageToSessions(newMsg) != B_NO_ERROR) printf("Couldn't send message!\n");
-}
-else WARN_OUT_OF_MEMORY;
+<p><pre>
+	MessageRef newMsg = GetMessageFromPool('HELO');
+	if (newMsg())
+	{
+	   newMsg()->AddString("testing", "please");
+	   if (myTransceiver.SendMessageToSessions(newMsg) != B_NO_ERROR) printf("Couldn't send message!\n");
+	}
+	else WARN_OUT_OF_MEMORY;
 </LI>
 
 <LI><i>Receiving messages</i><p>
-If you're using Qt, this is easy--whenever a Message arrives from the server, the MessageReceived() signal will be emitted and your connected object can act on it.  When you receive such a signal, your can retrieve the pending Message(s) like this:<p>
+If you're using Qt, this is easy--whenever a Message arrives from the server, the MessageReceived() signal will be emitted and your connected object can act on it.  When you receive such a signal, your can retrieve the pending Message(s) like this:
+<p><pre>
+	MessageRef msg;
+	uint32 code;
+	while(myTransceiver.GetNextEventFromInternalThread(code, &msg).IsOK())
+	{
+	   switch(code)
+	   {
+	      case MTT_EVENT_INCOMING_MESSAGE:
+	      {
+	         Message * pMsg = msg();  // Get access to the reference's held Message object.
+	         HandleMessage(pMsg);     // Do whatever you gotta do
+	         /* do NOT delete (pMsg).  It will be deleted for you. */
+	      }
+	      break;
 
-<pre>MessageRef msg;
-uint32 code;
-while(myTransceiver.GetNextEventFromInternalThread(code, &msg).IsOK())
-{
-   switch(code)
-   {
-      case MTT_EVENT_INCOMING_MESSAGE:
-      {
-         Message * pMsg = msg();  // Get access to the reference's held Message object.
-         HandleMessage(pMsg);     // Do whatever you gotta do
-         /* do NOT delete (pMsg).  It will be deleted for you. */
-      }
-      break;
+	      case MTT_EVENT_SESSION_CONNECTED:
+	         printf("Connection to server was successful!\n");
+	      break;
 
-      case MTT_EVENT_SESSION_CONNECTED:
-         printf("Connection to server was successful!\n");
-      break;
-
-      case MTT_EVENT_SESSION_DISCONNECTED:
-         printf("Disconnected from server, or connection failed!\n");
-      break;
-    }
-};</pre><p>
+	      case MTT_EVENT_SESSION_DISCONNECTED:
+	         printf("Disconnected from server, or connection failed!\n");
+	      break;
+	    }
+	};
+</pre><p>
 </LI>
 
 <LI><i>Disconnecting</i><p>
@@ -125,55 +126,57 @@ When you've had enough of chatting with the server, you can end your session by 
 <p>
 For code that where you don't want to spawn an extra thread, you can use the single-threaded messaging API, as defined by the DataIO and MessageIOGateway classes.  These classes allow you to decouple your TCP data transfer calls from your message processing calls, and yet still keep the same general message-queue semantics that we know and love.<p>
 To create a connection to the MUSCLE server, you would first make a TCP connection using standard BSD sockets calls (see portablereflectclient.cpp for an example of this).  Once you have a connected socket, you would use it to create a TCPSocketDataIO, which you would use to create a MessageIOGateway object:<p><pre>
-MessageIOGateway gw;  // create the gateway
-gw.SetDataIO(DataIORef(new TCPSocketDataIO(mysocketfd, false)));  // tell the gateway to use our TCP socket
+	MessageIOGateway gw;  // create the gateway
+	gw.SetDataIO(DataIORef(new TCPSocketDataIO(mysocketfd, false)));  // tell the gateway to use our TCP socket
 </pre>
 <p>
 This gateway allows you to enqueue outgoing Message or dequeue incoming Messages at any time by calling AddOutgoingMessage() or GetNextIncomingMessage(), respectively.  These methods are guaranteed never to block.  Like the MessageTransceiverThread, the MessageIOGateway uses MessageRef objects to handle the freeing of Messages when they are no longer in use.<p>
 <p>
-To actually send and receive TCP data, you need to call DoOutput() and DoInput(), respectively.  These methods will send/receive as many bytes of TCP data as they can (without blocking), and then return B_NO_ERROR (unless the connection has been cut, in which case they will return an error code such as B_IO_ERROR).  Because these methods never block (unless your TCPSocketDataIO is set to blocking I/O mode, which in general it shouldn't be), you will need to employ a SocketMultiplexer object to keep your event loop from using 100% CPU time while waiting to send or receive data.  Here is an example event loop that does this:<p>
+To actually send and receive TCP data, you need to call DoOutput() and DoInput(), respectively.  These methods will send/receive as many bytes of TCP data as they can (without blocking), and then return B_NO_ERROR (unless the connection has been cut, in which case they will return an error code such as B_IO_ERROR).  Because these methods never block (unless your TCPSocketDataIO is set to blocking I/O mode, which in general it shouldn't be), you will need to employ a SocketMultiplexer object to keep your event loop from using 100% CPU time while waiting to send or receive data.  Here is an example event loop that does this:
 
-<pre>ConstSocketRef connectionSocket = Connect("servername.serverdomain.com", 2960);  // get a fresh TCP socket connection
-if (connectionSocket())
-{
-   MessageIOGateway gw;
-   gw.SetDataIO(DataIORef(new TCPSocketDataIO(connectionSocket, false)));
+<p><pre>
+	ConstSocketRef connectionSocket = Connect("servername.serverdomain.com", 2960);  // get a fresh TCP socket connection
+	if (connectionSocket())
+	{
+	   MessageIOGateway gw;
+	   gw.SetDataIO(DataIORef(new TCPSocketDataIO(connectionSocket, false)));
 
-   SocketMultiplexer multiplexer;
-   QueueGatewayMessageReceiver inputQueue;
-   while(1)
-   {
-      const int socketFD = connectionSocket.GetFileDescriptor();
-      multiplexer.RegisterSocketForReadReady(socketFD);  // tell WaitForEvents() to return when there are incoming bytes to read
-      if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(socketFD);  // ditto for outgoing buffer space to write to
+	   SocketMultiplexer multiplexer;
+	   QueueGatewayMessageReceiver inputQueue;
+	   while(1)
+	   {
+	      const int socketFD = connectionSocket.GetFileDescriptor();
+	      multiplexer.RegisterSocketForReadReady(socketFD);  // tell WaitForEvents() to return when there are incoming bytes to read
+	      if (gw.HasBytesToOutput()) multiplexer.RegisterSocketForWriteReady(socketFD);  // ditto for outgoing buffer space to write to
 
-      const io_status_t wret = multiplexer.WaitForEvents();  // We'll block here until there is some more I/O we can do
-      if (wret.IsError())
-      {
-         printf("WaitEvents() failed [%s]\n", wret());
-         break;
-      }
+	      const io_status_t wret = multiplexer.WaitForEvents();  // We'll block here until there is some more I/O we can do
+	      if (wret.IsError())
+	      {
+	         printf("WaitEvents() failed [%s]\n", wret());
+	         break;
+	      }
 
-      /* Do as much TCP I/O as possible without blocking */
-      const bool writeError = ((multiplexer.IsSocketReadyForWrite(socketFD))&&(gw.DoOutput().IsError()));
-      const bool readError  = ((multiplexer.IsSocketReadyForRead(socketFD))&&(gw.DoInput(inputQueue).IsError()));
-      if ((readError)||(writeError))
-      {
-         printf("%s error -- socket connection closed?  Aborting!\n", readError?"Read":"Write");
-         break;
-      }
+	      /* Do as much TCP I/O as possible without blocking */
+	      const bool writeError = ((multiplexer.IsSocketReadyForWrite(socketFD))&&(gw.DoOutput().IsError()));
+	      const bool readError  = ((multiplexer.IsSocketReadyForRead(socketFD))&&(gw.DoInput(inputQueue).IsError()));
+	      if ((readError)||(writeError))
+	      {
+	         printf("%s error -- socket connection closed?  Aborting!\n", readError?"Read":"Write");
+	         break;
+	      }
 
-      /* handle any Messages that were made available by the gw.DoInput() call */
-      MessageRef msg;
-      while(inputQueue.GetMessages().RemoveHead(msg) == B_NO_ERROR)
-      {
-         printf("Received incoming TCP Message:\n");
-         if (msg()) msg()->Print(stdout);  // handle message here
-      }
-   }
-   printf("Connection was closed!\n");
-}
-else printf("Couldn't connect!\n");</pre><p>
+	      /* handle any Messages that were made available by the gw.DoInput() call */
+	      MessageRef msg;
+	      while(inputQueue.GetMessages().RemoveHead(msg) == B_NO_ERROR)
+	      {
+	         printf("Received incoming TCP Message:\n");
+	         if (msg()) msg()->Print(stdout);  // handle message here
+	      }
+	   }
+	   printf("Connection was closed!\n");
+	}
+	else printf("Couldn't connect!\n");
+</pre><p>
 
 Alternatively, you can set the blocking-I/O parameter in the TCPSocketDataIO object to true, and use blocking I/O instead.  If you do that, then you don't have to deal with the complexities of socket multiplexing... but then it becomes difficult to coordinate sending and receiving at the same time (i.e. how can you call DoOutput() if you are blocked waiting for data in DoInput()?)
 <p>
@@ -218,19 +221,20 @@ As in any good filesystem (e.g. UNIX's), nodes can be identified uniquely by a n
 
 <H4>Creating or modifying nodes in your subtree (a.k.a. uploading data)</H4><p>
 
-One thing most clients will want to do is create one or more new nodes in their subtree on the server.  Since each node contains a Message, creating a node is the same thing as uploading data to the server.  To do this, you send the server a PR_COMMAND_SETDATA message.  A single PR_COMMAND_SETDATA message can set any number of new nodes.  For each node you wish to set, simply AddMessage() the value you wish to set it to, with a field name equal to the path of the node relative to your "home directory".  For example, here's what the client from 132.239.50.13 could have done to create the MoreData, RedFish, and BlueFish nodes under his home directory:<p>
+One thing most clients will want to do is create one or more new nodes in their subtree on the server.  Since each node contains a Message, creating a node is the same thing as uploading data to the server.  To do this, you send the server a PR_COMMAND_SETDATA message.  A single PR_COMMAND_SETDATA message can set any number of new nodes.  For each node you wish to set, simply AddMessage() the value you wish to set it to, with a field name equal to the path of the node relative to your "home directory".  For example, here's what the client from 132.239.50.13 could have done to create the MoreData, RedFish, and BlueFish nodes under his home directory:
 
-<pre>Message redFishMessage('RedF');   // these messages could contain data
-Message blueFishMessage('BluF');  // you wish to upload to the server
+<p><pre>
+	Message redFishMessage('RedF');   // these messages could contain data
+	Message blueFishMessage('BluF');  // you wish to upload to the server
 
-MessageRef msg = GetMessageFromPool(PR_COMMAND_SETDATA);
-if (msg())
-{
-   msg()->AddMessage("MoreData/RedFish", redFishMessage);
-   msg()->AddMessage("MoreData/BlueFish", blueFishMessage);
-   myMessageTranceiver->SendMessageToSessions(msg);
-}
-else printf("Out of memory?!\n");
+	MessageRef msg = GetMessageFromPool(PR_COMMAND_SETDATA);
+	if (msg())
+	{
+	   msg()->AddMessage("MoreData/RedFish", redFishMessage);
+	   msg()->AddMessage("MoreData/BlueFish", blueFishMessage);
+	   myMessageTranceiver->SendMessageToSessions(msg);
+	}
+	else printf("Out of memory?!\n");
 </pre><p>
 
 Note that the "MoreData" node did not need to be explicitely created in this message; the server will see that it doesn't exist and create it before adding RedFish and BlueFish to the tree.  (Nodes created in this way have empty Messages associated with them).  If 132.239.50.13 later wants to change the data in any of these nodes, he can just send another PR_COMMAND_SETDATA message with the same field names, but different messages.<p>
@@ -239,14 +243,16 @@ Note that the "MoreData" node did not need to be explicitely created in this mes
 
 If you want to find out the current state of one or more nodes on the server, you should send a PR_COMMAND_GETDATA message.  In this PR_COMMAND_GETDATA message, you should add one or more strings to the PR_NAME_KEYS field.  Each of these strings may specify the full path-name of a node in the tree that you are interested in.  For example:
 
-<pre>MessageRef msg = GetMessageFromPool(PR_COMMAND_GETDATA);
-if (msg())
-{
-   msg()->AddString(PR_NAME_KEYS, "/192.168.0.150/3217617/SomeData");
-   msg()->AddString(PR_NAME_KEYS, "/132.239.50.13/1829023/MoreData/RedFish");
-   msg()->AddString(PR_NAME_KEYS, "/132.239.50.13/1829023");
-   myMessageTranceiver->SendMessageToSessions(msg);
-}</pre><p>
+<p><pre>
+	MessageRef msg = GetMessageFromPool(PR_COMMAND_GETDATA);
+	if (msg())
+	{
+	   msg()->AddString(PR_NAME_KEYS, "/192.168.0.150/3217617/SomeData");
+	   msg()->AddString(PR_NAME_KEYS, "/132.239.50.13/1829023/MoreData/RedFish");
+	   msg()->AddString(PR_NAME_KEYS, "/132.239.50.13/1829023");
+	   myMessageTranceiver->SendMessageToSessions(msg);
+	}
+</pre><p>
 
 Soon after you sent this message, the server would respond with a PR_RESULT_DATAITEMS message.  This message would contain the values you asked for.  Each value is stored in a separate message field, with the field's name being the full node-path of the node, and the field's value being the Message that was stored with that node on the server.  So for the above request, the result would be:
 
@@ -259,14 +265,16 @@ Soon after you sent this message, the server would respond with a PR_RESULT_DATA
 
 Of course, not all the nodes you specified may actually exist on the server; if the server cannot find a node that you requested it simply won't add it to the PR_RESULT_DATAITEMS message it sends you.  Thus it's possible to get back an empty PR_RESULT_DATAITEMS message if you're unlucky.<p>
 
-The above method of retrieving data is okay as far as it goes, but it only works if you know in advance the node-path(s) of the data you want.  But in the real world, you won't usually know e.g. the host addresses of other connected clients.  Fortunately, the MUSCLE server understands wildcard patterns in the node-paths you send it.  Wildcarding allows you to specify a pattern to watch for rather than a particular unique string.  A detailed discussion of pattern matching is outside the scope of this document, but if you've used any UNIX-style shell much at all you probably have a good idea how they work.  For example, say we wanted to know the host address of every machine connected to the server:<p>
+The above method of retrieving data is okay as far as it goes, but it only works if you know in advance the node-path(s) of the data you want.  But in the real world, you won't usually know e.g. the host addresses of other connected clients.  Fortunately, the MUSCLE server understands wildcard patterns in the node-paths you send it.  Wildcarding allows you to specify a pattern to watch for rather than a particular unique string.  A detailed discussion of pattern matching is outside the scope of this document, but if you've used any UNIX-style shell much at all you probably have a good idea how they work.  For example, say we wanted to know the host address of every machine connected to the server:
 
-<pre>MessageRef msg = GetMessageFromPool(PR_COMMAND_GETDATA);
-if (msg())
-{
-   msg()->AddString(PR_NAME_KEYS, "/*");
-   myMessageTranceiver->SendMessageToSessions(msg);
-}</pre><p>
+<p><pre>
+	MessageRef msg = GetMessageFromPool(PR_COMMAND_GETDATA);
+	if (msg())
+	{
+	   msg()->AddString(PR_NAME_KEYS, "/*");
+	   myMessageTranceiver->SendMessageToSessions(msg);
+	}
+</pre><p>
 
 The "/*" pattern in the PR_NAME_KEYS field above matches both "/192.168.0.150" and "/132.239.50.13" in the tree, so we would get back the following:
 
@@ -276,37 +284,50 @@ The "/*" pattern in the PR_NAME_KEYS field above matches both "/192.168.0.150" a
 
 Or, perhaps we want to know about every node in every session's home directory that starts with the letters "Som".  Then we could do:
 
-<pre>msg()->AddString(PR_NAME_KEYS, "/*/*/Som*");</pre><p>
+<p><pre>
+	msg()->AddString(PR_NAME_KEYS, "/*/*/Som*");
+</pre><p>
 
 And so on.  And of course, you are still able to add multiple PR_NAME_KEYS values to a single PR_COMMAND_GETDATA message;  the PR_RESULT_DATAITEMS message you get back will contain data for any node that matches at least one of your wildcard patterns.<p>
 
 One more detail:  Since patterns that start with "/*/*" turn out to be used a lot, they can be made implicit in your path requests.  Specifically, any PR_NAME_KEYS value that does not start with a leading '/' character is taken to have an implicit '/*/*/' prefix.  So doing
 
-<pre>msg()->AddString(PR_NAME_KEYS, "Gopher");</pre><p>
+<p>
+	<pre>msg()->AddString(PR_NAME_KEYS, "Gopher");
+</pre><p>
+
 is semantically equivalent to doing
 
-<pre>msg()->AddString(PR_NAME_KEYS, "/*/*/Gopher");</pre><p>
+<p><pre>
+	msg()->AddString(PR_NAME_KEYS, "/*/*/Gopher");
+</pre><p>
 
 <H4>Deleting nodes in your subtree</H4>
 
-To remove nodes in your subtree, send a PR_COMMAND_REMOVEDATA message to the server.  Add to this message one or more node-paths (relative your session directory) indicating the node(s) to remove.  These paths may have wildcards in them.  For example, if 132.239.50.13 wanted to remove all nodes from his subtree, he could do this:<p>
+To remove nodes in your subtree, send a PR_COMMAND_REMOVEDATA message to the server.  Add to this message one or more node-paths (relative your session directory) indicating the node(s) to remove.  These paths may have wildcards in them.  For example, if 132.239.50.13 wanted to remove all nodes from his subtree, he could do this:
 
-<pre>MessageRef msg = GetMessageFromPool(PR_COMMAND_REMOVEDATA);
-if (msg())
-{
-   msg()->AddString(PR_NAME_KEYS, "MoreData/RedFish");
-   msg()->AddString(PR_NAME_KEYS, "MoreData/BlueFish");
-   msg()->AddString(PR_NAME_KEYS, "MoreData");
-   myMessageTranceiver->SendMessageToSessions(msg);
-}</pre><p>
+<p><pre>
+	MessageRef msg = GetMessageFromPool(PR_COMMAND_REMOVEDATA);
+	if (msg())
+	{
+	   msg()->AddString(PR_NAME_KEYS, "MoreData/RedFish");
+	   msg()->AddString(PR_NAME_KEYS, "MoreData/BlueFish");
+	   msg()->AddString(PR_NAME_KEYS, "MoreData");
+	   myMessageTranceiver->SendMessageToSessions(msg);
+	}
+</pre><p>
 
 or this:
 
-<pre>msg()->AddString(PR_NAME_KEYS, "MoreData");  /* Removing a node implicitely removes its children */</pre><p>
+<p><pre>
+	msg()->AddString(PR_NAME_KEYS, "MoreData");  /* Removing a node implicitely removes its children */
+</pre><p>
 
 or even just this:
 
-<pre>msg()->AddString(PR_NAME_KEYS, "*");  /* wildcarding */</pre><p>
+<p><pre>
+	msg()->AddString(PR_NAME_KEYS, "*");  /* wildcarding */
+</pre><p>
 
 You can only remove nodes within your own subtree.  You can add as many PR_NAME_KEYS strings to your PR_COMMAND_REMOVEDATA message as you wish.
 
@@ -314,35 +335,47 @@ You can only remove nodes within your own subtree.  You can add as many PR_NAME_
 
 Any message you send to the server whose 'what' value is not one of the PR_COMMAND_* constants is considered by the server to be a message meant to be forwarded to the other clients.  But which ones?  Again, the issue is decided by using pattern matching on node-paths.  The server will examine your message for a PR_NAME_KEYS string field.  If it finds one (or more) strings in this field, it will use these strings as node-paths; any other client whose has one or more nodes that match your node-path expressions will receive a copy of your message.  For example:
 
-<pre>MessageRef msg = GetMessageFromPool('HELO');
-if (msg())
-{
-   msg()->AddString(PR_NAME_KEYS, "/192.168.0.150/*");
-   myMessageTranceiver->SendMessageToSessions(msg);
-}</pre><p>
+<p><pre>
+	MessageRef msg = GetMessageFromPool('HELO');
+	if (msg())
+	{
+	   msg()->AddString(PR_NAME_KEYS, "/192.168.0.150/*");
+	   myMessageTranceiver->SendMessageToSessions(msg);
+	}
+</pre><p>
 
 would cause your 'HELO' message to be sent to all sessions connecting from 192.168.0.150.  Or, more interestingly:
 
-<pre>msg()->AddString(PR_NAME_KEYS, "/*/*/Gopher");</pre><p>
+<p><pre>
+	msg()->AddString(PR_NAME_KEYS, "/*/*/Gopher");
+</pre><p>
 
 Would cause your message to be sent to all sessions who have a node named "Gopher" in their home directory.  This is very handy because it allows sessions to "advertise" for which types of message they want to receive:  In the above example, everyone who was interested in your 'HELO' messages could signify that by putting a node named "Gopher" in their directory.<p>
 
 Other examples of ways to address your messages:
 
-<pre>msg()->AddString(PR_NAME_KEYS, "/*/*/J*")</pre><p>
+<p><pre>
+	msg()->AddString(PR_NAME_KEYS, "/*/*/J*")
+</pre><p>
 
 Will send your message to all clients who have a node in their home directory whose name begins with the letter 'J'.<p>
 
-<pre>msg()->AddString(PR_NAME_KEYS, "/*/*/J*/a*/F*")</pre><p>
+<p><pre>
+	msg()->AddString(PR_NAME_KEYS, "/*/*/J*/a*/F*")
+</pre><p>
 
 This (contrived) example would send your message only to clients who have something like "Jeremy/allen/Friesner" present...<p>
 
-<pre>msg()->AddString(PR_NAME_KEYS, "Gopher");</pre><p>
+<p><pre>
+	msg()->AddString(PR_NAME_KEYS, "Gopher");
+</pre><p>
 
 This is equivalent to the "/*/*/Gopher" example used above;  if no leading slash is present, then the "/*/*/" prefix is considered to be implied.<p>
 
-<pre>msg()->AddString(PR_NAME_KEYS, "Gopher");
-msg()->AddString(PR_NAME_KEYS, "Bunny");</pre><p>
+<p><pre>
+	msg()->AddString(PR_NAME_KEYS, "Gopher");
+	msg()->AddString(PR_NAME_KEYS, "Bunny");
+</pre><p>
 
 This message will go to clients who have node named either "Gopher" or "Bunny" in their home directory.  Clients who have both "Gopher" AND "Bunny" will still only get one copy of this message.<p>
 
@@ -354,12 +387,14 @@ Theoretically, getting and setting data nodes is all that is necessary for meani
 
 To deal with this problem, the StorageReflection Server allows your client to set "subscriptions".  Each subscription is nothing more than the node-path of one or more nodes that your client is interested in.  The path format and semantics of a subscription request are exactly the same as those in a PR_COMMAND_GETDATA message, but the way you compose them is quite different.  Here is an example:
 
-<pre>MessageRef msg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
-if (msg())
-{
-   msg()->AddBool("SUBSCRIBE:/*/*", true);
-   myMessageTranceiver->SendMessageToSessions(msg);
-}</pre><p>
+<p><pre>
+	MessageRef msg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
+	if (msg())
+	{
+	   msg()->AddBool("SUBSCRIBE:/*/*", true);
+	   myMessageTranceiver->SendMessageToSessions(msg);
+	}
+</pre><p>
 
 The above is a request to be notified whenever the state of a node whose path matches "/*/*" changes (which is actually the same as being notified whenever another session connects or disconnects--very handy for some applications).  Note that the subscription path is part of the field's <i>name</i>, not the field's value.  Note also that the field has been added as a boolean.  That actually doesn't matter; you can add your subscribe request as any type of data you wish--the value won't even be looked at, it's only the field's name that is important.<p>
 
@@ -375,16 +410,18 @@ Cancelling a subscription is just the same as removing any other parameter from 
 
 In addition to data-node storage, each client holds a set of name-value pairs called its <i>parameter set</i>.  These parameters are used by the session to control certain session-specific policies.  The names in this set may be any ASCII string (although only certain names are actually paid attention to by the server), and the values may be of any type that is allowed as a field in a Message.  To set or modify a parameter for your session, just send a PR_COMMAND_SETPARAMETERS message to the server with the names and values included.  For example:
 
-<pre>MessageRef msg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
-if (msg())
-{
-   msg()->AddBool(PR_NAME_REFLECT_TO_SELF, true);  // enable wildcard matching on my own subdirectory
-   msg()->AddString(PR_NAME_KEYS, "/*/*/Gopher");  // set default message forwarding pattern
-   msg()->AddBool("SUBSCRIBE:/132.239.50.*", true);       // add a subscription to nodes matching "/132.239.50.*"
-   msg()->AddBool("SUBSCRIBE:*", true);            // add a subscription to nodes matching "/*/*/*"
-   msg()->AddInt32("Glorp", 666);                  // other parameters like this will be ignored
-   myMessageTranceiver->SendMessageToSessions(msg);
-}</pre><p>
+<p><pre>
+	MessageRef msg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
+	if (msg())
+	{
+	   msg()->AddBool(PR_NAME_REFLECT_TO_SELF, true);  // enable wildcard matching on my own subdirectory
+	   msg()->AddString(PR_NAME_KEYS, "/*/*/Gopher");  // set default message forwarding pattern
+	   msg()->AddBool("SUBSCRIBE:/132.239.50.*", true);       // add a subscription to nodes matching "/132.239.50.*"
+	   msg()->AddBool("SUBSCRIBE:*", true);            // add a subscription to nodes matching "/*/*/*"
+	   msg()->AddInt32("Glorp", 666);                  // other parameters like this will be ignored
+	   myMessageTranceiver->SendMessageToSessions(msg);
+	}
+</pre><p>
 
 The fields included in your message will replace any like-named fields already existing in the parameter set.  Any fields in the existing parameter set that <i>aren't</i> specified in your message will be left unaltered.<p>
 
@@ -396,13 +433,15 @@ If you wish to know the exact parameter set that your session is currently opera
 
 To remove one or more parameters, send a PR_COMMAND_REMOVEPARAMETERS message.  This message should contain a PR_NAME_KEYS field containing one or more strings that indicate which parameters to remove.  For example:
 
-<pre>MessageRef msg = GetMessageFromPool(PR_COMMAND_REMOVEPARAMETERS);
-if (msg())
-{
-   msg()->AddString(PR_NAME_KEYS, PR_NAME_REFLECT_TO_SELF);  // disable wildcard matching on my own subdirectory
-   msg()->AddString(PR_NAME_KEYS, "SUBSCRIBE:*");            // removes ALL subscriptions (compare with "SUBSCRIBE:\*" which would only remove one)
-   myMessageTranceiver->SendMessageToSessions(msg);
-}</pre><p>
+<p><pre>
+	MessageRef msg = GetMessageFromPool(PR_COMMAND_REMOVEPARAMETERS);
+	if (msg())
+	{
+	   msg()->AddString(PR_NAME_KEYS, PR_NAME_REFLECT_TO_SELF);  // disable wildcard matching on my own subdirectory
+	   msg()->AddString(PR_NAME_KEYS, "SUBSCRIBE:*");            // removes ALL subscriptions (compare with "SUBSCRIBE:\*" which would only remove one)
+	   myMessageTranceiver->SendMessageToSessions(msg);
+	}
+</pre><p>
 
 <H4>Recognized parameter names</H4>
 
@@ -431,10 +470,10 @@ Currently there are only a few parameters that whose values are acted upon by th
       Any string parameter whose name starts with the prefix "SUBSCRIBE:" is treated as a subscription request.  See the section on Subscriptions for details.
   </LI>
   <LI>PR_NAME_DISABLE_SUBSCRIPTIONS<br>
-      If this parameter is present (it doesn't matter what its value is) then subscription-updates will be disabled to your client.  To re-enable them send a PR_COMMAND_REMOVEPARAMETERS Message removing this parameter again. 
+      If this parameter is present (it doesn't matter what its value is) then subscription-updates will be disabled to your client.  To re-enable them send a PR_COMMAND_REMOVEPARAMETERS Message removing this parameter again.
   </LI>
   <LI>PR_NAME_SUBSCRIBE_QUIETLY<br>
-      This isn't actually a parameter itself, but if added to the same PR_COMMAND_SETPARAMETERS message as one or more "SUBSCRIBE:" entries, it will suppress the initial notification of the new subscription data.  That is to say, if you add an item with this name to your message, you won't receive the values of the nodes you subscribed to until the next time they are changed.  (remember that by default you would receive the "current' values of the nodes immediately) 
+      This isn't actually a parameter itself, but if added to the same PR_COMMAND_SETPARAMETERS message as one or more "SUBSCRIBE:" entries, it will suppress the initial notification of the new subscription data.  That is to say, if you add an item with this name to your message, you won't receive the values of the nodes you subscribed to until the next time they are changed.  (remember that by default you would receive the "current' values of the nodes immediately)
   </LI>
 </OL>
 
@@ -448,19 +487,19 @@ list too large to upload an entire new list every time the list changes.
 <p>
 To enable indexing for a node, simply add child nodes to it using PR_COMMAND_INSERTORDEREDDATA
 instead of the usual PR_COMMAND_SETDATA messages.  In a PR_COMMAND_INSERTORDEREDDATA message, you
-specify the parent node that the new child node is to be added to, and the data/Message the new 
+specify the parent node that the new child node is to be added to, and the data/Message the new
 child node will contain--but muscled will be the one to assign the new child node an (algorithmically
-generated) name.  Generated names are guaranteed to start with a capital 'I'.  Muscled will add the 
-child node in front of a previously added indexed child whose name you specify, or will add it to the 
+generated) name.  Generated names are guaranteed to start with a capital 'I'.  Muscled will add the
+child node in front of a previously added indexed child whose name you specify, or will add it to the
 end of the index if you specify sibling name that is not found in the index.
 <p>
 Here is an example PR_COMMAND_INSERTORDEREDDATA message that will add an indexed child node to the
 node "myNode":
-<pre>
-Message imsg(PR_COMMAND_INSERTDATA);
-imsg.AddString(PR_NAME_KEYS, "myNode");     // specify node(s) to add insert the child node(s) under
-Message childData('Chld');   // any data you want to store can be placed in this message....
-imsg.AddMessage("I4", childData);    // add the new node before I4, if I4 exists.  Else append to the end.
+<p><pre>
+	Message imsg(PR_COMMAND_INSERTDATA);
+	imsg.AddString(PR_NAME_KEYS, "myNode");     // specify node(s) to add insert the child node(s) under
+	Message childData('Chld');   // any data you want to store can be placed in this message....
+	imsg.AddMessage("I4", childData);    // add the new node before I4, if I4 exists.  Else append to the end.
 </pre><p>
 If myNode already contains an indexed child with the name I4, the new node will be inserted into
 the index just before I4.  If I4 is not found in the index, the new node will be appended to the
@@ -470,7 +509,7 @@ index, you can just AddMessage() using a field name that doesn't start with a ca
 You are allowed to specify more than one parent node in PR_NAME_KEYS (either via wildcarding,
 or via multiple PR_NAME_KEYS values)--this will cause the same child nodes to be added to all matching
 nodes.  You are also allowed to specify multiple child messages to add in a single INSERTORDEREDDATA message
-(either by adding sub-messages under several different field names, or by adding multiple 
+(either by adding sub-messages under several different field names, or by adding multiple
 sub-messages under a single field name).
 <p>
 When a node contains an index (i.e. when it has at least one child under it that was added via
@@ -487,13 +526,13 @@ Message:  this=0x800c32f8, what='!Pr4' (558920244/0x21507234), entryCount=1, fla
     0. [c]
     1. [i0:I0]
     2. [i1:I1]
-    3. [r1:I1]     
+    3. [r1:I1]
 </pre><p>
 
 The first letter of each string is an opcode, one of the INDEX_OP_* constants defined in
 StorageReflectConstants.h.  Here we see that the first instruction has a 'c', or
 INDEX_OP_CLEARED, indicating that the index was cleared.  The next instruction, i0:I0 starts
-with a INDEX_OP_ENTRYINSERTED, and indicates that a child node named I0 was inserted at 
+with a INDEX_OP_ENTRYINSERTED, and indicates that a child node named I0 was inserted at
 index 0.  After that, a child node named I1 was inserted at index 1.  Lastly, the
 INDEX_OP_ENTRYREMOVED opcode ('r') indicates that the node at index 1 (I1) was then removed
 from the list.  By parsing these instructions, the client can update its own local index
@@ -514,63 +553,53 @@ using a PR_COMMAND_SETDATA message, without affecting its place in the index.
 <p>
 One last note is that index data is always sent to all clients that ask for it; it is even
 sent to the client who created/owns the indexed node.  That is to say, the PR_NAME_REFLECT_TO_SELF
-attribute may be considered always set as far as index data is concerned.  This is because the 
-index is created on the server side, and so not even the client-side initiator of the index 
+attribute may be considered always set as far as index data is concerned.  This is because the
+index is created on the server side, and so not even the client-side initiator of the index
 creation can be exactly sure of the index's state.  It's best for clients not to make assumptions
-about the contents of the index, and update their local indices based solely on the 
+about the contents of the index, and update their local indices based solely on the
 PR_RESULT_INDEXUPDATED messages they receive from the server.
 
-<H2>(Optional) QueryFilters</H2>
+<H2>QueryFilters</H2>
 
-New for MUSCLE v2.40 is support for QueryFilter objects.  QueryFilter objects offer you a way
-to do content-based server-side filtering of subscription sets and other operations.  Whereas
-before you could specify a set of nodes based solely on their node-path, you can now combine
-the wildcarded node-path logic with formulas based on the contents of node's data Message as well.
-For example, you can now specify a subscription on "all nodes that match /*/*/* that have
+QueryFilter objects offer a way to do server-side filtering of subscription results
+and other operations.  In addition to specifying a set of nodes based on their node-paths, you
+can use a QueryFilter to specify a predicate-function that the server will use to decide whether
+a given node is part of the set or not, based on the contents of its Message-payload.
+
+For example, you can specify a subscription on "all nodes that match /*/*/* that have
 an int32 field named 'joe' whose value is less than 5".  Different types of QueryFilter subclass
 exist for various purposes, and they can be combined using AND, OR, NOT, and XOR operations to
 make fairly sophisticated filters.
 <p>
-The supported QueryFilter classes are defined in regex/QueryFilter.h.  Here is a slightly abridged 
+The supported QueryFilter classes are defined in regex/QueryFilter.h.  Here is an abridged
 reprinting of their shared base-class interface:
 
 <pre>
-class QueryFilter : public RefCountable
-{
-public:
-   virtual status_t SaveToArchive(Message & archive) const;
-   virtual status_t SetFromArchive(const Message & archive);
+	class QueryFilter : public RefCountable
+	{
+	public:
+	   [...]
 
-   virtual bool Matches(const Message & msg) const = 0;
-};
+	   virtual bool Matches(ConstMessageRef & msg, const DataNode * optNode) const = 0;
+	};
 </pre>
 
-Of the three method shown above, Matches() is the one that embodies
-a QueryFilter's primary purpose:  To determine, given a Message object, whether that
-Message matches the filter, or not.  In our example above, we would use a QueryFilter
-object whose Matches() method returns true only for Messages with an int32 field named "joe"
-whose value is less than 5.
+The server passed a node's Message-payload into QueryFilter's Matches() method, and
+iff Matches() returns true, the server will conside the node part of the results-set.
+In our example above, we would use a QueryFilter object whose Matches() method returns
+true only for Messages with an int32 field named "joe" whose value is less than 5.
 
-The other two methods are also important -- they are the mechanism by which a C++ QueryFilter
-object can travel from your client to the server.  The SaveToArchive() method's job is to save
-the QueryFilter's settings into the given Message, and the SetFromArchive() method's job is
-to update the QueryFilter's settings to match those previously stored in the Message.
-To use QueryFilters, your client will create the QueryFilter object it wants the server
-to use, then SaveToArchive() that object into a Message, and send the Message to the server.
-When the server gets the Message, it will use it to reconstruct an identical QueryFilter object,
-which it can then use to filter Messages for you.
-
-Here is some example code your client might use to set up the aforementioned filtered subscription 
-query to the server:
+Here is some example code your client might use to set up the aforementioned filtered
+subscription query to the server:
 
 <pre>
-Int32QueryFilter filter("joe", Int32QueryFilter::OP_LESS_THAN, 5);
-MessageRef filterMsg = GetMessageFromPool();
-filter.SaveToArchive(*filterMsg());
+	Int32QueryFilter filter("joe", Int32QueryFilter::OP_LESS_THAN, 5);
+	MessageRef filterMsg = GetMessageFromPool();
+	filter.SaveToArchive(*filterMsg());
 
-MessageRef msgRef = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
-msgRef()->AddMessage("SUBSCRIBE:/*/*/*", filterMsg);      
-myMtt->SendMessageToSessions(msgRef);
+	MessageRef msgRef = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
+	msgRef()->AddMessage("SUBSCRIBE:/*/*/*", filterMsg);
+	myMtt->SendMessageToSessions(msgRef);
 </pre>
 
 As you can see, we set up the subscription in the normal way, except that this
@@ -582,18 +611,18 @@ For PR_COMMAND_GETDATA, PR_COMMAND_REMOVEDATA, and other Messages where a node-p
 pattern is specified in the PR_NAME_KEYS field, the procedure is slightly different.
 For those Messages, you can now add a PR_NAME_FILTERS field that contains Messages
 that are archived QueryFilter objects.  For example, say you wanted to remove
-all nodes in your "home folder" whose node-names start with the letter Z, and 
+all nodes in your "home folder" whose node-names start with the letter Z, and
 whose Message's what-code is 666.  You could do that like this:
 
 <pre>
-WhatCodeQueryFilter filter(666);
-MessageRef filterMsg = GetMessageFromPool();
-filter.SaveToArchive(*filterMsg());
+	WhatCodeQueryFilter filter(666);
+	MessageRef filterMsg = GetMessageFromPool();
+	filter.SaveToArchive(*filterMsg());
 
-MessageRef msgRef = GetMessageFromPool(PR_COMMAND_REMOVEDATA);
-msgRef()->AddString(PR_NAME_KEYS, "Z*");
-msgRef()->AddMessage(PR_NAME_FILTERS, filterMsg);
-myMtt->SendMessageToSessions(msgRef);
+	MessageRef msgRef = GetMessageFromPool(PR_COMMAND_REMOVEDATA);
+	msgRef()->AddString(PR_NAME_KEYS, "Z*");
+	msgRef()->AddMessage(PR_NAME_FILTERS, filterMsg);
+	myMtt->SendMessageToSessions(msgRef);
 </pre>
 
 There is a fairly large number of different QueryFilter subclasses to choose from.
@@ -612,7 +641,7 @@ Here is a brief list of the various available types, and what they do:
      Int64QueryFilter, FloatQueryFilter, DoubleQueryFilter, PointQueryFilter,
      and RectQueryFilter<br>
        These filters are all quite similar in that they let you specify a field name
-       and a value of the given type, and an operator to use to compare the 
+       and a value of the given type, and an operator to use to compare the
        Message's value in that field with your specified value.  Available operators
        are:  OP_EQUAL_TO, OP_LESS_THAN, OP_GREATER_THAN, OP_LESS_THAN_OR_EQUAL_TO,
        OP_GREATER_THAN_OR_EQUAL_TO, and OP_NOT_EQUAL_TO.
@@ -630,8 +659,9 @@ Here is a brief list of the various available types, and what they do:
        OP_STARTS_WITH_IGNORECASE, OP_ENDS_WITH_IGNORECASE, OP_CONTAINS_IGNORECASE,
        OP_START_OF_IGNORECASE, OP_END_OF_IGNORECASE, OP_SUBSTRING_OF_IGNORECASE,
        OP_SIMPLE_WILDCARD_MATCH, and OP_REGULAR_EXPRESSION_MATCH.
+ </LI>
  <LI>RawDataQueryFilter<br>
-       This filter is similar to the StringQueryFilter, except that it operates 
+       This filter is similar to the StringQueryFilter, except that it operates
        on raw byte sequences instead.  Since any data item is ultimately a sequence of
        bytes, that means that this filter can be used to match against data of
        any type (although it is probably most useful in conjunction with B_RAW_TYPE
@@ -639,12 +669,14 @@ Here is a brief list of the various available types, and what they do:
        OP_EQUAL_TO, OP_LESS_THAN, OP_GREATER_THAN, OP_LESS_THAN_OR_EQUAL_TO,
        OP_GREATER_THAN_OR_EQUAL_TO, OP_NOT_EQUAL_TO, OP_STARTS_WITH, OP_ENDS_WITH,
        OP_CONTAINS, OP_START_OF, OP_END_OF, OP_SUBSET_OF
+ </LI>
  <LI>MessageQueryFilter<br>
        This filter lets you "drill down" into sub-Messages in a Message's content,
        if you wish to.  You can specify a field name and a "child filter", and
        if the MessageQueryFilter finds a Message field inside the node's data Message
        with the given field name, it will call the child QueryFilter on the
        found Message and return the result.
+ </LI>
  <LI>AndQueryFilter,OrQueryFilter,NandQueryFilter,NorQueryFilter<br>
        These are "composite filters", in that you can add one or more child
        QueryFilters to them, and they will combine their children's result-values
@@ -657,10 +689,134 @@ Here is a brief list of the various available types, and what they do:
  </LI>
 </OL>
 
-As you can see, there is a considerable amount of flexibility and power
-provided by QueryFilter objects.  They are slightly harder to use and slightly
-less efficient than the traditional node-path-only MUSCLE queries, but they
-are there for you to use if you wish, or to ignore if you prefer not to use them.
+<H2>Building a QueryFilter from an expression-String </H2>
+
+Building up a QueryFilter by creating a QueryFilter object (or assembling
+a tree of QueryFilter objects) gives maximum flexibility, but it can require
+a lot of code.  For situations where you just need to quickly assemble a simple
+query, MUSCLE offers the following convenience function:
+
+<pre>
+	QueryFilterRef CreateQueryFilterFromExpression(const String & expressionStr);
+</pre>
+
+With this function you can just pass in a simple C-style expression string and get
+back a reference to QueryFilter that implements that logic.  For example, instead of
+writing this code manually:
+
+<pre>
+	QueryFilterRef over21Please(new Int32QueryFilter("age", Int32QueryFilter::OP_GREATER_THAN_OR_EQUAL_TO, 21));
+</pre>
+
+... you could obtain the same result by doing this:
+
+<pre>
+	QueryFilterRef over21Please(CreateQueryFilterFromExpression("age >= 21"));
+</pre>
+
+This approach beomes more useful as the predicate-logic you are trying to express becomes more complicated, e.g.:
+
+<pre>
+	const String exprString = "(age >= 21) && (weight < 155.0f) && (eyecolor == "green")";
+	QueryFilterRef over21Please(CreateQueryFilterFromExpression(exprString);
+</pre>
+
+The syntax of this grammar is quite simple and tries to stay as close to the analogous C/C++ syntax as
+possible.  The basic syntax is
+
+<pre>
+	(fieldname infix_op targetvalue)
+</pre>
+
+Where <i>fieldname</i> is the name of some field to look for in the Message object, and <i>infix_op</i> is one of the following tokens:
+
+<pre>
+	< > == <= >= != startswith endswith contains isstartof isendof issubstringof matches matchesregex
+</pre>
+
+The type of <i>targetvalue</i> can in some cases be inferred from its syntax, but if you want to explicitly
+specify its type you can do so by prepending an explicit-cast to the value, e.g.:
+
+<pre>
+	sober == (bool)true
+	age >= (int8)21
+	age >= (int16)21
+	age >= (int32)21
+	age >= (int64)21
+	age >= (float)21
+	age >= (double)21
+	age >= (string)twenty-one
+</pre>
+
+If you don't supply an explicit-cast, some heuristics will be used to determine the type to look for:
+
+<pre>
+	sober == false       # type (bool) inferred due to "false" keyword
+	age >= 21f           # type (float inferred due to numbers followed by 'f' suffix
+	age >= 21.3          # type (double) inferred due to numbers including a dot
+	age >= "twenty-one"  # type (string) inferred due to quotes
+	age >= twenty-one    # type (string) inferred due to non-numeric chars at start of value
+	age >= 21            # type (int32) inferred as a reasonable(?) default type
+	sober == true        # type (bool) inferred due to "true" keyword
+</pre>
+
+When you want to join more than one of these predicates together you can do so in the obvious way, using
+the &&, ||, or ^ operators (for AND, OR, or XOR, respectively).  Note that to avoid any potential ambiguity,
+if you mix the operators you will need to supply additional parentheses in order to make the order-of-operations
+explicit:
+
+<pre>
+	(sober == true) && (age >= 21) || (eyecolor == "green")  -> ERROR, ambiguous
+	((sober == true) && (age >= 21)) || (eyecolor == "green")  -> OK
+	(sober == true) && ((age >= 21) || (eyecolor == "green"))  -> OK
+</pre>
+
+There are also a couple of prefix-operators you can use:
+
+<pre>
+	exists - matches if a specified fieldname exists (regardless of its contents)
+	not - negates the following expression
+</pre>
+
+For example:
+
+<pre>
+	exists age		# matches iff the Message has a field named "age"
+	exists (int32)age	# matches iff the Message has a field named "age" that is of type int32
+	not exists (int32)age	# matches iff the Message doesn't has a field named "age" that is of type int32
+	not (eyecolor contains "green")	# matches if it's not true that the Message has a String field "eyecolor" with "green" in it
+</pre>
+
+<h3>Fieldname customization options</h3>
+
+By default, predicates will match against the first value in the specified Message-field.  If you expect
+that the Message-field will contain more than one value and want to match against one of the latter values
+in the field, you can do so by specifying a value-index after the fieldname, like this:
+
+<pre>
+	age:0 >= 21	# matches against the first value in the "age" field
+	age:1 >= 21	# matches against the second value in the "age" field
+	age:2 >= 21	# matches against the third value in the "age" field
+	[...]
+</pre>
+
+Additional, it may be the case that value you are looking at in the Message only exists sometimes.
+By default, a predicate that specifies a field name (or value) that doesn't exist in the Message will
+never match, but if you'd prefer the server to treat a missing-value as if a specified default-value
+was present, you can specify a default-value like this:
+
+<pre>
+	age|18 <= 21	# matches against the first value in the "age" field, or against 18 if no "age" value is present
+	age:2|18 <= 21	# matches against the third value in the "age" field, or against 18 if no third "age" value is present
+</pre>
+
+Note that parser assumes that the default-value's type is the same as the type it is using for the right-hand side
+of the expression, e.g.
+
+<pre>
+	weight|100 >= 150.0f		# 100 will be automatically be interpreted as a float because 150.0f is a float
+	numstr|100 startswith "99"	# 100 will be automatically be interpreted as a string because 99 is a string
+</pre>
 
 </BODY>
 </HTML>

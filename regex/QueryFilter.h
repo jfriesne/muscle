@@ -1320,13 +1320,18 @@ MUSCLE_NODISCARD const QueryFilterFactoryRef & GetGlobalQueryFilterFactory();
   */
 void SetGlobalQueryFilterFactory(const QueryFilterFactoryRef & newFactory);
 
-/** Convenience method:  Given a predicate expression String
-  * (like "(age >= 53)"), creates and returns a QueryFilter that
-  * implements the specified logic, or a NULL QueryFilterRef on
-  * parse failure.
-  * @param expressionStr a predicate expression String to parse.
-  * @returns the created QueryFilterRef, or a NULL Ref.
-  * @todo document the expression String syntax here!
+/** Convenience method:  Given a predicate expression String, creates
+  * and returns a QueryFilter that implements the specified predicat-logic
+  * or a NULL QueryFilterRef on parse-failure.
+  * @param expressionStr a predicate expression String to parse, for example
+  *                      "(age >= 53) && (weight <= 150.0f)"
+  * @returns the created QueryFilterRef, or a NULL QueryFilterRef.  (Note that in the
+  *          latter case you can call e.g. printf("error: [%s]\n", ret.GetStatus()())
+  *          on the returned QueryFilterRef to get a string describing the nature
+  *          of the parsing error
+  * @note for a fuller description of the syntax and semantics of the strings you can
+  *       pass in to this function, see the "Building a QueryFilter from an expression-String"
+  *       section at the bottom of muscle/html/Beginners Guide.html
   */
 QueryFilterRef CreateQueryFilterFromExpression(const String & expressionStr);
 
