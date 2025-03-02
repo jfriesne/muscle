@@ -1321,7 +1321,7 @@ MUSCLE_NODISCARD const QueryFilterFactoryRef & GetGlobalQueryFilterFactory();
 void SetGlobalQueryFilterFactory(const QueryFilterFactoryRef & newFactory);
 
 /** Convenience method:  Given a predicate expression String, creates
-  * and returns a QueryFilter that implements the specified predicat-logic
+  * and returns a QueryFilter that implements the specified predicate-logic
   * or a NULL QueryFilterRef on parse-failure.
   * @param expressionStr a predicate expression String to parse, for example
   *                      "(age >= 53) && (weight <= 150.0f)"
