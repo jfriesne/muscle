@@ -1493,7 +1493,7 @@ public:
    /** Returns the maximum number of characters of String-data (not including the NUL terminator byte) that a String object
      * can hold without having to do a heap allocation.
      */
-   MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uint32 GetMaxShortStringLength() {return sizeof(_stringData._shortStringData._smallBuffer)-1;}
+   MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uint32 GetMaxShortStringLength() {return sizeof(ShortStringData)-2;}  // -1 for the NUL byte and another -1 for _strlenWithHighBitSet
 
 private:
    status_t InsertCharsAux(uint32 insertAtIdx, const char * str, uint32 numCharsToInsert, uint32 insertCount);

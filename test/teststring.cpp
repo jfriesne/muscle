@@ -35,6 +35,7 @@ static status_t UnitTestString()
    CompleteSetupSystem css;
 
    LogTime(MUSCLE_LOG_INFO, "sizeof(String) is %zu\n", sizeof(String));
+   LogTime(MUSCLE_LOG_INFO, "MaxShortStringLength is " UINT32_FORMAT_SPEC "\n", String::GetMaxShortStringLength());
 
    // First, make sure that our logging doesn't evaluate arguments unless it needs to
    LogPlain(MUSCLE_LOG_INFO,  "Testing LogPlain() argument evaluation:  %i\n", ThisFunctionsArgumentMustBeZero(0));  // ThisFunctionsArgumentMustBeZero() SHOULD be called here!
