@@ -15,6 +15,7 @@
 namespace muscle {
 
 class DataNode;
+class OutputPrinter;
 class StringMatcher;
 
 /** Enumeration of QueryFilter type codes for the included QueryFilter classes */
@@ -102,6 +103,11 @@ public:
 
    /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    MUSCLE_NODISCARD bool operator !=(const QueryFilter & rhs) const {return !(*this==rhs);}
+
+   /** For debugging:  prints a user-readable description of this QueryFilter using the specified OutputPrinter.
+     * @param p The OutputPrinter to use for printing.
+     */
+   virtual void Print(const OutputPrinter & p) const;
 };
 DECLARE_REFTYPES(QueryFilter);
 
@@ -127,6 +133,8 @@ public:
 
    MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
    MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
+
+   virtual void Print(const OutputPrinter & p) const;
 
 private:
    uint32 _minWhatCode;
@@ -169,6 +177,8 @@ public:
    MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
    MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
 
+   virtual void Print(const OutputPrinter & p) const;
+
 private:
    String _fieldName;
    uint32 _index;
@@ -208,6 +218,8 @@ public:
 
    MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
    MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
+
+   virtual void Print(const OutputPrinter & p) const;
 
 private:
    uint32 _typeCode;
@@ -422,6 +434,12 @@ public:
           && (_default       == nrhs->_default);
    }
 
+   virtual void Print(const OutputPrinter & p) const
+   {
+      ValueQueryFilter::Print(p);
+      p.printf(" _op=%u _maskOp=%u _assumeDefault=%i\n", _op, _maskOp, _assumeDefault);
+   }
+
 private:
    MUSCLE_NODISCARD bool MatchesAux(const DataType & valueInMsg) const
    {
@@ -503,6 +521,8 @@ public:
 
    MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
    MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
+
+   virtual void Print(const OutputPrinter & p) const;
 
 private:
    Queue<ConstQueryFilterRef> _children;
@@ -980,6 +1000,8 @@ public:
    MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
    MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
 
+   virtual void Print(const OutputPrinter & p) const;
+
 private:
    ConstQueryFilterRef _childFilter;
 };
@@ -1091,6 +1113,8 @@ public:
    MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
    MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
 
+   virtual void Print(const OutputPrinter & p) const;
+
 private:
    void FreeMatcher();
    MUSCLE_NODISCARD bool DoMatch(const String & s) const;
@@ -1101,7 +1125,7 @@ private:
    bool _assumeDefault;
    String _default;
 
-   mutable StringMatcher * _matcher;
+   mutable StringMatcher * _matcher;  // demand-allocated
 };
 DECLARE_REFTYPES(StringQueryFilter);
 
@@ -1218,6 +1242,8 @@ public:
 
    MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
    MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
+
+   virtual void Print(const OutputPrinter & p) const;
 
 private:
    ConstByteBufferRef _value;

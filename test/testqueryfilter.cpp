@@ -4,6 +4,7 @@
 
 #include "regex/QueryFilter.h"
 #include "system/SetupSystem.h"
+#include "util/OutputPrinter.h"
 #include "util/String.h"
 
 using namespace muscle;
@@ -71,6 +72,7 @@ int main(int argc, char ** argv)
 
             QueryFilterRef qfRef = CreateQueryFilterFromExpression(s);
             printf("CreateQueryFilterFromExpression returned [%s]\n", qfRef.GetStatus()());
+            if (qfRef()) qfRef()->Print(stdout);
          }
          else return 10;
       }

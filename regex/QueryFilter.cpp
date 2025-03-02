@@ -4,6 +4,7 @@
 #include "regex/QueryFilter.h"
 #include "regex/StringMatcher.h"
 #include "util/MiscUtilityFunctions.h"  // for MemMem()
+#include "util/OutputPrinter.h"
 
 namespace muscle {
 
@@ -16,6 +17,11 @@ status_t QueryFilter :: SaveToArchive(Message & archive) const
 status_t QueryFilter :: SetFromArchive(const Message & archive)
 {
    return AcceptsTypeCode(archive.what) ? B_NO_ERROR : B_TYPE_MISMATCH;
+}
+
+void QueryFilter :: Print(const OutputPrinter & p) const
+{
+   p.printf("%s: ", GetUnmangledSymbolName(typeid(*this).name())());
 }
 
 status_t WhatCodeQueryFilter :: SaveToArchive(Message & archive) const
@@ -33,6 +39,12 @@ status_t WhatCodeQueryFilter :: SetFromArchive(const Message & archive)
    _minWhatCode = archive.GetInt32("min");
    _maxWhatCode = archive.GetInt32("max", _minWhatCode);
    return B_NO_ERROR;
+}
+
+void WhatCodeQueryFilter :: Print(const OutputPrinter & p) const
+{
+   QueryFilter::Print(p);
+   p.printf(" _minWhatCode= " UINT32_FORMAT_SPEC " _maxWhatCode=" UINT32_FORMAT_SPEC "\n", _minWhatCode, _maxWhatCode);
 }
 
 bool WhatCodeQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * /*optNode*/) const
@@ -67,6 +79,12 @@ status_t ValueQueryFilter :: SetFromArchive(const Message & archive)
    return archive.FindString("fn", _fieldName);
 }
 
+void ValueQueryFilter :: Print(const OutputPrinter & p) const
+{
+   QueryFilter::Print(p);
+   p.printf(" _fieldName=[%s] _index=" UINT32_FORMAT_SPEC "\n", _fieldName(), _index);
+}
+
 uint32 ValueQueryFilter :: CalculateChecksum() const
 {
    return QueryFilter::CalculateChecksum() + CalculatePODChecksums(_fieldName, _index);
@@ -91,6 +109,12 @@ status_t ValueExistsQueryFilter :: SetFromArchive(const Message & archive)
 
    _typeCode = archive.GetInt32("type", B_ANY_TYPE);
    return B_NO_ERROR;
+}
+
+void ValueExistsQueryFilter :: Print(const OutputPrinter & p) const
+{
+   ValueQueryFilter::Print(p);
+   p.printf(" _typeCode=" UINT32_FORMAT_SPEC "\n", _typeCode);
 }
 
 bool ValueExistsQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * /*optNode*/) const
@@ -121,6 +145,13 @@ status_t MultiQueryFilter :: SaveToArchive(Message & archive) const
       if (nextChild) MRETURN_ON_ERROR(archive.AddArchiveMessage("kid", *nextChild));
    }
    return B_NO_ERROR;
+}
+
+void MultiQueryFilter :: Print(const OutputPrinter & p) const
+{
+   QueryFilter::Print(p);
+   p.printf(" _children=" UINT32_FORMAT_SPEC ":\n", _children.GetNumItems());
+   for (uint32 i=0; i<_children.GetNumItems(); i++) _children[i]()->Print(p.WithIndent(3));
 }
 
 status_t MultiQueryFilter :: SetFromArchive(const Message & archive)
@@ -266,6 +297,16 @@ status_t MessageQueryFilter :: SetFromArchive(const Message & archive)
    return B_NO_ERROR;
 }
 
+void MessageQueryFilter :: Print(const OutputPrinter & p) const
+{
+   ValueQueryFilter::Print(p);
+   if (_childFilter())
+   {
+      p.printf(" _childFilter=");
+      _childFilter()->Print(p.WithIndent(3));
+   }
+}
+
 bool MessageQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) const
 {
    ConstMessageRef subMsg;
@@ -305,6 +346,12 @@ status_t StringQueryFilter :: SetFromArchive(const Message & archive)
 
    status_t ret;
    return archive.FindString("val", _value).IsOK(ret) ? archive.FindInt8("op", _op) : ret;
+}
+
+void StringQueryFilter :: Print(const OutputPrinter & p) const
+{
+   ValueQueryFilter::Print(p);
+   p.printf(" _op=%u _value=[%s] _assumeDefault=%i _default=[%s]\n", _op, _value(), _assumeDefault, _default());
 }
 
 uint32 StringQueryFilter :: CalculateChecksum() const
@@ -449,6 +496,12 @@ status_t RawDataQueryFilter :: SetFromArchive(const Message & archive)
    }
 
    return B_NO_ERROR;
+}
+
+void RawDataQueryFilter :: Print(const OutputPrinter & p) const
+{
+   ValueQueryFilter::Print(p);
+   p.printf(" _op=%u _typeCode=" UINT32_FORMAT_SPEC " _value=[%s] _default=[%s]\n", _op, _typeCode, HexBytesToString(_value)(), HexBytesToString(_default)());
 }
 
 bool RawDataQueryFilter :: Matches(ConstMessageRef & msg, const DataNode *) const
