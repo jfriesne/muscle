@@ -10,7 +10,7 @@ key:  - new feature
      takes a reference to the WaitCondition to use.
    - Added Print(const OutputPrinter &) methods to the QueryFilter classes,
      for easier debugging.
-   - Added some templated PrintPODValue() methods to the OutputPrinter
+   - Added some templated Print() methods to the OutputPrinter
      class, for easier output from templated code.
    - Added a Print(const OutputPrinter &) method to the String class.
    o Removed MUSCLE_AVOID_CLOCK_MONOTONIC_RAW and added

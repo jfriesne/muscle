@@ -688,7 +688,7 @@ status_t ReflectServer :: DoFirstTimeServerSetup()
       const char * ipState = "enabled";
 #endif
       LogTime(MUSCLE_LOG_DEBUG, "The server was compiled with MUSCLE version %s.  IPv6 support is %s.\n", MUSCLE_VERSION_STRING, ipState);
-      PrintBuildFlags(OutputPrinter(MUSCLE_LOG_DEBUG));
+      PrintBuildFlags(MUSCLE_LOG_DEBUG);
       LogTime(MUSCLE_LOG_DEBUG, "This server's session ID is " UINT64_FORMAT_SPEC ".\n", GetServerSessionID());
    }
 

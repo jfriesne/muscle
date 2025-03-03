@@ -82,19 +82,19 @@ public:
    OutputPrinter WithIndent(uint32 indent = 3) const {return OutputPrinter(_logSeverity, _addToString, _file, _indent+indent);}
 
    // Some convenience methods for printing values of a specified type; useful to call from templated code
-   void PrintPODValue(bool         dt) const {this->printf("%s", dt?"true":"false");}
-   void PrintPODValue(float        dt) const {this->printf("%f", dt);}
-   void PrintPODValue(double       dt) const {this->printf("%f", dt);}
-   void PrintPODValue(int64        dt) const {this->printf( INT64_FORMAT_SPEC, dt);}
-   void PrintPODValue(uint64       dt) const {this->printf(UINT64_FORMAT_SPEC, dt);}
-   void PrintPODValue(int32        dt) const {this->printf( INT32_FORMAT_SPEC, dt);}
-   void PrintPODValue(uint32       dt) const {this->printf(UINT32_FORMAT_SPEC, dt);}
-   void PrintPODValue(int16        dt) const {this->printf("%i", dt);}
-   void PrintPODValue(uint16       dt) const {this->printf("%u", dt);}
-   void PrintPODValue(int8         dt) const {this->printf("%i", dt);}
-   void PrintPODValue(uint8        dt) const {this->printf("%u", dt);}
-   void PrintPODValue(const char * dt) const {this->printf("%s", dt);}
-   template<typename T> void PrintPODValue(const T & dt) const {dt.Print(*this);}
+   void Print(bool         dt) const {printf("%s",               dt?"true":"false");}
+   void Print(float        dt) const {printf("%f",               dt);}
+   void Print(double       dt) const {printf("%f",               dt);}
+   void Print(int64        dt) const {printf( INT64_FORMAT_SPEC, dt);}
+   void Print(uint64       dt) const {printf(UINT64_FORMAT_SPEC, dt);}
+   void Print(int32        dt) const {printf( INT32_FORMAT_SPEC, dt);}
+   void Print(uint32       dt) const {printf(UINT32_FORMAT_SPEC, dt);}
+   void Print(int16        dt) const {printf("%i",               dt);}
+   void Print(uint16       dt) const {printf("%u",               dt);}
+   void Print(int8         dt) const {printf("%i",               dt);}
+   void Print(uint8        dt) const {printf("%u",               dt);}
+   void Print(const char * dt) const {printf("%s",               dt);}
+   template<typename T> void Print(const T & dt) const {dt.Print(*this);}
 
 private:
    void putsAux(const char * s, uint32 numChars) const;

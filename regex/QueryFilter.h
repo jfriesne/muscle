@@ -440,11 +440,11 @@ public:
    {
       ValueQueryFilter::Print(p);
       p.printf(" _op=%u _maskOp=%u value=", _op, _maskOp);
-      p.PrintPODValue(_value);
+      p.Print(_value);
       if (_assumeDefault)
       {
          p.printf(" defaultValue=");
-         p.PrintPODValue(_default);
+         p.Print(_default);
       }
       p.printf("\n");
    }

@@ -4,7 +4,6 @@
 
 #include "regex/QueryFilter.h"
 #include "system/SetupSystem.h"
-#include "util/OutputPrinter.h"
 #include "util/String.h"
 
 using namespace muscle;
