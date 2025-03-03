@@ -22,7 +22,7 @@ status_t QueryFilter :: SetFromArchive(const Message & archive)
 
 void QueryFilter :: Print(const OutputPrinter & p) const
 {
-   p.printf("%s: ", GetUnmangledSymbolName(typeid(*this).name())());
+   p.printf("%s: ", GetUnmangledSymbolName(typeid(*this).name())());  // deliberately not including a newline here
 }
 
 status_t WhatCodeQueryFilter :: SaveToArchive(Message & archive) const
@@ -83,7 +83,9 @@ status_t ValueQueryFilter :: SetFromArchive(const Message & archive)
 void ValueQueryFilter :: Print(const OutputPrinter & p) const
 {
    QueryFilter::Print(p);
-   p.printf(" _fieldName=[%s] _index=" UINT32_FORMAT_SPEC "\n", _fieldName(), _index);
+
+   // deliberately not including a newline here; subclasses will add to this line and then add their own newline char
+   p.printf(" _fieldName=[%s] _index=" UINT32_FORMAT_SPEC, _fieldName(), _index);
 }
 
 uint32 ValueQueryFilter :: CalculateChecksum() const
