@@ -250,7 +250,7 @@ public:
    ~String()
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_DTOR);
-      if (IsArrayDynamicallyAllocated()) muscleFree(_stringData._longStringData._bigBuffer);
+      if (IsArrayDynamicallyAllocated()) _stringData._longStringData.FreeBuffer();
    }
 
    /** Assignment Operator.
@@ -298,7 +298,7 @@ public:
       if (EnsureBufferSize(length+2, true, false).IsOK())
       {
          GetBuffer()[length] = ch;
-         SetStringLength(length+1);
+         SetLength(length+1);
          WriteNULTerminatorByte();
       }
       return *this;
@@ -474,13 +474,13 @@ public:
    MUSCLE_NODISCARD int NumericAwareCompareTo(const char * rhs) const {return NumericAwareStrcmp(Cstr(), rhs?rhs:"");}
 
    /** Returns a read-only C-style pointer to our held character string. */
-   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * Cstr() const {return IsArrayDynamicallyAllocated() ? _stringData._longStringData._bigBuffer : _stringData._shortStringData._smallBuffer;}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * Cstr() const {return IsArrayDynamicallyAllocated() ? _stringData._longStringData.Cstr() : _stringData._shortStringData.Cstr();}
 
    /** Convenience synonym for Cstr(). */
    MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * operator()() const {return Cstr();}
 
    /** Clears this string so that it contains no characters.  Equivalent to setting this string to "". */
-   void Clear() {SetStringLength(0); WriteNULTerminatorByte();}
+   void Clear() {SetLength(0); WriteNULTerminatorByte();}
 
    /** Similar to Clear(), except this version also frees up any dynamically allocated character array we may have cached. */
    void ClearAndFlush();
@@ -657,13 +657,13 @@ public:
    MUSCLE_NODISCARD int LastIndexOf(const char * str, uint32 fromIndex) const;
 
    /** Returns the number of characters in the string (not including the terminating NUL byte) */
-   MUSCLE_NODISCARD uint32 Length() const {return IsArrayDynamicallyAllocated() ? _stringData._longStringData._strlen : (_stringData._shortStringData._strlenWithHighBitSet & ~0x80);}
+   MUSCLE_NODISCARD uint32 Length() const {return IsArrayDynamicallyAllocated() ? _stringData._longStringData.Length() : _stringData._shortStringData.Length();}
 
    /** Returns the number of bytes of storage we have allocated.  Note that this value will often
      * be greater than the value returned by Length(), since we allocate extra bytes to minimize
      * the number of reallocations that must be done as data is being added to a String.
      */
-   MUSCLE_NODISCARD uint32 GetNumAllocatedBytes() const {return IsArrayDynamicallyAllocated() ? B_LENDIAN_TO_HOST_INT32(_stringData._longStringData._littleEndianBufferLen) : sizeof(_stringData._shortStringData._smallBuffer);}
+   MUSCLE_NODISCARD uint32 GetNumAllocatedBytes() const {return IsArrayDynamicallyAllocated() ? _stringData._longStringData.GetNumAllocatedBytes() : _stringData._shortStringData.GetNumAllocatedBytes();}
 
    /** Returns the number of instances of (c) in this string.
      * @param ch The character to count the number of instances of in this String.
@@ -1222,13 +1222,13 @@ public:
      * @param numCharsToTruncate How many characters to truncate.  If greater than the
      *                           length of this String, this String will become empty.
      */
-   void TruncateChars(uint32 numCharsToTruncate) {const uint32 length = Length(); SetStringLength(length-muscleMin(length, numCharsToTruncate)); WriteNULTerminatorByte();}
+   void TruncateChars(uint32 numCharsToTruncate) {const uint32 length = Length(); SetLength(length-muscleMin(length, numCharsToTruncate)); WriteNULTerminatorByte();}
 
    /** Makes sure this string is no longer than (maxLength) characters long by truncating
      * any extra characters, if necessary
      * @param maxLength Maximum length that this string should be allowed to be.
      */
-   void TruncateToLength(uint32 maxLength) {SetStringLength(muscleMin(Length(), maxLength)); WriteNULTerminatorByte();}
+   void TruncateToLength(uint32 maxLength) {SetLength(muscleMin(Length(), maxLength)); WriteNULTerminatorByte();}
 
    /** Returns a String like this string, but with the appropriate %# tokens
      * replaced with a textual representation of the values passed in as (value).
@@ -1493,7 +1493,7 @@ public:
    /** Returns the maximum number of characters of String-data (not including the NUL terminator byte) that a String object
      * can hold without having to do a heap allocation.
      */
-   MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uint32 GetMaxShortStringLength() {return sizeof(ShortStringData)-2;}  // -1 for the NUL byte and another -1 for _strlenWithHighBitSet
+   MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uint32 GetMaxShortStringLength() {return sizeof(ShortStringData)-1;}  // -1 for _ssoFreeBytesLeft (which is also a NUL byte if need be)
 
    /** @copydoc DoxyTemplate::Print(const OutputPrinter &) const */
    void Print(const OutputPrinter & p) const {p.printf("%s", Cstr());}
@@ -1505,23 +1505,15 @@ private:
    MUSCLE_NODISCARD bool IsSpaceChar(char c) const {return ((c==' ')||(c=='\t')||(c=='\r')||(c=='\n'));}
    status_t EnsureBufferSize(uint32 newBufLen, bool retainValue, bool allowShrink);
    String ArgAux(const char * buf) const;
-   MUSCLE_NODISCARD bool IsArrayDynamicallyAllocated() const {return ((_stringData._shortStringData._strlenWithHighBitSet & 0x80) == 0);}
-   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL char * GetBuffer() {return IsArrayDynamicallyAllocated() ? _stringData._longStringData._bigBuffer : _stringData._shortStringData._smallBuffer;}
+   MUSCLE_NODISCARD bool IsArrayDynamicallyAllocated() const {return (_stringData._shortStringData.IsShortStringDataValid() == false);}
+   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL char * GetBuffer() {return IsArrayDynamicallyAllocated() ? _stringData._longStringData.GetBuffer() : _stringData._shortStringData.GetBuffer();}
    MUSCLE_NODISCARD static uint32 GetNextBufferSize(uint32 bufLen);
-
-   void ClearShortStringBuffer()
+   void ClearShortStringBuffer() {_stringData._shortStringData.Clear();}
+   void SetLength(uint32 len)
    {
-      _stringData._shortStringData._smallBuffer[0]       = '\0';
-      _stringData._shortStringData._strlenWithHighBitSet = 0x80;
+      if (IsArrayDynamicallyAllocated()) _stringData._longStringData.SetLength(len);
+                                    else _stringData._shortStringData.SetLength(len);
    }
-
-   // Sets our _strlen or _strlenWithHighBitSet field to (len) as appropriate
-   void SetStringLength(uint32 len)
-   {
-      if (IsArrayDynamicallyAllocated()) _stringData._longStringData._strlen                = len;
-                                    else _stringData._shortStringData._strlenWithHighBitSet = (0x80 | ((uint8)len));
-   }
-
 
    void WriteNULTerminatorByte() {GetBuffer()[Length()] = '\0';}
    MUSCLE_NODISCARD int32 ReplaceAux(const Hashtable<String, String> & beforeToAfter, uint32 maxReplaceCount, String & writeTo) const;
@@ -1529,20 +1521,78 @@ private:
    // Our data-layout for non-SSO "long" strings.  The intent is for this to be 16 bytes long (on a 64-bit system)
    struct LongStringData
    {
-      char * _bigBuffer;  // pointer to heap allocation
-      uint32 _strlen;     // cached strlen(GetByteBuffer())
-      uint32 _littleEndianBufferLen;  // number of bytes pointed to by (_bigBuffer).  Must be last, and must be little-endian!
+      void SetLength(uint32 len) {_strlen = len;}
+      MUSCLE_NODISCARD uint32 Length() const {return _strlen;}
+
+      MUSCLE_NODISCARD uint32 GetNumAllocatedBytes() const {return B_LENDIAN_TO_HOST_INT32(_encBufLen) & ~((uint32)(1<<31));}
+
+      void SetBuffer(char * newBuffer, uint32 newBufLen, uint32 oldStrlen)
+      {
+         _bigBuffer = newBuffer;
+         _strlen    = oldStrlen;
+         _encBufLen = B_HOST_TO_LENDIAN_INT32(newBufLen) | ((uint32)(1<<31));
+      }
+
+      void FreeBuffer() {muscleFree(_bigBuffer);}  // no need to clear member-variables as ClearShortStringBuffer() will be called right after this
+
+      MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL char * GetBuffer() {return _bigBuffer;}
+      MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * Cstr() const {return _bigBuffer;}
+
+      char * ReallocBuffer(uint32 newLen) {return (char *) muscleRealloc(_bigBuffer, newLen);}
+
+   private:
+      char * _bigBuffer;  // pointer to our heap-allocated buffer
+      uint32 _strlen;     // cached value of strlen(_bigBuffer)
+      uint32 _encBufLen;  // number of bytes pointed to by (_bigBuffer).  Aliases with _ssoFreeBytesLeft, so it must be last in the struct, must be little-endian, and its high bit must be set!
    };
+
+   class ShortStringDataSizeChecker;
 
    // Our data-layout for SSO "short" strings.
    struct ShortStringData
    {
+      MUSCLE_NODISCARD bool IsShortStringDataValid() const {return ((_ssoFreeBytesLeft & 0x80) == 0);}  // if the high bit is set that means the String is in long-data mode
+
+      void Clear()
+      {
+         _smallBuffer[0]   = '\0';                      // NUL-terminate the SSO string buffer
+         _ssoFreeBytesLeft = GetMaxShortStringLength(); // all bytes available
+      }
+
+      void SetLength(uint32 len) {_ssoFreeBytesLeft = (uint8) (((uint32)sizeof(_smallBuffer))-len);}
+      MUSCLE_NODISCARD uint32 Length() const {return ((uint32)sizeof(_smallBuffer))-_ssoFreeBytesLeft;}
+
+      MUSCLE_NODISCARD uint32 GetNumAllocatedBytes() const {return sizeof(*this);}  // because our _ssoFreeBytesLeft byte can double as a NUL byte
+      MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL char * GetBuffer() {return _smallBuffer;}
+      MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * Cstr() const {return _smallBuffer;}
+
+      void SetBuffer(const char * srcBytes, uint32 srcStrlen)
+      {
+         memcpy(_smallBuffer, srcBytes, srcStrlen);
+         _smallBuffer[srcStrlen] = '\0';  // make sure we're NUL terminated (could be an issue if we're shrinking)
+         SetLength(srcStrlen);
+      }
+
+      void Truncate(uint32 newStrlen)
+      {
+         _smallBuffer[newStrlen] = '\0';
+         SetLength(muscleMin(newStrlen, Length()));
+      }
+
+   private:
+      friend class ShortStringDataSizeChecker;
+
       char _smallBuffer[sizeof(LongStringData)-sizeof(uint8)];
-      uint8 _strlenWithHighBitSet;  // high bit is set to make it easy to detect when we're in short-string mode.  Aliases with most-significant-byte of _littleEndianBufferLen!
+      uint8 _ssoFreeBytesLeft;  // Aliases with most-significant-byte of _encBufLen; 0 when _smallBuffer is full of chars, it's also the NUL byte
    };
 
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
-   static_assert(sizeof(ShortStringData) == sizeof(LongStringData), "sizeof(ShortStringData) != sizeof(LongStringData)");
+   class ShortStringDataSizeChecker
+   {
+   private:
+      static_assert(sizeof(ShortStringData) == sizeof(LongStringData), "sizeof(ShortStringData) != sizeof(LongStringData)");
+      static_assert(sizeof(ShortStringData) == sizeof(ShortStringData::_smallBuffer)+1, "sizeof(ShortStringData) != sizeof(ShortStringData::_smallBuffer)+1");
+   };
 #endif
 
 #ifdef __clang_analyzer__
