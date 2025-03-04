@@ -79,7 +79,7 @@ public:
       LogTime(MUSCLE_LOG_INFO, "The Message from session #" UINT32_FORMAT_SPEC " is:\n", from.GetSessionID());
       msg()->Print(stdout);
       LogTime(MUSCLE_LOG_INFO, "Forwarding the Message on to our own client (of session #" UINT32_FORMAT_SPEC ")\n", GetSessionID());
-      DumbReflectSession::MessageReceivedFromSession(from, msg, userData);  // will call AddOutgoingMesssage(msg) on this session
+      DumbReflectSession::MessageReceivedFromSession(from, msg, userData);  // will call AddOutgoingMessage(msg) on this session
    }
 
    virtual bool ClientConnectionClosed()
