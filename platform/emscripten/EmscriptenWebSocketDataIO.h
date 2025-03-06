@@ -33,11 +33,25 @@ public:
    /** Returns a dummy ConstSocketRef that can (sort of) be used to represent our file descriptor */
    const ConstSocketRef & GetConstSocketRef() {return _sockRef;}
 
+   enum {
+      STATE_INVALID = 0,  ///< Not actually associated with a valid web socket descriptor
+      STATE_INITIALIZING, ///< Connection isn't open yet
+      STATE_OPEN,         ///< Open and ready to conduct business
+      STATE_CLOSED,       ///< No longer available (closed by remote peer?)
+      STATE_ERROR,        ///< Something went wrong
+      NUM_STATES          ///< Guard value
+   };
+
+   /** Returns a STATE_* values indicating the current state of this WebSocket */
+   uint32 GetState() const {return _state;}
+
 private:
    friend class EmscriptenWebSocketSubscriber;
 
    EmscriptenWebSocketSubscriber * _sub;
+
    int _emSock;
+   uint32 _state;
 
    ConstSocketRef _sockRef;
 

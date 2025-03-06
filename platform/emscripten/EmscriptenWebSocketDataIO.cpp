@@ -13,6 +13,7 @@ namespace muscle {
 EmscriptenWebSocket :: EmscriptenWebSocket()
    : _sub(NULL)
    , _emSock(-1)
+   , _state(STATE_INVALID)
 {
    // empty
 }
@@ -20,6 +21,7 @@ EmscriptenWebSocket :: EmscriptenWebSocket()
 EmscriptenWebSocket :: EmscriptenWebSocket(EmscriptenWebSocketSubscriber * sub, int emSock)
    : _sub(sub)
    , _emSock(emSock)
+   , _state(STATE_INITIALIZING)
    , _sockRef(new Socket(_emSock, false))
 {
 #if !defined(__EMSCRIPTEN__)
@@ -101,11 +103,10 @@ io_status_t EmscriptenWebSocket :: Write(const void * data, uint32 numBytes)
 #endif
 }
 
-
 #if defined(__EMSCRIPTEN__)
-void EmscriptenWebSocket :: EmscriptenWebSocketConnectionOpened() {if (_sub) _sub->EmscriptenWebSocketConnectionOpened(*this);}
-void EmscriptenWebSocket :: EmscriptenWebSocketErrorOccurred(   ) {if (_sub) _sub->EmscriptenWebSocketErrorOccurred   (*this);}
-void EmscriptenWebSocket :: EmscriptenWebSocketConnectionClosed() {if (_sub) _sub->EmscriptenWebSocketConnectionClosed(*this);}
+void EmscriptenWebSocket :: EmscriptenWebSocketConnectionOpened() {_state = STATE_OPEN;   if (_sub) _sub->EmscriptenWebSocketConnectionOpened(*this);}
+void EmscriptenWebSocket :: EmscriptenWebSocketErrorOccurred(   ) {_state = STATE_ERROR;  if (_sub) _sub->EmscriptenWebSocketErrorOccurred   (*this);}
+void EmscriptenWebSocket :: EmscriptenWebSocketConnectionClosed() {_state = STATE_CLOSED; if (_sub) _sub->EmscriptenWebSocketConnectionClosed(*this);}
 void EmscriptenWebSocket :: EmscriptenWebSocketMessageReceived(const uint8 * dataBytes, uint32 numDataBytes, bool isText) {if (_sub) _sub->EmscriptenWebSocketMessageReceived(*this, dataBytes, numDataBytes, isText);}
 #endif
 
@@ -129,7 +130,19 @@ io_status_t EmscriptenWebSocketDataIO :: Read(void * buffer, uint32 size)
 {
    const ByteBufferRef * lastBufRef = _receivedData.GetFirstKey();
    const ByteBuffer    * lastBuf    = lastBufRef ? lastBufRef->GetItemPointer() : NULL;
-   if (lastBuf == NULL) return io_status_t(0);  // nothing more to read!
+   if (lastBuf == NULL)
+   {
+      if (_sock() == NULL) return B_BAD_OBJECT;  // dude, where's my socket?
+      switch(_sock()->GetState())
+      {
+         case EmscriptenWebSocket::STATE_INVALID:      return B_BAD_OBJECT;
+         case EmscriptenWebSocket::STATE_INITIALIZING: return io_status_t(0);  // not ready to receive yet, but we should become ready shortly!
+         case EmscriptenWebSocket::STATE_OPEN:         return io_status_t(0);  // no data ready right now, come back later
+         case EmscriptenWebSocket::STATE_CLOSED:       return B_END_OF_STREAM;
+         case EmscriptenWebSocket::STATE_ERROR:        return B_IO_ERROR;
+         default:                                      return B_LOGIC_ERROR;
+      }
+   }
 
    uint32 * lastNumBytesRead   = _receivedData.GetFirstValue();  // guaranteed not to be NULL
    const uint32 bufSize        = lastBuf->GetNumBytes();
@@ -144,7 +157,17 @@ io_status_t EmscriptenWebSocketDataIO :: Read(void * buffer, uint32 size)
 
 io_status_t EmscriptenWebSocketDataIO :: Write(const void * buffer, uint32 size)
 {
-   return _sock() ? _sock()->Write(buffer, size) : B_BAD_OBJECT;
+   if (_sock() == NULL) return B_BAD_OBJECT;
+
+   switch(_sock()->GetState())
+   {
+      case EmscriptenWebSocket::STATE_INVALID:      return B_BAD_OBJECT;
+      case EmscriptenWebSocket::STATE_INITIALIZING: return io_status_t(0);                // not ready to send yet, but we should be shortly!
+      case EmscriptenWebSocket::STATE_OPEN:         return _sock()->Write(buffer, size);  // go for it!
+      case EmscriptenWebSocket::STATE_CLOSED:       return B_END_OF_STREAM;
+      case EmscriptenWebSocket::STATE_ERROR:        return B_IO_ERROR;
+      default:                                      return B_LOGIC_ERROR;
+   }
 }
 
 void EmscriptenWebSocketDataIO :: Shutdown()

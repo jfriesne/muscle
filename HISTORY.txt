@@ -13,6 +13,7 @@ key:  - new feature
    - Added some templated Print() methods to the OutputPrinter
      class, for easier output from templated code.
    - Added a Print(const OutputPrinter &) method to the String class.
+   - Added EmscriptenWebSocket::GetState().
    o Removed MUSCLE_AVOID_CLOCK_MONOTONIC_RAW and added
      MUSCLE_USE_CLOCK_MONOTONIC_RAW in its place.
    o Made IsPerKeyClearNecessary() and IsPerValueClearNecessary() methods
@@ -24,6 +25,9 @@ key:  - new feature
    o Removed the SMALL_MUSCLE_STRING_LENGTH preprocessor constant, and instead
      added a GetMaxShortStringLength() static method to the String class.
    o Removed obsolete B_MIME_TYPE and B_OBJECT_TYPE values from the enum.
+   * EmscriptenWebSocketDataIO::Write() now returns 0 if the underlying
+     EmscriptenWebSocket is still in its pre-open state, to avoid causing
+     an "InvalidStateError" exception.
    * Removed the -fembed-bitcode flag for iOS builds from CMakeLists.txt.
    * Fixed a bug that would cause an infinite recursion if Snooze64()
      was called with a value greater than one day.
