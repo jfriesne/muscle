@@ -275,6 +275,13 @@ void AbstractReflectSession :: AsyncConnectCompleted()
    // AsyncConnectCompleted(), then we might as well make sure they are set from that context
    // also.
    _isConnected = _wasConnected = true;
+
+#if defined(__EMSCRIPTEN__)
+   // A cheap hack to keep Emscripten responsive, because otherwise
+   // there's no easy way to trigger the ServerEventLoop to be executed
+   // again later on to flush our outgoing-message-queue.
+   while(DoOutput(MUSCLE_NO_LIMIT).GetByteCount() > 0) {/* empty */}
+#endif
 }
 
 void AbstractReflectSession :: SetInputPolicy(const AbstractSessionIOPolicyRef & newRef) {SetPolicyAux(_inputPolicyRef, _maxInputChunk, newRef, true);}

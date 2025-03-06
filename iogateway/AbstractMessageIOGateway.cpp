@@ -131,7 +131,7 @@ status_t AbstractMessageIOGateway :: AddOutgoingMessage(const MessageRef & messa
    // A cheap hack to keep Emscripten responsive, because otherwise
    // there's no easy way to trigger the ServerEventLoop to be executed
    // again later on to flush our outgoing-message-queue.
-   while(DoOutput().GetByteCount() > 0) {/* empty */};
+   while(DoOutput().GetByteCount() > 0) {/* empty */}
 #endif
    return ret;
 }
