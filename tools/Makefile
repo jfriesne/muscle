@@ -102,7 +102,7 @@ ifeq ($(MUSCLE_BUILD_CONTEXT),meyer)
    CXXFLAGS    += -DMEYER_RELEASE_IS_FULLY_QUALIFIED=$(MEYER_RELEASE_IS_FULLY_QUALIFIED)
    CXXFLAGS    += -DSVN_VERSION_STRING="$(SVN_REVISION)"
    VPATH       += ../../../libs/libmslicommon/src/version/
-   HEXTERMOBJS += core_version.o
+   HEXTERMOBJS += CoreVersionInfo.o
 endif
 
 # Makes all the programs that can be made using just cross-platform code
