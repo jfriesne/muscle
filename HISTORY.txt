@@ -15,6 +15,7 @@ key:  - new feature
    - Added a Print(const OutputPrinter &) method to the String class.
    - Added EmscriptenWebSocket::GetState().
    - Added a < operator to the Message class.
+   - Added a Contains() method to the Rect class with x/y coordinate args.
    o Removed MUSCLE_AVOID_CLOCK_MONOTONIC_RAW and added
      MUSCLE_USE_CLOCK_MONOTONIC_RAW in its place.
    o Made IsPerKeyClearNecessary() and IsPerValueClearNecessary() methods

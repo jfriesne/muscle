@@ -277,6 +277,12 @@ public:
    MUSCLE_NODISCARD inline int32 GetHeightAsInteger() const {return (int32)ceil(GetHeight());}
 
    /** Returns true iff this rectangle contains the specified point.
+     * @param x x coordinate of the point
+     * @param y y coordinate of the point
+     */
+   MUSCLE_NODISCARD inline bool Contains(float x, float y) const {return ((x >= left())&&(x <= right())&&(y >= top())&&(y <= bottom()));}
+
+   /** Returns true iff this rectangle contains the specified point.
      * @param p the Point to check to see if it falls within this Rectangle's area
      */
    MUSCLE_NODISCARD inline bool Contains(const Point & p) const {return ((p.x() >= left())&&(p.x() <= right())&&(p.y() >= top())&&(p.y() <= bottom()));}
