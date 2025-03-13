@@ -267,12 +267,17 @@ public:
    /** Comparison operator.  Two Message are considered equal iff their what codes are equal,
     *  and their sets of fields are equal.  Field ordering is not considered.  Note that this
     *  operation can be expensive for large Messages!
-    * @param rhs the Message to compare this Message against
+    *  @param rhs the Message to compare this Message against
     */
    bool operator ==(const Message & rhs) const;
 
    /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator !=(const Message & rhs) const {return !(*this == rhs);}
+
+   /** Comparison operator, used for sorting lists of Messages.
+    *  @param rhs the Message to compare this Message against
+    */
+   bool operator <(const Message & rhs) const;
 
    /** Retrieve information about the given field in this message.
     *  @param fieldName Name of the field to look for.

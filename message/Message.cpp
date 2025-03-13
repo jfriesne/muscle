@@ -2041,6 +2041,21 @@ bool Message :: operator == (const Message & rhs) const
    return ((this == &rhs)||((what == rhs.what)&&(GetNumNames() == rhs.GetNumNames())&&(FieldsAreSubsetOf(rhs, true))));
 }
 
+// There's probably a more useful way to sort Messages, e.g. compare their field names alphabetically or something.
+// However I am trying to avoid anything that requires a memory-allocation or lots of execution time, so this will do for now
+bool Message :: operator < (const Message & rhs) const
+{
+   if (what < rhs.what) return true;
+   if (what > rhs.what) return false;
+
+   const uint32 myNamesCount  = GetNumNames();
+   const uint32 hisNamesCount = rhs.GetNumNames();
+   if (myNamesCount < hisNamesCount) return true;
+   if (myNamesCount > hisNamesCount) return false;
+
+   return (FlattenedSize() < rhs.FlattenedSize());
+}
+
 bool Message :: FieldsAreSubsetOf(const Message & rhs, bool compareContents) const
 {
    TCHECKPOINT;

@@ -14,6 +14,7 @@ key:  - new feature
      class, for easier output from templated code.
    - Added a Print(const OutputPrinter &) method to the String class.
    - Added EmscriptenWebSocket::GetState().
+   - Added a < operator to the Message class.
    o Removed MUSCLE_AVOID_CLOCK_MONOTONIC_RAW and added
      MUSCLE_USE_CLOCK_MONOTONIC_RAW in its place.
    o Made IsPerKeyClearNecessary() and IsPerValueClearNecessary() methods
