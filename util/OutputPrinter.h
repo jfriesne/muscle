@@ -107,6 +107,22 @@ private:
    mutable bool _isAtStartOfLine;
 };
 
+/** Convenience function (so I can just type PrintToStream(obj) instead of obj.Print(stdout) if I want)
+  * @param t the object to call Print() on
+  */
+template<class T> void PrintToStream(const T & t) {t.Print(stdout);}
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+/** Convenience function (so I can just type PrintToStream(obj) instead of obj.Print(stdout) if I want)
+  * @param t the object to call Print() on
+  * @param args some additional arguments that should also be forwarded verbatim to the Print() call
+  */
+template<class T, typename... Args> void PrintToStream(const T & t, Args&&... args)
+{
+   t.Print(stdout, std::forward<Args>(args)...);
+}
+#endif
+
 } // end namespace muscle
 
 #endif

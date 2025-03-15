@@ -317,9 +317,6 @@ public:
      */
    void Print(const OutputPrinter & p, uint32 maxRecurseLevel = MUSCLE_NO_LIMIT) const;
 
-   /** Convenience method; equivalent to calling Print(stdout); */
-   void PrintToStream() const {Print(stdout);}
-
    /** Same as Print(), only the state of the Message is returned as a String instead of being printed to stdout.
     *  @param maxRecurseLevel The maximum level of nested sub-Messages that we will generate.  Defaults to MUSCLE_NO_LIMIT.
     *  @returns a String representation of this Message, for debugging

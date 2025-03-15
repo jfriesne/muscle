@@ -27,6 +27,8 @@ key:  - new feature
    o Removed the SMALL_MUSCLE_STRING_LENGTH preprocessor constant, and instead
      added a GetMaxShortStringLength() static method to the String class.
    o Removed obsolete B_MIME_TYPE and B_OBJECT_TYPE values from the enum.
+   o Removed PrintToStream() methods in favor of a freestanding PrintToStream()
+     function that can call Print(stdout, ...) on any object.
    * EmscriptenWebSocketDataIO::Write() now returns 0 if the underlying
      EmscriptenWebSocket is still in its pre-open state, to avoid causing
      an "InvalidStateError" exception.
