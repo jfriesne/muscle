@@ -9,6 +9,7 @@
 
 #include "util/Cloneable.h"
 #include "util/ObjectPool.h"
+#include "util/OutputPrinter.h"
 #include "util/PointerAndBits.h"
 #include "system/AtomicCounter.h"
 
@@ -467,6 +468,16 @@ public:
      * @returns the checksum of the object we point to, or 0 if we are a NULL Ref
      */
    MUSCLE_NODISCARD uint32 CalculateChecksum() const {return CalculatePODChecksum(this->GetItemPointer());}
+
+   /** Convenience method for calling Print() on our held item, if present, or printing a "NULL item" string if not
+     * @param p the OutputPrint to use to print with (e.g. stdout)
+     */
+   void Print(const OutputPrinter & p) const
+   {
+      const Item * item = this->GetItemPointer();
+      if (item) item->Print(p);
+           else p.printf("NULL Ref\n");
+   }
 
 private:
    friend class DummyConstRef<Item>;
