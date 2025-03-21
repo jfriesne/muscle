@@ -251,6 +251,10 @@ static ConstSocketRef CreateMuscleSocket(int socketType, uint32 createType, int 
 
 ConstSocketRef CreateUDPSocket(int socketFamily)
 {
+#if defined(__EMSCRIPTEN__)
+   return B_UNIMPLEMENTED;  // No UDP in Emscripten-land, sorry!
+#endif
+
    ConstSocketRef ret = CreateMuscleSocket(SOCK_DGRAM, GlobalSocketCallback::SOCKET_CALLBACK_CREATE_UDP, socketFamily);
 #if defined(WIN32) && !defined(__MINGW32__)
    if (ret())

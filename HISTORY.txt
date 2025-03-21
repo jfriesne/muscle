@@ -30,6 +30,9 @@ key:  - new feature
    o Removed obsolete B_MIME_TYPE and B_OBJECT_TYPE values from the enum.
    o Removed PrintToStream() methods in favor of a freestanding PrintToStream()
      function that can call Print(stdout, ...) on any object.
+   o CreateUDPSocket() now just returns B_UNIMPLEMENTED when compiled under
+     Emscripten, rather than pointlessly trying to create a UDP socket in an
+     environment that doesn't support UDP networking.
    * EmscriptenWebSocketDataIO::Write() now returns 0 if the underlying
      EmscriptenWebSocket is still in its pre-open state, to avoid causing
      an "InvalidStateError" exception.
