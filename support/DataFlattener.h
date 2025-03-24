@@ -5,7 +5,6 @@
 
 #include "support/EndianConverter.h"
 #include "support/PseudoFlattenable.h"
-#include "util/Queue.h"
 #include "util/RefCount.h"
 
 namespace muscle {

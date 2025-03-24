@@ -17,6 +17,10 @@ key:  - new feature
    - Added a < operator to the Message class.
    - Added a Contains() method to the Rect class with x/y coordinate args.
    - Added a Print() convenience-method to the ConstRef class.
+   - Added an ErrorDataIO class that just always returns an error.
+   - Added a DataIOFlattener class which is similar to the existing
+     DataFlattener class except it writes out bytes using a DataIO rather
+     than writing bytes directly into memory.
    o Removed MUSCLE_AVOID_CLOCK_MONOTONIC_RAW and added
      MUSCLE_USE_CLOCK_MONOTONIC_RAW in its place.
    o Made IsPerKeyClearNecessary() and IsPerValueClearNecessary() methods

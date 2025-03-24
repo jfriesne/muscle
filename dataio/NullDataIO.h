@@ -8,7 +8,8 @@
 namespace muscle {
 
 /**
- *  Data I/O equivalent to /dev/null.
+ *  Data I/O equivalent to /dev/null.  A NullDataIO's methods always just return success, but never actually do anything.
+ *  The only time they will return an error is if Shutdown() has been called; in that case they will an error code.
  */
 class NullDataIO : public DataIO
 {
@@ -26,7 +27,7 @@ public:
     *  No-op method, always returns zero (except if Shutdown() was called).
     *  @param buffer Points to a buffer to read bytes into (ignored).
     *  @param size Number of bytes in the buffer (ignored).
-    *  @return zero.
+    *  @return An io_status_t with zero-bytes-read, or B_END_OF_STREAM if Shutdown() has been called.
     */
    virtual io_status_t Read(void * buffer, uint32 size)  {(void) buffer; (void) size; return _shutdown ? io_status_t(B_END_OF_STREAM) : io_status_t();}
 
@@ -34,7 +35,7 @@ public:
     *  No-op method, always returns (size) (except if Shutdown() was called).
     *  @param buffer Points to a buffer to write bytes from (ignored).
     *  @param size Number of bytes in the buffer (ignored).
-    *  @return (size).
+    *  @return An io_status_t with (size)-bytes-read, or B_BAD_OBJECT if Shutdown() has been called.
     */
    virtual io_status_t Write(const void * buffer, uint32 size) {(void) buffer; return _shutdown ? io_status_t(B_BAD_OBJECT) : io_status_t((int32)size);}
 
