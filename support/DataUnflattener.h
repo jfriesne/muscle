@@ -9,7 +9,7 @@ namespace muscle {
 
 class ByteBuffer;
 
-/** This is a lightweight helper class designed to safely and efficiently flatten POD data-values to a raw byte-buffer.
+/** This is a lightweight helper class designed to safely and efficiently unflatten POD data-values from a raw byte-buffer.
   * @tparam EndianConverter the type of EndianConverter object use when converting raw serialized bytes to native data-types
   * @tparam SizeChecker the type of checker-object to use when checking input-buffer sizes.  Defaults to using a RealSizeChecker.
   */

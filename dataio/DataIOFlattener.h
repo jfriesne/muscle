@@ -6,8 +6,6 @@
 #include "support/EndianConverter.h"
 #include "support/PseudoFlattenable.h"
 #include "dataio/SeekableDataIO.h"
-#include "dataio/ErrorDataIO.h"
-#include "util/RefCount.h"
 
 namespace muscle {
 
@@ -19,17 +17,13 @@ template<class EndianConverter> class MUSCLE_NODISCARD DataIOFlattenerHelper MUS
 {
 public:
    /** Constructs a DataIOFlattenerHelper to write bytes using a specified DataIO object.
-     * @param dataIORef Reference to the DataIO we should use to write out data.  This reference needs to
-     *                  remain valid for the lifetime of this object.
-     * @note ownership of the DataIO object is not transferred to this object.
+     * @param dataIORef Reference to the DataIO we should use to write out data.  The referenced
+     *                  DataIO must remain valid for the lifetime of this object.
      */
    DataIOFlattenerHelper(DataIO & dataIORef) : _endianConverter(), _dataIO(dataIORef), _optSeekableIO(dynamic_cast<SeekableDataIO *>(&dataIORef))
    {
       // empty
    }
-
-   /** Destructor */
-   ~DataIOFlattenerHelper() {/* empty */}
 
    /** Returns the DataIO reference that was passed in to our constructor. */
    MUSCLE_NODISCARD const DataIO & GetDataIO() const {return _dataIO;}
@@ -52,8 +46,7 @@ public:
      */
    status_t WriteBytes(const uint8 * bytesToWrite, uint32 numBytes)
    {
-      if (_status.IsOK()) _status |= _dataIO.WriteFully(bytesToWrite, numBytes);
-      return _status;
+      return _status.IsOK() ? FlagError(_dataIO.WriteFully(bytesToWrite, numBytes)) : _status;
    }
 
 ///@{
@@ -129,7 +122,7 @@ public:
      */
    status_t WritePaddingBytesToAlignTo(uint32 alignmentSize)
    {
-      if (_optSeekableIO == NULL) return B_BAD_OBJECT;  // can't find out the current position of a non-seekable I/O!
+      if (_optSeekableIO == NULL) return FlagError(B_BAD_OBJECT);
 
       const uint32 modBytes = (uint32) (_optSeekableIO->GetPosition() % alignmentSize);
       if (modBytes > 0)
@@ -157,6 +150,8 @@ public:
 private:
    const EndianConverter _endianConverter;
 
+   status_t FlagError(status_t ret) {_status |= ret; return ret;}
+
    template<typename T> status_t WriteFlatsAux(const T * vals, uint32 numVals, bool includeLengthPrefix)
    {
       uint8 smallBuf[256];
@@ -176,7 +171,7 @@ private:
                if (flatSize > bigBufSize) delete [] bigBuf;
 
                bigBuf = newnothrow_array(uint8, flatSize);
-               if (bigBuf == NULL) return B_OUT_OF_MEMORY;
+               if (bigBuf == NULL) return FlagError(B_OUT_OF_MEMORY);
             }
 
             bufPtr = bigBuf;

@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.70 -
    - Added |= operators to the io_status_t class.
    - Added a constructor to WaitConditionCallbackMechanism that
      takes a reference to the WaitCondition to use.
@@ -21,6 +22,9 @@ key:  - new feature
    - Added a DataIOFlattener class which is similar to the existing
      DataFlattener class except it writes out bytes using a DataIO rather
      than writing bytes directly into memory.
+   - Added a DataIOUnflattener class which is similar to the existing
+     DataUnflattener class except it reads in bytes using a DataIO rather
+     than reading bytes directly from memory.
    o Removed MUSCLE_AVOID_CLOCK_MONOTONIC_RAW and added
      MUSCLE_USE_CLOCK_MONOTONIC_RAW in its place.
    o Made IsPerKeyClearNecessary() and IsPerValueClearNecessary() methods
