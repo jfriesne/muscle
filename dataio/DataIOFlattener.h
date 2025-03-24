@@ -19,36 +19,25 @@ template<class EndianConverter> class MUSCLE_NODISCARD DataIOFlattenerHelper MUS
 {
 public:
    /** Constructs a DataIOFlattenerHelper to write bytes using a specified DataIO object.
-     * @param optDataIO if non-NULL, we'll write using this DataIO object.  Otherwise our
-     *                  Write*() methods will all return B_BAD_OBJECT, unless you call SetDataIO() first.
+     * @param dataIORef Reference to the DataIO we should use to write out data.  This reference needs to
+     *                  remain valid for the lifetime of this object.
      * @note ownership of the DataIO object is not transferred to this object.
      */
-   DataIOFlattenerHelper(DataIO * optDataIO = NULL) : _endianConverter(), _dataIO(NULL), _safeDataIO(NULL), _seekableDataIO(NULL) {SetDataIO(optDataIO);}
+   DataIOFlattenerHelper(DataIO & dataIORef) : _endianConverter(), _dataIO(dataIORef), _optSeekableIO(dynamic_cast<SeekableDataIO *>(&dataIORef))
+   {
+      // empty
+   }
 
    /** Destructor */
    ~DataIOFlattenerHelper() {/* empty */}
 
-   /** Resets us to our just-default-constructed state, with a NULL DataIO pointer */
-   void Reset() {SetDataIO(NULL); _status = status_t();}
+   /** Returns the DataIO reference that was passed in to our constructor. */
+   MUSCLE_NODISCARD const DataIO & GetDataIO() const {return _dataIO;}
 
-   /** Sets us up to write into (parentFlat)'s data array, starting at (parentFlat.GetCurrentWritePointer()).
-     * @param dataIO the DataIO object we should use for writing
-     * @note ownership of the DataIO object is not transferred to this object.
+   /** Returns a pointer to our DataIO as a SeekableDataIO, or NULL if our DataIO isn't actually
+     * a subclass of SeekableDataIO.
      */
-   void SetDataIO(DataIO * dataIO)
-   {
-      _dataIO         = dataIO;
-      _safeDataIO     = dataIO ? dataIO                                  : &_errorIO;
-      _seekableDataIO = dataIO ? dynamic_cast<SeekableDataIO *>(_dataIO) : NULL;
-   }
-
-   /** Returns the pointer that was passed in to our constructor (or to SetDataIO()). */
-   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const DataIO * GetDataIO() const {return _dataIO;}
-
-   /** Returns a pointer to our DataIO as a SeekableDataIO, if our DataIO actually is a SeekableDataIO.
-     * Returns NULL otherwise.
-     */
-   MUSCLE_NODISCARD const SeekableDataIO * GetSeekableDataIO() const {return _seekableDataIO;}
+   MUSCLE_NODISCARD const SeekableDataIO * GetSeekableDataIO() const {return _optSeekableIO;}
 
    /** Writes the specified byte to our DataIO.
      * @param theByte The byte to write
@@ -63,10 +52,9 @@ public:
      */
    status_t WriteBytes(const uint8 * bytesToWrite, uint32 numBytes)
    {
-      if (_status.IsOK()) _status |= _safeDataIO->WriteFully(bytesToWrite, numBytes);
+      if (_status.IsOK()) _status |= _dataIO.WriteFully(bytesToWrite, numBytes);
       return _status;
    }
-
 
 ///@{
    /** Convenience methods for writing one POD-typed data-item using our DataIO.
@@ -141,9 +129,9 @@ public:
      */
    status_t WritePaddingBytesToAlignTo(uint32 alignmentSize)
    {
-      if (_seekableDataIO == NULL) return B_BAD_OBJECT;  // can't find out the current position of a non-seekable I/O!
+      if (_optSeekableIO == NULL) return B_BAD_OBJECT;  // can't find out the current position of a non-seekable I/O!
 
-      const uint32 modBytes = (uint32) (_seekableDataIO->GetPosition() % alignmentSize);
+      const uint32 modBytes = (uint32) (_optSeekableIO->GetPosition() % alignmentSize);
       if (modBytes > 0)
       {
          uint8 tempBuf[64]; memset(tempBuf, 0, sizeof(tempBuf));
@@ -162,6 +150,9 @@ public:
      * That way you only have to check for errors once, at the end, if you prefer.
      */
    status_t GetStatus() const {return _status;}
+
+   /** Resets our status-flag back to B_NO_ERROR.  To be called in case you want to continue after a write-error. */
+   void ResetStatus() {_status = status_t();}
 
 private:
    const EndianConverter _endianConverter;
@@ -207,12 +198,9 @@ private:
       return B_NO_ERROR;
    }
 
-   ErrorDataIO _errorIO;              // used as a fallback
-
-   DataIO * _dataIO;                  // what the user passed in
-   DataIO * _safeDataIO;              // guaranteed never to be NULL
-   SeekableDataIO * _seekableDataIO;  // only non-NULL if our DataIO is actually a SeekableDataIO
-   status_t _status;                  // cache any error reported so far
+   DataIO & _dataIO;                // the reference the user passed in to our constructor
+   SeekableDataIO * _optSeekableIO; // only non-NULL if our DataIO is actually a SeekableDataIO
+   status_t _status;                // cache any error reported so far
 };
 
 typedef DataIOFlattenerHelper<LittleEndianConverter>  LittleEndianDataIOFlattener;  /**< this flattener-type flattens to little-endian-format data */
