@@ -2,7 +2,7 @@
 
 <H2>
 MUSCLE:  Crossbar Server, Portable Messaging and Support Classes<p>
-1/19/2025 v9.70 jaf@meyersound.com<p>
+3/26/2025 v9.70 jaf@meyersound.com<p>
 Jeremy Friesner / Meyer Sound Laboratories Inc.<p>
 Win32 compatibility contributions by Vitaliy Mikitchenko<p>
 C# client code by Wilson Yeung<p>
@@ -76,6 +76,9 @@ Directory contents descriptions follow:
     <tr><td><a href="dataio/ByteBufferDataIO.h">ByteBufferDataIO</a></td><td>For file-style reading/writing to a ByteBuffer held in memory</td></tr>
     <tr><td><a href="dataio/ByteBufferPacketDataIO.h">ByteBufferPacketDataIO</a></td><td>Like ByteBufferDataIO, but implements a PacketDataIO interface instead</td></tr>
     <tr><td><a href="dataio/ChildProcessDataIO.h">ChildProcessDataIO</a></td><td>For launching a child process and communicating with it via its stdout/stdin</td></tr>
+    <tr><td><a href="dataio/DataIOFlattener.h">DataIOFlattener</a></td><td>Utility class for serializing and writing typed data to a DataIO object.</td></tr>
+    <tr><td><a href="dataio/DataIOUnflattener.h">DataIOUnflattener</a></td><td>Utility class for reading and deserializing typed data from a DataIO object.</td></tr>
+    <tr><td><a href="dataio/ErrorDataIO.h">ErrorDataIO</a></td><td>Dummy class whose methods just always return an error code</td></tr>
     <tr><td><a href="dataio/FileDataIO.h">FileDataIO</a></td><td>For reading/writing via a C (FILE *) file handle</td></tr>
     <tr><td><a href="dataio/FileDescriptorDataIO.h">FileDescriptorDataIO</a></td><td>For reading/writing via a Unix file descriptor</td></tr>
     <tr><td><a href="dataio/MultiDataIO.h">MultiDataIO</a></td><td>Multiplexer wrapper class for writing to multiple outputs at once</td></tr>

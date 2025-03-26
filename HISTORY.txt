@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-9.70 -
+9.70 - Release 3/26/2025
    - Added |= operators to the io_status_t class.
    - Added a constructor to WaitConditionCallbackMechanism that
      takes a reference to the WaitCondition to use.
