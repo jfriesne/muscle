@@ -79,8 +79,11 @@ static void TestTemplatedFlatten(const Message & m, int lineNumber)
    const uint32 regularFlatSize   = m.FlattenedSize();
    printf("TEMPLATE TEST at line %i:  templatedFlatSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " (%.0f%% size reduction)\n", lineNumber, templatedFlatSize, regularFlatSize, 100.0*(1.0-((float)templatedFlatSize/regularFlatSize)));
 
-   printf("Message is:\n");
+   printf("Calling PrintToStream(m):\n");
    PrintToStream(m);
+
+   const String testStr = ToString(m);
+   printf("Result of ToString(m): [%s]\n", testStr());
 
    ByteBufferRef buf = GetByteBufferFromPool(templatedFlatSize);
    memset(buf()->GetBuffer(), 'X', buf()->GetNumBytes());  // just to make any unwritten-to-bytes more obvious

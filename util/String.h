@@ -1667,6 +1667,26 @@ inline String operator-(      char *lhs,    const String & rhs)  {String ret = l
 inline String operator-(const String & lhs, char rhs)            {String ret = lhs; ret -= rhs; return ret;}
 inline String operator-(char lhs,           const String & rhs)  {String ret; (void) ret.SetCstr(&lhs, 1); ret -= rhs; return ret;}
 
+/** Convenience function (so I can just type String s = ToString(obj) instead of obj.Print(s) if I want)
+  * @param t the object to call Print(s) on
+  * @returns the resulting String object
+  */
+template<class T> String ToString(const T & t) {String s; t.Print(s); return s;}
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+/** Convenience function (so I can just type ToString(obj) instead of obj.Print(s) if I want)
+  * @param t the object to call Print() on
+  * @param args some additional arguments that should also be forwarded verbatim to the Print() call
+  * @returns the resulting String object
+  */
+template<class T, typename... Args> String ToString(const T & t, Args&&... args)
+{
+   String s;
+   t.Print(s, std::forward<Args>(args)...);
+   return s;
+}
+#endif
+
 } // end namespace muscle
 
 #endif
