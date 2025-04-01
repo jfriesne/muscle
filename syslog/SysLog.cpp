@@ -952,6 +952,8 @@ static LPVOID s_readMemoryFunction_UserData = NULL;
 
 BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *context, PReadProcessMemoryRoutine readMemoryFunction, LPVOID pUserData)
 {
+  CallstackEntry *csEntry = NULL;  // deliberately declared here because declaring it later causes MSVC to error out due to gotos skipping the declaration
+
 #ifdef _UNICODE
   SYMBOL_INFOW *pSym = NULL;
   IMAGEHLP_MODULEW64 Module;
@@ -1073,7 +1075,7 @@ BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *
   memset(&Module, 0, sizeof(Module));
   Module.SizeOfStruct = sizeof(Module);
 
-  CallstackEntry *csEntry = new CallstackEntry;
+  csEntry = new CallstackEntry;
   for (uint32 frameNum=0; frameNum<maxDepth; frameNum++)
   {
     // get next stack frame (StackWalk64(), SymFunctionTableAccess64(), SymGetModuleBase64())

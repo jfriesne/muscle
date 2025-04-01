@@ -8,6 +8,7 @@ key:  - new feature
    - Added a freestanding ToString() function that can be used
      to return a String representation of any object that has
      a Print(OutputPrinter &) method.
+   * Fixed an MSVC compile-time error in the StackWalker code in SysLog.cpp
 
 9.70 - Release 3/26/2025
    - Added |= operators to the io_status_t class.
