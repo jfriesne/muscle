@@ -350,7 +350,7 @@ protected:
       window_class.hInstance      = NULL;
       window_class.hIcon          = LoadIcon((HINSTANCE) NULL, IDI_APPLICATION);
       window_class.hCursor        = LoadCursor((HINSTANCE) NULL, IDC_ARROW);
-      window_class.hbrBackground  = (HBRUSH)GetStockObject(WHITE_BRUSH);
+      window_class.hbrBackground  = NULL;
       window_class.lpszMenuName   = WINDOW_MENU_NAME;
       window_class.lpszClassName  = WINDOW_CLASS_NAME;
       (void) RegisterClass(&window_class); // Deliberately not checking result, per Chris Guzak at http://msdn.microsoft.com/en-us/library/windows/desktop/ms633586(v=vs.85).aspx
