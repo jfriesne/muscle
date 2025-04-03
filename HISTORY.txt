@@ -8,6 +8,7 @@ key:  - new feature
    - Added a freestanding ToString() function that can be used
      to return a String representation of any object that has
      a Print(OutputPrinter &) method.
+   - Updated the captive zlib library to the latest from github.
    * Fixed an MSVC compile-time error in the StackWalker code in SysLog.cpp
 
 9.70 - Release 3/26/2025
