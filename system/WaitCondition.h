@@ -3,8 +3,6 @@
 #ifndef MuscleWaitCondition_h
 #define MuscleWaitCondition_h
 
-#include <chrono>
-
 #include "support/NotCopyable.h"
 #include "util/TimeUtilityFunctions.h"  // for MUSCLE_TIME_NEVER
 
@@ -19,6 +17,7 @@
 # define MUSCLE_QT_HAS_THREADS 1
 #endif
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+# include <chrono>
 # include <condition_variable>
 # include <mutex>
 #else
