@@ -3,6 +3,8 @@
 #ifndef MuscleWaitCondition_h
 #define MuscleWaitCondition_h
 
+#include <chrono>
+
 #include "support/NotCopyable.h"
 #include "util/TimeUtilityFunctions.h"  // for MUSCLE_TIME_NEVER
 
