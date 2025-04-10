@@ -182,16 +182,17 @@ Queue<String> StringTokenizer :: Split(uint32 maxResults)
    return ret;
 }
 
-String StringTokenizer :: Join(const Queue<String> & tokenizedStrings, bool includeEmptyStrings, char joinChar, char escapeChar)
+String StringTokenizer :: Join(const Queue<String> & tokenizedStrings, bool includeEmptyStrings, const String & joinChars, char escapeChar)
 {
+   const bool doEscapes = ((escapeChar != '\0')&&(joinChars.HasChars()));
    String ret;
    for (uint32 i=0; i<tokenizedStrings.GetNumItems(); i++)
    {
       const String & subStr = tokenizedStrings[i];
       if ((includeEmptyStrings)||(subStr.HasChars()))
       {
-         if (includeEmptyStrings?(i>0):ret.HasChars()) ret += joinChar;
-         ret += (escapeChar != '\0') ? subStr.WithCharsEscaped(joinChar, escapeChar) : subStr;
+         if (includeEmptyStrings?(i>0):ret.HasChars()) ret += joinChars;
+         ret += doEscapes ? subStr.WithCharsEscaped(joinChars[0], escapeChar) : subStr;
       }
    }
    return ret;

@@ -89,7 +89,16 @@ public:
      * @param escapeChar if non-zero, we'll use this escape-character to keep instances of (joinChar) within the tokenized substrings unambiguous.
      *                   Defaults to zero.
      */
-   MUSCLE_NODISCARD static String Join(const Queue<String> & tokenizedStrings, bool includeEmptyStrings, char joinChar, char escapeChar = '\0');
+   MUSCLE_NODISCARD static String Join(const Queue<String> & tokenizedStrings, bool includeEmptyStrings, char joinChar, char escapeChar = '\0') {const char s[2] = {joinChar, '\0'}; return Join(tokenizedStrings, includeEmptyStrings, s, escapeChar);}
+
+   /** Same as above, except that (joinChars) is a string rather than a single character.
+     * @param tokenizedStrings the list of sub-strings to join together
+     * @param joinChars the separator-string to place between adjacent sub-strings
+     * @param includeEmptyStrings if true, we'll include empty sub-strings in the resulting String (as two joinChar's in a row).  If false, we'll omit them.
+     * @param escapeChar if non-zero, we'll use this escape-character to keep instances of (joinChar) within the tokenized substrings unambiguous.
+     *                   Defaults to zero.
+     */
+   MUSCLE_NODISCARD static String Join(const Queue<String> & tokenizedStrings, bool includeEmptyStrings, const String & joinChars, char escapeChar = '\0');
 
 private:
    MUSCLE_NODISCARD bool IsHardSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_hardSepsBitChord, c)));}
