@@ -114,7 +114,8 @@ inline void SetFileLogCompressionEnabled(bool)                         {/* empty
 inline void SetConsoleLogLevel(int)                                    {/* empty */}
 inline void SetConsoleLogToStderr(bool)                                {/* empty */}
 inline void CloseCurrentLogFile()                                      {/* empty */}
-
+inline status_t LogStackTrace(int logSeverity, uint32 maxDepth = 64) {(void) logSeverity; (void) maxDepth; printf("<stack trace omitted>\n"); return B_NO_ERROR;}
+inline status_t PrintStackTrace(uint32 maxDepth = 64) {(void) maxDepth; fprintf(stdout, "<stack trace omitted>\n"); return B_NO_ERROR;}
 #else
 
 /** Returns the MUSCLE_LOG_* equivalent of the given keyword string
@@ -278,7 +279,6 @@ MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(5,6)
 status_t LogTimeAux(const char * sourceFile, const char * optSourceFunction, int line, int logLevel, const char * fmt, ...);
 # define LogTime(logLevel, ...) ((void)(((logLevel) <= muscle::GetMaxLogLevel()) ? muscle::LogTimeAux(__FILE__, __FUNCTION__, __LINE__, logLevel, __VA_ARGS__) : muscle::B_NO_ERROR))
 #else
-
 /** MUSCLE's primary function for logging.  Typically called indirectly, via the LogTime() macro.
  *  Automagically prepends a timestamp and status string to the caller-specified text.
  *  eg LogTime(MUSCLE_LOG_INFO, "Hello %s! I am %i.", "world", 42) would generate "[I 12/18 12:11:49] Hello world! I am 42."
@@ -337,17 +337,6 @@ MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * GetLogLevelKeyword(int l
  */
 void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & lca);
 
-#endif
-
-/** Prints out a stack trace using the passed-in OutputPrinter.
-  * @param p the OutputPrinter to use for printing.  (e.g. pass in stdout to print to stdout, or a MUSCLE_LOG_* value or a String)
-  * @param maxDepth The maximum number of levels of stack trace that we should print out.  Defaults to
-  *                 64.  The absolute maximum is 256; if you specify a value higher than that, you will still get 256.
-  * @returns B_NO_ERROR on success, or another value on failure.  (May return B_UNIMPLEMENTED if stack trace generation
-  *          isn't implemented for the current OS:  currently, it's supported for Windows, MacOS/X and Linux)
-  */
-status_t PrintStackTrace(const OutputPrinter & p, uint32 maxDepth = 64);
-
 /** Convenience method:  Prints a stack trace to stdout.
   * @param maxDepth The maximum number of levels of stack trace that we should print out.  Defaults to
   *                 64.  The absolute maximum is 256; if you specify a value higher than that, you will still get 256.
@@ -364,6 +353,17 @@ status_t PrintStackTrace(uint32 maxDepth = 64);
  *  @returns B_NO_ERROR on success, or B_UNIMPLEMENTED if a stack trace couldn't be logged because the platform doesn't support it.
  */
 status_t LogStackTrace(int logSeverity, uint32 maxDepth = 64);
+
+#endif  // !MUSCLE_INLINE_LOGGING
+
+/** Prints out a stack trace using the passed-in OutputPrinter.
+  * @param p the OutputPrinter to use for printing.  (e.g. pass in stdout to print to stdout, or a MUSCLE_LOG_* value or a String)
+  * @param maxDepth The maximum number of levels of stack trace that we should print out.  Defaults to
+  *                 64.  The absolute maximum is 256; if you specify a value higher than that, you will still get 256.
+  * @returns B_NO_ERROR on success, or another value on failure.  (May return B_UNIMPLEMENTED if stack trace generation
+  *          isn't implemented for the current OS:  currently, it's supported for Windows, MacOS/X and Linux)
+  */
+status_t PrintStackTrace(const OutputPrinter & p, uint32 maxDepth = 64);
 
 /** Given a source location (eg as provided by the information in a LogCallbackArgs object),
   * returns a corresponding uint32 that represents a hash of that location.

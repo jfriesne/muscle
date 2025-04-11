@@ -45,7 +45,7 @@ static void EnsureCleanupCallbackInstalled()
       const Mutex * m = GetGlobalMuscleLock();
       if (m)
       {
-         DELARE_MUTEXGUARD(*m);
+         DECLARE_MUTEXGUARD(*m);
          if (_cleanupCallbackInstalled == false)  // in case we got scooped before could aquire the lock
          {
             CompleteSetupSystem * css = CompleteSetupSystem::GetCurrentCompleteSetupSystem();
@@ -96,7 +96,7 @@ ByteBufferRef InflateByteBuffer(const uint8 * buf, uint32 numBytes)
 {
    ByteBufferRef ret;
 #ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
-   DECLARE_NAMED_MUTEXGUARD mg(_zlibLock);
+   DECLARE_NAMED_MUTEXGUARD(mg, _zlibLock);
    ZLibCodec * codec = GetZLibCodec(6);  // doesn't matter which compression-level/codec we use, any of them can inflate anything
    if (codec) ret = codec->Inflate(buf, numBytes);
    mg.UnlockEarly();  // because we want the line below to execute the outside of the critical section

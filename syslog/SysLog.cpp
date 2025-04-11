@@ -1390,13 +1390,13 @@ status_t PrintStackTrace(const OutputPrinter & p, uint32 maxDepth)
    return ret;
 }
 
+#ifndef MUSCLE_INLINE_LOGGING
+
 // These functions are deliberately defined here because if I make them inline
 // function then OutputPrinter.h has to be #included beforehand, and that
 // leads to some compile-time chicken-and-egg problems that I'd rather avoid.
 status_t LogStackTrace(int logSeverity, uint32 maxDepth) {return PrintStackTrace(logSeverity, maxDepth);}
 status_t PrintStackTrace(               uint32 maxDepth) {return PrintStackTrace(stdout,      maxDepth);}
-
-#ifndef MUSCLE_INLINE_LOGGING
 
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
 void UpdateAllocationStackTrace(bool isAllocation, String * & s)

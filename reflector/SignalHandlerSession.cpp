@@ -9,7 +9,7 @@ namespace muscle {
 SignalHandlerSession :: SignalHandlerSession() : _numValidRecvBytes(0)
 {
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
-   assert(sizeof(_recvBuf)==SignalEventInfo::FlattenedSize(), "C++03 compatibility hack is using the wrong buffer size");
+   assert(sizeof(_recvBuf)==SignalEventInfo::FlattenedSize());
 #endif
 }
 
@@ -79,7 +79,7 @@ void SignalHandlerSession :: SignalHandlerFunc(const SignalEventInfo & sei)
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
             uint8 buf[sizeof(int32)+sizeof(uint64)];  // ugly hack because C++03 doesn't know about constexpr methods
-            assert(sizeof(buf)==SignalEventInfo::FlattenedSize(), "C++03 compatibility hack is using the wrong buffer size");
+            assert(sizeof(buf)==SignalEventInfo::FlattenedSize());
 #else
             uint8 buf[SignalEventInfo::FlattenedSize()];
 #endif

@@ -16,6 +16,7 @@ key:  - new feature
    * Fixed an MSVC compile-time error in the StackWalker code in SysLog.cpp
    * Tweaked zutil.h to avoid a preprocessor error if MACOS is defined.
    * WaitCondition.h was missing a #include, fixed.
+   * Applied a few C++03 backwards-compatibility fixes.
 
 9.70 - Release 3/26/2025
    - Added |= operators to the io_status_t class.
