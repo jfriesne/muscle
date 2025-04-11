@@ -442,7 +442,7 @@ status_t ParsePortArg(const Message & args, const String & fn, uint16 & retPort,
 }
 
 #if defined(MUSCLE_USE_MSVC_STACKWALKER) && !defined(MUSCLE_INLINE_LOGGING)
-extern void _Win32PrintStackTraceForContext(FILE * outFile, CONTEXT * context, uint32 maxDepth);
+extern void _Win32PrintStackTraceForContext(const OutputPrinter & p, CONTEXT * context, uint32 maxDepth);
 
 LONG Win32FaultHandler(struct _EXCEPTION_POINTERS * ExInfo)
 {

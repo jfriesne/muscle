@@ -116,8 +116,7 @@ public:
    } StackWalkOptions;
 
    StackWalker(
-     FILE * optOutFile,
-     String * optOutString,
+     const OutputPrinter & printer,
      int options = OptionsAll, // 'int' is by design, to combine the enum-flags
      LPTSTR szSymPath = NULL,
      DWORD dwProcessId = GetCurrentProcessId(),
@@ -136,7 +135,7 @@ public:
 
    BOOL LoadModules();
 
-   BOOL ShowCallstack(
+   status_t ShowCallstack(
      uint32 maxDepth,
      HANDLE hThread = GetCurrentThread(),
      const CONTEXT *context = NULL,
@@ -174,25 +173,18 @@ protected:
    void OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr);
    void OnOutput(LPTSTR szText)
    {
-      if (this->m_outFile) _fputts(_T("  "), m_outFile);
-                      else _putts(_T("  "));
-      if (this->m_outFile) _fputts(szText, m_outFile);
-                      else _putts(szText);
-      if (this->m_outString)
+      m_printer.puts("  ");
 #ifdef _UNICODE
-      {
-         size_t len;
-         (void) wcstombs_s(&len, NULL, 0, szText, wcslen(szText));
-         char * buf = new char[len];
-         (void) wcstombs_s(&len, buf, len, szText, wcslen(szText));
-         if (len > 0) (*this->m_outString) += buf;
-         delete [] buf;
-      }
+      size_t len;
+      (void) wcstombs_s(&len, NULL, 0, szText, wcslen(szText));
+      char * buf = new char[len];
+      (void) wcstombs_s(&len, buf, len, szText, wcslen(szText));
+      if (len > 0) m_printer.puts(buf);
+      delete [] buf;
 #else
-         (*this->m_outString) += szText;
+      m_printer.puts(szText);
 #endif
    }
-
 
    StackWalkerInternal *m_sw;
    HANDLE m_hProcess;
@@ -200,8 +192,7 @@ protected:
    BOOL m_modulesLoaded;
    LPTSTR m_szSymPath;
 
-   FILE * m_outFile;      // added by jaf (because subclassing is overkill for my needs here)
-   String * m_outString;  // ditto
+   const OutputPrinter m_printer;
 
    int m_options;
 
@@ -210,13 +201,13 @@ protected:
    friend class StackWalkerInternal;
 };
 
-void _Win32PrintStackTraceForContext(FILE * optFile, CONTEXT * context, uint32 maxDepth)
+// Called from code in MiscUtilityFunctions.cpp
+void _Win32PrintStackTraceForContext(const OutputPrinter & p, CONTEXT * context, uint32 maxDepth)
 {
-   fprintf(optFile, "--Stack trace follows:\n");
-   StackWalker(optFile, NULL, StackWalker::OptionsJAF).ShowCallstack(maxDepth, GetCurrentThread(), context);
-   fprintf(optFile, "--End Stack trace\n");
+   p.printf("--Stack trace follows:\n");
+   (void) StackWalker(p, StackWalker::OptionsJAF).ShowCallstack(maxDepth, GetCurrentThread(), context);
+   p.printf("--End Stack trace\n");
 }
-
 
 // Some missing defines (for VC5/6):
 #ifndef INVALID_FILE_ATTRIBUTES
@@ -352,26 +343,26 @@ public:
     // SymInitialize
     if (szSymPath != NULL)
       m_szSymPath = _tcsdup(szSymPath);
-    if (this->pSI(m_hProcess, m_szSymPath, FALSE) == FALSE)
-      this->m_parent->OnDbgHelpErr(_T("SymInitialize"), GetLastError(), 0);
+    if (pSI(m_hProcess, m_szSymPath, FALSE) == FALSE)
+      m_parent->OnDbgHelpErr(_T("SymInitialize"), GetLastError(), 0);
 
-    DWORD symOptions = this->pSGO();  // SymGetOptions
+    DWORD symOptions = pSGO();  // SymGetOptions
     symOptions |= SYMOPT_LOAD_LINES;
     symOptions |= SYMOPT_FAIL_CRITICAL_ERRORS;
     //symOptions |= SYMOPT_NO_PROMPTS;
     // SymSetOptions
-    symOptions = this->pSSO(symOptions);
+    symOptions = pSSO(symOptions);
 
     TCHAR buf[StackWalker::STACKWALK_MAX_NAMELEN] = {0};
-    if (this->pSGSP != NULL)
+    if (pSGSP != NULL)
     {
-      if (this->pSGSP(m_hProcess, buf, StackWalker::STACKWALK_MAX_NAMELEN) == FALSE)
-        this->m_parent->OnDbgHelpErr(_T("SymGetSearchPath"), GetLastError(), 0);
+      if (pSGSP(m_hProcess, buf, StackWalker::STACKWALK_MAX_NAMELEN) == FALSE)
+        m_parent->OnDbgHelpErr(_T("SymGetSearchPath"), GetLastError(), 0);
     }
     TCHAR szUserName[1024] = {0};
     DWORD dwSize = 1024;
     GetUserName(szUserName, &dwSize);
-    this->m_parent->OnSymInit(buf, symOptions, szUserName);
+    m_parent->OnSymInit(buf, symOptions, szUserName);
 
     return TRUE;
   }
@@ -535,7 +526,7 @@ private:
     int cnt = 0;
     while (keepGoing)
     {
-      this->LoadModule(hProcess, me.szExePath, me.szModule, (DWORD64) me.modBaseAddr, me.modBaseSize);
+      LoadModule(hProcess, me.szExePath, me.szModule, (DWORD64) me.modBaseAddr, me.modBaseSize);
       cnt++;
       keepGoing = !!pM32N( hSnap, &me );
     }
@@ -628,8 +619,8 @@ private:
       tt2[0] = 0;
       pGMBN(hProcess, hMods[i], tt2, TTBUFLEN );
 
-      DWORD dwRes = this->LoadModule(hProcess, tt, tt2, (DWORD64) mi.lpBaseOfDll, mi.SizeOfImage);
-      if (dwRes != ERROR_SUCCESS) this->m_parent->OnDbgHelpErr(_T("LoadModule"), dwRes, 0);
+      DWORD dwRes = LoadModule(hProcess, tt, tt2, (DWORD64) mi.lpBaseOfDll, mi.SizeOfImage);
+      if (dwRes != ERROR_SUCCESS) m_parent->OnDbgHelpErr(_T("LoadModule"), dwRes, 0);
       cnt++;
     }
 
@@ -662,7 +653,7 @@ private:
     if ( (m_parent != NULL) && (szImg != NULL) )
     {
       // try to retrive the file-version:
-      if ( (this->m_parent->m_options & StackWalker::RetrieveFileVersion) != 0)
+      if ( (m_parent->m_options & StackWalker::RetrieveFileVersion) != 0)
       {
         VS_FIXEDFILEINFO *fInfo = NULL;
         DWORD dwHandle;
@@ -695,7 +686,7 @@ private:
       IMAGEHLP_MODULE64 Module;
 #endif
       LPCTSTR szSymType = _T("-unknown-");
-      if (this->GetModuleInfo(hProcess, baseAddr, &Module) != FALSE)
+      if (GetModuleInfo(hProcess, baseAddr, &Module) != FALSE)
       {
         switch(Module.SymType)
         {
@@ -728,7 +719,7 @@ private:
             break;
         }
       }
-      this->m_parent->OnLoadModule(img, mod, baseAddr, size, result, szSymType, Module.LoadedImageName, fileVersion);
+      m_parent->OnLoadModule(img, mod, baseAddr, size, result, szSymType, Module.LoadedImageName, fileVersion);
     }
     if (szImg != NULL) free(szImg);
     if (szMod != NULL) free(szMod);
@@ -750,7 +741,7 @@ public:
   BOOL GetModuleInfo(HANDLE hProcess, DWORD64 baseAddr, IMAGEHLP_MODULE64 *pModuleInfo)
 #endif
   {
-    if(this->pSGMI == NULL)
+    if(pSGMI == NULL)
     {
       SetLastError(ERROR_DLL_INIT_FAILED);
       return FALSE;
@@ -770,10 +761,10 @@ public:
     }
 #ifdef _UNICODE
     memcpy(pData, pModuleInfo, sizeof(IMAGEHLP_MODULEW64));
-    if (this->pSGMI(hProcess, baseAddr, (IMAGEHLP_MODULEW64*) pData) != FALSE)
+    if (pSGMI(hProcess, baseAddr, (IMAGEHLP_MODULEW64*) pData) != FALSE)
 #else
     memcpy(pData, pModuleInfo, sizeof(IMAGEHLP_MODULE64));
-    if (this->pSGMI(hProcess, baseAddr, (IMAGEHLP_MODULE64*) pData) != FALSE)
+    if (pSGMI(hProcess, baseAddr, (IMAGEHLP_MODULE64*) pData) != FALSE)
 #endif
     {
       // only copy as much memory as is reserved...
@@ -794,37 +785,31 @@ public:
 };
 
 // #############################################################
-StackWalker::StackWalker(FILE * optOutFile, String * optOutString, int options, LPTSTR szSymPath, DWORD dwProcessId, HANDLE hProcess)
+StackWalker::StackWalker(const OutputPrinter & p, int options, LPTSTR szSymPath, DWORD dwProcessId, HANDLE hProcess)
+   : m_printer(p)
+   , m_options(options)
+   , m_modulesLoaded(FALSE)
+   , m_hProcess(hProcess)
+   , m_sw(new StackWalkerInternal(this, m_hProcess))
+   , m_dwProcessId(dwProcessId)
 {
-  this->m_outFile = optOutFile;
-  this->m_outString = optOutString;
-  this->m_options = options;
-  this->m_modulesLoaded = FALSE;
-  this->m_hProcess = hProcess;
-  this->m_sw = new StackWalkerInternal(this, this->m_hProcess);
-  this->m_dwProcessId = dwProcessId;
   if (szSymPath != NULL)
   {
-    this->m_szSymPath = _tcsdup(szSymPath);
-    this->m_options |= SymBuildPath;
+    m_szSymPath = _tcsdup(szSymPath);
+    m_options |= SymBuildPath;
   }
-  else
-    this->m_szSymPath = NULL;
+  else m_szSymPath = NULL;
 }
 
 StackWalker::~StackWalker()
 {
-  if (m_szSymPath != NULL)
-    free(m_szSymPath);
-  m_szSymPath = NULL;
-  if (this->m_sw != NULL)
-    delete this->m_sw;
-  this->m_sw = NULL;
+  if (m_szSymPath) free(m_szSymPath);
+  delete m_sw;
 }
 
 BOOL StackWalker::LoadModules()
 {
-  if (this->m_sw == NULL)
+  if (m_sw == NULL)
   {
     SetLastError(ERROR_DLL_INIT_FAILED);
     return FALSE;
@@ -834,7 +819,7 @@ BOOL StackWalker::LoadModules()
 
   // Build the sym-path:
   TCHAR *szSymPath = NULL;
-  if ( (this->m_options & SymBuildPath) != 0)
+  if ( (m_options & SymBuildPath) != 0)
   {
     const size_t nSymPathLen = 4096;
     szSymPath = (TCHAR*) malloc(nSymPathLen * sizeof(TCHAR));
@@ -845,9 +830,9 @@ BOOL StackWalker::LoadModules()
     }
     szSymPath[0] = 0;
     // Now first add the (optional) provided sympath:
-    if (this->m_szSymPath != NULL)
+    if (m_szSymPath != NULL)
     {
-      _tcscat_s(szSymPath, nSymPathLen, this->m_szSymPath);
+      _tcscat_s(szSymPath, nSymPathLen, m_szSymPath);
       _tcscat_s(szSymPath, nSymPathLen, _T(";"));
     }
 
@@ -905,7 +890,7 @@ BOOL StackWalker::LoadModules()
       _tcscat_s(szSymPath, nSymPathLen, _T(";"));
     }
 
-    if ( (this->m_options & SymBuildPath) != 0)
+    if ( (m_options & SymBuildPath) != 0)
     {
       if (GetEnvironmentVariable(_T("SYSTEMDRIVE"), szTemp, nTempLen) > 0)
       {
@@ -921,16 +906,16 @@ BOOL StackWalker::LoadModules()
   }
 
   // First Init the whole stuff...
-  BOOL bRet = this->m_sw->Init(szSymPath);
+  BOOL bRet = m_sw->Init(szSymPath);
   if (szSymPath != NULL) free(szSymPath); szSymPath = NULL;
   if (bRet == FALSE)
   {
-    this->OnDbgHelpErr(_T("Error while initializing dbghelp.dll"), 0, 0);
+    OnDbgHelpErr(_T("Error while initializing dbghelp.dll"), 0, 0);
     SetLastError(ERROR_DLL_INIT_FAILED);
     return FALSE;
   }
 
-  bRet = this->m_sw->LoadModules(this->m_hProcess, this->m_dwProcessId);
+  bRet = m_sw->LoadModules(m_hProcess, m_dwProcessId);
   if (bRet != FALSE)
     m_modulesLoaded = TRUE;
   return bRet;
@@ -950,7 +935,7 @@ static int SaveContextFilterFunc(struct _EXCEPTION_POINTERS *ep)
 static StackWalker::PReadProcessMemoryRoutine s_readMemoryFunction = NULL;
 static LPVOID s_readMemoryFunction_UserData = NULL;
 
-BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *context, PReadProcessMemoryRoutine readMemoryFunction, LPVOID pUserData)
+status_t StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *context, PReadProcessMemoryRoutine readMemoryFunction, LPVOID pUserData)
 {
   CallstackEntry *csEntry = NULL;  // deliberately declared here because declaring it later causes MSVC to error out due to gotos skipping the declaration
 
@@ -964,13 +949,12 @@ BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *
   IMAGEHLP_LINE64 Line;
 #endif
 
-  if (m_modulesLoaded == FALSE)
-    this->LoadModules();  // ignore the result...
+  if (m_modulesLoaded == FALSE) (void) LoadModules();  // yes, deliberately ignoring the result
 
-  if (this->m_sw->m_hDbhHelp == NULL)
+  if (m_sw->m_hDbhHelp == NULL)
   {
     SetLastError(ERROR_DLL_INIT_FAILED);
-    return FALSE;
+    return B_ERROR("DebugHelp DLL not found");
   }
 
   s_readMemoryFunction = readMemoryFunction;
@@ -998,7 +982,7 @@ BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *
     if (GetThreadContext(hThread, &_context) == FALSE)
     {
       ResumeThread(hThread);
-      return FALSE;
+      return B_ERROR("GetThreadContext() failed");
     }
   }
 
@@ -1083,9 +1067,9 @@ BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *
     // assume that either you are done, or that the stack is so hosed that the next
     // deeper frame could not be found.
     // CONTEXT need not to be supplied if imageType is IMAGE_FILE_MACHINE_I386!
-    if ( ! this->m_sw->pSW(imageType, this->m_hProcess, hThread, &s, &_context, ReadProcMemCallback, this->m_sw->pSFTA, this->m_sw->pSGMB, NULL) )
+    if ( ! m_sw->pSW(imageType, m_hProcess, hThread, &s, &_context, ReadProcMemCallback, m_sw->pSFTA, m_sw->pSGMB, NULL) )
     {
-      this->OnDbgHelpErr(_T("StackWalk64"), GetLastError(), s.AddrPC.Offset);
+      OnDbgHelpErr(_T("StackWalk64"), GetLastError(), s.AddrPC.Offset);
       break;
     }
 
@@ -1101,7 +1085,7 @@ BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *
     csEntry->moduleName[0] = 0;
     if (s.AddrPC.Offset == s.AddrReturn.Offset)
     {
-      this->OnDbgHelpErr(_T("StackWalk64-Endless-Callstack!"), 0, s.AddrPC.Offset);
+      OnDbgHelpErr(_T("StackWalk64-Endless-Callstack!"), 0, s.AddrPC.Offset);
       break;
     }
     if (s.AddrPC.Offset != 0)
@@ -1109,30 +1093,30 @@ BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *
       // we seem to have a valid PC
       // show procedure info (SymGetSymFromAddr64())
 #ifdef _UNICODE
-      if (this->m_sw->pSFA(this->m_hProcess, s.AddrPC.Offset, &(csEntry->offsetFromSymbol), pSym) != FALSE)
+      if (m_sw->pSFA(m_hProcess, s.AddrPC.Offset, &(csEntry->offsetFromSymbol), pSym) != FALSE)
 #else
-      if (this->m_sw->pSGSFA(this->m_hProcess, s.AddrPC.Offset, &(csEntry->offsetFromSymbol), pSym) != FALSE)
+      if (m_sw->pSGSFA(m_hProcess, s.AddrPC.Offset, &(csEntry->offsetFromSymbol), pSym) != FALSE)
 #endif
       {
         // TODO: Mache dies sicher...!
         _tcscpy_s(csEntry->name, pSym->Name);
         // UnDecorateSymbolName()
-        this->m_sw->pUDSN( pSym->Name, csEntry->undName, STACKWALK_MAX_NAMELEN, UNDNAME_NAME_ONLY );
-        this->m_sw->pUDSN( pSym->Name, csEntry->undFullName, STACKWALK_MAX_NAMELEN, UNDNAME_COMPLETE );
+        m_sw->pUDSN( pSym->Name, csEntry->undName, STACKWALK_MAX_NAMELEN, UNDNAME_NAME_ONLY );
+        m_sw->pUDSN( pSym->Name, csEntry->undFullName, STACKWALK_MAX_NAMELEN, UNDNAME_COMPLETE );
       }
       else
       {
 #ifdef _UNICODE
-        this->OnDbgHelpErr(_T("SymFromAddrW"), GetLastError(), s.AddrPC.Offset);
+        OnDbgHelpErr(_T("SymFromAddrW"), GetLastError(), s.AddrPC.Offset);
 #else
-        this->OnDbgHelpErr(_T("SymGetSymFromAddr64"), GetLastError(), s.AddrPC.Offset);
+        OnDbgHelpErr(_T("SymGetSymFromAddr64"), GetLastError(), s.AddrPC.Offset);
 #endif
       }
 
       // show line number info, NT5.0-method (SymGetLineFromAddr64())
-      if (this->m_sw->pSGLFA != NULL )
+      if (m_sw->pSGLFA != NULL )
       { // yes, we have SymGetLineFromAddr64()
-        if (this->m_sw->pSGLFA(this->m_hProcess, s.AddrPC.Offset, &(csEntry->offsetFromLine), &Line) != FALSE)
+        if (m_sw->pSGLFA(m_hProcess, s.AddrPC.Offset, &(csEntry->offsetFromLine), &Line) != FALSE)
         {
           csEntry->lineNumber = Line.LineNumber;
           // TODO: Mache dies sicher...!
@@ -1140,12 +1124,12 @@ BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *
         }
         else
         {
-          this->OnDbgHelpErr(_T("SymGetLineFromAddr64"), GetLastError(), s.AddrPC.Offset);
+          OnDbgHelpErr(_T("SymGetLineFromAddr64"), GetLastError(), s.AddrPC.Offset);
         }
       } // yes, we have SymGetLineFromAddr64()
 
       // show module info (SymGetModuleInfo64())
-      if (this->m_sw->GetModuleInfo(this->m_hProcess, s.AddrPC.Offset, &Module ) != FALSE)
+      if (m_sw->GetModuleInfo(m_hProcess, s.AddrPC.Offset, &Module ) != FALSE)
       { // got module info OK
         switch ( Module.SymType )
         {
@@ -1188,18 +1172,15 @@ BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *
         csEntry->baseOfImage = Module.BaseOfImage;
         _tcscpy_s(csEntry->loadedImageName, Module.LoadedImageName);
       } // got module info OK
-      else
-      {
-        this->OnDbgHelpErr(_T("SymGetModuleInfo64"), GetLastError(), s.AddrPC.Offset);
-      }
+      else OnDbgHelpErr(_T("SymGetModuleInfo64"), GetLastError(), s.AddrPC.Offset);
     } // we seem to have a valid PC
 
     CallstackEntryType et = (frameNum == 0) ? firstEntry : nextEntry;
-    this->OnCallstackEntry(et, csEntry);
+    OnCallstackEntry(et, csEntry);
 
     if (s.AddrReturn.Offset == 0)
     {
-      this->OnCallstackEntry(lastEntry, csEntry);
+      OnCallstackEntry(lastEntry, csEntry);
       SetLastError(ERROR_SUCCESS);
       break;
     }
@@ -1212,7 +1193,7 @@ BOOL StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *
   if (context == NULL)
     ResumeThread(hThread);
 
-  return TRUE;
+  return B_NO_ERROR;
 }
 
 BOOL __stdcall StackWalker::ReadProcMemCallback(
@@ -1364,67 +1345,58 @@ static inline struct tm * muscle_localtime_r(time_t * clock, struct tm * result)
 static inline struct tm * muscle_gmtime_r(   time_t * clock, struct tm * result) {return gmtime_r(clock, result);}
 #endif
 
-#ifndef MUSCLE_INLINE_LOGGING
-
-#define MAX_STACK_TRACE_DEPTH ((uint32)(256))
-
-status_t PrintStackTrace(FILE * optFile, uint32 maxDepth)
+status_t PrintStackTrace(const OutputPrinter & p, uint32 maxDepth)
 {
-   TCHECKPOINT;
-
-   if (optFile == NULL) optFile = stdout;
+   status_t ret;
 
 #if defined(__EMSCRIPTEN__)
-   (void) emscripten_run_script("print(new Error().stack)");
-   return B_NO_ERROR;
-#elif defined(MUSCLE_USE_BACKTRACE)
-   void *array[MAX_STACK_TRACE_DEPTH];
-   const size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
-   fprintf(optFile, "--Stack trace follows (%i frames):\n", (int) size);
-   backtrace_symbols_fd(array, (int)size, fileno(optFile));
-   fprintf(optFile, "--End Stack trace\n");
-   return B_NO_ERROR;
-#elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   _Win32PrintStackTraceForContext(optFile, NULL, maxDepth);
-   return B_NO_ERROR;
-#else
-   (void) maxDepth;  // shut the compiler up
-   fprintf(optFile, "PrintStackTrace:  Error, stack trace printing not available on this platform!\n");
-   return B_UNIMPLEMENTED;  // I don't know how to do this for other systems!
-#endif
-}
-
-status_t GetStackTrace(String & retStr, uint32 maxDepth)
-{
-   TCHECKPOINT;
-
-#if defined(MUSCLE_USE_BACKTRACE)
-   void *array[MAX_STACK_TRACE_DEPTH];
-   const size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
-   char ** strings = backtrace_symbols(array, (int)size);
-   if (strings)
-   {
-      char buf[128];
-      muscleSprintf(buf, "--Stack trace follows (%zd frames):", size); retStr += buf;
-      for (size_t i = 0; i < size; i++)
-      {
-         retStr += "\n  ";
-         retStr += strings[i];
-      }
-      retStr += "\n--End Stack trace\n";
-      free(strings);
-      return B_NO_ERROR;
-   }
-   else return B_OUT_OF_MEMORY;
-#elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   StackWalker(NULL, &retStr, StackWalker::OptionsJAF).ShowCallstack(maxDepth);
-   return B_NO_ERROR;
-#else
-   (void) retStr;   // shut the compiler up
+   (void) p;
    (void) maxDepth;
-   return B_UNIMPLEMENTED;
+   emscripten_run_script("console.log(new Error().stack)");
+#elif defined(MUSCLE_USE_BACKTRACE)
+   void *array[256];
+   const size_t size = backtrace(array, muscleMin(maxDepth, ARRAYITEMS(array)));
+
+   p.printf("--Stack trace follows (%zd frames):", size);
+
+   FILE * f = p.GetFile();
+   const int fd = f ? fileno(f) : -1;
+   if (fd >= 0) backtrace_symbols_fd(array, (int)size, fd); // avoids a heap-allocation when possible
+   else
+   {
+      char ** strings = backtrace_symbols(array, (int)size);
+      if (strings)
+      {
+         for (size_t i = 0; i < size; i++)
+         {
+            p.puts("\n  ");
+            p.puts(strings[i]);
+         }
+         p.puts("\n--End Stack trace\n");
+         free(strings);
+      }
+      else ret = B_OUT_OF_MEMORY;
+   }
+
+   p.printf("--End Stack trace\n");
+#elif defined(MUSCLE_USE_MSVC_STACKWALKER)
+   return StackWalker(p, StackWalker::OptionsJAF).ShowCallstack(maxDepth);
+#else
+   (void) p;   // shut the compiler up
+   (void) maxDepth;
+   ret = B_UNIMPLEMENTED;
 #endif
+
+   return ret;
 }
+
+// These functions are deliberately defined here because if I make them inline
+// function then OutputPrinter.h has to be #included beforehand, and that
+// leads to some compile-time chicken-and-egg problems that I'd rather avoid.
+status_t LogStackTrace(int logSeverity, uint32 maxDepth) {return PrintStackTrace(logSeverity, maxDepth);}
+status_t PrintStackTrace(               uint32 maxDepth) {return PrintStackTrace(stdout,      maxDepth);}
+
+#ifndef MUSCLE_INLINE_LOGGING
 
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
 void UpdateAllocationStackTrace(bool isAllocation, String * & s)
@@ -1432,7 +1404,9 @@ void UpdateAllocationStackTrace(bool isAllocation, String * & s)
    if (isAllocation)
    {
       if (s == NULL) s = new String;
-      if (GetStackTrace(*s).IsError()) s->SetCstr("(no stack trace available)");
+
+      status_t ret;
+      if (PrintStackTrace(*s).IsError(ret)) *s = String("(no stack trace available: %s)").Arg(ret());
    }
    else
    {
@@ -2076,30 +2050,6 @@ void LogFlush()
       const LogCallbackRef & lcr = iter.GetKey();
       if (lcr()) lcr()->Flush();
    }
-}
-
-status_t LogStackTrace(int ll, uint32 maxDepth)
-{
-   TCHECKPOINT;
-
-#if defined(MUSCLE_USE_BACKTRACE)
-   void *array[MAX_STACK_TRACE_DEPTH];
-   const size_t size = backtrace(array, muscleMin(maxDepth, MAX_STACK_TRACE_DEPTH));
-   char ** strings = backtrace_symbols(array, (int)size);
-   if (strings)
-   {
-      LogTime(ll, "--Stack trace follows (%zd frames):\n", size);
-      for (size_t i = 0; i < size; i++) LogTime(ll, "  %s\n", strings[i]);
-      LogTime(ll, "--End Stack trace\n");
-      free(strings);
-      return B_NO_ERROR;
-   }
-   else return B_OUT_OF_MEMORY;
-#else
-   (void) ll;        // shut the compiler up
-   (void) maxDepth;  // shut the compiler up
-   return B_UNIMPLEMENTED;  // I don't know how to do this for other systems!
-#endif
 }
 
 status_t LogPlainAux(int ll, const char * fmt, ...)

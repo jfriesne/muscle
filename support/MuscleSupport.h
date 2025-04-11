@@ -277,7 +277,7 @@ using std::set_new_handler;
   * @param retVal the integer value to pass to ExitWithoutCleanup()
   * @param msg a text string to include in the critical error printed to the log just before we call ExitWithoutCleanup()
   */
-#define MEXIT(retVal, msg) {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); (void) muscle::LogStackTrace(MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
+#define MEXIT(retVal, msg) {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); (void) muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
 
 /** This macro logs an out-of-memory warning that includes the current filename and source-code line number.  WARN_OUT_OF_MEMORY() should be called whenever newnothrow or malloc() return NULL. */
 #define MWARN_OUT_OF_MEMORY muscle::WarnOutOfMemory(__FILE__, __LINE__)

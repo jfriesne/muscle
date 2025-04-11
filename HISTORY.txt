@@ -11,6 +11,8 @@ key:  - new feature
    - Updated the captive zlib library to the latest from github.
    - Added a StringTokenizer::Join() method that takes a join-string
      rather than a join-char.
+   o PrintStackTrace() now takes an OutputPrinter as its first argument.
+   o Removed GetStackTrace() (call PrintStackTrace with a String arg intead)
    * Fixed an MSVC compile-time error in the StackWalker code in SysLog.cpp
    * Tweaked zutil.h to avoid a preprocessor error if MACOS is defined.
    * WaitCondition.h was missing a #include, fixed.
