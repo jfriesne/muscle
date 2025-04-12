@@ -3801,6 +3801,8 @@ ComputeValuesHistogram() const
    return ret;
 }
 
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // workaround for apparent DOxygen generator bug
+
 //===============================================================
 // Implementation of HashtableIterator
 //===============================================================
@@ -3863,8 +3865,6 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::~HashtableIterator()
    if (_owner) _owner->UnregisterIterator(this);
 }
 
-#ifndef DOXYGEN_SHOULD_IGNORE_THIS  // workaround for apparent DOxygen generator bug
-
 # ifndef MUSCLE_AVOID_CPLUSPLUS11
 template <class KeyType, class ValueType, class HashFunctorType>
 HashtableIterator<KeyType,ValueType,HashFunctorType>::HashtableIterator(HashtableIterator && rhs) MUSCLE_NOEXCEPT
@@ -3900,7 +3900,6 @@ HashtableIterator<KeyType,ValueType,HashFunctorType>:: operator=(const Hashtable
    }
    return *this;
 }
-#endif
 
 template <class KeyType, class ValueType, class HashFunctorType>
 void
@@ -3942,6 +3941,8 @@ HashtableIterator<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableI
       rhs.UpdateKeyAndValuePointers();
    }
 }
+
+#endif
 
 } // end namespace muscle
 

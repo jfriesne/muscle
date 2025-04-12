@@ -347,7 +347,7 @@ status_t PrintStackTrace(uint32 maxDepth = 64);
 
 /** Logs out a stack trace, if possible.
  *  @note Currently only works under Linux and MacOS/X Leopard, and then only if -rdynamic is specified as a compile flag.
- *  @param logLevel a MUSCLE_LOG_* value indicating the "severity" of this message.
+ *  @param logSeverity a MUSCLE_LOG_* value indicating the "severity" of this message.
  *  @param maxDepth The maximum number of levels of stack trace that we should print out.  Defaults to
  *                  64.  The absolute maximum is 256; if you specify a value higher than that, you will still get 256.
  *  @returns B_NO_ERROR on success, or B_UNIMPLEMENTED if a stack trace couldn't be logged because the platform doesn't support it.

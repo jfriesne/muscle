@@ -82,6 +82,21 @@ void SetAutomaticIPv4AddressMappingEnabled(bool enabled);
   */
 MUSCLE_NODISCARD bool GetAutomaticIPv4AddressMappingEnabled();
 
+/** Sets the IP address of the local NIC that CreateAcceptingSocket() will bind its socket
+  * to if no valid NIC IP address is specified in its (optInterfaceIP) argument.
+  * @param ip the NIC IP address to bind to by default
+  * @note default state is an invalid IPAddress, meaning that the socket will accept incoming TCP
+  *       connections from any NIC.
+  */
+void SetDefaultAcceptInterfaceIP(const IPAddress & ip);
+
+/** Returns the IP address of the local NIC that CreateAcceptingSocket() will bind its socket
+  * to if no valid NIC IP address is specified in its (optInterfaceIP) argument.
+  * @note default state is an invalid IPAddress, meaning that the socket will accept incoming TCP
+  *       connections from any NIC.
+  */
+MUSCLE_NODISCARD const IPAddress & GetDefaultAcceptInterfaceIP();
+
 #endif
 
 /** Given a hostname or IP address string (eg "www.google.com" or "192.168.0.1" or "fe80::1"),

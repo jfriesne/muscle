@@ -11,6 +11,11 @@ key:  - new feature
    - Updated the captive zlib library to the latest from github.
    - Added a StringTokenizer::Join() method that takes a join-string
      rather than a join-char.
+   - Added SetDefaultAcceptInterfaceIP() and GetDefaultAcceptInterfaceIP()
+     functions to NetworkUtilityFunctions.{cpp,h}, to limit accepting of
+     incoming TCP connections to a particular NIC, if desired.
+   - Added an acceptonip=ip.address startup argument that calls
+     SetDefaultAcceptInterfaceIP() when passed on the command line.
    o PrintStackTrace() now takes an OutputPrinter as its first argument.
    o Removed GetStackTrace() (call PrintStackTrace with a String arg intead)
    * Fixed an MSVC compile-time error in the StackWalker code in SysLog.cpp

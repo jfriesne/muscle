@@ -613,6 +613,17 @@ void HandleStandardDaemonArgs(const Message & args)
       else LogTime(MUSCLE_LOG_ERROR, "Unable to parse time interval string [%s] for dnscache argument!\n", value);
    }
 
+   if (args.FindString("acceptonip", &value).IsOK())
+   {
+      const IPAddress acceptIP(value);
+      if (acceptIP.IsValid())
+      {
+         LogTime(MUSCLE_LOG_INFO, "Accepting incoming connections only on NIC IP address [%s] by default.\n", acceptIP.ToString()());
+         SetDefaultAcceptInterfaceIP(acceptIP);
+      }
+      else LogTime(MUSCLE_LOG_ERROR, "Unable to parse IP address [%s] for acceptIP argument\n", value);
+   }
+
    if ((args.HasName("debugcrashes"))||(args.HasName("debugcrash")))
    {
 #if defined(__linux__) || defined(__APPLE__)

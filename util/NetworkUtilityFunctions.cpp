@@ -366,8 +366,14 @@ status_t SetUDPSocketTarget(const ConstSocketRef & sock, const char * remoteHost
    return (hostIP != invalidIP) ? SetUDPSocketTarget(sock, hostIP, remotePort) : B_ERROR("GetHostByName() failed");
 }
 
-ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRetPort, const IPAddress & optInterfaceIP, int socketFamily)
+static IPAddress _defaultAcceptInterfaceIP;
+void SetDefaultAcceptInterfaceIP(const IPAddress & ip) {_defaultAcceptInterfaceIP = ip;}
+const IPAddress & GetDefaultAcceptInterfaceIP() {return _defaultAcceptInterfaceIP;}
+
+ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRetPort, const IPAddress & optBindToInterfaceIP, int socketFamily)
 {
+   const IPAddress & optInterfaceIP = optBindToInterfaceIP.IsValid() ? optBindToInterfaceIP : _defaultAcceptInterfaceIP;
+
    ConstSocketRef ret = CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CREATE_ACCEPTING, socketFamily);
    MRETURN_ON_ERROR(ret);
 
