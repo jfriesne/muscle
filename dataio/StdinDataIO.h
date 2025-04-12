@@ -14,13 +14,13 @@
 namespace muscle {
 
 /**
- *  This DataIO handles I/O input from the STDIN_FILENO file descriptor.
- *  In order to support non-blocking input on stdin without causing loss of
- *  data sent to stdout, this DataIO object will keep its file descriptor in
- *  blocking mode at all times except when it is actually about to read from
- *  it.  Writing to stdin is not supported, of course, but if you pass in
+ *  This DataIO handles I/O input from the process's stdin stream.
+ *  Writing to stdin is not supported, of course, but if you pass in
  *  'true' as the second argument to the constructor, than any data passed
  *  to this class's Write() method will be forwarded along to stdout.
+ *  @note this class performs heroic measures under Windows to ensure that
+ *        StdinDataIO's read-behavior there is the same as under any POSIX OS,
+ *        even though Windows does its best to make that difficult.
  */
 class StdinDataIO : public DataIO
 {
