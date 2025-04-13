@@ -56,7 +56,7 @@ static inline status_t LogTimeAux(int, const char *, ...) {return B_NO_ERROR;}
 static inline void WarnOutOfMemory(const char *, int) {/* empty */}
 
 // No-op implementation of LogFlush()
-static inline status_t LogFlush() {return B_NO_ERROR;}
+static inline void LogFlush() {/* empty */}
 
 // No-op version of GetLogLevelName(), just returns a dummy string
 static inline const char * GetLogLevelName(int /*logLevel*/) {return "<omitted>";}
@@ -85,7 +85,7 @@ static inline status_t LogTimeAux(int logLevel, const char * fmt, ...) {printf("
 static inline void WarnOutOfMemory(const char * file, int line) {printf("ERROR--MEMORY ALLOCATION FAILURE!  (%s:%i)\n", file, line);}
 
 // Minimumist version of LogFlush(), just flushes stdout
-static inline status_t LogFlush() {fflush(stdout); return B_NO_ERROR;}
+static inline void LogFlush() {fflush(stdout);}
 
 // Minimalist version of GetLogLevelName(), just returns a dummy string
 MUSCLE_NODISCARD static inline const char * GetLogLevelName(int /*logLevel*/) {return "<omitted>";}

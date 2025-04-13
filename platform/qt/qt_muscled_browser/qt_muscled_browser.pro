@@ -32,6 +32,7 @@ SOURCES += \
         $$MUSCLE_DIR/syslog/SysLog.cpp \
         $$MUSCLE_DIR/system/SetupSystem.cpp \
         $$MUSCLE_DIR/system/MessageTransceiverThread.cpp \
+        $$MUSCLE_DIR/system/StackTrace.cpp \
         $$MUSCLE_DIR/system/Thread.cpp \
         $$MUSCLE_DIR/system/SignalMultiplexer.cpp \
         $$MUSCLE_DIR/system/GlobalMemoryAllocator.cpp \

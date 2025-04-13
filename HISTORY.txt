@@ -18,6 +18,8 @@ key:  - new feature
      SetDefaultAcceptInterfaceIP() when passed on the command line.
    o PrintStackTrace() now takes an OutputPrinter as its first argument.
    o Removed GetStackTrace() (call PrintStackTrace with a String arg intead)
+   o Moved the stack trace code out of SysLog.cpp and into its own
+     system/StackTrace.cpp file.
    * Fixed an MSVC compile-time error in the StackWalker code in SysLog.cpp
    * Tweaked zutil.h to avoid a preprocessor error if MACOS is defined.
    * WaitCondition.h was missing a #include, fixed.

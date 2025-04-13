@@ -101,7 +101,7 @@ ifneq (,$(findstring MUSCLE_ENABLE_SSL,$(CXXFLAGS))) # Add OpenSSL-specific file
        LIBS += -lssl -lcrypto
 endif
 
-HEXTERMOBJS = hexterm.o SysLog.o SetupSystem.o String.o RS232DataIO.o ChildProcessDataIO.o ByteBuffer.o MiscUtilityFunctions.o Message.o StdinDataIO.o PlainTextMessageIOGateway.o AbstractMessageIOGateway.o FileDescriptorDataIO.o PulseNode.o SimulatedMulticastDataIO.o Thread.o ZLibDataIO.o
+HEXTERMOBJS = hexterm.o StackTrace.o SysLog.o SetupSystem.o String.o RS232DataIO.o ChildProcessDataIO.o ByteBuffer.o MiscUtilityFunctions.o Message.o StdinDataIO.o PlainTextMessageIOGateway.o AbstractMessageIOGateway.o FileDescriptorDataIO.o PulseNode.o SimulatedMulticastDataIO.o Thread.o ZLibDataIO.o
 
 ifeq ($(MUSCLE_BUILD_CONTEXT),meyer)
    CXXFLAGS    += -DBUILD_MUSCLE_IN_MEYER_CONTEXT -I../../../libs/libmslicommon/include
@@ -114,146 +114,146 @@ endif
 # Makes all the programs that can be made using just cross-platform code
 all : $(EXECUTABLES)
 
-testhashtable : $(STDOBJS) String.o testhashtable.o SysLog.o SetupSystem.o Message.o SetupSystem.o MiscUtilityFunctions.o ByteBuffer.o Thread.o
+testhashtable : $(STDOBJS) String.o testhashtable.o StackTrace.o SysLog.o SetupSystem.o Message.o SetupSystem.o MiscUtilityFunctions.o ByteBuffer.o Thread.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testclone : $(STDOBJS) String.o testclone.o SysLog.o SetupSystem.o ByteBuffer.o
+testclone : $(STDOBJS) String.o testclone.o StackTrace.o SysLog.o SetupSystem.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testmessage : $(STDOBJS) Message.o String.o testmessage.o SysLog.o ByteBuffer.o SetupSystem.o
+testmessage : $(STDOBJS) Message.o String.o testmessage.o StackTrace.o SysLog.o ByteBuffer.o SetupSystem.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testfilepathinfo : $(STDOBJS) testfilepathinfo.o FilePathInfo.o SetupSystem.o String.o SysLog.o ByteBuffer.o
+testfilepathinfo : $(STDOBJS) testfilepathinfo.o FilePathInfo.o SetupSystem.o String.o StackTrace.o SysLog.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testthread : $(STDOBJS) testthread.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o
+testthread : $(STDOBJS) testthread.o SetupSystem.o Message.o String.o ByteBuffer.o StackTrace.o SysLog.o Thread.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testserverthread : $(STDOBJS) testserverthread.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o AbstractReflectSession.o AbstractMessageIOGateway.o MessageIOGateway.o TemplatingMessageIOGateway.o PulseNode.o ServerComponent.o ReflectServer.o ZLibCodec.o MiscUtilityFunctions.o
+testserverthread : $(STDOBJS) testserverthread.o SetupSystem.o Message.o String.o ByteBuffer.o StackTrace.o SysLog.o Thread.o AbstractReflectSession.o AbstractMessageIOGateway.o MessageIOGateway.o TemplatingMessageIOGateway.o PulseNode.o ServerComponent.o ReflectServer.o ZLibCodec.o MiscUtilityFunctions.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testreaderwritermutex : $(STDOBJS) testreaderwritermutex.o SetupSystem.o Message.o MiscUtilityFunctions.o String.o ByteBuffer.o SysLog.o Thread.o AbstractReflectSession.o AbstractMessageIOGateway.o MessageIOGateway.o ReaderWriterMutex.o TemplatingMessageIOGateway.o PulseNode.o ServerComponent.o ReflectServer.o ZLibCodec.o
+testreaderwritermutex : $(STDOBJS) testreaderwritermutex.o SetupSystem.o Message.o MiscUtilityFunctions.o String.o ByteBuffer.o StackTrace.o SysLog.o Thread.o AbstractReflectSession.o AbstractMessageIOGateway.o MessageIOGateway.o ReaderWriterMutex.o TemplatingMessageIOGateway.o PulseNode.o ServerComponent.o ReflectServer.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testthreadpool : $(STDOBJS) testthreadpool.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o ThreadPool.o
+testthreadpool : $(STDOBJS) testthreadpool.o SetupSystem.o Message.o String.o ByteBuffer.o StackTrace.o SysLog.o Thread.o ThreadPool.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testpool : $(STDOBJS) Message.o String.o testpool.o SysLog.o ByteBuffer.o SetupSystem.o SetupSystem.o
+testpool : $(STDOBJS) Message.o String.o testpool.o StackTrace.o SysLog.o ByteBuffer.o SetupSystem.o SetupSystem.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testatomicvalue : $(STDOBJS) testatomicvalue.o SetupSystem.o Message.o String.o ByteBuffer.o SysLog.o Thread.o
+testatomicvalue : $(STDOBJS) testatomicvalue.o SetupSystem.o Message.o String.o ByteBuffer.o StackTrace.o SysLog.o Thread.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testbatchguard : $(STDOBJS) Message.o String.o testbatchguard.o SysLog.o ByteBuffer.o SetupSystem.o SetupSystem.o
+testbatchguard : $(STDOBJS) Message.o String.o testbatchguard.o StackTrace.o SysLog.o ByteBuffer.o SetupSystem.o SetupSystem.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testzip : $(STDOBJS) Message.o String.o testzip.o SysLog.o ByteBuffer.o SetupSystem.o ZipFileUtilityFunctions.o MiscUtilityFunctions.o $(ZIPOBJS)
+testzip : $(STDOBJS) Message.o String.o testzip.o StackTrace.o SysLog.o ByteBuffer.o SetupSystem.o ZipFileUtilityFunctions.o MiscUtilityFunctions.o $(ZIPOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testtar : $(STDOBJS) Message.o String.o testtar.o SysLog.o ByteBuffer.o SetupSystem.o ZipFileUtilityFunctions.o MiscUtilityFunctions.o TarFileWriter.o ZLibDataIO.o $(ZIPOBJS)
+testtar : $(STDOBJS) Message.o String.o testtar.o StackTrace.o SysLog.o ByteBuffer.o SetupSystem.o ZipFileUtilityFunctions.o MiscUtilityFunctions.o TarFileWriter.o ZLibDataIO.o $(ZIPOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testmicro : $(STDOBJS) Message.o String.o testmicro.o SysLog.o ByteBuffer.o SetupSystem.o MicroMessage.o
+testmicro : $(STDOBJS) Message.o String.o testmicro.o StackTrace.o SysLog.o ByteBuffer.o SetupSystem.o MicroMessage.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testmini : $(STDOBJS) Message.o String.o testmini.o SysLog.o ByteBuffer.o SetupSystem.o MiniMessage.o
+testmini : $(STDOBJS) Message.o String.o testmini.o StackTrace.o SysLog.o ByteBuffer.o SetupSystem.o MiniMessage.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testresponse : $(STDOBJS) testresponse.o MessageIOGateway.o AbstractMessageIOGateway.o SysLog.o SetupSystem.o PulseNode.o Message.o String.o ByteBuffer.o ZLibCodec.o
+testresponse : $(STDOBJS) testresponse.o MessageIOGateway.o AbstractMessageIOGateway.o StackTrace.o SysLog.o SetupSystem.o PulseNode.o Message.o String.o ByteBuffer.o ZLibCodec.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testnagle : $(STDOBJS) testnagle.o SysLog.o SetupSystem.o String.o ByteBuffer.o Thread.o Message.o
+testnagle : $(STDOBJS) testnagle.o StackTrace.o SysLog.o SetupSystem.o String.o ByteBuffer.o Thread.o Message.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testrefcount : $(STDOBJS) testrefcount.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Thread.o Message.o ByteBuffer.o
+testrefcount : $(STDOBJS) testrefcount.o StackTrace.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Thread.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-teststatus : teststatus.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o FileDataIO.o StringTokenizer.o FilePathInfo.o StringMatcher.o Directory.o NetworkUtilityFunctions.o SocketMultiplexer.o $(ZLIBOBJS)
+teststatus : teststatus.o StackTrace.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o FileDataIO.o StringTokenizer.o FilePathInfo.o StringMatcher.o Directory.o NetworkUtilityFunctions.o SocketMultiplexer.o $(ZLIBOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testtimeunitconversions : testtimeunitconversions.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o FileDataIO.o StringTokenizer.o FilePathInfo.o StringMatcher.o Directory.o NetworkUtilityFunctions.o SocketMultiplexer.o $(ZLIBOBJS)
+testtimeunitconversions : testtimeunitconversions.o StackTrace.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o FileDataIO.o StringTokenizer.o FilePathInfo.o StringMatcher.o Directory.o NetworkUtilityFunctions.o SocketMultiplexer.o $(ZLIBOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testtypedefs : testtypedefs.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o FileDataIO.o StringTokenizer.o FilePathInfo.o StringMatcher.o Directory.o NetworkUtilityFunctions.o SocketMultiplexer.o $(ZLIBOBJS)
+testtypedefs : testtypedefs.o StackTrace.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o FileDataIO.o StringTokenizer.o FilePathInfo.o StringMatcher.o Directory.o NetworkUtilityFunctions.o SocketMultiplexer.o $(ZLIBOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-teststring : $(STDOBJS) teststring.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
+teststring : $(STDOBJS) teststring.o StackTrace.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-teststringtokenizer : $(STDOBJS) teststringtokenizer.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
+teststringtokenizer : $(STDOBJS) teststringtokenizer.o StackTrace.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testbitchord : $(STDOBJS) testbitchord.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
+testbitchord : $(STDOBJS) testbitchord.o StackTrace.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testhashcodes : $(STDOBJS) testhashcodes.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
+testhashcodes : $(STDOBJS) testhashcodes.o StackTrace.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testbytebuffer : $(STDOBJS) testbytebuffer.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
+testbytebuffer : $(STDOBJS) testbytebuffer.o StackTrace.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testmatchfiles : $(STDOBJS) testmatchfiles.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o StringMatcher.o FilePathExpander.o
+testmatchfiles : $(STDOBJS) testmatchfiles.o StackTrace.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o Message.o ByteBuffer.o StringMatcher.o FilePathExpander.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testparsefile : $(STDOBJS) testparsefile.o SysLog.o String.o MiscUtilityFunctions.o SetupSystem.o Message.o ByteBuffer.o
+testparsefile : $(STDOBJS) testparsefile.o StackTrace.o SysLog.o String.o MiscUtilityFunctions.o SetupSystem.o Message.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testtime : $(STDOBJS) testtime.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o ByteBuffer.o Message.o MiscUtilityFunctions.o
+testtime : $(STDOBJS) testtime.o StackTrace.o SysLog.o String.o SetupSystem.o MiscUtilityFunctions.o ByteBuffer.o Message.o MiscUtilityFunctions.o
 
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testendian : $(STDOBJS) testendian.o MiscUtilityFunctions.o ByteBuffer.o String.o SysLog.o SetupSystem.o Message.o
+testendian : $(STDOBJS) testendian.o MiscUtilityFunctions.o ByteBuffer.o String.o StackTrace.o SysLog.o SetupSystem.o Message.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testsysteminfo : $(STDOBJS) testsysteminfo.o String.o SetupSystem.o SystemInfo.o SysLog.o ByteBuffer.o
+testsysteminfo : $(STDOBJS) testsysteminfo.o String.o SetupSystem.o SystemInfo.o StackTrace.o SysLog.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testqueue : $(STDOBJS) testqueue.o SysLog.o String.o SetupSystem.o ByteBuffer.o
+testqueue : $(STDOBJS) testqueue.o StackTrace.o SysLog.o String.o SetupSystem.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testtuple : $(STDOBJS) testtuple.o String.o SysLog.o SetupSystem.o ByteBuffer.o
+testtuple : $(STDOBJS) testtuple.o String.o StackTrace.o SysLog.o SetupSystem.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testserial : $(STDOBJS) testserial.o SysLog.o RS232DataIO.o String.o SetupSystem.o ByteBuffer.o
+testserial : $(STDOBJS) testserial.o StackTrace.o SysLog.o RS232DataIO.o String.o SetupSystem.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testgateway : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o testgateway.o SysLog.o PulseNode.o SetupSystem.o ZLibDataIO.o ZLibCodec.o ByteBuffer.o
+testgateway : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o testgateway.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ZLibDataIO.o ZLibCodec.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testregex : $(STDOBJS) testregex.o String.o SysLog.o SetupSystem.o ByteBuffer.o $(REGEXOBJS)
+testregex : $(STDOBJS) testregex.o String.o StackTrace.o SysLog.o SetupSystem.o ByteBuffer.o $(REGEXOBJS)
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testudp : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o PlainTextMessageIOGateway.o RawDataMessageIOGateway.o String.o testudp.o MiscUtilityFunctions.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o StdinDataIO.o FileDescriptorDataIO.o
+testudp : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o PlainTextMessageIOGateway.o RawDataMessageIOGateway.o String.o testudp.o MiscUtilityFunctions.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o StdinDataIO.o FileDescriptorDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testsocketmultiplexer : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o testsocketmultiplexer.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o
+testsocketmultiplexer : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o testsocketmultiplexer.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testpackettunnel : $(STDOBJS) testpackettunnel.o Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o ProxyIOGateway.o PacketTunnelIOGateway.o MiniPacketTunnelIOGateway.o PacketizedProxyDataIO.o MiscUtilityFunctions.o ByteBufferPacketDataIO.o ByteBufferDataIO.o
+testpackettunnel : $(STDOBJS) testpackettunnel.o Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o ProxyIOGateway.o PacketTunnelIOGateway.o MiniPacketTunnelIOGateway.o PacketizedProxyDataIO.o MiscUtilityFunctions.o ByteBufferPacketDataIO.o ByteBufferDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testpacketio : $(STDOBJS) testpacketio.o Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o PacketizedProxyDataIO.o MiscUtilityFunctions.o ByteBufferPacketDataIO.o ByteBufferDataIO.o
+testpacketio : $(STDOBJS) testpacketio.o Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o PacketizedProxyDataIO.o MiscUtilityFunctions.o ByteBufferPacketDataIO.o ByteBufferDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testchildprocess : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o MiscUtilityFunctions.o ChildProcessDataIO.o testchildprocess.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o StdinDataIO.o FileDescriptorDataIO.o
+testchildprocess : $(STDOBJS) Message.o AbstractMessageIOGateway.o PlainTextMessageIOGateway.o String.o MiscUtilityFunctions.o ChildProcessDataIO.o testchildprocess.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o StdinDataIO.o FileDescriptorDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testsharedmem: $(STDOBJS) SysLog.o SharedMemory.o testsharedmem.o String.o MiscUtilityFunctions.o SetupSystem.o ByteBuffer.o Message.o
+testsharedmem: $(STDOBJS) StackTrace.o SysLog.o SharedMemory.o testsharedmem.o String.o MiscUtilityFunctions.o SetupSystem.o ByteBuffer.o Message.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testobjectpool: $(STDOBJS) SysLog.o SharedMemory.o testobjectpool.o String.o SetupSystem.o ByteBuffer.o
+testobjectpool: $(STDOBJS) StackTrace.o SysLog.o SharedMemory.o testobjectpool.o String.o SetupSystem.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testqueryfilter: $(STDOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o testqueryfilter.o SetupSystem.o MiscUtilityFunctions.o
+testqueryfilter: $(STDOBJS) StackTrace.o SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o testqueryfilter.o SetupSystem.o MiscUtilityFunctions.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testpulsenode:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o ServerComponent.o MessageIOGateway.o TemplatingMessageIOGateway.o ZLibCodec.o testpulsenode.o ByteBuffer.o
+testpulsenode:  $(STDOBJS) $(SSLOBJS) StackTrace.o SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o ServerComponent.o MessageIOGateway.o TemplatingMessageIOGateway.o ZLibCodec.o testpulsenode.o ByteBuffer.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testnetconfigdetect:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o DetectNetworkConfigChangesSession.o ServerComponent.o MessageIOGateway.o TemplatingMessageIOGateway.o ZLibCodec.o Thread.o testnetconfigdetect.o
+testnetconfigdetect:  $(STDOBJS) $(SSLOBJS) StackTrace.o SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o DetectNetworkConfigChangesSession.o ServerComponent.o MessageIOGateway.o TemplatingMessageIOGateway.o ZLibCodec.o Thread.o testnetconfigdetect.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testnetutil:  $(STDOBJS) $(SSLOBJS) SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o DetectNetworkConfigChangesSession.o ServerComponent.o MessageIOGateway.o TemplatingMessageIOGateway.o ZLibCodec.o Thread.o testnetutil.o
+testnetutil:  $(STDOBJS) $(SSLOBJS) StackTrace.o SysLog.o ByteBuffer.o Message.o QueryFilter.o String.o SetupSystem.o MiscUtilityFunctions.o AbstractReflectSession.o PulseNode.o ReflectServer.o AbstractMessageIOGateway.o DetectNetworkConfigChangesSession.o ServerComponent.o MessageIOGateway.o TemplatingMessageIOGateway.o ZLibCodec.o Thread.o testnetutil.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 clean :

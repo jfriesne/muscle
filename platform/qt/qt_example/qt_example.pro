@@ -62,6 +62,7 @@ MUSCLE_SOURCES = $$MUSCLE_DIR/dataio/FileDataIO.cpp                   \
                  $$MUSCLE_DIR/system/MessageTransceiverThread.cpp     \
                  $$MUSCLE_DIR/system/SetupSystem.cpp                  \
                  $$MUSCLE_DIR/system/SignalMultiplexer.cpp            \
+                 $$MUSCLE_DIR/system/StackTrace.cpp                   \
                  $$MUSCLE_DIR/system/Thread.cpp                       \
                  $$MUSCLE_DIR/util/ByteBuffer.cpp                     \
                  $$MUSCLE_DIR/util/Directory.cpp                      \
