@@ -16,10 +16,17 @@ key:  - new feature
      incoming TCP connections to a particular NIC, if desired.
    - Added an acceptonip=ip.address startup argument that calls
      SetDefaultAcceptInterfaceIP() when passed on the command line.
+   - Added a StackTrace class, for formal handling of in-memory
+     captured stack frames.
    o PrintStackTrace() now takes an OutputPrinter as its first argument.
    o Removed GetStackTrace() (call PrintStackTrace with a String arg intead)
    o Moved the stack trace code out of SysLog.cpp and into its own
      system/StackTrace.cpp file.
+   o Calling EnsureSize(MUSCLE_NO_LIMIT) on a Queue or Hashtable will now
+     return B_RESOURCE_LIMIT rather than actually trying to allocate
+     space for 4.3 billion items.
+   o Updated the MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS debug-code
+     to store StackTrace objects instead of Strings.
    * Fixed an MSVC compile-time error in the StackWalker code in SysLog.cpp
    * Tweaked zutil.h to avoid a preprocessor error if MACOS is defined.
    * WaitCondition.h was missing a #include, fixed.

@@ -9,6 +9,8 @@
 
 namespace muscle {
 
+class StackTrace;
+
 #if defined(MUSCLE_ENABLE_HELGRIND_ANNOTATIONS) && !defined(DISABLE_OBJECT_POOLING)
 // Uncomment this #define to disable object pools (ie turn them into
 // simple passthroughs to the new/delete operators).
@@ -24,7 +26,7 @@ namespace muscle {
 
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
 class String;
-extern void PrintAllocationStackTrace(const OutputPrinter & p, const void * slabThis, const void * obj, uint32 slabIdx, uint32 numObjectsPerSlab, const String & optStackStr);
+extern void PrintAllocationStackTrace(const OutputPrinter & p, const void * slabThis, const void * obj, uint32 slabIdx, uint32 numObjectsPerSlab, const StackTrace * optStackTrace);
 #endif
 
 /** An interface that must be implemented by all ObjectPool classes.
@@ -616,7 +618,7 @@ private:
                p.printf("      " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":   %s %p is possibly still in use?\n", i, (uint32)NUM_OBJECTS_PER_SLAB, GetObjectClassName(), n);
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
                const Object * o = &n->GetObject();
-               if (o->GetAllocationLocation() != NULL) PrintAllocationStackTrace(p, this, o, i, NUM_OBJECTS_PER_SLAB, *o->GetAllocationLocation());
+               if (o->GetAllocationLocation() != NULL) PrintAllocationStackTrace(p, this, o, i, NUM_OBJECTS_PER_SLAB, o->GetAllocationLocation());
 #endif
             }
          }

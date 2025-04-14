@@ -77,10 +77,6 @@
 # define MUSCLE_USE_MSVC_SWAP_FUNCTIONS 1
 #endif
 
-#if (_MSC_VER >= 1300) && !defined(MUSCLE_AVOID_WINDOWS_STACKTRACE)
-# define MUSCLE_USE_MSVC_STACKWALKER 1
-#endif
-
 #ifdef __cplusplus
 # if !defined(MUSCLE_AVOID_CPLUSPLUS11) && (__cplusplus < 201100L) && !defined(_MSVC_LANG)
 #  define MUSCLE_AVOID_CPLUSPLUS11

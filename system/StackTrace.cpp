@@ -1,10 +1,14 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#include "system/StackTrace.h"  // this include must be here, so that MUSCLE_USE_MSVC_STACKWALKER will be defined below if appropriate
+
 #if defined(__EMSCRIPTEN__)
 # include <emscripten/emscripten.h>
 #endif
 
-#include "util/String.h"
+#ifdef MUSCLE_USE_BACKTRACE
+# include <execinfo.h>
+#endif
 
 #ifdef MUSCLE_USE_MSVC_STACKWALKER
 # include <dbghelp.h>
@@ -12,15 +16,6 @@
 #  define _UNICODE 1
 # endif
 # include <tchar.h>
-#endif
-
-#if defined(__APPLE__)
-# include "AvailabilityMacros.h"  // so we can find out if this version of MacOS/X is new enough to include backtrace() and friends
-#endif
-
-#if (defined(__linux__) && !defined(ANDROID)) || (defined(MAC_OS_X_VERSION_10_5) && defined(MAC_OS_X_VERSION_MAX_ALLOWED) && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5))
-# include <execinfo.h>
-# define MUSCLE_USE_BACKTRACE 1
 #endif
 
 namespace muscle {
@@ -51,12 +46,12 @@ void PrintStackTrace()
  *
  * Liberated from:
  *
- *   http://www.codeproject.com/KB/threads/StackTrace.aspx
+ *   http://www.codeproject.com/KB/threads/StackWalker.aspx
  *
  **********************************************************************/
 
-class StackTraceInternal;  // forward
-class StackTrace
+class StackWalkerInternal;  // forward
+class StackWalker
 {
 public:
    typedef enum StackWalkOptions
@@ -95,14 +90,14 @@ public:
      OptionsJAF = (RetrieveSymbol|RetrieveLine)
    } StackWalkOptions;
 
-   StackTrace(
+   StackWalker(
      const OutputPrinter & printer,
      int options = OptionsAll, // 'int' is by design, to combine the enum-flags
      LPTSTR szSymPath = NULL,
      DWORD dwProcessId = GetCurrentProcessId(),
      HANDLE hProcess = GetCurrentProcess()
      );
-   ~StackTrace();
+   ~StackWalker();
 
    typedef BOOL (__stdcall *PReadProcessMemoryRoutine)(
      HANDLE      hProcess,
@@ -166,7 +161,7 @@ protected:
 #endif
    }
 
-   StackTraceInternal *m_sw;
+   StackWalkerInternal *m_sw;
    HANDLE m_hProcess;
    DWORD m_dwProcessId;
    BOOL m_modulesLoaded;
@@ -178,14 +173,14 @@ protected:
 
    static BOOL __stdcall ReadProcMemCallback(HANDLE hProcess, DWORD64 qwBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead);
 
-   friend class StackTraceInternal;
+   friend class StackWalkerInternal;
 };
 
 // Called from code in MiscUtilityFunctions.cpp
 void _Win32PrintStackTraceForContext(const OutputPrinter & p, CONTEXT * context, uint32 maxDepth)
 {
    p.printf("--Stack trace follows:\n");
-   (void) StackTrace(p, StackTrace::OptionsJAF).ShowCallstack(maxDepth, GetCurrentThread(), context);
+   (void) StackWalker(p, StackWalker::OptionsJAF).ShowCallstack(maxDepth, GetCurrentThread(), context);
    p.printf("--End Stack trace\n");
 }
 
@@ -197,10 +192,10 @@ void _Win32PrintStackTraceForContext(const OutputPrinter & p, CONTEXT * context,
 // Normally it should be enough to use 'CONTEXT_FULL' (better would be 'CONTEXT_ALL')
 #define USED_CONTEXT_FLAGS CONTEXT_FULL
 
-class StackTraceInternal
+class StackWalkerInternal
 {
 public:
-  StackTraceInternal(StackTrace *parent, HANDLE hProcess)
+  StackWalkerInternal(StackWalker *parent, HANDLE hProcess)
   {
     m_parent = parent;
     m_hDbhHelp = NULL;
@@ -224,7 +219,7 @@ public:
     pUDSN = NULL;
     pSGSP = NULL;
   }
-  ~StackTraceInternal()
+  ~StackWalkerInternal()
   {
     if (pSC != NULL)
       pSC(m_hProcess);  // SymCleanup
@@ -333,10 +328,10 @@ public:
     // SymSetOptions
     symOptions = pSSO(symOptions);
 
-    TCHAR buf[StackTrace::STACKWALK_MAX_NAMELEN] = {0};
+    TCHAR buf[StackWalker::STACKWALK_MAX_NAMELEN] = {0};
     if (pSGSP != NULL)
     {
-      if (pSGSP(m_hProcess, buf, StackTrace::STACKWALK_MAX_NAMELEN) == FALSE)
+      if (pSGSP(m_hProcess, buf, StackWalker::STACKWALK_MAX_NAMELEN) == FALSE)
         m_parent->OnDbgHelpErr(_T("SymGetSearchPath"), GetLastError(), 0);
     }
     TCHAR szUserName[1024] = {0};
@@ -347,7 +342,7 @@ public:
     return TRUE;
   }
 
-  StackTrace *m_parent;
+  StackWalker *m_parent;
 
   HMODULE m_hDbhHelp;
   HANDLE m_hProcess;
@@ -633,7 +628,7 @@ private:
     if ( (m_parent != NULL) && (szImg != NULL) )
     {
       // try to retrive the file-version:
-      if ( (m_parent->m_options & StackTrace::RetrieveFileVersion) != 0)
+      if ( (m_parent->m_options & StackWalker::RetrieveFileVersion) != 0)
       {
         VS_FIXEDFILEINFO *fInfo = NULL;
         DWORD dwHandle;
@@ -765,12 +760,12 @@ public:
 };
 
 // #############################################################
-StackTrace::StackTrace(const OutputPrinter & p, int options, LPTSTR szSymPath, DWORD dwProcessId, HANDLE hProcess)
+StackWalker::StackWalker(const OutputPrinter & p, int options, LPTSTR szSymPath, DWORD dwProcessId, HANDLE hProcess)
    : m_printer(p)
    , m_options(options)
    , m_modulesLoaded(FALSE)
    , m_hProcess(hProcess)
-   , m_sw(new StackTraceInternal(this, m_hProcess))
+   , m_sw(new StackWalkerInternal(this, m_hProcess))
    , m_dwProcessId(dwProcessId)
 {
   if (szSymPath != NULL)
@@ -781,13 +776,13 @@ StackTrace::StackTrace(const OutputPrinter & p, int options, LPTSTR szSymPath, D
   else m_szSymPath = NULL;
 }
 
-StackTrace::~StackTrace()
+StackWalker::~StackWalker()
 {
   if (m_szSymPath) free(m_szSymPath);
   delete m_sw;
 }
 
-BOOL StackTrace::LoadModules()
+BOOL StackWalker::LoadModules()
 {
   if (m_sw == NULL)
   {
@@ -912,10 +907,10 @@ static int SaveContextFilterFunc(struct _EXCEPTION_POINTERS *ep)
 // This has to be done due to a problem with the "hProcess"-parameter in x64...
 // Because this class is in no case multi-threading-enabled (because of the limitations
 // of dbghelp.dll) it is "safe" to use a static-variable
-static StackTrace::PReadProcessMemoryRoutine s_readMemoryFunction = NULL;
+static StackWalker::PReadProcessMemoryRoutine s_readMemoryFunction = NULL;
 static LPVOID s_readMemoryFunction_UserData = NULL;
 
-status_t StackTrace::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *context, PReadProcessMemoryRoutine readMemoryFunction, LPVOID pUserData)
+status_t StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *context, PReadProcessMemoryRoutine readMemoryFunction, LPVOID pUserData)
 {
   CallstackEntry *csEntry = NULL;  // deliberately declared here because declaring it later causes MSVC to error out due to gotos skipping the declaration
 
@@ -1014,7 +1009,7 @@ status_t StackTrace::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEX
   s.AddrStack.Offset = _context.Sp;
   s.AddrStack.Mode = AddrModeFlat;
 #else
-# error "StackTrace:  Platform not supported!"
+# error "StackWalker:  Platform not supported!"
 #endif
 
 #ifdef _UNICODE
@@ -1176,7 +1171,7 @@ status_t StackTrace::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEX
   return B_NO_ERROR;
 }
 
-BOOL __stdcall StackTrace::ReadProcMemCallback(
+BOOL __stdcall StackWalker::ReadProcMemCallback(
     HANDLE      hProcess,
     DWORD64     qwBaseAddress,
     PVOID       lpBuffer,
@@ -1199,7 +1194,7 @@ BOOL __stdcall StackTrace::ReadProcMemCallback(
   }
 }
 
-void StackTrace::OnLoadModule(LPTSTR img, LPTSTR mod, DWORD64 baseAddr, DWORD size, DWORD result, LPCTSTR symType, LPTSTR pdbName, ULONGLONG fileVersion)
+void StackWalker::OnLoadModule(LPTSTR img, LPTSTR mod, DWORD64 baseAddr, DWORD size, DWORD result, LPCTSTR symType, LPTSTR pdbName, ULONGLONG fileVersion)
 {
    TCHAR buffer[STACKWALK_MAX_NAMELEN];
    if (fileVersion == 0) _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s:%s (%p), size: %d (result: %d), SymType: '%s', PDB: '%s'\n"), img, mod, (LPVOID)baseAddr, size, result, symType, pdbName);
@@ -1216,7 +1211,7 @@ void StackTrace::OnLoadModule(LPTSTR img, LPTSTR mod, DWORD64 baseAddr, DWORD si
 #endif
 }
 
-void StackTrace::OnCallstackEntry(CallstackEntryType eType, CallstackEntry *entry)
+void StackWalker::OnCallstackEntry(CallstackEntryType eType, CallstackEntry *entry)
 {
   TCHAR buffer[STACKWALK_MAX_NAMELEN];
   if ( (eType != lastEntry) && (entry->offset != 0) )
@@ -1250,7 +1245,7 @@ void StackTrace::OnCallstackEntry(CallstackEntryType eType, CallstackEntry *entr
   }
 }
 
-void StackTrace::OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr)
+void StackWalker::OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr)
 {
   TCHAR buffer[STACKWALK_MAX_NAMELEN];
   _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("ERROR: %s, GetLastError: %d (Address: %p)\n"), szFuncName, gle, (LPVOID)addr);
@@ -1266,7 +1261,7 @@ void StackTrace::OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr)
 #endif
 }
 
-void StackTrace::OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUserName)
+void StackWalker::OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUserName)
 {
 #ifdef REMOVED_BY_JAF_TOO_MUCH_INFORMATION
   TCHAR buffer[STACKWALK_MAX_NAMELEN];
@@ -1290,68 +1285,100 @@ void StackTrace::OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUserN
 
 #endif  // Windows stack trace code
 
-status_t PrintStackTrace(const OutputPrinter & p, uint32 maxDepth)
+status_t StackTrace :: StaticPrintStackTrace(const OutputPrinter & p, uint32 maxDepth)
 {
-   status_t ret;
-
 #if defined(__EMSCRIPTEN__)
    (void) p;
    (void) maxDepth;
    emscripten_run_script("console.log(new Error().stack)");
+   return B_NO_ERROR;
 #elif defined(MUSCLE_USE_BACKTRACE)
-   void *array[256];
-   const size_t size = backtrace(array, muscleMin(maxDepth, ARRAYITEMS(array)));
-
-   p.printf("--Stack trace follows (%zd frames):", size);
-
+   const uint32 maxStaticDepth = 256;
    FILE * f = p.GetFile();
-   const int fd = f ? fileno(f) : -1;
-   if (fd >= 0) backtrace_symbols_fd(array, (int)size, fd); // avoids a heap-allocation when possible
+   const int fd = ((f)&&(maxDepth <= maxStaticDepth)) ? fileno(f) : -1;
+   if (fd >= 0)
+   {
+      // Fast-path implementation that avoids any heap allocations
+      void * array[maxStaticDepth];
+      const size_t size = backtrace(array, muscleMin(maxDepth, ARRAYITEMS(array)));
+      p.printf("--Stack trace follows (%zd frames):", size);
+      backtrace_symbols_fd(array, (int)size, fd);
+      p.puts("\n--End Stack trace\n");
+   }
    else
    {
-      char ** strings = backtrace_symbols(array, (int)size);
-      if (strings)
-      {
-         for (size_t i = 0; i < size; i++)
-         {
-            p.puts("\n  ");
-            p.puts(strings[i]);
-         }
-         p.puts("\n--End Stack trace\n");
-         free(strings);
-      }
-      else ret = B_OUT_OF_MEMORY;
+      // Normal implementation is just a pass-through to the StackTrace class
+      StackTrace st;
+      MRETURN_ON_ERROR(st.CaptureStackFrames(maxDepth));
+      st.Print(p);
    }
-
-   p.printf("--End Stack trace\n");
+   return B_NO_ERROR;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   return StackTrace(p, StackTrace::OptionsJAF).ShowCallstack(maxDepth);
+   return StackWalker(p, StackWalker::OptionsJAF).ShowCallstack(maxDepth);
 #else
    (void) p;   // shut the compiler up
    (void) maxDepth;
-   ret = B_UNIMPLEMENTED;
+   return B_UNIMPLEMENTED;
+#endif
+}
+
+status_t StackTrace :: CaptureStackFrames(uint32 maxDepth)
+{
+   ClearStackFrames();
+
+#if defined(MUSCLE_USE_BACKTRACE)
+   MRETURN_ON_ERROR(_stackFrames.EnsureSize(maxDepth, true));
+   const size_t size = backtrace(_stackFrames.HeadPointer(), maxDepth);
+   (void) _stackFrames.EnsureSize(size, true);  // trim off unused frames
+   return B_NO_ERROR;
+#elif defined(MUSCLE_USE_MSVC_STACKWALKER)
+   return StackWalker(_stackFrames, StackWalker::OptionsJAF).ShowCallstack(maxDepth);
+#else
+   return B_UNIMPLEMENTED;
+#endif
+}
+
+void StackTrace :: Print(const OutputPrinter & p) const
+{
+   const uint32 size = GetNumCapturedStackFrames();
+   p.printf("--Stack trace follows (" UINT32_FORMAT_SPEC " frames):", size);
+
+#if defined(MUSCLE_USE_BACKTRACE)
+   char ** strings = backtrace_symbols(_stackFrames.HeadPointer(), size);
+   if (strings)
+   {
+      for (uint32 i=0; i<size; i++)
+      {
+         p.puts("\n  ");
+         p.puts(strings[i]);
+      }
+      free(strings);
+   }
+   else MWARN_OUT_OF_MEMORY;
+#elif defined(MUSCLE_USE_MSVC_STACKWALKER)
+   p.puts(_stackFrames());
+#else
+   p.printf("<not available>");
 #endif
 
-   return ret;
+   p.puts("\n--End Stack trace\n");
 }
 
 #ifndef MUSCLE_INLINE_LOGGING
 
 // These functions are deliberately defined here because if I make them inline
-// function then OutputPrinter.h has to be #included beforehand, and that
+// functions then OutputPrinter.h has to be #included by SysLog.h, and that
 // leads to some compile-time chicken-and-egg problems that I'd rather avoid.
-status_t LogStackTrace(int logSeverity, uint32 maxDepth) {return PrintStackTrace(logSeverity, maxDepth);}
-status_t PrintStackTrace(               uint32 maxDepth) {return PrintStackTrace(stdout,      maxDepth);}
+status_t LogStackTrace(int logSeverity, uint32 maxDepth) {return StackTrace::StaticPrintStackTrace(logSeverity, maxDepth);}
+status_t PrintStackTrace(               uint32 maxDepth) {return StackTrace::StaticPrintStackTrace(stdout,      maxDepth);}
 
 # ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
-void UpdateAllocationStackTrace(bool isAllocation, String * & s)
+void UpdateAllocationStackTrace(bool isAllocation, StackTrace * & s)
 {
    if (isAllocation)
    {
-      if (s == NULL) s = new String;
-
-      status_t ret;
-      if (PrintStackTrace(*s).IsError(ret)) *s = String("(no stack trace available: %s)").Arg(ret());
+      if (s == NULL) s = new StackTrace;
+      if (s) (void) s->CaptureStackFrames();
    }
    else
    {
@@ -1360,10 +1387,11 @@ void UpdateAllocationStackTrace(bool isAllocation, String * & s)
    }
 }
 
-void PrintAllocationStackTrace(const OutputPrinter & p, const void * slabThis, const void * obj, uint32 slabIdx, uint32 numObjectsPerSlab, const String & stackStr)
+void PrintAllocationStackTrace(const OutputPrinter & p, const void * slabThis, const void * obj, uint32 slabIdx, uint32 numObjectsPerSlab, const StackTrace * optStackTrace)
 {
    p.printf("\nObjectSlab %p:  Object %p (#" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ") was allocated at this location:\n", slabThis, obj, slabIdx, numObjectsPerSlab);
-   p.puts(stackStr());
+   if (optStackTrace) optStackTrace->Print(p);
+                 else p.puts("<stack trace not found>\n");
 }
 # endif
 

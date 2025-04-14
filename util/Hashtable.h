@@ -3554,6 +3554,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
       this->Clear(true);
       return B_NO_ERROR;
    }
+   if (biggerTableSize == MUSCLE_NO_LIMIT) return B_RESOURCE_LIMIT;  // avoid a stupidly-large allocation if someone makes this mistake
 
    // 1. Initialize the scratch space for our active iterators.
    {

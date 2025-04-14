@@ -18,8 +18,8 @@ namespace muscle {
 class RefCountable;
 
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
-class String;
-extern void UpdateAllocationStackTrace(bool isAllocation, String * & s);  // implemented in SysLog.cpp
+class StackTrace;
+extern void UpdateAllocationStackTrace(bool isAllocation, StackTrace * & st);  // implemented in SysLog.cpp
 #endif
 
 /** This macro declares typedefs for a given RefCountable type that follow the standard naming convention.
@@ -56,7 +56,7 @@ public:
    virtual ~RefCountable()
    {
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
-      UpdateAllocationStackTrace(false, _allocatedAtStackTrace);  // delete the allocation-location string, if any
+      UpdateAllocationStackTrace(false, _allocatedAtStackTrace);  // delete the allocation-location, if any
 #endif
    }
 
@@ -97,7 +97,7 @@ public:
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
    /** If -DMUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS was specified on the compile line,
      * and this RefCountable is currently being managed by an ObjectPool, this will return
-     * a string containing the stack trace of where the allocation occurred.  This is useful
+     * a pointer to a StackTrace object indicating where the allocation occurred.  This is useful
      * for tracking down the cause of on-exit assertion failures from the ObjectPool class
      * destructors which are very picky about making sure all objects have been returned
      * to the pool before they deallocate the ObjectSlabs.
@@ -105,7 +105,7 @@ public:
      * Note that enabling this feature uses up gobs of extra memory and CPU, so don't leave
      * it enabled after you are done debugging.
      */
-   MUSCLE_NODISCARD const String * GetAllocationLocation() const {return _allocatedAtStackTrace;}
+   MUSCLE_NODISCARD const StackTrace * GetAllocationLocation() const {return _allocatedAtStackTrace;}
 #endif
 
 #ifdef MUSCLE_ENABLE_HELGRIND_ANNOTATIONS
@@ -118,7 +118,7 @@ private:
    AbstractObjectManager * _manager;
 
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
-   String * _allocatedAtStackTrace;
+   StackTrace * _allocatedAtStackTrace;
 #endif
 };
 template <class Item> class Ref;           // forward reference

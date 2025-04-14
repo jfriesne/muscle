@@ -1485,6 +1485,7 @@ EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** 
       const uint32 sqLen = ARRAYITEMS(_smallQueue);
       const uint32 temp  = size + extraPreallocs;
       uint32 newQLen = muscleMax((uint32)ARRAYITEMS(_smallQueue), ((setNumItems)||(temp <= sqLen)) ? muscleMax(sqLen,temp) : temp);
+      if (newQLen == MUSCLE_NO_LIMIT) return B_RESOURCE_LIMIT;  // avoid a stupidly-large allocation if someone makes this mistake
 
       ItemType * newQueue = ((_queue == _smallQueue)||(newQLen > sqLen)) ? newnothrow_array(ItemType,newQLen) : _smallQueue;
 
