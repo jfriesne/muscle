@@ -716,6 +716,8 @@ public:
   BOOL GetModuleInfo(HANDLE hProcess, DWORD64 baseAddr, IMAGEHLP_MODULE64 *pModuleInfo)
 #endif
   {
+    memset(pModuleInfo, 0, sizeof(*pModuleInfo));  // otherwise Module.LoadedImageName would be garbage in some situations --jaf
+
     if(pSGMI == NULL)
     {
       SetLastError(ERROR_DLL_INIT_FAILED);

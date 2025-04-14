@@ -31,6 +31,8 @@ key:  - new feature
    * Tweaked zutil.h to avoid a preprocessor error if MACOS is defined.
    * WaitCondition.h was missing a #include, fixed.
    * Applied a few C++03 backwards-compatibility fixes.
+   * Fixed a bug in the Win32 StackWalker code that could cause uninitialized
+     data to be used.
 
 9.70 - Release 3/26/2025
    - Added |= operators to the io_status_t class.
