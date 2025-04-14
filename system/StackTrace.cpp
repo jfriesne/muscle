@@ -166,9 +166,7 @@ protected:
    DWORD m_dwProcessId;
    BOOL m_modulesLoaded;
    LPTSTR m_szSymPath;
-
    const OutputPrinter m_printer;
-
    int m_options;
 
    static BOOL __stdcall ReadProcMemCallback(HANDLE hProcess, DWORD64 qwBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead);
@@ -660,6 +658,8 @@ private:
 #else
       IMAGEHLP_MODULE64 Module;
 #endif
+      memset(&Module, 0, sizeof(Module));
+
       LPCTSTR szSymType = _T("-unknown-");
       if (GetModuleInfo(hProcess, baseAddr, &Module) != FALSE)
       {
@@ -716,8 +716,6 @@ public:
   BOOL GetModuleInfo(HANDLE hProcess, DWORD64 baseAddr, IMAGEHLP_MODULE64 *pModuleInfo)
 #endif
   {
-    memset(pModuleInfo, 0, sizeof(*pModuleInfo));  // otherwise Module.LoadedImageName would be garbage in some situations --jaf
-
     if(pSGMI == NULL)
     {
       SetLastError(ERROR_DLL_INIT_FAILED);
@@ -763,19 +761,19 @@ public:
 
 // #############################################################
 StackWalker::StackWalker(const OutputPrinter & p, int options, LPTSTR szSymPath, DWORD dwProcessId, HANDLE hProcess)
-   : m_printer(p)
-   , m_options(options)
-   , m_modulesLoaded(FALSE)
+   : m_sw(new StackWalkerInternal(this, hProcess))
    , m_hProcess(hProcess)
-   , m_sw(new StackWalkerInternal(this, m_hProcess))
    , m_dwProcessId(dwProcessId)
+   , m_modulesLoaded(FALSE)
+   , m_szSymPath(NULL)
+   , m_options(options)
+   , m_printer(p)
 {
   if (szSymPath != NULL)
   {
     m_szSymPath = _tcsdup(szSymPath);
     m_options |= SymBuildPath;
   }
-  else m_szSymPath = NULL;
 }
 
 StackWalker::~StackWalker()
@@ -1336,6 +1334,7 @@ status_t StackTrace :: CaptureStackFrames(uint32 maxDepth)
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
    return StackWalker(_stackFrames, StackWalker::OptionsJAF).ShowCallstack(maxDepth);
 #else
+   (uint32) maxDepth;
    return B_UNIMPLEMENTED;
 #endif
 }
