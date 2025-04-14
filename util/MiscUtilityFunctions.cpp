@@ -23,6 +23,7 @@
 #endif
 
 #include "reflector/StorageReflectConstants.h"  // for PR_COMMAND_BATCH, PR_NAME_KEYS
+#include "system/StackTrace.h"                  // for MUSCLE_USE_MSVC_STACKWALKER
 #include "util/ByteBuffer.h"
 #include "util/MiscUtilityFunctions.h"
 #include "util/NetworkUtilityFunctions.h"
