@@ -5,6 +5,7 @@
 
 #include "util/OutputPrinter.h"
 #include "util/Queue.h"
+#include "util/RefCount.h"
 #include "util/String.h"
 
 namespace muscle {
@@ -15,20 +16,33 @@ namespace muscle {
 
 #if (_MSC_VER >= 1300) && !defined(MUSCLE_AVOID_WINDOWS_STACKTRACE)
 # define MUSCLE_USE_MSVC_STACKWALKER 1
-class StackWalker;
 #elif (defined(__linux__) && !defined(ANDROID)) || (defined(MAC_OS_X_VERSION_10_5) && defined(MAC_OS_X_VERSION_MAX_ALLOWED) && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5))
 # define MUSCLE_USE_BACKTRACE 1
 #endif
 
 /** This class stores a stack trace for debugging purposes. */
-class StackTrace MUSCLE_FINAL_CLASS
+class StackTrace MUSCLE_FINAL_CLASS : public RefCountable
 {
 public:
    /** Default constructor */
-   StackTrace();
+   StackTrace() MUSCLE_NOEXCEPT {/* empty */}
+
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
+   StackTrace(const StackTrace & rhs);
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
+   StackTrace(StackTrace && rhs) MUSCLE_NOEXCEPT;
+
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
+   StackTrace & operator =(StackTrace && rhs) MUSCLE_NOEXCEPT;
+#endif
+
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
+   StackTrace & operator =(const StackTrace & rhs) MUSCLE_NOEXCEPT;
 
    /** Destructor */
-   ~StackTrace();
+   ~StackTrace() {/* empty */}
 
    /** Captures the calling thread's current stack into our private storage.
      * Any previously-captured stack frames will be implicitly cleared beforehand.
@@ -54,13 +68,19 @@ public:
      */
    static status_t StaticPrintStackTrace(const OutputPrinter & p, uint32 maxNumFrames = 64);
 
+   /** Swaps the internal state of this object with the state of (swapWithMe)
+     * @param swapWithMe the StackTrace to swap with
+     */ 
+   void SwapContents(StackTrace & swapWithMe) MUSCLE_NOEXCEPT;
+
 private:
 #if defined(MUSCLE_USE_BACKTRACE)
    Queue<void *> _stackFrames;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   StackWalker * _stackWalker;  // demand-allocated
+   RefCountableRef _stackWalker;  // demand-allocated StackWalker
 #endif
 };
+DECLARE_REFTYPES(StackTrace);
 
 }  // end namespace muscle
 

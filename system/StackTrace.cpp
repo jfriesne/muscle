@@ -1212,18 +1212,40 @@ void StackWalker :: OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUs
 
 #endif  // Windows stack trace code
 
-StackTrace :: StackTrace()
-#if defined(MUSCLE_USE_MSVC_STACKWALKER)
-   : _stackWalker(NULL)
+StackTrace :: StackTrace(const StackTrace & rhs)
+#if defined(MUSCLE_USE_BACKTRACE)
+   : _stackFrames(rhs._stackFrames)
+#elif defined(MUSCLE_USE_MSVC_STACKWALKER)
+   : _stackWalker(rhs._stackWalker)
 #endif
 {
-   /* empty */
+   // empty
 }
 
-/** Destructor */
-StackTrace :: ~StackTrace()
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+StackTrace :: StackTrace(StackTrace && rhs) MUSCLE_NOEXCEPT
 {
-   ClearStackFrames();
+   SwapContents(rhs);
+}
+
+StackTrace & StackTrace :: operator =(StackTrace && rhs) MUSCLE_NOEXCEPT
+{
+   SwapContents(rhs);
+   return *this;
+}
+#endif
+
+StackTrace & StackTrace :: operator =(const StackTrace & rhs) MUSCLE_NOEXCEPT
+{
+   if (this != &rhs)
+   {
+#if defined(MUSCLE_USE_BACKTRACE)
+      _stackFrames = rhs._stackFrames;
+#elif defined(MUSCLE_USE_MSVC_STACKWALKER)
+      _stackWalker = rhs._stackWalker;
+#endif
+   }
+   return *this;
 }
 
 void StackTrace :: ClearStackFrames()
@@ -1231,8 +1253,7 @@ void StackTrace :: ClearStackFrames()
 #if defined(MUSCLE_USE_BACKTRACE)
    _stackFrames.Clear();
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   delete _stackWalker;
-   _stackWalker = NULL;
+   _stackWalker.Reset();
 #endif
 }
 
@@ -1243,36 +1264,39 @@ status_t StackTrace :: StaticPrintStackTrace(const OutputPrinter & p, uint32 max
    (void) maxDepth;
    emscripten_run_script("console.log(new Error().stack)");
    return B_NO_ERROR;
-#elif defined(MUSCLE_USE_BACKTRACE)
+#else
+# if defined(MUSCLE_USE_BACKTRACE)
    const uint32 maxStaticDepth = 256;
    FILE * f = p.GetFile();
-   const int fd = ((f)&&(maxDepth <= maxStaticDepth)) ? fileno(f) : -1;
+   const int fd = ((f)&&(p.GetIndent() == 0)&&(maxDepth <= maxStaticDepth)) ? fileno(f) : -1;
    if (fd >= 0)
    {
-      // Fast-path implementation that avoids any heap allocations
+      // Fast-path implementation that avoids any heap allocations by dumping stack data directly to the output file
+      // Having this implementation is nice because by avoiding any heap allocations we are more likely to succeed
+      // in printing something useful if we are being called by a crash-handler after heap corruption was detected.
       void * array[maxStaticDepth];
       const size_t size = backtrace(array, muscleMin(maxDepth, ARRAYITEMS(array)));
       p.printf("--Stack trace follows (%zd frames):", size);
       backtrace_symbols_fd(array, (int)size, fd);
       p.puts("\n--End Stack trace\n");
+      return B_NO_ERROR;
    }
-   else
-   {
-      // Normal implementation is just a pass-through to the StackTrace class
-      StackTrace st;
-      MRETURN_ON_ERROR(st.CaptureStackFrames(maxDepth));
-      st.Print(p);
-   }
-   return B_NO_ERROR;
-#elif defined(MUSCLE_USE_MSVC_STACKWALKER)
+# endif
+
+   // Normal implementation is just a pass-through to the StackTrace class functionality
    StackTrace st;
    MRETURN_ON_ERROR(st.CaptureStackFrames(maxDepth));
    st.Print(p);
    return B_NO_ERROR;
-#else
-   (void) p;   // shut the compiler up
-   (void) maxDepth;
-   return B_UNIMPLEMENTED;
+#endif
+}
+
+void StackTrace :: SwapContents(StackTrace & swapWithMe) MUSCLE_NOEXCEPT
+{
+#if defined(MUSCLE_USE_BACKTRACE)
+   _stackFrames.SwapContents(swapWithMe._stackFrames);
+#elif defined(MUSCLE_USE_MSVC_STACKWALKER)
+   _stackWalker.SwapContents(swapWithMe._stackWalker);
 #endif
 }
 
@@ -1281,7 +1305,8 @@ uint32 StackTrace :: GetNumCapturedStackFrames() const
 #if defined(MUSCLE_USE_BACKTRACE)
    return _stackFrames.GetNumItems();
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   return _stackWalker ? _stackWalker->GetNumCapturedStackFrames() : 0;
+   const StackWalker * sw = static_cast<StackWalker *>(_stackWalker());
+   return sw ? sw->GetNumCapturedStackFrames() : 0;
 #else
    return 0;
 #endif
@@ -1297,9 +1322,10 @@ status_t StackTrace :: CaptureStackFrames(uint32 maxDepth)
    (void) _stackFrames.EnsureSize(size, true);  // trim off unused frames
    return B_NO_ERROR;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   _stackWalker = new StackWalker;
-   const status_t ret = _stackWalker->CaptureCallstack(maxDepth);
-   if (ret.IsError()) ClearStackFrames();
+   StackWalker * sw = new StackWalker;
+   const status_t ret = sw->CaptureCallstack(maxDepth);
+   if (ret.IsOK()) _stackWalker.SetRef(sw);
+              else delete sw;  // roll back!
    return ret;
 #else
    (uint32) maxDepth;
@@ -1327,9 +1353,9 @@ void StackTrace :: Print(const OutputPrinter & p) const
       }
       else MWARN_OUT_OF_MEMORY;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-      if (_stackWalker) _stackWalker->PrintCallstack(p);
+      if (_stackWalker()) static_cast<const StackWalker *>(_stackWalker())->PrintCallstack(p);
 #else
-      p.puts("<not available>\n");
+      p.puts("<unimplemented>\n");
 #endif
 
       p.puts("\n--End Stack trace\n");
