@@ -647,8 +647,8 @@ private:
                case SymExport:         szSymType = _T("-exported-");  break;
                case SymDeferred:       szSymType = _T("-deferred-");  break;
                case SymSym:            szSymType = _T("SYM");         break;
-               case 8: /*SymVirtual*/: szSymType = _T("Virtual");     break;
-               case 9: /*SymDia*/:     szSymType = _T("DIA");         break;
+               case 8: /*SymVirtual*/  szSymType = _T("Virtual");     break;
+               case 9: /*SymDia*/      szSymType = _T("DIA");         break;
             }
          }
 
