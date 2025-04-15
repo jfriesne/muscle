@@ -15,6 +15,7 @@ namespace muscle {
 
 #if (_MSC_VER >= 1300) && !defined(MUSCLE_AVOID_WINDOWS_STACKTRACE)
 # define MUSCLE_USE_MSVC_STACKWALKER 1
+class StackWalker;
 #elif (defined(__linux__) && !defined(ANDROID)) || (defined(MAC_OS_X_VERSION_10_5) && defined(MAC_OS_X_VERSION_MAX_ALLOWED) && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5))
 # define MUSCLE_USE_BACKTRACE 1
 #endif
@@ -24,16 +25,10 @@ class StackTrace MUSCLE_FINAL_CLASS
 {
 public:
    /** Default constructor */
-   StackTrace()
-#if defined(MUSCLE_USE_MSVC_STACKWALKER)
-      : _numStackFrames(0)
-#endif
-   {
-      /* empty */
-   }
+   StackTrace();
 
    /** Destructor */
-   ~StackTrace() {/* empty */}
+   ~StackTrace();
 
    /** Captures the calling thread's current stack into our private storage.
      * Any previously-captured stack frames will be implicitly cleared beforehand.
@@ -43,13 +38,7 @@ public:
    status_t CaptureStackFrames(uint32 maxNumFrames = 64);
 
    /** Drops any captured stack frames and sets this object back to its default-initialized state */
-   void ClearStackFrames()
-   {
-      _stackFrames.Clear();
-#if defined(MUSCLE_USE_MSVC_STACKWALKER)
-      _numStackFrames = 0;
-#endif
-   }
+   void ClearStackFrames();
 
    /** Prints our held stack-frames using the specified OutputPrinter object
      * @param p the OutputPrinter to print with
@@ -57,16 +46,7 @@ public:
    void Print(const OutputPrinter & p) const;
 
    /** Returns the number of captured stack frames this object is holding. */
-   uint32 GetNumCapturedStackFrames() const
-   {
-#if defined(MUSCLE_USE_BACKTRACE)
-      return _stackFrames.GetNumItems();
-#elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-      return _numStackFrames;
-#else
-      return 0;
-#endif
-   }
+   uint32 GetNumCapturedStackFrames() const;
 
    /** Static convenience method for capturing the current stack trace and immediately printing it out.
      * @param p the OutputPrinter to print with
@@ -78,8 +58,7 @@ private:
 #if defined(MUSCLE_USE_BACKTRACE)
    Queue<void *> _stackFrames;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   String _stackFrames;  // I'm cheesing it for now, to avoid a deep dive into the StackWalker code
-   uint32 _numStackFrames;
+   StackWalker * _stackWalker;  // demand-allocated
 #endif
 };
 

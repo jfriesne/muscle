@@ -91,8 +91,7 @@ public:
    } StackWalkOptions;
 
    StackWalker(
-      const OutputPrinter & printer,
-      int options = OptionsAll, // 'int' is by design, to combine the enum-flags
+      int options = OptionsJAF, // 'int' is by design, to combine the enum-flags
       LPTSTR szSymPath = NULL,
       DWORD dwProcessId = GetCurrentProcessId(),
       HANDLE hProcess = GetCurrentProcess()
@@ -106,18 +105,22 @@ public:
       PVOID       lpBuffer,
       DWORD       nSize,
       LPDWORD     lpNumberOfBytesRead,
-      LPVOID      pUserData  // optional data, which was passed in "ShowCallstack"
+      LPVOID      pUserData  // optional data, which was passed in "CaptureCallstack"
    );
 
    BOOL LoadModules();
 
-   status_t ShowCallstack(
+   status_t CaptureCallstack(
       uint32 maxDepth,
       HANDLE hThread = GetCurrentThread(),
       const CONTEXT *context = NULL,
       PReadProcessMemoryRoutine readMemoryFunction = NULL,
       LPVOID pUserData = NULL  // optional to identify some data in the 'readMemoryFunction'-callback
    );
+
+   void PrintCallstack(const OutputPrinter & p) const;
+
+   uint32 GetNumCapturedStackFrames() const {return _offsets.GetNumItems();}
 
 protected:
    enum {STACKWALK_MAX_NAMELEN = 1024}; // max name length for found symbols
@@ -141,24 +144,22 @@ protected:
       TCHAR loadedImageName[STACKWALK_MAX_NAMELEN];
    } CallstackEntry;
 
-   enum CallstackEntryType {firstEntry, nextEntry, lastEntry};
-
-   void OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUserName);
-   void OnLoadModule(LPTSTR img, LPTSTR mod, DWORD64 baseAddr, DWORD size, DWORD result, LPCTSTR symType, LPTSTR pdbName, ULONGLONG fileVersion);
-   void OnCallstackEntry(CallstackEntryType eType, CallstackEntry *entry);
-   void OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr);
-   void OnOutput(LPTSTR szText)
+   void OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUserName) const;
+   void OnLoadModule(LPTSTR img, LPTSTR mod, DWORD64 baseAddr, DWORD size, DWORD result, LPCTSTR symType, LPTSTR pdbName, ULONGLONG fileVersion) const;
+   void OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr) const;
+   void PrintCallstackEntry(const OutputPrinter & p, CallstackEntry *entry) const;
+   void PrintOutput(const OutputPrinter & p, LPTSTR szText) const
    {
-      m_printer.puts("  ");
+      p.puts("  ");
 #ifdef _UNICODE
       size_t len;
       (void) wcstombs_s(&len, NULL, 0, szText, wcslen(szText));
       char * buf = new char[len];
       (void) wcstombs_s(&len, buf, len, szText, wcslen(szText));
-      if (len > 0) m_printer.puts(buf);
+      if (len > 0) p.puts(buf);
       delete [] buf;
 #else
-      m_printer.puts(szText);
+      p.puts(szText);
 #endif
    }
 
@@ -167,8 +168,9 @@ protected:
    DWORD m_dwProcessId;
    BOOL m_modulesLoaded;
    LPTSTR m_szSymPath;
-   const OutputPrinter m_printer;
    const int m_options;
+
+   Queue<DWORD64> _offsets;  // CaptureCallstack() populates this, and PrintCallstack() prints it out
 
    static BOOL __stdcall ReadProcMemCallback(HANDLE hProcess, DWORD64 qwBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead);
 
@@ -179,7 +181,8 @@ protected:
 void _Win32PrintStackTraceForContext(const OutputPrinter & p, CONTEXT * context, uint32 maxDepth)
 {
    p.printf("--Stack trace follows:\n");
-   (void) StackWalker(p, StackWalker::OptionsJAF).ShowCallstack(maxDepth, GetCurrentThread(), context);
+   StackWalker sw;
+   if (sw.CaptureCallstack(maxDepth, GetCurrentThread(), context).IsOK()) sw.PrintCallstack(p);
    p.printf("--End Stack trace\n");
 }
 
@@ -718,14 +721,13 @@ public:
 };
 
 // #############################################################
-StackWalker::StackWalker(const OutputPrinter & p, int options, LPTSTR szSymPath, DWORD dwProcessId, HANDLE hProcess)
+StackWalker :: StackWalker(int options, LPTSTR szSymPath, DWORD dwProcessId, HANDLE hProcess)
    : m_sw(new StackWalkerInternal(this, hProcess))
    , m_hProcess(hProcess)
    , m_dwProcessId(dwProcessId)
    , m_modulesLoaded(FALSE)
    , m_szSymPath((szSymPath != NULL) ? _tcsdup(szSymPath) : NULL)
    , m_options(options | ((szSymPath != NULL) ? SymBuildPath : 0))
-   , m_printer(p)
 {
    // empty
 }
@@ -736,7 +738,7 @@ StackWalker::~StackWalker()
    delete m_sw;
 }
 
-BOOL StackWalker::LoadModules()
+BOOL StackWalker :: LoadModules()
 {
    if (m_sw == NULL)
    {
@@ -872,27 +874,12 @@ static int SaveContextFilterFunc(struct _EXCEPTION_POINTERS *ep)
 static StackWalker::PReadProcessMemoryRoutine s_readMemoryFunction = NULL;
 static LPVOID s_readMemoryFunction_UserData = NULL;
 
-status_t StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *context, PReadProcessMemoryRoutine readMemoryFunction, LPVOID pUserData)
+status_t StackWalker :: CaptureCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *context, PReadProcessMemoryRoutine readMemoryFunction, LPVOID pUserData)
 {
-   CallstackEntry *csEntry = NULL;  // deliberately declared here because declaring it later causes MSVC to error out due to gotos skipping the declaration
-
-#ifdef _UNICODE
-   SYMBOL_INFOW *pSym = NULL;
-   IMAGEHLP_MODULEW64 Module;
-   IMAGEHLP_LINEW64 Line;
-#else
-   IMAGEHLP_SYMBOL64 *pSym = NULL;
-   IMAGEHLP_MODULE64 Module;
-   IMAGEHLP_LINE64 Line;
-#endif
+   _offsets.Clear();  // semi-paranoia
 
    if (m_modulesLoaded == FALSE) (void) LoadModules();  // yes, deliberately ignoring the result
-
-   if (m_sw->m_hDbhHelp == NULL)
-   {
-      SetLastError(ERROR_DLL_INIT_FAILED);
-      return B_ERROR("DebugHelp DLL not found");
-   }
+   if (m_sw->m_hDbhHelp == NULL) return B_ERROR("DebugHelp DLL not found");
 
    s_readMemoryFunction          = readMemoryFunction;
    s_readMemoryFunction_UserData = pUserData;
@@ -975,6 +962,43 @@ status_t StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTE
 # error "StackWalker:  Platform not supported!"
 #endif
 
+   status_t ret;
+   for (uint32 frameNum=0; frameNum<maxDepth; frameNum++)
+   {
+      // get next stack frame (StackWalk64(), SymFunctionTableAccess64(), SymGetModuleBase64())
+      // if this returns ERROR_INVALID_ADDRESS (487) or ERROR_NOACCESS (998), you can
+      // assume that either you are done, or that the stack is so hosed that the next
+      // deeper frame could not be found.
+      // CONTEXT need not to be supplied if imageType is IMAGE_FILE_MACHINE_I386!
+      if (!m_sw->pSW(imageType, m_hProcess, hThread, &s, &_context, ReadProcMemCallback, m_sw->pSFTA, m_sw->pSGMB, NULL))
+      {
+         ret = B_ERROR("StackWalk64() failed");
+         break;
+      }
+
+      if (s.AddrPC.Offset == s.AddrReturn.Offset) {ret = B_ERROR("Endless callstack"); break;}
+      if (_offsets.AddTail(s.AddrPC.Offset).IsError(ret)) break;
+      if (s.AddrReturn.Offset == 0) break;  // done!
+   }
+
+   if (context == NULL) ResumeThread(hThread);
+   return ret;
+}
+
+void StackWalker :: PrintCallstack(const OutputPrinter & p) const
+{
+   CallstackEntry *csEntry = NULL;  // deliberately declared here because declaring it later causes MSVC to error out due to gotos skipping the declaration
+
+#ifdef _UNICODE
+   SYMBOL_INFOW *pSym = NULL;
+   IMAGEHLP_MODULEW64 Module;
+   IMAGEHLP_LINEW64 Line;
+#else
+   IMAGEHLP_SYMBOL64 *pSym = NULL;
+   IMAGEHLP_MODULE64 Module;
+   IMAGEHLP_LINE64 Line;
+#endif
+
 #ifdef _UNICODE
    pSym = (SYMBOL_INFOW *)malloc(sizeof(SYMBOL_INFOW) + STACKWALK_MAX_NAMELEN);
 #else
@@ -998,20 +1022,10 @@ status_t StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTE
    Module.SizeOfStruct = sizeof(Module);
 
    csEntry = new CallstackEntry;
-   for (uint32 frameNum=0; frameNum<maxDepth; frameNum++)
+   for (uint32 frameNum=0; frameNum<_offsets.GetNumItems(); frameNum++)
    {
-      // get next stack frame (StackWalk64(), SymFunctionTableAccess64(), SymGetModuleBase64())
-      // if this returns ERROR_INVALID_ADDRESS (487) or ERROR_NOACCESS (998), you can
-      // assume that either you are done, or that the stack is so hosed that the next
-      // deeper frame could not be found.
-      // CONTEXT need not to be supplied if imageType is IMAGE_FILE_MACHINE_I386!
-      if ( ! m_sw->pSW(imageType, m_hProcess, hThread, &s, &_context, ReadProcMemCallback, m_sw->pSFTA, m_sw->pSGMB, NULL) )
-      {
-         OnDbgHelpErr(_T("StackWalk64"), GetLastError(), s.AddrPC.Offset);
-         break;
-      }
-
-      csEntry->offset             = s.AddrPC.Offset;
+      const DWORD64 offset = _offsets[frameNum];
+      csEntry->offset             = offset;
       csEntry->name[0]            = 0;
       csEntry->undName[0]         = 0;
       csEntry->undFullName[0]     = 0;
@@ -1022,99 +1036,79 @@ status_t StackWalker::ShowCallstack(uint32 maxDepth, HANDLE hThread, const CONTE
       csEntry->loadedImageName[0] = 0;
       csEntry->moduleName[0]      = 0;
 
-      if (s.AddrPC.Offset == s.AddrReturn.Offset)
+      // we seem to have a valid PC
+      // show procedure info (SymGetSymFromAddr64())
+#ifdef _UNICODE
+      if (m_sw->pSFA(  m_hProcess, offset, &(csEntry->offsetFromSymbol), pSym) != FALSE)
+#else
+      if (m_sw->pSGSFA(m_hProcess, offset, &(csEntry->offsetFromSymbol), pSym) != FALSE)
+#endif
       {
-         OnDbgHelpErr(_T("StackWalk64-Endless-Callstack!"), 0, s.AddrPC.Offset);
-         break;
+         // TODO: Mache dies sicher...!
+         _tcscpy_s(csEntry->name, pSym->Name);
+
+         // UnDecorateSymbolName()
+         m_sw->pUDSN(pSym->Name, csEntry->undName,     STACKWALK_MAX_NAMELEN, UNDNAME_NAME_ONLY);
+         m_sw->pUDSN(pSym->Name, csEntry->undFullName, STACKWALK_MAX_NAMELEN, UNDNAME_COMPLETE);
+      }
+      else
+      {
+#ifdef _UNICODE
+         OnDbgHelpErr(_T("SymFromAddrW"),        GetLastError(), offset);
+#else
+         OnDbgHelpErr(_T("SymGetSymFromAddr64"), GetLastError(), offset);
+#endif
       }
 
-      if (s.AddrPC.Offset != 0)
+      // show line number info, NT5.0-method (SymGetLineFromAddr64())
+      if (m_sw->pSGLFA != NULL )
       {
-         // we seem to have a valid PC
-         // show procedure info (SymGetSymFromAddr64())
-#ifdef _UNICODE
-         if (m_sw->pSFA(  m_hProcess, s.AddrPC.Offset, &(csEntry->offsetFromSymbol), pSym) != FALSE)
-#else
-         if (m_sw->pSGSFA(m_hProcess, s.AddrPC.Offset, &(csEntry->offsetFromSymbol), pSym) != FALSE)
-#endif
+         // yes, we have SymGetLineFromAddr64()
+         if (m_sw->pSGLFA(m_hProcess, offset, &(csEntry->offsetFromLine), &Line) != FALSE)
          {
+            csEntry->lineNumber = Line.LineNumber;
             // TODO: Mache dies sicher...!
-            _tcscpy_s(csEntry->name, pSym->Name);
-
-            // UnDecorateSymbolName()
-            m_sw->pUDSN( pSym->Name, csEntry->undName, STACKWALK_MAX_NAMELEN, UNDNAME_NAME_ONLY );
-            m_sw->pUDSN( pSym->Name, csEntry->undFullName, STACKWALK_MAX_NAMELEN, UNDNAME_COMPLETE );
+            _tcscpy_s(csEntry->lineFileName, Line.FileName);
          }
-         else
-         {
-#ifdef _UNICODE
-            OnDbgHelpErr(_T("SymFromAddrW"), GetLastError(), s.AddrPC.Offset);
-#else
-            OnDbgHelpErr(_T("SymGetSymFromAddr64"), GetLastError(), s.AddrPC.Offset);
-#endif
-         }
+         else OnDbgHelpErr(_T("SymGetLineFromAddr64"), GetLastError(), offset);
+      }
 
-         // show line number info, NT5.0-method (SymGetLineFromAddr64())
-         if (m_sw->pSGLFA != NULL )
+      // show module info (SymGetModuleInfo64())
+      if (m_sw->GetModuleInfo(m_hProcess, offset, &Module ) != FALSE)
+      {
+         // got module info OK
+         switch ( Module.SymType )
          {
-            // yes, we have SymGetLineFromAddr64()
-            if (m_sw->pSGLFA(m_hProcess, s.AddrPC.Offset, &(csEntry->offsetFromLine), &Line) != FALSE)
-            {
-               csEntry->lineNumber = Line.LineNumber;
-               // TODO: Mache dies sicher...!
-               _tcscpy_s(csEntry->lineFileName, Line.FileName);
-            }
-            else OnDbgHelpErr(_T("SymGetLineFromAddr64"), GetLastError(), s.AddrPC.Offset);
-         }
-
-         // show module info (SymGetModuleInfo64())
-         if (m_sw->GetModuleInfo(m_hProcess, s.AddrPC.Offset, &Module ) != FALSE)
-         {
-            // got module info OK
-            switch ( Module.SymType )
-            {
-               case SymNone:           csEntry->symTypeString = _T("-nosymbols-"); break;
-               case SymCoff:           csEntry->symTypeString = _T("COFF");        break;
-               case SymCv:             csEntry->symTypeString = _T("CV");          break;
-               case SymPdb:            csEntry->symTypeString = _T("PDB");         break;
-               case SymExport:         csEntry->symTypeString = _T("-exported-");  break;
-               case SymDeferred:       csEntry->symTypeString = _T("-deferred-");  break;
-               case SymSym:            csEntry->symTypeString = _T("SYM");         break;
+            case SymNone:           csEntry->symTypeString = _T("-nosymbols-"); break;
+            case SymCoff:           csEntry->symTypeString = _T("COFF");        break;
+            case SymCv:             csEntry->symTypeString = _T("CV");          break;
+            case SymPdb:            csEntry->symTypeString = _T("PDB");         break;
+            case SymExport:         csEntry->symTypeString = _T("-exported-");  break;
+            case SymDeferred:       csEntry->symTypeString = _T("-deferred-");  break;
+            case SymSym:            csEntry->symTypeString = _T("SYM");         break;
 #if API_VERSION_NUMBER >= 9
-               case SymDia:            csEntry->symTypeString = _T("DIA");         break;
+            case SymDia:            csEntry->symTypeString = _T("DIA");         break;
 #endif
-               case 8: /*SymVirtual:*/ csEntry->symTypeString = _T("Virtual");     break;
-               default:                csEntry->symTypeString = NULL;              break;
-            }
-
-            // TODO: Mache dies sicher...!
-            _tcscpy_s(csEntry->moduleName, Module.ModuleName);
-            csEntry->baseOfImage = Module.BaseOfImage;
-            _tcscpy_s(csEntry->loadedImageName, Module.LoadedImageName);
+            case 8: /*SymVirtual:*/ csEntry->symTypeString = _T("Virtual");     break;
+            default:                csEntry->symTypeString = NULL;              break;
          }
-         else OnDbgHelpErr(_T("SymGetModuleInfo64"), GetLastError(), s.AddrPC.Offset);
-      }
 
-      CallstackEntryType et = (frameNum == 0) ? firstEntry : nextEntry;
-      OnCallstackEntry(et, csEntry);
-
-      if (s.AddrReturn.Offset == 0)
-      {
-         OnCallstackEntry(lastEntry, csEntry);
-         SetLastError(ERROR_SUCCESS);
-         break;
+         // TODO: Mache dies sicher...!
+         _tcscpy_s(csEntry->moduleName, Module.ModuleName);
+         csEntry->baseOfImage = Module.BaseOfImage;
+         _tcscpy_s(csEntry->loadedImageName, Module.LoadedImageName);
       }
-   } // for ( frameNum )
+      else OnDbgHelpErr(_T("SymGetModuleInfo64"), GetLastError(), offset);
+
+      PrintCallstackEntry(p, csEntry);
+   }
 
 cleanup:
-   if (csEntry) delete csEntry;
-   if (pSym) free( pSym );
-   if (context == NULL) ResumeThread(hThread);
-
-   return B_NO_ERROR;
+   delete csEntry;
+   if (pSym) free(pSym);
 }
 
-BOOL __stdcall StackWalker::ReadProcMemCallback(
+BOOL __stdcall StackWalker :: ReadProcMemCallback(
     HANDLE      hProcess,
     DWORD64     qwBaseAddress,
     PVOID       lpBuffer,
@@ -1133,7 +1127,7 @@ BOOL __stdcall StackWalker::ReadProcMemCallback(
    else return s_readMemoryFunction(hProcess, qwBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead, s_readMemoryFunction_UserData);
 }
 
-void StackWalker::OnLoadModule(LPTSTR img, LPTSTR mod, DWORD64 baseAddr, DWORD size, DWORD result, LPCTSTR symType, LPTSTR pdbName, ULONGLONG fileVersion)
+void StackWalker :: OnLoadModule(LPTSTR img, LPTSTR mod, DWORD64 baseAddr, DWORD size, DWORD result, LPCTSTR symType, LPTSTR pdbName, ULONGLONG fileVersion) const
 {
    TCHAR buffer[STACKWALK_MAX_NAMELEN];
    if (fileVersion == 0) _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s:%s (%p), size: %d (result: %d), SymType: '%s', PDB: '%s'\n"), img, mod, (LPVOID)baseAddr, size, result, symType, pdbName);
@@ -1146,47 +1140,44 @@ void StackWalker::OnLoadModule(LPTSTR img, LPTSTR mod, DWORD64 baseAddr, DWORD s
       _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s:%s (%p), size: %d (result: %d), SymType: '%s', PDB: '%s', fileVersion: %d.%d.%d.%d\n"), img, mod, (LPVOID)baseAddr, size, result, symType, pdbName, v1, v2, v3, v4);
    }
 #ifdef REMOVED_BY_JAF_TOO_MUCH_INFORMATION
-   OnOutput(buffer);
+   PrintOutput(MUSCLE_LOG_DEBUG, buffer);
 #endif
 }
 
-void StackWalker::OnCallstackEntry(CallstackEntryType eType, CallstackEntry *entry)
+void StackWalker :: PrintCallstackEntry(const OutputPrinter & p, CallstackEntry *entry) const
 {
    TCHAR buffer[STACKWALK_MAX_NAMELEN];
-   if ( (eType != lastEntry) && (entry->offset != 0) )
+   if (entry->name[0] == 0)         _tcscpy_s(entry->name, _T("(function-name not available)"));
+   if (entry->undName[0] != 0)      _tcscpy_s(entry->name, entry->undName);
+   if (entry->undFullName[0] != 0)  _tcscpy_s(entry->name, entry->undFullName);
+   if (entry->lineFileName[0] == 0)
    {
-      if (entry->name[0] == 0) _tcscpy_s(entry->name, _T("(function-name not available)"));
-      if (entry->undName[0] != 0) _tcscpy_s(entry->name, entry->undName);
-      if (entry->undFullName[0] != 0) _tcscpy_s(entry->name, entry->undFullName);
-      if (entry->lineFileName[0] == 0)
+      if (entry->moduleName[0] == 0)
       {
-         if (entry->moduleName[0] == 0)
-         {
-            if (entry->loadedImageName[0] != 0)
-                _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s: %s+0x%I64x\n"), entry->loadedImageName, entry->name, (int64) entry->offsetFromSymbol);
-             else
-                _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%p: %s+0x%I64x\n"), (LPVOID)entry->offset, entry->name, (int64) entry->offsetFromSymbol);
-         }
-         else
-         {
-            if (entry->loadedImageName[0] != 0)
-               _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s (%s): %s+0x%I64x\n"), entry->loadedImageName, entry->moduleName, entry->name, (int64) entry->offsetFromSymbol);
-             else
-               _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%p (%s): %s+0x%I64x\n"), (LPVOID)entry->offset, entry->moduleName, entry->name, (int64) entry->offsetFromSymbol);
-         }
+         if (entry->loadedImageName[0] != 0)
+             _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s: %s+0x%I64x\n"), entry->loadedImageName, entry->name, (int64) entry->offsetFromSymbol);
+          else
+             _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%p: %s+0x%I64x\n"), (LPVOID)entry->offset, entry->name, (int64) entry->offsetFromSymbol);
       }
-      else _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s (%d): %s\n"), entry->lineFileName, entry->lineNumber, entry->name);
-
-      OnOutput(buffer);
+      else
+      {
+         if (entry->loadedImageName[0] != 0)
+            _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s (%s): %s+0x%I64x\n"), entry->loadedImageName, entry->moduleName, entry->name, (int64) entry->offsetFromSymbol);
+          else
+            _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%p (%s): %s+0x%I64x\n"), (LPVOID)entry->offset, entry->moduleName, entry->name, (int64) entry->offsetFromSymbol);
+      }
    }
+   else _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s (%d): %s\n"), entry->lineFileName, entry->lineNumber, entry->name);
+
+   PrintOutput(p, buffer);
 }
 
-void StackWalker::OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr)
+void StackWalker :: OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr) const
 {
    TCHAR buffer[STACKWALK_MAX_NAMELEN];
    _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("ERROR: %s, GetLastError: %d (Address: %p)\n"), szFuncName, gle, (LPVOID)addr);
 #ifdef REMOVED_BY_JAF_TOO_MUCH_INFORMATION
-   OnOutput(buffer);
+   PrintOutput(MUSCLE_LOG_ERROR, buffer);
 #elif _UNICODE
    size_t i;
    char buffer8[STACKWALK_MAX_NAMELEN];
@@ -1197,12 +1188,12 @@ void StackWalker::OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr)
 #endif
 }
 
-void StackWalker::OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUserName)
+void StackWalker :: OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUserName) const
 {
 #ifdef REMOVED_BY_JAF_TOO_MUCH_INFORMATION
    TCHAR buffer[STACKWALK_MAX_NAMELEN];
    _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("SymInit: Symbol-SearchPath: '%s', symOptions: %d, UserName: '%s'\n"), szSearchPath, symOptions, szUserName);
-   OnOutput(buffer);
+   PrintOutput(MUSCLE_LOG_DEBUG, buffer);
 
    // Also display the OS-version
    OSVERSIONINFOEX ver; ZeroMemory(&ver, sizeof(OSVERSIONINFOEX));
@@ -1210,7 +1201,7 @@ void StackWalker::OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUser
    if (GetVersionEx( (OSVERSIONINFO*) &ver) != FALSE)   // Note:  this call is kind of useless under Win8 and higher since Win8 lies to us :(
    {
       _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("OS-Version: %d.%d.%d (%s) 0x%x-0x%x\n"), ver.dwMajorVersion, ver.dwMinorVersion, ver.dwBuildNumber, ver.szCSDVersion, ver.wSuiteMask, ver.wProductType);
-      OnOutput(buffer);
+      PrintOutput(MUSCLE_LOG_DEBUG, buffer);
    }
 #else
    (void) szSearchPath;
@@ -1220,6 +1211,30 @@ void StackWalker::OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUser
 }
 
 #endif  // Windows stack trace code
+
+StackTrace :: StackTrace()
+#if defined(MUSCLE_USE_MSVC_STACKWALKER)
+   : _stackWalker(NULL)
+#endif
+{
+   /* empty */
+}
+
+/** Destructor */
+StackTrace :: ~StackTrace()
+{
+   ClearStackFrames();
+}
+
+void StackTrace :: ClearStackFrames()
+{
+#if defined(MUSCLE_USE_BACKTRACE)
+   _stackFrames.Clear();
+#elif defined(MUSCLE_USE_MSVC_STACKWALKER)
+   delete _stackWalker;
+   _stackWalker = NULL;
+#endif
+}
 
 status_t StackTrace :: StaticPrintStackTrace(const OutputPrinter & p, uint32 maxDepth)
 {
@@ -1250,11 +1265,25 @@ status_t StackTrace :: StaticPrintStackTrace(const OutputPrinter & p, uint32 max
    }
    return B_NO_ERROR;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   return StackWalker(p, StackWalker::OptionsJAF).ShowCallstack(maxDepth);
+   StackTrace st;
+   MRETURN_ON_ERROR(st.CaptureStackFrames(maxDepth));
+   st.Print(p);
+   return B_NO_ERROR;
 #else
    (void) p;   // shut the compiler up
    (void) maxDepth;
    return B_UNIMPLEMENTED;
+#endif
+}
+
+uint32 StackTrace :: GetNumCapturedStackFrames() const
+{
+#if defined(MUSCLE_USE_BACKTRACE)
+   return _stackFrames.GetNumItems();
+#elif defined(MUSCLE_USE_MSVC_STACKWALKER)
+   return _stackWalker ? _stackWalker->GetNumCapturedStackFrames() : 0;
+#else
+   return 0;
 #endif
 }
 
@@ -1268,7 +1297,10 @@ status_t StackTrace :: CaptureStackFrames(uint32 maxDepth)
    (void) _stackFrames.EnsureSize(size, true);  // trim off unused frames
    return B_NO_ERROR;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   return StackWalker(_stackFrames, StackWalker::OptionsJAF).ShowCallstack(maxDepth);
+   _stackWalker = new StackWalker;
+   const status_t ret = _stackWalker->CaptureCallstack(maxDepth);
+   if (ret.IsError()) ClearStackFrames();
+   return ret;
 #else
    (uint32) maxDepth;
    return B_UNIMPLEMENTED;
@@ -1278,27 +1310,31 @@ status_t StackTrace :: CaptureStackFrames(uint32 maxDepth)
 void StackTrace :: Print(const OutputPrinter & p) const
 {
    const uint32 size = GetNumCapturedStackFrames();
-   p.printf("--Stack trace follows (" UINT32_FORMAT_SPEC " frames):", size);
+   if (size > 0)
+   {
+      p.printf("--Stack trace follows (" UINT32_FORMAT_SPEC " frames):", size);
 
 #if defined(MUSCLE_USE_BACKTRACE)
-   char ** strings = backtrace_symbols(_stackFrames.HeadPointer(), size);
-   if (strings)
-   {
-      for (uint32 i=0; i<size; i++)
+      char ** strings = backtrace_symbols(_stackFrames.HeadPointer(), size);
+      if (strings)
       {
-         p.puts("\n  ");
-         p.puts(strings[i]);
+         for (uint32 i=0; i<size; i++)
+         {
+            p.puts("\n  ");
+            p.puts(strings[i]);
+         }
+         free(strings);
       }
-      free(strings);
-   }
-   else MWARN_OUT_OF_MEMORY;
+      else MWARN_OUT_OF_MEMORY;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   p.puts(_stackFrames());
+      if (_stackWalker) _stackWalker->PrintCallstack(p);
 #else
-   p.printf("<not available>");
+      p.puts("<not available>\n");
 #endif
 
-   p.puts("\n--End Stack trace\n");
+      p.puts("\n--End Stack trace\n");
+   }
+   else p.puts("<no stack frame captured>\n");
 }
 
 #ifndef MUSCLE_INLINE_LOGGING
