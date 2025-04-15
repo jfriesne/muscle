@@ -1306,8 +1306,9 @@ void StackTrace :: Print(const OutputPrinter & p) const
 // These functions are deliberately defined here because if I make them inline
 // functions then OutputPrinter.h has to be #included by SysLog.h, and that
 // leads to some compile-time chicken-and-egg problems that I'd rather avoid.
-status_t LogStackTrace(int logSeverity, uint32 maxDepth) {return StackTrace::StaticPrintStackTrace(logSeverity, maxDepth);}
-status_t PrintStackTrace(               uint32 maxDepth) {return StackTrace::StaticPrintStackTrace(stdout,      maxDepth);}
+status_t LogStackTrace(int logSeverity,           uint32 maxDepth) {return StackTrace::StaticPrintStackTrace(logSeverity, maxDepth);}
+status_t PrintStackTrace(                         uint32 maxDepth) {return StackTrace::StaticPrintStackTrace(stdout,      maxDepth);}
+status_t PrintStackTrace(const OutputPrinter & p, uint32 maxDepth) {return StackTrace::StaticPrintStackTrace(p,           maxDepth);}
 
 # ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
 void UpdateAllocationStackTrace(bool isAllocation, StackTrace * & s)
