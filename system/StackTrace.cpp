@@ -51,7 +51,7 @@ void PrintStackTrace()
  **********************************************************************/
 
 class StackWalkerInternal;  // forward
-class StackWalker
+class StackWalker : public RefCountable
 {
 public:
    typedef enum StackWalkOptions
@@ -176,6 +176,7 @@ protected:
 
    friend class StackWalkerInternal;
 };
+DECLARE_REFTYPES(StackWalker);
 
 // Called from code in MiscUtilityFunctions.cpp
 void _Win32PrintStackTraceForContext(const OutputPrinter & p, CONTEXT * context, uint32 maxDepth)
