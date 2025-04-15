@@ -1167,7 +1167,11 @@ void StackWalker :: PrintCallstackEntry(const OutputPrinter & p, CallstackEntry 
             _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%p (%s): %s+0x%I64x\n"), (LPVOID)entry->offset, entry->moduleName, entry->name, (int64) entry->offsetFromSymbol);
       }
    }
-   else _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s (%d): %s\n"), entry->lineFileName, entry->lineNumber, entry->name);
+   else
+   {
+      const TCHAR * lastSlash = _tcsrchr(entry->lineFileName, TCHAR('\\'));
+      _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s (%s:%d)\n"), entry->name, lastSlash?(lastSlash+1):entry->lineFileName, entry->lineNumber);
+   }
 
    PrintOutput(p, buffer);
 }
