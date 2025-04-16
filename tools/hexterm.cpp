@@ -13,6 +13,7 @@
 #include "iogateway/PlainTextMessageIOGateway.h"
 #include "system/SetupSystem.h"
 #include "system/SystemInfo.h"  // for GetFilePathSeparator()
+#include "system/StackTrace.h"
 #include "util/NetworkUtilityFunctions.h"
 #include "util/SocketMultiplexer.h"
 #include "util/MiscUtilityFunctions.h"

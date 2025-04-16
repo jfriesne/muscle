@@ -1,5 +1,6 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
+#include "support/NotCopyable.h"
 #include "system/StackTrace.h"  // this include must be here, so that MUSCLE_USE_MSVC_STACKWALKER will be defined below if appropriate
 
 #if defined(__EMSCRIPTEN__)
@@ -50,7 +51,8 @@ void PrintStackTrace()
  *
  **********************************************************************/
 
-class StackWalkerInternal;  // forward
+class StackWalkerState;     // forward declaration of per-stack state object
+class StackWalkerInternal;  // forward declaration of shared object
 class StackWalker : public RefCountable
 {
 public:
@@ -86,17 +88,9 @@ public:
 
       // Contains all options (default)
       OptionsAll = 0x3F,
-
-      OptionsJAF = (RetrieveSymbol|RetrieveLine)
    } StackWalkOptions;
 
-   StackWalker(
-      int options = OptionsJAF, // 'int' is by design, to combine the enum-flags
-      LPTSTR szSymPath = NULL,
-      DWORD dwProcessId = GetCurrentProcessId(),
-      HANDLE hProcess = GetCurrentProcess()
-   );
-
+   StackWalker(LPTSTR szSymPath = NULL);
    ~StackWalker();
 
    typedef BOOL (__stdcall *PReadProcessMemoryRoutine) (
@@ -112,20 +106,16 @@ public:
 
    status_t CaptureCallstack(
       uint32 maxDepth,
-      HANDLE hThread = GetCurrentThread(),
-      const CONTEXT *context = NULL,
-      PReadProcessMemoryRoutine readMemoryFunction = NULL,
-      LPVOID pUserData = NULL  // optional to identify some data in the 'readMemoryFunction'-callback
+      HANDLE hThread,
+      const CONTEXT * optContext,
+      StackWalkerState & captureState
    );
 
-   void PrintCallstack(const OutputPrinter & p) const;
+   void PrintCallstack(const OutputPrinter & p, const StackWalkerState & sws) const;
 
-   uint32 GetNumCapturedStackFrames() const {return _offsets.GetNumItems();}
-
-protected:
+private:
    enum {STACKWALK_MAX_NAMELEN = 1024}; // max name length for found symbols
 
-protected:
    // Entry for each Callstack-Entry
    typedef struct CallstackEntry
    {
@@ -144,6 +134,7 @@ protected:
       TCHAR loadedImageName[STACKWALK_MAX_NAMELEN];
    } CallstackEntry;
 
+   void SaveCurrentContext(StackWalkerState & sws) const;
    void OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUserName) const;
    void OnLoadModule(LPTSTR img, LPTSTR mod, DWORD64 baseAddr, DWORD size, DWORD result, LPCTSTR symType, LPTSTR pdbName, ULONGLONG fileVersion) const;
    void OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr) const;
@@ -170,20 +161,70 @@ protected:
    LPTSTR m_szSymPath;
    const int m_options;
 
-   Queue<DWORD64> _offsets;  // CaptureCallstack() populates this, and PrintCallstack() prints it out
-
    static BOOL __stdcall ReadProcMemCallback(HANDLE hProcess, DWORD64 qwBaseAddress, PVOID lpBuffer, DWORD nSize, LPDWORD lpNumberOfBytesRead);
 
    friend class StackWalkerInternal;
 };
 DECLARE_REFTYPES(StackWalker);
 
+static Mutex _stackWalkerMutex;
+static uint32 _stackWalkerRefCount = 0;
+static StackWalkerRef _stackWalker;
+
+static StackWalkerRef ObtainStackWalkerRef()
+{
+   DECLARE_MUTEXGUARD(_stackWalkerMutex);
+   if (_stackWalker() == NULL) _stackWalker.SetRef(new StackWalker);
+   _stackWalkerRefCount++;
+   return _stackWalker;
+}
+
+static void ReleaseStackWalkerRef(StackWalkerRef & walkerRef)
+{
+   if (walkerRef())
+   {
+      DECLARE_MUTEXGUARD(_stackWalkerMutex);
+      walkerRef.Reset();
+      if (--_stackWalkerRefCount == 0) _stackWalker.Reset();
+   }
+}
+
+class StackWalkerState : public RefCountable, public NotCopyable
+{
+public:
+   StackWalkerState() : _walkerRef(ObtainStackWalkerRef()) {/* empty */}
+   ~StackWalkerState() {ReleaseStackWalkerRef(_walkerRef);}
+
+   status_t CaptureCallstack(uint32 maxDepth, HANDLE hThread = GetCurrentThread(), const CONTEXT * optContext = NULL)
+   {
+      return _walkerRef() ? _walkerRef()->CaptureCallstack(maxDepth, hThread, optContext, *this) : B_BAD_OBJECT;
+   }
+
+   void PrintCallstack(const OutputPrinter & p) const
+   {
+      if (_walkerRef()) _walkerRef()->PrintCallstack(p, *this);
+   }
+
+   uint32 GetNumCapturedStackFrames() const {return _offsets.GetNumItems();}
+
+   const StackWalkerRef & GetStackWalkerRef() const {return _walkerRef;}
+
+private:
+   friend class StackWalker;
+
+   Queue<DWORD64> _offsets;  // CaptureCallstack() populates this, and PrintCallstack() prints it out
+   __declspec(align(16)) CONTEXT _context;
+
+   StackWalkerRef _walkerRef;
+};
+DECLARE_REFTYPES(StackWalkerState);
+
 // Called from code in MiscUtilityFunctions.cpp
 void _Win32PrintStackTraceForContext(const OutputPrinter & p, CONTEXT * context, uint32 maxDepth)
 {
    p.printf("--Stack trace follows:\n");
-   StackWalker sw;
-   if (sw.CaptureCallstack(maxDepth, GetCurrentThread(), context).IsOK()) sw.PrintCallstack(p);
+   StackWalkerState sws;
+   if (sws.CaptureCallstack(maxDepth, GetCurrentThread(), context).IsOK()) sws.PrintCallstack(p);
    p.printf("--End Stack trace\n");
 }
 
@@ -722,13 +763,13 @@ public:
 };
 
 // #############################################################
-StackWalker :: StackWalker(int options, LPTSTR szSymPath, DWORD dwProcessId, HANDLE hProcess)
-   : m_sw(new StackWalkerInternal(this, hProcess))
-   , m_hProcess(hProcess)
-   , m_dwProcessId(dwProcessId)
+StackWalker :: StackWalker(LPTSTR szSymPath)
+   : m_sw(new StackWalkerInternal(this, GetCurrentProcess()))
+   , m_hProcess(GetCurrentProcess())
+   , m_dwProcessId(GetCurrentProcessId())
    , m_modulesLoaded(FALSE)
    , m_szSymPath((szSymPath != NULL) ? _tcsdup(szSymPath) : NULL)
-   , m_options(options | ((szSymPath != NULL) ? SymBuildPath : 0))
+   , m_options(RetrieveSymbol | RetrieveLine | ((szSymPath != NULL) ? SymBuildPath : 0))
 {
    // empty
 }
@@ -861,50 +902,49 @@ BOOL StackWalker :: LoadModules()
    return bRet;
 }
 
-static __declspec(align(16)) CONTEXT _context;
+static CONTEXT * _saveContextFilterContext = NULL;  // set inside serialized code
 static int SaveContextFilterFunc(struct _EXCEPTION_POINTERS *ep)
 {
-   memcpy_s(&_context, sizeof(CONTEXT), ep->ContextRecord, sizeof(CONTEXT));
+   if (_saveContextFilterContext) memcpy_s(_saveContextFilterContext, sizeof(CONTEXT), ep->ContextRecord, sizeof(CONTEXT));
    return EXCEPTION_EXECUTE_HANDLER;
 }
 
-// The following is used to pass the "userData"-Pointer to the user-provided readMemoryFunction
-// This has to be done due to a problem with the "hProcess"-parameter in x64...
-// Because this class is in no case multi-threading-enabled (because of the limitations
-// of dbghelp.dll) it is "safe" to use a static-variable
-static StackWalker::PReadProcessMemoryRoutine s_readMemoryFunction = NULL;
-static LPVOID s_readMemoryFunction_UserData = NULL;
-
-status_t StackWalker :: CaptureCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *context, PReadProcessMemoryRoutine readMemoryFunction, LPVOID pUserData)
+// _stackWalkerMutex should be locked before calling this!
+void StackWalker :: SaveCurrentContext(StackWalkerState & sws) const
 {
-   _offsets.Clear();  // semi-paranoia
+   _saveContextFilterContext = &sws._context;
+
+   __try
+   {
+      memset(&sws._context, 0, sizeof(CONTEXT));
+      sws._context.ContextFlags = USED_CONTEXT_FLAGS;
+      RtlCaptureContext(&sws._context);
+   }
+   __except(SaveContextFilterFunc(GetExceptionInformation()))
+   {
+      // Do nothing; the SaveContextFilterFunc() call has written to sws._context already (above)
+   }
+
+   _saveContextFilterContext = NULL;
+}
+
+status_t StackWalker :: CaptureCallstack(uint32 maxDepth, HANDLE hThread, const CONTEXT *context, StackWalkerState & sws)
+{
+   sws._offsets.Clear();  // semi-paranoia
+
+   DECLARE_MUTEXGUARD(_stackWalkerMutex);  // serialize this since apparently DebugHelp isn't multithreading-friendly at all
 
    if (m_modulesLoaded == FALSE) (void) LoadModules();  // yes, deliberately ignoring the result
    if (m_sw->m_hDbhHelp == NULL) return B_ERROR("DebugHelp DLL not found");
 
-   s_readMemoryFunction          = readMemoryFunction;
-   s_readMemoryFunction_UserData = pUserData;
-
-        if (context) _context = *context;
-   else if (hThread == GetCurrentThread()) // If no context is provided, capture the context
-   {
-     __try
-     {
-        memset(&_context, 0, sizeof(CONTEXT));
-        _context.ContextFlags = USED_CONTEXT_FLAGS;
-        RtlCaptureContext(&_context);
-     }
-     __except(SaveContextFilterFunc(GetExceptionInformation()))
-     {
-        // Do nothing; the SaveContextFilterFunc() call has written to _context already (above)
-     }
-   }
+        if (context) sws._context = *context;
+   else if (hThread == GetCurrentThread()) SaveCurrentContext(sws); // If no context is provided, capture the context
    else
    {
       SuspendThread(hThread);
-      memset(&_context, 0, sizeof(CONTEXT));
-      _context.ContextFlags = USED_CONTEXT_FLAGS;
-      if (GetThreadContext(hThread, &_context) == FALSE)
+      memset(&sws._context, 0, sizeof(CONTEXT));
+      sws._context.ContextFlags = USED_CONTEXT_FLAGS;
+      if (GetThreadContext(hThread, &sws._context) == FALSE)
       {
          ResumeThread(hThread);
          return B_ERROR("GetThreadContext() failed");
@@ -919,45 +959,45 @@ status_t StackWalker :: CaptureCallstack(uint32 maxDepth, HANDLE hThread, const 
 #ifdef _M_IX86
    // normally, call ImageNtHeader() and use machine info from PE header
    imageType           = IMAGE_FILE_MACHINE_I386;
-   s.AddrPC.Offset     = _context.Eip;
+   s.AddrPC.Offset     = sws._context.Eip;
    s.AddrPC.Mode       = AddrModeFlat;
-   s.AddrFrame.Offset  = _context.Ebp;
+   s.AddrFrame.Offset  = sws._context.Ebp;
    s.AddrFrame.Mode    = AddrModeFlat;
-   s.AddrStack.Offset  = _context.Esp;
+   s.AddrStack.Offset  = sws._context.Esp;
    s.AddrStack.Mode    = AddrModeFlat;
 #elif _M_X64
    imageType           = IMAGE_FILE_MACHINE_AMD64;
-   s.AddrPC.Offset     = _context.Rip;
+   s.AddrPC.Offset     = sws._context.Rip;
    s.AddrPC.Mode       = AddrModeFlat;
-   s.AddrFrame.Offset  = _context.Rsp;
+   s.AddrFrame.Offset  = sws._context.Rsp;
    s.AddrFrame.Mode    = AddrModeFlat;
-   s.AddrStack.Offset  = _context.Rsp;
+   s.AddrStack.Offset  = sws._context.Rsp;
    s.AddrStack.Mode    = AddrModeFlat;
 #elif _M_IA64
    imageType           = IMAGE_FILE_MACHINE_IA64;
-   s.AddrPC.Offset     = _context.StIIP;
+   s.AddrPC.Offset     = sws._context.StIIP;
    s.AddrPC.Mode       = AddrModeFlat;
-   s.AddrFrame.Offset  = _context.IntSp;
+   s.AddrFrame.Offset  = sws._context.IntSp;
    s.AddrFrame.Mode    = AddrModeFlat;
-   s.AddrBStore.Offset = _context.RsBSP;
+   s.AddrBStore.Offset = sws._context.RsBSP;
    s.AddrBStore.Mode   = AddrModeFlat;
-   s.AddrStack.Offset  = _context.IntSp;
+   s.AddrStack.Offset  = sws._context.IntSp;
    s.AddrStack.Mode    = AddrModeFlat;
 #elif _M_ARM
    imageType           = IMAGE_FILE_MACHINE_ARM;
-   s.AddrPC.Offset     = _context.Pc;
+   s.AddrPC.Offset     = sws._context.Pc;
    s.AddrPC.Mode       = AddrModeFlat;
-   s.AddrFrame.Offset  = _context.R11;
+   s.AddrFrame.Offset  = sws._context.R11;
    s.AddrFrame.Mode    = AddrModeFlat;
-   s.AddrStack.Offset  = _context.Sp;
+   s.AddrStack.Offset  = sws._context.Sp;
    s.AddrStack.Mode    = AddrModeFlat;
 #elif _M_ARM64
    imageType           = IMAGE_FILE_MACHINE_ARM64;
-   s.AddrPC.Offset     = _context.Pc;
+   s.AddrPC.Offset     = sws._context.Pc;
    s.AddrPC.Mode       = AddrModeFlat;
-   s.AddrFrame.Offset  = _context.Fp;
+   s.AddrFrame.Offset  = sws._context.Fp;
    s.AddrFrame.Mode    = AddrModeFlat;
-   s.AddrStack.Offset  = _context.Sp;
+   s.AddrStack.Offset  = sws._context.Sp;
    s.AddrStack.Mode    = AddrModeFlat;
 #else
 # error "StackWalker:  Platform not supported!"
@@ -971,14 +1011,14 @@ status_t StackWalker :: CaptureCallstack(uint32 maxDepth, HANDLE hThread, const 
       // assume that either you are done, or that the stack is so hosed that the next
       // deeper frame could not be found.
       // CONTEXT need not to be supplied if imageType is IMAGE_FILE_MACHINE_I386!
-      if (!m_sw->pSW(imageType, m_hProcess, hThread, &s, &_context, ReadProcMemCallback, m_sw->pSFTA, m_sw->pSGMB, NULL))
+      if (!m_sw->pSW(imageType, m_hProcess, hThread, &s, &sws._context, ReadProcMemCallback, m_sw->pSFTA, m_sw->pSGMB, NULL))
       {
          ret = B_ERROR("StackWalk64() failed");
          break;
       }
 
       if (s.AddrPC.Offset == s.AddrReturn.Offset) {ret = B_ERROR("Endless callstack"); break;}
-      if (_offsets.AddTail(s.AddrPC.Offset).IsError(ret)) break;
+      if (sws._offsets.AddTail(s.AddrPC.Offset).IsError(ret)) break;
       if (s.AddrReturn.Offset == 0) break;  // done!
    }
 
@@ -986,7 +1026,7 @@ status_t StackWalker :: CaptureCallstack(uint32 maxDepth, HANDLE hThread, const 
    return ret;
 }
 
-void StackWalker :: PrintCallstack(const OutputPrinter & p) const
+void StackWalker :: PrintCallstack(const OutputPrinter & p, const StackWalkerState & sws) const
 {
    CallstackEntry *csEntry = NULL;  // deliberately declared here because declaring it later causes MSVC to error out due to gotos skipping the declaration
 
@@ -1023,9 +1063,9 @@ void StackWalker :: PrintCallstack(const OutputPrinter & p) const
    Module.SizeOfStruct = sizeof(Module);
 
    csEntry = new CallstackEntry;
-   for (uint32 frameNum=0; frameNum<_offsets.GetNumItems(); frameNum++)
+   for (uint32 frameNum=0; frameNum<sws._offsets.GetNumItems(); frameNum++)
    {
-      const DWORD64 offset = _offsets[frameNum];
+      const DWORD64 offset = sws._offsets[frameNum];
       csEntry->offset             = offset;
       csEntry->name[0]            = 0;
       csEntry->undName[0]         = 0;
@@ -1117,15 +1157,11 @@ BOOL __stdcall StackWalker :: ReadProcMemCallback(
     LPDWORD     lpNumberOfBytesRead
     )
 {
-   if (s_readMemoryFunction == NULL)
-   {
-      SIZE_T st = 0;
-      const BOOL bRet = ReadProcessMemory(hProcess, (LPVOID) qwBaseAddress, lpBuffer, nSize, &st);
-      if (bRet) *lpNumberOfBytesRead = (DWORD) st;
-      //printf("ReadMemory: hProcess: %p, baseAddr: %p, buffer: %p, size: %d, read: %d, result: %d\n", hProcess, (LPVOID) qwBaseAddress, lpBuffer, nSize, (DWORD) st, (DWORD) bRet);
-      return bRet;
-   }
-   else return s_readMemoryFunction(hProcess, qwBaseAddress, lpBuffer, nSize, lpNumberOfBytesRead, s_readMemoryFunction_UserData);
+   SIZE_T st = 0;
+   const BOOL bRet = ReadProcessMemory(hProcess, (LPVOID) qwBaseAddress, lpBuffer, nSize, &st);
+   if (bRet) *lpNumberOfBytesRead = (DWORD) st;
+   //printf("ReadMemory: hProcess: %p, baseAddr: %p, buffer: %p, size: %d, read: %d, result: %d\n", hProcess, (LPVOID) qwBaseAddress, lpBuffer, nSize, (DWORD) st, (DWORD) bRet);
+   return bRet;
 }
 
 void StackWalker :: OnLoadModule(LPTSTR img, LPTSTR mod, DWORD64 baseAddr, DWORD size, DWORD result, LPCTSTR symType, LPTSTR pdbName, ULONGLONG fileVersion) const
@@ -1221,7 +1257,7 @@ StackTrace :: StackTrace(const StackTrace & rhs)
 #if defined(MUSCLE_USE_BACKTRACE)
    : _stackFrames(rhs._stackFrames)
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   : _stackWalker(rhs._stackWalker)
+   : _stackWalkerState(rhs._stackWalkerState)
 #endif
 {
    // empty
@@ -1247,7 +1283,7 @@ StackTrace & StackTrace :: operator =(const StackTrace & rhs) MUSCLE_NOEXCEPT
 #if defined(MUSCLE_USE_BACKTRACE)
       _stackFrames = rhs._stackFrames;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-      _stackWalker = rhs._stackWalker;
+      _stackWalkerState = rhs._stackWalkerState;
 #endif
    }
    return *this;
@@ -1258,7 +1294,7 @@ void StackTrace :: ClearStackFrames()
 #if defined(MUSCLE_USE_BACKTRACE)
    _stackFrames.Clear();
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   _stackWalker.Reset();
+   _stackWalkerState.Reset();
 #endif
 }
 
@@ -1301,7 +1337,7 @@ void StackTrace :: SwapContents(StackTrace & swapWithMe) MUSCLE_NOEXCEPT
 #if defined(MUSCLE_USE_BACKTRACE)
    _stackFrames.SwapContents(swapWithMe._stackFrames);
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   _stackWalker.SwapContents(swapWithMe._stackWalker);
+   _stackWalkerState.SwapContents(swapWithMe._stackWalkerState);
 #endif
 }
 
@@ -1310,8 +1346,8 @@ uint32 StackTrace :: GetNumCapturedStackFrames() const
 #if defined(MUSCLE_USE_BACKTRACE)
    return _stackFrames.GetNumItems();
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   const StackWalker * sw = static_cast<StackWalker *>(_stackWalker());
-   return sw ? sw->GetNumCapturedStackFrames() : 0;
+   const StackWalkerState * sws = static_cast<StackWalkerState *>(_stackWalkerState());
+   return sws ? sws->GetNumCapturedStackFrames() : 0;
 #else
    return 0;
 #endif
@@ -1327,10 +1363,10 @@ status_t StackTrace :: CaptureStackFrames(uint32 maxDepth)
    (void) _stackFrames.EnsureSize(size, true);  // trim off unused frames
    return B_NO_ERROR;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   StackWalker * sw = new StackWalker;
-   const status_t ret = sw->CaptureCallstack(maxDepth);
-   if (ret.IsOK()) _stackWalker.SetRef(sw);
-              else delete sw;  // roll back!
+   StackWalkerState * sws = new StackWalkerState;
+   const status_t ret = sws->CaptureCallstack(maxDepth);
+   if (ret.IsOK()) _stackWalkerState.SetRef(sws);
+              else delete sws;  // roll back!
    return ret;
 #else
    (uint32) maxDepth;
@@ -1358,7 +1394,7 @@ void StackTrace :: Print(const OutputPrinter & p) const
       }
       else MWARN_OUT_OF_MEMORY;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-      if (_stackWalker()) static_cast<const StackWalker *>(_stackWalker())->PrintCallstack(p);
+      if (_stackWalkerState()) static_cast<const StackWalkerState *>(_stackWalkerState())->PrintCallstack(p);
 #else
       p.puts("<unimplemented>\n");
 #endif

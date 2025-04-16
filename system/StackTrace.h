@@ -77,7 +77,7 @@ private:
 #if defined(MUSCLE_USE_BACKTRACE)
    Queue<void *> _stackFrames;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   RefCountableRef _stackWalker;  // demand-allocated StackWalker
+   RefCountableRef _stackWalkerState;
 #endif
 };
 DECLARE_REFTYPES(StackTrace);
