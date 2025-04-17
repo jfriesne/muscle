@@ -33,7 +33,7 @@ int main(int argc, char ** argv)
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
    Queue<String> childArgv; (void) childArgv.AddTail(childExeName);  // support for pre-C++11 compilers
 #else
-   Queue<String> childArgv = {childExeName};
+   Queue<String> childArgv = {std_move_if_available(childExeName)};
 #endif
    status_t ret;
    ChildProcessDataIO cpIO(false);  // false == non-blocking

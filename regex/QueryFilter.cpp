@@ -766,7 +766,7 @@ public:
    String ToString() const
    {
       const String tokStr = (_tok < NUM_LTOKENS) ? _tokStrs[_tok] : "???";
-      return _valStr.HasChars() ? (tokStr+String(" %1").Arg(_valStr)) : tokStr;
+      return _valStr.HasChars() ? (tokStr+String(" %1").Arg(_valStr)) : std_move_if_available(tokStr);
    }
 
    // Convenience method:  Given a token like "myfield:4", returns the field name "myfield" and the retIdx=4

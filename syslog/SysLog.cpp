@@ -242,7 +242,7 @@ static status_t OpenLogFileForWriting(String & logFileName, FileDataIO & fdio)
       fdio.SetFile(muscleFopen(alternateName(), "wx"));  // x means "fail if the file already exists"
       if (fdio.GetFile() != NULL)
       {
-         logFileName = alternateName;
+         logFileName = std_move_if_available(alternateName);
          return B_NO_ERROR;
       }
    }
@@ -333,7 +333,7 @@ void DefaultFileLogger :: CloseLogFile()
                {
                   inIO.Shutdown();
                   if (remove(oldFileName()) != 0) LogTime(MUSCLE_LOG_ERROR, "Error deleting log file [%s] after compressing it to [%s] [%s]!\n", oldFileName(), gzName(), B_ERRNO());
-                  oldFileName = gzName;
+                  oldFileName = std_move_if_available(gzName);
                }
                else
                {

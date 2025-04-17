@@ -1233,7 +1233,7 @@ RemoveHeadWithDefault()
    {
       const ItemType ret = QQ_PlunderItem(Head());
       (void) RemoveHead();
-      return ret;
+      return std_move_if_available(ret);
    }
 }
 
@@ -1270,7 +1270,7 @@ RemoveTailWithDefault()
    {
       const ItemType ret = QQ_PlunderItem(Tail());
       (void) RemoveTail();
-      return ret;
+      return std_move_if_available(ret);
    }
 }
 
@@ -1992,7 +1992,7 @@ Queue<ItemType>::Normalize()
                if (tp >= _queueSize) tp -= _queueSize;
                c++;
             }
-            _queue[t] = tmp;
+            _queue[t] = std_move_if_available(tmp);
          }
          _headIndex = 0;
          _tailIndex = _itemCount-1;
