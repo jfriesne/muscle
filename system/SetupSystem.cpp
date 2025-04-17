@@ -2662,10 +2662,10 @@ uint64 GetProcessMemoryUsage()
    FILE* fp = muscleFopen("/proc/self/statm", "r");
    if (fp)
    {
-      size_t vmSize, residentPages, sharedPages;
+      size_t vmSize = 0, residentPages = 0, sharedPages = 0;
       const bool readData = (fscanf(fp, "%zu %zu %zu", &vmSize, &residentPages, &sharedPages) == 3);
       fclose(fp);
-      return readData ? (residentPages-sharedPages)*sysconf(_SC_PAGESIZE) : 0;
+      return readData ? ((residentPages>sharedPages)?(residentPages-sharedPages):0)*sysconf(_SC_PAGESIZE) : 0;
    }
 #elif defined(__APPLE__)
 # if defined(MAC_OS_X_VERSION_10_11)  // The phys_footprint field was introduced in MacOS 10.11

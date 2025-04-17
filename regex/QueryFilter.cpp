@@ -1117,19 +1117,33 @@ static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
 
                const uint32 whatVal = (uint32) atol(valTok.GetValueString()());
 
+               bool impossible = false;
                uint32 minWhat = 0, maxWhat = MUSCLE_NO_LIMIT;
                switch(infixOpTok.GetToken())
                {
                   case LTOKEN_NEQ: // fall through
                   case LTOKEN_EQ:  minWhat = maxWhat = whatVal; break;
-                  case LTOKEN_LT:  maxWhat = (whatVal-1);       break;
-                  case LTOKEN_GT:  minWhat = (whatVal+1);       break;
+
+                  case LTOKEN_LT:
+                     if (whatVal == 0) impossible = true;   // there are no what-codes less than zero!
+                                  else    maxWhat = (whatVal-1);
+                  break;
+
+                  case LTOKEN_GT:
+                     if (whatVal == MUSCLE_NO_LIMIT) impossible = true;   // there are no what-codes greater than MUSCLE_NO_LIMIT!
+                                                else    minWhat = (whatVal+1);
+                  break;
+
                   case LTOKEN_LEQ: maxWhat = whatVal;           break;
                   case LTOKEN_GEQ: minWhat = whatVal;           break;
                }
 
-               ret.SetRef(new WhatCodeQueryFilter(minWhat, maxWhat));
-               if (infixOpTok.GetToken() == LTOKEN_NEQ) ret.SetRef(new NorQueryFilter(ret));
+               if (impossible) ret.SetRef(new WhatCodeQueryFilter(1, 0));  // will never return true, because the requested condition is impossible
+               else
+               {
+                  ret.SetRef(new WhatCodeQueryFilter(minWhat, maxWhat));
+                  if (infixOpTok.GetToken() == LTOKEN_NEQ) ret.SetRef(new NorQueryFilter(ret));
+               }
             }
             break;
 

@@ -185,7 +185,7 @@ String & String :: operator-=(const char aChar)
    return *this;
 }
 
-String & String :: operator-=(const String &other)
+String & String :: operator-=(const String & other)
 {
         if (*this == other) Clear();
    else if (other.HasChars())
@@ -193,11 +193,14 @@ String & String :: operator-=(const String &other)
       const int idx = LastIndexOf(other);
       if (idx >= 0)
       {
-         const uint32 newEndIdx = idx+other.Length();
-         char * b = GetBuffer();
-         const int32 len = Length();
-         memmove(b+idx, b+newEndIdx, 1+len-newEndIdx);
-         SetLength(len-other.Length());
+         const uint64 newEndIdx = ((uint64)idx)+other.Length();  // uint64 only to avoid "potential overflow" coverity warning
+         if (newEndIdx < MUSCLE_NO_LIMIT)  // paranoia
+         {
+            char * b = GetBuffer();
+            const int32 len = Length();
+            memmove(b+idx, b+newEndIdx, 1+len-newEndIdx);
+            SetLength(len-other.Length());
+         }
       }
    }
    return *this;
