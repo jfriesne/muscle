@@ -717,7 +717,7 @@ writing this code manually:
 This approach beomes more useful as the predicate-logic you are trying to express becomes more complicated, e.g.:
 
 <pre>
-	const String exprString = "(age >= 21) && (weight < 155.0f) && (eyecolor == "green")";
+	const String exprString = "(what == 1234) && (age >= 21) && (weight < 155.0f) && (eyecolor == "green")";
 	QueryFilterRef over21Please(CreateQueryFilterFromExpression(exprString);
 </pre>
 
@@ -775,7 +775,7 @@ There are also a couple of prefix-operators you can use:
 
 <pre>
 	exists - matches if a specified fieldname exists (regardless of its contents)
-	not - negates the following expression
+	!      - negates the following expression
 </pre>
 
 For example:
@@ -783,8 +783,8 @@ For example:
 <pre>
 	exists age		# matches iff the Message has a field named "age"
 	exists (int32)age	# matches iff the Message has a field named "age" that is of type int32
-	not exists (int32)age	# matches iff the Message doesn't has a field named "age" that is of type int32
-	not (eyecolor contains "green")	# matches if it's not true that the Message has a String field "eyecolor" with "green" in it
+	!exists (int32)age	# matches iff the Message doesn't has a field named "age" that is of type int32
+	!(eyecolor contains "green")	# matches if it's not true that the Message has a String field "eyecolor" with "green" in it
 </pre>
 
 <h3>Fieldname customization options</h3>

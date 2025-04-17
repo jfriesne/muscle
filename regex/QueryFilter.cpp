@@ -45,7 +45,7 @@ status_t WhatCodeQueryFilter :: SetFromArchive(const Message & archive)
 void WhatCodeQueryFilter :: Print(const OutputPrinter & p) const
 {
    QueryFilter::Print(p);
-   p.printf(" _minWhatCode= " UINT32_FORMAT_SPEC " _maxWhatCode=" UINT32_FORMAT_SPEC "\n", _minWhatCode, _maxWhatCode);
+   p.printf(" _minWhatCode=" UINT32_FORMAT_SPEC " _maxWhatCode=" UINT32_FORMAT_SPEC "\n", _minWhatCode, _maxWhatCode);
 }
 
 bool WhatCodeQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * /*optNode*/) const
@@ -675,7 +675,7 @@ enum {
    LTOKEN_STRING,          // (string)
    LTOKEN_POINT,           // (point)
    LTOKEN_RECT,            // (rect)
-   LTOKEN_NOT,             // not
+   LTOKEN_NOT,             // !
    LTOKEN_WHAT,            // what
    LTOKEN_EXISTS,          // exists
    LTOKEN_VALUESTRING,     // some other token supplied by the user
@@ -713,7 +713,7 @@ static const char * _tokStrs[] =
    "(string)",       // LTOKEN_STRING
    "(point)",        // LTOKEN_POINT
    "(rect)",         // LTOKEN_RECT
-   "not",            // LTOKEN_NOT
+   "!",              // LTOKEN_NOT
    "what",           // LTOKEN_WHAT    (lack of space is intentional)
    "exists ",        // LTOKEN_EXISTS  (space is intentional)
    NULL,             // LTOKEN_VALUESTRING
@@ -1012,7 +1012,7 @@ static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
       switch(nextTok.GetToken())
       {
          case LTOKEN_NOT:
-            if (localToks.HasItems()) return B_ERROR("'not' must be the first token in a subexpression");
+            if (localToks.HasItems()) return B_ERROR("'!' must be the first token in a subexpression");
             isNegated = !isNegated;
          break;
 
@@ -1179,8 +1179,8 @@ static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
 
 QueryFilterRef CreateQueryFilterFromExpression(const String & expression)
 {
+   //Lexer tempLexer(expression); LexerToken nextTok; while(tempLexer.GetNextToken(nextTok).IsOK()) printf(" -> %s\n", nextTok.ToString()());
    Lexer lexer(expression);
-   //while(lexer.GetNextToken(nextTok).IsOK()) printf(" -> %s\n", nextTok.ToString()());
    return CreateQueryFilterFromExpressionAux(lexer);
 }
 

@@ -26,6 +26,8 @@ key:  - new feature
      space for 4.3 billion items.
    o Updated the MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS debug-code
      to store StackTrace objects instead of Strings.
+   o Renamed the 'not' keyword for CreateQueryFilterFromExpression() to '!'
+     to better correspond to C's native boolean-operator syntax.
    * Fixed an MSVC compile-time error in the StackWalker code in SysLog.cpp
    * Tweaked zutil.h to avoid a preprocessor error if MACOS is defined.
    * WaitCondition.h was missing a #include, fixed.
