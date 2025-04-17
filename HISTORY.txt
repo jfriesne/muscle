@@ -16,12 +16,11 @@ key:  - new feature
      incoming TCP connections to a particular NIC, if desired.
    - Added an acceptonip=ip.address startup argument that calls
      SetDefaultAcceptInterfaceIP() when passed on the command line.
-   - Added a StackTrace class, for formal handling of in-memory
-     captured stack frames.
-   o PrintStackTrace() now takes an OutputPrinter as its first argument.
+   - Added a StackTrace class, to formally represent captured stack frames.
    o Removed GetStackTrace() (call PrintStackTrace with a String arg intead)
    o Moved the stack trace code out of SysLog.cpp and into its own
-     system/StackTrace.cpp file.
+     system/StackTrace.cpp file, and refactored it to support separating
+     frame-capture from output-printing.
    o Calling EnsureSize(MUSCLE_NO_LIMIT) on a Queue or Hashtable will now
      return B_RESOURCE_LIMIT rather than actually trying to allocate
      space for 4.3 billion items.
