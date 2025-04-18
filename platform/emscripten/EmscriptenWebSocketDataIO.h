@@ -6,15 +6,15 @@
 #include "dataio/DataIO.h"
 #include "reflector/AbstractReflectSession.h"
 #include "util/Hashtable.h"
-#include "util/RefCount.h"
+#include "util/Socket.h"
 
 namespace muscle {
 
 class EmscriptenAsyncCallback;
 class EmscriptenWebSocketSubscriber;
 
-/** RefCountable class to hold an Emscripten websocket and make sure it gets cleaned up when no longer in use */
-class EmscriptenWebSocket : public RefCountable
+/** Special Socket class that holds an Emscripten websocket and makes sure it gets cleaned up properly when no longer in use */
+class EmscriptenWebSocket : public Socket
 {
 public:
    /** Default constructor */
@@ -30,9 +30,6 @@ public:
      */
    io_status_t Write(const void * data, uint32 numBytes);
 
-   /** Returns a dummy ConstSocketRef that can (sort of) be used to represent our file descriptor */
-   const ConstSocketRef & GetConstSocketRef() {return _sockRef;}
-
    enum {
       STATE_INVALID = 0,  ///< Not actually associated with a valid web socket descriptor
       STATE_INITIALIZING, ///< Connection isn't open yet
@@ -47,15 +44,10 @@ public:
 
 private:
    friend class EmscriptenWebSocketSubscriber;
+   EmscriptenWebSocket(EmscriptenWebSocketSubscriber * sub, int emSock);
 
    EmscriptenWebSocketSubscriber * _sub;
-
-   int _emSock;
    uint32 _state;
-
-   ConstSocketRef _sockRef;
-
-   EmscriptenWebSocket(EmscriptenWebSocketSubscriber * sub, int emSock);
 
 public:
 #if defined(__EMSCRIPTEN__)
@@ -131,12 +123,14 @@ public:
    virtual void FlushOutput() {/* empty */}
    virtual void Shutdown();
 
-   MUSCLE_NODISCARD virtual const ConstSocketRef &  GetReadSelectSocket() const {return _sock() ? _sock()->GetConstSocketRef() : GetInvalidSocket();}
-   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _sock() ? _sock()->GetConstSocketRef() : GetInvalidSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef &  GetReadSelectSocket() const {return _sockRef;}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _sockRef;}
 
 private:
-   EmscriptenWebSocketRef _sock;
-   AbstractReflectSession * _optSession;
+   EmscriptenWebSocketRef _emSockRef;
+   ConstSocketRef _sockRef;  // points to the same object as (_emSockRef); here solely for convenience
+
+   AbstractReflectSession  * _optSession;
    EmscriptenAsyncCallback * _optAsyncCallback;
 
    Hashtable<ByteBufferRef, uint32> _receivedData;  // buffer -> bytes already read

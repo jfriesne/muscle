@@ -12,17 +12,15 @@ namespace muscle {
 
 EmscriptenWebSocket :: EmscriptenWebSocket()
    : _sub(NULL)
-   , _emSock(-1)
    , _state(STATE_INVALID)
 {
    // empty
 }
 
 EmscriptenWebSocket :: EmscriptenWebSocket(EmscriptenWebSocketSubscriber * sub, int emSock)
-   : _sub(sub)
-   , _emSock(emSock)
+   : Socket(emSock, false)
+   , _sub(sub)
    , _state(STATE_INITIALIZING)
-   , _sockRef(new Socket(_emSock, false))
 {
 #if !defined(__EMSCRIPTEN__)
    (void) _sub; // suppress compiler warning about member-variable not being used
@@ -32,13 +30,14 @@ EmscriptenWebSocket :: EmscriptenWebSocket(EmscriptenWebSocketSubscriber * sub, 
 EmscriptenWebSocket :: ~EmscriptenWebSocket()
 {
 #if defined(__EMSCRIPTEN__)
-   if (_emSock > 0)
+   const int emSock = GetFileDescriptor();
+   if (emSock > 0)
    {
-      const EMSCRIPTEN_RESULT cr = emscripten_websocket_close(_emSock, 1000, "EmscriptenWebSocket Dtor");
-      if (cr < 0) printf("emscripten_websocket_close(%i) failed (%i)\n", _emSock, cr);
+      const EMSCRIPTEN_RESULT cr = emscripten_websocket_close(emSock, 1000, "EmscriptenWebSocket Dtor");
+      if (cr < 0) printf("emscripten_websocket_close(%i) failed (%i)\n", emSock, cr);
 
-      const EMSCRIPTEN_RESULT dr = emscripten_websocket_delete(_emSock);
-      if (dr < 0) printf("emscripten_websocket_delete(%i) failed (%i)\n", _emSock, dr);
+      const EMSCRIPTEN_RESULT dr = emscripten_websocket_delete(emSock);
+      if (dr < 0) printf("emscripten_websocket_delete(%i) failed (%i)\n", emSock, dr);
    }
 #endif
 }
@@ -90,9 +89,10 @@ static status_t GetStatusForEmscriptenResult(EMSCRIPTEN_RESULT r)
 io_status_t EmscriptenWebSocket :: Write(const void * data, uint32 numBytes)
 {
 #if defined(__EMSCRIPTEN__)
-   if (_emSock > 0)
+   const int emSock = GetFileDescriptor();
+   if (emSock > 0)
    {
-      const EMSCRIPTEN_RESULT ret = emscripten_websocket_send_binary(_emSock, const_cast<void *>(data), numBytes);
+      const EMSCRIPTEN_RESULT ret = emscripten_websocket_send_binary(emSock, const_cast<void *>(data), numBytes);
       return (ret == EMSCRIPTEN_RESULT_SUCCESS) ? io_status_t(numBytes) : GetStatusForEmscriptenResult(ret);
    }
    else return B_BAD_OBJECT;
@@ -111,7 +111,8 @@ void EmscriptenWebSocket :: EmscriptenWebSocketMessageReceived(const uint8 * dat
 #endif
 
 EmscriptenWebSocketDataIO :: EmscriptenWebSocketDataIO(const String & host, uint16 port, AbstractReflectSession * optSession, EmscriptenAsyncCallback * optAsyncCallback)
-   : _sock(CreateClientWebSocket(host, port))
+   : _emSockRef(CreateClientWebSocket(host, port))
+   , _sockRef(_emSockRef())
    , _optSession(optSession)
    , _optAsyncCallback(optAsyncCallback)
 {
@@ -132,8 +133,8 @@ io_status_t EmscriptenWebSocketDataIO :: Read(void * buffer, uint32 size)
    const ByteBuffer    * lastBuf    = lastBufRef ? lastBufRef->GetItemPointer() : NULL;
    if (lastBuf == NULL)
    {
-      if (_sock() == NULL) return B_BAD_OBJECT;  // dude, where's my socket?
-      switch(_sock()->GetState())
+      if (_emSockRef() == NULL) return B_BAD_OBJECT;  // dude, where's my socket?
+      switch(_emSockRef()->GetState())
       {
          case EmscriptenWebSocket::STATE_INVALID:      return B_BAD_OBJECT;
          case EmscriptenWebSocket::STATE_INITIALIZING: return io_status_t(0);  // not ready to receive yet, but we should become ready shortly!
@@ -157,13 +158,13 @@ io_status_t EmscriptenWebSocketDataIO :: Read(void * buffer, uint32 size)
 
 io_status_t EmscriptenWebSocketDataIO :: Write(const void * buffer, uint32 size)
 {
-   if (_sock() == NULL) return B_BAD_OBJECT;
+   if (_emSockRef() == NULL) return B_BAD_OBJECT;
 
-   switch(_sock()->GetState())
+   switch(_emSockRef()->GetState())
    {
       case EmscriptenWebSocket::STATE_INVALID:      return B_BAD_OBJECT;
-      case EmscriptenWebSocket::STATE_INITIALIZING: return io_status_t(0);                // not ready to send yet, but we should be shortly!
-      case EmscriptenWebSocket::STATE_OPEN:         return _sock()->Write(buffer, size);  // go for it!
+      case EmscriptenWebSocket::STATE_INITIALIZING: return io_status_t(0);                     // not ready to send yet, but we should be shortly!
+      case EmscriptenWebSocket::STATE_OPEN:         return _emSockRef()->Write(buffer, size);  // go for it!
       case EmscriptenWebSocket::STATE_CLOSED:       return B_END_OF_STREAM;
       case EmscriptenWebSocket::STATE_ERROR:        return B_IO_ERROR;
       default:                                      return B_LOGIC_ERROR;
@@ -172,13 +173,13 @@ io_status_t EmscriptenWebSocketDataIO :: Write(const void * buffer, uint32 size)
 
 void EmscriptenWebSocketDataIO :: Shutdown()
 {
-   _sock.Reset();
+   _emSockRef.Reset();
 }
 
 #if defined(__EMSCRIPTEN__)
 void EmscriptenWebSocketDataIO :: EmscriptenWebSocketConnectionOpened(EmscriptenWebSocket & webSock)
 {
-   LogTime(MUSCLE_LOG_DEBUG, "EmscriptenWebSocketConnectionOpened:  web socket %i session opened!\n", webSock.GetConstSocketRef().GetFileDescriptor());
+   LogTime(MUSCLE_LOG_DEBUG, "EmscriptenWebSocketConnectionOpened:  web socket %i session opened!\n", webSock.GetFileDescriptor());
 
    if (_optSession) _optSession->AsyncConnectCompleted();
    if (_optAsyncCallback) (void) _optAsyncCallback->SetAsyncCallbackTime(0);
@@ -231,14 +232,14 @@ void EmscriptenWebSocketDataIO :: EmscriptenWebSocketMessageReceived(EmscriptenW
 
 void EmscriptenWebSocketDataIO :: EmscriptenWebSocketErrorOccurred(EmscriptenWebSocket & webSock)
 {
-   LogTime(MUSCLE_LOG_ERROR, "EmscriptenWebSocketErrorOccurred:  Error reported on web socket %i!\n", webSock.GetConstSocketRef().GetFileDescriptor());
+   LogTime(MUSCLE_LOG_ERROR, "EmscriptenWebSocketErrorOccurred:  Error reported on web socket %i!\n", webSock.GetFileDescriptor());
    if (_optSession)       (void) _optSession->ClientConnectionClosed();
    if (_optAsyncCallback) (void) _optAsyncCallback->SetAsyncCallbackTime(0);
 }
 
 void EmscriptenWebSocketDataIO :: EmscriptenWebSocketConnectionClosed(EmscriptenWebSocket & webSock)
 {
-   LogTime(MUSCLE_LOG_DEBUG, "EmscriptenWebSocketConnectionClosed:  web socket %i session closed!\n", webSock.GetConstSocketRef().GetFileDescriptor());
+   LogTime(MUSCLE_LOG_DEBUG, "EmscriptenWebSocketConnectionClosed:  web socket %i session closed!\n", webSock.GetFileDescriptor());
    if (_optSession)       (void) _optSession->ClientConnectionClosed();
    if (_optAsyncCallback) (void) _optAsyncCallback->SetAsyncCallbackTime(0);
 }

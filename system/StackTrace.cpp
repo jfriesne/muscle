@@ -1369,7 +1369,7 @@ status_t StackTrace :: CaptureStackFrames(uint32 maxDepth)
               else delete sws;  // roll back!
    return ret;
 #else
-   (uint32) maxDepth;
+   (void) maxDepth;
    return B_UNIMPLEMENTED;
 #endif
 }
