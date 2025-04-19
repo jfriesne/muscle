@@ -29,6 +29,7 @@ key:  - new feature
    o Renamed the 'not' keyword for CreateQueryFilterFromExpression() to '!'
      to better correspond to C's native boolean-operator syntax.
    o Changed EmscriptenWebSocket to subclass Socket rather than hold one.
+   o Split EmscriptenWebSocket.{cpp,h} out of EmscriptenWebSocketDataIO.{cpp,h}
    * Fixed an MSVC compile-time error in the StackWalker code in SysLog.cpp
    * Tweaked zutil.h to avoid a preprocessor error if MACOS is defined.
    * WaitCondition.h was missing a #include, fixed.
