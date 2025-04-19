@@ -23,6 +23,15 @@ EmscriptenWebSocketDataIO :: EmscriptenWebSocketDataIO(const String & host, uint
 #endif
 }
 
+EmscriptenWebSocketDataIO :: EmscriptenWebSocketDataIO(const EmscriptenWebSocketRef & emSockRef, AbstractReflectSession * optSession, EmscriptenAsyncCallback * optAsyncCallback)
+   : _emSockRef(emSockRef)
+   , _sockRef(_emSockRef())
+   , _optSession(optSession)
+   , _optAsyncCallback(optAsyncCallback)
+{
+   // empty
+}
+
 EmscriptenWebSocketDataIO :: ~EmscriptenWebSocketDataIO()
 {
    // empty

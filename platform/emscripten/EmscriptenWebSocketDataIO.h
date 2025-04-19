@@ -18,13 +18,20 @@ class EmscriptenWebSocketSubscriber;
 class EmscriptenWebSocketDataIO : public DataIO, private EmscriptenWebSocketSubscriber
 {
 public:
-   /** Constructor
+   /** Convenience Constructor
      * @param host hostname to connect to
      * @param port port number to connect to
      * @param optSession if non-NULL, we will make callbacks on this session when we receive callbacks from the EmscriptenWebSocket.
      * @param optAsyncCallback if non-NULL, we will schedule callbacks on this to handle the I/O for us
      */
    EmscriptenWebSocketDataIO(const String & host, uint16 port, AbstractReflectSession * optSession, EmscriptenAsyncCallback * optAsyncCallback);
+
+   /** Constructor
+     * @param emSockRef Reference to a pre-created EmscriptenWebSocket to use instead of creating our own
+     * @param optSession if non-NULL, we will make callbacks on this session when we receive callbacks from the EmscriptenWebSocket.
+     * @param optAsyncCallback if non-NULL, we will schedule callbacks on this to handle the I/O for us
+     */
+   EmscriptenWebSocketDataIO(const EmscriptenWebSocketRef & emSockRef, AbstractReflectSession * optSession, EmscriptenAsyncCallback * optAsyncCallback);
 
    /** Destructor */
    virtual ~EmscriptenWebSocketDataIO();
@@ -37,6 +44,9 @@ public:
 
    MUSCLE_NODISCARD virtual const ConstSocketRef &  GetReadSelectSocket() const {return _sockRef;}
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _sockRef;}
+
+   /** Returns a reference to the EmscriptenWebSocket we are holding internally */
+   const EmscriptenWebSocketRef & GetEmscriptenSocket() const {return _emSockRef;}
 
 private:
    EmscriptenWebSocketRef _emSockRef;
@@ -54,6 +64,7 @@ private:
    virtual void EmscriptenWebSocketConnectionClosed(EmscriptenWebSocket & webSock);
 #endif
 };
+DECLARE_REFTYPES(EmscriptenWebSocketDataIO);
 
 };  // end namespace muscle
 
