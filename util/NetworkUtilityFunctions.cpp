@@ -2327,7 +2327,7 @@ String IPAddressAndPort :: ToString(bool includePort, bool preferIPv4Style) cons
                    else muscleSprintf(buf, "[%s]:%u", s(), _port);
       return buf;
    }
-   else return std_move_if_available(s);
+   else return s;  // warning: moving a local object in a return statement prevents copy elision [-Wpessimizing-move]
 }
 
 uint32 IPAddress :: CalculateChecksum() const
