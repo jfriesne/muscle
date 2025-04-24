@@ -45,7 +45,6 @@ WebSocketMessageIOGateway :: WebSocketMessageIOGateway()
    , _headerSize(2)
    , _firstByteToMask(0)
    , _payloadBytesRead(0)
-   , _maskOffset(0)
    , _opCode(0)
    , _inputClosed(false)
    , _outputBytesWritten(0)
@@ -62,7 +61,6 @@ WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const StringMatcher & pro
    , _headerSize(2)
    , _firstByteToMask(0)
    , _payloadBytesRead(0)
-   , _maskOffset(0)
    , _opCode(0)
    , _inputClosed(false)
    , _outputBytesWritten(0)
@@ -77,7 +75,6 @@ WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const String & getPath, c
    , _headerSize(2)
    , _firstByteToMask(0)
    , _payloadBytesRead(0)
-   , _maskOffset(0)
    , _opCode(0)
    , _inputClosed(false)
    , _outputBytesWritten(0)
@@ -106,7 +103,6 @@ void WebSocketMessageIOGateway :: ResetHeaderReceiveState()
    /** Reset our state to receive the next frame's header */
    _headerBytesReceived = 0;
    _headerSize          = 2;
-   _maskOffset          = 0;
 }
 
 status_t WebSocketMessageIOGateway :: HandleReceivedHTTPText()
@@ -296,11 +292,19 @@ io_status_t WebSocketMessageIOGateway :: DoInputImplementation(AbstractGatewayMe
             readBytes         += numBytesRead;
             _payloadBytesRead += numBytesRead;
             maxBytes          -= numBytesRead;
+
             if (_payloadBytesRead == _payload()->GetNumBytes())
             {
-                // If FIN is set, we'll execute this frame and clear it; otherwise we'll append the next frame's data to this one's.
-                if ((_inputClosed)||(_headerBytes[0] & 0x80)) ExecuteReceivedFrame(receiver);
-                ResetHeaderReceiveState();
+               // Unmask the payload segment
+               uint8 * payloadBytes = _payload() ? _payload()->GetBuffer() : NULL;
+               const uint32 numPayloadBytes = _payload() ? _payload()->GetNumBytes() : 0;
+               if (payloadBytes) for (uint32 i=_firstByteToMask; i<numPayloadBytes; i++) payloadBytes[i] ^= _mask[(i-_firstByteToMask)%sizeof(_mask)];
+
+               _firstByteToMask = numPayloadBytes;
+
+               // If FIN is set, we'll execute this frame and clear it; otherwise we'll append the next frame's data to this one's.
+               if ((_inputClosed)||(_headerBytes[0] & 0x80)) ExecuteReceivedFrame(receiver);
+               ResetHeaderReceiveState();
             }
          }
          else break;
@@ -362,8 +366,8 @@ io_status_t WebSocketMessageIOGateway :: DoInputImplementation(AbstractGatewayMe
                      if (payloadSize > (10*1024*1024))
                      {
                         LogTime(MUSCLE_LOG_ERROR, "WebSocketMessageIOGateway:  Payload size " UINT64_FORMAT_SPEC " is too large!\n", payloadSize);
-                        SetUnrecoverableErrorStatus(B_ACCESS_DENIED);
-                        return B_ACCESS_DENIED;
+                        SetUnrecoverableErrorStatus(B_RESOURCE_LIMIT);
+                        return B_RESOURCE_LIMIT;
                      }
                      MRETURN_ON_ERROR(InitializeIncomingPayload((uint32) payloadSize, 10, receiver));
                   }
@@ -541,22 +545,20 @@ status_t WebSocketMessageIOGateway :: CreateReplyFrame(const uint8 * data, uint3
 
 status_t WebSocketMessageIOGateway :: InitializeIncomingPayload(uint32 payloadSizeBytes, uint32 maskOffset, AbstractGatewayMessageReceiver & receiver)
 {
-   _maskOffset = maskOffset;
-
    if (payloadSizeBytes == 0)
    {
       // Special case for when there is no payload to receive
-      if (_payload() == NULL) _opCode  = _headerBytes[0] & 0x0F;
+      if (_payload() == NULL) _opCode = _headerBytes[0] & 0x0F;
       if (_headerBytes[0] & 0x80) ExecuteReceivedFrame(receiver);
       ResetHeaderReceiveState();
       return B_NO_ERROR;
    }
    else
    {
+      memcpy(&_mask, &_headerBytes[maskOffset], sizeof(_mask));
       if (_payload())
       {
          // don't change _opCode if we are merely extending a fragment...
-         (void) UnmaskPayloadSegment(NULL);  // Gotta unmask the previous segment while we still have its mask
          if (_payload()->AppendBytes(NULL, payloadSizeBytes, false).IsError()) _payload.Reset();
       }
       else
@@ -568,33 +570,12 @@ status_t WebSocketMessageIOGateway :: InitializeIncomingPayload(uint32 payloadSi
    }
 }
 
-const uint8 * WebSocketMessageIOGateway :: UnmaskPayloadSegment(uint32 * optRetSize)
-{
-   // Time to unmask our payload!
-   uint8 * payloadBytes = _payload() ? _payload()->GetBuffer() : NULL;
-   if (payloadBytes)
-   {
-      uint32 numPayloadBytes = _payload()->GetNumBytes();
-      const uint8 * mask = &_headerBytes[_maskOffset];
-      for (uint32 i=_firstByteToMask; i<numPayloadBytes; i++) payloadBytes[i] ^= mask[i%4];
-      if (optRetSize) *optRetSize = numPayloadBytes;
-      _firstByteToMask = numPayloadBytes;
-   }
-   else
-   {
-      _firstByteToMask = 0;
-      if (optRetSize) *optRetSize = 0;
-   }
-
-   return payloadBytes;
-}
-
 void WebSocketMessageIOGateway :: ExecuteReceivedFrame(AbstractGatewayMessageReceiver & receiver)
 {
    if (_inputClosed == false)
    {
-      uint32 payloadSize;
-      const uint8 * payloadBytes = UnmaskPayloadSegment(&payloadSize);
+      const uint8 * payloadBytes = _payload() ? _payload()->GetBuffer()   : NULL;
+      const uint32   payloadSize = _payload() ? _payload()->GetNumBytes() : 0;
 
       switch(_opCode)
       {
@@ -672,8 +653,8 @@ void WebSocketMessageIOGateway :: ExecuteReceivedFrame(AbstractGatewayMessageRec
       }
    }
 
-   _opCode = 0;
    _payload.Reset();
+   _opCode           = 0;
    _payloadBytesRead = 0;
    _firstByteToMask  = 0;
 }

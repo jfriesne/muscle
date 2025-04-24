@@ -68,7 +68,6 @@ private:
    status_t HandleReceivedHTTPText();
    status_t CreateReplyFrame(const uint8 * data, uint32 numBytes, uint8 opCode);
    status_t InitializeIncomingPayload(uint32 payloadSizeBytes, uint32 maskOffset, AbstractGatewayMessageReceiver & receiver);
-   const uint8 * UnmaskPayloadSegment(uint32 * optRetSize);
    void ExecuteReceivedFrame(AbstractGatewayMessageReceiver & receiver);
    void FlushReceivedMessage(AbstractGatewayMessageReceiver & receiver);
    void ResetHeaderReceiveState();
@@ -92,7 +91,7 @@ private:
    ByteBufferRef _payload;
    uint32 _firstByteToMask;
    uint32 _payloadBytesRead;
-   uint32 _maskOffset;
+   uint8 _mask[4];
    uint8 _opCode;
    bool _inputClosed;
    MessageRef _receivedMsg;
