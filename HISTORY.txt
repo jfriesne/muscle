@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   * The std_forward_if_available() macro was missing an argument to
+     supply the target template-parameter, making it unusable.  Fixed.
+
 9.71 - Released 4/24/2025
    - Added a freestanding ToString() function that can be used
      to return a String representation of any object that has

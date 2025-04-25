@@ -974,11 +974,11 @@ template <typename T> inline T * broken_gcc_newnothrow_array(size_t count)
 #endif
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
-# define std_move_if_available(x)    (x)   /**< wrapper for std::move() that will resolve to a no-op on pre-C++11 compilers */
-# define std_forward_if_available(x) (x)   /**< wrapper for std::forward() that will resolve to a no-op on pre-C++11 compilers */
+# define std_move_if_available(x)           (x) /**< wrapper for std::move() that will resolve to a no-op on pre-C++11 compilers */
+# define std_forward_if_available(tParam,x) (x) /**< wrapper for std::forward() that will resolve to a no-op on pre-C++11 compilers */
 #else
-# define std_move_if_available(x)    std::move(x)     /**< wrapper for std::move() that will resolve to a no-op on pre-C++11 compilers */
-# define std_forward_if_available(x) std::forward(x)  /**< wrapper for std::forward() that will resolve to a no-op on pre-C++11 compilers */
+# define std_move_if_available(x)           std::move(x)            /**< wrapper for std::move() that will resolve to a no-op on pre-C++11 compilers */
+# define std_forward_if_available(tParam,x) std::forward<tParam>(x) /**< wrapper for std::forward() that will resolve to a no-op on pre-C++11 compilers */
 #endif
 
 /** This function returns a reference to a read-only, default-constructed

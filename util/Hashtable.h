@@ -3705,8 +3705,8 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::PutAux(uint32 hash
       // but our arguments are pointing into the old array that is about to be freed inside EnsureSize()
       if ((this->IsKeyLocatedInThisContainer(key))||(this->IsValueLocatedInThisContainer(value)))
       {
-         const KeyType   tempKey = std_move_if_available(key);
-         const ValueType tempVal = std_move_if_available(value);
+         const KeyType   tempKey(std_forward_if_available(HT_KeyParam,   key));
+         const ValueType tempVal(std_forward_if_available(HT_ValueParam, value));
          return PutAux(hash, tempKey, tempVal, optSetPreviousValue, optReplacedFlag);  // go again
       }
       return EnsureSize(this->_tableSize*2).IsOK() ? PutAux(hash, HT_ForwardKey(key), HT_ForwardValue(value), optSetPreviousValue, optReplacedFlag) : NULL;

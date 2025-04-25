@@ -206,7 +206,7 @@ status_t Directory :: MakeDirectory(const char * dirPath, bool forceCreateParent
 
 status_t Directory :: MakeDirectoryForFile(const char * filePath)
 {
-   const int pathLen = (int) strlen(filePath);
+   const uint32 pathLen = (uint32) strlen(filePath);
    char * p = newnothrow_array(char, pathLen+1);
    MRETURN_OOM_ON_NULL(p);
 
