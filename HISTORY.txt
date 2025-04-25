@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.71 - Released 4/24/2025
    - Added a freestanding ToString() function that can be used
      to return a String representation of any object that has
      a Print(OutputPrinter &) method.
@@ -39,7 +40,7 @@ key:  - new feature
    * WebSocketIOGateway wasn't unmasking continuation frames correctly,
      causing incoming WebSocket data to be garbled.  Fixed.
 
-9.70 - Release 3/26/2025
+9.70 - Released 3/26/2025
    - Added |= operators to the io_status_t class.
    - Added a constructor to WaitConditionCallbackMechanism that
      takes a reference to the WaitCondition to use.
