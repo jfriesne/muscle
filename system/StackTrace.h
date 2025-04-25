@@ -34,11 +34,11 @@ public:
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
    StackTrace(StackTrace && rhs) MUSCLE_NOEXCEPT;
 
-   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
    StackTrace & operator =(StackTrace && rhs) MUSCLE_NOEXCEPT;
 #endif
 
-   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    StackTrace & operator =(const StackTrace & rhs) MUSCLE_NOEXCEPT;
 
    /** Destructor */

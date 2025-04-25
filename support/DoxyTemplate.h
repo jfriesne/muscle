@@ -23,7 +23,7 @@ public:
      */
    DoxyTemplate(const DoxyTemplate & rhs);
 
-   /** Move constructor (C++11 only)
+   /** Move constructor (C++11 or later)
      * @param rhs the object whose state we should steal away to use as our own
      */
    DoxyTemplate(DoxyTemplate && rhs);
@@ -37,7 +37,7 @@ public:
      */
    DoxyTemplate & operator =(const DoxyTemplate & rhs);
 
-   /** Move-Assignment operator (C++11 only).  Sets this object to be a duplicate of
+   /** Move-Assignment operator (C++11 or later).  Sets this object to be a duplicate of
      * (rhs) by stealing the state of (rhs) away so that this object can use it.
      * @param rhs the object that this object can plunder to assume the same state that (rhs) had
      * @returns a reference to this object
