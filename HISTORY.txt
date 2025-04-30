@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Reduced MUSCLE_EXPECTED_MTU_SIZE_BYTES to 1280 for IPv6.
    * The std_forward_if_available() macro was missing an argument to
      supply the target template-parameter, making it unusable.  Fixed.
 

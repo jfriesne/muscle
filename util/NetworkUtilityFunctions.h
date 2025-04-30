@@ -35,10 +35,15 @@ namespace muscle {
 
 #ifndef MUSCLE_EXPECTED_MTU_SIZE_BYTES
 /** The total maximum size of a packet (including all headers and user data) that can be sent
- *  over a network without causing packet fragmentation.  Default value is 1500 (appropriate for
- *  standard Ethernet) but it can be overridden to another value at compile time via eg -DMUSCLE_EXPECTED_MTU_SIZE_BYTES=1200
+ *  over a network without causing packet fragmentation.  Default value is 1500 for IPv4 or
+ *  1280 for IPv6 (appropriate for standard Ethernet) but it can be overridden to another value
+ *  at compile time via eg -DMUSCLE_EXPECTED_MTU_SIZE_BYTES=1200
  */
-# define MUSCLE_EXPECTED_MTU_SIZE_BYTES 1500
+# ifdef MUSCLE_AVOID_IPV6
+#  define MUSCLE_EXPECTED_MTU_SIZE_BYTES 1500
+# else
+#  define MUSCLE_EXPECTED_MTU_SIZE_BYTES 1280
+# endif
 #endif
 
 #ifndef MUSCLE_POTENTIAL_EXTRA_HEADERS_SIZE_BYTES

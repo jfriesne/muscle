@@ -36,7 +36,7 @@ public:
    virtual void FlushOutput() {/* empty */}
 
    /** Overridden to return the maximum packet size of a UDP packet.
-     * Defaults to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes),
+     * Defaults to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6),
      * but the returned value can be changed via SetPacketMaximumSize().
      */
    MUSCLE_NODISCARD virtual uint32 GetMaximumPacketSize() const {return _maxPacketSize;}

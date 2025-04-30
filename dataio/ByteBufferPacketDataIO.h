@@ -19,7 +19,7 @@ class ByteBufferPacketDataIO : public PacketDataIO
 public:
    /** Constructor.  Creates a ByteBufferPacketDataIO with no packets ready to read.
     *  @param maxPacketSize the maximum support packet-size, in bytes.  Should be greater than zero.  Defaults
-    *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes)
+    *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
     */
    ByteBufferPacketDataIO(uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
 
@@ -27,7 +27,7 @@ public:
     *  @param buf A ByteBuffer to that will be read by the next call to ReadFrom().
     *  @param fromIAP the IP address and port the "packet" is purporting to be from.  Defaults to an invalid IPAddressAndPort.
     *  @param maxPacketSize the maximum support packet-size, in bytes.  Should be greater than zero.  Defaults
-    *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes)
+    *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
     */
    ByteBufferPacketDataIO(const ByteBufferRef & buf, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
 
@@ -35,14 +35,14 @@ public:
     *  @param bufs A list of ByteBuffers to be read by subsequent calls to ReadFrom().
     *  @param fromIAP the IP address and port the "packets" are purporting to be from.  Defaults to an invalid IPAddressAndPort.
     *  @param maxPacketSize the maximum support packet-size, in bytes.  Should be greater than zero.  Defaults
-    *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes)
+    *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
     */
    ByteBufferPacketDataIO(const Queue<ByteBufferRef> & bufs, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
 
    /** Constructor.
     *  @param bufs A sequence of ByteBuffers to be read by subsequent calls to ReadFrom(), and their associated IPAddressAndPort values.
     *  @param maxPacketSize the maximum support packet-size, in bytes.  Should be greater than zero.  Defaults
-    *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes)
+    *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
     */
    ByteBufferPacketDataIO(const Hashtable<ByteBufferRef, IPAddressAndPort> & bufs, uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
 

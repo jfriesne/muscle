@@ -24,7 +24,7 @@ public:
      *                     a general-purpose default algorithm will be used.
      * @param maxTransferUnit The largest packet size this I/O gateway will be allowed to send.
      *                        Default value is MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka
-     *                        1404 if MUSCLE_AVOID_IPV6 is defined, 1388 otherwise).  If the number
+     *                        1388 if MUSCLE_AVOID_IPV6 is defined, 1168 otherwise).  If the number
      *                        passed in here is less than (FRAGMENT_HEADER_SIZE+1), it will be
      *                        intepreted as (FRAGMENT_HEADER_SIZE+1).  (aka 21 bytes)
      * @param magic The "magic number" that is expected to be at the beginning of each packet
