@@ -222,7 +222,7 @@ public:
 
    /** Returns a 32-bit checksum corresponding to this ByteBuffer's contents.
      * Note that this method is O(N).  The checksum is calculated based solely on the valid held
-     * bytes and does not depend on the the allocation-strategy setting or any reserve-bytes
+     * bytes and does not depend on the allocation-strategy setting or any reserve-bytes
      * that are currently allocated but not valid.
      */
    MUSCLE_NODISCARD uint32 CalculateChecksum() const {return muscle::CalculateChecksum(_buffer, _numValidBytes);}

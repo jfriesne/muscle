@@ -325,7 +325,7 @@ void Thread :: InternalThreadEntry()
 #if defined(MUSCLE_USE_QT_THREADS) && defined(MUSCLE_ENABLE_QTHREAD_EVENT_LOOP_INTEGRATION)
    // In this mode, our Thread will run Qt's event-loop instead of using our own while-loop.
    // That way users who wish to subclass the Thread class and then use QObjects in
-   // the the internal thread can get the Qt-appropriate behaviors that they are looking for.
+   // the internal thread can get the Qt-appropriate behaviors that they are looking for.
    MuscleQThreadSocketNotifier internalSocketNotifier(this, GetInternalThreadWakeupSocket().GetFileDescriptor(), QSocketNotifier::Read, NULL);
    (void) _thread.CallExec();
 #else

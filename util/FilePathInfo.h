@@ -62,7 +62,7 @@ public:
    /** Returns the most creation time, in microseconds since 1970.  */
    MUSCLE_NODISCARD uint64 GetCreationTime() const {return _ctime;}
 
-   /** Returns the the number of directories that this file-path appears under.  (Typically 1, but
+   /** Returns the number of directories that this file-path appears under.  (Typically 1, but
      * can be more if hard-links are in use and pointing to the same file from various locations)
      * AFAIK the only time this method should ever return 0 is if the FilePathInfo object isn't valid.
      */

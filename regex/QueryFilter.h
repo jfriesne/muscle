@@ -1151,7 +1151,7 @@ public:
 
    /** Constructor.
      * @param op The operator to use (should be one of the OP_* values enumerated in the StringQueryFilter superclass)
-     * @param value The string to compare to the the name of the DataNode passed in to Matches()
+     * @param value The string to compare to the name of the DataNode passed in to Matches()
      */
    NodeNameQueryFilter(uint8 op, const String & value) : StringQueryFilter(GetEmptyString(), op, value) {/* empty */}
 
