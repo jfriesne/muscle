@@ -3,6 +3,10 @@
 #include "dataio/FileDataIO.h"
 #include "system/GlobalMemoryAllocator.h"  // for muscleStrdup()
 
+#ifdef WIN32
+# include <io.h>  // for _fileno, _chsize_s
+#endif
+
 namespace muscle {
 
 FileDataIO :: FileDataIO(FILE * file)
@@ -64,6 +68,30 @@ status_t FileDataIO :: Seek(int64 offset, int whence)
 int64 FileDataIO :: GetPosition() const
 {
    return _file ? (int64) ftell(_file) : (_pendingFilePath?0:-1);
+}
+
+status_t FileDataIO :: Truncate()
+{
+   if (_file == NULL) return EnsureDeferredModeFopenCalled() ? Truncate() : B_BAD_OBJECT;
+
+   const int64 curPos = GetPosition();
+   if (curPos < 0) return B_BAD_OBJECT;
+
+   fflush(_file);  // make sure any recently-written data gets pushed to disk before we start chopping
+
+#ifdef WIN32
+   const int fd = _fileno(_file);
+   if (fd < 0) return B_BAD_OBJECT;
+
+   const int r = _chsize_s(fd, curPos);
+   return (r == 0) ? B_NO_ERROR : B_ERRNUM(r);
+#else
+   const int fd = fileno(_file);
+   if (fd < 0) return B_BAD_OBJECT;
+
+   const int r = ftruncate(fd, curPos);
+   return (r == 0) ? B_NO_ERROR : B_ERRNO;
+#endif
 }
 
 void FileDataIO :: FlushOutput()

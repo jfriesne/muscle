@@ -59,6 +59,14 @@ public:
    /** Returns our current position in the file. */
    MUSCLE_NODISCARD virtual int64 GetPosition() const;
 
+   /** Returns the current length of our file.  Currently this just calls up to the superclass-method;
+     * this method is only here to demonstrate that I didn't forget to consider the implementation of it.
+     */
+   MUSCLE_NODISCARD virtual int64 GetLength() const {return SeekableDataIO::GetLength();}
+
+   /** Truncates our file's length to its current seek-position */
+   virtual status_t Truncate();
+
    /** Flushes the file output by calling fflush() */
    virtual void FlushOutput();
 

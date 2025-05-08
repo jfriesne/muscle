@@ -5,6 +5,11 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a Truncate() method to the SeekableDataIO classes, for
+     truncating the file's length down to its current seek-position.
+   - Added more-efficient subclass-specific implementations of
+     SeekableDataIO::GetLength() where possible.
+   o Changed SeekableDataIO::GetLength() to be const-tagged.
    * Reduced MUSCLE_EXPECTED_MTU_SIZE_BYTES to 1280 for IPv6.
    * The std_forward_if_available() macro was missing an argument to
      supply the target template-parameter, making it unusable.  Fixed.

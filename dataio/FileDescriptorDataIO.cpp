@@ -4,6 +4,8 @@
 
 #ifndef WIN32  // Windows can't handle file descriptors!
 
+#include <sys/stat.h>  // for fstat()
+
 #if defined(__linux__)
 # ifndef _FILE_OFFSET_BITS
 #  define _FILE_OFFSET_BITS  64 // NOLINT - make sure it's using large file access
@@ -123,6 +125,24 @@ int64 FileDescriptorDataIO :: GetPosition() const
 #endif
    }
    return -1;
+}
+
+int64 FileDescriptorDataIO :: GetLength() const
+{
+   const int fd = _fd.GetFileDescriptor();
+   if (fd < 0) return -1;
+
+   struct stat st;
+   return (fstat(fd, &st) == 0) ? st.st_size : -1;
+}
+
+status_t FileDescriptorDataIO :: Truncate()
+{
+   const int64 curPos = GetPosition();
+   if (curPos < 0) return B_BAD_OBJECT;
+
+   const int r = ftruncate(_fd.GetFileDescriptor(), curPos);
+   return (r == 0) ? B_NO_ERROR : B_ERRNO;
 }
 
 } // end namespace muscle

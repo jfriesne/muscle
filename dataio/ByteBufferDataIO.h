@@ -59,6 +59,8 @@ public:
    virtual status_t Seek(int64 offset, int whence);
 
    MUSCLE_NODISCARD virtual int64 GetPosition() const {return _seekPos;}
+   MUSCLE_NODISCARD virtual int64 GetLength() const {return _buf() ? _buf()->GetNumBytes() : 0;}
+   virtual status_t Truncate();
 
    /**
     *  No-op method.

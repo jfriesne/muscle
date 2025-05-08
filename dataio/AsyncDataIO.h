@@ -41,6 +41,7 @@ public:
    virtual io_status_t Read(void * buffer, uint32 size);
    virtual io_status_t Write(const void * buffer, uint32 size);
    virtual status_t Seek(int64 offset, int whence);
+   virtual status_t Truncate();
 
    /** AsyncDataIO::GetPosition() always returns -1, since the current position of the I/O is not well-defined outside of the internal I/O thread. */
    MUSCLE_NODISCARD virtual int64 GetPosition() const {return -1;}
@@ -55,7 +56,7 @@ public:
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return const_cast<AsyncDataIO &>(*this).GetOwnerWakeupSocket();}
 
    /** AsyncDataIO::GetLength() always returns -1, since the current length of the I/O is not well-defined outside of the internal I/O thread. */
-   MUSCLE_NODISCARD virtual int64 GetLength() {return -1;}
+   MUSCLE_NODISCARD virtual int64 GetLength() const {return -1;}
 
 protected:
    virtual void InternalThreadEntry();
@@ -89,6 +90,7 @@ private:
 
    enum {
       ASYNC_COMMAND_SEEK = 0,
+      ASYNC_COMMAND_TRUNCATE,
       ASYNC_COMMAND_FLUSH,
       ASYNC_COMMAND_SHUTDOWN,
       NUM_ASYNC_COMMANDS

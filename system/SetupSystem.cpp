@@ -1502,13 +1502,15 @@ io_status_t DataIO :: ReadFullyUpTo(void * buffer, uint32 size)
 }
 
 
-int64 SeekableDataIO :: GetLength()
+int64 SeekableDataIO :: GetLength() const
 {
-   const int64 origPos = GetPosition();
-   if ((origPos >= 0)&&(Seek(0, IO_SEEK_END).IsOK()))
+   SeekableDataIO & nonConstThis = const_cast<SeekableDataIO &>(*this);  // so we can call Seek(), below
+
+   const int64 origPos = GetPosition();  // save this so we can restore it afterwards
+   if ((origPos >= 0)&&(nonConstThis.Seek(0, IO_SEEK_END).IsOK()))
    {
       const int64 ret = GetPosition();
-      if (Seek(origPos, IO_SEEK_SET).IsOK()) return ret;
+      if (nonConstThis.Seek(origPos, IO_SEEK_SET).IsOK()) return ret;
    }
    return -1;  // error!
 }

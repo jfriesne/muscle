@@ -45,7 +45,8 @@ public:
 
    virtual status_t Seek(int64 offset, int whence) {return _seekableChildIO ? _seekableChildIO->Seek(offset, whence) : B_BAD_OBJECT;}
    MUSCLE_NODISCARD virtual int64 GetPosition() const {return _seekableChildIO ? _seekableChildIO->GetPosition() : -1;}
-   MUSCLE_NODISCARD virtual int64 GetLength() {return _seekableChildIO ? _seekableChildIO->GetLength() : -1;}
+   MUSCLE_NODISCARD virtual int64 GetLength() const {return _seekableChildIO ? _seekableChildIO->GetLength() : -1;}
+   virtual status_t Truncate() {return _seekableChildIO ? _seekableChildIO->Truncate() : B_BAD_OBJECT;}
 
    MUSCLE_NODISCARD virtual const IPAddressAndPort & GetSourceOfLastReadPacket() const {return _packetChildIO ? _packetChildIO->GetSourceOfLastReadPacket() : GetDefaultObjectForType<IPAddressAndPort>();}
    MUSCLE_NODISCARD virtual const IPAddressAndPort & GetPacketSendDestination() const  {return _packetChildIO ? _packetChildIO->GetPacketSendDestination()  : GetDefaultObjectForType<IPAddressAndPort>();}

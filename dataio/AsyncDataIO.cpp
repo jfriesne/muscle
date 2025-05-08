@@ -38,6 +38,19 @@ status_t AsyncDataIO :: Seek(int64 offset, int whence)
    return ret;
 }
 
+status_t AsyncDataIO :: Truncate()
+{
+   if (IsInternalThreadRunning() == false) {LogTime(MUSCLE_LOG_ERROR, "StartInternalThread() must be called before calling AsyncDataIO::Truncate()!\n"); return B_BAD_OBJECT;}
+
+   DECLARE_NAMED_MUTEXGUARD(mg, _asyncCommandsMutex);
+
+   const status_t ret = _asyncCommands.AddTail(AsyncCommand(_mainThreadBytesWritten, ASYNC_COMMAND_TRUNCATE));
+   mg.UnlockEarly();
+   if (ret.IsOK()) NotifyInternalThread();
+
+   return ret;
+}
+
 void AsyncDataIO :: FlushOutput()
 {
    if (IsInternalThreadRunning())
@@ -212,6 +225,10 @@ void AsyncDataIO :: InternalThreadEntry()
          {
             case ASYNC_COMMAND_SEEK:
                if (childIO) (void) ProxyDataIO::Seek(curCmd.GetOffset(), curCmd.GetWhence());
+            break;
+
+            case ASYNC_COMMAND_TRUNCATE:
+               if (childIO) (void) ProxyDataIO::Truncate();
             break;
 
             case ASYNC_COMMAND_FLUSH:

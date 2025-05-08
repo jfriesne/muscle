@@ -61,6 +61,21 @@ io_status_t MultiDataIO :: Write(const void * buffer, uint32 size)
    return io_status_t((maxWrittenBytes > 0) ? minWrittenBytes : 0);  // the conditional is there in case minWrittenBytes is still MUSCLE_NO_LIMIT
 }
 
+status_t MultiDataIO :: Truncate()
+{
+   status_t ret;
+   for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--)
+   {
+      SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(_childIOs[i]());
+      if ((sdio == NULL)||(sdio->Truncate().IsError(ret)))
+      {
+         if ((_absorbPartialErrors)&&(_childIOs.GetNumItems() > 1)) (void) _childIOs.RemoveItemAt(i);
+                                                               else return ret | B_ERROR;
+      }
+   }
+   return B_NO_ERROR;
+}
+
 void MultiDataIO :: FlushOutput()
 {
    for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--) _childIOs[i]()->FlushOutput();

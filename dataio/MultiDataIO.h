@@ -59,6 +59,15 @@ public:
       return sdio ? sdio->GetPosition() : -1;
    }
 
+   MUSCLE_NODISCARD virtual int64 GetLength() const
+   {
+      if (HasChildren() == false) return -1;
+      const SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(GetFirstChild());
+      return sdio ? sdio->GetLength() : -1;
+   }
+
+   virtual status_t Truncate();
+
    MUSCLE_NODISCARD virtual uint64 GetOutputStallLimit() const {return HasChildren() ? GetFirstChild()->GetOutputStallLimit() : MUSCLE_TIME_NEVER;}
 
    virtual void FlushOutput();

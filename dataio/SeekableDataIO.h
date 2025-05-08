@@ -52,7 +52,13 @@ public:
      * override this method to provide a more efficient mechanism, if there is one.
      * @returns The total length of this DataIO's stream, in bytes, or -1 on error.
      */
-   MUSCLE_NODISCARD virtual int64 GetLength();
+   MUSCLE_NODISCARD virtual int64 GetLength() const;
+
+   /** Truncate the file's length to its current seek-position.
+     * @returns B_NO_ERROR on success, or an error code if the truncation couldn't be done.
+     * @note The default implementation just returns B_UNIMPLEMENTED.
+     */
+   virtual status_t Truncate() {return B_UNIMPLEMENTED;}
 };
 DECLARE_REFTYPES(SeekableDataIO);
 

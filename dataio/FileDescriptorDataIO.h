@@ -79,8 +79,9 @@ public:
     */
    virtual status_t Seek(int64 offset, int whence);
 
-   /** Returns our current position in the file */
    MUSCLE_NODISCARD virtual int64 GetPosition() const;
+   MUSCLE_NODISCARD virtual int64 GetLength() const;
+   virtual status_t Truncate();
 
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return _fd;}
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _fd;}

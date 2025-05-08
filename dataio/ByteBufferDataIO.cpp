@@ -63,4 +63,11 @@ status_t ByteBufferDataIO :: Seek(int64 offset, int whence)
    return B_NO_ERROR;
 }
 
+status_t ByteBufferDataIO :: Truncate()
+{
+   return ((_buf())&&(_seekPos >= 0))
+        ? _buf()->SetNumBytes((uint32)_seekPos, true)
+        : B_BAD_OBJECT;
+}
+
 } // end namespace muscle
