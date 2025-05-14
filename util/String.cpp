@@ -41,8 +41,8 @@ const char * Strcasestr(const char * haystack, const char * needle)
 
 int String :: IndexOfIgnoreCase(char ch, uint32 f) const
 {
-   const char lowerChar = (char) tolower(ch);
-   const char upperChar = (char) toupper(ch);
+   const char lowerChar = (char) muscleToLower(ch);
+   const char upperChar = (char) muscleToUpper(ch);
    if (lowerChar == upperChar) return IndexOf(ch, f);
    else
    {
@@ -82,8 +82,8 @@ int String :: LastIndexOfIgnoreCase(const char * s, uint32 f) const
 
 int String :: LastIndexOfIgnoreCase(char ch, uint32 f) const
 {
-   const char lowerChar = (char) tolower(ch);
-   const char upperChar = (char) toupper(ch);
+   const char lowerChar = (char) muscleToLower(ch);
+   const char upperChar = (char) muscleToUpper(ch);
    if (lowerChar == upperChar) return LastIndexOf(ch, f);
    else
    {
@@ -524,7 +524,7 @@ String String :: ToLowerCase() const
 {
    String ret(*this);
    char * b = ret.GetBuffer();
-   for (uint32 i=0; i<ret.Length(); i++) b[i] = (char)tolower(b[i]);
+   for (uint32 i=0; i<ret.Length(); i++) b[i] = (char)muscleToLower(b[i]);
    return ret;
 }
 
@@ -537,7 +537,7 @@ String String :: ToMixedCase() const
    {
       char & c = b[i];
       const bool charIsLetter = (muscleInRange(c, 'a', 'z'))||(muscleInRange(c, 'A', 'Z'))||(muscleInRange(c, '0', '9'));  // yes, digits count as letters, dontcha know
-      c = prevCharWasLetter ? (char)tolower(c) : (char)toupper(c);
+      c = prevCharWasLetter ? (char)muscleToLower(c) : (char)muscleToUpper(c);
       prevCharWasLetter = charIsLetter;
    }
    return ret;
@@ -547,7 +547,7 @@ String String :: ToUpperCase() const
 {
    String ret(*this);
    char * b = ret.GetBuffer();
-   for (uint32 i=0; i<ret.Length(); i++) b[i] = (char)toupper(b[i]);
+   for (uint32 i=0; i<ret.Length(); i++) b[i] = (char)muscleToUpper(b[i]);
    return ret;
 }
 
@@ -942,8 +942,8 @@ String String :: WithoutSuffixIgnoreCase(const String & str, uint32 maxToRemove)
 
 String String :: WithoutPrefixIgnoreCase(char c, uint32 maxToRemove) const
 {
-   const char cU = (char) toupper(c);
-   const char cL = (char) tolower(c);
+   const char cU = (char) muscleToUpper(c);
+   const char cL = (char) muscleToLower(c);
 
    String ret = *this;
    uint32 numInitialChars = 0;

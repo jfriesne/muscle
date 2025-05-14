@@ -237,7 +237,7 @@ int ch
 {
 	static char buf[10];
 
-	if (isprint(ch) || ch == ' ')
+        if ((ch == ' ') || ((ch >= 0)&&(ch <= 255)&&(isprint(ch))))
 		sprintf(buf, "%c", ch);
 	else
 		sprintf(buf, "\\%o", ch);

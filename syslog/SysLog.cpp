@@ -1105,9 +1105,9 @@ static bool IsFloatingPointNumber(const char * d)
 {
    while(1)
    {
-           if (*d == '.')            return true;
-      else if (isdigit(*d) == false) return false;
-      else                           d++;
+           if (*d == '.')          return true;
+      else if (!muscleIsDigit(*d)) return false;
+      else                         d++;
    }
 }
 
@@ -1133,18 +1133,18 @@ uint64 ParseHumanReadableTimeIntervalString(const String & s)
 
    /** Find the first digit in the string */
    const char * digits = s();
-   while((*digits)&&(isdigit(*digits) == false)) digits++;
+   while((*digits)&&(muscleIsDigit(*digits) == false)) digits++;
    if (*digits == '\0') return GetTimeUnitMultiplier(s, 0);  // in case the string is just "second" or "hour" or etc.
 
    /** Find first letter after the digits */
    const char * letters = digits;
-   while((*letters)&&(isalpha(*letters) == false)) letters++;
+   while((*letters)&&(muscleIsAlpha(*letters) == false)) letters++;
    if (*letters == '\0') letters = "s";  // default to seconds
 
    const uint64 multiplier = GetTimeUnitMultiplier(letters, _timeUnits[TIME_UNIT_SECOND]);   // default units is seconds
 
    const char * afterLetters = letters;
-   while((*afterLetters)&&((*afterLetters==',')||(isalpha(*afterLetters)||(isspace(*afterLetters))))) afterLetters++;
+   while((*afterLetters)&&((*afterLetters==',')||(muscleIsAlpha(*afterLetters)||(muscleIsSpace(*afterLetters))))) afterLetters++;
 
    uint64 ret = IsFloatingPointNumber(digits) ? (uint64)(atof(digits)*multiplier) : (Atoull(digits)*multiplier);
    if (*afterLetters) ret += ParseHumanReadableTimeIntervalString(afterLetters);

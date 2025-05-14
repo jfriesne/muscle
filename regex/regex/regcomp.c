@@ -248,6 +248,9 @@ int stop 			/* character this ERE should end at */
 	assert(!MORE() || SEE(stop));
 }
 
+static int safe_isalpha(int c) {return ((c >= 0)&&(c <= 255)&&(isalpha(c)));}
+static int safe_isdigit(int c) {return ((c >= 0)&&(c <= 255)&&(isdigit(c)));}
+
 /*
  - p_ere_exp - parse one subERE, an atom possibly followed by a repetition op
  == static void p_ere_exp(register struct parse *p);
@@ -331,7 +334,7 @@ register struct parse *p
 		ordinary(p, c);
 		break;
 	case '{':		/* okay as ordinary except if digit follows */
-		REQUIRE(!MORE() || !isdigit(PEEK()), REG_BADRPT);
+		REQUIRE(!MORE() || !safe_isdigit(PEEK()), REG_BADRPT);
 		/* FALLTHROUGH */
 	default:
 		ordinary(p, c);
@@ -343,7 +346,7 @@ register struct parse *p
 	c = PEEK();
 	/* we call { a repetition if followed by a digit */
 	if (!( c == '*' || c == '+' || c == '?' ||
-				(c == '{' && MORE2() && isdigit(PEEK2())) ))
+				(c == '{' && MORE2() && safe_isdigit(PEEK2())) ))
 		return;		/* no repetition, we're done */
 	NEXT();
 
@@ -372,7 +375,7 @@ register struct parse *p
 	case '{':
 		count = p_count(p);
 		if (EAT(',')) {
-			if (isdigit(PEEK())) {
+			if (safe_isdigit(PEEK())) {
 				count2 = p_count(p);
 				REQUIRE(count <= count2, REG_BADBR);
 			} else		/* single number with comma */
@@ -393,7 +396,7 @@ register struct parse *p
 		return;
 	c = PEEK();
 	if (!( c == '*' || c == '+' || c == '?' ||
-				(c == '{' && MORE2() && isdigit(PEEK2())) ) )
+				(c == '{' && MORE2() && safe_isdigit(PEEK2())) ) )
 		return;
 	SETERROR(REG_BADRPT);
 }
@@ -553,7 +556,7 @@ int starordinary		/* is a leading * an ordinary character? */
 	} else if (EATTWO('\\', '{')) {
 		count = p_count(p);
 		if (EAT(',')) {
-			if (MORE() && isdigit(PEEK())) {
+			if (MORE() && safe_isdigit(PEEK())) {
 				count2 = p_count(p);
 				REQUIRE(count <= count2, REG_BADBR);
 			} else		/* single number with comma */
@@ -585,7 +588,7 @@ register struct parse *p
 	register int count = 0;
 	register int ndigits = 0;
 
-	while (MORE() && isdigit(PEEK()) && count <= DUPMAX) {
+	while (MORE() && safe_isdigit(PEEK()) && count <= DUPMAX) {
 		count = count*10 + (GETNEXT() - '0');
 		ndigits++;
 	}
@@ -641,7 +644,7 @@ register struct parse *p
 		register int ci;
 
 		for (i = p->g->csetsize - 1; i >= 0; i--)
-			if (CHIN(cs, i) && isalpha(i)) {
+			if (CHIN(cs, i) && safe_isalpha(i)) {
 				ci = othercase(i);
 				if (ci != i)
 					CHadd(cs, ci);
@@ -755,7 +758,7 @@ register cset *cs
 	register char *u;
 	register char c;
 
-	while (MORE() && isalpha(PEEK()))
+	while (MORE() && safe_isalpha(PEEK()))
 		NEXT();
 	len = p->next - sp;
 	for (cp = cclasses; cp->name != NULL; cp++)
@@ -856,7 +859,7 @@ othercase(
 int ch
 )
 {
-	assert(isalpha(ch));
+	assert(safe_isalpha(ch));
 	if (isupper(ch))
 		return(tolower(ch));
 	else if (islower(ch))
@@ -905,7 +908,7 @@ register int ch
 {
 	register cat_t *cap = p->g->categories;
 
-	if ((p->g->cflags&REG_ICASE) && isalpha(ch) && othercase(ch) != ch)
+	if ((p->g->cflags&REG_ICASE) && safe_isalpha(ch) && othercase(ch) != ch)
 		bothcases(p, ch);
 	else {
 		EMIT(OCHAR, (unsigned char)ch);

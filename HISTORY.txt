@@ -9,6 +9,9 @@ key:  - new feature
      truncating the file's length down to its current seek-position.
    - Added more-efficient subclass-specific implementations of
      SeekableDataIO::GetLength() where possible.
+   - Added assertion-safe wrappers around ctype functions (e.g.
+     muscleIsDigit() for isdigit(), etc), to avoid runtime failures
+     due to UTF8 multibyte characters.
    o Changed SeekableDataIO::GetLength() to be const-tagged.
    * Reduced MUSCLE_EXPECTED_MTU_SIZE_BYTES to 1280 for IPv6.
    * The std_forward_if_available() macro was missing an argument to

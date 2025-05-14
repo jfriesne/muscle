@@ -531,7 +531,7 @@ public:
    /** Returns true iff this string starts with a number.
      * @param allowNegativeValues if true, negative values will be considered as numbers also.  Defaults to true.
      */
-   MUSCLE_NODISCARD bool StartsWithNumber(bool allowNegativeValues = true) const {const char * s = Cstr(); return ((isdigit(*s))||((allowNegativeValues)&&(s[0]=='-')&&(isdigit(s[1]))));}
+   MUSCLE_NODISCARD bool StartsWithNumber(bool allowNegativeValues = true) const {const char * s = Cstr(); return ((muscleIsDigit(*s))||((allowNegativeValues)&&(s[0]=='-')&&(muscleIsDigit(s[1]))));}
 
    /** Returns true iff this string is not a zero-length string. */
    MUSCLE_NODISCARD bool HasChars() const {return (Length() > 0);}
@@ -991,7 +991,7 @@ public:
    /** Like EndsWith(), but case insensitive.
      * @param c a character to check for at the end of this String.
      */
-   MUSCLE_NODISCARD bool EndsWithIgnoreCase(char c) const {return (HasChars())&&(tolower(Cstr()[Length()-1]) == tolower(c));}
+   MUSCLE_NODISCARD bool EndsWithIgnoreCase(char c) const {return (HasChars())&&(muscleToLower(Cstr()[Length()-1]) == muscleToLower(c));}
 
    /** Like EndsWith(), but case insensitive.
      * @param s a suffix to check for at the end of this String.
@@ -1016,7 +1016,7 @@ public:
    /** Like Equals(), but case insensitive.
      * @param c a character to check for (case-insensitive) equality with this String.
      */
-   MUSCLE_NODISCARD bool EqualsIgnoreCase(char c) const {return ((Length()==1)&&(tolower(Cstr()[0])==tolower(c)));}
+   MUSCLE_NODISCARD bool EqualsIgnoreCase(char c) const {return ((Length()==1)&&(muscleToLower(Cstr()[0])==muscleToLower(c)));}
 
    /** Like Contains(), but case insensitive.
      * @param s A String to look for in this string.
@@ -1075,7 +1075,7 @@ public:
    /** Like StartsWith(), but case insensitive.
      * @param c The character to see if this string starts with or not
      */
-   MUSCLE_NODISCARD bool StartsWithIgnoreCase(char c) const {return ((Length() > 0)&&(tolower(Cstr()[0]) == tolower(c)));}
+   MUSCLE_NODISCARD bool StartsWithIgnoreCase(char c) const {return ((Length() > 0)&&(muscleToLower(Cstr()[0]) == muscleToLower(c)));}
 
    /** Like StartsWith(), but case insensitive.
      * @param s The prefix to see whether this string starts with or not

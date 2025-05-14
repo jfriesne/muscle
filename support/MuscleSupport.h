@@ -45,6 +45,7 @@
 #endif
 
 #include <assert.h>  /* for assert() */
+#include <ctype.h>   /* for isdigit(), etc */
 #include <string.h>  /* for memcpy() */
 #include <stdarg.h>
 #include <stdio.h>
@@ -2303,6 +2304,81 @@ MUSCLE_NODISCARD int64 Atoll(const char * str);
 
 /** Given an ASCII hexadecimal representation of a non-negative number (with or without the optional "0x" prefix), returns that number as a uint64. */
 MUSCLE_NODISCARD uint64 Atoxll(const char * str);
+
+/** Given an ASCII character encoded as an integer, returns that same value, clamped to the range [0,255]
+  * Used in the muscleIs*() functions below to keep MSVC from triggering an assertion failure when it encounters multibyte UTF8 characters
+  */
+static inline int muscleSanitizeIntChar(int c) {return muscleClamp(c, 0, 255);}
+
+/** Assertion-safe wrapper around isalnum()
+  * @param c the ASCII character to test
+  */
+static inline int muscleIsAlnum(int c) {return isalnum(muscleSanitizeIntChar(c));}
+
+/** Assertion-safe wrapper around isalpha()
+  * @param c the ASCII character to test
+  */
+static inline int muscleIsAlpha(int c) {return isalpha(muscleSanitizeIntChar(c));}
+
+/** Assertion-safe wrapper around isblank()
+  * @param c the ASCII character to test
+  */
+static inline int muscleIsBlank(int c) {return isblank(muscleSanitizeIntChar(c));}
+
+/** Assertion-safe wrapper around iscntrl()
+  * @param c the ASCII character to test
+  */
+static inline int muscleIsCntrl(int c) {return iscntrl(muscleSanitizeIntChar(c));}
+
+/** Assertion-safe wrapper around isdigit()
+  * @param c the ASCII character to test
+  */
+static inline int muscleIsDigit(int c) {return isdigit(muscleSanitizeIntChar(c));}
+
+/** Assertion-safe wrapper around isgraph()
+  * @param c the ASCII character to test
+  */
+static inline int muscleIsGraph(int c) {return isgraph(muscleSanitizeIntChar(c));}
+
+/** Assertion-safe wrapper around islower()
+  * @param c the ASCII character to test
+  */
+static inline int muscleIsLower(int c) {return islower(muscleSanitizeIntChar(c));}
+
+/** Assertion-safe wrapper around isprint()
+  * @param c the ASCII character to test
+  */
+static inline int muscleIsPrint(int c) {return isprint(muscleSanitizeIntChar(c));}
+
+/** Assertion-safe wrapper around ispunct()
+  * @param c the ASCII character to test
+  */
+static inline int muscleIsPunct(int c) {return ispunct(muscleSanitizeIntChar(c));}
+
+/** Assertion-safe wrapper around isspace()
+  * @param c the ASCII character to test
+  */
+static inline int muscleIsSpace(int c) {return isspace(muscleSanitizeIntChar(c));}
+
+/** Assertion-safe wrapper around isupper()
+  * @param c the ASCII character to test
+  */
+static inline int muscleIsUpper(int c) {return isupper(muscleSanitizeIntChar(c));}
+
+/** Assertion-safe wrapper around isxdigit()
+  * @param c the ASCII character to test
+  */
+static inline int muscleIsXDigit(int c) {return isxdigit(muscleSanitizeIntChar(c));}
+
+/** Assertion-safe wrapper around tolower()
+  * @param c the ASCII character to test
+  */
+static inline int muscleToLower(int c) {return tolower(muscleSanitizeIntChar(c));}
+
+/** Assertion-safe wrapper around toupper()
+  * @param c the ASCII character to test
+  */
+static inline int muscleToUpper(int c) {return toupper(muscleSanitizeIntChar(c));}
 
 #ifdef __cplusplus
 } // end namespace muscle

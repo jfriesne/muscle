@@ -781,7 +781,7 @@ public:
       if ((_valStr.EqualsIgnoreCase("true"))||(_valStr.EqualsIgnoreCase("false"))) return B_BOOL_TYPE;
 
       const char c = _valStr.HasChars() ? _valStr[0] : '\0';
-      if ((isdigit(c))||(c=='-')||(c=='.')||(c=='+'))
+      if ((muscleIsDigit(c))||(c=='-')||(c=='.')||(c=='+'))
       {
          switch(_valStr.GetNumInstancesOf(','))
          {
@@ -974,7 +974,7 @@ public:
                const char * t = s;
                while(1)  // we'll handle the NUL char in the if statement below
                {
-                  if (((*t == '\0')||(isspace(*t)))||(GetMatchingToken(t) >= 0))
+                  if (((*t == '\0')||(muscleIsSpace(*t)))||(GetMatchingToken(t) >= 0))
                   {
                      retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, t-s), false);
                      _curPos += retTok.GetValueString().Length();
