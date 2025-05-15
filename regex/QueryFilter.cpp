@@ -725,8 +725,8 @@ static size_t _tokStrlens[NUM_LTOKENS] ;
 
 template<typename T> T GetValueAs(const String & v);
 template<> bool   GetValueAs(const String & v) {return    ParseBool(v());}
-template<> double GetValueAs(const String & v) {return (float) atof(v());}
-template<> float  GetValueAs(const String & v) {return         atof(v());}
+template<> double GetValueAs(const String & v) {return         atof(v());}
+template<> float  GetValueAs(const String & v) {return (float) atof(v());}
 template<> int64  GetValueAs(const String & v) {return        Atoll(v());}
 template<> int32  GetValueAs(const String & v) {return (int32) atol(v());}
 template<> int16  GetValueAs(const String & v) {return (int16) atol(v());}
@@ -944,7 +944,7 @@ public:
          const int32 matchedTok = GetMatchingToken(s);
          if (matchedTok >= 0)
          {
-            _curPos += _tokStrlens[matchedTok];
+            _curPos += (uint32) _tokStrlens[matchedTok];
             retTok   = LexerToken(matchedTok);
             return B_NO_ERROR;
          }
@@ -958,7 +958,7 @@ public:
                const char * endQuote = strchr(s, '\"');
                if (endQuote == NULL) return B_BAD_DATA;  // no closing quote
 
-               retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, endQuote-s), true);
+               retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, (uint32) (endQuote-s)), true);
                _curPos += retTok.GetValueString().Length()+2;  // +2 for the two quotes
             }
             return B_NO_ERROR;
@@ -976,7 +976,7 @@ public:
                {
                   if (((*t == '\0')||(muscleIsSpace(*t)))||(GetMatchingToken(t) >= 0))
                   {
-                     retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, t-s), false);
+                     retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, (uint32) (t-s)), false);
                      _curPos += retTok.GetValueString().Length();
                      return B_NO_ERROR;
                   }
