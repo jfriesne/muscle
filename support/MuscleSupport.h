@@ -2373,12 +2373,12 @@ static inline int muscleIsXDigit(int c) {return isxdigit(muscleSanitizeIntChar(c
 /** Assertion-safe wrapper around tolower()
   * @param c the ASCII character to test
   */
-static inline int muscleToLower(int c) {return tolower(muscleSanitizeIntChar(c));}
+static inline int muscleToLower(int c) {return muscleIsUpper(c) ? tolower(c) : c;}
 
 /** Assertion-safe wrapper around toupper()
   * @param c the ASCII character to test
   */
-static inline int muscleToUpper(int c) {return toupper(muscleSanitizeIntChar(c));}
+static inline int muscleToUpper(int c) {return muscleIsLower(c) ? toupper(c) : c;}
 
 #ifdef __cplusplus
 } // end namespace muscle
