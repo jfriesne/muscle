@@ -283,12 +283,14 @@ status_t MessageQueryFilter :: SaveToArchive(Message & archive) const
    MRETURN_ON_ERROR(ValueQueryFilter::SaveToArchive(archive));
 
    if (_childFilter()) MRETURN_ON_ERROR(archive.AddArchiveMessage("kid", *_childFilter()));
-   return B_NO_ERROR;
+   return archive.CAddMessage("defmsg", CastAwayConstFromRef(_optDefaultChildMessage));
 }
 
 status_t MessageQueryFilter :: SetFromArchive(const Message & archive)
 {
    MRETURN_ON_ERROR(ValueQueryFilter::SetFromArchive(archive));
+
+   _optDefaultChildMessage = archive.GetMessage("defmsg");
 
    ConstMessageRef subMsg;
    if (archive.FindMessage("kid", subMsg).IsOK())
@@ -309,12 +311,19 @@ void MessageQueryFilter :: Print(const OutputPrinter & p) const
       p.printf(" _childFilter=");
       _childFilter()->Print(p.WithIndent(3));
    }
+   if (_optDefaultChildMessage())
+   {
+      p.printf(" optDefaultChildMessage=");
+      _optDefaultChildMessage()->Print(p.WithIndent(3));
+   }
 }
 
 bool MessageQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNode) const
 {
    ConstMessageRef subMsg;
-   if (msg()->FindMessage(GetFieldName(), GetIndex(), subMsg).IsError()) return false;
+   if (msg()->FindMessage(GetFieldName(), GetIndex(), subMsg).IsError()) subMsg = _optDefaultChildMessage;
+   if (subMsg() == NULL) return false;
+
    if (_childFilter() == NULL) return true;
 
    ConstMessageRef constSubMsg = std_move_if_available(subMsg);
@@ -323,13 +332,16 @@ bool MessageQueryFilter :: Matches(ConstMessageRef & msg, const DataNode * optNo
 
 uint32 MessageQueryFilter :: CalculateChecksum() const
 {
-   return ValueQueryFilter::CalculateChecksum() + CalculatePODChecksum(_childFilter);
+   return ValueQueryFilter::CalculateChecksum() + CalculatePODChecksums(_childFilter, _optDefaultChildMessage);
 }
 
 bool MessageQueryFilter :: IsEqualTo(const QueryFilter & rhs) const
 {
    const MessageQueryFilter * mrhs = ValueQueryFilter::IsEqualTo(rhs) ? dynamic_cast<const MessageQueryFilter *>(&rhs) : NULL;
-   return ((mrhs)&&(_childFilter.IsDeeplyEqualTo(mrhs->_childFilter)));
+   if (mrhs == NULL) return false;
+   if (_childFilter.IsDeeplyEqualTo(mrhs->_childFilter) == false) return false;
+   if (_optDefaultChildMessage.IsDeeplyEqualTo(mrhs->_optDefaultChildMessage) == false) return false;
+   return true;
 }
 
 status_t StringQueryFilter :: SaveToArchive(Message & archive) const

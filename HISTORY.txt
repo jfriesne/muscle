@@ -12,6 +12,9 @@ key:  - new feature
    - Added assertion-safe wrappers around ctype functions (e.g.
      muscleIsDigit() for isdigit(), etc), to avoid runtime failures
      due to UTF8 multibyte characters.
+   - Added a (defaultChildMessage) setting to the MessageQueryFilter
+     class, to supply a default-Message to use when no real
+     child-Message exists on the server.
    o Changed SeekableDataIO::GetLength() to be const-tagged.
    * Reduced MUSCLE_EXPECTED_MTU_SIZE_BYTES to 1280 for IPv6.
    * The std_forward_if_available() macro was missing an argument to

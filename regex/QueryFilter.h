@@ -978,7 +978,7 @@ public:
 DECLARE_REFTYPES(XorQueryFilter);
 
 /** This class matches iff the specified sub-Message exists in our target Message,
-  * and (optionally) our child ConstQueryFilterRef can match that sub-Message.
+  * and (optionally) our child ConstQueryFilterRef can match that sub-Message (or alternatively our default-child-Message)
   */
 class MessageQueryFilter : public ValueQueryFilter
 {
@@ -988,10 +988,11 @@ public:
 
    /** Constructor.
      * @param childFilter Reference to the filter to use to match the sub-Message found at (fieldName:index)
+     * @param optDefaultChildMessage if non-NULL, we'll pass (optDefaultChildMessage) to (childFilter) if no actual Message exists to pass to it.
      * @param fieldName Name of the field in the Message to look at
      * @param index Index of the item within the field to look at.  Defaults to zero (ie the first item)
      */
-   MessageQueryFilter(const ConstQueryFilterRef & childFilter, const String & fieldName, uint32 index = 0) : ValueQueryFilter(fieldName, index), _childFilter(childFilter) {/* empty */}
+   MessageQueryFilter(const ConstQueryFilterRef & childFilter, const ConstMessageRef & optDefaultChildMessage, const String & fieldName, uint32 index = 0) : ValueQueryFilter(fieldName, index), _childFilter(childFilter), _optDefaultChildMessage(optDefaultChildMessage) {/* empty */}
 
    virtual status_t SaveToArchive(Message & archive) const;
    virtual status_t SetFromArchive(const Message & archive);
@@ -1000,11 +1001,15 @@ public:
 
    /** Set the sub-filter to use on the target's sub-Message.
      * @param childFilter Filter to use, or a NULL reference to indicate that any sub-Message found should match.
+     * @param optDefaultChildMessage if non-NULL, we'll pass (optDefaultChildMessage) to (childFilter) if no actual Message exists to pass to it.
      */
-   void SetChildFilter(const ConstQueryFilterRef & childFilter) {_childFilter = childFilter;}
+   void SetChildFilter(const ConstQueryFilterRef & childFilter, const ConstMessageRef & optDefaultChildMessage) {_childFilter = childFilter; _optDefaultChildMessage = optDefaultChildMessage;}
 
    /** Returns our current sub-filter as set in our constructor or in SetChildFilter() */
    const ConstQueryFilterRef & GetChildFilter() const {return _childFilter;}
+
+   /** Returns our current default-child-Message, as set in our constructor or in SetChildFilter() */
+   const ConstMessageRef & GetDefaultChildMessage() const {return _optDefaultChildMessage;}
 
    MUSCLE_NODISCARD virtual uint32 CalculateChecksum() const;
    MUSCLE_NODISCARD virtual bool IsEqualTo(const QueryFilter & rhs) const;
@@ -1013,6 +1018,7 @@ public:
 
 private:
    ConstQueryFilterRef _childFilter;
+   ConstMessageRef _optDefaultChildMessage;
 };
 DECLARE_REFTYPES(MessageQueryFilter);
 
