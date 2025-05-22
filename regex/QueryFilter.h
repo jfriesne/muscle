@@ -15,6 +15,7 @@
 namespace muscle {
 
 class DataNode;
+class ISubexpressionFactory;
 class OutputPrinter;
 class StringMatcher;
 
@@ -1331,6 +1332,10 @@ void SetGlobalQueryFilterFactory(const QueryFilterFactoryRef & newFactory);
   * or a NULL QueryFilterRef on parse-failure.
   * @param expressionStr a predicate expression String to parse, for example
   *                      "(age >= 53) && (weight <= 150.0f)"
+  * @param optSubExpressionFactory if non-NULL, methods on this object will be called
+  *          to create QueryFilters for the basic sub-expressions of our (expressionStr).
+  *          If left as NULL (the default), then a DefaultSubexpressionFactory object
+  *          will be used.
   * @returns the created QueryFilterRef, or a NULL QueryFilterRef.  (Note that in the
   *          latter case you can call e.g. printf("error: [%s]\n", ret.GetStatus()())
   *          on the returned QueryFilterRef to get a string describing the nature
@@ -1339,7 +1344,7 @@ void SetGlobalQueryFilterFactory(const QueryFilterFactoryRef & newFactory);
   *       pass in to this function, see the "Building a QueryFilter from an expression-String"
   *       section at the bottom of muscle/html/Beginners Guide.html
   */
-QueryFilterRef CreateQueryFilterFromExpression(const String & expressionStr);
+ConstQueryFilterRef CreateQueryFilterFromExpression(const String & expressionStr, const ISubexpressionFactory * optSubExpressionFactory = NULL);
 
 } // end namespace muscle
 

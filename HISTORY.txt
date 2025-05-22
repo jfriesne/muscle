@@ -15,6 +15,14 @@ key:  - new feature
    - Added a (defaultChildMessage) setting to the MessageQueryFilter
      class, to supply a default-Message to use when no real
      child-Message exists on the server.
+   - Added an ISubexpressionFactory to allow user code to customize
+     the QueryFilter predicate-expression-parser's syntax.
+   - Added an optional ISubexpressionFactory argument to the
+     CreateQueryFilterFromExpression() function.
+   - Added "and", "or", "xor", "not", "=", and "equals"
+     operator-synonyms to the CreateQueryFilterFromExpression() syntax.
+   o Exposed the LexerToken class, for use as part of the
+     ISubexpressionFactory API.
    o Changed SeekableDataIO::GetLength() to be const-tagged.
    * Reduced MUSCLE_EXPECTED_MTU_SIZE_BYTES to 1280 for IPv6.
    * The std_forward_if_available() macro was missing an argument to

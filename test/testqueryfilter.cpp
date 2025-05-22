@@ -69,7 +69,7 @@ int main(int argc, char ** argv)
             String s = buf; s = s.Trimmed();
             printf("You entered:  [%s]\n", s());
 
-            QueryFilterRef qfRef = CreateQueryFilterFromExpression(s);
+            ConstQueryFilterRef qfRef = CreateQueryFilterFromExpression(s);
             printf("CreateQueryFilterFromExpression returned [%s]\n", qfRef.GetStatus()());
             if (qfRef()) qfRef()->Print(stdout);
          }

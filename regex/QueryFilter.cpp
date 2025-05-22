@@ -1,6 +1,7 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "reflector/DataNode.h"
+#include "regex/ISubexpressionFactory.h"
 #include "regex/QueryFilter.h"
 #include "regex/StringMatcher.h"
 #include "util/MiscUtilityFunctions.h"  // for MemMem()
@@ -657,47 +658,11 @@ void SetGlobalQueryFilterFactory(const QueryFilterFactoryRef & newFactory)
    _customQueryFilterFactoryRef = newFactory;
 }
 
-enum {
-   LTOKEN_LPAREN = 0,      // (
-   LTOKEN_RPAREN,          // )
-   LTOKEN_LT,              // <
-   LTOKEN_GT,              // >
-   LTOKEN_EQ,              // ==
-   LTOKEN_LEQ,             // <=
-   LTOKEN_GEQ,             // >=
-   LTOKEN_NEQ,             // !=
-   LTOKEN_AND,             // &&
-   LTOKEN_OR ,             // ||
-   LTOKEN_XOR,             // ^
-   LTOKEN_STARTSWITH,      // startswith
-   LTOKEN_ENDSWITH,        // endswith
-   LTOKEN_CONTAINS,        // contains
-   LTOKEN_ISSTARTOF,       // isstartof
-   LTOKEN_ISENDOF,         // isendof
-   LTOKEN_ISSUBSTRINGOF,   // issubstringof
-   LTOKEN_MATCHES,         // matches
-   LTOKEN_MATCHESREGEX,    // matchesregex
-   LTOKEN_INT64,           // (int64)
-   LTOKEN_INT32,           // (int32)
-   LTOKEN_INT16,           // (int16)
-   LTOKEN_INT8,            // (int8)
-   LTOKEN_BOOL,            // (bool)
-   LTOKEN_FLOAT,           // (float)
-   LTOKEN_DOUBLE,          // (double)
-   LTOKEN_STRING,          // (string)
-   LTOKEN_POINT,           // (point)
-   LTOKEN_RECT,            // (rect)
-   LTOKEN_NOT,             // !
-   LTOKEN_WHAT,            // what
-   LTOKEN_EXISTS,          // exists
-   LTOKEN_VALUESTRING,     // some other token supplied by the user
-   NUM_LTOKENS
-};
-
 static const char * _tokStrs[] =
 {
    "(",              // LTOKEN_LPAREN
    ")",              // LTOKEN_RPAREN
+   "!",              // LTOKEN_NOT (must come before LTOKEN_NEQ)
    "<",              // LTOKEN_LT
    ">",              // LTOKEN_GT
    "==",             // LTOKEN_EQ
@@ -725,7 +690,6 @@ static const char * _tokStrs[] =
    "(string)",       // LTOKEN_STRING
    "(point)",        // LTOKEN_POINT
    "(rect)",         // LTOKEN_RECT
-   "!",              // LTOKEN_NOT
    "what",           // LTOKEN_WHAT    (lack of space is intentional)
    "exists ",        // LTOKEN_EXISTS  (space is intentional)
    NULL,             // LTOKEN_VALUESTRING
@@ -765,173 +729,145 @@ template<> Rect GetValueAs(const String & v)
                bStr ? (float) atof(bStr) : 0.0f);
 }
 
-class LexerToken
+// returns the B_*_TYPE code representing our value's type, or B_ANY_TYPE on failure/unknown
+uint32 LexerToken :: GetValueStringType(uint32 explicitCastType) const
 {
-public:
-   LexerToken() : _tok(NUM_LTOKENS), _wasQuoted(false) {/* empty */}
-   LexerToken(uint32 tok) : _tok(tok), _wasQuoted(false) {/* empty */}
-   LexerToken(uint32 tok, const String & valStr, bool wasQuoted) : _tok(tok), _valStr(valStr), _wasQuoted(wasQuoted) {/* empty */}
+   if (_tok != LTOKEN_VALUESTRING) return B_ANY_TYPE;
+   if (_wasQuoted) return (explicitCastType == B_ANY_TYPE) ? B_STRING_TYPE : B_ANY_TYPE;  // (int16)"hi" is too weird to let slide
+   if (explicitCastType != B_ANY_TYPE) return explicitCastType;
+   if ((_valStr.EqualsIgnoreCase("true"))||(_valStr.EqualsIgnoreCase("false"))) return B_BOOL_TYPE;
 
-   uint32 GetToken() const {return _tok;}
-   const String & GetValueString() const {return _valStr;}
-
-   String ToString() const
+   const char c = _valStr.HasChars() ? _valStr[0] : '\0';
+   if ((muscleIsDigit(c))||(c=='-')||(c=='.')||(c=='+'))
    {
-      const String tokStr = (_tok < NUM_LTOKENS) ? _tokStrs[_tok] : "???";
-      return _valStr.HasChars() ? (tokStr+String(" %1").Arg(_valStr)) : std_move_if_available(tokStr);
-   }
-
-   // Convenience method:  Given a token like "myfield:4", returns the field name "myfield" and the retIdx=4
-   status_t ParseFieldName(String & retFieldName, uint32 & retIdx, LexerToken * optRetDefaultValue) const {return ParseFieldNameAux(_valStr, retFieldName, retIdx, optRetDefaultValue);}
-
-   // returns the B_*_TYPE code representing our value's type, or B_ANY_TYPE on failure/unknown
-   uint32 GetValueStringType(uint32 explicitCastType) const
-   {
-      if (_tok != LTOKEN_VALUESTRING) return B_ANY_TYPE;
-      if (_wasQuoted) return (explicitCastType == B_ANY_TYPE) ? B_STRING_TYPE : B_ANY_TYPE;  // (int16)"hi" is too weird to let slide
-      if (explicitCastType != B_ANY_TYPE) return explicitCastType;
-      if ((_valStr.EqualsIgnoreCase("true"))||(_valStr.EqualsIgnoreCase("false"))) return B_BOOL_TYPE;
-
-      const char c = _valStr.HasChars() ? _valStr[0] : '\0';
-      if ((muscleIsDigit(c))||(c=='-')||(c=='.')||(c=='+'))
+      switch(_valStr.GetNumInstancesOf(','))
       {
-         switch(_valStr.GetNumInstancesOf(','))
+         case 0:
          {
-            case 0:
-            {
-                    if (_valStr.EndsWith('f')) return B_FLOAT_TYPE;
-               else if (_valStr.Contains('.')) return B_DOUBLE_TYPE;
-               else return B_INT32_TYPE;  // I guess this is a good default?
-            }
-            break;
-
-            case 1:  return B_POINT_TYPE;
-            case 3:  return B_RECT_TYPE;
-            default: return B_ANY_TYPE;
+                 if (_valStr.EndsWith('f')) return B_FLOAT_TYPE;
+            else if (_valStr.Contains('.')) return B_DOUBLE_TYPE;
+            else return B_INT32_TYPE;  // I guess this is a good default?
          }
-      }
-      else return _valStr.HasChars() ? B_STRING_TYPE : B_ANY_TYPE;
-   }
+         break;
 
-   // Returns the B_*_TYPE associated with this token if this token is an explicit-cast, or B_ANY_TYPE otherwise
-   uint32 GetExplicitCastTypeCode() const
+         case 1:  return B_POINT_TYPE;
+         case 3:  return B_RECT_TYPE;
+         default: return B_ANY_TYPE;
+      }
+   }
+   else return _valStr.HasChars() ? B_STRING_TYPE : B_ANY_TYPE;
+}
+
+// Returns the B_*_TYPE associated with this token if this token is an explicit-cast, or B_ANY_TYPE otherwise
+uint32 LexerToken :: GetExplicitCastTypeCode() const
+{
+   switch(_tok)
    {
-      switch(_tok)
-      {
-         case LTOKEN_INT64:  return B_INT64_TYPE;
-         case LTOKEN_INT32:  return B_INT32_TYPE;
-         case LTOKEN_INT16:  return B_INT16_TYPE;
-         case LTOKEN_INT8:   return B_INT8_TYPE;
-         case LTOKEN_BOOL:   return B_BOOL_TYPE;
-         case LTOKEN_FLOAT:  return B_FLOAT_TYPE;
-         case LTOKEN_DOUBLE: return B_DOUBLE_TYPE;
-         case LTOKEN_STRING: return B_STRING_TYPE;
-         case LTOKEN_POINT:  return B_POINT_TYPE;
-         case LTOKEN_RECT:   return B_RECT_TYPE;
-         default:            return B_ANY_TYPE;
-      }
+      case LTOKEN_INT64:  return B_INT64_TYPE;
+      case LTOKEN_INT32:  return B_INT32_TYPE;
+      case LTOKEN_INT16:  return B_INT16_TYPE;
+      case LTOKEN_INT8:   return B_INT8_TYPE;
+      case LTOKEN_BOOL:   return B_BOOL_TYPE;
+      case LTOKEN_FLOAT:  return B_FLOAT_TYPE;
+      case LTOKEN_DOUBLE: return B_DOUBLE_TYPE;
+      case LTOKEN_STRING: return B_STRING_TYPE;
+      case LTOKEN_POINT:  return B_POINT_TYPE;
+      case LTOKEN_RECT:   return B_RECT_TYPE;
+      default:            return B_ANY_TYPE;
    }
+}
 
-   template<typename NQFType> QueryFilterRef GetNumericQueryFilter(const LexerToken & infixOpTok, const String & fieldName, uint32 subIdx, const LexerToken & optDefaultValue) const
+String LexerToken :: ToString() const
+{
+   const String tokStr = (_tok < NUM_LTOKENS) ? _tokStrs[_tok] : "???";
+   return _valStr.HasChars() ? (tokStr+String(" %1").Arg(_valStr)) : std_move_if_available(tokStr);
+}
+
+status_t LexerToken :: ParseFieldNameAux(const String & valStr, String & retFieldName, uint32 & retIdx, LexerToken * optRetDefaultValue) const
+{
+   if ((_tok != LTOKEN_VALUESTRING)||((_wasQuoted == false)&&(valStr.IsEmpty()))) return B_BAD_ARGUMENT;
+
+   const int32 barIdx = ((_wasQuoted == false)&&(optRetDefaultValue)) ? valStr.LastIndexOf('|') : -1;
+   if (barIdx >= 0)
    {
-      const uint8 numOp = infixOpTok.GetNumericQueryFilterOp();
-      if (numOp == NQFType::NUM_NUMERIC_OPERATORS) return B_ERROR("Unsupported infix operator for numeric value type");
-
-      typedef typename NQFType::DataType ValType;
-      return (optDefaultValue.GetToken() == LTOKEN_VALUESTRING)
-           ? QueryFilterRef(new NQFType(fieldName, numOp, GetValueAs<ValType>(GetValueString()), subIdx, GetValueAs<ValType>(optDefaultValue.GetValueString())))
-           : QueryFilterRef(new NQFType(fieldName, numOp, GetValueAs<ValType>(GetValueString()), subIdx));
+      *optRetDefaultValue = LexerToken(LTOKEN_VALUESTRING, valStr.Substring(barIdx+1), false);
+      return ParseFieldNameAux(valStr.Substring(0, barIdx), retFieldName, retIdx, NULL);
    }
 
-   QueryFilterRef GetStringQueryFilter(const LexerToken & infixOpTok, const String & fieldName, uint32 subIdx, const LexerToken & optDefaultValue) const
+   const int32 colIdx = _wasQuoted ? -1 : valStr.LastIndexOf(':');
+   if (colIdx > 0)
    {
-      const uint8 stringOp = infixOpTok.GetStringQueryFilterOp(false);  // TODO:  figure out a reasonable syntax to specify the ignore-case options
-      if (stringOp == StringQueryFilter::NUM_STRING_OPERATORS) return B_ERROR("Unsupported infix operator for value type string");
-
-      StringQueryFilterRef sqf(new StringQueryFilter(fieldName, stringOp, GetValueString(), subIdx));
-      if (optDefaultValue.GetToken() == LTOKEN_VALUESTRING) sqf()->SetAssumedDefault(optDefaultValue.GetValueString());
-      return sqf;
+      retFieldName = valStr.Substring(0, colIdx);
+      retIdx       = (uint32) atol(valStr()+colIdx+1);
    }
-
-private:
-   uint32 _tok;
-   String _valStr;
-   bool _wasQuoted;
-
-   status_t ParseFieldNameAux(const String & valStr, String & retFieldName, uint32 & retIdx, LexerToken * optRetDefaultValue) const
+   else
    {
-      if ((_tok != LTOKEN_VALUESTRING)||((_wasQuoted == false)&&(valStr.IsEmpty()))) return B_BAD_ARGUMENT;
-
-      const int32 barIdx = ((_wasQuoted == false)&&(optRetDefaultValue)) ? valStr.LastIndexOf('|') : -1;
-      if (barIdx >= 0)
-      {
-         *optRetDefaultValue = LexerToken(LTOKEN_VALUESTRING, valStr.Substring(barIdx+1), false);
-         return ParseFieldNameAux(valStr.Substring(0, barIdx), retFieldName, retIdx, NULL);
-      }
-
-      const int32 colIdx = _wasQuoted ? -1 : valStr.LastIndexOf(':');
-      if (colIdx > 0)
-      {
-         retFieldName = valStr.Substring(0, colIdx);
-         retIdx       = (uint32) atol(valStr()+colIdx+1);
-      }
-      else
-      {
-         retFieldName = valStr;
-         retIdx       = 0;
-      }
-
-      return B_NO_ERROR;
+      retFieldName = valStr;
+      retIdx       = 0;
    }
 
-   // Returns the StringQueryFilter::OP_* value associated with this infix operator, or StringQueryFilter::NUM_STRING_OPERATORS on failure
-   uint8 GetStringQueryFilterOp(bool isIgnoreCase) const
+   return B_NO_ERROR;
+}
+
+// Returns the StringQueryFilter::OP_* value associated with this infix operator, or StringQueryFilter::NUM_STRING_OPERATORS on failure
+uint8 LexerToken :: GetStringQueryFilterOp(bool isIgnoreCase) const
+{
+   switch(GetToken())
    {
-      switch(GetToken())
-      {
-         case LTOKEN_EQ:            return isIgnoreCase ? StringQueryFilter::OP_EQUAL_TO_IGNORECASE                 : StringQueryFilter::OP_EQUAL_TO;                 // ==
-         case LTOKEN_LT:            return isIgnoreCase ? StringQueryFilter::OP_LESS_THAN_IGNORECASE                : StringQueryFilter::OP_LESS_THAN;                // <
-         case LTOKEN_GT:            return isIgnoreCase ? StringQueryFilter::OP_GREATER_THAN_IGNORECASE             : StringQueryFilter::OP_GREATER_THAN;             // >
-         case LTOKEN_LEQ:           return isIgnoreCase ? StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO_IGNORECASE    : StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO;    // <=
-         case LTOKEN_GEQ:           return isIgnoreCase ? StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO_IGNORECASE : StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO; // >=
-         case LTOKEN_NEQ:           return isIgnoreCase ? StringQueryFilter::OP_NOT_EQUAL_TO_IGNORECASE             : StringQueryFilter::OP_NOT_EQUAL_TO;             // !=
-         case LTOKEN_STARTSWITH:    return isIgnoreCase ? StringQueryFilter::OP_STARTS_WITH_IGNORECASE              : StringQueryFilter::OP_STARTS_WITH;              // startswith
-         case LTOKEN_ENDSWITH:      return isIgnoreCase ? StringQueryFilter::OP_ENDS_WITH_IGNORECASE                : StringQueryFilter::OP_ENDS_WITH;                // endswith
-         case LTOKEN_CONTAINS:      return isIgnoreCase ? StringQueryFilter::OP_CONTAINS_IGNORECASE                 : StringQueryFilter::OP_CONTAINS;                 // contains
-         case LTOKEN_ISSTARTOF:     return isIgnoreCase ? StringQueryFilter::OP_START_OF_IGNORECASE                 : StringQueryFilter::OP_START_OF;                 // isstartof
-         case LTOKEN_ISENDOF:       return isIgnoreCase ? StringQueryFilter::OP_END_OF_IGNORECASE                   : StringQueryFilter::OP_END_OF;                   // isendof
-         case LTOKEN_ISSUBSTRINGOF: return isIgnoreCase ? StringQueryFilter::OP_SUBSTRING_OF_IGNORECASE             : StringQueryFilter::OP_SUBSTRING_OF;             // issubstringof
-         case LTOKEN_MATCHES:       return StringQueryFilter::OP_SIMPLE_WILDCARD_MATCH;    // matches
-         case LTOKEN_MATCHESREGEX:  return StringQueryFilter::OP_REGULAR_EXPRESSION_MATCH; // matchesregex
-         default:                   return StringQueryFilter::NUM_STRING_OPERATORS;        // failure
-      }
+      case LTOKEN_EQ:            return isIgnoreCase ? StringQueryFilter::OP_EQUAL_TO_IGNORECASE                 : StringQueryFilter::OP_EQUAL_TO;                 // ==
+      case LTOKEN_LT:            return isIgnoreCase ? StringQueryFilter::OP_LESS_THAN_IGNORECASE                : StringQueryFilter::OP_LESS_THAN;                // <
+      case LTOKEN_GT:            return isIgnoreCase ? StringQueryFilter::OP_GREATER_THAN_IGNORECASE             : StringQueryFilter::OP_GREATER_THAN;             // >
+      case LTOKEN_LEQ:           return isIgnoreCase ? StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO_IGNORECASE    : StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO;    // <=
+      case LTOKEN_GEQ:           return isIgnoreCase ? StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO_IGNORECASE : StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO; // >=
+      case LTOKEN_NEQ:           return isIgnoreCase ? StringQueryFilter::OP_NOT_EQUAL_TO_IGNORECASE             : StringQueryFilter::OP_NOT_EQUAL_TO;             // !=
+      case LTOKEN_STARTSWITH:    return isIgnoreCase ? StringQueryFilter::OP_STARTS_WITH_IGNORECASE              : StringQueryFilter::OP_STARTS_WITH;              // startswith
+      case LTOKEN_ENDSWITH:      return isIgnoreCase ? StringQueryFilter::OP_ENDS_WITH_IGNORECASE                : StringQueryFilter::OP_ENDS_WITH;                // endswith
+      case LTOKEN_CONTAINS:      return isIgnoreCase ? StringQueryFilter::OP_CONTAINS_IGNORECASE                 : StringQueryFilter::OP_CONTAINS;                 // contains
+      case LTOKEN_ISSTARTOF:     return isIgnoreCase ? StringQueryFilter::OP_START_OF_IGNORECASE                 : StringQueryFilter::OP_START_OF;                 // isstartof
+      case LTOKEN_ISENDOF:       return isIgnoreCase ? StringQueryFilter::OP_END_OF_IGNORECASE                   : StringQueryFilter::OP_END_OF;                   // isendof
+      case LTOKEN_ISSUBSTRINGOF: return isIgnoreCase ? StringQueryFilter::OP_SUBSTRING_OF_IGNORECASE             : StringQueryFilter::OP_SUBSTRING_OF;             // issubstringof
+      case LTOKEN_MATCHES:       return StringQueryFilter::OP_SIMPLE_WILDCARD_MATCH;    // matches
+      case LTOKEN_MATCHESREGEX:  return StringQueryFilter::OP_REGULAR_EXPRESSION_MATCH; // matchesregex
+      default:                   return StringQueryFilter::NUM_STRING_OPERATORS;        // failure
    }
+}
 
-   // Returns the NumericQueryFilter::OP_* value associated with this infix operator, or NumericQueryFilter::NUM_STRING_OPERATORS on failure
-   uint8 GetNumericQueryFilterOp() const
+// Returns the NumericQueryFilter::OP_* value associated with this infix operator, or NumericQueryFilter::NUM_STRING_OPERATORS on failure
+uint8 LexerToken :: GetNumericQueryFilterOp() const
+{
+   // Note that I just chose Int32QueryFilter here arbitrarily for convenience; the OP_* values are the same for all NumericQueryFilter template-instantiations
+   switch(GetToken())
    {
-      // Note that I just chose Int32QueryFilter here arbitrarily for convenience; the OP_* values are the same for all NumericQueryFilter template-instantiations
-      switch(GetToken())
-      {
-         case LTOKEN_EQ:  return Int32QueryFilter::OP_EQUAL_TO;                 // ==
-         case LTOKEN_LT:  return Int32QueryFilter::OP_LESS_THAN;                // <
-         case LTOKEN_GT:  return Int32QueryFilter::OP_GREATER_THAN;             // >
-         case LTOKEN_LEQ: return Int32QueryFilter::OP_LESS_THAN_OR_EQUAL_TO;    // <=
-         case LTOKEN_GEQ: return Int32QueryFilter::OP_GREATER_THAN_OR_EQUAL_TO; // >=
-         case LTOKEN_NEQ: return Int32QueryFilter::OP_NOT_EQUAL_TO;             // !=
-         default:         return Int32QueryFilter::NUM_NUMERIC_OPERATORS;       // failure
-      }
+      case LTOKEN_EQ:  return Int32QueryFilter::OP_EQUAL_TO;                 // ==
+      case LTOKEN_LT:  return Int32QueryFilter::OP_LESS_THAN;                // <
+      case LTOKEN_GT:  return Int32QueryFilter::OP_GREATER_THAN;             // >
+      case LTOKEN_LEQ: return Int32QueryFilter::OP_LESS_THAN_OR_EQUAL_TO;    // <=
+      case LTOKEN_GEQ: return Int32QueryFilter::OP_GREATER_THAN_OR_EQUAL_TO; // >=
+      case LTOKEN_NEQ: return Int32QueryFilter::OP_NOT_EQUAL_TO;             // !=
+      default:         return Int32QueryFilter::NUM_NUMERIC_OPERATORS;       // failure
    }
-};
+}
 
-static int32 GetMatchingToken(const char * s)
+#define RETURN_ON_SYNONYM_FOR_TOKEN(s, syn, theTok) {if (Strncasecmp(s, syn, sizeof(syn)-1) == 0) {retNumCharsConsumed = sizeof(syn)-1; return theTok;}}
+
+static int32 GetMatchingToken(const char * s, uint32 & retNumCharsConsumed)
 {
    for (int32 i=ARRAYITEMS(_tokStrs)-1; i>=0; i--)
    {
       const char * ts    = _tokStrs[i];
       const size_t tsLen = _tokStrlens[i];
-      if ((tsLen > 0)&&(Strncasecmp(s, ts, tsLen) == 0)) return i;
+      if ((tsLen > 0)&&(Strncasecmp(s, ts, tsLen) == 0)) {retNumCharsConsumed = (uint32) _tokStrlens[i]; return i;}
    }
+
+   // Some special-case synonyms, just to be user-friendly
+   RETURN_ON_SYNONYM_FOR_TOKEN(s, "and",    LTOKEN_AND);
+   RETURN_ON_SYNONYM_FOR_TOKEN(s, "or",     LTOKEN_OR);
+   RETURN_ON_SYNONYM_FOR_TOKEN(s, "xor",    LTOKEN_XOR);
+   RETURN_ON_SYNONYM_FOR_TOKEN(s, "not",    LTOKEN_NOT);
+   RETURN_ON_SYNONYM_FOR_TOKEN(s, "=",      LTOKEN_EQ);
+   RETURN_ON_SYNONYM_FOR_TOKEN(s, "equals", LTOKEN_EQ);
+
+   retNumCharsConsumed = 0;
    return -1;
 }
 
@@ -953,10 +889,11 @@ public:
       {
          // Try to find the next fixed-format token
          const char * s = _expression()+_curPos;
-         const int32 matchedTok = GetMatchingToken(s);
+         uint32 numCharsInToken = 0;
+         const int32 matchedTok = GetMatchingToken(s, numCharsInToken);
          if (matchedTok >= 0)
          {
-            _curPos += (uint32) _tokStrlens[matchedTok];
+            _curPos += numCharsInToken;
             retTok   = LexerToken(matchedTok);
             return B_NO_ERROR;
          }
@@ -986,7 +923,8 @@ public:
                const char * t = s;
                while(1)  // we'll handle the NUL char in the if statement below
                {
-                  if (((*t == '\0')||(muscleIsSpace(*t)))||(GetMatchingToken(t) >= 0))
+                  uint32 numCharsInToken = 0;
+                  if (((*t == '\0')||(muscleIsSpace(*t)))||(GetMatchingToken(t, numCharsInToken) >= 0))
                   {
                      retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, (uint32) (t-s)), false);
                      _curPos += retTok.GetValueString().Length();
@@ -1006,16 +944,16 @@ private:
    uint32 _curPos;
 };
 
-static QueryFilterRef MaybeNegate(bool doNegate, const QueryFilterRef & qf) {return ((doNegate)&&(qf())) ? QueryFilterRef(new NorQueryFilter(qf)) : qf;}
+static ConstQueryFilterRef MaybeNegate(bool doNegate, const ConstQueryFilterRef & qf) {return ((doNegate)&&(qf())) ? QueryFilterRef(new NorQueryFilter(qf)) : qf;}
 
-static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
+static ConstQueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer, const ISubexpressionFactory & sef)
 {
    Queue<LexerToken> localToks;
 
    LexerToken conjunctionTok;
    MultiQueryFilterRef conjunctionRef;
 
-   QueryFilterRef subRef;  // if we recursed downwards into a (subexpression), we placed the result here
+   ConstQueryFilterRef subRef;  // if we recurse downwards into a (subexpression), we'll place the result here
 
    bool keepGoing = true, isNegated = false;
    LexerToken nextTok;
@@ -1029,7 +967,7 @@ static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
          break;
 
          case LTOKEN_LPAREN:          // (
-            subRef = CreateQueryFilterFromExpressionAux(lexer);
+            subRef = CreateQueryFilterFromExpressionAux(lexer, sef);
             MRETURN_ON_ERROR(subRef);
          break;
 
@@ -1066,6 +1004,7 @@ static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
          break;
       }
    }
+
    if (conjunctionRef())
    {
       if (subRef())
@@ -1097,12 +1036,16 @@ static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
    {
       case 2:
       {
-         if (localToks[0].GetToken() != LTOKEN_EXISTS) return B_ERROR("Two-token subexpression must start with 'exists'");
+         const LexerToken & firstTok = localToks[0];
+         if (firstTok.GetToken() != LTOKEN_EXISTS) return B_ERROR("Two-token subexpression must start with 'exists'");
 
+         // Second token in a two-token clause should be a Message field-name
          String fieldName;
-         uint32 subIdx = 0;
-         MRETURN_ON_ERROR(localToks[1].ParseFieldName(fieldName, subIdx, NULL));
-         return MaybeNegate(isNegated, QueryFilterRef(new ValueExistsQueryFilter(fieldName, explicitCastType, subIdx)));
+         uint32 valueIndexInField = 0;
+         const LexerToken & fieldNameTok = localToks[1];
+         MRETURN_ON_ERROR(fieldNameTok.ParseFieldName(fieldName, valueIndexInField, NULL));
+
+         return MaybeNegate(isNegated, sef.CreateSubexpression(fieldNameTok, valueIndexInField, firstTok, LexerToken(), explicitCastType, LexerToken()));
       }
       break;
 
@@ -1113,87 +1056,121 @@ static QueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer)
          const LexerToken & valTok       = localToks[2];
 
          String fieldName;
-         uint32 subIdx = 0;
+         uint32 valueIndexInField = 0;
          LexerToken optDefaultValue;
-         if (fieldNameTok.GetToken() != LTOKEN_WHAT) MRETURN_ON_ERROR(fieldNameTok.ParseFieldName(fieldName, subIdx, &optDefaultValue));
+         if (fieldNameTok.GetToken() != LTOKEN_WHAT) MRETURN_ON_ERROR(fieldNameTok.ParseFieldName(fieldName, valueIndexInField, &optDefaultValue));
 
          const uint32 valueType = valTok.GetValueStringType(explicitCastType);
          if (valueType == B_ANY_TYPE) return B_ERROR("Unable to determine type of value-token at end of subexpression");
 
-         QueryFilterRef ret;
-         switch(fieldNameTok.GetToken())
-         {
-            case LTOKEN_WHAT:
-            {
-               if (valueType != B_INT32_TYPE) return B_ERROR("'what' keyword requires a value of type int32");
-
-               const uint32 whatVal = (uint32) atol(valTok.GetValueString()());
-
-               bool impossible = false;
-               uint32 minWhat = 0, maxWhat = MUSCLE_NO_LIMIT;
-               switch(infixOpTok.GetToken())
-               {
-                  case LTOKEN_NEQ: // fall through
-                  case LTOKEN_EQ:  minWhat = maxWhat = whatVal; break;
-
-                  case LTOKEN_LT:
-                     if (whatVal == 0) impossible = true;   // there are no what-codes less than zero!
-                                  else    maxWhat = (whatVal-1);
-                  break;
-
-                  case LTOKEN_GT:
-                     if (whatVal == MUSCLE_NO_LIMIT) impossible = true;   // there are no what-codes greater than MUSCLE_NO_LIMIT!
-                                                else    minWhat = (whatVal+1);
-                  break;
-
-                  case LTOKEN_LEQ: maxWhat = whatVal;           break;
-                  case LTOKEN_GEQ: minWhat = whatVal;           break;
-               }
-
-               if (impossible) ret.SetRef(new WhatCodeQueryFilter(1, 0));  // will never return true, because the requested condition is impossible
-               else
-               {
-                  ret.SetRef(new WhatCodeQueryFilter(minWhat, maxWhat));
-                  if (infixOpTok.GetToken() == LTOKEN_NEQ) ret.SetRef(new NorQueryFilter(ret));
-               }
-            }
-            break;
-
-            case LTOKEN_VALUESTRING:
-            {
-               switch(valueType)
-               {
-                  case B_STRING_TYPE: ret = valTok.GetStringQueryFilter                     (infixOpTok, fieldName, subIdx, optDefaultValue); break;
-                  case B_BOOL_TYPE:   ret = valTok.GetNumericQueryFilter<BoolQueryFilter>   (infixOpTok, fieldName, subIdx, optDefaultValue); break;
-                  case B_DOUBLE_TYPE: ret = valTok.GetNumericQueryFilter<DoubleQueryFilter> (infixOpTok, fieldName, subIdx, optDefaultValue); break;
-                  case B_FLOAT_TYPE:  ret = valTok.GetNumericQueryFilter<FloatQueryFilter>  (infixOpTok, fieldName, subIdx, optDefaultValue); break;
-                  case B_INT64_TYPE:  ret = valTok.GetNumericQueryFilter<Int64QueryFilter>  (infixOpTok, fieldName, subIdx, optDefaultValue); break;
-                  case B_INT32_TYPE:  ret = valTok.GetNumericQueryFilter<Int32QueryFilter>  (infixOpTok, fieldName, subIdx, optDefaultValue); break;
-                  case B_INT16_TYPE:  ret = valTok.GetNumericQueryFilter<Int16QueryFilter>  (infixOpTok, fieldName, subIdx, optDefaultValue); break;
-                  case B_INT8_TYPE:   ret = valTok.GetNumericQueryFilter<Int8QueryFilter>   (infixOpTok, fieldName, subIdx, optDefaultValue); break;
-                  case B_POINT_TYPE:  ret = valTok.GetNumericQueryFilter<PointQueryFilter>  (infixOpTok, fieldName, subIdx, optDefaultValue); break;
-                  case B_RECT_TYPE:   ret = valTok.GetNumericQueryFilter<RectQueryFilter>   (infixOpTok, fieldName, subIdx, optDefaultValue); break;
-                  default:            return B_ERROR("Unsupported value-type");
-               }
-            }
-            break;
-
-            default:
-               return B_ERROR("Unspported first token for three-token subexpression");
-         }
-
-         return MaybeNegate(isNegated, ret);
+         return MaybeNegate(isNegated, sef.CreateSubexpression(fieldNameTok, valueIndexInField, infixOpTok, valTok, valueType, optDefaultValue));
       }
    }
 
    return B_LOGIC_ERROR;
 }
 
-QueryFilterRef CreateQueryFilterFromExpression(const String & expression)
+ConstQueryFilterRef CreateQueryFilterFromExpression(const String & expression, const ISubexpressionFactory * optSubexpressionFactory)
 {
-   //Lexer tempLexer(expression); LexerToken nextTok; while(tempLexer.GetNextToken(nextTok).IsOK()) printf(" -> %s\n", nextTok.ToString()());
+   DefaultSubexpressionFactory defSef;
+   if (optSubexpressionFactory == NULL) optSubexpressionFactory = &defSef;
+
    Lexer lexer(expression);
-   return CreateQueryFilterFromExpressionAux(lexer);
+   return CreateQueryFilterFromExpressionAux(lexer, *optSubexpressionFactory);
+}
+
+template<typename NQFType> QueryFilterRef GetNumericQueryFilter(const LexerToken & infixOpTok, const String & fieldName, uint32 subIdx, const LexerToken & valTok, const LexerToken & optDefaultValue)
+{
+   const uint8 numOp = infixOpTok.GetNumericQueryFilterOp();
+   if (numOp == NQFType::NUM_NUMERIC_OPERATORS) return B_ERROR("Unsupported infix operator for numeric value type");
+
+   typedef typename NQFType::DataType ValType;
+   return (optDefaultValue.GetToken() == LTOKEN_VALUESTRING)
+        ? QueryFilterRef(new NQFType(fieldName, numOp, GetValueAs<ValType>(valTok.GetValueString()), subIdx, GetValueAs<ValType>(optDefaultValue.GetValueString())))
+        : QueryFilterRef(new NQFType(fieldName, numOp, GetValueAs<ValType>(valTok.GetValueString()), subIdx));
+}
+
+static QueryFilterRef GetStringQueryFilter(const LexerToken & infixOpTok, const String & fieldName, uint32 subIdx, const LexerToken & valTok, const LexerToken & optDefaultValue)
+{
+   const uint8 stringOp = infixOpTok.GetStringQueryFilterOp(false);  // TODO:  figure out a reasonable syntax to specify the ignore-case options
+   if (stringOp == StringQueryFilter::NUM_STRING_OPERATORS) return B_ERROR("Unsupported infix operator for value type string");
+
+   StringQueryFilterRef sqf(new StringQueryFilter(fieldName, stringOp, valTok.GetValueString(), subIdx));
+   if (optDefaultValue.GetToken() == LTOKEN_VALUESTRING) sqf()->SetAssumedDefault(optDefaultValue.GetValueString());
+   return sqf;
+}
+
+ConstQueryFilterRef DefaultSubexpressionFactory :: CreateSubexpression(const LexerToken & fieldNameTok, uint32 valueIndexInField, const LexerToken & infixOpTok, const LexerToken & valTok, uint32 valueType, const LexerToken & optDefaultValue) const
+{
+   ConstQueryFilterRef ret;
+
+   switch(fieldNameTok.GetToken())
+   {
+      case LTOKEN_EXISTS:
+         ret.SetRef(new ValueExistsQueryFilter(fieldNameTok.GetValueString(), valueType, valueIndexInField));
+      break;
+
+      case LTOKEN_WHAT:
+      {
+         if (valueType != B_INT32_TYPE) return B_ERROR("'what' keyword requires a value of type int32");
+
+         const uint32 whatVal = (uint32) atol(valTok.GetValueString()());
+
+         bool impossible = false;
+         uint32 minWhat = 0, maxWhat = MUSCLE_NO_LIMIT;
+         switch(infixOpTok.GetToken())
+         {
+            case LTOKEN_NEQ: // fall through
+            case LTOKEN_EQ:  minWhat = maxWhat = whatVal; break;
+
+            case LTOKEN_LT:
+               if (whatVal == 0) impossible = true;   // there are no what-codes less than zero!
+                            else    maxWhat = (whatVal-1);
+            break;
+
+            case LTOKEN_GT:
+               if (whatVal == MUSCLE_NO_LIMIT) impossible = true;   // there are no what-codes greater than MUSCLE_NO_LIMIT!
+                                          else    minWhat = (whatVal+1);
+            break;
+
+            case LTOKEN_LEQ: maxWhat = whatVal;           break;
+            case LTOKEN_GEQ: minWhat = whatVal;           break;
+         }
+
+         if (impossible) ret.SetRef(new WhatCodeQueryFilter(1, 0));  // will never return true, because the requested condition is impossible
+         else
+         {
+            ret.SetRef(new WhatCodeQueryFilter(minWhat, maxWhat));
+            if (infixOpTok.GetToken() == LTOKEN_NEQ) ret.SetRef(new NorQueryFilter(ret));
+         }
+      }
+      break;
+
+      case LTOKEN_VALUESTRING:
+      {
+         const String & fieldName = fieldNameTok.GetValueString();
+         switch(valueType)
+         {
+            case B_STRING_TYPE: ret = GetStringQueryFilter                    (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+            case B_BOOL_TYPE:   ret = GetNumericQueryFilter<BoolQueryFilter>  (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+            case B_DOUBLE_TYPE: ret = GetNumericQueryFilter<DoubleQueryFilter>(infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+            case B_FLOAT_TYPE:  ret = GetNumericQueryFilter<FloatQueryFilter> (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+            case B_INT64_TYPE:  ret = GetNumericQueryFilter<Int64QueryFilter> (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+            case B_INT32_TYPE:  ret = GetNumericQueryFilter<Int32QueryFilter> (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+            case B_INT16_TYPE:  ret = GetNumericQueryFilter<Int16QueryFilter> (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+            case B_INT8_TYPE:   ret = GetNumericQueryFilter<Int8QueryFilter>  (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+            case B_POINT_TYPE:  ret = GetNumericQueryFilter<PointQueryFilter> (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+            case B_RECT_TYPE:   ret = GetNumericQueryFilter<RectQueryFilter>  (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+            default:            return B_ERROR("Unsupported value-type");
+         }
+      }
+      break;
+
+      default:
+         return B_ERROR("Unspported first token for three-token subexpression");
+   }
+
+   return ret;
 }
 
 } // end namespace muscle

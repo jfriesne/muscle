@@ -2308,7 +2308,7 @@ MUSCLE_NODISCARD uint64 Atoxll(const char * str);
 /** Given an ASCII character encoded as an integer, returns that same value, clamped to the range [0,255]
   * Used in the muscleIs*() functions below to keep MSVC from triggering an assertion failure when it encounters multibyte UTF8 characters
   */
-static inline int muscleSanitizeIntChar(int c) {return muscleClamp(c, 0, 255);}
+static inline int muscleSanitizeIntChar(int c) {return (c<0) ? 0 : ((c>255) ? 255 : c);}  // not calling muscleClamp() because it's not available from a C-only context
 
 /** Assertion-safe wrapper around isalnum()
   * @param c the ASCII character to test
