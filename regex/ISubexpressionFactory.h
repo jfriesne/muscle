@@ -21,11 +21,11 @@ public:
    virtual ~ISubexpressionFactory() {/* empty */}
 
    /** Called when CreateQueryFilterFromExpression() wants to create a QueryFilter representing a sub-expression.
-     * @param fieldNameTok the first token in the expression (usually LTOKEN_VALUESTRING with a Message-fieldname, although it might alternatively be LTOKEN_WHAT or LTOKEN_EXISTS)
+     * @param fieldNameTok the first token in the expression (usually LTOKEN_USERSTRING with a Message-fieldname, although it might alternatively be LTOKEN_WHAT or LTOKEN_EXISTS)
      * @param valueIndexInField the index of the value within the field name that the user specified (e.g. if the user specified "foo:3", this argument would be 3)
      *                          If the user didn't specify any index, this value will be 0.
      * @param infixOpTok the token representing the infix-operation of the sub-expression (e.g. LTOKEN_LT for less-than or LTOKEN_EQ for equals)
-     * @param valTok the token representing the target value (e.g. LTOKEN_VALUESTRING with string "3", in the expression (blah<3))
+     * @param valTok the token representing the target value (e.g. LTOKEN_USERSTRING with string "3", in the expression (blah<3))
      * @param valueTypeHint a B_*_TYPE value indicating what the parser thinks the type of the value ought to be (based on any explicit casts or hints in the
      *                          string's format).  The ISubexpressionFactory may ignore this hint if it knows better.
      * @param optDefaultValue if the user specified a default-target value to match against if no value exists in the Message object, that value is passed in

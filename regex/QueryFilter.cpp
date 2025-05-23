@@ -692,12 +692,12 @@ static const char * _tokStrs[] =
    "(rect)",         // LTOKEN_RECT
    "what",           // LTOKEN_WHAT    (lack of space is intentional)
    "exists ",        // LTOKEN_EXISTS  (space is intentional)
-   NULL,             // LTOKEN_VALUESTRING
+   NULL,             // LTOKEN_USERSTRING
 };
 MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_tokStrs, NUM_LTOKENS);
 
 static bool _tokStrlensNeedsInit = true;
-static size_t _tokStrlens[NUM_LTOKENS] ;
+static uint32 _tokStrlens[NUM_LTOKENS];
 
 template<typename T> T GetValueAs(const String & v);
 template<> bool   GetValueAs(const String & v) {return    ParseBool(v());}
@@ -732,7 +732,7 @@ template<> Rect GetValueAs(const String & v)
 // returns the B_*_TYPE code representing our value's type, or B_ANY_TYPE on failure/unknown
 uint32 LexerToken :: GetValueStringType(uint32 explicitCastType) const
 {
-   if (_tok != LTOKEN_VALUESTRING) return B_ANY_TYPE;
+   if (_tok != LTOKEN_USERSTRING) return B_ANY_TYPE;
    if (_wasQuoted) return (explicitCastType == B_ANY_TYPE) ? B_STRING_TYPE : B_ANY_TYPE;  // (int16)"hi" is too weird to let slide
    if (explicitCastType != B_ANY_TYPE) return explicitCastType;
    if ((_valStr.EqualsIgnoreCase("true"))||(_valStr.EqualsIgnoreCase("false"))) return B_BOOL_TYPE;
@@ -785,12 +785,12 @@ String LexerToken :: ToString() const
 
 status_t LexerToken :: ParseFieldNameAux(const String & valStr, String & retFieldName, uint32 & retIdx, LexerToken * optRetDefaultValue) const
 {
-   if ((_tok != LTOKEN_VALUESTRING)||((_wasQuoted == false)&&(valStr.IsEmpty()))) return B_BAD_ARGUMENT;
+   if ((_tok != LTOKEN_USERSTRING)||((_wasQuoted == false)&&(valStr.IsEmpty()))) return B_BAD_ARGUMENT;
 
    const int32 barIdx = ((_wasQuoted == false)&&(optRetDefaultValue)) ? valStr.LastIndexOf('|') : -1;
    if (barIdx >= 0)
    {
-      *optRetDefaultValue = LexerToken(LTOKEN_VALUESTRING, valStr.Substring(barIdx+1), false);
+      *optRetDefaultValue = LexerToken(valStr.Substring(barIdx+1), false);
       return ParseFieldNameAux(valStr.Substring(0, barIdx), retFieldName, retIdx, NULL);
    }
 
@@ -848,24 +848,25 @@ uint8 LexerToken :: GetNumericQueryFilterOp() const
    }
 }
 
-#define RETURN_ON_SYNONYM_FOR_TOKEN(s, syn, theTok) {if (Strncasecmp(s, syn, sizeof(syn)-1) == 0) {retNumCharsConsumed = sizeof(syn)-1; return theTok;}}
+#define RETURN_ON_SYNONYM_FOR_TOKEN(s, syn, theTok) {if (Strncasecmp(s, syn, sizeof(syn)-1) == 0) {retNumCharsConsumed = (uint32)(sizeof(syn)-1); return theTok;}}
 
 static int32 GetMatchingToken(const char * s, uint32 & retNumCharsConsumed)
 {
    for (int32 i=ARRAYITEMS(_tokStrs)-1; i>=0; i--)
    {
       const char * ts    = _tokStrs[i];
-      const size_t tsLen = _tokStrlens[i];
-      if ((tsLen > 0)&&(Strncasecmp(s, ts, tsLen) == 0)) {retNumCharsConsumed = (uint32) _tokStrlens[i]; return i;}
+      const uint32 tsLen = _tokStrlens[i];
+      if ((tsLen > 0)&&(Strncasecmp(s, ts, tsLen) == 0)) {retNumCharsConsumed = tsLen; return i;}
    }
 
    // Some special-case synonyms, just to be user-friendly
-   RETURN_ON_SYNONYM_FOR_TOKEN(s, "and",    LTOKEN_AND);
-   RETURN_ON_SYNONYM_FOR_TOKEN(s, "or",     LTOKEN_OR);
-   RETURN_ON_SYNONYM_FOR_TOKEN(s, "xor",    LTOKEN_XOR);
-   RETURN_ON_SYNONYM_FOR_TOKEN(s, "not",    LTOKEN_NOT);
-   RETURN_ON_SYNONYM_FOR_TOKEN(s, "=",      LTOKEN_EQ);
-   RETURN_ON_SYNONYM_FOR_TOKEN(s, "equals", LTOKEN_EQ);
+   RETURN_ON_SYNONYM_FOR_TOKEN(s, "and ",    LTOKEN_AND);  // trailing space is intentional
+   RETURN_ON_SYNONYM_FOR_TOKEN(s, "or ",     LTOKEN_OR);   // ditto
+   RETURN_ON_SYNONYM_FOR_TOKEN(s, "xor ",    LTOKEN_XOR);  // ditto
+   RETURN_ON_SYNONYM_FOR_TOKEN(s, "not ",    LTOKEN_NOT);  // ditto
+   RETURN_ON_SYNONYM_FOR_TOKEN(s, "equals ", LTOKEN_EQ);   // ditto
+   RETURN_ON_SYNONYM_FOR_TOKEN(s, "is ",     LTOKEN_EQ);   // ditto
+   RETURN_ON_SYNONYM_FOR_TOKEN(s, "=",       LTOKEN_EQ);   // lack of trailing space is intentional
 
    retNumCharsConsumed = 0;
    return -1;
@@ -878,7 +879,7 @@ public:
    {
       if (_tokStrlensNeedsInit)
       {
-         for (uint32 i=0; i<ARRAYITEMS(_tokStrlens); i++) _tokStrlens[i] = _tokStrs[i] ? strlen(_tokStrs[i]) : 0;
+         for (uint32 i=0; i<ARRAYITEMS(_tokStrlens); i++) _tokStrlens[i] = (uint32) (_tokStrs[i] ? strlen(_tokStrs[i]) : 0);
          _tokStrlensNeedsInit = false;
       }
    }
@@ -907,7 +908,7 @@ public:
                const char * endQuote = strchr(s, '\"');
                if (endQuote == NULL) return B_BAD_DATA;  // no closing quote
 
-               retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, (uint32) (endQuote-s)), true);
+               retTok   = LexerToken(String(s, (uint32) (endQuote-s)), true);
                _curPos += retTok.GetValueString().Length()+2;  // +2 for the two quotes
             }
             return B_NO_ERROR;
@@ -923,10 +924,9 @@ public:
                const char * t = s;
                while(1)  // we'll handle the NUL char in the if statement below
                {
-                  uint32 numCharsInToken = 0;
                   if (((*t == '\0')||(muscleIsSpace(*t)))||(GetMatchingToken(t, numCharsInToken) >= 0))
                   {
-                     retTok   = LexerToken(LTOKEN_VALUESTRING, String(s, (uint32) (t-s)), false);
+                     retTok   = LexerToken(String(s, (uint32) (t-s)), false);
                      _curPos += retTok.GetValueString().Length();
                      return B_NO_ERROR;
                   }
@@ -1085,7 +1085,7 @@ template<typename NQFType> QueryFilterRef GetNumericQueryFilter(const LexerToken
    if (numOp == NQFType::NUM_NUMERIC_OPERATORS) return B_ERROR("Unsupported infix operator for numeric value type");
 
    typedef typename NQFType::DataType ValType;
-   return (optDefaultValue.GetToken() == LTOKEN_VALUESTRING)
+   return (optDefaultValue.GetToken() == LTOKEN_USERSTRING)
         ? QueryFilterRef(new NQFType(fieldName, numOp, GetValueAs<ValType>(valTok.GetValueString()), subIdx, GetValueAs<ValType>(optDefaultValue.GetValueString())))
         : QueryFilterRef(new NQFType(fieldName, numOp, GetValueAs<ValType>(valTok.GetValueString()), subIdx));
 }
@@ -1096,7 +1096,7 @@ static QueryFilterRef GetStringQueryFilter(const LexerToken & infixOpTok, const 
    if (stringOp == StringQueryFilter::NUM_STRING_OPERATORS) return B_ERROR("Unsupported infix operator for value type string");
 
    StringQueryFilterRef sqf(new StringQueryFilter(fieldName, stringOp, valTok.GetValueString(), subIdx));
-   if (optDefaultValue.GetToken() == LTOKEN_VALUESTRING) sqf()->SetAssumedDefault(optDefaultValue.GetValueString());
+   if (optDefaultValue.GetToken() == LTOKEN_USERSTRING) sqf()->SetAssumedDefault(optDefaultValue.GetValueString());
    return sqf;
 }
 
@@ -1146,7 +1146,7 @@ ConstQueryFilterRef DefaultSubexpressionFactory :: CreateSubexpression(const Lex
       }
       break;
 
-      case LTOKEN_VALUESTRING:
+      case LTOKEN_USERSTRING:
       {
          const String & fieldName = fieldNameTok.GetValueString();
          switch(valueType)

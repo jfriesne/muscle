@@ -41,12 +41,12 @@ enum {
    LTOKEN_RECT,            /**< (rect) */
    LTOKEN_WHAT,            /**< what */
    LTOKEN_EXISTS,          /**< exists */
-   LTOKEN_VALUESTRING,     /**< some other token supplied by the user */
+   LTOKEN_USERSTRING,      /**< some other token supplied by the user */
    NUM_LTOKENS             /**< guard value */
 };
 
 /** This class represents a single token parsed by the CreateQueryFilterFromExpression() parser.
-  * It will have a LTOKEN_* value, and (if the token-value is LTOKEN_VALUESTRING) also a user-supplied
+  * It will have a LTOKEN_* value, and (if the token-value is LTOKEN_USERSTRING) also a user-supplied
   * String indicating what the associated String is.
   */
 class LexerToken
@@ -60,12 +60,11 @@ public:
      */
    LexerToken(uint32 tok) : _tok(tok), _wasQuoted(false) {/* empty */}
 
-   /** Even more explicit constructor
-     * @param tok an LTOKEN_* value
+   /** Constructor for an LTOKEN_USERSTRING
      * @param valStr a user-supplied String (not including any surrounding quotes)
-     * @param wasQuoted true iff the user had placed quotes around the string
+     * @param wasQuoted true iff the user had placed quotes around the string.  Default to false.
      */
-   LexerToken(uint32 tok, const String & valStr, bool wasQuoted) : _tok(tok), _valStr(valStr), _wasQuoted(wasQuoted) {/* empty */}
+   LexerToken(const String & valStr, bool wasQuoted=false) : _tok(LTOKEN_USERSTRING), _valStr(valStr), _wasQuoted(wasQuoted) {/* empty */}
 
    /** Returns the LTOKEN_* value associated with this LexerToken object. */
    uint32 GetToken() const {return _tok;}
