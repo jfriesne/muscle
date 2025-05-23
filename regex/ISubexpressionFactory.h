@@ -30,9 +30,11 @@ public:
      *                          string's format).  The ISubexpressionFactory may ignore this hint if it knows better.
      * @param optDefaultValue if the user specified a default-target value to match against if no value exists in the Message object, that value is passed in
      *                        as a String argument here.  (e.g. for the expression "foo|bar == baz", this argument would be "bar")
+     * @param caseSensitive if true, then string-comparison operations should be case-sensitive.  If false, string-comparison operations should be case-insensitive.
+     *                      CreateQueryFilterFromExpression() will always pass true by default, but subclasses of ISubexpressionFactory can pass true if they prefer case-insensitivity.
      * @returns a ConstQueryFilterRef on success, or a NULL ref on failure (e.g. parse error)
      */
-   virtual ConstQueryFilterRef CreateSubexpression(const LexerToken & fieldNameTok, uint32 valueIndexInField, const LexerToken & infixOpTok, const LexerToken & valTok, uint32 valueTypeHint, const LexerToken & optDefaultValue) const = 0;
+   virtual ConstQueryFilterRef CreateSubexpression(const LexerToken & fieldNameTok, uint32 valueIndexInField, const LexerToken & infixOpTok, const LexerToken & valTok, uint32 valueTypeHint, const LexerToken & optDefaultValue, bool caseSensitive) const = 0;
 };
 DECLARE_REFTYPES(ISubexpressionFactory);
 
@@ -50,7 +52,7 @@ public:
    /** Destructor */
    virtual ~DefaultSubexpressionFactory() {/* empty */}
 
-   virtual ConstQueryFilterRef CreateSubexpression(const LexerToken & fieldNameTok, uint32 valueIndexInField, const LexerToken & infixOpTok, const LexerToken & valTok, uint32 valueTypeHint, const LexerToken & optDefaultValue) const;
+   virtual ConstQueryFilterRef CreateSubexpression(const LexerToken & fieldNameTok, uint32 valueIndexInField, const LexerToken & infixOpTok, const LexerToken & valTok, uint32 valueTypeHint, const LexerToken & optDefaultValue, bool caseSensitive) const;
 };
 DECLARE_REFTYPES(DefaultSubexpressionFactory);
 

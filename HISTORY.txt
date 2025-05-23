@@ -21,6 +21,9 @@ key:  - new feature
      CreateQueryFilterFromExpression() function.
    - Added "and", "or", "xor", "not", "=", and "equals"
      operator-synonyms to the CreateQueryFilterFromExpression() syntax.
+   - Added OP_SIMPLE_WILDCARD_MATCH_IGNORECASE and
+     OP_REGULAR_EXPRESSION_MATCH_IGNORECASE operators
+     to StringMatcherQueryFilter.
    o Exposed the LexerToken class, for use as part of the
      ISubexpressionFactory API.
    o Changed SeekableDataIO::GetLength() to be const-tagged.

@@ -1104,6 +1104,8 @@ public:
       OP_SUBSTRING_OF_IGNORECASE,              /**< This token is the same as OP_SUBSTRING_OF, except it is case insensitive */
       OP_SIMPLE_WILDCARD_MATCH,                /**< This token represents a wildcard match, eg StringMatcher(myValue, true).Matches(nextValue) */
       OP_REGULAR_EXPRESSION_MATCH,             /**< This token represents a proper regex match, eg StringMatcher(myValue, false).Matches(nextValue) */
+      OP_SIMPLE_WILDCARD_MATCH_IGNORECASE,     /**< This token represents a case-insensitive wildcard match, eg StringMatcher(ToCaseInsensitive(myValue), true).Matches(nextValue) */
+      OP_REGULAR_EXPRESSION_MATCH_IGNORECASE,  /**< This token represents a proper case-insensitive regex match, eg StringMatcher(ToCaseInsensitive(myValue), false).Matches(nextValue) */
       NUM_STRING_OPERATORS                     /**< This is a guard token */
    };
 
@@ -1133,7 +1135,7 @@ public:
 
 private:
    void FreeMatcher();
-   MUSCLE_NODISCARD bool DoMatch(const String & s) const;
+   MUSCLE_NODISCARD bool DoMatch(const String & s, bool isIgnoreCase) const;
 
    String _value;
    uint8 _op;

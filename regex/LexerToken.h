@@ -92,8 +92,10 @@ public:
    /** Convenience method:  Returns the B_*_TYPE associated with this token if this token is an explicit-cast (e.g. "(int32)", or B_ANY_TYPE otherwise */
    uint32 GetExplicitCastTypeCode() const;
 
-   /** Returns the StringQueryFilter::OP_* value associated with this infix operator, or StringQueryFilter::NUM_STRING_OPERATORS on failure */
-   uint8 GetStringQueryFilterOp(bool isIgnoreCase) const;
+   /** Returns the StringQueryFilter::OP_* value associated with this infix operator, or StringQueryFilter::NUM_STRING_OPERATORS on failure
+     * @param isCaseSensitive true for case-sensitive operations, or false for case-insensitive operations
+     */
+   uint8 GetStringQueryFilterOp(bool isCaseSensitive) const;
 
    /** Returns the NumericQueryFilter::OP_* value associated with this infix operator, or NumericQueryFilter::NUM_STRING_OPERATORS on failure */
    uint8 GetNumericQueryFilterOp() const;

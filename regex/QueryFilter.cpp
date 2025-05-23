@@ -430,8 +430,10 @@ bool StringQueryFilter :: MatchesString(const String & s) const
       case OP_START_OF_IGNORECASE:                 return _value.StartsWith(s);
       case OP_END_OF_IGNORECASE:                   return _value.EndsWith(s);
       case OP_SUBSTRING_OF_IGNORECASE:             return (_value.IndexOf(s) >= 0);
-      case OP_SIMPLE_WILDCARD_MATCH:               return DoMatch(s);
-      case OP_REGULAR_EXPRESSION_MATCH:            return DoMatch(s);
+      case OP_SIMPLE_WILDCARD_MATCH:               return DoMatch(s, false);
+      case OP_SIMPLE_WILDCARD_MATCH_IGNORECASE:    return DoMatch(s, true);
+      case OP_REGULAR_EXPRESSION_MATCH:            return DoMatch(s, false);
+      case OP_REGULAR_EXPRESSION_MATCH_IGNORECASE: return DoMatch(s, true);
       default:                                     /* do nothing */  break;
    }
    return false;
@@ -443,22 +445,17 @@ void StringQueryFilter :: FreeMatcher()
    _matcher = NULL;
 }
 
-bool StringQueryFilter :: DoMatch(const String & s) const
+bool StringQueryFilter :: DoMatch(const String & s, bool isIgnoreCase) const
 {
    if (_matcher == NULL)
    {
       switch(_op)
       {
-         case OP_SIMPLE_WILDCARD_MATCH:
-            _matcher = new StringMatcher(_value, true);
-         break;
-
-         case OP_REGULAR_EXPRESSION_MATCH:
-            _matcher = new StringMatcher(_value, false);
-         break;
-
-         default:
-            return false;
+         case OP_SIMPLE_WILDCARD_MATCH:               _matcher = new StringMatcher(                  _value,  true);  break;
+         case OP_SIMPLE_WILDCARD_MATCH_IGNORECASE:    _matcher = new StringMatcher(ToCaseInsensitive(_value), true);  break;
+         case OP_REGULAR_EXPRESSION_MATCH:            _matcher = new StringMatcher(                  _value,  false); break;
+         case OP_REGULAR_EXPRESSION_MATCH_IGNORECASE: _matcher = new StringMatcher(ToCaseInsensitive(_value), false); break;
+         default:                                     return false;
       }
    }
    return _matcher ? _matcher->Match(s()) : false;
@@ -810,24 +807,24 @@ status_t LexerToken :: ParseFieldNameAux(const String & valStr, String & retFiel
 }
 
 // Returns the StringQueryFilter::OP_* value associated with this infix operator, or StringQueryFilter::NUM_STRING_OPERATORS on failure
-uint8 LexerToken :: GetStringQueryFilterOp(bool isIgnoreCase) const
+uint8 LexerToken :: GetStringQueryFilterOp(bool isCaseSensitive) const
 {
    switch(GetToken())
    {
-      case LTOKEN_EQ:            return isIgnoreCase ? StringQueryFilter::OP_EQUAL_TO_IGNORECASE                 : StringQueryFilter::OP_EQUAL_TO;                 // ==
-      case LTOKEN_LT:            return isIgnoreCase ? StringQueryFilter::OP_LESS_THAN_IGNORECASE                : StringQueryFilter::OP_LESS_THAN;                // <
-      case LTOKEN_GT:            return isIgnoreCase ? StringQueryFilter::OP_GREATER_THAN_IGNORECASE             : StringQueryFilter::OP_GREATER_THAN;             // >
-      case LTOKEN_LEQ:           return isIgnoreCase ? StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO_IGNORECASE    : StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO;    // <=
-      case LTOKEN_GEQ:           return isIgnoreCase ? StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO_IGNORECASE : StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO; // >=
-      case LTOKEN_NEQ:           return isIgnoreCase ? StringQueryFilter::OP_NOT_EQUAL_TO_IGNORECASE             : StringQueryFilter::OP_NOT_EQUAL_TO;             // !=
-      case LTOKEN_STARTSWITH:    return isIgnoreCase ? StringQueryFilter::OP_STARTS_WITH_IGNORECASE              : StringQueryFilter::OP_STARTS_WITH;              // startswith
-      case LTOKEN_ENDSWITH:      return isIgnoreCase ? StringQueryFilter::OP_ENDS_WITH_IGNORECASE                : StringQueryFilter::OP_ENDS_WITH;                // endswith
-      case LTOKEN_CONTAINS:      return isIgnoreCase ? StringQueryFilter::OP_CONTAINS_IGNORECASE                 : StringQueryFilter::OP_CONTAINS;                 // contains
-      case LTOKEN_ISSTARTOF:     return isIgnoreCase ? StringQueryFilter::OP_START_OF_IGNORECASE                 : StringQueryFilter::OP_START_OF;                 // isstartof
-      case LTOKEN_ISENDOF:       return isIgnoreCase ? StringQueryFilter::OP_END_OF_IGNORECASE                   : StringQueryFilter::OP_END_OF;                   // isendof
-      case LTOKEN_ISSUBSTRINGOF: return isIgnoreCase ? StringQueryFilter::OP_SUBSTRING_OF_IGNORECASE             : StringQueryFilter::OP_SUBSTRING_OF;             // issubstringof
-      case LTOKEN_MATCHES:       return StringQueryFilter::OP_SIMPLE_WILDCARD_MATCH;    // matches
-      case LTOKEN_MATCHESREGEX:  return StringQueryFilter::OP_REGULAR_EXPRESSION_MATCH; // matchesregex
+      case LTOKEN_EQ:            return isCaseSensitive ? StringQueryFilter::OP_EQUAL_TO                 : StringQueryFilter::OP_EQUAL_TO_IGNORECASE;                 // ==
+      case LTOKEN_LT:            return isCaseSensitive ? StringQueryFilter::OP_LESS_THAN                : StringQueryFilter::OP_LESS_THAN_IGNORECASE;                // <
+      case LTOKEN_GT:            return isCaseSensitive ? StringQueryFilter::OP_GREATER_THAN             : StringQueryFilter::OP_GREATER_THAN_IGNORECASE;             // >
+      case LTOKEN_LEQ:           return isCaseSensitive ? StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO    : StringQueryFilter::OP_LESS_THAN_OR_EQUAL_TO_IGNORECASE;    // <=
+      case LTOKEN_GEQ:           return isCaseSensitive ? StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO : StringQueryFilter::OP_GREATER_THAN_OR_EQUAL_TO_IGNORECASE; // >=
+      case LTOKEN_NEQ:           return isCaseSensitive ? StringQueryFilter::OP_NOT_EQUAL_TO             : StringQueryFilter::OP_NOT_EQUAL_TO_IGNORECASE;             // !=
+      case LTOKEN_STARTSWITH:    return isCaseSensitive ? StringQueryFilter::OP_STARTS_WITH              : StringQueryFilter::OP_STARTS_WITH_IGNORECASE;              // startswith
+      case LTOKEN_ENDSWITH:      return isCaseSensitive ? StringQueryFilter::OP_ENDS_WITH                : StringQueryFilter::OP_ENDS_WITH_IGNORECASE;                // endswith
+      case LTOKEN_CONTAINS:      return isCaseSensitive ? StringQueryFilter::OP_CONTAINS                 : StringQueryFilter::OP_CONTAINS_IGNORECASE;                 // contains
+      case LTOKEN_ISSTARTOF:     return isCaseSensitive ? StringQueryFilter::OP_START_OF                 : StringQueryFilter::OP_START_OF_IGNORECASE;                 // isstartof
+      case LTOKEN_ISENDOF:       return isCaseSensitive ? StringQueryFilter::OP_END_OF                   : StringQueryFilter::OP_END_OF_IGNORECASE;                   // isendof
+      case LTOKEN_ISSUBSTRINGOF: return isCaseSensitive ? StringQueryFilter::OP_SUBSTRING_OF             : StringQueryFilter::OP_SUBSTRING_OF_IGNORECASE;             // issubstringof
+      case LTOKEN_MATCHES:       return isCaseSensitive ? StringQueryFilter::OP_SIMPLE_WILDCARD_MATCH    : StringQueryFilter::OP_SIMPLE_WILDCARD_MATCH_IGNORECASE;    // matches
+      case LTOKEN_MATCHESREGEX:  return isCaseSensitive ? StringQueryFilter::OP_REGULAR_EXPRESSION_MATCH : StringQueryFilter::OP_REGULAR_EXPRESSION_MATCH_IGNORECASE; // matchesregex
       default:                   return StringQueryFilter::NUM_STRING_OPERATORS;        // failure
    }
 }
@@ -1045,7 +1042,7 @@ static ConstQueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer, con
          const LexerToken & fieldNameTok = localToks[1];
          MRETURN_ON_ERROR(fieldNameTok.ParseFieldName(fieldName, valueIndexInField, NULL));
 
-         return MaybeNegate(isNegated, sef.CreateSubexpression(fieldNameTok, valueIndexInField, firstTok, LexerToken(), explicitCastType, LexerToken()));
+         return MaybeNegate(isNegated, sef.CreateSubexpression(fieldNameTok, valueIndexInField, firstTok, LexerToken(), explicitCastType, LexerToken(), true));
       }
       break;
 
@@ -1063,7 +1060,7 @@ static ConstQueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer, con
          const uint32 valueType = valTok.GetValueStringType(explicitCastType);
          if (valueType == B_ANY_TYPE) return B_ERROR("Unable to determine type of value-token at end of subexpression");
 
-         return MaybeNegate(isNegated, sef.CreateSubexpression(fieldNameTok, valueIndexInField, infixOpTok, valTok, valueType, optDefaultValue));
+         return MaybeNegate(isNegated, sef.CreateSubexpression(fieldNameTok, valueIndexInField, infixOpTok, valTok, valueType, optDefaultValue, true));
       }
    }
 
@@ -1090,9 +1087,9 @@ template<typename NQFType> QueryFilterRef GetNumericQueryFilter(const LexerToken
         : QueryFilterRef(new NQFType(fieldName, numOp, GetValueAs<ValType>(valTok.GetValueString()), subIdx));
 }
 
-static QueryFilterRef GetStringQueryFilter(const LexerToken & infixOpTok, const String & fieldName, uint32 subIdx, const LexerToken & valTok, const LexerToken & optDefaultValue)
+static QueryFilterRef GetStringQueryFilter(const LexerToken & infixOpTok, const String & fieldName, uint32 subIdx, const LexerToken & valTok, const LexerToken & optDefaultValue, bool isCaseSensitive)
 {
-   const uint8 stringOp = infixOpTok.GetStringQueryFilterOp(false);  // TODO:  figure out a reasonable syntax to specify the ignore-case options
+   const uint8 stringOp = infixOpTok.GetStringQueryFilterOp(isCaseSensitive);
    if (stringOp == StringQueryFilter::NUM_STRING_OPERATORS) return B_ERROR("Unsupported infix operator for value type string");
 
    StringQueryFilterRef sqf(new StringQueryFilter(fieldName, stringOp, valTok.GetValueString(), subIdx));
@@ -1100,7 +1097,7 @@ static QueryFilterRef GetStringQueryFilter(const LexerToken & infixOpTok, const 
    return sqf;
 }
 
-ConstQueryFilterRef DefaultSubexpressionFactory :: CreateSubexpression(const LexerToken & fieldNameTok, uint32 valueIndexInField, const LexerToken & infixOpTok, const LexerToken & valTok, uint32 valueType, const LexerToken & optDefaultValue) const
+ConstQueryFilterRef DefaultSubexpressionFactory :: CreateSubexpression(const LexerToken & fieldNameTok, uint32 valueIndexInField, const LexerToken & infixOpTok, const LexerToken & valTok, uint32 valueType, const LexerToken & optDefaultValue, bool isCaseSensitive) const
 {
    ConstQueryFilterRef ret;
 
@@ -1151,7 +1148,7 @@ ConstQueryFilterRef DefaultSubexpressionFactory :: CreateSubexpression(const Lex
          const String & fieldName = fieldNameTok.GetValueString();
          switch(valueType)
          {
-            case B_STRING_TYPE: ret = GetStringQueryFilter                    (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+            case B_STRING_TYPE: ret = GetStringQueryFilter                    (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue, isCaseSensitive); break;
             case B_BOOL_TYPE:   ret = GetNumericQueryFilter<BoolQueryFilter>  (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
             case B_DOUBLE_TYPE: ret = GetNumericQueryFilter<DoubleQueryFilter>(infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
             case B_FLOAT_TYPE:  ret = GetNumericQueryFilter<FloatQueryFilter> (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
