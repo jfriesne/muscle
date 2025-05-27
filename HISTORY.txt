@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.72 - Released 5/27/2025
    - Added a Truncate() method to the SeekableDataIO classes, for
      truncating the file's length down to its current seek-position.
    - Added more-efficient subclass-specific implementations of

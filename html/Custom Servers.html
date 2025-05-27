@@ -1,7 +1,7 @@
 <HTML>
 <HEAD>
    <H1>Implementing a Custom Server with MUSCLE</H1>
-   <H4>v9.71 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 4/24/2025</H4>
+   <H4>v9.72 / Jeremy Friesner / Meyer Sound Laboratories Inc (jaf@meyersound.com) 5/27/2025</H4>
 </HEAD>
 <BODY bgcolor=#ffffff>
 <H2>Introduction</H2>
@@ -25,7 +25,7 @@ The AbstractReflectSession class is an abstract base class, each object of which
 <li>
 <i>virtual status_t AttachedToServer();</i>
 <p>
-   When the server receives a new TCP connection from a client, it uses the factory object passed in to its constructor to create a new AbstractReflectSession object.  After the session object is created and initialized, this method is called on it.  Here is where you can do any setup work that needs to be done for your new client, and return B_NO_ERROR if everything is okay.  If something has gone horribly wrong, you can return an error code (e.g. B_ERROR or B_BAD_OBJECT or similar), and the connection to the client will be closed, and this session object deleted.  Be sure to call your superclass's AttachedToServer() method as the first thing in your implementation, otherwise your session won't get set up properly!
+   When the server receives a new TCP connection from a client, it uses a RequestSessionFactory object to create a new AbstractReflectSession object whose job is to manage the TCP connection.  After the AbstractReflectSession object is created and initialized, this method is called on it.  Here is where you can do any setup work that needs to be done for your new client, and return B_NO_ERROR if everything is okay.  If something has gone horribly wrong, you can return an error code (e.g. B_ERROR or B_BAD_OBJECT or similar), and the connection to the client will be closed, and this session object deleted.  Be sure to call your superclass's AttachedToServer() method as the first thing in your implementation, otherwise your session won't get set up properly!
 </li>
 <p>
 <li>
