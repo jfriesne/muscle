@@ -430,10 +430,10 @@ bool StringQueryFilter :: MatchesString(const String & s) const
       case OP_START_OF_IGNORECASE:                 return _value.StartsWith(s);
       case OP_END_OF_IGNORECASE:                   return _value.EndsWith(s);
       case OP_SUBSTRING_OF_IGNORECASE:             return (_value.IndexOf(s) >= 0);
-      case OP_SIMPLE_WILDCARD_MATCH:               return DoMatch(s, false);
-      case OP_SIMPLE_WILDCARD_MATCH_IGNORECASE:    return DoMatch(s, true);
-      case OP_REGULAR_EXPRESSION_MATCH:            return DoMatch(s, false);
-      case OP_REGULAR_EXPRESSION_MATCH_IGNORECASE: return DoMatch(s, true);
+      case OP_SIMPLE_WILDCARD_MATCH:               return DoMatch(s);
+      case OP_SIMPLE_WILDCARD_MATCH_IGNORECASE:    return DoMatch(s);
+      case OP_REGULAR_EXPRESSION_MATCH:            return DoMatch(s);
+      case OP_REGULAR_EXPRESSION_MATCH_IGNORECASE: return DoMatch(s);
       default:                                     /* do nothing */  break;
    }
    return false;
@@ -445,7 +445,7 @@ void StringQueryFilter :: FreeMatcher()
    _matcher = NULL;
 }
 
-bool StringQueryFilter :: DoMatch(const String & s, bool isIgnoreCase) const
+bool StringQueryFilter :: DoMatch(const String & s) const
 {
    if (_matcher == NULL)
    {

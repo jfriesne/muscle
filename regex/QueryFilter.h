@@ -1135,7 +1135,7 @@ public:
 
 private:
    void FreeMatcher();
-   MUSCLE_NODISCARD bool DoMatch(const String & s, bool isIgnoreCase) const;
+   MUSCLE_NODISCARD bool DoMatch(const String & s) const;
 
    String _value;
    uint8 _op;
