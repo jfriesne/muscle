@@ -25,6 +25,10 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
+#if defined(WIN32)
+   setvbuf(stdout,NULL,_IONBF,0); // Disable buffering of stdout so example_6_child_process.exe will see output ASAP
+#endif
+
    PrintExampleDescription(stdout);
 
    const int tcpPort = 9999;

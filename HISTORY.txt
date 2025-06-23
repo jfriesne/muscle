@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Windows implementation of ChildProcessDataIO now supports the
+     CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_* option-flags.
+
 9.72 - Released 5/27/2025
    - Added a Truncate() method to the SeekableDataIO classes, for
      truncating the file's length down to its current seek-position.

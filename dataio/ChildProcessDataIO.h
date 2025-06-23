@@ -15,9 +15,9 @@ namespace muscle {
 // Flags that can be passed as a bit-chord to LaunchChildProcess()
 enum {
    CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY = 0,  /**< if set, we'll use forkpty() instead of fork() (ignored under Windows) */
-   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN,    /**< if set, we won't redirect from the child process's stdin (supported by fork() implementation only, for now) */
-   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT,   /**< if set, we won't capture and return output from the child process's stdout (supported by fork() implementation only, for now) */
-   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR,   /**< if set, we won't capture and return output from the child process's stderr (supported by fork() implementation only, for now) */
+   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN,    /**< if set, we won't redirect from the child process's stdin (not supported by the forkpty() implementation only, for now) */
+   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT,   /**< if set, we won't capture and return output from the child process's stdout (not supported by the forkpty() implementation only, for now) */
+   CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR,   /**< if set, we won't capture and return output from the child process's stderr (not supported by the forkpty() implementation only, for now) */
    CHILD_PROCESS_LAUNCH_FLAG_WIN32_HIDE_GUI,   /**< Windows only:  if set, the child process's GUI windows will be hidden */
    CHILD_PROCESS_LAUNCH_FLAG_INHERIT_FDS,      /**< If set, we will allow the child process to inherit file descriptors from this process. */
    NUM_CHILD_PROCESS_LAUNCH_FLAGS              /**< Guard value */
