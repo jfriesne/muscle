@@ -78,9 +78,10 @@ static void SafeCloseHandle(::HANDLE & h)
    }
 }
 
-static HANDLE GetBitBucketHandle(bool isForWrite)
+static HANDLE GetBitBucketHandle(::HANDLE & h, bool isForWrite)
 {
-   return CreateFileA("NUL", isForWrite?GENERIC_WRITE:GENERIC_READ, isForWrite?FILE_SHARE_WRITE:FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+   if (h == INVALID_HANDLE_VALUE) CreateFileA("NUL", isForWrite?GENERIC_WRITE:GENERIC_READ, isForWrite?FILE_SHARE_WRITE:FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+   return h;
 }
 #endif
 
@@ -162,16 +163,16 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                PROCESS_INFORMATION piProcInfo;
                memset(&piProcInfo, 0, sizeof(piProcInfo));
 
+               ::HANDLE bbIn = INVALID_HANDLE_VALUE, bbOut = INVALID_HANDLE_VALUE;  // demand-allocated
                STARTUPINFOA siStartInfo;
                {
                   const bool hideChildGUI = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_WIN32_HIDE_GUI);
 
                   memset(&siStartInfo, 0, sizeof(siStartInfo));
                   siStartInfo.cb          = sizeof(siStartInfo);
-
-                  siStartInfo.hStdError   = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR) ? GetBitBucketHandle(true) : childStdoutWrite;
-                  siStartInfo.hStdOutput  = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT) ? GetBitBucketHandle(true) : childStdoutWrite;
-                  siStartInfo.hStdInput   = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN)  ? GetBitBucketHandle(false) : childStdinRead;
+                  siStartInfo.hStdError   = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR) ? GetBitBucketHandle(bbOut, true) : childStdoutWrite;
+                  siStartInfo.hStdOutput  = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT) ? GetBitBucketHandle(bbOut, true) : childStdoutWrite;
+                  siStartInfo.hStdInput   = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN)  ? GetBitBucketHandle(bbIn, false) : childStdinRead;
                   siStartInfo.dwFlags     = STARTF_USESTDHANDLES | (hideChildGUI ? STARTF_USESHOWWINDOW : 0);
                   siStartInfo.wShowWindow = hideChildGUI ? SW_HIDE : 0;
                }
@@ -244,6 +245,9 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                {
                   if (CreateProcessA((argc>=0)?(((const char **)args)[0]):NULL, (char *)cmd(), NULL, NULL, TRUE, 0, envVars, optDirectory, &siStartInfo, &piProcInfo))
                   {
+                     SafeCloseHandle(bbIn);   // don't need these after the child process is launched
+                     SafeCloseHandle(bbOut);
+
                      delete [] newBlock;
                      newBlock = NULL;  // void possible double-delete below
 
@@ -267,6 +271,9 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                   }
                   else ret = B_ERRNO;
                }
+
+               SafeCloseHandle(bbIn);
+               SafeCloseHandle(bbOut);
 
                delete [] newBlock;
             }
