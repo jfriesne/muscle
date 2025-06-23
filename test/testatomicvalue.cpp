@@ -117,7 +117,7 @@ int main(int argc, char ** argv)
 
    const uint64 duration = isFromScript ? SecondsToMicros(5) : MinutesToMicros(1);
 
-   LogTime(MUSCLE_LOG_INFO, "AtomicValue torture test running; will end after %s.\n", GetHumanReadableTimeIntervalString(duration)());
+   LogTime(MUSCLE_LOG_INFO, "AtomicValue torture test running; will end after %s.\n", GetHumanReadableUnsignedTimeIntervalString(duration)());
 
    status_t ret;
    if ((writerThread.StartInternalThread().IsOK(ret))&&(readerThread.StartInternalThread().IsOK(ret)))

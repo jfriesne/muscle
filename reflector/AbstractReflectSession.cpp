@@ -236,7 +236,7 @@ ClientConnectionClosed()
    if (_autoReconnectDelay == MUSCLE_TIME_NEVER) return true;  // true == okay to remove this session
    else
    {
-      if (_wasConnected) LogTime(MUSCLE_LOG_DEBUG, "%s:  Connection severed, will auto-reconnect in [%s]\n", GetSessionDescriptionString()(), GetHumanReadableTimeIntervalString(_autoReconnectDelay)());
+      if (_wasConnected) LogTime(MUSCLE_LOG_DEBUG, "%s:  Connection severed, will auto-reconnect in [%s]\n", GetSessionDescriptionString()(), GetHumanReadableUnsignedTimeIntervalString(_autoReconnectDelay)());
       PlanForReconnect();
       return false;
    }
@@ -506,7 +506,7 @@ PrintFactoriesInfo(const OutputPrinter & p) const
       p.printf("   %s #" UINT32_FORMAT_SPEC " is listening at %s (%sAcceptCount=" UINT32_FORMAT_SPEC, f.GetTypeName(), f.GetFactoryID(), iter.GetKey().ToString()(), f.IsReadyToAcceptSessions()?"ReadyToAcceptSessions, ":"", f.GetAcceptCount());
 
       const uint64 ts = f.GetMostRecentAcceptTimeStamp();
-      if (ts != MUSCLE_TIME_NEVER) p.printf(" LastAccept: %s ago)\n", GetHumanReadableTimeIntervalString(now-ts, 1)());
+      if (ts != MUSCLE_TIME_NEVER) p.printf(" LastAccept: %s ago)\n", GetHumanReadableUnsignedTimeIntervalString(now-ts, 1)());
                               else p.printf(")\n");
    }
 }
@@ -553,8 +553,8 @@ PrintSessionsInfo(const OutputPrinter & p) const
       if (ars->IsReadyForInput())   stateStr = stateStr.WithAppendedWord("IsReadyForInput",  ", ");
       if (ars->HasBytesToOutput())  stateStr = stateStr.WithAppendedWord("HasBytesToOutput", ", ");
       if (ars->WasConnected())      stateStr = stateStr.WithAppendedWord("WasConnected",     ", ");
-      if (ars->GetMostRecentInputTimeStamp()  != MUSCLE_TIME_NEVER) stateStr = stateStr.WithAppendedWord(String("LastInput: %1 ago").Arg(GetHumanReadableTimeIntervalString( now-ars->GetMostRecentInputTimeStamp(),  1)), ", ");
-      if (ars->GetMostRecentOutputTimeStamp() != MUSCLE_TIME_NEVER) stateStr = stateStr.WithAppendedWord(String("LastOutput: %1 ago").Arg(GetHumanReadableTimeIntervalString(now-ars->GetMostRecentOutputTimeStamp(), 1)), ", ");
+      if (ars->GetMostRecentInputTimeStamp()  != MUSCLE_TIME_NEVER) stateStr = stateStr.WithAppendedWord(String("LastInput: %1 ago").Arg(GetHumanReadableSignedTimeIntervalString( now-ars->GetMostRecentInputTimeStamp(),  1)), ", ");
+      if (ars->GetMostRecentOutputTimeStamp() != MUSCLE_TIME_NEVER) stateStr = stateStr.WithAppendedWord(String("LastOutput: %1 ago").Arg(GetHumanReadableSignedTimeIntervalString(now-ars->GetMostRecentOutputTimeStamp(), 1)), ", ");
       if (stateStr.HasChars()) stateStr = stateStr.WithPrepend(", ");
 
       p.printf("  Session [%s] (rfd=%i,wfd=%i) is [%s]:  (" UINT32_FORMAT_SPEC " outgoing Messages, " UINT32_FORMAT_SPEC " Message-bytes, " UINT32_FORMAT_SPEC " tables, " UINT32_FORMAT_SPEC " nodes, " UINT32_FORMAT_SPEC " node-bytes%s)\n", iter.GetKey()->Cstr(), ars->GetSessionReadSelectSocket().GetFileDescriptor(), ars->GetSessionWriteSelectSocket().GetFileDescriptor(), ars->GetSessionDescriptionString()(), numOutMessages, numOutBytes, numCachedSubscribersTables, numNodes, numNodeBytes, stateStr());

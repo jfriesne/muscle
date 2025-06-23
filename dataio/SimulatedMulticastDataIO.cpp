@@ -499,7 +499,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
             const uint64 timeSinceMicros = (now-iter.GetValue());
             if (timeSinceMicros >= _timeoutPeriodMicros)
             {
-               LogTime(MUSCLE_LOG_DEBUG, "Dropping moribund SimulatedMulticast member at [%s], " UINT32_FORMAT_SPEC " members remain in group [%s] (timeSince=%s)\n", destIAP.ToString()(), _knownMembers.GetNumItems()-1, _multicastAddress.ToString()(), GetHumanReadableTimeIntervalString(timeSinceMicros)());
+               LogTime(MUSCLE_LOG_DEBUG, "Dropping moribund SimulatedMulticast member at [%s], " UINT32_FORMAT_SPEC " members remain in group [%s] (timeSince=%s)\n", destIAP.ToString()(), _knownMembers.GetNumItems()-1, _multicastAddress.ToString()(), GetHumanReadableUnsignedTimeIntervalString(timeSinceMicros)());
                (void) _knownMembers.Remove(destIAP);
             }
             else if (timeSinceMicros >= _halfTimeoutPeriodMicros) (void) EnqueueOutgoingMulticastControlCommand(SMDIO_COMMAND_PING, now, destIAP);

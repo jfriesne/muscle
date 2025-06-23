@@ -2,7 +2,7 @@
 #include "util/Socket.h"
 #include "util/SocketMultiplexer.h"
 #include "util/NetworkUtilityFunctions.h"  // for CreateAcceptingSocket(), etc
-#include "util/TimeUtilityFunctions.h"     // for GetHumanReadableTimeIntervalString()
+#include "util/TimeUtilityFunctions.h"     // for GetHumanReadableUnsignedTimeIntervalString()
 
 using namespace muscle;
 
@@ -63,7 +63,7 @@ int main(int argc, char ** argv)
       const uint64 nowBeforeWaitMicros = GetRunTime64();
       (void) socketMux.WaitForEvents();
       const uint64 nowAfterWaitMicros = GetRunTime64();
-      printf("WaitForEvents() returned after %s\n", GetHumanReadableTimeIntervalString(nowAfterWaitMicros-nowBeforeWaitMicros)());
+      printf("WaitForEvents() returned after %s\n", GetHumanReadableUnsignedTimeIntervalString(nowAfterWaitMicros-nowBeforeWaitMicros)());
 
       // See if any new TCP connection requests have come in
       if (socketMux.IsSocketReadyForRead(acceptSock.GetFileDescriptor()))

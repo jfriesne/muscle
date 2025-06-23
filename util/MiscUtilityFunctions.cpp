@@ -603,12 +603,12 @@ void HandleStandardDaemonArgs(const Message & args)
 
    if (args.FindString("dnscache", &value).IsOK())
    {
-      const uint64 micros = ParseHumanReadableTimeIntervalString(value);
+      const uint64 micros = ParseHumanReadableUnsignedTimeIntervalString(value);
       if (micros > 0)
       {
          uint32 maxCacheSize = 1024;
          if (args.FindString("dnscachesize", &value).IsOK()) maxCacheSize = (uint32) atol(value);
-         LogTime(MUSCLE_LOG_INFO, "Setting DNS cache parameters to " UINT32_FORMAT_SPEC " entries, expiration period is %s\n", maxCacheSize, GetHumanReadableTimeIntervalString(micros)());
+         LogTime(MUSCLE_LOG_INFO, "Setting DNS cache parameters to " UINT32_FORMAT_SPEC " entries, expiration period is %s\n", maxCacheSize, GetHumanReadableUnsignedTimeIntervalString(micros)());
          SetHostNameCacheSettings(maxCacheSize, micros);
       }
       else LogTime(MUSCLE_LOG_ERROR, "Unable to parse time interval string [%s] for dnscache argument!\n", value);

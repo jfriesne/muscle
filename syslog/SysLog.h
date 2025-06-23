@@ -595,16 +595,24 @@ MUSCLE_NODISCARD uint64 ParseHumanReadableTimeString(const String & str, uint32 
   *   h  = hours
   *   d  = days
   *   w  = weeks
-  * As a special case, the string "forever" will parse to MUSCLE_TIME_NEVER.
   * If no suffix is supplied, the units are presumed to be in seconds.
   * @param str The string to parse
-  * @returns a time interval value, in microseconds.
+  * @returns an unsigned time interval value, in microseconds.
+  * @note As a special case, the string "forever" will parse to MUSCLE_TIME_NEVER (aka the largest possible uint64).
   */
-MUSCLE_NODISCARD uint64 ParseHumanReadableTimeIntervalString(const String & str);
+MUSCLE_NODISCARD uint64 ParseHumanReadableUnsignedTimeIntervalString(const String & str);
+
+/** Works the same as ParseHumanReadableUnsignedTimeIntervalString(), except that it returns an
+  * int64 instead of a uint64, and if the string starts with a - sign, a negative value will be returned.
+  * @param str The string to parse
+  * @returns a signed time-interval value, in microseconds
+  * @note As a special case, the string "forever" will parse to the largest possible int64.
+  */
+MUSCLE_NODISCARD int64 ParseHumanReadableSignedTimeIntervalString(const String & str);
 
 /** Given a time interval specified in microseconds, returns a human-readable
   * string representing that time, eg "3 weeks, 2 days, 1 hour, 25 minutes, 2 seconds, 350 microseconds"
-  * @param micros The number of microseconds to describe
+  * @param micros The number of microseconds to describe, as an unsigned 64-bit integer.
   * @param maxClauses The maximum number of clauses to allow in the returned string.  For example, passing this in
   *                   as 1 might return "3 weeks", while passing this in as two might return "3 weeks, 2 days".
   *                   Default value is MUSCLE_NO_LIMIT, indicating that no maximum should be enforced.
@@ -619,12 +627,12 @@ MUSCLE_NODISCARD uint64 ParseHumanReadableTimeIntervalString(const String & str)
   *                position to be rounded up to the nearest unit, rather than always being rounded down.
   * @returns a human-readable time interval description string.
   */
-String GetHumanReadableTimeIntervalString(uint64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL, bool roundUp = false);
+String GetHumanReadableUnsignedTimeIntervalString(uint64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL, bool roundUp = false);
 
-/** Works the same as GetHumanReadableTimeIntervalString() except it interprets the passed-in microseconds value
+/** Works the same as GetHumanReadableUnsignedTimeIntervalString() except it interprets the passed-in microseconds value
   * as a signed integer rather than unsigned, and thus will yield a useful result for negative values
   * (eg "-3 seconds" rather than "54893 years").
-  * @param micros The number of microseconds to describe
+  * @param micros The number of microseconds to describe, as a signed 64-bit integer.
   * @param maxClauses The maximum number of clauses to allow in the returned string.  For example, passing this in
   *                   as 1 might return "3 weeks", while passing this in as two might return "3 weeks, 2 days".
   *                   Default value is MUSCLE_NO_LIMIT, indicating that no maximum should be enforced.
@@ -640,13 +648,6 @@ String GetHumanReadableTimeIntervalString(uint64 micros, uint32 maxClauses = MUS
   * @returns a human-readable time interval description string.
   */
 String GetHumanReadableSignedTimeIntervalString(int64 micros, uint32 maxClauses = MUSCLE_NO_LIMIT, uint64 minPrecisionMicros = 0, bool * optRetIsAccurate = NULL, bool roundUp = false);
-
-/** Works the same as ParseHumanReadableTimeIntervalString(), except that if the string
-  * starts with a - sign, a negative value will be returned.
-  * @param str The string to parse
-  * @returns a time interval value, in microseconds.
-  */
-MUSCLE_NODISCARD int64 ParseHumanReadableSignedTimeIntervalString(const String & str);
 
 /** @} */ // end of systemlog doxygen group
 

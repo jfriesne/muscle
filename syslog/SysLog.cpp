@@ -1127,7 +1127,7 @@ static uint64 GetTimeUnitMultiplier(const String & l, uint64 defaultValue)
    return multiplier;
 }
 
-uint64 ParseHumanReadableTimeIntervalString(const String & s)
+uint64 ParseHumanReadableUnsignedTimeIntervalString(const String & s)
 {
    if ((s.EqualsIgnoreCase("forever"))||(s.EqualsIgnoreCase("never"))||(s.StartsWithIgnoreCase("inf"))) return MUSCLE_TIME_NEVER;
 
@@ -1147,7 +1147,7 @@ uint64 ParseHumanReadableTimeIntervalString(const String & s)
    while((*afterLetters)&&((*afterLetters==',')||(muscleIsAlpha(*afterLetters)||(muscleIsSpace(*afterLetters))))) afterLetters++;
 
    uint64 ret = IsFloatingPointNumber(digits) ? (uint64)(atof(digits)*multiplier) : (Atoull(digits)*multiplier);
-   if (*afterLetters) ret += ParseHumanReadableTimeIntervalString(afterLetters);
+   if (*afterLetters) ret += ParseHumanReadableUnsignedTimeIntervalString(afterLetters);
    return ret;
 }
 
@@ -1156,11 +1156,11 @@ static const int64 _largestSigned64BitValue = 0x7FFFFFFFFFFFFFFFLL;  // closest 
 int64 ParseHumanReadableSignedTimeIntervalString(const String & s)
 {
    const bool isNegative = s.StartsWith('-');
-   const uint64 unsignedVal = ParseHumanReadableTimeIntervalString(isNegative ? s.Substring(1) : s);
+   const uint64 unsignedVal = ParseHumanReadableUnsignedTimeIntervalString(isNegative ? s.Substring(1) : s);
    return (unsignedVal == MUSCLE_TIME_NEVER) ? _largestSigned64BitValue : (isNegative ? -((int64)unsignedVal) : ((int64)unsignedVal));
 }
 
-String GetHumanReadableTimeIntervalString(uint64 intervalUS, uint32 maxClauses, uint64 minPrecision, bool * optRetIsAccurate, bool roundUp)
+String GetHumanReadableUnsignedTimeIntervalString(uint64 intervalUS, uint32 maxClauses, uint64 minPrecision, bool * optRetIsAccurate, bool roundUp)
 {
    if (intervalUS == MUSCLE_TIME_NEVER) return "forever";
 
@@ -1182,7 +1182,7 @@ String GetHumanReadableTimeIntervalString(uint64 intervalUS, uint32 maxClauses, 
 
    if (leftover > 0)
    {
-      if (willAddMoreClauses) ret += GetHumanReadableTimeIntervalString(leftover, maxClauses-1, minPrecision, optRetIsAccurate).WithPrepend(", ");
+      if (willAddMoreClauses) ret += GetHumanReadableUnsignedTimeIntervalString(leftover, maxClauses-1, minPrecision, optRetIsAccurate).WithPrepend(", ");
                          else if (optRetIsAccurate) *optRetIsAccurate = false;
    }
    else if (optRetIsAccurate) *optRetIsAccurate = true;
@@ -1196,7 +1196,7 @@ String GetHumanReadableSignedTimeIntervalString(int64 intervalUS, uint32 maxClau
 
    String ret;
    if (intervalUS < 0) ret += '-';
-   return ret+GetHumanReadableTimeIntervalString(muscleAbs(intervalUS), maxClauses, minPrecision, optRetIsAccurate, roundUp);
+   return ret+GetHumanReadableUnsignedTimeIntervalString(muscleAbs(intervalUS), maxClauses, minPrecision, optRetIsAccurate, roundUp);
 }
 
 } // end namespace muscle

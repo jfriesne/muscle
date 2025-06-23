@@ -34,14 +34,14 @@ int main(int argc, char ** argv)
             while(tok() != NULL) count++;
          }
          const uint64 runTime = GetRunTime64()-startTime;
-         LogTime(MUSCLE_LOG_INFO, "Run #" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ": Tokenized " UINT32_FORMAT_SPEC " chars into " UINT32_FORMAT_SPEC " strings over [%s], speed was %.0f chars/usec\n", i+1, numRuns, BIGBUFSIZE, count, GetHumanReadableTimeIntervalString(runTime, 1)(), ((double)(BIGBUFSIZE))/((runTime>0)?runTime:1LL));
+         LogTime(MUSCLE_LOG_INFO, "Run #" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ": Tokenized " UINT32_FORMAT_SPEC " chars into " UINT32_FORMAT_SPEC " strings over [%s], speed was %.0f chars/usec\n", i+1, numRuns, BIGBUFSIZE, count, GetHumanReadableUnsignedTimeIntervalString(runTime, 1)(), ((double)(BIGBUFSIZE))/((runTime>0)?runTime:1LL));
          totalChars       += BIGBUFSIZE;
          totalElapsedTime += runTime;
          delete [] tempBuf;
       }
 
       const uint64 averageRunTime = totalElapsedTime/numRuns;
-      LogTime(MUSCLE_LOG_INFO, "Average run time over " UINT32_FORMAT_SPEC " runs was [%s], average speed was %.0f chars/usec\n", numRuns, GetHumanReadableTimeIntervalString(averageRunTime, 1)(), ((double)(totalChars))/((totalElapsedTime>0)?totalElapsedTime:1LL));
+      LogTime(MUSCLE_LOG_INFO, "Average run time over " UINT32_FORMAT_SPEC " runs was [%s], average speed was %.0f chars/usec\n", numRuns, GetHumanReadableUnsignedTimeIntervalString(averageRunTime, 1)(), ((double)(totalChars))/((totalElapsedTime>0)?totalElapsedTime:1LL));
    }
 
    const bool isFromScript = ((argc >= 2)&&(strcmp(argv[1], "fromscript") == 0));

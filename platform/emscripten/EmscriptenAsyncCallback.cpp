@@ -6,7 +6,7 @@
 #endif
 
 #include "platform/emscripten/EmscriptenAsyncCallback.h"
-#include "util/String.h"  // So we can call GetHumanReadableTimeIntervalString()
+#include "util/String.h"  // So we can call GetHumanReadableUnsignedTimeIntervalString()
 
 namespace muscle {
 
@@ -71,7 +71,7 @@ bool EmscriptenAsyncCallback :: AsyncCallbackStub :: AsyncCallback()
             const int64 delta = now-_callbackTime;
             if (delta > MillisToMicros(10))
             {
-               LogTime(MUSCLE_LOG_WARNING, "AsyncCallback %p is late by %s (after " UINT32_FORMAT_SPEC " on-time callbacks)\n", this, GetHumanReadableTimeIntervalString(delta)(), _timingOkayCount);
+               LogTime(MUSCLE_LOG_WARNING, "AsyncCallback %p is late by %s (after " UINT32_FORMAT_SPEC " on-time callbacks)\n", this, GetHumanReadableUnsignedTimeIntervalString(delta)(), _timingOkayCount);
                _timingOkayCount = 0;
             }
             else _timingOkayCount++;

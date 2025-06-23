@@ -209,7 +209,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
                if (g_prevReceiveTime == 0) g_prevReceiveTime = now;
                const int64 timeSince = (now-g_prevReceiveTime);
                if (timeSince < 1000) sinceString = "<1 millisecond";
-                                else sinceString = GetHumanReadableTimeIntervalString(now-g_prevReceiveTime, 1);
+                                else sinceString = GetHumanReadableUnsignedTimeIntervalString(now-g_prevReceiveTime, 1);
 
                if (g_verifySpam) SanityCheckSpamPacket(buf, ret.GetByteCount());
                if (g_printReceivedBytes)
@@ -485,8 +485,8 @@ int hextermmain(const char * argv0, const Message & args)
 #endif
    if (args.HasName("delay"))
    {
-      g_postSendDelay = ParseHumanReadableTimeIntervalString(args.GetString("delay"));
-      LogTime(MUSCLE_LOG_INFO, "Setting post-send delay to %s\n", GetHumanReadableTimeIntervalString(g_postSendDelay)());
+      g_postSendDelay = ParseHumanReadableUnsignedTimeIntervalString(args.GetString("delay"));
+      LogTime(MUSCLE_LOG_INFO, "Setting post-send delay to %s\n", GetHumanReadableUnsignedTimeIntervalString(g_postSendDelay)());
    }
 
    g_printReceivedBytes = (args.HasName("quietreceive") == false);

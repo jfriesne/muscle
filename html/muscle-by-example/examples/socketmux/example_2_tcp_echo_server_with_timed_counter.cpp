@@ -2,7 +2,7 @@
 #include "util/Socket.h"
 #include "util/SocketMultiplexer.h"
 #include "util/NetworkUtilityFunctions.h"  // for CreateAcceptingSocket(), etc
-#include "util/TimeUtilityFunctions.h"     // for GetHumanReadableTimeIntervalString()
+#include "util/TimeUtilityFunctions.h"     // for GetHumanReadableUnsignedTimeIntervalString()
 
 using namespace muscle;
 

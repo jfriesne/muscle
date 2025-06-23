@@ -7,6 +7,10 @@ key:  - new feature
 
    - Windows implementation of ChildProcessDataIO now supports the
      CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_* option-flags.
+   o Renamed GetHumanReadableTimeIntervalString() to
+     GetHumanReadableUnsignedTimeIntervalString(), for clarity.
+   o Renamed ParseHumanReadableTimeIntervalString() to
+     ParseHumanReadableUnsignedTimeIntervalString(), for clarity.
 
 9.72 - Released 5/27/2025
    - Added a Truncate() method to the SeekableDataIO classes, for

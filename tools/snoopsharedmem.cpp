@@ -34,8 +34,8 @@ int snoopsharedmemmain(const Message & args)
    if (isClear) LogTime(MUSCLE_LOG_INFO, "Will zero out the shared memory region after printing it\n");
 
    const char * delayStr = args.GetCstr("delay");
-   const uint64 delayMicros = delayStr ? ParseHumanReadableTimeIntervalString(delayStr) : MillisToMicros(100);
-   if (delayStr) LogTime(MUSCLE_LOG_INFO, "Using loop-delay of:  %s\n", GetHumanReadableTimeIntervalString(delayMicros)());
+   const uint64 delayMicros = delayStr ? ParseHumanReadableUnsignedTimeIntervalString(delayStr) : MillisToMicros(100);
+   if (delayStr) LogTime(MUSCLE_LOG_INFO, "Using loop-delay of:  %s\n", GetHumanReadableUnsignedTimeIntervalString(delayMicros)());
 
    status_t ret;
    SharedMemory m;

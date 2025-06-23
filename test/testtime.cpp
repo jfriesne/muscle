@@ -63,7 +63,7 @@ int main(int argc, char ** argv)
             const uint64 precision = p ? Atoull(p) : 0;
             printf("  You entered " UINT64_FORMAT_SPEC " microseconds, minimum precision " UINT64_FORMAT_SPEC " microseconds.\n", micros, precision);
             bool isAccurate;
-            const String s = GetHumanReadableTimeIntervalString(micros, MUSCLE_NO_LIMIT, precision, &isAccurate);
+            const String s = GetHumanReadableUnsignedTimeIntervalString(micros, MUSCLE_NO_LIMIT, precision, &isAccurate);
             printf("Result (%s) : %s\n", isAccurate?"Exact":"Approximate", s());
          }
       }
@@ -78,9 +78,9 @@ int main(int argc, char ** argv)
       for (uint64 i=0; i<=TEN_YEARS_IN_MICROSECONDS; i+=delta)
       {
          bool isAccurate;
-         const String s = GetHumanReadableTimeIntervalString(i, MUSCLE_NO_LIMIT, 0, &isAccurate);
+         const String s = GetHumanReadableUnsignedTimeIntervalString(i, MUSCLE_NO_LIMIT, 0, &isAccurate);
          if (isAccurate == false) printf("Error, string [%s] is not accurate for i=" UINT64_FORMAT_SPEC ".\n", s(), i);
-         const uint64 t = ParseHumanReadableTimeIntervalString(s);
+         const uint64 t = ParseHumanReadableUnsignedTimeIntervalString(s);
          //printf(" " UINT64_FORMAT_SPEC " -> %s -> " UINT64_FORMAT_SPEC "\n", i, s(), t);
          if (t != i) printf("Error, Recovered time " UINT64_FORMAT_SPEC " does not match original time " UINT64_FORMAT_SPEC " (string=[%s])\n", t, i, s());
          delta++;

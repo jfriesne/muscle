@@ -602,7 +602,7 @@ void ReflectServer :: HandleEvents()
                        if ((wroteBytes.GetByteCount() > 0)||(session->_maxOutputChunk == 0)) session->_pendingLastByteOutputAt = now;  // reset the moribundness-timer
                   else if (now-session->_pendingLastByteOutputAt > session->_outputStallLimit)
                   {
-                     if (_doLogging) LogTime(MUSCLE_LOG_WARNING, "Connection for %s timed out (output stall, no data movement for %s).\n", session->GetSessionDescriptionString()(), GetHumanReadableTimeIntervalString(session->_outputStallLimit)());
+                     if (_doLogging) LogTime(MUSCLE_LOG_WARNING, "Connection for %s timed out (output stall, no data movement for %s).\n", session->GetSessionDescriptionString()(), GetHumanReadableUnsignedTimeIntervalString(session->_outputStallLimit)());
                      (void) DisconnectSession(session);
                   }
                }
