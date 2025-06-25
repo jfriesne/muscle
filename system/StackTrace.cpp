@@ -1254,10 +1254,11 @@ void StackWalker :: OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUs
 #endif  // Windows stack trace code
 
 StackTrace :: StackTrace(const StackTrace & rhs)
+   : RefCountable()
 #if defined(MUSCLE_USE_BACKTRACE)
-   : _stackFrames(rhs._stackFrames)
+   , _stackFrames(rhs._stackFrames)
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
-   : _stackWalkerState(rhs._stackWalkerState)
+   , _stackWalkerState(rhs._stackWalkerState)
 #endif
 {
    // empty
