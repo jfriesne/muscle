@@ -685,6 +685,18 @@ static inline uint32 GetInsecurePseudoRandomNumber(uint32 maxVal = MUSCLE_NO_LIM
   */
 String GetUnmangledSymbolName(const char * mangledName);
 
+/** Given a number of bytes, returns a human-readable string represnting
+  * that number succinctly (eg "5 bytes" or "5kB" or "5MB" or "5GB")
+  * @param numBytes The number of bytes to represent as a string
+  * @note the returned value will not be exact, due to rounding to the nearest kB/MB/GB/etc
+  */
+String GetBytesSizeString(uint64 numBytes);
+
+/** Given a string similar to those returned by GetBytesSizeString(), returns the corresponding number of bytes.
+  * @param s A string similar to those returend by GetBytesSizeString().
+  */
+MUSCLE_NODISCARD uint64 ParseBytesSizeString(const String & s);
+
 /** @} */ // end of miscutilityfunctions doxygen group
 
 } // end namespace muscle

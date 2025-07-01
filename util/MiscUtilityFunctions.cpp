@@ -1303,4 +1303,27 @@ String GetUnmangledSymbolName(const char * mangled_name)
    return (doubleColonIdx >= 0) ? ret.Substring(doubleColonIdx+2) : std_move_if_available(ret);   // remove namespace prefix
 }
 
+String GetBytesSizeString(uint64 val)
+{
+   const double b = 1000.0;  // note that we defined 1KB=1000 bytes, not 1024 bytes!
+        if (val < b)     return String("%1 bytes").Arg(val);
+   else if (val < b*b)   return String("%1kB").Arg(((double)val)/b,       "%.1f");
+   else if (val < b*b*b) return String("%1MB").Arg(((double)val)/(b*b),   "%.1f");
+   else                  return String("%1GB").Arg(((double)val)/(b*b*b), "%.2f");
+}
+
+uint64 ParseBytesSizeString(const String & ss)
+{
+   const String s = ss.Trimmed();
+
+   const uint64 b = 1000;  // note that we defined 1KB=1000 bytes, not 1024 bytes!
+   uint64 base = 1;  // default is bytes
+
+        if ((s.ContainsIgnoreCase("kB"))||(s.EndsWith("k"))) base = b;
+   else if ((s.ContainsIgnoreCase("MB"))||(s.EndsWith("M"))) base = b*b;
+   else if ((s.ContainsIgnoreCase("GB"))||(s.EndsWith("G"))) base = b*b*b;
+
+   return s.Contains(".") ? ((uint64)(atof(s())*base)) : Atoull(s())*base;  // avoid floating point math if possible
+}
+
 } // end namespace muscle

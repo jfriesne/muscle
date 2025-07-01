@@ -7,6 +7,8 @@ key:  - new feature
 
    - Windows implementation of ChildProcessDataIO now supports the
      CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_* option-flags.
+   - Added GetBytesSizeString() and ParseBytesSizeString() functions
+     to the MiscUtilityFunctions.{cpp,h} API.
    o Renamed GetHumanReadableTimeIntervalString() to
      GetHumanReadableUnsignedTimeIntervalString(), for clarity.
    o Renamed ParseHumanReadableTimeIntervalString() to
