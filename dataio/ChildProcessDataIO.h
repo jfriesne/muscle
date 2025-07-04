@@ -32,10 +32,10 @@ DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(ChildProcessLaunchFlags, NUM_CHILD_PROCESS_
 
 /** This DataIO class is a handy cross-platform way to spawn
  *  and talk to a child process.  Any data that the child process
- *  prints to stdout can be read from this object, and any data
- *  that is written to this object will be send to the child process's
- *  stdin.  Note that this class is currently only implemented to work
- *  under Windows, MacOS/X, BSD, and Linux.
+ *  prints to stdout (and/or stderr) can be read from this object, and
+ *  any data that is written to this object will be send to the child
+ *  process's *  stdin.  Note that this class is currently only implemented
+ *  to work under Windows, MacOS/X, BSD, and Linux.
  */
 class ChildProcessDataIO : public DataIO
 {
@@ -90,7 +90,7 @@ public:
      */
    status_t LaunchChildProcess(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL);
 
-   /** Read data from the child process's stdout stream.
+   /** Read data from the child process's stdout and/or stderr streams.
      * @param buffer The read bytes will be placed here
      * @param size Maximum number of bytes that may be placed into (buffer).
      * @returns The number of bytes placed into (buffer), or an error code if there was an error.
@@ -111,7 +111,7 @@ public:
    virtual void Shutdown();
 
    /** Returns a socket that can be select()'d on for notifications of read availability from the
-    *  child's stdout or stderr streams.
+    *  child's stdout and/or stderr streams.
     *  Even works under Windows (in non-blocking mode, anyway), despite Microsoft's best efforts
     *  to make such a thing impossible :^P Note that you should only pass this socket to select();
     *  to read from the child process, call Read() on this object but don't try to recv()/etc on
