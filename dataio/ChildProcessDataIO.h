@@ -49,7 +49,7 @@ public:
    /** Destructor */
    virtual ~ChildProcessDataIO();
 
-   /** Launch the child process.  Note that this method should only be called once!
+   /** Launch the child process.  Note that this method should only be called once on any given ChildProcessDataIO object!
      * @param argc The argc variable to be passed to the child process
      * @param argv The argv variable to be passed to the child process
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.
@@ -64,7 +64,9 @@ public:
    status_t LaunchChildProcess(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL) {return LaunchChildProcessAux(muscleMax(0,argc), argv, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser);}
 
    /** As above, but the program name and all arguments are specified as a single string.
-     * @param cmd String to launch the child process with
+     * @param cmd String to launch the child process with.  Note that passing all arguments in a single string
+     *            can cause ambiguities if the arguments contain spaces.  If so, you may need to "quote some of the arguments",
+     *            or use a different overload of this method instead so that you can pass each argument as a separate string.
      * @param launchFlags A bit-chord of CHILD_PROCESS_LAUNCH_FLAG_* bit values.
      * @param optDirectory Optional directory path to set the child process's current directory to.
      *                     Defaults to NULL, which will cause the child process to inherit this process's current directory.
@@ -107,7 +109,9 @@ public:
    /** Doesn't return until all outgoing have been sent */
    virtual void FlushOutput();
 
-   /** Kills the child process, using the sequence described at SetChildProcessShutdownBehavior(). */
+   /** Closes the stdout/stdin connection to the child process, then executes the child-shutdown procedure
+     * using the sequence described at SetChildProcessShutdownBehavior().
+     */
    virtual void Shutdown();
 
    /** Returns a socket that can be select()'d on for notifications of read availability from the
@@ -184,14 +188,14 @@ public:
      * If the child process is not currently running, returns immediately.
      * @param maxWaitTime The maximum amount of time to wait, in microseconds.
      *                    Defaults to MUSCLE_TIME_NEVER, indicating no timeout.
-     * @returns true B_NO_ERROR the child process is known to be gone, or an
-     *          error code otherwise (eg B_TIMED_OUT if our timeout period
-     *          has elapsed and the child process still hadn't exited)
+     * @returns B_NO_ERROR if the child process is known to be gone, or an
+     *          error code otherwise (eg B_TIMED_OUT) if our timeout period
+     *          has elapsed and the child process still hadn't exited.
      */
    status_t WaitForChildProcessToExit(uint64 maxWaitTime = MUSCLE_TIME_NEVER);
 
-   /** Returns our child-process's exit code, as a byte-count, iff our child-process
-     * exited normally (i.e. by returning from main() or calling exit()).
+   /** Returns our child-process's exit code, expressed as a byte-count, iff our
+     * child-process exited normally (i.e. by returning from main() or calling exit()).
      *
      * Otherwise, returns an error describing what caused the child-process to
      * exit (e.g. the name of the signal that killed the child process)
