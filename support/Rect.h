@@ -198,20 +198,22 @@ public:
    /** Returns true iff this Rect's height and width are both non-negative */
    bool IsRational() const {return ((GetWidth()>=0.0f)&&(GetHeight()>=0.0f));}
 
+   /** Convenience method:  Returns an irrational Rectangle (with negative width and height) to represent "no area" */
+   static Rect GetIrrationalRect() {return Rect(0.0f, 0.0f, -1.0f, -1.0f);}
+
    /** Returns a rectangle whose area is the intersecting subset of this rectangle's and (r)'s
      * @param r the Rect to intersect with this rectangle
      */
    inline Rect operator&(const Rect & r) const
    {
-      Rect ret(*this);
-      if (this != &r)
-      {
-         if (ret.left()   < r.left())   ret.SetLeft(   r.left());
-         if (ret.right()  > r.right())  ret.SetRight(  r.right());
-         if (ret.top()    < r.top())    ret.SetTop(    r.top());
-         if (ret.bottom() > r.bottom()) ret.SetBottom( r.bottom());
-      }
-      return ret;
+      if ((IsRational() == false)||(r.IsRational() == false)) return GetIrrationalRect();
+
+      Rect ret;
+      ret.SetLeft(  muscleMax(left(),   r.left()));
+      ret.SetTop(   muscleMax(top(),    r.top()));
+      ret.SetRight( muscleMin(right(),  r.right()));
+      ret.SetBottom(muscleMin(bottom(), r.bottom()));
+      return ret.IsRational() ? ret : Rect();
    }
 
    /** Returns a rectangle whose area is a superset of the union of this rectangle's and (r)'s
@@ -219,6 +221,9 @@ public:
      */
    inline Rect operator|(const Rect & r) const
    {
+      if (IsRational()   == false) return r;
+      if (r.IsRational() == false) return *this;
+
       Rect ret(*this);
       if (this != &r)
       {
@@ -291,6 +296,26 @@ public:
      * @param p the Rect to check to see if it's entirely inside this Rect.
      */
    MUSCLE_NODISCARD inline bool Contains(Rect p) const {return ((Contains(p.LeftTop()))&&(Contains(p.RightTop()))&&(Contains(p.LeftBottom()))&&(Contains(p.RightBottom())));}
+
+   /** Convenience method:  Returns the smallest Rectangle that contains all the Points in the passed-in array
+     * @param points Pointer to an array of Points to calculate the bounding box of
+     * @param numPoints the number of Points that (points) points to
+     * @note if (numPoints) is zero, an irrational Rect will be returned.
+     */
+   static Rect GetBoundingBox(const Point * points, uint32 numPoints)
+   {
+      if (numPoints == 0) return GetIrrationalRect();  // no points returns irrational Rectangle
+
+      Rect r(points[0], points[0]);
+      for (uint32 i=1; i<numPoints; i++) r |= points[i];  // yes, deliberately starting at 1
+      return r;
+   }
+
+   /** Convenience method:  Returns the smallest Rectangle that contains all the Rects in the passed-in array
+     * @param rects Pointer to an array of Rects to calculate the bounding box of
+     * @param numRects the number of Rects that (rects) points to
+     */
+   static Rect GetBoundingBox(const Rect * rects, uint32 numRects) {Rect r; for (uint32 i=0; i<numRects; i++) r |= rects[i]; return r;}
 
    /** Part of the pseudo-Flattenable API:  Returns true. */
    MUSCLE_NODISCARD bool IsFixedSize() const {return true;}

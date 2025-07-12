@@ -9,12 +9,18 @@ key:  - new feature
      CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_* option-flags.
    - Added GetBytesSizeString() and ParseBytesSizeString() functions
      to the MiscUtilityFunctions.{cpp,h} API.
+   - Added GetBoundingBox() convenience methods to the Rect class.
+   - Added a GetIrrationalRect() convenience method to the Rect class.
    o Renamed GetHumanReadableTimeIntervalString() to
      GetHumanReadableUnsignedTimeIntervalString(), for clarity.
    o Renamed ParseHumanReadableTimeIntervalString() to
      ParseHumanReadableUnsignedTimeIntervalString(), for clarity.
    o Improved the error handling/reporting slightly in
      ChildProcessDataIO::DoGracefulChildShutdown().
+   o Updated the cmake_minimum_required clause in the CMakeLists.txt
+     files to 3.10, as the newest releases of CMake demand.
+   * Rect::operator&() was returning incorrect results.  Fixed.
+   * Fixed Rect::operator|() to handle irrational Rects better.
 
 9.72 - Released 5/27/2025
    - Added a Truncate() method to the SeekableDataIO classes, for
