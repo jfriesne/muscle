@@ -566,7 +566,13 @@ void ChildProcessDataIO :: Close()
 void ChildProcessDataIO :: DoGracefulChildShutdown()
 {
    if (_signalNumber >= 0) (void) SignalChildProcess(_signalNumber);
-   if ((WaitForChildProcessToExit(_maxChildWaitTime).IsError())&&(_killChildOkay)) (void) KillChildProcess();
+
+   const status_t r = WaitForChildProcessToExit(_maxChildWaitTime);
+   if (r.IsError())
+   {
+      LogTime((r == B_TIMED_OUT) ? MUSCLE_LOG_WARNING : MUSCLE_LOG_ERROR, "ChildProcessDataIO::DoGracefulChildShutdown():  WaitForChildProcessToExit(%li) returned [%s]\n", (long int) _childPID, r());
+      if (_killChildOkay) (void) KillChildProcess();
+   }
 }
 
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
@@ -714,7 +720,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
             _childProcessExitCode = GetExitCodeFromWaitPIDStatus(status);
             return B_NO_ERROR;  // yay, he exited!
          }
-         else if (r == -1) break;      // fail on error
+         else if (r == -1) return B_ERRNO;  // fail on error
 
          const int64 microsLeft = endTime-GetRunTime64();
          if (microsLeft <= 0) break;   // we're out of time!

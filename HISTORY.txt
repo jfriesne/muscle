@@ -13,6 +13,8 @@ key:  - new feature
      GetHumanReadableUnsignedTimeIntervalString(), for clarity.
    o Renamed ParseHumanReadableTimeIntervalString() to
      ParseHumanReadableUnsignedTimeIntervalString(), for clarity.
+   o Improved the error handling/reporting slightly in
+     ChildProcessDataIO::DoGracefulChildShutdown().
 
 9.72 - Released 5/27/2025
    - Added a Truncate() method to the SeekableDataIO classes, for
