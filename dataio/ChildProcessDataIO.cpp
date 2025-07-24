@@ -567,10 +567,15 @@ void ChildProcessDataIO :: DoGracefulChildShutdown()
 {
    if (_signalNumber >= 0) (void) SignalChildProcess(_signalNumber);
 
+   const uint64 startTime = GetRunTime64();
    const status_t r = WaitForChildProcessToExit(_maxChildWaitTime);
    if (r.IsError())
    {
-      LogTime((r == B_TIMED_OUT) ? MUSCLE_LOG_WARNING : MUSCLE_LOG_ERROR, "ChildProcessDataIO::DoGracefulChildShutdown():  WaitForChildProcessToExit(%li) returned [%s]\n", (long int) _childPID, r());
+      const uint64 endTime = GetRunTime64();
+      if ((_maxChildWaitTime > 0)||(r != B_TIMED_OUT)) // no sense complaining about a timeout if we didn't actually wait at all
+      {
+         LogTime((r == B_TIMED_OUT) ? MUSCLE_LOG_WARNING : MUSCLE_LOG_ERROR, "ChildProcessDataIO::DoGracefulChildShutdown():  WaitForChildProcessToExit(%li) returned [%s] after [%s]\n", (long int) _childPID, r(), GetHumanReadableUnsignedTimeIntervalString(endTime-startTime)());
+      }
       if (_killChildOkay) (void) KillChildProcess();
    }
 }
