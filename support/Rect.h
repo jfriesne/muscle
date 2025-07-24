@@ -314,8 +314,16 @@ public:
    /** Convenience method:  Returns the smallest Rectangle that contains all the Rects in the passed-in array
      * @param rects Pointer to an array of Rects to calculate the bounding box of
      * @param numRects the number of Rects that (rects) points to
+     * @note if (numRects) is zero, an irrational Rect will be returned.
      */
-   static Rect GetBoundingBox(const Rect * rects, uint32 numRects) {Rect r; for (uint32 i=0; i<numRects; i++) r |= rects[i]; return r;}
+   static Rect GetBoundingBox(const Rect * rects, uint32 numRects)
+   {
+      if (numRects == 0) return GetIrrationalRect();  // no rects returns irrational Rectangle
+
+      Rect r = rects[0];
+      for (uint32 i=1; i<numRects; i++) r |= rects[i];  // yes, deliberately starting at 1
+      return r;
+   }
 
    /** Part of the pseudo-Flattenable API:  Returns true. */
    MUSCLE_NODISCARD bool IsFixedSize() const {return true;}
