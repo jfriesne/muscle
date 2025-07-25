@@ -1,7 +1,7 @@
 #include "dataio/ByteBufferDataIO.h"
-#include "iogateway/WebSocketIOGateway.h"
 #include "iogateway/PlainTextMessageIOGateway.h"  // for PR_COMMAND_TEXT_STRINGS
 #include "iogateway/RawDataMessageIOGateway.h"    // for PR_COMMAND_RAW_DATA
+#include "iogateway/WebSocketMessageIOGateway.h"
 #include "support/DataFlattener.h"
 #include "util/IncrementalHashCalculator.h"
 #include "util/MiscUtilityFunctions.h"  // for Base64Encode()

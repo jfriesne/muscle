@@ -19,6 +19,8 @@ key:  - new feature
      ChildProcessDataIO::DoGracefulChildShutdown().
    o Updated the cmake_minimum_required clause in the CMakeLists.txt
      files to 3.10, as the newest releases of CMake demand.
+   o Renamed WebSocketIOGateway.{cpp,h} to WebSocketMessageIOGateway.{cpp,h}
+     so that the file names match the class name.
    * Rect::operator&() was returning incorrect results.  Fixed.
    * Fixed Rect::operator|() to handle irrational Rects better.
 
