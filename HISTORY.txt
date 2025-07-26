@@ -23,6 +23,9 @@ key:  - new feature
      so that the file names match the class name.
    o Changed EmscriptenAsyncCallback's late-callback warning to
      be a debug-message instead, as it was getting annoying.
+   * Fixed a size-extension bug in WebSocketMessageIOGateway's
+     handling of 2-byte WebSocket payload-size headers that could
+     cause incoming WebSocket messages not to be parsed correctly.
    * Rect::operator&() was returning incorrect results.  Fixed.
    * Fixed Rect::operator|() to handle irrational Rects better.
 

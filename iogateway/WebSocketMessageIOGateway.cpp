@@ -357,7 +357,8 @@ io_status_t WebSocketMessageIOGateway :: DoInputImplementation(AbstractGatewayMe
                   break;
 
                   case 8:
-                     MRETURN_ON_ERROR(InitializeIncomingPayload(B_BENDIAN_TO_HOST_INT16(muscleCopyIn<int16>(&_headerBytes[2])), 4, receiver));
+                     // MEM-142:  yes, the (uint16) cast is 100% necessary, or else any negative int16 values get sign-extended to 2^32-N !
+                     MRETURN_ON_ERROR(InitializeIncomingPayload((uint16) (B_BENDIAN_TO_HOST_INT16(muscleCopyIn<int16>(&_headerBytes[2]))), 4, receiver));
                   break;
 
                   case 14:
