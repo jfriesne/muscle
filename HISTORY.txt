@@ -21,6 +21,8 @@ key:  - new feature
      files to 3.10, as the newest releases of CMake demand.
    o Renamed WebSocketIOGateway.{cpp,h} to WebSocketMessageIOGateway.{cpp,h}
      so that the file names match the class name.
+   o Changed EmscriptenAsyncCallback's late-callback warning to
+     be a debug-message instead, as it was getting annoying.
    * Rect::operator&() was returning incorrect results.  Fixed.
    * Fixed Rect::operator|() to handle irrational Rects better.
 

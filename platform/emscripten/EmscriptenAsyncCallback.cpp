@@ -71,7 +71,7 @@ bool EmscriptenAsyncCallback :: AsyncCallbackStub :: AsyncCallback()
             const int64 delta = now-_callbackTime;
             if (delta > MillisToMicros(10))
             {
-               LogTime(MUSCLE_LOG_WARNING, "AsyncCallback %p is late by %s (after " UINT32_FORMAT_SPEC " on-time callbacks)\n", this, GetHumanReadableUnsignedTimeIntervalString(delta)(), _timingOkayCount);
+               LogTime(MUSCLE_LOG_DEBUG, "AsyncCallback %p is late by %s (after " UINT32_FORMAT_SPEC " on-time callbacks)\n", this, GetHumanReadableUnsignedTimeIntervalString(delta)(), _timingOkayCount);
                _timingOkayCount = 0;
             }
             else _timingOkayCount++;
