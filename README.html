@@ -2,7 +2,7 @@
 
 <H2>
 MUSCLE:  Crossbar Server, Portable Messaging and Support Classes<p>
-5/27/2025 v9.72 jaf@meyersound.com<p>
+7/26/2025 v9.73 jaf@meyersound.com<p>
 Jeremy Friesner / Meyer Sound Laboratories Inc.<p>
 Win32 compatibility contributions by Vitaliy Mikitchenko<p>
 C# client code by Wilson Yeung<p>
@@ -135,6 +135,7 @@ Directory contents descriptions follow:
     <tr><td><a href="iogateway/PacketTunnelIOGateway.h">PacketTunnelIOGateway</a></td><td>Flattens <a href="message/Message.h">Messages</a> into a series of fixed-size packets suitable for UDP transmission</td></tr>
     <tr><td><a href="iogateway/MiniPacketTunnelIOGateway.h">MiniPacketTunnelIOGateway</a></td><td>A lightweight version of PacketTunnelIOGateway that supports small <a href="message/Message.h">Messages</a> only</td></tr>
     <tr><td><a href="iogateway/ProxyIOGateway.h">ProxyIOGateway</a></td><td>A semi-abstract class with routines to implement calling out to a "child" I/O gateway</td></tr>
+    <tr><td><a href="iogateway/WebSocketMessageIOGateway.h">WebSocketMessageIOGateway</a></td><td>A gateway that wraps outgoing Messages in WebSocket headers so that they can be used to communicate with JavaScript running in a web browser</td></tr>
    </table>
 
 <p>
@@ -211,7 +212,7 @@ Directory contents descriptions follow:
 <li>
 <b>platform/qt/</b>
 <p>
-   This directory contains several classes that support clients that use TrollTech's
+   This directory contains several classes that support clients that use the
    Qt cross-platform GUI API.  The main one is the QMessageTransceiverThread class,
    which is a Qt-aware subclass of the MessageTransceiverThread class.
 
