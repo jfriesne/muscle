@@ -2,7 +2,7 @@
 
 <H2>
 MUSCLE:  Crossbar Server, Portable Messaging and Support Classes<p>
-5/27/2025 v9.72 jaf@meyersound.com<p>
+7/26/2025 v9.73 jaf@meyersound.com<p>
 Jeremy Friesner / Meyer Sound Laboratories Inc.<p>
 Win32 compatibility contributions by Vitaliy Mikitchenko<p>
 C# client code by Wilson Yeung<p>
@@ -135,6 +135,7 @@ Directory contents descriptions follow:
     <tr><td><a href="iogateway/PacketTunnelIOGateway.h">PacketTunnelIOGateway</a></td><td>Flattens <a href="message/Message.h">Messages</a> into a series of fixed-size packets suitable for UDP transmission</td></tr>
     <tr><td><a href="iogateway/MiniPacketTunnelIOGateway.h">MiniPacketTunnelIOGateway</a></td><td>A lightweight version of PacketTunnelIOGateway that supports small <a href="message/Message.h">Messages</a> only</td></tr>
     <tr><td><a href="iogateway/ProxyIOGateway.h">ProxyIOGateway</a></td><td>A semi-abstract class with routines to implement calling out to a "child" I/O gateway</td></tr>
+    <tr><td><a href="iogateway/WebSocketMessageIOGateway.h">WebSocketMessageIOGateway</a></td><td>A gateway that wraps outgoing Messages in WebSocket headers so that they can be used to communicate with JavaScript running in a web browser</td></tr>
    </table>
 
 <p>
@@ -211,7 +212,7 @@ Directory contents descriptions follow:
 <li>
 <b>platform/qt/</b>
 <p>
-   This directory contains several classes that support clients that use TrollTech's
+   This directory contains several classes that support clients that use the
    Qt cross-platform GUI API.  The main one is the QMessageTransceiverThread class,
    which is a Qt-aware subclass of the MessageTransceiverThread class.
 
@@ -329,6 +330,7 @@ Directory contents descriptions follow:
     <tr><td><a href="system/SharedMemory.h">SharedMemory</a></td><td>Implements inter-process shared memory regions, including inter-process read/write locking ability</td</tr>
     <tr><td><a href="system/SpinLock.h">SpinLock</a></td><td>Like a Mutex, but avoids context-switching by busy-looping until the lock is obtained.</td</tr>
     <tr><td><a href="system/SignalMultiplexer.h">SignalMultiplexer</a></td><td>Makes system signalling (e.g. catching of SIGINT or SIHUP) available to multiple pieces of code in the same process</td</tr>
+    <tr><td><a href="system/StackTrace.h">StackTrace</a></td><td>A class for capturing, representing, and printing out the current stack trace of a thread</td</tr>
     <tr><td><a href="system/SystemInfo.h">SystemInfo</a></td><td>Provides information about the environment the program is operating in (current directory, OS version, etc)</td</tr>
     <tr><td><a href="system/Thread.h">Thread</a></td><td>An OS-neutral Thread class for multithreading purposes.  Includes send/receive <a href="message/Message.h">Message</a> functionality for easy control</td</tr>
     <tr><td><a href="system/ThreadLocalStorage.h">ThreadLocalStorage</a></td><td>An OS-neutral implementation of thread-local data storage</td</tr>

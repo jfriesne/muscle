@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.73 - Released 7/26/2025
    - Windows implementation of ChildProcessDataIO now supports the
      CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_* option-flags.
    - Added GetBytesSizeString() and ParseBytesSizeString() functions
