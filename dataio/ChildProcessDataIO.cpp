@@ -574,7 +574,11 @@ void ChildProcessDataIO :: DoGracefulChildShutdown()
       const uint64 endTime = GetRunTime64();
       if ((_maxChildWaitTime > 0)||(r != B_TIMED_OUT)) // no sense complaining about a timeout if we didn't actually wait at all
       {
+#if defined(WIN32)
+         LogTime((r == B_TIMED_OUT) ? MUSCLE_LOG_WARNING : MUSCLE_LOG_ERROR, "ChildProcessDataIO::DoGracefulChildShutdown():  WaitForChildProcessToExit() returned [%s] after [%s]\n", r(), GetHumanReadableUnsignedTimeIntervalString(endTime-startTime)());
+#else
          LogTime((r == B_TIMED_OUT) ? MUSCLE_LOG_WARNING : MUSCLE_LOG_ERROR, "ChildProcessDataIO::DoGracefulChildShutdown():  WaitForChildProcessToExit(%li) returned [%s] after [%s]\n", (long int) _childPID, r(), GetHumanReadableUnsignedTimeIntervalString(endTime-startTime)());
+#endif
       }
       if (_killChildOkay) (void) KillChildProcess();
    }
