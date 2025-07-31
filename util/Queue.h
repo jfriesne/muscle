@@ -1233,7 +1233,7 @@ RemoveHeadWithDefault()
    {
       const ItemType ret = QQ_PlunderItem(Head());
       (void) RemoveHead();
-      return std_move_if_available(ret);
+      return ret;  // std_move_if_available(ret);  ("moving a local object in a return statement prevents copy elision")
    }
 }
 
@@ -1270,7 +1270,7 @@ RemoveTailWithDefault()
    {
       const ItemType ret = QQ_PlunderItem(Tail());
       (void) RemoveTail();
-      return std_move_if_available(ret);
+      return ret;  // std_move_if_available(ret);  ("moving a local object in a return statement prevents copy elision")
    }
 }
 
