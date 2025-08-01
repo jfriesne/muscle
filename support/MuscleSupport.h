@@ -930,8 +930,7 @@ enum {
    B_TAG_TYPE      = 1297367367  /**< 'MTAG' = new for v2.00; for in-mem-only tags         */
 };
 
-/** This constant is used in various places to mean 'as much as you want'.  Its value is ((uint32)-1), aka ((2^32)-1) */
-#define MUSCLE_NO_LIMIT ((uint32)-1)
+#define MUSCLE_NO_LIMIT ((uint32)-1) ///< This constant is used in various places to mean 'as much as you want'.  Its value is ((uint32)-1), aka ((2^32)-1)
 
 #ifdef __cplusplus
 
