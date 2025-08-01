@@ -116,7 +116,8 @@ AdvancedExampleWindow :: AdvancedExampleWindow()
    UpdateButtons();
 
    // start the MUSCLE thread running
-   if (_serverThread.StartInternalThread().IsOK())
+   status_t ret;
+   if (_serverThread.StartInternalThread().IsOK(ret))
    {
       // Tell the ThreadSuperVisorSession in the MUSCLE thread that we want to know about updates to session status nodes
       MessageRef subscribeMsg = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
@@ -124,7 +125,7 @@ AdvancedExampleWindow :: AdvancedExampleWindow()
       (void) subscribeMsg()->AddBool("SUBSCRIBE:/*/*/*", true);  // so we can watch any nodes any session places in its "home directory" also
       if (_serverThread.SendMessageToInternalThread(subscribeMsg).IsError()) printf("Error, couldn't send subcribe message to MUSCLE thread!\n");
    }
-   else printf("Error, couldn't start MUSCLE thread!\n");
+   else printf("Error, couldn't start MUSCLE thread! [%s]\n", ret());
 }
 
 AdvancedExampleWindow :: ~AdvancedExampleWindow()

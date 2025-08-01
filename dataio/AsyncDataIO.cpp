@@ -83,6 +83,8 @@ void AsyncDataIO :: ShutdownInternalThread(bool waitForThread)
 
 status_t AsyncDataIO :: StartInternalThread()
 {
+   if (IsInternalThreadRunning()) return B_ALREADY_RUNNING;
+
    MRETURN_ON_ERROR(CreateConnectedSocketPair(_mainThreadNotifySocket, _ioThreadNotifySocket));
    return Thread::StartInternalThread();
 }

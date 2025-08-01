@@ -21,12 +21,12 @@ public:
    virtual ~EmscriptenReflectServer() {/* empty */}
 
    /** Call this to start the ReflectServer "running" (via async callbacks)
-     * @returns B_NO_ERROR on success, or B_UNIMPLEMENTED if we aren't in an Emscripten environment
+     * @returns B_NO_ERROR on success, or B_UNIMPLEMENTED if we aren't in an Emscripten environment, or B_ALREADY_RUNNING if we were already started
      */
    status_t Start()
    {
 #if defined(__EMSCRIPTEN__)
-      if (_isRunning) return B_NO_ERROR;
+      if (_isRunning) return B_ALREADY_RUNNING;
       else
       {
          _isRunning = true;

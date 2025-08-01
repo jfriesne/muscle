@@ -79,6 +79,8 @@ ReflectServerRef MessageTransceiverThread :: CreateReflectServer()
 
 status_t MessageTransceiverThread :: StartInternalThread()
 {
+   if (IsInternalThreadRunning()) return B_ALREADY_RUNNING;
+
    status_t ret;
    return EnsureServerAllocated().IsOK(ret) ? Thread::StartInternalThread() : ret;
 }

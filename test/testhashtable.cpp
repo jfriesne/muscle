@@ -80,7 +80,9 @@ static int DoThreadTest()
    for (uint32 i=0; i<ARRAYITEMS(threads); i++)
    {
       threads[i] = new TestThread(testMsg);
-      if (threads[i]->StartInternalThread().IsError()) printf("Error starting thread!\n");
+
+      status_t ret;
+      if (threads[i]->StartInternalThread().IsError(ret)) printf("Error starting thread! [%s]\n", ret());
    }
    for (uint32 i=0; i<ARRAYITEMS(threads); i++)
    {

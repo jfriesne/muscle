@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.10)
+
 if(NOT DEFINED CMAKE_CXX_STANDARD)
    set(CMAKE_CXX_STANDARD 11)
 endif()
@@ -9,9 +11,17 @@ target_compile_definitions(qt_muscled PUBLIC
     MUSCLE_SINGLE_THREAD_ONLY
     MUSCLE_AVOID_IPV6
     )
-target_link_libraries(qt_muscled
-  Qt5::Widgets
-  qtsupport
-  muscle
-)
 
+find_package(Qt6Widgets QUIET)
+if(Qt6Widgets_FOUND)
+    SET(QtPrefix "Qt6")
+else()
+    find_package(Qt5Widgets REQUIRED)
+    SET(QtPrefix "Qt5")
+endif()
+
+target_link_libraries(qt_muscled
+    ${QtPrefix}::Widgets
+    qtsupport
+    muscle
+    )

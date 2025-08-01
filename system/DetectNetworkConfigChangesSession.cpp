@@ -432,6 +432,8 @@ protected:
 private:
    virtual status_t StartInternalThread()
    {
+      if (IsInternalThreadRunning()) return B_ALREADY_RUNNING;  // no sense calling SetupSignalling() for no reason in this case
+
       MRETURN_ON_ERROR(SetupSignalling());
 
       status_t ret;

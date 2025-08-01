@@ -97,14 +97,12 @@ void Thread :: CloseSockets()
 
 status_t Thread :: StartInternalThread()
 {
-   if (IsInternalThreadRunning() == false)
-   {
-      const bool needsInitialSignal = (_threadData[MESSAGE_THREAD_INTERNAL]._messages.HasItems());
-      MRETURN_ON_ERROR(StartInternalThreadAux());
-      if (needsInitialSignal) SignalInternalThread();  // make sure he gets his already-queued messages!
-      return B_NO_ERROR;
-   }
-   return B_BAD_OBJECT;
+   if (IsInternalThreadRunning()) return B_ALREADY_RUNNING;
+
+   const bool needsInitialSignal = (_threadData[MESSAGE_THREAD_INTERNAL]._messages.HasItems());
+   MRETURN_ON_ERROR(StartInternalThreadAux());
+   if (needsInitialSignal) SignalInternalThread();  // make sure he gets his already-queued messages!
+   return B_NO_ERROR;
 }
 
 status_t Thread :: StartInternalThreadAux()

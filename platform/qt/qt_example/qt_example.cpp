@@ -86,7 +86,7 @@ void ExampleWidget :: DrawText(QPainter & p, const QPoint & pt, const QString & 
    const int tw = fm.width(text);
 #endif
    const int th = fm.ascent()+fm.descent();
-   QRect r(pt.x()-(tw/2), pt.y()-(th/2), tw, th);
+   const QRect r(pt.x()-(tw/2), pt.y()-(th/2), tw, th);
    if (inBox)
    {
       p.setPen(Qt::black);
@@ -135,10 +135,12 @@ void ExampleWidget :: mouseReleaseEvent(QMouseEvent * e)
    QWidget::mouseReleaseEvent(e);
    _isMousePressed = false;
 
-   Point p((((float)e->x())/width())-0.5f, (((float)e->y())/height())-0.5f);
+   const QPoint ePt = e->pos();
+   const Point p((((float)ePt.x())/width())-0.5f, (((float)ePt.y())/height())-0.5f);
+
    _updatePos = atan2(p.y(), p.x());
-   _xRatio    = unxform(true,  _updatePos, ((float)e->x())/width());
-   _yRatio    = unxform(false, _updatePos, ((float)e->y())/height());
+   _xRatio    = unxform(true,  _updatePos, ((float)ePt.x())/width());
+   _yRatio    = unxform(false, _updatePos, ((float)ePt.y())/height());
    UpdateLocalPosition();
 }
 
