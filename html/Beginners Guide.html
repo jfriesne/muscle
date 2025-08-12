@@ -754,7 +754,7 @@ If you don't supply an explicit-cast, some heuristics will be used to determine 
 
 <pre>
 	sober == false       # type (bool) inferred due to "false" keyword
-	age >= 21f           # type (float inferred due to numbers followed by 'f' suffix
+	age >= 21f           # type (float) inferred due to numbers followed by 'f' suffix
 	age >= 21.3          # type (double) inferred due to numbers including a dot
 	age >= "twenty-one"  # type (string) inferred due to quotes
 	age >= twenty-one    # type (string) inferred due to non-numeric chars at start of value
@@ -764,11 +764,11 @@ If you don't supply an explicit-cast, some heuristics will be used to determine 
 
 When you want to join more than one of these predicates together you can do so in the obvious way, using
 the &&, ||, or ^ operators (for AND, OR, or XOR, respectively).  Note that to avoid any potential ambiguity,
-if you mix the operators you will need to supply additional parentheses in order to make the order-of-operations
-explicit:
+if you mix different operators, you will need to supply additional parentheses in order to make the
+desired order-of-evaluation explicit:
 
 <pre>
-	(sober == true) && (age >= 21) || (eyecolor == "green")  -> ERROR, ambiguous
+	(sober == true) && (age >= 21) || (eyecolor == "green")    -> ERROR, ambiguous
 	((sober == true) && (age >= 21)) || (eyecolor == "green")  -> OK
 	(sober == true) && ((age >= 21) || (eyecolor == "green"))  -> OK
 </pre>
@@ -802,7 +802,7 @@ in the field, you can do so by specifying a value-index after the fieldname, lik
 	[...]
 </pre>
 
-Additional, it may be the case that value you are looking at in the Message only exists sometimes.
+Additionally, it may be the case that value you are looking at in the Message only exists sometimes.
 By default, a predicate that specifies a field name (or value) that doesn't exist in the Message will
 never match, but if you'd prefer the server to treat a missing-value as if a specified default-value
 was present, you can specify a default-value like this:
