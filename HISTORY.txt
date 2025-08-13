@@ -11,6 +11,8 @@ key:  - new feature
    - Updated the CMakeLists.txt files to use Qt6 if available,
      or fall back to Qt5 otherwise, or to disable compilation
      of Qt-dependent code if neither version of Qt is installed.
+   * Removed DoxyTemplate from the EXCLUDE_SYMBOLS line of
+     muscle.dox, as that causes errors in new versions of DOxygen.
 
 9.73 - Released 7/26/2025
    - Windows implementation of ChildProcessDataIO now supports the
