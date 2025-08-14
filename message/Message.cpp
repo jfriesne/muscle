@@ -2069,6 +2069,15 @@ bool Message :: FieldsAreSubsetOf(const Message & rhs, bool compareContents) con
    return true;
 }
 
+bool Message :: AreFieldsEqual(const Message & hisMsg, const String & myFieldName, const String & hisFieldName, bool compareFieldContents) const
+{
+   const MessageField *  myField = _entries.Get(myFieldName);
+   const MessageField * hisField = hisMsg._entries.Get(hisFieldName);
+   if ((myField == NULL)&&(hisField == NULL)) return true;     // both are equally absent!
+   if ((myField != NULL) != (hisField != NULL)) return false;  // only one field exists
+   return myField->IsEqualTo(*hisField, compareFieldContents); // If we got here, we know both (myField) and (hisField) are non-NULL
+}
+
 void Message :: SwapContents(Message & swapWith) MUSCLE_NOEXCEPT
 {
    muscleSwap(what, swapWith.what);

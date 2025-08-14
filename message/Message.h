@@ -1652,6 +1652,25 @@ public:
      */
    MUSCLE_NODISCARD bool FieldsAreSubsetOf(const Message & rhs, bool compareData) const;
 
+   /** Returns true iff the field (hisFieldName) and in (hisMsg) and the field (myFieldName) in (myMsg) are the same
+     * @param hisMsg the Message to compare against this Message
+     * @param myFieldName the field-name to look at in this Message
+     * @param hisFieldName the field-name to look at in (hisMsg)
+     * @param compareFieldValues if true, we'll compare the values in the field and only return true if they are all the same.
+     *                           if false, we'll only compare the presence/absence of the field, the fields' types, and their value-counts.  Defaults to true.
+     * @returns true iff the fields are the same in both Messages, or if the fields are missing in both Messages.
+     */
+   MUSCLE_NODISCARD bool AreFieldsEqual(const Message & hisMsg, const String & myFieldName, const String & hisFieldName, bool compareFieldValues = true) const;
+
+   /** Convenience method:  same as the above method, but only a single (fieldName) is specified for both Messages.
+     * @param hisMsg the Message to compare against this Message
+     * @param field the field-name to look at in both this Message and in (hisMsg)
+     * @param compareFieldValues if true, we'll compare the values in the field and only return true if they are all the same.
+     *                           if false, we'll only compare the presence/absence of the field, the fields' types, and their value-counts.  Defaults to true.
+     * @returns true iff the field is the same in both Messages, or if the field is missing in both Messages.
+     */
+   MUSCLE_NODISCARD bool AreFieldsEqual(const Message & hisMsg, const String & fieldName, bool compareFieldValues = true) const {return AreFieldsEqual(hisMsg, fieldName, fieldName, compareFieldValues);}
+
    /**
     * Iterates over the contents of this Message to compute a checksum.
     * Note that this method can be CPU-intensive, since it has to scan
