@@ -1078,7 +1078,7 @@ enum {
 
 static const uint64 MICROS_PER_DAY = DaysToMicros(1);
 
-static const uint64 _timeUnits[NUM_TIME_UNITS] = {
+static const uint64 _timeUnits[] = {
    1,                       // micros -> micros
    1000,                    // millis -> micros
    MICROS_PER_SECOND,       // secs   -> micros
@@ -1089,7 +1089,9 @@ static const uint64 _timeUnits[NUM_TIME_UNITS] = {
    30*MICROS_PER_DAY,       // months -> micros (well, sort of -- we assume a month is always 30  days, which isn't really true)
    365*MICROS_PER_DAY       // years  -> micros (well, sort of -- we assume a years is always 365 days, which isn't really true)
 };
-static const char * _timeUnitNames[NUM_TIME_UNITS] = {
+MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_timeUnits, NUM_TIME_UNITS);
+
+static const char * _timeUnitNames[] = {
    "microsecond",
    "millisecond",
    "second",
@@ -1100,6 +1102,7 @@ static const char * _timeUnitNames[NUM_TIME_UNITS] = {
    "month",
    "year",
 };
+MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_timeUnitNames, NUM_TIME_UNITS);
 
 static bool IsFloatingPointNumber(const char * d)
 {

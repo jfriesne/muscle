@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
    printf("   The file-path separator this computer's OS is:  %s\n", GetFilePathSeparator());
    printf("\n");
 
-   const char * pathTypeNames[NUM_SYSTEM_PATHS] = {
+   static const char * _pathTypeNames[] = {
       "Current Directory:          ",
       "This Executable's Location: ",
       "Temp-files Directory:       ",
@@ -39,14 +39,16 @@ int main(int argc, char ** argv)
       "User's Documents Directory: ",
       "System's Root Directory:    "
    };
-   for (uint32 i=0; i<ARRAYITEMS(pathTypeNames); i++)
+   MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_pathTypeNames, NUM_SYSTEM_PATHS);
+
+   for (uint32 i=0; i<ARRAYITEMS(_pathTypeNames); i++)
    {
       String pathVal;
       if (GetSystemPath(i, pathVal).IsOK())
       {
-         printf("   %s %s\n", pathTypeNames[i], pathVal());
+         printf("   %s %s\n", _pathTypeNames[i], pathVal());
       }
-      else printf("Error retrieving %s\n", pathTypeNames[i]);
+      else printf("Error retrieving %s\n", _pathTypeNames[i]);
    }
 
    printf("\n");

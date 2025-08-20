@@ -1505,7 +1505,7 @@ static String MACAddressToString(uint64 mac)
 
 const char * NetworkInterfaceInfo :: GetNetworkHardwareTypeString(uint32 hardwareType)
 {
-   static const char * _hardwareTypeStrs[NUM_NETWORK_INTERFACE_HARDWARE_TYPES] = {
+   static const char * _hardwareTypeStrs[] = {
       "Unknown",
       "Loopback",
       "Ethernet",
@@ -1524,6 +1524,8 @@ const char * NetworkInterfaceInfo :: GetNetworkHardwareTypeString(uint32 hardwar
       "VLAN",
       "Cellular",
    };
+   MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_hardwareTypeStrs, NUM_NETWORK_INTERFACE_HARDWARE_TYPES);
+
    if (hardwareType >= ARRAYITEMS(_hardwareTypeStrs)) hardwareType = NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN;
    return _hardwareTypeStrs[hardwareType];
 }
