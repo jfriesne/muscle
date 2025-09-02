@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.74 - Released 9/2/2025
    - Added B_ALREADY_RUNNING error code, to be returned by
      Start*() methods if the service they are meant to start
      has already been started.
