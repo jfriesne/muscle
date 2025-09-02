@@ -98,6 +98,7 @@ nav:
    - TimeUtilityFunctions: 'timeutilityfunctions.md'
    - FilePathInfo: 'filepathinfo.md'
    - Directory: 'directory.md'
+   - StackTrace: 'stacktrace.md'
    - SystemInfo: 'systeminfo.md'
    - QueryFilter: 'queryfilter.md'
    - SignalHandlerSession: 'signalhandlersession.md'
