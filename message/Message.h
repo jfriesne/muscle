@@ -1652,7 +1652,7 @@ public:
      */
    MUSCLE_NODISCARD bool FieldsAreSubsetOf(const Message & rhs, bool compareData) const;
 
-   /** Returns true iff the field (hisFieldName) and in (hisMsg) and the field (myFieldName) in (myMsg) are the same
+   /** Returns true iff the field (hisFieldName) in (hisMsg) and the field (myFieldName) in (myMsg) are the same
      * @param hisMsg the Message to compare against this Message
      * @param myFieldName the field-name to look at in this Message
      * @param hisFieldName the field-name to look at in (hisMsg)
