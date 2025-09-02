@@ -13,6 +13,8 @@ key:  - new feature
      of Qt-dependent code if neither version of Qt is installed.
    - Added AreFieldsEqual() methods to the Message class, for
      conveniently checking if two Messages have the same field.
+   - Added AtomicValue to the muscle-by-example documentation.
+   - Added an atomicvalue usage-example program to the examples folder.
    * Removed DoxyTemplate from the EXCLUDE_SYMBOLS line of
      muscle.dox, as that causes errors in new versions of DOxygen.
 

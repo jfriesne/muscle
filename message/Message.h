@@ -1664,7 +1664,7 @@ public:
 
    /** Convenience method:  same as the above method, but only a single (fieldName) is specified for both Messages.
      * @param hisMsg the Message to compare against this Message
-     * @param field the field-name to look at in both this Message and in (hisMsg)
+     * @param fieldName the field-name to look at in both this Message and in (hisMsg)
      * @param compareFieldValues if true, we'll compare the values in the field and only return true if they are all the same.
      *                           if false, we'll only compare the presence/absence of the field, the fields' types, and their value-counts.  Defaults to true.
      * @returns true iff the field is the same in both Messages, or if the field is missing in both Messages.

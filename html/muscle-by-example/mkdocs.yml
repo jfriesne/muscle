@@ -73,6 +73,7 @@ nav:
    - ReaderWriterMutex/MutexGuard: 'readerwritermutex.md'
    - WaitCondition: 'waitcondition.md'
    - AtomicCounter: 'atomiccounter.md'
+   - AtomicValue: 'atomicvalue.md'
    - ThreadLocalStorage: 'threadlocalstorage.md'
    - MessageTransceiverThread: 'messagetransceiverthread.md'
 

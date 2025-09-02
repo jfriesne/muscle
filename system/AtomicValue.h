@@ -48,7 +48,7 @@ public:
 
    /** Attempts to set our held value to a new value in a thread-safe fashion.
      * @param newValue the new value to set
-     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY if we couldn't perform the set because our internal buffer-queue lost too many races in a row.
+     * @returns B_NO_ERROR on success, or B_RESOURCE_LIMIT if we couldn't perform the set because our internal buffer-queue lost too many races in a row.
      */
    status_t SetValue(const T & newValue)
    {
@@ -56,7 +56,7 @@ public:
       while(1)
       {
          const uint32 newWriteIndex = (++_writeIndex & ATOMIC_BUFFER_MASK);
-         if (newWriteIndex == oldReadIndex) return B_OUT_OF_MEMORY;  // out of buffer space!
+         if (newWriteIndex == oldReadIndex) return B_RESOURCE_LIMIT;  // out of buffer space!
 
          _buffer[newWriteIndex] = newValue;
 

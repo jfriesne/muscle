@@ -33,6 +33,9 @@ if (WITH_EXAMPLES)
    add_executable(atomiccounter_example_2_stress_test atomiccounter/example_2_stress_test.cpp)
    target_link_libraries(atomiccounter_example_2_stress_test muscle)
 
+   add_executable(atomicvalue_example_1_basic_usage atomicvalue/example_1_basic_usage.cpp)
+   target_link_libraries(atomicvalue_example_1_basic_usage muscle)
+
    add_executable(bytebuffer_example_1_basic_usage bytebuffer/example_1_basic_usage.cpp)
    target_link_libraries(bytebuffer_example_1_basic_usage muscle)
 
