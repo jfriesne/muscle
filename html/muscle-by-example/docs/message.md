@@ -26,3 +26,5 @@ Quick links to source code of relevant MUSCLE-by-example programs:
 * [message/example_3_add_archive.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/message/example_3_add_archive.cpp)
 * [message/example_4_add_flat.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/message/example_4_add_flat.cpp)
 * [message/example_5_field_iteration.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/message/example_5_field_iteration.cpp)
+
+[!["Example MUSCLE Message](message_layout.png)](message_layout.png)

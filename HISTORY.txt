@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-   - Added a memory-layout example diagram to the Queue
+   - Added example diagrams to the Queue, Message,
      and Hashtable mkdocs documentation pages.
 
 9.74 - Released 9/2/2025
