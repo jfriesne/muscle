@@ -6,7 +6,7 @@ key:  - new feature
       o other
 
    - Added a memory-layout example diagram to the Queue
-     mkdocs documentation page.
+     and Hashtable mkdocs documentation pages.
 
 9.74 - Released 9/2/2025
    - Added B_ALREADY_RUNNING error code, to be returned by

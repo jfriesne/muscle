@@ -30,3 +30,5 @@ Quick links to source code of relevant MUSCLE-by-example programs:
 * [hashtable/example_4_idioms.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/hashtable/example_4_idioms.cpp)
 * [hashtable/example_5_ordered_tables.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/hashtable/example_5_ordered_tables.cpp)
 * [hashtable/example_6_key_types.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/hashtable/example_6_key_types.cpp)
+
+[!["Hashtable<String,int> internal memory layout diagram"](hashtable_layout.png)](hashtable_layout.png)
