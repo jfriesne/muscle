@@ -2,7 +2,7 @@
 
 ```#include "util/Queue.h"```
 
-Templated container class `Queue<T>` is a bidirectional variable-sized vector/queue/ring-buffer, implemented using an internal array and modulo-based index-arithmetic
+Templated container class `Queue<T>` is a bidirectional variable-sized vector/queue/ring-buffer, implemented using an internal array and "wraparound" internal indices.
 
 * Similar to: [std::deque&lt;T&gt;](http://en.cppreference.com/w/cpp/container/deque), [std::vector&lt;T&gt;](http://en.cppreference.com/w/cpp/container/vector), [std::queue&lt;T&gt;](http://en.cppreference.com/w/cpp/container/queue), [std::stack&lt;T&gt;](https://en.cppreference.com/w/cpp/container/stack), [QVector](http://doc.qt.io/qt-5/qvector.html)
 * O(1) item-get/item-set (via [[] operator](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Queue.html#a5a9b58841adef9e3d8978d1490df3ab6) or [GetItemAt()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Queue.html#a3a150406a8258bfc72c50d1169348ebf)/[ReplaceItemAt()](https://public.msli.com/lcs/muscle/html/classmuscle_1_1Queue.html#a6cf11cdfbe2a2d22da790b935f47382c))
@@ -23,3 +23,5 @@ Quick links to source code of relevant MUSCLE-by-example programs:
 * [queue/example_1_basic_usage.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/queue/example_1_basic_usage.cpp)
 * [queue/example_2_sorting.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/queue/example_2_sorting.cpp)
 * [queue/example_3_idioms.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/queue/example_3_idioms.cpp)
+
+[!["Queue<String> internal memory layout diagram"](queue_string_layout.png)](queue_string_layout.png)
