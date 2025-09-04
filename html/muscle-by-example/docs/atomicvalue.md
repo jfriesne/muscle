@@ -14,4 +14,4 @@ Try compiling and running the mini-example-program in `muscle/html/muscle-by-exa
 
 Quick links to source code of relevant MUSCLE-by-example program:
 
-* [atomiccounter/example_1_basic_usage.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/atomicvalue/example_1_basic_usage.cpp)
+* [atomicvalue/example_1_basic_usage.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/atomicvalue/example_1_basic_usage.cpp)

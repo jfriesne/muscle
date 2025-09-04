@@ -36,3 +36,5 @@ Quick links to source code of relevant MUSCLE-by-example programs:
 * [refcount/example_3_conversions.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/refcount/example_3_conversions.cpp)
 * [refcount/example_4_dummy_refs.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/refcount/example_4_dummy_refs.cpp)
 * [refcount/example_5_error_reporting.cpp](https://public.msli.com/lcs/muscle/muscle/html/muscle-by-example/examples/refcount/example_5_error_reporting.cpp)
+
+[!["Example RefCount usage](ref_layout.png)](ref_layout.png)
