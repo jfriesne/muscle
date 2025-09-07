@@ -5,7 +5,7 @@ How to build a muscle server ("muscled")
      cmake -B _build -S .
      cmake --build _build --parallel 8
 
-Alternatively, on MacOS/X and Linux systems you can build muscle the old-fashioned way:
+Alternatively, on MacOS/X and Linux systems you can build muscled the old-fashioned way:
      cd muscle/server
      make -j8
 
