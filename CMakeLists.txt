@@ -141,7 +141,7 @@ if (WIN32)
       "./regex/regex/regexec.c"
       "./regex/regex/regfree.c"
    )
-else (!WIN32)
+else (NOT WIN32)
    file(GLOB EXCLUDE_WIN32_SPECIFIC_SOURCES
       "./zlib/zlib/contrib/minizip/iowin32.c"
    )
@@ -152,7 +152,7 @@ else (!WIN32)
    find_package(ZLIB 1.2.8)
    if (ZLIB_FOUND)
       # Cool, we'll use the system-provided zlib
-   else (!ZLIB_FOUND)
+   else (NOT ZLIB_FOUND)
       message("No Zlib library installed on system: falling back to using MUSCLE's captive zlib implementation instead")
       file(GLOB ZLIB_SRCS "./zlib/zlib/*.c")
       set(MUSCLE_SRCS
@@ -285,13 +285,13 @@ endif()
 
 if (WIN32)
    target_include_directories(muscle PRIVATE "./regex/regex" "./zlib/zlib")
-else (!WIN32)
+else (NOT WIN32)
    if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
       target_link_libraries(muscle util)  # for forkpty()
    endif()
    if (ZLIB_FOUND)
       target_link_libraries(muscle z)
-   else (!ZLIB_FOUND)
+   else (NOT ZLIB_FOUND)
       target_include_directories(muscle PRIVATE "./zlib/zlib")
       target_link_libraries(muscle)
    endif (ZLIB_FOUND)
