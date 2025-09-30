@@ -375,7 +375,10 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += (((uint32)i)+1)*_data[i].CalculateChecksum();
+
+      const uint32 numItems = GetNumItems();
+      for (uint32 i=0; i<numItems; i++) ret += (i+1)*_data[i].CalculateChecksum();
+
       return ret;
    }
 };
@@ -398,7 +401,10 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += (((uint32)i)+1)*_data[i].CalculateChecksum();
+
+      const uint32 numItems = GetNumItems();
+      for (uint32 i=0; i<numItems; i++) ret += (i+1)*_data[i].CalculateChecksum();
+
       return ret;
    }
 };
@@ -419,7 +425,10 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += (((uint32)i)+1)*((uint32)_data[i]);
+
+      const uint32 numItems = GetNumItems();
+      for (uint32 i=0; i<numItems; i++) ret += (i+1)*((uint32)_data[i]);
+
       return ret;
    }
 };
@@ -440,7 +449,10 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += (((uint32)i)+1)*(_data[i] ? 1 : 0);
+
+      const uint32 numItems = GetNumItems();
+      for (uint32 i=0; i<numItems; i++) ret += (i+1)*(_data[i] ? 1 : 0);
+
       return ret;
    }
 };
@@ -461,7 +473,10 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += (((uint32)i)+1)*((uint32)_data[i]);
+
+      const uint32 numItems = GetNumItems();
+      for (uint32 i=0; i<numItems; i++) ret += (i+1)*((uint32)_data[i]);
+
       return ret;
    }
 };
@@ -482,7 +497,10 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += (((uint32)i)+1)*((uint32)_data[i]);
+
+      const uint32 numItems = GetNumItems();
+      for (uint32 i=0; i<numItems; i++) ret += (i+1)*((uint32)_data[i]);
+
       return ret;
    }
 };
@@ -503,7 +521,10 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += (((uint32)i)+1)*CalculatePODChecksum(_data[i]);
+
+      const uint32 numItems = GetNumItems();
+      for (uint32 i=0; i<numItems; i++) ret += (i+1)*CalculatePODChecksum(_data[i]);
+
       return ret;
    }
 };
@@ -524,7 +545,10 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += (((uint32)i)+1)*CalculatePODChecksum(_data[i]);
+
+      const uint32 numItems = GetNumItems();
+      for (uint32 i=0; i<numItems; i++) ret += (i+1)*CalculatePODChecksum(_data[i]);
+
       return ret;
    }
 };
@@ -545,7 +569,10 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += (((uint32)i)+1)*CalculatePODChecksum(_data[i]);
+
+      const uint32 numItems = GetNumItems();
+      for (uint32 i=0; i<numItems; i++) ret += (i+1)*CalculatePODChecksum(_data[i]);
+
       return ret;
    }
 };
@@ -750,11 +777,14 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetLastValidIndex(); i>=0; i--)
+
+      const uint32 numItems = GetNumItems();
+      for (uint32 i=0; i<numItems; i++)
       {
          const ByteBuffer * buf = dynamic_cast<ByteBuffer *>(_data[i]());  // TODO: possibly make this a static cast?
-         if (buf) ret += (((uint32)i)+1)*buf->CalculateChecksum();
+         if (buf) ret += (i+1)*buf->CalculateChecksum();
       }
+
       return ret;
    }
 
@@ -844,10 +874,12 @@ public:
    virtual uint32 CalculateChecksum(bool countNonFlattenableFields) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetLastValidIndex(); i>=0; i--)
+
+      const uint32 numItems = GetNumItems();
+      for (uint32 i=0; i<numItems; i++)
       {
          const MessageRef & msg = _data[i];
-         if (msg()) ret += (((uint32)i)+1)*msg()->CalculateChecksum(countNonFlattenableFields);
+         if (msg()) ret += (i+1)*msg()->CalculateChecksum(countNonFlattenableFields);
       }
       return ret;
    }
@@ -935,7 +967,10 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += (((uint32)i)+1)*(_data[i].CalculateChecksum());
+
+      const uint32 numItems = GetNumItems();
+      for (uint32 i=0; i<numItems; i++) ret += (i+1)*(_data[i].CalculateChecksum());
+
       return ret;
    }
 };
