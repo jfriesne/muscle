@@ -156,7 +156,12 @@ void MultiQueryFilter :: Print(const OutputPrinter & p) const
 {
    QueryFilter::Print(p);
    p.printf(" _children=" UINT32_FORMAT_SPEC ":\n", _children.GetNumItems());
-   for (uint32 i=0; i<_children.GetNumItems(); i++) _children[i]()->Print(p.WithIndent(3));
+   for (uint32 i=0; i<_children.GetNumItems(); i++)
+   {
+      const QueryFilter * nextChild = _children[i]();
+      if (nextChild) nextChild->Print(p.WithIndent(3));
+                else p.printf("MultiQueryFilter:  Child #" UINT32_FORMAT_SPEC " is NULL!\n", i);
+   }
 }
 
 status_t MultiQueryFilter :: SetFromArchive(const Message & archive)

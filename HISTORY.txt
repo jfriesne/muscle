@@ -8,6 +8,7 @@ key:  - new feature
    - Added example diagrams to the Queue, Message,
      Ref, and Hashtable mkdocs documentation pages.
    * Replaced ! with NOT in some of the CMakeLists.txt files
+   * Fixed some Coverity Scan warnings
 
 9.74 - Released 9/2/2025
    - Added B_ALREADY_RUNNING error code, to be returned by

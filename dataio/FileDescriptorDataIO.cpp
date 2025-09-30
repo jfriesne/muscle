@@ -138,10 +138,11 @@ int64 FileDescriptorDataIO :: GetLength() const
 
 status_t FileDescriptorDataIO :: Truncate()
 {
+   const int fd       = _fd.GetFileDescriptor();
    const int64 curPos = GetPosition();
-   if (curPos < 0) return B_BAD_OBJECT;
+   if ((fd < 0)||(curPos < 0)) return B_BAD_OBJECT;
 
-   const int r = ftruncate(_fd.GetFileDescriptor(), curPos);
+   const int r = ftruncate(fd, curPos);
    return (r == 0) ? B_NO_ERROR : B_ERRNO;
 }
 

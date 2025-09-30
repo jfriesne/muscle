@@ -591,7 +591,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
          case PR_COMMAND_BATCH:
          {
             MessageRef subRef;
-            for (int i=0; msg.FindMessage(PR_NAME_KEYS, i, subRef).IsOK(); i++) CallMessageReceivedFromGateway(subRef, userData);
+            for (int32 i=0; msg.FindMessage(PR_NAME_KEYS, i, subRef).IsOK(); i++) CallMessageReceivedFromGateway(subRef, userData);
          }
          break;
 
@@ -743,7 +743,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
          {
             bool updateDefaultMessageRoute = false;
             const String * nextName;
-            for (int i=0; msg.FindString(PR_NAME_KEYS, i, &nextName).IsOK(); i++)
+            for (int32 i=0; msg.FindString(PR_NAME_KEYS, i, &nextName).IsOK(); i++)
             {
                // Search the parameters message for all parameters that match (nextName)...
                StringMatcher matcher;
@@ -1143,7 +1143,7 @@ void StorageReflectSession :: DoRemoveData(NodePathMatcher & matcher, bool quiet
    {
       Queue<DataNodeRef> removeSet;
       (void) matcher.DoTraversal((PathMatchCallback)RemoveDataCallbackFunc, this, *_sessionDir(), true, &removeSet);
-      for (int i=removeSet.GetNumItems()-1; i>=0; i--)
+      for (int32 i=removeSet.GetNumItems()-1; i>=0; i--)
       {
          DataNode * next = removeSet[i]();
          if (next)
@@ -1395,7 +1395,7 @@ InsertOrderedDataCallback(DataNode & node, void * userData)
    for (MessageFieldNameIterator iter = insertMsg->GetFieldNameIterator(B_MESSAGE_TYPE); iter.HasData(); iter++)
    {
       MessageRef nextRef;
-      for (int i=0; (insertMsg->FindMessage(iter.GetFieldName(), i, nextRef).IsOK()); i++) (void) InsertOrderedChildNode(node, &iter.GetFieldName(), nextRef, optRetResults);
+      for (int32 i=0; (insertMsg->FindMessage(iter.GetFieldName(), i, nextRef).IsOK()); i++) (void) InsertOrderedChildNode(node, &iter.GetFieldName(), nextRef, optRetResults);
    }
    return node.GetDepth();
 }
@@ -1709,7 +1709,7 @@ JettisonOutgoingSubtrees(const String * optMatchString)
       if ((optMatchString == NULL)||(sm.SetPattern(*optMatchString).IsOK()))
       {
          Queue<MessageRef> & oq = gw->GetOutgoingMessageQueue();
-         for (int i=oq.GetNumItems()-1; i>=0; i--)  // must do this backwards!
+         for (int32 i=oq.GetNumItems()-1; i>=0; i--)  // must do this backwards!
          {
             Message * msg = oq.GetItemAt(i)->GetItemPointer();
             if ((msg)&&(msg->what == PR_RESULT_DATATREES))
@@ -1739,7 +1739,7 @@ JettisonOutgoingResults(const NodePathMatcher * matcher)
    if (gw)
    {
       Queue<MessageRef> & oq = gw->GetOutgoingMessageQueue();
-      for (int i=oq.GetNumItems()-1; i>=0; i--)  // must do this backwards!
+      for (int32 i=oq.GetNumItems()-1; i>=0; i--)  // must do this backwards!
       {
          Message * msg = oq.GetItemAt(i)->GetItemPointer();
          if ((msg)&&(msg->what == PR_RESULT_DATAITEMS))
@@ -1901,7 +1901,7 @@ StorageReflectSession :: RestoreNodeTreeFromMessage(const Message & msg, const S
          if (msg.FindMessage(PR_NAME_NODEINDEX, indexRef).IsOK())
          {
             const String * nextFieldName;
-            for (int i=0; indexRef()->FindString(PR_NAME_KEYS, i, &nextFieldName).IsOK(); i++)
+            for (int32 i=0; indexRef()->FindString(PR_NAME_KEYS, i, &nextFieldName).IsOK(); i++)
             {
                ConstMessageRef nextChildRef;
                if (childrenRef()->FindMessage(*nextFieldName, nextChildRef).IsOK())

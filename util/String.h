@@ -825,7 +825,14 @@ public:
      *                         if strlen(str) is less than this value.  Defaults to MUSCLE_NO_LIMIT.
      * @returns the resulting String
      */
-   String WithInsert(uint32 insertAtIdx, const char * str, uint32 maxCharsToInsert = MUSCLE_NO_LIMIT) const {String ret = *this; (void) ret.InsertCharsAux(insertAtIdx, str, str?muscleMin((uint32)strlen(str),maxCharsToInsert):0, 1); return ret;}
+   String WithInsert(uint32 insertAtIdx, const char * str, uint32 maxCharsToInsert = MUSCLE_NO_LIMIT) const
+   {
+      String ret = *this;
+      uint32 numCharsToInsert = (uint32) (str ? strlen(str) : 0);
+      if (maxCharsToInsert < numCharsToInsert) numCharsToInsert = maxCharsToInsert;  // doing it this way instead of calling muscleMin() so Coverity won't complain
+      (void) ret.InsertCharsAux(insertAtIdx, str, numCharsToInsert, 1);
+      return ret;
+   }
 
    /** Returns a String that is equal to this String but with zero or more copies of (c) inserted into it.
      * @param insertAtIdx Position within this string to insert (0 == prepend, 1 == after the first
