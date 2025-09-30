@@ -544,7 +544,7 @@ void RS232DataIO :: IOThreadEntry()
    }
 
    // Clean up!
-   for (int32 i=inQueue.GetNumItems()-1;  i>=0; i--) delete inQueue[i];
+   for (int32 i=inQueue.GetLastValidIndex(); i>=0; i--) delete inQueue[i];
 }
 #endif
 

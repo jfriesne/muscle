@@ -77,7 +77,7 @@ public:
       LogTime(MUSCLE_LOG_INFO, "TestSession::AboutToDetachFromServer() called...\n");
       AbstractReflectSession::AboutToDetachFromServer();
 
-      for (int32 i=_tpcs.GetNumItems()-1; i>=0; i--) delete _tpcs[i];
+      for (int32 i=_tpcs.GetLastValidIndex(); i>=0; i--) delete _tpcs[i];
       _tpcs.Clear();
    }
 

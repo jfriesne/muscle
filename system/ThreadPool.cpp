@@ -127,7 +127,7 @@ status_t ThreadPool :: ThreadPoolThread :: MessageReceivedFromOwner(const Messag
 
    while(_internalQueue.HasItems())
    {
-      _threadPool->MessageReceivedFromThreadPoolAux(_currentClient, _internalQueue.Head(), _internalQueue.GetNumItems()-1);
+      _threadPool->MessageReceivedFromThreadPoolAux(_currentClient, _internalQueue.Head(), _internalQueue.GetLastValidIndex());
       (void) _internalQueue.RemoveHead();
    }
 

@@ -82,7 +82,7 @@ status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const Stri
    uint32 insertIndex = _orderedIndex->GetNumItems();  // default to end of index
    if (optInsertBefore)
    {
-      for (int i=_orderedIndex->GetNumItems()-1; i>=0; i--)
+      for (int i=_orderedIndex->GetLastValidIndex(); i>=0; i--)
       {
          if ((*_orderedIndex)[i]()->GetNodeName() == *optInsertBefore)
          {
@@ -151,7 +151,7 @@ status_t DataNode :: ReorderChild(const DataNodeRef & child, const String * optM
    uint32 targetIndex = _orderedIndex->GetNumItems();  // default to end of index
    if ((optMoveToBeforeThis)&&(HasChild(*optMoveToBeforeThis)))
    {
-      for (int i=_orderedIndex->GetNumItems()-1; i>=0; i--)
+      for (int i=_orderedIndex->GetLastValidIndex(); i>=0; i--)
       {
          if (*optMoveToBeforeThis == (*_orderedIndex)[i]()->GetNodeName())
          {
@@ -322,7 +322,7 @@ status_t DataNode :: RemoveIndexEntry(const String & key, StorageReflectSession 
    // Update our ordered-node index & notify everyone about the change
    if (_orderedIndex)
    {
-      for (int i=_orderedIndex->GetNumItems()-1; i>=0; i--)
+      for (int i=_orderedIndex->GetLastValidIndex(); i>=0; i--)
       {
          if (key == (*_orderedIndex)[i]()->GetNodeName())
          {
@@ -352,7 +352,7 @@ uint32 DataNode :: CalculateChecksum(uint32 maxRecursionDepth) const
    else
    {
       uint32 ret = _cachedDataChecksum;
-      if (_orderedIndex) for (int32 i=_orderedIndex->GetNumItems()-1; i>=0; i--) ret += (*_orderedIndex)[i]()->GetNodeName().CalculateChecksum();
+      if (_orderedIndex) for (int32 i=_orderedIndex->GetLastValidIndex(); i>=0; i--) ret += (*_orderedIndex)[i]()->GetNodeName().CalculateChecksum();
       if (_children) for (HashtableIterator<const String *, DataNodeRef> iter(*_children); iter.HasData(); iter++) ret += iter.GetValue()()->CalculateChecksum(maxRecursionDepth-1);
       return ret;
    }

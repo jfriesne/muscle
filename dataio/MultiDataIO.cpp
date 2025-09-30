@@ -30,7 +30,7 @@ io_status_t MultiDataIO :: Write(const void * buffer, uint32 size)
    int64 newSeekPos       = -1;  // just to shut the compiler up
    uint32 maxWrittenBytes = 0;
    uint32 minWrittenBytes = MUSCLE_NO_LIMIT;
-   for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--)
+   for (int32 i=_childIOs.GetLastValidIndex(); i>=0; i--)
    {
       const io_status_t childRet = _childIOs[i]()->Write(buffer, muscleMin(size, minWrittenBytes));
       if (childRet.IsError())
@@ -64,7 +64,7 @@ io_status_t MultiDataIO :: Write(const void * buffer, uint32 size)
 status_t MultiDataIO :: Truncate()
 {
    status_t ret;
-   for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--)
+   for (int32 i=_childIOs.GetLastValidIndex(); i>=0; i--)
    {
       SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(_childIOs[i]());
       if ((sdio == NULL)||(sdio->Truncate().IsError(ret)))
@@ -78,24 +78,24 @@ status_t MultiDataIO :: Truncate()
 
 void MultiDataIO :: FlushOutput()
 {
-   for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--) _childIOs[i]()->FlushOutput();
+   for (int32 i=_childIOs.GetLastValidIndex(); i>=0; i--) _childIOs[i]()->FlushOutput();
 }
 
 void MultiDataIO :: WriteBufferedOutput()
 {
-   for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--) _childIOs[i]()->WriteBufferedOutput();
+   for (int32 i=_childIOs.GetLastValidIndex(); i>=0; i--) _childIOs[i]()->WriteBufferedOutput();
 }
 
 bool MultiDataIO :: HasBufferedOutput() const
 {
-   for (int32 i=_childIOs.GetNumItems()-1; i>=0; i--) if (_childIOs[i]()->HasBufferedOutput()) return true;
+   for (int32 i=_childIOs.GetLastValidIndex(); i>=0; i--) if (_childIOs[i]()->HasBufferedOutput()) return true;
    return false;
 }
 
 status_t MultiDataIO :: SeekAll(uint32 first, int64 offset, int whence)
 {
    status_t ret;
-   for (int32 i=_childIOs.GetNumItems()-1; i>=(int32)first; i--)
+   for (int32 i=_childIOs.GetLastValidIndex(); i>=(int32)first; i--)
    {
       SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(_childIOs[i]());
       if ((sdio == NULL)||(sdio->Seek(offset, whence).IsError(ret)))

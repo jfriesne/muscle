@@ -133,7 +133,7 @@ int main(int argc, char ** argv)
       if (RS232DataIO::GetAvailableSerialPortNames(devs).IsOK())
       {
          String serName;
-         for (int32 i=devs.GetNumItems()-1; i>=0; i--)
+         for (int32 i=devs.GetLastValidIndex(); i>=0; i--)
          {
             if (devs[i] == devName)
             {

@@ -179,7 +179,7 @@ protected:
       const FixedSizeDataArray<DataType> * trhs = dynamic_cast<const FixedSizeDataArray<DataType> *>(rhs);
       if (trhs == NULL) return false;
 
-      for (int32 i=GetNumItems()-1; i>=0; i--) if (ItemAt(i) != trhs->ItemAt(i)) return false;
+      for (int32 i=GetLastValidIndex(); i>=0; i--) if (ItemAt(i) != trhs->ItemAt(i)) return false;
       return true;
    }
 
@@ -375,7 +375,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*_data[i].CalculateChecksum());
+      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += ((i+1)*_data[i].CalculateChecksum());
       return ret;
    }
 };
@@ -398,7 +398,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*_data[i].CalculateChecksum());
+      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += ((i+1)*_data[i].CalculateChecksum());
       return ret;
    }
 };
@@ -419,7 +419,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*((uint32)_data[i]));
+      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += ((i+1)*((uint32)_data[i]));
       return ret;
    }
 };
@@ -440,7 +440,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*(_data[i] ? 1 : 0));
+      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += ((i+1)*(_data[i] ? 1 : 0));
       return ret;
    }
 };
@@ -461,7 +461,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*((uint32)_data[i]));
+      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += ((i+1)*((uint32)_data[i]));
       return ret;
    }
 };
@@ -482,7 +482,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*((uint32)_data[i]));
+      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += ((i+1)*((uint32)_data[i]));
       return ret;
    }
 };
@@ -503,7 +503,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*CalculatePODChecksum(_data[i]));
+      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += ((i+1)*CalculatePODChecksum(_data[i]));
       return ret;
    }
 };
@@ -524,7 +524,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*CalculatePODChecksum(_data[i]));
+      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += ((i+1)*CalculatePODChecksum(_data[i]));
       return ret;
    }
 };
@@ -545,7 +545,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*CalculatePODChecksum(_data[i]));
+      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += ((i+1)*CalculatePODChecksum(_data[i]));
       return ret;
    }
 };
@@ -750,7 +750,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--)
+      for (int32 i=GetLastValidIndex(); i>=0; i--)
       {
          const ByteBuffer * buf = dynamic_cast<ByteBuffer *>(_data[i]());  // TODO: possibly make this a static cast?
          if (buf) ret += ((i+1)*buf->CalculateChecksum());
@@ -765,7 +765,7 @@ protected:
       const ByteBufferDataArray * brhs = dynamic_cast<const ByteBufferDataArray *>(rhs);
       if (brhs == NULL) return false;
 
-      for (int32 i=GetNumItems()-1; i>=0; i--)
+      for (int32 i=GetLastValidIndex(); i>=0; i--)
       {
          const ByteBuffer * myBuf  = static_cast<const ByteBuffer *>(this->ItemAt(i)());
          const ByteBuffer * hisBuf = static_cast<const ByteBuffer *>(brhs->ItemAt(i)());
@@ -844,7 +844,7 @@ public:
    virtual uint32 CalculateChecksum(bool countNonFlattenableFields) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--)
+      for (int32 i=GetLastValidIndex(); i>=0; i--)
       {
          const MessageRef & msg = _data[i];
          if (msg()) ret += ((i+1)*(msg()->CalculateChecksum(countNonFlattenableFields)));
@@ -859,7 +859,7 @@ protected:
       const MessageDataArray * trhs = dynamic_cast<const MessageDataArray *>(rhs);
       if (trhs == NULL) return false;
 
-      for (int32 i=GetNumItems()-1; i>=0; i--)
+      for (int32 i=GetLastValidIndex(); i>=0; i--)
       {
          const Message * myMsg  = static_cast<const Message *>(this->ItemAt(i)());
          const Message * hisMsg = static_cast<const Message *>(trhs->ItemAt(i)());
@@ -935,7 +935,7 @@ public:
    virtual uint32 CalculateChecksum(bool /*countNonFlattenableFields*/) const
    {
       uint32 ret = TypeCode() + GetNumItems();
-      for (int32 i=GetNumItems()-1; i>=0; i--) ret += ((i+1)*(_data[i].CalculateChecksum()));
+      for (int32 i=GetLastValidIndex(); i>=0; i--) ret += ((i+1)*(_data[i].CalculateChecksum()));
       return ret;
    }
 };
@@ -1000,7 +1000,7 @@ MessageRef Message :: CreateMessageTemplate() const
             MRETURN_ON_ERROR(newMF->EnsurePrivate());
 
             ByteBufferRef emptyBuf;  // demand-allocated
-            for (int32 i=newMF->GetNumItems()-1; i>=0; i--)
+            for (int32 i=newMF->GetLastValidIndex(); i>=0; i--)
             {
                const ByteBuffer * optBB = dynamic_cast<const ByteBuffer *>(newMF->GetItemAtAsRefCountableRef(i)());
                if (optBB)

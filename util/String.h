@@ -659,6 +659,12 @@ public:
    /** Returns the number of characters in the string (not including the terminating NUL byte) */
    MUSCLE_NODISCARD uint32 Length() const {return IsArrayDynamicallyAllocated() ? _stringData._longStringData.Length() : _stringData._shortStringData.Length();}
 
+   /** Returns the last valid index in this String, or -1 if this String is empty.
+     * @note this method is here because it's convenient to use when iterating backwards over
+     *       the characters in the String, e.g. for (int32 i=s.GetLastValidIndex(); i>=0; i--) {...}
+     */
+   MUSCLE_NODISCARD int32 GetLastValidIndex() const {return ((int32)Length())-1;}
+
    /** Returns the number of bytes of storage we have allocated.  Note that this value will often
      * be greater than the value returned by Length(), since we allocate extra bytes to minimize
      * the number of reallocations that must be done as data is being added to a String.

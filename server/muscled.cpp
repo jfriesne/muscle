@@ -270,8 +270,8 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    filter.SetInputPolicy(inputPolicyRef);
    filter.SetOutputPolicy(outputPolicyRef);
 
-   for (int b=bans.GetNumItems()-1;     ((ret.IsOK())&&(b>=0)); b--) ret |= filter.PutBanPattern(bans[b]());
-   for (int a=requires.GetNumItems()-1; ((ret.IsOK())&&(a>=0)); a--) ret |= filter.PutRequirePattern(requires[a]());
+   for (int32 b=bans.GetLastValidIndex();     ((ret.IsOK())&&(b>=0)); b--) ret |= filter.PutBanPattern(bans[b]());
+   for (int32 a=requires.GetLastValidIndex(); ((ret.IsOK())&&(a>=0)); a--) ret |= filter.PutRequirePattern(requires[a]());
 
    ret |= LoadCryptoKey(false, args.GetStringPointer("privatekey"), server);
    ret |= LoadCryptoKey(true,  args.GetStringPointer("publickey"),  server);

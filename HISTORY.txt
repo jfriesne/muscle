@@ -7,8 +7,12 @@ key:  - new feature
 
    - Added example diagrams to the Queue, Message,
      Ref, and Hashtable mkdocs documentation pages.
+   - Added a GetLastValidIndex() convenience method to
+     the Queue and String classes.
    * Replaced ! with NOT in some of the CMakeLists.txt files
    * Fixed some Coverity Scan warnings
+   * Replaced various instances of (GetNumItems()-1) with
+     GetLastValidIndex(), for consistent underflow handling.
 
 9.74 - Released 9/2/2025
    - Added B_ALREADY_RUNNING error code, to be returned by

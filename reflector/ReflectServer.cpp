@@ -919,7 +919,7 @@ uint32 ReflectServer :: DumpBoggedSessions()
          {
             uint32 qSize = 0;
             const Queue<MessageRef> & q = gw->GetOutgoingMessageQueue();
-            for (int k=q.GetNumItems()-1; k>=0; k--)
+            for (int k=q.GetLastValidIndex(); k>=0; k--)
             {
                const Message * qmsg = q[k]();
                if (qmsg) qSize += qmsg->FlattenedSize();

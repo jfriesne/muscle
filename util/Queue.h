@@ -448,6 +448,12 @@ public:
      */
    void FastClear() {_itemCount = _headIndex = _tailIndex = 0;}
 
+   /** Returns the last valid index in this Queue, or -1 if this Queue is empty.
+     * @note this method is here because it's convenient to use when iterating backwards over
+     *       the values in the Queue, e.g. for (int32 i=q.GetLastValidIndex(); i>=0; i--) {...}
+     */
+   MUSCLE_NODISCARD int32 GetLastValidIndex() const {return ((int32)_itemCount)-1;}
+
    /** Returns the number of items in the queue.  (This number does not include pre-allocated space) */
    MUSCLE_NODISCARD uint32 GetNumItems() const {return _itemCount;}
 
@@ -939,7 +945,7 @@ Queue<ItemType>::operator ==(const Queue& rhs) const
 {
    if (this == &rhs) return true;
    if (GetNumItems() != rhs.GetNumItems()) return false;
-   for (int32 i = GetNumItems()-1; i>=0; i--) if (((*this)[i] == rhs[i]) == false) return false;
+   for (int32 i = GetLastValidIndex(); i>=0; i--) if (((*this)[i] == rhs[i]) == false) return false;
    return true;
 }
 
@@ -1644,7 +1650,7 @@ status_t
 Queue<ItemType>::
 RemoveLastInstanceOf(const ItemType & val)
 {
-   for (int32 i=((int32)GetNumItems())-1; i>=0; i--) if ((*this)[i] == val) return RemoveItemAt(i);
+   for (int32 i=GetLastValidIndex(); i>=0; i--) if ((*this)[i] == val) return RemoveItemAt(i);
    return B_DATA_NOT_FOUND;
 }
 
@@ -1943,7 +1949,7 @@ Queue<ItemType>::EndsWith(const Queue<ItemType> & suffixQueue) const
 {
    if (suffixQueue.GetNumItems() > GetNumItems()) return false;
    int32 lastToCheck = GetNumItems()-suffixQueue.GetNumItems();
-   for (int32 i=GetNumItems()-1; i>=lastToCheck; i--) if (!(suffixQueue[i] == (*this)[i])) return false;
+   for (int32 i=GetLastValidIndex(); i>=lastToCheck; i--) if (!(suffixQueue[i] == (*this)[i])) return false;
    return true;
 }
 

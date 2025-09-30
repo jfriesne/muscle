@@ -543,7 +543,7 @@ int hextermmain(const char * argv0, const Message & args)
       if (RS232DataIO::GetAvailableSerialPortNames(devs).IsOK(ret))
       {
          String serName;
-         for (int32 i=devs.GetNumItems()-1; i>=0; i--)
+         for (int32 i=devs.GetLastValidIndex(); i>=0; i--)
          {
             if (devs[i] == devName)
             {

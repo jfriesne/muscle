@@ -389,7 +389,7 @@ NodeChangedAux(DataNode & modifiedNode, const ConstMessageRef & nodeData, NodeCh
                if (gw)
                {
                   Queue<MessageRef> & oq = gw->GetOutgoingMessageQueue();
-                  for (int32 i=oq.GetNumItems()-1; i>=0; i--)
+                  for (int32 i=oq.GetLastValidIndex(); i>=0; i--)
                   {
                      Message & m = *oq[i]();
                      if ((m.what == PR_RESULT_DATAITEMS)&&(PruneSubscriptionMessage(m, np).IsOK()))
@@ -1143,7 +1143,7 @@ void StorageReflectSession :: DoRemoveData(NodePathMatcher & matcher, bool quiet
    {
       Queue<DataNodeRef> removeSet;
       (void) matcher.DoTraversal((PathMatchCallback)RemoveDataCallbackFunc, this, *_sessionDir(), true, &removeSet);
-      for (int32 i=removeSet.GetNumItems()-1; i>=0; i--)
+      for (int32 i=removeSet.GetLastValidIndex(); i>=0; i--)
       {
          DataNode * next = removeSet[i]();
          if (next)
@@ -1460,7 +1460,7 @@ PathMatches(DataNode & node, ConstMessageRef & optData, const PathMatcherEntry &
    if ((int32)nextSubscription->GetStringMatchers().GetNumItems() != ((int32)node.GetDepth())-rootDepth) return false;  // only paths with the same number of clauses as the node's path (less rootDepth) can ever match
 
    DataNode * travNode = &node;
-   for (int j=nextSubscription->GetStringMatchers().GetNumItems()-1; j>=rootDepth; j--,travNode=travNode->GetParent())
+   for (int j=nextSubscription->GetStringMatchers().GetLastValidIndex(); j>=rootDepth; j--,travNode=travNode->GetParent())
    {
       const StringMatcher * nextMatcher = nextSubscription->GetStringMatchers().GetItemAt(j)->GetItemPointer();
       if ((nextMatcher)&&(nextMatcher->Match(travNode->GetNodeName()()) == false)) return false;
@@ -1709,7 +1709,7 @@ JettisonOutgoingSubtrees(const String * optMatchString)
       if ((optMatchString == NULL)||(sm.SetPattern(*optMatchString).IsOK()))
       {
          Queue<MessageRef> & oq = gw->GetOutgoingMessageQueue();
-         for (int32 i=oq.GetNumItems()-1; i>=0; i--)  // must do this backwards!
+         for (int32 i=oq.GetLastValidIndex(); i>=0; i--)  // must do this backwards!
          {
             Message * msg = oq.GetItemAt(i)->GetItemPointer();
             if ((msg)&&(msg->what == PR_RESULT_DATATREES))
@@ -1739,7 +1739,7 @@ JettisonOutgoingResults(const NodePathMatcher * matcher)
    if (gw)
    {
       Queue<MessageRef> & oq = gw->GetOutgoingMessageQueue();
-      for (int32 i=oq.GetNumItems()-1; i>=0; i--)  // must do this backwards!
+      for (int32 i=oq.GetLastValidIndex(); i>=0; i--)  // must do this backwards!
       {
          Message * msg = oq.GetItemAt(i)->GetItemPointer();
          if ((msg)&&(msg->what == PR_RESULT_DATAITEMS))
