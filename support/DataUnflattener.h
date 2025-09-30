@@ -131,13 +131,14 @@ public:
    template<typename T> MUSCLE_NODISCARD T ReadPrimitive() {T v = T(); (void) ReadPrimitives(&v, 1); return v;}
 ///@}
 
-   /** Returns a pointer to the next NUL-terminated ASCII string inside our buffer, or NULL on failure
+   /** Returns a pointer to the next NUL-terminated ASCII string inside our buffer, or (optDefaultRet) on failure.
+     * @param optDefaultRet what to return if no ASCII string can be read.  Defaults to NULL.
      * @note as a side effect, this method advances our internal read-pointer past the returned string
      */
-   MUSCLE_NODISCARD const char * ReadCString()
+   MUSCLE_NODISCARD const char * ReadCString(const char * optDefaultRet = NULL)
    {
       const uint32 nba = GetNumBytesAvailable();
-      if (nba == 0) {_status = B_DATA_NOT_FOUND; return NULL;}
+      if (nba == 0) {_status = B_DATA_NOT_FOUND; return optDefaultRet;}
 
       uint32 flatSize;
       if (_maxBytes == MUSCLE_NO_LIMIT) flatSize = (uint32) (strlen(reinterpret_cast<const char *>(_readFrom))+1);
@@ -147,7 +148,7 @@ public:
          const uint8 * temp = _readFrom;
          const uint8 * firstInvalidByte = _readFrom+nba;
          while((temp < firstInvalidByte)&&(*temp != '\0')) temp++;
-         if (temp == firstInvalidByte) {_status |= B_BAD_DATA; return NULL;}  // string wasn't terminated, so we can't return it
+         if (temp == firstInvalidByte) {_status |= B_BAD_DATA; return optDefaultRet;}  // string wasn't terminated, so we can't return it
          flatSize = (1+((uint32)(temp-_readFrom)));  // +1 to include the NUL byte
       }
 

@@ -9,6 +9,8 @@ key:  - new feature
      Ref, and Hashtable mkdocs documentation pages.
    - Added a GetLastValidIndex() convenience method to
      the Queue and String classes.
+   - DataUnflattener::ReadCString() now takes an optional
+     (optDefaultRet) argument specifying what to return on failure.
    * Replaced ! with NOT in some of the CMakeLists.txt files
    * Fixed some Coverity Scan warnings
    * Replaced various instances of (GetNumItems()-1) with

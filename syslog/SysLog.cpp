@@ -991,6 +991,11 @@ String HumanReadableTimeValues :: ExpandTokens(const String & origString) const
    return newString;
 }
 
+// I separated these Strings out into constants mainly just to avoid a spurious compiler warning --jaf
+static const String _foreverStr("forever");
+static const String _neverStr("never");
+static const String _infStr("inf");
+
 String GetHumanReadableTimeString(uint64 timeUS, uint32 timeType)
 {
    TCHECKPOINT;
@@ -1017,7 +1022,7 @@ uint64 ParseHumanReadableTimeString(const String & s, uint32 timeType)
 {
    TCHECKPOINT;
 
-   if (s.IndexOfIgnoreCase("never") >= 0) return MUSCLE_TIME_NEVER;
+   if (s.IndexOfIgnoreCase(_neverStr) >= 0) return MUSCLE_TIME_NEVER;
 
    StringTokenizer tok(s(), "//::" STRING_TOKENIZER_DEFAULT_SOFT_SEPARATOR_CHARS);
    const char * year   = tok();
@@ -1132,7 +1137,7 @@ static uint64 GetTimeUnitMultiplier(const String & l, uint64 defaultValue)
 
 uint64 ParseHumanReadableUnsignedTimeIntervalString(const String & s)
 {
-   if ((s.EqualsIgnoreCase("forever"))||(s.EqualsIgnoreCase("never"))||(s.StartsWithIgnoreCase("inf"))) return MUSCLE_TIME_NEVER;
+   if ((s.EqualsIgnoreCase(_foreverStr))||(s.EqualsIgnoreCase(_neverStr))||(s.StartsWithIgnoreCase(_infStr))) return MUSCLE_TIME_NEVER;
 
    /** Find the first digit in the string */
    const char * digits = s();
@@ -1165,7 +1170,7 @@ int64 ParseHumanReadableSignedTimeIntervalString(const String & s)
 
 String GetHumanReadableUnsignedTimeIntervalString(uint64 intervalUS, uint32 maxClauses, uint64 minPrecision, bool * optRetIsAccurate, bool roundUp)
 {
-   if (intervalUS == MUSCLE_TIME_NEVER) return "forever";
+   if (intervalUS == MUSCLE_TIME_NEVER) return _foreverStr;
 
    // Find the largest unit that is still smaller than (micros)
    uint32 whichUnit = TIME_UNIT_MICROSECOND;
@@ -1195,7 +1200,7 @@ String GetHumanReadableUnsignedTimeIntervalString(uint64 intervalUS, uint32 maxC
 
 String GetHumanReadableSignedTimeIntervalString(int64 intervalUS, uint32 maxClauses, uint64 minPrecision, bool * optRetIsAccurate, bool roundUp)
 {
-   if (intervalUS == _largestSigned64BitValue) return "forever";  // since we can't use MUSCLE_TIME_NEVER with a signed value, as it comes out as -1
+   if (intervalUS == _largestSigned64BitValue) return _foreverStr;  // since we can't use MUSCLE_TIME_NEVER with a signed value, as it comes out as -1
 
    String ret;
    if (intervalUS < 0) ret += '-';
