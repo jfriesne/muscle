@@ -33,7 +33,8 @@ namespace muscle {
 # endif
 #endif
 
-/** This class implements a templated double-ended-queue data structure.
+/** This class implements a templated double-ended-queue data structure, using
+ *  an internal array as an expandable ring-buffer.
  *  Adding or removing items from the head or tail of a Queue is (on average)
  *  an O(1) operation.  A Queue can also serve as a reasonably efficient resizable-array
  *  class (aka Vector) if that is all you need.
@@ -42,11 +43,13 @@ namespace muscle {
 template <class ItemType> class MUSCLE_NODISCARD Queue MUSCLE_FINAL_CLASS
 {
 public:
-   /** Default constructor.  */
+   /** Default constructor.  Creates an empty Queue. */
    Queue();
 
    /** Explicitly-sized constructor
      * @param preallocatedItemSlotsCount how many slots should be preallocated for this table
+     * @note this constructor doesn't place any items in the Queue (i.e. the constructed Queue is still empty)
+     *       but it does preallocate an array of the suggested size so that future memory reallocations may be avoided.
      */
    explicit Queue(PreallocatedItemSlotsCount preallocatedItemSlotsCount);
 
@@ -143,23 +146,23 @@ public:
      */
    status_t CopyFrom(const Queue<ItemType> & rhs);
 
-   /** Appends (item) to the end of the queue.  Queue size grows by one.
+   /** Appends (item) to the end of the Queue.  Queue size grows by one.
     *  @param item The item to append.
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    QQ_UniversalSinkItemRef status_t AddTail(QQ_SinkItemParam item) {return (AddTailAndGet(QQ_ForwardItem(item)) != NULL) ? B_NO_ERROR : B_OUT_OF_MEMORY;}
 
-   /** As above, except that a default-initialized item is appended.
+   /** Appends a default-initialized item to the end of the Queue.  Queue size grows by one.
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t AddTail() {return AddTail(GetDefaultItem());}
 
-   /** Appends some or all items in (queue) to the end of our queue.  Queue size
+   /** Appends some or all items in (queue) to the end of our Queue.  Queue size
     *  grows by at most (queue.GetNumItems()).
-    *  For example:
-    *    Queue<int> a;  // contains 1, 2, 3, 4
-    *    Queue<int> b;  // contains 5, 6, 7, 8
-    *    a.AddTail(b);  // a now contains 1, 2, 3, 4, 5, 6, 7, 8
+    *  For example:<pre>
+    *    Queue<int> a = {1, 2, 3, 4};
+    *    Queue<int> b = {5, 6, 7, 8};
+    *    (void) a.AddTail(b);  // (a) now contains 1, 2, 3, 4, 5, 6, 7, 8</pre>
     *  @param queue The queue to append to our queue.
     *  @param startIndex Index in (queue) to start adding at.  Default to zero.
     *  @param numItems Number of items to add.  If this number is too large, it will be capped appropriately.  Default is to add all items.
@@ -167,9 +170,9 @@ public:
     */
    status_t AddTailMulti(const Queue<ItemType> & queue, uint32 startIndex = 0, uint32 numItems = MUSCLE_NO_LIMIT);
 
-   /** Adds the given array of items to the tail of the Queue.  Equivalent
-    *  to adding them to the tail of the Queue one at a time, but somewhat
-    *  more efficient.  On success, the queue size grows by (numItems).
+   /** Adds the given array of items to the end of the Queue.  Equivalent
+    *  to adding them to the end of the Queue one at a time, but somewhat
+    *  more efficient.  On success, the Queue size grows by (numItems).
     *  @param items Pointer to an array of items to add to the Queue.
     *  @param numItems Number of items in the array
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
@@ -179,7 +182,7 @@ public:
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** Available in C++11 only:  Appends the items specified in the initializer
     *  list to this Queue.
-    *  @param list The C++11 initializer list of items (eg {1,2,3,4,5} to add.
+    *  @param list The C++11 initializer list of items (eg {1,2,3,4,5}) to add.
     *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t AddTailMulti(const std::initializer_list<ItemType> & list)
@@ -190,42 +193,42 @@ public:
    }
 #endif
 
-   /** Convenience method:  Appends (item) to the end of the queue, if no object equal to (item) is already present in the Queue.
+   /** Convenience method:  Appends (item) to the end of the Queue, if no object equal to (item) is already present in the Queue.
     *  @param item The item to append.
     *  @note this method runs in O(N) time, so be careful about using it on large Queues (maybe use a Hashtable instead?)
     *  @return B_NO_ERROR on success (or if an equivalent item was already present), or B_OUT_OF_MEMORY on failure.
     */
    QQ_UniversalSinkItemRef status_t AddTailIfNotAlreadyPresent(QQ_SinkItemParam item) {return Contains(item) ? B_NO_ERROR : AddTail(item);}
 
-   /** Appends (item) to the end of the queue.  Queue size grows by one.
+   /** Appends (item) to the end of the Queue.  Queue size grows by one.
     *  @param item The item to append.
     *  @return A pointer to the appended item on success, or a NULL pointer on failure.
     */
    QQ_UniversalSinkItemRef MUSCLE_NODISCARD ItemType * AddTailAndGet(QQ_SinkItemParam item);
 
-   /** As above, except that an item is appended.
+   /** Appends a default-initialized item to the end of the Queue and returns a pointer to the new item.  Queue size grows by one.
     *  @return A pointer to the appended item on success, or a NULL pointer on failure.
     *  @note that for POD ItemTypes, the appended item will be in an unitialized state.
     */
    MUSCLE_NODISCARD ItemType * AddTailAndGet();
 
-   /** Prepends (item) to the head of the queue.  Queue size grows by one.
+   /** Prepends (item) to the start of the Queue.  Queue size grows by one.
     *  @param item The item to prepend.
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    QQ_UniversalSinkItemRef status_t AddHead(QQ_SinkItemParam item) {return (AddHeadAndGet(QQ_ForwardItem(item)) != NULL) ? B_NO_ERROR : B_OUT_OF_MEMORY;}
 
-   /** As above, except that a default-initialized item is prepended.
+   /** Prepends a default-initialized item to the start of the Queue.  Queue size grows by one.
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t AddHead() {return AddHead(GetDefaultItem());}
 
-   /** Concatenates (queue) to the head of our queue.
+   /** Concatenates (queue) to the start of the Queue.
     *  Our queue size grows by at most (queue.GetNumItems()).
-    *  For example:
-    *    Queue<int> a;  // contains 1, 2, 3, 4
-    *    Queue<int> b;  // contains 5, 6, 7, 8
-    *    a.AddHead(b);  // a now contains 5, 6, 7, 8, 1, 2, 3, 4
+    *  For example:<pre>
+    *    Queue<int> a = {1, 2, 3, 4};
+    *    Queue<int> b = {5, 6, 7, 8};
+    *    (void) a.AddHead(b);  // (a) now contains 5, 6, 7, 8, 1, 2, 3, 4</pre>
     *  @param queue The queue to prepend to our queue.
     *  @param startIndex Index in (queue) to start adding at.  Default to zero.
     *  @param numItems Number of items to add.  If this number is too large, it will be capped appropriately.  Default is to add all items.
@@ -233,7 +236,7 @@ public:
     */
    status_t AddHeadMulti(const Queue<ItemType> & queue, uint32 startIndex = 0, uint32 numItems = MUSCLE_NO_LIMIT);
 
-   /** Concatenates the given array of items to the head of the Queue.
+   /** Concatenates the given array of items to the start of the Queue.
     *  The semantics are the same as for AddHeadMulti(const Queue<ItemType> &).
     *  @param items Pointer to an array of items to add to the Queue.
     *  @param numItems Number of items in the array
@@ -241,81 +244,81 @@ public:
     */
    status_t AddHeadMulti(const ItemType * items, uint32 numItems);
 
-   /** Convenience method:  Prepends (item) to the head of the queue, if no object equal to (item) is already present in the Queue.
+   /** Convenience method:  Prepends (item) to the start of the Queue, if no object equal to (item) is already present in the Queue.
     *  @param item The item to prepend.
     *  @note this method runs in O(N) time, so be careful about using it on large Queues (maybe use a Hashtable instead?)
     *  @return B_NO_ERROR on success (or if an equivalent item was already present), or B_OUT_OF_MEMORY on failure.
     */
    QQ_UniversalSinkItemRef status_t AddHeadIfNotAlreadyPresent(QQ_SinkItemParam item) {return Contains(item) ? B_NO_ERROR : AddHead(item);}
 
-   /** Prepends (item) to the beginning of the queue.  Queue size grows by one.
+   /** Prepends (item) to the beginning of the Queue.  Queue size grows by one.
     *  @param item The item to prepend.
     *  @return A pointer to the prepend item on success, or a NULL pointer on failure.
     */
    QQ_UniversalSinkItemRef MUSCLE_NODISCARD ItemType * AddHeadAndGet(QQ_SinkItemParam item);
 
-   /** As above, except that an item is prepended.
+   /** Prepends a default-intialized item to the start of the Queue, and returns a pointer to the new item.
     *  @return A pointer to the prepended item on success, or a NULL pointer on failure.
     *  @note that for POD ItemTypes, the prepended item will be in an unitialized state.
     */
    MUSCLE_NODISCARD ItemType * AddHeadAndGet();
 
-   /** Removes the item at the head of the queue.
-    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the queue was already empty.
+   /** Removes the item at the head of the Queue.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the Queue was already empty.
     */
    status_t RemoveHead();
 
-   /** Removes the item at the head of the queue and returns it.
+   /** Removes the item at the head of the Queue and returns it.
      * If the Queue was empty, a default item is returned.
      */
    ItemType RemoveHeadWithDefault();
 
-   /** Removes up to (numItems) items from the head of the queue.
+   /** Removes up to (numItems) items from the head of the Queue.
      * @param numItems The desired number of items to remove
      * @returns the actual number of items removed (may be less than (numItems) if the Queue was too short)
      */
    uint32 RemoveHeadMulti(uint32 numItems);
 
-   /** Removes the item at the head of the queue and places it into (returnItem).
+   /** Removes the item at the head of the Queue and places it into (returnItem).
     *  @param returnItem On success, the removed item is copied into this object.
-    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the queue was empty
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the Queue was empty
     */
    status_t RemoveHead(ItemType & returnItem);
 
-   /** Removes the item at the tail of the queue.
-    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the queue was empty.
+   /** Removes the item at the tail of the Queue.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the Queue was empty.
     */
    status_t RemoveTail();
 
-   /** Removes the item at the tail of the queue and places it into (returnItem).
+   /** Removes the item at the tail of the Queue and places it into (returnItem).
     *  @param returnItem On success, the removed item is copied into this object.
-    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the queue was empty
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the Queue was empty
     */
    status_t RemoveTail(ItemType & returnItem);
 
-   /** Removes the item at the tail of the queue and returns it.
+   /** Removes the item at the tail of the Queue and returns it.
      * If the Queue was empty, a default item is returned.
      */
    ItemType RemoveTailWithDefault();
 
-   /** Removes up to (numItems) items from the tail of the queue.
+   /** Removes up to (numItems) items from the tail of the Queue.
      * @param numItems The desired number of items to remove
      * @returns the actual number of items removed (may be less than (numItems) if the Queue was too short)
      */
    uint32 RemoveTailMulti(uint32 numItems);
 
-   /** Removes the item at the (index)'th position in the queue.
+   /** Removes the item at the (index)'th position in the Queue.
     *  @param index Which item to remove--can range from zero
-    *               (head of the queue) to GetLastValidIndex() (tail of the queue).
+    *               (aka first item in the Queue) to (GetLastValidIndex()) (aka last item in the Queue).
     *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (ie bad index)
     *  Note that this method is somewhat inefficient for indices that
-    *  aren't at the head or tail of the queue (ie O(n) time)
+    *  aren't at the head or tail of the Queue (ie O(n) time)
     */
    status_t RemoveItemAt(uint32 index);
 
-   /** Removes the item at the (index)'th position in the queue, and copies it into (returnItem).
+   /** Removes the item at the (index)'th position in the Queue, and copies it into (returnItem).
     *  @param index Which item to remove--can range from zero
-    *               (head of the queue) to GetLastValidIndex() (tail of the queue).
+    *               (head of the Queue) to GetLastValidIndex() (tail of the Queue).
     *  @param returnItem On success, the removed item is copied into this object.
     *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (ie bad index)
     */
@@ -329,14 +332,14 @@ public:
 
    /** Copies the (index)'th item into (returnItem).
     *  @param index Which item to get--can range from zero
-    *               (head of the queue) to GetLastValidIndex() (tail of the queue).
+    *               (head of the Queue) to GetLastValidIndex() (tail of the Queue).
     *  @param returnItem On success, the retrieved item is copied into this object.
     *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (eg bad index)
     */
    status_t GetItemAt(uint32 index, ItemType & returnItem) const;
 
    /** Returns a pointer to an item in the array (ie no copying of the item is done).
-    *  Included for efficiency; be careful with this: modifying the queue can invalidate
+    *  Included for efficiency; be careful with this: modifying the Queue can invalidate
     *  the returned pointer!
     *  @param index Index of the item to return a pointer to.
     *  @return a pointer to the internally held item, or NULL if (index) was invalid.
@@ -374,17 +377,17 @@ public:
      */
    void ReplaceAllItems(const ItemType & newItem) {for (uint32 i=0; i<GetNumItems(); i++) (*this)[i] = newItem;}
 
-   /** Replaces the (index)'th item in the queue with (newItem).
+   /** Replaces the (index)'th item in the Queue with (newItem).
     *  @param index Which item to replace--can range from zero
-    *               (head of the queue) to GetLastValidIndex() (tail of the queue).
-    *  @param newItem The item to place into the queue at the (index)'th position.
+    *               (head of the Queue) to GetLastValidIndex() (tail of the Queue).
+    *  @param newItem The item to place into the Queue at the (index)'th position.
     *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (eg bad index)
     */
    QQ_UniversalSinkItemRef status_t ReplaceItemAt(uint32 index, QQ_SinkItemParam newItem);
 
-   /** As above, except the specified item is replaced with a default-initialized item.
+   /** Replaces the item at the specified index with a default-initialized item.
     *  @param index Which item to replace--can range from zero
-    *               (head of the queue) to GetLastValidIndex() (tail of the queue).
+    *               (head of the Queue) to GetLastValidIndex() (tail of the Queue).
     *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (eg bad index)
     */
    status_t ReplaceItemAt(uint32 index) {return ReplaceItemAt(index, GetDefaultItem());}
@@ -393,45 +396,45 @@ public:
     *  is the same as AddHead(item), InsertItemAt(GetNumItems()) (or larger) is the same
     *  as AddTail(item).  Other positions will involve an O(n) shifting of contents.
     *  @param index The position at which to insert the new item.
-    *  @param newItem The item to insert into the queue.
+    *  @param newItem The item to insert into the Queue.
     *  @return B_NO_ERROR on success, or an error value on failure (out of memory?)
     */
    QQ_UniversalSinkItemRef status_t InsertItemAt(uint32 index, QQ_SinkItemParam newItem);
 
-   /** As above, except that a default-initialized item is inserted.
+   /** Inserts a default-initialized item at the specified position in the Queue.
     *  @param index The position at which to insert the new item.
     *  @return B_NO_ERROR on success, or an error value on failure (out of memory?)
     */
    status_t InsertItemAt(uint32 index) {return InsertItemAt(index, GetDefaultItem());}
 
-   /** Inserts some or all of the items in (queue) at the specified position in our queue.
+   /** Inserts some or all of the items in (queue) at the specified position in our Queue.
     *  Queue size grows by at most (queue.GetNumItems()).
-    *  For example:
-    *    Queue<int> a;   // contains 1, 2, 3, 4
-    *    Queue<int> b;   // contains 5, 6, 7, 8
-    *    a.InsertItemsAt(2, b); // a now contains 1, 2, 5, 6, 7, 8, 3, 4
+    *  For example:<pre>
+    *    Queue<int> a = {1, 2, 3, 4};
+    *    Queue<int> b = {5, 6, 7, 8};
+    *    (void) a.InsertItemsAt(2, b); // (a) now contains 1, 2, 5, 6, 7, 8, 3, 4</pre>
     *  @param index The index into this Queue that items from (queue) should be inserted at.
-    *  @param queue The queue whose items are to be inserted into this queue.
+    *  @param queue The Queue whose items are to be inserted into this Queue.
     *  @param startIndex Index in (queue) to start reading items from.  Defaults to zero.
     *  @param numNewItems Number of items to insert.  If this number is too large, it will be capped appropriately.  Default is to add all items.
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t InsertItemsAt(uint32 index, const Queue<ItemType> & queue, uint32 startIndex = 0, uint32 numNewItems = MUSCLE_NO_LIMIT);
 
-   /** Inserts the items pointed at by (items) at the specified position in our queue.
+   /** Inserts the items pointed at by (items) at the specified position in our Queue.
     *  Queue size grows (numNewItems).
-    *  For example:
-    *    Queue<int> a;       // contains 1, 2, 3, 4
+    *  For example:<pre>
+    *    Queue<int> a = {1, 2, 3, 4};
     *    const int b[] = {5, 6, 7};
-    *    a.InsertItemsAt(2, b, ARRAYITEMS(b));  // a now contains 1, 2, 5, 6, 7, 3, 4
+    *    (void) a.InsertItemsAt(2, b, ARRAYITEMS(b));  // (a) now contains 1, 2, 5, 6, 7, 3, 4</pre>
     *  @param index The index into this Queue that items from (queue) should be inserted at.
-    *  @param items Pointer to the items to insert into this queue.
+    *  @param items Pointer to the items to insert into this Queue.
     *  @param numNewItems Number of items to insert.
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
    status_t InsertItemsAt(uint32 index, const ItemType * items, uint32 numNewItems);
 
-   /** Removes all items from the queue.
+   /** Removes all items from the Queue.
     *  @param releaseCachedBuffers If true, we will immediately free any buffers that we may be holding.  Otherwise
     *                              we will keep them around so that they can be re-used in the future.
     *  @note on return, the Queue is guaranteed to be empty and normalized.
@@ -459,7 +462,7 @@ public:
      */
    MUSCLE_NODISCARD bool IsIndexValid(uint32 index) const {return (index < _itemCount);}
 
-   /** Returns the number of items in the queue.  (This number does not include pre-allocated space) */
+   /** Returns the number of items in the Queue.  (This number does not include pre-allocated space) */
    MUSCLE_NODISCARD uint32 GetNumItems() const {return _itemCount;}
 
    /** Returns the total number of item-slots we have allocated space for.  Note that this is NOT
@@ -477,51 +480,51 @@ public:
    /** Returns the number of bytes of memory taken up by this Queue's data */
    MUSCLE_NODISCARD uint32 GetTotalDataSize() const {return sizeof(*this)+(GetNumAllocatedItemSlots()*sizeof(ItemType));}
 
-   /** Convenience method:  Returns true iff there are no items in the queue. */
+   /** Convenience method:  Returns true iff there are no items in the Queue. */
    MUSCLE_NODISCARD bool IsEmpty() const {return (_itemCount == 0);}
 
-   /** Convenience method:  Returns true iff there is at least one item in the queue. */
+   /** Convenience method:  Returns true iff there is at least one item in the Queue. */
    MUSCLE_NODISCARD bool HasItems() const {return (_itemCount > 0);}
 
-   /** Returns a read-only reference the head item in the queue.  You must not call this when the queue is empty! */
+   /** Returns a read-only reference to the first item in the Queue.  You must not call this when the Queue is empty! */
    MUSCLE_NODISCARD const ItemType & Head() const {return *GetItemAtUnchecked(0);}
 
-   /** Returns a read-only reference the tail item in the queue.  You must not call this when the queue is empty! */
+   /** Returns a read-only reference to the last item in the Queue.  You must not call this when the Queue is empty! */
    MUSCLE_NODISCARD const ItemType & Tail() const {return *GetItemAtUnchecked(_itemCount-1);}
 
-   /** Returns a read-only reference the head item in the queue, or a default item if the Queue is empty. */
+   /** Returns a read-only reference the first item in the Queue, or a reference to a default-constructed item if the Queue is empty. */
    MUSCLE_NODISCARD const ItemType & HeadWithDefault() const {return HasItems() ? Head() : GetDefaultItem();}
 
-   /** Returns a read-only reference the head item in the queue, or to the supplied default item if the Queue is empty.
+   /** Returns a copy of the first item in the Queue, or the supplied default-item if the Queue is empty.
      * @param defaultItem An item to return if the Queue is empty.
-     * @note that this method returns by-value rather than by-reference, because
+     * @note this method returns by-value rather than by-reference, because
      *       returning (defItem) by-reference makes it too easy to call this method
      *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
    MUSCLE_NODISCARD ItemType HeadWithDefault(const ItemType & defaultItem) const {return HasItems() ? Head() : defaultItem;}
 
-   /** Returns a read-only reference the tail item in the queue, or a default item if the Queue is empty. */
+   /** Returns a read-only reference the last item in the Queue, or a reference to a default-constructed item if the Queue is empty. */
    MUSCLE_NODISCARD const ItemType & TailWithDefault() const {return HasItems() ? Tail() : GetDefaultItem();}
 
-   /** Returns a read-only reference the tail item in the queue, or to the supplied default item if the Queue is empty.
+   /** Returns the last item in the Queue, or the supplied default item if the Queue is empty.
      * @param defaultItem An item to return if the Queue is empty.
-     * @note that this method returns by-value rather than by-reference, because
+     * @note this method returns by-value rather than by-reference, because
      *       returning (defItem) by-reference makes it too easy to call this method
      *       in a way that would cause it to return a dangling-reference-to-a-temporary-object.
      */
    MUSCLE_NODISCARD ItemType TailWithDefault(const ItemType & defaultItem) const {return HasItems() ? Tail() : defaultItem;}
 
-   /** Returns a writable reference the head item in the queue.  You must not call this when the queue is empty! */
+   /** Returns a writable reference the first item in the Queue.  You must not call this when the Queue is empty! */
    MUSCLE_NODISCARD ItemType & Head() {return *GetItemAtUnchecked(0);}
 
-   /** Returns a writable reference the tail item in the queue.  You must not call this when the queue is empty! */
+   /** Returns a writable reference the last item in the Queue.  You must not call this when the Queue is empty! */
    MUSCLE_NODISCARD ItemType & Tail() {return *GetItemAtUnchecked(_itemCount-1);}
 
-   /** Returns a pointer to the first item in the queue, or NULL if the queue is empty */
+   /** Returns a pointer to the first item in the Queue, or NULL if the Queue is empty */
    MUSCLE_NODISCARD ItemType * HeadPointer() const {return GetItemAt(0);}
 
-   /** Returns a pointer to the last item in the queue, or NULL if the queue is empty */
-   MUSCLE_NODISCARD ItemType * TailPointer() const {return GetItemAt(_itemCount-1);}
+   /** Returns a pointer to the last item in the Queue, or NULL if the Queue is empty */
+   MUSCLE_NODISCARD ItemType * TailPointer() const {return GetItemAt(GetLastValidIndex());}
 
    /** Convenient read-only array-style operator (be sure to only use valid indices!)
      * @param index the index of the item to get (between 0 and GetLastValidIndex(), inclusive)
@@ -555,7 +558,7 @@ public:
 
    /** Convenience wrapper around EnsureSize():  This method ensures that this Queue has enough
      * extra space allocated to fit another (numExtraSlots) items without having to do a reallocation.
-     * If it doesn't, it will do a reallocation so that it does have at least that much extra space.
+     * If it doesn't have enough space, it will do a reallocation so that it does have at least (numExtraSlots) of extra space.
      * @param numExtraSlots How many extra items we want to ensure room for.  Defaults to 1.
      * @returns B_NO_ERROR if the extra space now exists, or B_OUT_OF_MEMORY on failure.
      */
@@ -613,7 +616,7 @@ public:
     *  (eg if the items were A,B,C,D,E, this would change them to E,D,C,B,A)
     *  @param from Index of the start of the subrange.  Defaults to zero.
     *  @param to Index of the next item after the end of the subrange.  If greater than
-    *         the number of items currently in the queue, this value will be clipped
+    *         the number of items currently in the Queue, this value will be clipped
     *         to be equal to that number.  Defaults to the largest possible uint32.
     */
    void ReverseItemOrdering(uint32 from=0, uint32 to = MUSCLE_NO_LIMIT);
@@ -623,7 +626,7 @@ public:
     *  @param compareFunctor the item-comparison functor to use when sorting the items in the Queue.
     *  @param from Index of the start of the subrange.  Defaults to zero.
     *  @param to Index of the next item after the end of the subrange.
-    *         If greater than the number of items currently in the queue,
+    *         If greater than the number of items currently in the Queue,
     *         the subrange will extend to the last item.  Defaults to the largest possible uint32.
     *  @param optCookie A user-defined value that will be passed to the comparison functor.
     */
@@ -633,7 +636,7 @@ public:
     *  Same as above, except that the default item-comparison functor for our ItemType is implicitly used.
     *  @param from Index of the start of the subrange.  Defaults to zero.
     *  @param to Index of the next item after the end of the subrange.
-    *         If greater than the number of items currently in the queue,
+    *         If greater than the number of items currently in the Queue,
     *         the subrange will extend to the last item.  Defaults to the largest possible uint32.
     *  @param optCookie A user-defined value that will be passed to the comparison functor.
     */
@@ -660,7 +663,7 @@ public:
 
    /**
     *  Swaps our contents with the contents of (that), in an efficient manner.
-    *  @param that The queue whose contents are to be swapped with our own.
+    *  @param that The Queue whose contents are to be swapped with our own.
     */
    void SwapContents(Queue<ItemType> & that);  // note:  can't be MUSCLE_NOEXCEPT because we may copy items
 
@@ -702,22 +705,22 @@ public:
     */
    status_t RemoveLastInstanceOf(const ItemType & val);
 
-   /** Returns true iff the first item in our queue is equal to (prefix).
+   /** Returns true iff the first item in our Queue is equal to (prefix).
      * @param prefix the item to check for at the head of this Queue
      */
    MUSCLE_NODISCARD bool StartsWith(const ItemType & prefix) const {return ((HasItems())&&(Head() == prefix));}
 
-   /** Returns true iff the (prefixQueue) is a prefix of this queue.
+   /** Returns true iff the (prefixQueue) is a prefix of this Queue.
      * @param prefixQueue the items to check for at the head of this Queue
      */
    MUSCLE_NODISCARD bool StartsWith(const Queue<ItemType> & prefixQueue) const;
 
-   /** Returns true iff the last item in our queue is equal to (suffix).
+   /** Returns true iff the last item in our Queue is equal to (suffix).
      * @param suffix the item to check for at the tail of this Queue
      */
    MUSCLE_NODISCARD bool EndsWith(const ItemType & suffix) const {return ((HasItems())&&(Tail() == suffix));}
 
-   /** Returns true iff the (suffixQueue) is a suffix of this queue.
+   /** Returns true iff the (suffixQueue) is a suffix of this Queue.
      * @param suffixQueue the list of items to check for at the tail of this Queue
      */
    MUSCLE_NODISCARD bool EndsWith(const Queue<ItemType> & suffixQueue) const;
@@ -893,7 +896,7 @@ template <typename ItemType> class MUSCLE_NODISCARD QueueStackGuard : private No
 public:
    /** Default constructor
      * @param q the Queue to add an item to
-     * @param item the item to add to the tail of the Queue
+     * @param item the item to add to the end of the Queue
      */
    QueueStackGuard(Queue<ItemType> & q, const ItemType & item) : _queue(q) {(void) _queue.AddTail(item);}
 
