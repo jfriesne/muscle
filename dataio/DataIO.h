@@ -133,7 +133,7 @@ public:
      * @param buffer Pointer to the first byte of the buffer to place the read data into.
      * @param size Number of bytes to read
      * @return B_NO_ERROR (and the number of bytes read) on success, or an error code on failure.
-     * @note that the difference between this method and ReadFully() is that this method does
+     * @note that the difference between this method and ReadFully() is that this method does not
      *       consider it to be an error-condition if end-of-file is reached before (size) bytes
      *       have been read.
      */

@@ -486,7 +486,7 @@ public:
    /** @copydoc DoxyTemplate::operator!=(const DoxyTemplate &) const */
    bool operator != (const HumanReadableTimeValues & rhs) const {return !(*this==rhs);}
 
-   /** This method will expand the following tokens in the specified String out to the following values:
+   /** This method will expand the following tokens in the specified String out to the following values:<pre>
      * %Y -> Current year (eg "2005")
      * %M -> Current month (eg "01" for January, up to "12" for December)
      * %Q -> Current month as a string (eg "January", "February", "March", etc)
@@ -504,7 +504,7 @@ public:
      * %T -> A human-readable time/date stamp, for convenience (eg "January 01 2005 23:59:59")
      * %t -> A numeric time/date stamp, for convenience (eg "2005/01/01 15:23:59")
      * %f -> A filename-friendly numeric time/date stamp, for convenience (eg "2005-01-01_15h23m59")
-     * %% -> A single percent sign.
+     * %% -> A single percent sign.</pre>
      * @param s The string to expand the tokens of
      * @returns The same string, except with any and all of the above tokens expanded as described.
      */

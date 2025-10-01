@@ -49,11 +49,9 @@ MUSCLE_NODISCARD static inline int32 DoMutexAtomicIncrement(volatile int32 * cou
 }
 #endif
 
-/** This is a teensy little class that works as a cross-platform atomic counter variable.
-  * It's been ifdef'd all to hell, so that it tries to always use the most efficient API
-  * possible based on the host CPU and OS.  If compiled with -DMUSCLE_SINGLE_THREAD_ONLY,
-  * it degenerates to a regular old counter variable, which is very lightweight and portable,
-  * but of course will only work properly in single-threaded environments.
+/** A minimalist cross-platform atomic-counter variable.
+  * If compiled with -DMUSCLE_SINGLE_THREAD_ONLY, it degenerates to a regular old integer-counter variable,
+  * which is very lightweight and portable, but of course will only work reliably in single-threaded environments.
   */
 class MUSCLE_NODISCARD AtomicCounter MUSCLE_FINAL_CLASS
 {
