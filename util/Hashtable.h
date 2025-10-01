@@ -293,6 +293,14 @@ public:
    /** Convenience method;  Returns true iff the table is non-empty (ie if GetNumItems() is non-zero). */
    MUSCLE_NODISCARD bool HasItems() const {return (_numItems > 0);}
 
+   /** Returns the last valid index in this Hashtable (aka (GetNumItems()-1)), or -1 if this Hashtable is empty. */
+   MUSCLE_NODISCARD int32 GetLastValidIndex() const {return ((int32)_numItems)-1;}
+
+   /** Returns true iff the passed-in index value is less than (GetNumItems())
+     * @param idx the index-value to test for validity
+     */
+   MUSCLE_NODISCARD bool IsIndexValid(uint32 idx) const {return (idx < _numItems);}
+
    /** Returns true iff the table contains a mapping with the given key.  (O(1) search time)
      * @param key the key to inquire about
      */
@@ -455,7 +463,7 @@ public:
    /** Returns a pointer to the (index)'th key in this Hashtable.
     *  (This Hashtable class keeps its entries in a well-defined order)
     *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
-    *  @param index Index of the key to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @param index Index of the key to return a pointer to.  Should be in the range [0, GetLastValidIndex()].
     *  @returns Pointer to the key at position (index) on success, or NULL on failure (bad index?)
     */
    MUSCLE_NODISCARD const KeyType * GetKeyAt(uint32 index) const;
@@ -463,7 +471,7 @@ public:
    /** Returns the (index)'th key in this Hashtable.
     *  (This Hashtable class keeps its entries in a well-defined order)
     *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
-    *  @param index Index of the key to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @param index Index of the key to return a pointer to.  Should be in the range [0, GetLastValidIndex()].
     *  @param retKey On success, the contents of the (index)'th key will be written into this object.
     *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure.
     */
@@ -471,14 +479,14 @@ public:
 
    /** Returns a reference to the (index)'th key in this Hashtable, or a default-constructed key if this table doesn't contain that many keys.
     *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
-    *  @param index Index of the key to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @param index Index of the key to return a pointer to.  Should be in the range [0, GetLastValidIndex()].
     *  @return A reference to a key value, either one from the table or the one specified.
     */
    MUSCLE_NODISCARD const KeyType & GetKeyAtWithDefault(uint32 index) const;
 
    /** Returns a copy of the (index)'th key in this Hashtable, or (defaultKey) if this table doesn't contain that many keys.
     *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
-    *  @param index Index of the key to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @param index Index of the key to return a pointer to.  Should be in the range [0, GetLastValidIndex()].
     *  @param defaultKey If (index) is not less than the number of items in this table, then this will be returned.
     *  @return A reference to a key value, either one from the table or the one specified.
     *  @note that this method returns by-value rather than by-reference, because
@@ -490,7 +498,7 @@ public:
    /** Returns a pointer to the (index)'th value in this Hashtable.
     *  (This Hashtable class keeps its entries in a well-defined order)
     *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
-    *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetLastValidIndex()].
     *  @returns Pointer to the value at position (index) on success, or NULL on failure (bad index?)
     */
    MUSCLE_NODISCARD const ValueType * GetValueAt(uint32 index) const;
@@ -498,7 +506,7 @@ public:
    /** Returns the (index)'th value in this Hashtable.
     *  (This Hashtable class keeps its entries in a well-defined order)
     *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
-    *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetLastValidIndex()].
     *  @param retValue On success, the contents of the (index)'th value will be written into this object.
     *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure.
     */
@@ -506,14 +514,14 @@ public:
 
    /** Returns a reference to the (index)'th value in this Hashtable, or a default-constructed value if this table doesn't contain that many value.
     *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
-    *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetLastValidIndex()].
     *  @return A reference to a value value, either one from the table or the one specified.
     */
    MUSCLE_NODISCARD const ValueType & GetValueAtWithDefault(uint32 index) const;
 
    /** Returns a copy of the (index)'th value in this Hashtable, or (defaultValue) if this table doesn't contain that many value.
     *  Note that this method is an O(N) operation, so for iteration, always use GetIterator() instead.
-    *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetNumItems()-1].
+    *  @param index Index of the value to return a pointer to.  Should be in the range [0, GetLastValidIndex()].
     *  @param defaultValue If (index) is not less than the number of items in this table, then this will be returned.
     *  @return A reference to a value value, either one from the table or the one specified.
     *  @note that this method returns by-value rather than by-reference, because
@@ -2584,7 +2592,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::IndexOfKey(const KeyType & key
    int32 count = -1;
    if (entry)
    {
-      if (entry == this->IndexToEntryChecked(_iterTailIdx)) count = GetNumItems()-1;
+      if (entry == this->IndexToEntryChecked(_iterTailIdx)) count = GetLastValidIndex();
       else
       {
          while(entry)

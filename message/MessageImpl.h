@@ -68,6 +68,7 @@ public:
    MUSCLE_NODISCARD bool HasItems() const {return (GetNumItems()>0);}
    MUSCLE_NODISCARD bool IsEmpty() const {return (GetNumItems()==0);}
    MUSCLE_NODISCARD int32 GetLastValidIndex() const {return ((int32)GetNumItems())-1;}
+   MUSCLE_NODISCARD int32 IsIndexValid(uint32 idx) const {return (idx < GetNumItems());}
 
    // Returns a 32-bit checksum for this field
    MUSCLE_NODISCARD virtual uint32 CalculateChecksum(bool countNonFlattenableFields) const = 0;
@@ -160,6 +161,7 @@ public:
    MUSCLE_NODISCARD uint32 GetItemSize(uint32 index) const {return HasArray() ? GetArray()->GetItemSize(index) : SingleGetItemSize(index);}
    MUSCLE_NODISCARD uint32 GetNumItems() const {return (_state == FIELD_STATE_EMPTY) ? 0 : (HasArray() ? GetArray()->GetNumItems() : 1);}
    MUSCLE_NODISCARD int32 GetLastValidIndex() const {return ((int32)GetNumItems())-1;}
+   MUSCLE_NODISCARD bool IsIndexValid(uint32 idx) const {return (idx < GetNumItems());}
    MUSCLE_NODISCARD bool HasItems() const {return (GetNumItems() > 0);}
    MUSCLE_NODISCARD bool IsEmpty()  const {return (GetNumItems() == 0);}
    MUSCLE_NODISCARD uint32 CalculateChecksum(bool countNonFlattenableFields) const {return HasArray() ? GetArray()->CalculateChecksum(countNonFlattenableFields) : SingleCalculateChecksum(countNonFlattenableFields);}

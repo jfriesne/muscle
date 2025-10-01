@@ -7,8 +7,8 @@ key:  - new feature
 
    - Added example diagrams to the Queue, Message,
      Ref, and Hashtable mkdocs documentation pages.
-   - Added a GetLastValidIndex() convenience method to
-     the Queue and String classes.
+   - Added GetLastValidIndex() and IsIndexValid() convenience
+     methods to the Queue, Hashtable, and String classes.
    - DataUnflattener::ReadCString() now takes an optional
      (optDefaultRet) argument specifying what to return on failure.
    * Replaced ! with NOT in some of the CMakeLists.txt files

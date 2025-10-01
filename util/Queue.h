@@ -306,7 +306,7 @@ public:
 
    /** Removes the item at the (index)'th position in the queue.
     *  @param index Which item to remove--can range from zero
-    *               (head of the queue) to GetNumItems()-1 (tail of the queue).
+    *               (head of the queue) to GetLastValidIndex() (tail of the queue).
     *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (ie bad index)
     *  Note that this method is somewhat inefficient for indices that
     *  aren't at the head or tail of the queue (ie O(n) time)
@@ -315,7 +315,7 @@ public:
 
    /** Removes the item at the (index)'th position in the queue, and copies it into (returnItem).
     *  @param index Which item to remove--can range from zero
-    *               (head of the queue) to (GetNumItems()-1) (tail of the queue).
+    *               (head of the queue) to GetLastValidIndex() (tail of the queue).
     *  @param returnItem On success, the removed item is copied into this object.
     *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (ie bad index)
     */
@@ -329,7 +329,7 @@ public:
 
    /** Copies the (index)'th item into (returnItem).
     *  @param index Which item to get--can range from zero
-    *               (head of the queue) to (GetNumItems()-1) (tail of the queue).
+    *               (head of the queue) to GetLastValidIndex() (tail of the queue).
     *  @param returnItem On success, the retrieved item is copied into this object.
     *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (eg bad index)
     */
@@ -376,7 +376,7 @@ public:
 
    /** Replaces the (index)'th item in the queue with (newItem).
     *  @param index Which item to replace--can range from zero
-    *               (head of the queue) to (GetNumItems()-1) (tail of the queue).
+    *               (head of the queue) to GetLastValidIndex() (tail of the queue).
     *  @param newItem The item to place into the queue at the (index)'th position.
     *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (eg bad index)
     */
@@ -384,7 +384,7 @@ public:
 
    /** As above, except the specified item is replaced with a default-initialized item.
     *  @param index Which item to replace--can range from zero
-    *               (head of the queue) to (GetNumItems()-1) (tail of the queue).
+    *               (head of the queue) to GetLastValidIndex() (tail of the queue).
     *  @return B_NO_ERROR on success, or B_BAD_ARGUMENT on failure (eg bad index)
     */
    status_t ReplaceItemAt(uint32 index) {return ReplaceItemAt(index, GetDefaultItem());}
@@ -448,11 +448,16 @@ public:
      */
    void FastClear() {_itemCount = _headIndex = _tailIndex = 0;}
 
-   /** Returns the last valid index in this Queue, or -1 if this Queue is empty.
+   /** Returns the last valid index in this Queue (aka GetNumItems()-1), or -1 if this Queue is empty.
      * @note this method is here because it's convenient to use when iterating backwards over
      *       the values in the Queue, e.g. for (int32 i=q.GetLastValidIndex(); i>=0; i--) {...}
      */
    MUSCLE_NODISCARD int32 GetLastValidIndex() const {return ((int32)_itemCount)-1;}
+
+   /** Convenience method:  Returns true iff (index) is less than the number of valid items currently in the Queue.
+     * @param index an index to test to see if it's valid
+     */
+   MUSCLE_NODISCARD bool IsIndexValid(uint32 index) const {return (index < _itemCount);}
 
    /** Returns the number of items in the queue.  (This number does not include pre-allocated space) */
    MUSCLE_NODISCARD uint32 GetNumItems() const {return _itemCount;}
@@ -477,11 +482,6 @@ public:
 
    /** Convenience method:  Returns true iff there is at least one item in the queue. */
    MUSCLE_NODISCARD bool HasItems() const {return (_itemCount > 0);}
-
-   /** Convenience method:  Returns true iff (index) is less than the number of valid items currently in the Queue.
-     * @param index an index to test to see if it's valid
-     */
-   MUSCLE_NODISCARD bool IsIndexValid(uint32 index) const {return (index < _itemCount);}
 
    /** Returns a read-only reference the head item in the queue.  You must not call this when the queue is empty! */
    MUSCLE_NODISCARD const ItemType & Head() const {return *GetItemAtUnchecked(0);}
@@ -524,12 +524,12 @@ public:
    MUSCLE_NODISCARD ItemType * TailPointer() const {return GetItemAt(_itemCount-1);}
 
    /** Convenient read-only array-style operator (be sure to only use valid indices!)
-     * @param index the index of the item to get (between 0 and (GetNumItems()-1), inclusive)
+     * @param index the index of the item to get (between 0 and GetLastValidIndex(), inclusive)
      */
    const ItemType & operator [](uint32 index) const;
 
    /** Convenient read-write array-style operator (be sure to only use valid indices!)
-     * @param index the index of the item to get (between 0 and (GetNumItems()-1), inclusive)
+     * @param index the index of the item to get (between 0 and GetLastValidIndex(), inclusive)
      */
    ItemType & operator [](uint32 index);
 
@@ -945,7 +945,7 @@ Queue<ItemType>::operator ==(const Queue& rhs) const
 {
    if (this == &rhs) return true;
    if (GetNumItems() != rhs.GetNumItems()) return false;
-   for (int32 i = GetLastValidIndex(); i>=0; i--) if (((*this)[i] == rhs[i]) == false) return false;
+   for (int32 i=GetLastValidIndex(); i>=0; i--) if (((*this)[i] == rhs[i]) == false) return false;
    return true;
 }
 
