@@ -272,9 +272,10 @@ void HandleStandardDaemonArgs(const Message & args);
   * parent process to just go away without any chance of a crash during cleanup.
   * @param exitCode the exit code value that should be passed back to our parent process
   *                 (ie the argument to pass to exit() or _exit())
+  * @note this function will not return!
   */
 //coverity[+kill]
-void ExitWithoutCleanup(int exitCode);
+MUSCLE_NORETURN void ExitWithoutCleanup(int exitCode);
 
 /** Causes this process to terminate abnormally (ie with a crash).
   * Under Windows, this is implemented by calling RaiseException(EXCEPTION_BREAKPOINT).
@@ -282,7 +283,7 @@ void ExitWithoutCleanup(int exitCode);
   * @note this function will not return!
   */
 //coverity[+kill]
-void Crash();
+MUSCLE_NORETURN void Crash();
 
 /** Calls fork(), setsid(), chdir(), umask(), etc, to fork an independent daemon process.
  *  Also closes all open file descriptors.

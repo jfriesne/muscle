@@ -12,6 +12,9 @@ key:  - new feature
    - Added GetValueRefNonConst() to the AtomicValue class.
    - Added MDEBUG_ON_ERROR and MDEBUG_AND_RETURN_ON_ERROR
      macros to MuscleSupport.h
+   - Added a MUSCLE_NORETURN definition that expands to [[noreturn]]
+     on C++11 or newer, or to nothing otherwise.
+   - Tagged Crash() and ExitWithoutCleanup() as MUSCLE_NORETURN.
    - Improved DOxygen documentation-comments.
    - Added example diagrams to the Queue, Message,
      Ref, and Hashtable mkdocs documentation pages.

@@ -20,6 +20,10 @@ of your Makefile to alter muscle's behaviour:
    Set this to avoid setting the [[nodiscard]] attribute for status_t
    and io_status_t return values.
 
+-DMUSCLE_AVOID_NORETURN
+   Set this to avoid setting the [[noreturn]] attribute for functions
+   like Crash() that are guaranteed never to return.
+
 -DMUSCLE_AVOID_CPLUSPLUS11_THREADS
    Set this to avoid using the C++11-specific APIs (thread, mutex,
    etc) as back-ends for the MUSCLE Thread/Mutex/AtomicCounter etc

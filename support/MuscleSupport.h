@@ -136,18 +136,21 @@
 #endif
 
 #ifndef MUSCLE_AVOID_NODISCARD
-# ifdef __cplusplus
-#  if (__cplusplus >= 201703L) || (defined(__clang__) && (__cplusplus >= 201100L))
-#   define MUSCLE_NODISCARD [[nodiscard]]
-#  elif defined(_MSC_VER) && (_MSC_VER >= 1700)
-#   define MUSCLE_NODISCARD _Check_return_
-#  endif
+# if defined(__cplusplus) && ((__cplusplus >= 201703L) || (defined(__clang__) && (__cplusplus >= 201100L)))
+#  define MUSCLE_NODISCARD [[nodiscard]]
+# elif defined(_MSC_VER) && (_MSC_VER >= 1700)
+#  define MUSCLE_NODISCARD _Check_return_
 # endif
 #endif
-
-// If all else fails, we'll just make it a no-op
 #ifndef MUSCLE_NODISCARD
 # define MUSCLE_NODISCARD
+#endif
+
+#if !defined(MUSCLE_AVOID_NORETURN) && defined(__cplusplus) && (__cplusplus >= 201100L)
+# define MUSCLE_NORETURN [[noreturn]]
+#endif
+#ifndef MUSCLE_NORETURN
+# define MUSCLE_NORETURN
 #endif
 
 #ifndef MUSCLE_NEVER_RETURNS_NULL
@@ -1820,8 +1823,8 @@ class DataNode;  // FogBugz #9816 tweakage
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
 // forward declarations
-extern void Crash();
-extern void ExitWithoutCleanup(int);
+MUSCLE_NORETURN extern void Crash();
+MUSCLE_NORETURN extern void ExitWithoutCleanup(int);
 #endif
 
 #if MUSCLE_TRACE_CHECKPOINTS > 0
