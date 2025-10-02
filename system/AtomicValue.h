@@ -46,6 +46,12 @@ public:
      */
    MUSCLE_NODISCARD const T & GetValueRef() const {return _buffer[_readIndex];}  // & ATOMIC_BUFFER_MASK isn't necessary here!
 
+   /** Returns a read/write reference to the current state of our held value.
+     * @note that this reference may not remain valid for long, so if you call this
+     *       method, be sure to read any data you need from the reference quickly.
+     */
+   MUSCLE_NODISCARD T & GetValueRefNonConst() {return _buffer[_readIndex];}  // & ATOMIC_BUFFER_MASK isn't necessary here!
+
    /** Attempts to set our held value to a new value in a thread-safe fashion.
      * @param newValue the new value to set
      * @returns B_NO_ERROR on success, or B_RESOURCE_LIMIT if we couldn't perform the set because our internal buffer-queue lost too many races in a row.

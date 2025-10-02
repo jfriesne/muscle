@@ -11,6 +11,7 @@ key:  - new feature
      methods to the Queue, Hashtable, and String classes.
    - DataUnflattener::ReadCString() now takes an optional
      (optDefaultRet) argument specifying what to return on failure.
+   - Added GetValueRefNonConst() to the AtomicValue class.
    * Replaced ! with NOT in some of the CMakeLists.txt files
    * Fixed some Coverity Scan warnings
    * Replaced various instances of (GetNumItems()-1) with
