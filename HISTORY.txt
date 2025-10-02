@@ -5,15 +5,17 @@ key:  - new feature
       * bug fixed
       o other
 
-   - Added example diagrams to the Queue, Message,
-     Ref, and Hashtable mkdocs documentation pages.
    - Added GetLastValidIndex() and IsIndexValid() convenience
      methods to the Queue, Hashtable, and String classes.
    - DataUnflattener::ReadCString() now takes an optional
      (optDefaultRet) argument specifying what to return on failure.
    - Added GetValueRefNonConst() to the AtomicValue class.
+   - Added MDEBUG_ON_ERROR and MDEBUG_AND_RETURN_ON_ERROR
+     macros to MuscleSupport.h
+   - Improved DOxygen documentation-comments.
+   - Added example diagrams to the Queue, Message,
+     Ref, and Hashtable mkdocs documentation pages.
    * Replaced ! with NOT in some of the CMakeLists.txt files
-   * Fixed some Coverity Scan warnings
    * Replaced various instances of (GetNumItems()-1) with
      GetLastValidIndex(), for consistent underflow handling.
 
