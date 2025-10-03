@@ -17,31 +17,31 @@ namespace muscle {
 class ByteBufferPacketDataIO : public PacketDataIO
 {
 public:
-   /** Constructor.  Creates a ByteBufferPacketDataIO with no packets ready to read.
-    *  @param maxPacketSize the maximum support packet-size, in bytes.  Should be greater than zero.  Defaults
+   /** Default constructor.  Creates a ByteBufferPacketDataIO with no packets ready to read.
+    *  @param maxPacketSize the maximum supported packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
     */
    ByteBufferPacketDataIO(uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
 
-   /** Constructor.
+   /** Convenience constructor.
     *  @param buf A ByteBuffer to that will be read by the next call to ReadFrom().
     *  @param fromIAP the IP address and port the "packet" is purporting to be from.  Defaults to an invalid IPAddressAndPort.
-    *  @param maxPacketSize the maximum support packet-size, in bytes.  Should be greater than zero.  Defaults
+    *  @param maxPacketSize the maximum supported packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
     */
    ByteBufferPacketDataIO(const ByteBufferRef & buf, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
 
-   /** Constructor.
+   /** Convenience constructor.
     *  @param bufs A list of ByteBuffers to be read by subsequent calls to ReadFrom().
-    *  @param fromIAP the IP address and port the "packets" are purporting to be from.  Defaults to an invalid IPAddressAndPort.
-    *  @param maxPacketSize the maximum support packet-size, in bytes.  Should be greater than zero.  Defaults
+    *  @param fromIAP the IP address and port the "packets" in (bufs) are purporting to be from.  Defaults to an invalid IPAddressAndPort.
+    *  @param maxPacketSize the maximum supported packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
     */
    ByteBufferPacketDataIO(const Queue<ByteBufferRef> & bufs, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
 
-   /** Constructor.
+   /** Convenience constructor.
     *  @param bufs A sequence of ByteBuffers to be read by subsequent calls to ReadFrom(), and their associated IPAddressAndPort values.
-    *  @param maxPacketSize the maximum support packet-size, in bytes.  Should be greater than zero.  Defaults
+    *  @param maxPacketSize the maximum supported packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
     */
    ByteBufferPacketDataIO(const Hashtable<ByteBufferRef, IPAddressAndPort> & bufs, uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
@@ -89,13 +89,13 @@ public:
    /** Non-const version of GetWrittenBuffers(). */
    MUSCLE_NODISCARD Hashtable<ByteBufferRef, IPAddressAndPort> & GetWrittenBuffers() {return _writtenBufs;}
 
-   /** Disable us! */
+   /** Implemented to clear all of our Queues of incoming and outgoing ByteBuffers */
    virtual void Shutdown() {_bufsToRead.Clear(); _writtenBufs.Clear();}
 
-   /** Can't select on this one, sorry -- returns GetNullSocket() */
+   /** Returns GetNullSocket(), as there is no way to select() on a Queue of ByteBuffers */
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const {return GetNullSocket();}
 
-   /** Can't select on this one, sorry -- returns GetNullSocket() */
+   /** Returns GetNullSocket(), as there is no way to select() on a Queue of ByteBuffers */
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetNullSocket();}
 
    /** Returns the maxPacketSize value that was passed in to our constructor */

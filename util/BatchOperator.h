@@ -44,7 +44,7 @@ protected:
   * subclass this class, implement its BatchBegins() and BatchEnds() methods, and then place
   * BatchGuard objects on the stack in the calling code, at the top of any routine
   * that may be doing one or more operations in sequence.  The benefit is that your BatchBegins()
-  * and BatchEnd() routines would then be automatically called at the proper times, and
+  * and BatchEnds() routines will then be automatically called at the proper times, and
   * nesting/recursion is guaranteed to be handled correctly.
   *
   * This is a slightly more complex implementation of BatchOperator, in that it allows
@@ -125,7 +125,7 @@ public:
   * subclass this class, implement its BatchBegins() and BatchEnds() methods, and then place
   * BatchGuard objects on the stack in the calling code, at the top of any routine
   * that may be doing one or more operations in sequence.  The benefit is that your BatchBegins()
-  * and BatchEnd() routines would then be automatically called at the proper times, and
+  * and BatchEnds() routines will then be automatically called at the proper times, and
   * nesting/recursion is guaranteed to be handled correctly.
   *
   * This is a simple implementation of BatchOperator that doesn't use any batch arguments.

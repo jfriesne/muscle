@@ -1948,44 +1948,52 @@ String HexBytesToString(const Queue<uint8> & bytes, bool withSpaces)
    return ret;
 }
 
-DebugTimer :: DebugTimer(const String & title, uint64 mlt, uint32 startMode, int debugLevel)
-   : _currentMode(startMode+1)
+DebugTimer :: DebugTimer(const String & title, uint64 mlt, uint8 startMode, const OutputPrinter & outputPrinter)
+   : _numValidModes(0)
+   , _currentMode(startMode+1)  // just to force a state-change inside SetMode()
+   , _curModeStartTime(0)
    , _title(title)
    , _minLogTime(mlt)
-   , _debugLevel(debugLevel)
-   , _enableLog(true)
+   , _outputPrinter(outputPrinter)
+   , _enableOutput(true)
 {
-   SetMode(startMode);
-   _startTime = MUSCLE_DEBUG_TIMER_CLOCK;  // re-set it here so that we don't count the Hashtable initialization!
+   SetModeAux(startMode, false);
 }
 
 DebugTimer :: ~DebugTimer()
 {
-   if (_enableLog)
+   if (_enableOutput)
    {
-      // Finish off the current mode
-      uint64 * curElapsed = _modeToElapsedTime.Get(_currentMode);
-      if (curElapsed) *curElapsed += MUSCLE_DEBUG_TIMER_CLOCK-_startTime;
+      UpdateCurrentModeTimeElapsed(MUSCLE_DEBUG_TIMER_CLOCK);
 
-      // And print out our stats
-      for (HashtableIterator<uint32, uint64> iter(_modeToElapsedTime); iter.HasData(); iter++)
+      for (uint16 i=0; i<_numValidModes; i++)
       {
-         const uint64 nextTime = iter.GetValue();
-         if (nextTime >= _minLogTime)
+         const uint64 et = _elapsedTimes[i];
+         if ((et > 0)&&(et >= _minLogTime))
          {
-            if (_debugLevel >= 0)
-            {
-               if (nextTime >= 1000) LogTime(_debugLevel, "%s: mode " UINT32_FORMAT_SPEC ": " UINT64_FORMAT_SPEC " milliseconds elapsed\n", _title(), iter.GetKey(), nextTime/1000);
-                                else LogTime(_debugLevel, "%s: mode " UINT32_FORMAT_SPEC ": " UINT64_FORMAT_SPEC " microseconds elapsed\n", _title(), iter.GetKey(), nextTime);
-            }
-            else
-            {
-               // For cases where we don't want to call LogTime()
-               if (nextTime >= 1000) printf("%s: mode " UINT32_FORMAT_SPEC ": " UINT64_FORMAT_SPEC " milliseconds elapsed\n", _title(), iter.GetKey(), nextTime/1000);
-                                else printf("%s: mode " UINT32_FORMAT_SPEC ": " UINT64_FORMAT_SPEC " microseconds elapsed\n", _title(), iter.GetKey(), nextTime);
-            }
+            const bool useMillis = (et >= MillisToMicros(1));
+            _outputPrinter.printf("%s: mode %u: " UINT64_FORMAT_SPEC " %s elapsed\n", _title(), i, useMillis?MicrosToMillis(et):et, useMillis?"milliseconds":"microseconds");
          }
       }
+   }
+}
+
+void DebugTimer :: SetModeAux(uint8 newMode, bool updateCurrentModeTimeElapsedFirst)
+{
+   const uint16 newNumValidModes = ((uint16)newMode)+1;
+   if (newNumValidModes > _numValidModes)
+   {
+      // demand-initialize more elapsed-time values as necessary
+      for (uint16 i=_numValidModes; i<newNumValidModes; i++) _elapsedTimes[i] = 0;
+      _numValidModes = newNumValidModes;
+   }
+
+   if (newMode != _currentMode)
+   {
+      const uint64 now = MUSCLE_DEBUG_TIMER_CLOCK;
+      if (updateCurrentModeTimeElapsedFirst) UpdateCurrentModeTimeElapsed(now);  // must be done first
+      _currentMode      = newMode;
+      _curModeStartTime = now;
    }
 }
 
@@ -2070,20 +2078,6 @@ int64 Atoll(const char * str)
    }
    const int64 ret = (int64) Atoull(s);
    return negative ? -ret : ret;
-}
-
-/** Set the timer to record elapsed time to a different mode. */
-void DebugTimer :: SetMode(uint32 newMode)
-{
-   if (newMode != _currentMode)
-   {
-      uint64 * curElapsed = _modeToElapsedTime.Get(_currentMode);
-      if (curElapsed) *curElapsed += MUSCLE_DEBUG_TIMER_CLOCK-_startTime;
-
-      _currentMode = newMode;
-      (void) _modeToElapsedTime.GetOrPut(_currentMode, 0);
-      _startTime = MUSCLE_DEBUG_TIMER_CLOCK;
-   }
 }
 
 #ifdef MUSCLE_SINGLE_THREAD_ONLY

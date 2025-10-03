@@ -49,12 +49,12 @@ int main(int argc, char ** argv)
       DebugTimer tm("timer", 0);
 
       tm.SetMode(0);
-      for (int i=0; i<10000000; i++) count += (int) sin(i);
+      for (int i=0; i<100000; i++) count += (int) sin(i);
 
       tm.SetMode(1);
       for (int i=0; i<10000000; i++) count += (int) cos(i);
 
-      tm.SetMode(2);
+      tm.SetMode(5);
       for (int i=0; i<10000000; i++) count += (int) tan(i);
    }
 

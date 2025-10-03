@@ -58,23 +58,25 @@ public:
     */
    virtual status_t Seek(int64 offset, int whence);
 
+   /** Returns our current seek-position within the ByteBuffer */
    MUSCLE_NODISCARD virtual int64 GetPosition() const {return _seekPos;}
+
+   /** Returns the number of valid bytes that are currently in our ByteBuffer */
    MUSCLE_NODISCARD virtual int64 GetLength() const {return _buf() ? _buf()->GetNumBytes() : 0;}
+
+   /** Truncates the ByteBuffer's length to our current seek-position */
    virtual status_t Truncate();
 
-   /**
-    *  No-op method.
-    *  This method doesn't do anything at all.
-    */
+   /** Implemented as a no-op, since a ByteBuffer has no concept of flushing output */
    virtual void FlushOutput() {/* empty */}
 
-   /** Disable us! */
+   /** Implemented to set our held ByteBufferRef to NULL */
    virtual void Shutdown() {_buf.Reset();}
 
-   /** Can't select on this one, sorry */
+   /** Returns a null ConstSocketRef, since there's no way to select() on a ByteBuffer */
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const {return GetNullSocket();}
 
-   /** Can't select on this one, sorry */
+   /** Returns a null ConstSocketRef, since there's no way to select() on a ByteBuffer */
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetNullSocket();}
 
 private:
