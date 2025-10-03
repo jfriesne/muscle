@@ -32,17 +32,17 @@ DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(ChildProcessLaunchFlags, NUM_CHILD_PROCESS_
 
 /** This DataIO class is a handy cross-platform way to spawn
  *  and talk to a child process.  Any data that the child process
- *  prints to stdout (and/or stderr) can be read from this object, and
- *  any data that is written to this object will be send to the child
- *  process's *  stdin.  Note that this class is currently only implemented
- *  to work under Windows, MacOS/X, BSD, and Linux.
+ *  prints to its stdout (and/or stderr) stream(s) can be read from this object,
+ *  and any data that is written to this object will be send to the child
+ *  process's stdin stream.  Note that this class is currently only implemented
+ *  under Windows, MacOS/X, BSD, and Linux, and may not function under other OS's.
  */
 class ChildProcessDataIO : public DataIO
 {
 public:
    /** Constructor.
     *  @param blocking If true, I/O will be blocking; else non-blocking.
-    *  @note that you will need to call LaunchChildProcess() to actually start the child process going.
+    *  @note that you will need to call LaunchChildProcess() to actually start a child process going.
     */
    ChildProcessDataIO(bool blocking);
 
@@ -60,6 +60,7 @@ public:
      * @param optRunAsUser if non-NULL, child process will change its user to this account.
      *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
      * @return B_NO_ERROR on success, or an error code if the launch failed.
+     * @note if we already had a child process running, it will be implicitly closed (via the usual process-shutdown sequence) before the new one is launched.
      */
    status_t LaunchChildProcess(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL) {return LaunchChildProcessAux(muscleMax(0,argc), argv, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser);}
 
@@ -75,6 +76,7 @@ public:
      * @param optRunAsUser if non-NULL, child process will change its user to this account.
      *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
      * @return B_NO_ERROR on success, or an error code if the launch failed.
+     * @note if we already had a child process running, it will be implicitly closed (via the usual process-shutdown sequence) before the new one is launched.
      */
    status_t LaunchChildProcess(const char * cmd, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL) {return LaunchChildProcessAux(-1, cmd, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser);}
 
@@ -89,6 +91,7 @@ public:
      * @param optRunAsUser if non-NULL, child process will change its user to this account.
      *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
      * @return B_NO_ERROR on success, or an error code if the launch failed.
+     * @note if we already had a child process running, it will be implicitly closed (via the usual process-shutdown sequence) before the new one is launched.
      */
    status_t LaunchChildProcess(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL);
 
@@ -171,8 +174,9 @@ public:
 #endif
    }
 
-   /** Tries to forcibly kill the child process immediately.
+   /** Tells the OS to immediately and unilaterally kill the child process.
      * @returns B_NO_ERROR on success, or an error code on failure.
+     * @note "Nuke it from orbit.  It's the only way to be sure" -Ellen Ripley
      */
    status_t KillChildProcess();
 

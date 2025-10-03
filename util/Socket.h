@@ -88,10 +88,10 @@ private:
 
 class DummyConstSocketRef;  // forward declaration
 
-/** ConstSocketRef is subclassed rather than typedef'd so that I can override the == and != operators
-  * to check for equality based on the file-descriptor value rather than on the address of the
-  * referenced Socket object.  Doing it this way gives more intuitive hashing behavior (ie
-  * multiple ConstSocketRefs referencing the same file-descriptor will hash to the same entry)
+/** ConstSocketRef is a ConstRef<Socket>.  ConstSocketRef is subclassed rather than typedef'd so
+  * that I can overload the == and != operators to check for equality based on the file-descriptor
+  * value rather than on the address of the referenced Socket object.  Doing it this way gives more
+  * intuitive hashing behavior (ie multiple ConstSocketRefs referencing the same file-descriptor will hash to the same entry)
   */
 class MUSCLE_NODISCARD ConstSocketRef : public ConstRef<Socket>
 {

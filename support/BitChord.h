@@ -15,10 +15,11 @@ namespace muscle {
 # if !defined(MUSCLE_AVOID_CPLUSPLUS11_BITCHORD)
 #  define MUSCLE_AVOID_CPLUSPLUS11_BITCHORD
 # endif
-// hack work-around for C++03 not having a nullptr keyword
+/// hack work-around for C++03 not having a nullptr keyword; you can ignore this
 namespace muscle_private {extern const char * fake_nullptr[1];}
 # define MUSCLE_BITCHORD_NULLPTR muscle_private::fake_nullptr
 #else
+/// hack work-around for C++03 not having a nullptr keyword; you can ignore this
 # define MUSCLE_BITCHORD_NULLPTR nullptr
 #endif
 
@@ -972,20 +973,29 @@ template<uint32 NumBits, class TagClass, const char * optLabelArray[]> const Bit
   */
 template<uint32 NumBits, class TagClass, const char * optLabelArray[]> const BitChord<NumBits,TagClass,optLabelArray> operator ^ (const BitChord<NumBits,TagClass,optLabelArray> & lhs, const BitChord<NumBits,TagClass,optLabelArray> & rhs) {BitChord<NumBits,TagClass,optLabelArray> ret(lhs); ret ^= rhs; return ret;}
 
-/** This macros declares a unique BitChord-type with a specified number of bits.
+/** This macro declares a unique BitChord-type with a specified number of bits.
   * @param typeName the name of the new type eg (MySpecialFlags)
   * @param numBitsInType the number of bits a BitChord of this type will represent
-  * @note Example usage:  enum {OPTION_A=0, OPTION_B, OPTION_C, NUM_OPTIONS}; DECLARE_BITCHORD_FLAGS_TYPE(MyOptionFlags, NUM_OPTIONS);
+  * @note Example usage:<pre>
+  *         enum {OPTION_A=0, OPTION_B, OPTION_C, NUM_OPTIONS};
+  *         DECLARE_BITCHORD_FLAGS_TYPE(MyOptionFlags, NUM_OPTIONS);
+  *         MyOptionFlags foo(OPTION_A, OPTION_B);</pre>
   */
 #define DECLARE_BITCHORD_FLAGS_TYPE(typeName, numBitsInType)   \
    struct _bitchord_tag_class_##typeName##_##numBitsInType {}; \
    typedef BitChord<numBitsInType, _bitchord_tag_class_##typeName##_##numBitsInType> typeName;
 
-/** This macros declares a unique BitChord-type with a specified number of bits.
+/** This macro declares a unique BitChord-type with a specified number of bits, and supplies an array of human-readable
+  * name-strings, one per bit, so that the BitChord values can be printed out in a more user-friendly form.
   * @param typeName the name of the new type eg (MySpecialFlags)
   * @param numBitsInType the number of bits a BitChord of this type will represent
   * @param labelsArray an array of (numBitsInType) human-readable strings, describing each bit in this bit-chord.
-  * @note Example usage:  enum {OPTION_A=0, OPTION_B, OPTION_C, NUM_OPTIONS}; DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(MyOptionFlags, NUM_OPTIONS, _myOptionFlagLabels);
+  * @note Example usage:<pre>
+  *          enum {OPTION_A=0, OPTION_B, OPTION_C, NUM_OPTIONS};
+  *          static const char * _myOptionFlagLabels[] = {"A", "B", "C"};
+  *          MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_myOptionFlagLabels, NUM_OPTIONS);
+  *          DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(MyOptionFlags, NUM_OPTIONS, _myOptionFlagLabels);
+  *          MyOptionFlags foo(OPTION_A, OPTION_B);</pre>
   */
 #define DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(typeName, numBitsInType, labelsArray) \
    struct _bitchord_tag_class_##typeName##_##numBitsInType {};                     \

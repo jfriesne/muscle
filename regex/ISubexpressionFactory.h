@@ -8,8 +8,10 @@
 
 namespace muscle {
 
-/** Interface for any object that CreateQueryFilterFromExpression()
-  * matches some criterion.  Used primarily for filtering queries based on content.
+/** Interface for any object that CreateQueryFilterFromExpression() can use to
+  * create a QueryFilter to represent the logic corresponding to a just-parsed filter-expression.
+  * @note see the section "Building a QueryFilter from an expression-String" at the end of the
+  *       <a href="https://public.msli.com/lcs/muscle/muscle/html/Beginners%20Guide.html">Beginner's Guide</a> for details.
   */
 class ISubexpressionFactory : public RefCountable
 {

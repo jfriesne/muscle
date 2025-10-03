@@ -63,10 +63,10 @@ public:
    /** Assigment operator.  deliberately implemented as a no-op! */
    inline RefCountable &operator=(const RefCountable &) {return *this;}
 
-   /** Increments the counter.  Thread safe. */
+   /** Increments the reference-count.  Thread safe. */
    inline void IncrementRefCount() const {_refCount.AtomicIncrement();}
 
-   /** Decrements the counter and returns true iff the new value is zero.  Thread safe. */
+   /** Decrements the reference-count and returns true iff the new value is zero.  Thread safe. */
    inline bool DecrementRefCount() const {return _refCount.AtomicDecrement();}
 
    /** Sets the recycle-pointer for this object.  If set to non-NULL, this pointer
@@ -188,7 +188,7 @@ public:
      * @param item A dynamically allocated object that this ConstRef object will assume responsibility for deleting.
      *             May be NULL, in which case the effect is just to unreference the current item.
      * @param doRefCount If set false, then this ConstRef will not do any ref-counting on (item); rather it
-     *                   just acts as a fancy version of a normal C++ pointer.  Specifically, it will not
+     *                   just acts as a fancy version of a raw C++ pointer.  Specifically, it will not
      *                   modify the object's reference count, nor will it ever delete the object.
      *                   Setting this argument to false can be useful if you want to supply a
      *                   ConstRef to an item that wasn't dynamically allocated from the heap.
@@ -224,7 +224,8 @@ public:
       }
    }
 
-   /** Sets this Ref to an error state.  Note that setting any error clears any item-pointer-value this Ref may have had.
+   /** Sets this Ref to an error state.  Note that calling this method clears any item-pointer-value this Ref may have had,
+     * because a Ref can hold either a reference to a RefCountable object or a status_t, but not both at once.
      * @param errorStatus the error to store in this Ref.
      * @note if you call SetStatus(B_NO_ERROR), GetStatus() will return B_NULL_REF.
      */
@@ -252,7 +253,7 @@ public:
     *  Unreferences the previous held data item, and adds a reference to the data item of (rhs).
     *  @param rhs Item to become a copy of.
     */
-   inline ConstRef &operator=(const ConstRef & rhs)
+   inline ConstRef & operator=(const ConstRef & rhs)
    {
       if (rhs.GetItemPointer()) this->SetRef(rhs.GetItemPointer(), rhs.IsRefCounting());
                            else this->SetStatus(rhs.GetStatus());
@@ -305,6 +306,7 @@ public:
 
    /** Returns the ref-counted data item.  The returned data item
     *  is only guaranteed valid for as long as this RefCount object exists.
+    *  @note the () operator is a synonym for this method, so e.g. <pre>const MyClass * m = myClassRef();</pre> is equivalent to <pre>const MyClass * m = myClassRef.GetItemPointer();</pre>
     */
    MUSCLE_NODISCARD const Item * GetItemPointer() const {return _item.IsBitSet(REF_BIT_HASVALIDOBJECT) ? static_cast<const Item *>(_item.GetPointer()) : NULL;}
 
@@ -632,6 +634,7 @@ public:
 
    /** Returns the ref-counted data item.  The returned data item
     *  is only guaranteed valid for as long as this RefCount object exists.
+    *  @note the () operator is a synonym for this method, so e.g. <pre>MyClass * m = myClassRef();</pre> is equivalent to <pre>MyClass * m = myClassRef.GetItemPointer();</pre>
     */
    MUSCLE_NODISCARD Item * GetItemPointer() const {return const_cast<Item *>((static_cast<const ConstRef<Item> *>(this))->GetItemPointer());}
 

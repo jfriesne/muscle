@@ -12,6 +12,10 @@ class ByteBuffer;
 /** This is a lightweight helper class designed to safely and efficiently unflatten POD data-values from a raw byte-buffer.
   * @tparam EndianConverter the type of EndianConverter object use when converting raw serialized bytes to native data-types
   * @tparam SizeChecker the type of checker-object to use when checking input-buffer sizes.  Defaults to using a RealSizeChecker.
+  * @note you probably don't want to instantiate a DataUnflattenerHelper directly; instead use one of the provided
+  *       typedefs:  typically a DataUnflattener (for MUSCLE-standard/little-endian data-unflattening) or alternatively
+  *       a BigEndianDataUnflattener, or a LittleEndianDataUnflattener, or a NativeEndianDataUnflattener, in order to
+  *       get the endian-ness you prefer.
   */
 template<class EndianConverter, class SizeChecker=RealSizeChecker> class MUSCLE_NODISCARD DataUnflattenerHelper MUSCLE_FINAL_CLASS
 {
