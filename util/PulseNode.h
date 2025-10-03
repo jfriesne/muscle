@@ -58,42 +58,44 @@ protected:
 
 public:
    /**
-    * This method can be overridden to tell the PulseNodeManager when we would like
-    * to have our Pulse() method called.  This method is guaranteed to be called only
-    * during the following times:
+    * This method can be overridden to return a value (in GetRunTime64()-style microseconds)
+    * that indicates to the PulseNodeManager/ReflectServer (or our parent PulseNode)
+    * when we would next like to have our Pulse() method called.  This method will
+    * to be called in the following situations:
     * <ol>
-    *   <li>When the PulseNode is first probed by the PulseNodeManager</li>
-    *   <li>Immediately after our Pulse() method has returned</li>
-    *   <li>Soon after InvalidatePulseTime() has been called one or more times
-    *       (InvalidatePulseTime() calls are merged together for efficiency)</li>
+    *   <li>When this PulseNode is first added to the PulseNodeManager/ReflectServer (or parent PulseNode)</li>
+    *   <li>Immediately after our Pulse() method has been called</li>
+    *   <li>Shortly after InvalidatePulseTime() has been called one or more times on this object</li>
     * </ol>
-    * The default implementation always returns MUSCLE_TIME_NEVER.
     *
-    * @param args Args is a reference to an object containing the following context
-    *             information regarding this call:
+    * The default implementation always returns MUSCLE_TIME_NEVER, meaning that no calls to Pulse() are desired.
     *
+    * @param args Reference to a PulseArgs object containing the following context-information describing this call:
+    * <pre>
     *           args.GetCallbackTime() The current wall-clock time-value, in microseconds.
     *                                   This will be roughly the same value as returned by
     *                                   GetRunTime64(), but it's cheaper to call this method.
     *           args.GetScheduledTime() The value that this method returned the last time it was
     *                                   called.  The very first time this method is called, this value
     *                                   will be passed in as MUSCLE_TIME_NEVER.
-    * @return Return MUSCLE_TIME_NEVER if you don't wish to schedule a future call to Pulse();
+    * </pre>
+    * @return MUSCLE_TIME_NEVER if you don't wish to schedule a future call to Pulse();
     *         or return the time at which you want Pulse() to be called.  Returning values less
-    *         than or equal to (now) will cause Pulse() to be called as soon as possible.
+    *         than or equal to (args.GetCallbackTime()) will cause Pulse() to be called as soon as possible.
+    *
+    * @note if you are overriding this method in a subclass, it is always a good idea to
+    *       call up to the superclass implementation and return the smaller of your own return
+    *       value and the parent class's return-value (e.g.<pre>return muscleMin(myReturnValue, MyParentClass::GetPulseTime(args));</pre>
     */
    MUSCLE_NODISCARD virtual uint64 GetPulseTime(const PulseArgs & args);
 
    /**
     * Will be called at (or shortly after) the time specified previously by GetPulseTime(), so
-    * you can override this method to do whatever task you wanted to do at that time.
-    *
-    * GetPulseTime() will be always called again, immediately after this call returns, to find out
-    * if you want to schedule another Pulse() call for later.
+    * you can override this method to do whatever task you wanted to perform at that scheduled time.
     *
     * Default implementation is a no-op.
     *
-    * @param args an object containing the following context-information for this call:
+    * @param args Reference to a PulseArgs object containing the following context-information for this call:
     * <pre>
     *     args.GetCallbackTime() The approximate current wall-clock time-value, in microseconds.
     *                             This will be roughly the same value as returned by
@@ -101,30 +103,36 @@ public:
     *     args.GetScheduledTime() The time this Pulse() call was scheduled to occur at, in
     *                microseconds, as previously returned by GetPulseTime().  Note
     *                that unless your computer is infinitely fast, this time will
-    *                always be at least a bit less than (now), since there is a delay
+    *                always be at least a bit less than (args.GetCallbackTime()), since there is a delay
     *                between when the program gets woken up to service the next Pulse()
     *                call, and when the call actually happens.  (you may be able to
     *                use this value to compensate for the slippage, if that bothers you)
     * </pre>
+    *
+    * @note GetPulseTime() will be always called again, immediately after this call returns, to find out
+    * if you want to schedule another Pulse() call for later.
+    *
     */
    virtual void Pulse(const PulseArgs & args);
 
    /**
     *  Adds the given child into our set of child PulseNodes.  Any PulseNode in our
-    *  set of children will have its pulsing needs taken care of by us, but it is
-    *  not considered "owned" by this PulseNode--it will not be deleted when we are.
+    *  set of children will have its Pulse()-ing needs taken care of by us, but it is
+    *  not considered "owned" by this PulseNode--that is, it will not be deleted when we are.
     *  @param child The child to place into our set of child PulseNodes.
     *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    *  @note if (child) is already a child of a different PulseNode, it will be removed from
+    *        that PulseNode's children-list (via RemovePulseChild()) before it is added to this one's.
     */
    status_t PutPulseChild(PulseNode * child);
 
-   /** Attempts to remove the given child from our set of child PulseNodes.
+   /** Attempts to remove the given child from our set of child PulseNodes, and disassociate it from us.
     *  @param child The child to remove
     *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (ie child wasn't in our current-set of pulse-children)
     */
    status_t RemovePulseChild(PulseNode * child);
 
-   /** Removes all children from our set of child PulseNodes */
+   /** Removes all children from our set of child PulseNodes and disassociates us from them. */
    void ClearPulseChildren();
 
    /** Returns true iff the given child is in our set of child PulseNodes.
@@ -132,14 +140,14 @@ public:
      */
    MUSCLE_NODISCARD bool ContainsPulseChild(PulseNode * child) const {return ((child)&&(child->_parent == this));}
 
-   /** Returns when this object wants its call to Pulse() scheduled next, or MUSCLE_TIME_NEVER
-    *  if it has no call to Pulse() currently scheduled.
+   /** Returns the current record of when this PulseNode wants its call to Pulse() scheduled next
+    *  (as previously returned by GetPulseTime()), or MUSCLE_TIME_NEVER there is no call to Pulse() currently scheduled for this PulseNode.
     */
    MUSCLE_NODISCARD uint64 GetScheduledPulseTime() const {return _myScheduledTime;}
 
-   /** Returns the run-time at which the PulseNodeManager started calling our callbacks.
+   /** Returns the run-time at which the PulseNodeManager/ReflectServer started calling our callbacks.
     *  Useful for any object that wants to limit the maximum duration of its timeslice
-    *  in the PulseNodeManager's event loop.
+    *  in the PulseNodeManager/ReflectServer's event loop.
     */
    MUSCLE_NODISCARD uint64 GetCycleStartTime() const {return _parent ? _parent->GetCycleStartTime() : _cycleStartedAt;}
 
@@ -176,7 +184,7 @@ public:
     */
    void InvalidatePulseTime(bool clearPrevResult = true);
 
-   /** Returns a pointer to this PulseNode's parent PulseNode, if any. */
+   /** Returns a pointer to this PulseNode's parent PulseNode, or NULL if we don't have a parent PulseNode. */
    MUSCLE_NODISCARD PulseNode * GetPulseParent() const {return _parent;}
 
 private:
