@@ -15,9 +15,10 @@ namespace muscle {
 
 /**
  * This gateway translates lines of text (separated by "\r", "\n", or "\r\n") into
- * Messages.  It can be used for "telnet-style" net interactions.
+ * Messages.  It can be used for "telnet-style" network interactions, where each command (or reply)
+ * is represented by a line of ASCII/UTF8 text.
  * Incoming and outgoing messages may have one or more strings in their PR_NAME_TEXT_LINE field.
- * Each of these strings represents a line of text (separator chars not included)
+ * Each of these strings represents a line of text (line-separator chars not included)
  */
 class PlainTextMessageIOGateway : public AbstractMessageIOGateway
 {

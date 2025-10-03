@@ -21,7 +21,11 @@ public:
    /** Default constructor */
    PulseNode();
 
-   /** Destructor.  Does not delete any attached child PulseNodes. */
+   /** Destructor.  Does not delete any attached child PulseNodes.
+     * This destructor will automatically remove this PulseNode from any
+     * parent PulseNode it is registered with, and also disassociate itself from
+     * any of its child PulseNodes, so you don't need to handle that cleanup yourself.
+     */
    virtual ~PulseNode();
 
 protected:
@@ -81,24 +85,27 @@ public:
    MUSCLE_NODISCARD virtual uint64 GetPulseTime(const PulseArgs & args);
 
    /**
-    * Will be called at the time specified previously by GetPulseTime().  GetPulseTime()
-    * will be called again immediately after this call, to check if you want to schedule
-    * another Pulse() call for later.
+    * Will be called at (or shortly after) the time specified previously by GetPulseTime(), so
+    * you can override this method to do whatever task you wanted to do at that time.
+    *
+    * GetPulseTime() will be always called again, immediately after this call returns, to find out
+    * if you want to schedule another Pulse() call for later.
+    *
     * Default implementation is a no-op.
     *
-    * @param args Args is a reference to an object containing the following context
-    *             information regarding this call:
-    *
-    *           args.GetCallbackTime() The current wall-clock time-value, in microseconds.
-    *                                   This will be roughly the same value as returned by
-    *                                   GetRunTime64(), but it's cheaper to call this method.
-    *           args.GetScheduledTime() The time this Pulse() call was scheduled to occur at, in
-    *                      microseconds, as previously returned by GetPulseTime(). Note
-    *                      that unless your computer is infinitely fast, this time will
-    *                      always be at least a bit less than (now), since there is a delay
-    *                      between when the program gets woken up to service the next Pulse()
-    *                      call, and when the call actually happens.  (you may be able to
-    *                      use this value to compensate for the slippage, if it bothers you)
+    * @param args an object containing the following context-information for this call:
+    * <pre>
+    *     args.GetCallbackTime() The approximate current wall-clock time-value, in microseconds.
+    *                             This will be roughly the same value as returned by
+    *                             GetRunTime64(), but it's cheaper to call this method.
+    *     args.GetScheduledTime() The time this Pulse() call was scheduled to occur at, in
+    *                microseconds, as previously returned by GetPulseTime().  Note
+    *                that unless your computer is infinitely fast, this time will
+    *                always be at least a bit less than (now), since there is a delay
+    *                between when the program gets woken up to service the next Pulse()
+    *                call, and when the call actually happens.  (you may be able to
+    *                use this value to compensate for the slippage, if that bothers you)
+    * </pre>
     */
    virtual void Pulse(const PulseArgs & args);
 
@@ -157,13 +164,15 @@ public:
    MUSCLE_NODISCARD bool IsSuggestedTimeSliceExpired() const {return ((_timeSlicingSuggested)&&(GetRunTime64() >= (_cycleStartedAt+_maxTimeSlice)));}
 
    /**
-    * Sets a flag to indicate that GetPulseTime() should be called on this object.
-    * Call this whenever you've decided to reschedule your pulse time outside
-    * of a Pulse() event.
-    * @param clearPrevResult if true, this call will also clear the stored prevResult
+    * Sets a flag to indicate that GetPulseTime() should be called again on this object,
+    * at the beginning of the next event-loop cycle.
+    *
+    * Call this whenever you've decided to reschedule your upcoming pulse-time from
+    * anywhere other than your own Pulse() callback.
+    * @param clearPrevResult if true, this call will also clear the stored scheduled-pulse-time
     *                        value, so that the next time GetPulseTime() is called,
-    *                        prevResult is passed in as MUSCLE_TIME_NEVER.  If false,
-    *                        the prevResult value will be left alone.
+    *                        args.GetScheduledTime() will return MUSCLE_TIME_NEVER.  If false,
+    *                        the scheduled-pulse-time value will be left as-is.
     */
    void InvalidatePulseTime(bool clearPrevResult = true);
 
@@ -210,9 +219,12 @@ private:
    DECLARE_COUNTED_OBJECT(PulseNode);
 };
 
-/** Subclasses of this class are allowed to manage PulseNode objects by
+/** A PulseNodeManager is a class that has access to call CallGetPulseTimeAux() and CallPulseAux()
+  * at the appropriate times, for the various PulseNode derived objects that have registered with it for callbacks.
+  * Subclasses of this class are allowed to manage PulseNode objects by
   * calling their GetPulseTimeAux() and PulseAux() methods (indirectly).
-  * Most code won't need to use this class.
+  * Most code won't need to use this class directly, as the ReflectServer class derives
+  * from this class an implements the necessary PulseNodeManager functionality for you.
   */
 class PulseNodeManager
 {

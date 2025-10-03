@@ -20,7 +20,7 @@ namespace muscle {
 
 /** This is a little class that can be helpful for performance measurement and debugging.
  *  It will measure the amount of time elapsed between when it is constructed and when it
- *  is destroyed, and its destructor will log the elapsed-time information to stdout, if it's considered significant.
+ *  is destroyed, and its destructor will print out the elapsed-time information, if it's considered significant.
  *
  *  If you want to more finely classify how the DebugTimer's lifespan was spent, you can call SetMode()
  *  on this object at various points to assign the elapsed time in different sections to different values.

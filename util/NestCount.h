@@ -9,7 +9,10 @@ namespace muscle {
 
 /** This class represents a counter of nested function calls.  It is essentially just a uint32,
   * but made into a class so that it can be auto-initialized to zero, protected from arbitrary
-  * value changes, etc.
+  * value changes, etc.  It's intended to be referenced by one or more NestCountGuard objects
+  * that are placed on the stack at the beginning of the nested function calls' scope, so that
+  * you can call IsInBatch() on it to see if you are in the middle of a set of recursive calls,
+  * or not.
   */
 class NestCount MUSCLE_FINAL_CLASS
 {

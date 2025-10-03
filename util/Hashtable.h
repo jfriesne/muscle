@@ -2324,6 +2324,8 @@ private:
   * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
   * @tparam KeyCompareFunctorType type of the key-compare functor to use when comparing two keys for sorting purposes.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
   * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
+  * @note the price of keeping keys sorted at all times is that Put()-ing new keys into the Hashtable becomes more expensive -- O(N) instead of O(1).  If insertion-performance is important,
+  *       you might want to consider using a different data structure like std::map<KeyType, ValueType> instead.
   */
 template <class KeyType, class ValueType, class KeyCompareFunctorType=CompareFunctor<KeyType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class MUSCLE_NODISCARD OrderedKeysHashtable MUSCLE_FINAL_CLASS : public OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByKeyEntryCompareFunctor<KeyCompareFunctorType>, OrderedKeysHashtable<KeyType, ValueType, KeyCompareFunctorType, HashFunctorType> >
 {
@@ -2407,6 +2409,8 @@ public:
   * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
   * @tparam ValueCompareFunctorType type of the value-compare functor to use when comparing two values for sorting purposes.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
   * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
+  * @note the price of keeping values sorted at all times is that Put()-ing items into the Hashtable becomes more expensive -- O(N) instead of O(1).  If insertion performance is important,
+  *       you might want to consider using a different data structure instead.
   */
 template <class KeyType, class ValueType, class ValueCompareFunctorType=CompareFunctor<ValueType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class MUSCLE_NODISCARD OrderedValuesHashtable MUSCLE_FINAL_CLASS : public OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByValueEntryCompareFunctor<ValueCompareFunctorType>, OrderedValuesHashtable<KeyType, ValueType, ValueCompareFunctorType, HashFunctorType> >
 {

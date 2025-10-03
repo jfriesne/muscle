@@ -2109,10 +2109,10 @@ template <typename T1, typename T2, typename T3, typename T4, typename T5, typen
 #endif
 
 /** This hashing functor type handles the trivial cases, where the KeyType is
- *  Plain Old Data that we can just feed directly into the CalculateHashCode() function.
+ *  Plain Old Data (without padding bytes!) that we can just feed directly into the CalculateHashCode() function.
  *  For more complicated key types, you should define a method in your KeyType class
  *  that looks like this:
- *      uint32 HashCode() const {return the_calculated_hash_code_for_this_object();}
+ *  <pre>    uint32 HashCode() const {return the_calculated_hash_code_for_this_object();}</pre>
  *  And that will be enough for the template magic to kick in and use MethodHashFunctor
  *  by default instead.  (See util/String.h for an example of this)
   * @tparam KeyType the type of object this PODHashFunctor will compute hash codes for (by calling CalculateHashCode() on its raw bytes).

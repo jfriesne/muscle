@@ -228,7 +228,7 @@ private:
  *  or in-RAM data storage.
  *
  *  Note that for quick debugging purposes, it is possible to dump a Message's contents to stdout
- *  at any time by calling Print() on the Message.
+ *  at any time by calling Print(stdout) on the Message.
  */
 class MUSCLE_NODISCARD Message MUSCLE_FINAL_CLASS : public FlatCountable, public Cloneable
 {
@@ -240,20 +240,20 @@ public:
    Message() : what(0) {/* empty */}
 
    /** Constructor.
-    *  @param theWhat The 'what' member variable will be set to the value you specify here.
+    *  @param whatArg The 'what' member variable will be set to the value you specify here.
     */
-   explicit Message(uint32 theWhat) : what(theWhat) {/* empty */}
+   explicit Message(uint32 whatArg) : what(whatArg) {/* empty */}
 
    /** Explicitly-sized Constructor.
-    *  @param numNameSlotsToPreallocate how many item-slots to preallocate for field-names in our field-names table
+    *  @param numNameSlotsToPreallocate how many item-slots to preallocate for data-fields in our data-fields table
     */
    explicit Message(PreallocatedItemSlotsCount numNameSlotsToPreallocate) : what(0), _entries(numNameSlotsToPreallocate) {/* empty */}
 
    /** Explicitly-sized Constructor.
     *  @param numNameSlotsToPreallocate how many item-slots to preallocate for field-names in our field-names table
-    *  @param theWhat The 'what' member variable will be set to the value you specify here.
+    *  @param whatArg The 'what' member variable will be set to the value you specify here.
     */
-   Message(PreallocatedItemSlotsCount numNameSlotsToPreallocate, uint32 theWhat) : what(theWhat), _entries(numNameSlotsToPreallocate) {/* empty */}
+   Message(PreallocatedItemSlotsCount numNameSlotsToPreallocate, uint32 whatArg) : what(whatArg), _entries(numNameSlotsToPreallocate) {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    Message(const Message & rhs) : FlatCountable(), Cloneable() {*this = rhs;}
@@ -312,12 +312,12 @@ public:
 
    /** Prints debug info describing the contents of this Message using an OutputPrinter.
      * @param p The OutputPrinter to use for printing.  A FILE (e.g. stdout), a String, or a MUSCLE_LOG_SEVERITY_* value can
-     *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
+     *          be specified here, depending on where you'd like the text output to go to.
      * @param maxRecurseLevel The maximum level of nested sub-Messages that we will print.  Defaults to MUSCLE_NO_LIMIT.
      */
    void Print(const OutputPrinter & p, uint32 maxRecurseLevel = MUSCLE_NO_LIMIT) const;
 
-   /** Same as Print(), only the state of the Message is returned as a String instead of being printed to stdout.
+   /** Same as Print(), only the state of the Message is returned as a String instead of being printed via an OutputPrinter.
     *  @param maxRecurseLevel The maximum level of nested sub-Messages that we will generate.  Defaults to MUSCLE_NO_LIMIT.
     *  @returns a String representation of this Message, for debugging
     */
@@ -517,7 +517,6 @@ public:
     *              (data) may be NULL, in which case default objects (or uninitialized byte space) is added.
     *  Note:  If you are adding B_MESSAGE_TYPE, then (data) must point to a MessageRef
     *         object, and NOT a Message object, or flattened-Message-buffer!
-    *         (This is inconsistent with BMessage::AddData, which expects a flattened BMessage buffer.  Sorry!)
     *  @param numBytes The number of bytes that are pointed to by (data).  If (type)
     *                  is a known type such as B_INT32_TYPE or B_RECT_TYPE, (numBytes)
     *                  may be a multiple of the datatype's size, allowing you to add
@@ -687,7 +686,6 @@ public:
     *              (data) may be NULL, in which case default objects (or uninitialized byte space) is added.
     *  Note:  If you are adding B_MESSAGE_TYPE, then (data) must point to a MessageRef
     *         object, and NOT a Message object, or flattened-Message-buffer!
-    *         (This is inconsistent with BMessage::AddData, which expects a flattened BMessage buffer.  Sorry!)
     *  @param numBytes The number of bytes that are pointed to by (data).  If (type)
     *                  is a known type such as B_INT32_TYPE or B_RECT_TYPE, (numBytes)
     *                  may be a multiple of the datatype's size, allowing you to add
@@ -1114,7 +1112,6 @@ public:
     *  @param data On success, a read-only pointer to the data bytes will be written into this object.
     *  @note If you are retrieving B_MESSAGE_TYPE, then (data) will be set to point to a MessageRef
     *        object, and NOT a Message object, or flattened-Message-buffer!
-    *        (This is inconsistent with BMessage::FindData, which returns a flattened BMessage buffer.  Sorry!)
     *  @param numBytes On success, the number of bytes in the returned data array will be written into this object.  (May be NULL)
     *  @return B_NO_ERROR if the data pointer was retrieved successfully, or an error code if it wasn't.
     */
@@ -1126,7 +1123,6 @@ public:
     *  @param data On success, a read-only pointer to the data bytes will be written into this object.
     *  @note If you are retrieving B_MESSAGE_TYPE, then (data) will be set to point to a MessageRef
     *        object, and NOT a Message object, or flattened-Message-buffer!
-    *        (This is inconsistent with BMessage::FindData, which returns a flattened BMessage buffer.  Sorry!)
     *  @param numBytes On success, the number of bytes in the returned data array will be written into this object.  (May be NULL)
     *  @return B_NO_ERROR if the data pointer was retrieved successfully, or an error code if it wasn't.
     */
@@ -1142,7 +1138,6 @@ public:
     *  @param data On success, a read/write pointer to the data bytes will be written into this object.
     *  @note If you are retrieving B_MESSAGE_TYPE, then (data) will be set to point to a MessageRef
     *        object, and NOT a Message object, or flattened-Message-buffer!
-    *        (This is inconsistent with BMessage::FindData, which returns a flattened BMessage buffer.  Sorry!)
     *  @param numBytes On success, the number of bytes in the returned data array will be written into this object.  (May be NULL)
     *  @return B_NO_ERROR if the data pointer was retrieved successfully, or an error code if it wasn't.
     */
@@ -1154,7 +1149,6 @@ public:
     *  @param data On success, a read/write pointer to the data bytes will be written into this object.
     *  @note  If you are retrieving B_MESSAGE_TYPE, then (data) will be set to point to a MessageRef
     *         object, and NOT a Message object, or flattened-Message-buffer!
-    *         (This is inconsistent with BMessage::FindData, which returns a flattened BMessage buffer.  Sorry!)
     *  @param numBytes On success, the number of bytes in the returned data array will be written into this object.  (May be NULL)
     *  @return B_NO_ERROR if the data pointer was retrieved successfully, or an error code if it wasn't.
     */
@@ -1385,7 +1379,6 @@ public:
     *  @param numBytes The number of bytes in your data array.
     *  Note:  If you are replacing B_MESSAGE_TYPE, then (data) must point to a MessageRef
     *         object, and NOT a Message object, or flattened-Message-buffer!
-    *         (This is inconsistent with BMessage::ReplaceData, which expects a flattened BMessage buffer.  Sorry!)
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceData(bool okayToAdd, const String & fieldName, uint32 type, uint32 index, const void *data, uint32 numBytes);
@@ -1398,7 +1391,6 @@ public:
     *  @param numBytes The number of bytes in your data array.
     *  Note:  If you are replacing B_MESSAGE_TYPE, then (data) must point to a MessageRef
     *         object, and NOT a Message object, or flattened-Message-buffer!
-    *         (This is inconsistent with BMessage::ReplaceData, which expects a flattened BMessage buffer.  Sorry!)
     *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field wasn't found, or if (index) wasn't a valid index.
     */
    status_t ReplaceData(bool okayToAdd, const String & fieldName, uint32 type, const void *data, uint32 numBytes) {return ReplaceData(okayToAdd, fieldName, type, 0, data, numBytes);}

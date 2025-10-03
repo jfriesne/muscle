@@ -444,7 +444,7 @@ private:
 };
 
 /** If MUSCLE_ENABLE_DEADLOCK_FINDER was defined during compilation, this function will print
-  * to stdout a human-readable report about how Mutexes have been locked so far, and whether
+  * out a human-readable report about how Mutexes have been locked so far, and whether
   * any inconsistent locking ordering has been detected.  Otherwise an error message will be printed.
   * @param p the OutputPrinter to use for printing the output.
   * @returns B_NO_ERROR on success, or another value on failure.

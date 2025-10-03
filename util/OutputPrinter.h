@@ -9,8 +9,9 @@ namespace muscle {
 
 class String;
 
-/** This is a convenience class for code that wants to output text to either a String, to stdout, or to the Log.
-  * By using this class, you only have to write that code once, rather than three times.
+/** This is a convenience class for code that wants to output text to either to a (FILE *) (like stdout or stderr), or to the Log (via LogTime()), or to a String.
+  * By using this class, you only have to write your text-output routine once, rather than three times, and have it take an OutputPointer as an argument.
+  * Then your function's caller can decide where your function's output should go, based on what kind of OutputPrinter he passes in.
   */
 class OutputPrinter
 {
@@ -26,7 +27,7 @@ public:
    OutputPrinter(int logSeverity) : _logSeverity(logSeverity), _addToString(NULL), _file(NULL), _indent(0), _isAtStartOfLine(true) {/* empty */}
 
    /** Constructor for "printing" that writes the printed text to a FILE
-     * @param addToFile the file to add to
+     * @param addToFile the file to add to (commonly stdout or stderr, although it could be something you fopen()'d yourself)
      * @note we do NOT take ownership of the file handle; it remains up to to the calling code to close it when appropriate.
      */
    OutputPrinter(FILE * addToFile) : _logSeverity(MUSCLE_LOG_NONE), _addToString(NULL), _file(addToFile), _indent(0), _isAtStartOfLine(true) {/* empty */}

@@ -402,7 +402,7 @@ String DenybbleizeString(const String & nybStr);
   */
 MUSCLE_NODISCARD const uint8 * MemMem(const uint8 * lookIn, uint32 numLookInBytes, const uint8 * lookFor, uint32 numLookForBytes);
 
-/** This is a convenience function for debugging.  It will print to stdout the
+/** This is a convenience function for debugging.  It will print out the
   * specified array of bytes in human-readable hexadecimal format, along with
   * an ASCII sidebar when possible.
   * @param p The OutputPrinter to use for printing.
@@ -416,7 +416,7 @@ MUSCLE_NODISCARD const uint8 * MemMem(const uint8 * lookIn, uint32 numLookInByte
   */
 void PrintHexBytes(const OutputPrinter & p, const void * bytes, uint32 numBytes, const char * optDesc = NULL, uint32 numColumns = 16);
 
-/** This is a convenience function for debugging.  It will print to stdout the
+/** This is a convenience function for debugging.  It will print out the
   * specified array of bytes in human-readable hexadecimal format, along with
   * an ASCII sidebar when possible.
   * @param p The OutputPrinter to use for printing.
@@ -429,7 +429,7 @@ void PrintHexBytes(const OutputPrinter & p, const void * bytes, uint32 numBytes,
   */
 void PrintHexBytes(const OutputPrinter & p, const ConstByteBufferRef & bbRef, const char * optDesc = NULL, uint32 numColumns = 16);
 
-/** This is a convenience function for debugging.  It will print to stdout the
+/** This is a convenience function for debugging.  It will print out the
   * specified array of bytes in human-readable hexadecimal format, along with
   * an ASCII sidebar when possible.
   * @param p The OutputPrinter to use for printing.
@@ -442,7 +442,7 @@ void PrintHexBytes(const OutputPrinter & p, const ConstByteBufferRef & bbRef, co
   */
 void PrintHexBytes(const OutputPrinter & p, const ByteBuffer & bb, const char * optDesc = NULL, uint32 numColumns = 16);
 
-/** This is a convenience function for debugging.  It will print to stdout the
+/** This is a convenience function for debugging.  It will print out the
   * specified array of bytes in human-readable hexadecimal format, along with
   * an ASCII sidebar when possible.
   * @param p The OutputPrinter to use for printing.

@@ -92,8 +92,10 @@ public:
      */
    static void GlobalFlushAllCachedObjects();
 
-   /** Prints information about the AbstractObjectRecyclers to stdout. */
-   static void GlobalPrintRecyclersToStream();
+   /** Prints out information about all the AbstractObjectRecyclers currently in use.
+     * @param p the OutputPrinter to use for printing.
+     */
+   static void GlobalPrintRecyclersToStream(const OutputPrinter & p);
 
    /** Calls PerformSanityCheck() on all AbstractObjectRecyclers */
    static void GlobalPerformSanityCheck();
@@ -115,14 +117,14 @@ class AbstractObjectManager : public AbstractObjectGenerator, public AbstractObj
  *  dynamic allocations and deallocations in your app.  Instead of calling 'new Object',
  *  you call myObjectPool.ObtainObject(), and instead of calling 'delete Object', you call
  *  myObjectPool.ReleaseObject().  The advantage is that the ObjectPool will
- *  keep (up to a certain number of) "spare" Objects around, and recycle them back
- *  to you as needed.  Note that this class is generally not used directly, but rather is
- *  used in conjuction with the Ref<> and RefCount classes to provide efficient, automatic,
+ *  keep slabs of "spare" Objects around, and recycle them back to you as needed.
+ *  Note that this class is generally not used directly, but rather is typically used in
+ *  conjunction with the Ref<> and RefCountable classes to provide efficient, automatic,
  *  and memory-leak-resistant reference-counting combined with object-pooling.  See
  *  GetMessageFromPool() for an example of this.
  *
  * @tparam Object the type of object that this pool will collect and distribute.
- * @tparam MUSCLE_POOL_SLAB_SIZE the approximate size, in bytes, of the ObjectSlab arrays we should allocate.  Defaults to DEFAULT_MUSCLE_POOL_SLAB_SIZE (aka 4 kilobytes)
+ * @tparam MUSCLE_POOL_SLAB_SIZE the approximate size, in bytes, of the ObjectSlab arrays we should allocate.  Defaults to DEFAULT_MUSCLE_POOL_SLAB_SIZE (aka 4096)
  */
 template <class Object, int MUSCLE_POOL_SLAB_SIZE=DEFAULT_MUSCLE_POOL_SLAB_SIZE> class MUSCLE_NODISCARD ObjectPool : public AbstractObjectManager
 {
@@ -250,7 +252,9 @@ public:
    /** Returns the name of the class of objects this pool is designed to hold. */
    MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * GetObjectClassName() const {return typeid(Object).name();}
 
-   /** Prints this object's state to stdout.  Used for debugging. */
+   /** Prints out this object's state.  Used for debugging.
+     * @param p the OutputPrinter to use or printing.
+     */
    virtual void Print(const OutputPrinter & p) const
    {
       uint32 numSlabs            = 0;

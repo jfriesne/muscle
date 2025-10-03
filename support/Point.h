@@ -3,14 +3,6 @@
 #ifndef MusclePoint_h
 #define MusclePoint_h
 
-/*******************************************************************************
-/
-/   File:      Point.h
-/
-/   Description:     version of Be's Point class
-/
-*******************************************************************************/
-
 #include <math.h>  // for sqrt()
 #include "support/PseudoFlattenable.h"
 #include "support/Tuple.h"
@@ -18,10 +10,7 @@
 
 namespace muscle {
 
-/*----------------------------------------------------------------------*/
-/*----- Point class --------------------------------------------*/
-
-/** A portable version of Be's BPoint class. */
+/** Represents a two-dimensional point; specifies an X and a Y value, both as floats. */
 class MUSCLE_NODISCARD Point MUSCLE_FINAL_CLASS : public Tuple<2,float>, public PseudoFlattenable<Point>
 {
 public:

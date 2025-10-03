@@ -60,7 +60,10 @@ DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(GNIIFlags, NUM_GNII_FLAGS, _gniiFlagLabels)
 #define GNII_FLAGS_INCLUDE_ALL_INTERFACES (GNIIFlags::WithAllBitsSet())  /**< If set, all interfaces will be returned */
 #define GNII_FLAGS_INCLUDE_ALL_ADDRESSED_INTERFACES (GNIIFlags::WithAllBitsSetExceptThese(GNII_FLAG_INCLUDE_UNADDRESSED_INTERFACES))  /**< default setting -- all interfaces that currently have an IP address will be returned */
 
-/** This little container class is used to return data from the GetNetworkInterfaceInfos() function, below */
+/** Data-holding class that represents the attributes of a Network Interface.
+  * The GetNetworkInterfaceInfos() function returns a Queue of NetworkInterfaceInfo objects
+  * that desccribe some or all of the network interfaces attached to the local computer.
+  */
 class MUSCLE_NODISCARD NetworkInterfaceInfo MUSCLE_FINAL_CLASS
 {
 public:

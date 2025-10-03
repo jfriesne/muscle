@@ -286,7 +286,7 @@ public:
 
    /** For debugging purposes; prints the current state of this node (and optionally its descendants) using an OutputPrinter.
      * @param p The OutputPrinter to use for printing.  A FILE (e.g. stdout), a String, or a MUSCLE_LOG_SEVERITY_* value can 
-     *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
+     *          be specified here, depending on where you'd like the text output to go to.
      * @param maxRecursionDepth The maximum number of times to recurse.  Zero would
      *                          result in a checksum for this node only; one for this
      *                          node and its children only, etc.  Defaults to

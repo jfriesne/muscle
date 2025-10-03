@@ -1390,7 +1390,7 @@ void AbstractObjectRecycler :: GlobalFlushAllCachedObjects()
    if (m) (void) m->Unlock();
 }
 
-void AbstractObjectRecycler :: GlobalPrintRecyclersToStream()
+void AbstractObjectRecycler :: GlobalPrintRecyclersToStream(const OutputPrinter & p)
 {
    Mutex * m = GetGlobalMuscleLock();
    if ((m)&&(m->Lock().IsError())) m = NULL;
@@ -1398,7 +1398,7 @@ void AbstractObjectRecycler :: GlobalPrintRecyclersToStream()
    const AbstractObjectRecycler * r = _firstRecycler;
    while(r)
    {
-      r->Print(stdout);
+      r->Print(p);
       r = r->_next;
    }
 

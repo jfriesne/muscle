@@ -111,7 +111,7 @@ public:
      */
    status_t AppendBytes(const ByteBuffer & bb, bool allocExtra = true) {return AppendBytes(bb.GetBuffer(), bb.GetNumBytes(), allocExtra);}
 
-   /** Prints the contents of this ByteBuffer to stdout, or to the specified file.  Useful for quick debugging.
+   /** Prints out the contents of this ByteBuffer.  Useful for quick debugging.
      * @param p The OutputPrinter to use for printing.
      * @param maxBytesToPrint The maximum number of bytes we should actually print.  Defaults to MUSCLE_NO_LIMIT, meaning
      *                        that by default we will always print every byte held by this ByteBuffer.

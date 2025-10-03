@@ -3,21 +3,13 @@
 #ifndef MuscleRect_h
 #define MuscleRect_h
 
-/*******************************************************************************
-/
-/   File:      Rect.h
-/
-/   Description:     version of Be's BRect class
-/
-*******************************************************************************/
-
 #include "support/PseudoFlattenable.h"
 #include "support/Point.h"
 #include "util/OutputPrinter.h"
 
 namespace muscle {
 
-/** A portable version of Be's BRect class. */
+/** A two-dimensional rectangle class; specifies left, top, right, and bottom values, all as floats. */
 class MUSCLE_NODISCARD Rect MUSCLE_FINAL_CLASS : public Tuple<4,float>, public PseudoFlattenable<Rect>
 {
 public:

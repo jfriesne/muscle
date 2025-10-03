@@ -62,7 +62,7 @@ int main(int argc, char ** argv)
       }
 
       AbstractObjectManager::GlobalPerformSanityCheck();
-      AbstractObjectManager::GlobalPrintRecyclersToStream();
+      AbstractObjectManager::GlobalPrintRecyclersToStream(stdout);
 
       printf("(max=" UINT32_FORMAT_SPEC ") Continue? y/n\n", max);
       char buf[64] = "";
@@ -72,7 +72,7 @@ int main(int argc, char ** argv)
          else if (buf[0] == 'c')
          {
             for (uint32 i=0; i<MAX_NUM_REFS; i++) refs[i].Reset();
-            AbstractObjectManager::GlobalPrintRecyclersToStream();
+            AbstractObjectManager::GlobalPrintRecyclersToStream(stdout);
             AbstractObjectManager::GlobalPerformSanityCheck();
          }
       }

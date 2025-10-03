@@ -169,9 +169,9 @@ public:
    /** Returns a human-readable string representing the current state of this object, for debugging purposes. */
    String ToString() const;
 
-   /** Prints a human-readable representation of this object's state to stdout, for debugging purposes.
+   /** Prints a human-readable representation of this object's state, for debugging purposes.
      * @param p The OutputPrinter to use for printing.  A FILE (e.g. stdout), a String, or a MUSCLE_LOG_SEVERITY_* value can 
-     *          be specified here, depending on where you'd like the text output to go to.  Defaults to stdout.
+     *          be specified here, depending on where you'd like the text output to go to.
      */
    void Print(const OutputPrinter & p) const;
 
