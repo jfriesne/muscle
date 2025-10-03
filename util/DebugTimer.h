@@ -91,12 +91,13 @@ private:
    uint16 _numValidModes;           // How many entries in _elapsedTimes are valid (uint16 because a uint8 couldn't hold 256)
     uint8 _currentMode;
    uint64 _curModeStartTime;        // time at which we entered the current mode
-   uint64 _elapsedTimes[NUM_MODES]; // time elapsed for each mode, in microseconds
 
    String _title;
    uint64 _minLogTime;
    OutputPrinter _outputPrinter;
    bool _enableOutput;
+
+   uint64 _elapsedTimes[NUM_MODES]; // time elapsed for each mode, in microseconds
 };
 
 /** A macro for quickly declaring a DebugTimer object on the stack.  Usage example:  DECLARE_DEBUGTIMER("hi") */
