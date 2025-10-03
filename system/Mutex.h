@@ -413,7 +413,7 @@ public:
    /** Destructor.  Unlocks the Mutex previously specified in the constructor. */
    ~MutexGuard() {UnlockAux();}
 
-   /** Call this to unlock our guarded Mutex "early" (i.e. right now, instead of when our destructor executes)
+   /** Call this to unlock our guarded Mutex "early" (right now, instead of when our destructor executes)
      * If called more than once, the second and further calls will have no effect.
      */
    void UnlockEarly() {UnlockAux();}

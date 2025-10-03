@@ -93,7 +93,7 @@ public:
    /** Returns true iff we successfully locked our SpinLock. */
    MUSCLE_NODISCARD bool IsSpinLockLocked() const {return _isSpinLockLocked;}
 
-   /** Call this to unlock our guarded SpinLock "early" (i.e. right now, instead of when our destructor executes)
+   /** Call this to unlock our guarded SpinLock "early" (right now, instead of when our destructor executes)
      * If called more than once, the second and further calls will have no effect.
      */
    void UnlockEarly() {UnlockAux();}
