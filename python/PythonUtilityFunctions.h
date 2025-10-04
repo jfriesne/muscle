@@ -33,8 +33,8 @@ class String;
  */
 status_t ParsePythonArgs(PyObject * args, PyObject * keywords, Message & msg);
 
-/** Given a Message with the specified field, attempts to return a newly referenced PyObject that
- *  represents the value at the (index)'th position in the field.
+/** Given a Message with the specified field (e.g. as previously added by AddPyObjectToMessage()), attempts to
+ *  return a newly referenced PyObject that represents the value at the (index)'th position in the field.
  *  @note This function is only useful if you are interfacing Python and MUSCLE C++ code together in the same executable.
  *  @param msg The Message to look into
  *  @param fieldName The field name to look in
@@ -43,7 +43,7 @@ status_t ParsePythonArgs(PyObject * args, PyObject * keywords, Message & msg);
  */
 MUSCLE_NODISCARD PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fieldName, uint32 index);
 
-/** Adds the given PyObject to the given Message, under the given key.
+/** Adds data corresponding to the given PyObject to the given Message, under the given key.
  *  Note that this function will not properly handle all possible Python types, but only
  *  the more straightforward ones, including:  Ints (stored as int32s), LongLongs (stored as int64s)
  *  Floats (stored as floats), Strings (stored as strings), Complex (stored as Points), Unicode
@@ -62,6 +62,7 @@ status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message
 /** Given a standard data type code (eg B_STRING_TYPE) returns the default field name that will
  *  be used in a Message for an arg of that type, if a fieldname wasn't explicitly specified.
  *  @param type a B_*_TYPE value indicating the type to inquire about
+ *  @return e.g. "_argInt64" for B_INT64_TYPE, and so on.  Returns NULL if (type) isn't recognized.
  */
 MUSCLE_NODISCARD const char * GetDefaultPythonArgFieldName(uint32 type);
 

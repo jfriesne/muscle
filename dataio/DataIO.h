@@ -11,7 +11,7 @@
 
 namespace muscle {
 
-/** Abstract base class for any object that can perform basic data I/O operations.  */
+/** Abstract base class interface for any object that can perform basic data I/O operations such as reading or writing bytes.  */
 class DataIO : public RefCountable, private NotCopyable
 {
 public:
@@ -21,27 +21,28 @@ public:
    /** Virtual destructor, to keep C++ honest.  */
    virtual ~DataIO() {/* empty */}
 
-   /** Tries to place (size) bytes of new data into (buffer).  Returns the
-    *  actual number of bytes placed, or an error code if there was an error.
+   /** Tries to read (size) bytes of new data and place them into (buffer).
+    *  Returns the actual number of bytes transferred (which may be smaller than
+    *  (size)), or an error code if there was an error.
     *  @param buffer Buffer to write the bytes into
-    *  @param size Number of bytes in the buffer.
-    *  @return Number of bytes read, or an error code on error.
+    *  @param size Number of bytes available to write to in (buffer).
+    *  @return The number of bytes placed into (buffer), or an error code on error.
     */
    virtual io_status_t Read(void * buffer, uint32 size) = 0;
 
-   /** Takes (size) bytes from (buffer) and pushes them in to the
-    *  outgoing I/O stream.  Returns the actual number of bytes
-    *  read from (buffer) and pushed, or an error code if there was an error.
+   /** Reads up to (size) bytes from (buffer) and pushes them into the outgoing
+    *  I/O stream.  Returns the actual number of bytes that were transmitted
+    *  (which may be smaller than (size)), or an error code if there was an error.
     *  @param buffer Buffer to read the bytes from.
-    *  @param size Number of bytes in the buffer.
-    *  @return Number of bytes written, or an error code on error.
+    *  @param size Number of valid bytes in (buffer).
+    *  @return Number of bytes that were transmitted, or an error code on error.
     */
    virtual io_status_t Write(const void * buffer, uint32 size) = 0;
 
    /**
     * Returns the max number of microseconds to allow
     * for an output stall, before presuming that the I/O is hosed.
-    * Default implementation returns MUSCLE_TIME_NEVER, aka no limit.
+    * Default implementation returns MUSCLE_TIME_NEVER, aka no time limit.
     */
    MUSCLE_NODISCARD virtual uint64 GetOutputStallLimit() const {return MUSCLE_TIME_NEVER;}
 

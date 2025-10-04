@@ -30,10 +30,10 @@ DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(ChildProcessLaunchFlags, NUM_CHILD_PROCESS_
 # define MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY
 #endif
 
-/** This DataIO class is a handy cross-platform way to spawn
- *  and talk to a child process.  Any data that the child process
- *  prints to its stdout (and/or stderr) stream(s) can be read from this object,
- *  and any data that is written to this object will be send to the child
+/** This DataIO class is a handy cross-platform way to spawn a child process
+ *  and communicate with it.  Any data that the child process
+ *  prints to its stdout (and/or stderr) stream(s) can be read via this object,
+ *  and any data that is written to this object will be sent to the child
  *  process's stdin stream.  Note that this class is currently only implemented
  *  under Windows, MacOS/X, BSD, and Linux, and may not function under other OS's.
  */

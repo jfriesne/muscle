@@ -9,7 +9,7 @@
 namespace muscle {
 
 /**
- *  Data I/O class to allow reading from/writing to a ByteBuffer object (as if it was an I/O device)
+ *  DataIO class to allow reading from/writing to a ByteBuffer object (as if it was an I/O device)
  *  The ByteBuffer will behave much like a file would (automatically being resized larger when you
  *  Write() past the end of it, etc), except of course it's all in memory, not on disk.
  */

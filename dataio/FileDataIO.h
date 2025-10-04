@@ -8,7 +8,7 @@
 namespace muscle {
 
 /**
- *  Data I/O to and from a stdio FILE.
+ *  DataIO wrapper around a stdio (FILE *) file-handle.
  */
 class FileDataIO : public SeekableDataIO
 {

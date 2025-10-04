@@ -320,24 +320,24 @@ io_status_t WriteData(const ConstSocketRef & fd, const void * buffer, uint32 buf
 /** This function initiates a non-blocking connection to the given host IP address and port.
   * It will return the created socket, which may or may not be fully connected yet.
   * If it is connected, (retIsReady) will be to true, otherwise it will be set to false.
-  * If (retIsReady) is false, then you can use select() to find out when the state of the
-  * socket has changed:  select() will return ready-to-write on the socket when it is
+  * If (retIsReady) is false, then you can use select() or a SocketMultiplexer to find out when
+  * the state of the socket has changed:  The socket will become ready-to-write when it is
   * fully connected (or when the connection fails), at which point you can call
-  * FinalizeAsyncConnect() on the socket:  if FinalizeAsyncConnect() succeeds, the connection
-  * succeeded; if not, the connection failed.
+  * FinalizeAsyncConnect() on the socket:  if FinalizeAsyncConnect() returns B_NO_ERROR,
+  * that means the TCP connection succeeded; if not, the TCP connection failed.
   * @param hostIPAndPort The IP address and port number to connect to
   * @param retIsReady On success, this bool is set to true iff the socket is ready to use, or
   *                   false to indicate that an asynchronous connection is now in progress.
-  * @return A non-NULL ConstSocketRef (which is likely still in the process of connecting) on success, or a NULL ConstSocketRef if the accept failed.
+  * @return A non-NULL ConstSocketRef (which is likely still in the process of connecting) on success, or a NULL ConstSocketRef if this call failed.
   */
 ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIPAndPort, bool & retIsReady);
 
-/** When a TCP socket that was connecting asynchronously finally selects as ready-for-write
+/** When a TCP socket that was connecting asynchronously (eg via ConnectAsync()) finally selects as ready-for-write
   * to indicate that the asynchronous connect attempt has reached a conclusion, call this function.
   * This function will finalize the asynchronous-TCP-connection-process, and make the TCP socket
   * usable for data-transfer.
   * @param sock The socket that was connecting asynchronously
-  * @returns B_NO_ERROR if the connection is ready to use, or an error code if the connect failed.
+  * @returns B_NO_ERROR if the connection is ready to use, or an error code if the asynchronous-connect failed.
   * @note Under Windows, select() won't return ready-for-write if the asynchronous TCP connection fails...
   *       instead it will select-as-ready for your socket on the exceptions-fd_set (if you provided one).
   *       Once this happens, there is no need to call FinalizeAsyncConnect() -- the fact that the

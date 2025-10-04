@@ -10,7 +10,7 @@
 namespace muscle {
 
 /**
- *  Data I/O class to allow reading from/writing to a Queue of ByteBuffer objects (as if it was a packet I/O device)
+ *  DataIO class to allow reading from/writing to a Queue of ByteBuffer objects (as if it was a packet I/O device)
  *  The ByteBuffer will behave much like a packet-device (eg UDP socket) would, except that
  *  the each "packet" is actually a ByteBuffer rather than a network-buffer.
  */
