@@ -23,6 +23,8 @@ key:  - new feature
      output-type logic.
    - Updated AbstractObjectRecycler::GlobalPrintRecyclersToStream()
      to take an OutputPrinter argument instead of assuming stdout.
+   o Renamed the EmscriptenWebSocketSubscriber class to
+     EmscriptenWebSocketWatcher.
    * Replaced ! with NOT in some of the CMakeLists.txt files
    * Replaced various instances of (GetNumItems()-1) with
      GetLastValidIndex(), for consistent underflow handling.

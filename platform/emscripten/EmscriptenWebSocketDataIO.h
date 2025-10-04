@@ -1,10 +1,10 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#ifndef EMSCRIPTEN_WEBSOCKET_DATAIO_H
-#define EMSCRIPTEN_WEBSOCKET_DATAIO_H
+#ifndef EmscriptenWebSocketDataIO_h
+#define EmscriptenWebSocketDataIO_h
 
 #include "dataio/DataIO.h"
-#include "platform/emscripten/EmscriptenWebSocket.h"  // for EmscriptenWebSocketSubscriber
+#include "platform/emscripten/EmscriptenWebSocket.h"  // for EmscriptenWebSocketWatcher
 #include "util/ByteBuffer.h"
 #include "util/Hashtable.h"
 
@@ -12,10 +12,10 @@ namespace muscle {
 
 class AbstractReflectSession;
 class EmscriptenAsyncCallback;
-class EmscriptenWebSocketSubscriber;
+class EmscriptenWebSocketWatcher;
 
 /** This DataIO knows how to read and write bytes via an EmscriptenWebSocket */
-class EmscriptenWebSocketDataIO : public DataIO, private EmscriptenWebSocketSubscriber
+class EmscriptenWebSocketDataIO : public DataIO, private EmscriptenWebSocketWatcher
 {
 public:
    /** Convenience Constructor

@@ -11,19 +11,19 @@
 namespace muscle {
 
 EmscriptenWebSocket :: EmscriptenWebSocket()
-   : _sub(NULL)
+   : _watcher(NULL)
    , _state(STATE_INVALID)
 {
    // empty
 }
 
-EmscriptenWebSocket :: EmscriptenWebSocket(EmscriptenWebSocketSubscriber * sub, int emSock)
+EmscriptenWebSocket :: EmscriptenWebSocket(EmscriptenWebSocketWatcher * watcher, int emSock)
    : Socket(emSock, false)
-   , _sub(sub)
+   , _watcher(watcher)
    , _state(STATE_INITIALIZING)
 {
 #if !defined(__EMSCRIPTEN__)
-   (void) _sub; // suppress compiler warning about member-variable not being used
+   (void) _watcher; // suppress compiler warning about member-variable not being used
 #endif
 }
 
@@ -104,13 +104,13 @@ io_status_t EmscriptenWebSocket :: Write(const void * data, uint32 numBytes)
 }
 
 #if defined(__EMSCRIPTEN__)
-void EmscriptenWebSocket :: EmscriptenWebSocketConnectionOpened() {_state = STATE_OPEN;   if (_sub) _sub->EmscriptenWebSocketConnectionOpened(*this);}
-void EmscriptenWebSocket :: EmscriptenWebSocketErrorOccurred(   ) {_state = STATE_ERROR;  if (_sub) _sub->EmscriptenWebSocketErrorOccurred   (*this);}
-void EmscriptenWebSocket :: EmscriptenWebSocketConnectionClosed() {_state = STATE_CLOSED; if (_sub) _sub->EmscriptenWebSocketConnectionClosed(*this);}
-void EmscriptenWebSocket :: EmscriptenWebSocketMessageReceived(const uint8 * dataBytes, uint32 numDataBytes, bool isText) {if (_sub) _sub->EmscriptenWebSocketMessageReceived(*this, dataBytes, numDataBytes, isText);}
+void EmscriptenWebSocket :: EmscriptenWebSocketConnectionOpened() {_state = STATE_OPEN;   if (_watcher) _watcher->EmscriptenWebSocketConnectionOpened(*this);}
+void EmscriptenWebSocket :: EmscriptenWebSocketErrorOccurred(   ) {_state = STATE_ERROR;  if (_watcher) _watcher->EmscriptenWebSocketErrorOccurred   (*this);}
+void EmscriptenWebSocket :: EmscriptenWebSocketConnectionClosed() {_state = STATE_CLOSED; if (_watcher) _watcher->EmscriptenWebSocketConnectionClosed(*this);}
+void EmscriptenWebSocket :: EmscriptenWebSocketMessageReceived(const uint8 * dataBytes, uint32 numDataBytes, bool isText) {if (_watcher) _watcher->EmscriptenWebSocketMessageReceived(*this, dataBytes, numDataBytes, isText);}
 #endif
 
-EmscriptenWebSocketRef EmscriptenWebSocketSubscriber :: CreateClientWebSocket(const String & host, uint16 port)
+EmscriptenWebSocketRef EmscriptenWebSocketWatcher :: CreateClientWebSocket(const String & host, uint16 port)
 {
 #if defined(__EMSCRIPTEN__)
    // Docs: https://github.com/emscripten-core/emscripten/blob/main/system/include/emscripten/websocket.h
