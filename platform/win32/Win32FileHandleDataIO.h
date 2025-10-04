@@ -8,14 +8,18 @@
 namespace muscle {
 
 /**
- *  Data I/O to and from a Win32 style file descriptor
+ *  A DataIO for communicating using a Win32-style HANDLE.
+ *  @note This class doesn't do anything useful outside of Windows.
+ *        The equivalent class for other OS's is FileDescriptorDataIO.
+ *
  */
 class Win32FileHandleDataIO : public SeekableDataIO
 {
 public:
    /**
     *  Constructor.
-    *  @param handle The file descriptor to use.  Becomes property of this Win32FileHandleDataIO object.
+    *  @param handle The file descriptor to use.  This Win32FileHandleDataIO object will assume ownership
+    *                of (handle) and call CloseHandle() on it when it is done using it.
     */
    Win32FileHandleDataIO(::HANDLE handle);
 
@@ -42,7 +46,7 @@ public:
    virtual io_status_t Write(const void * buffer, uint32 size);
 
    /**
-    *  Implemented as a no-op (I don't believe file descriptors need flushing?)
+    *  Implemented as a no-op (as there is no standardized way to flush a HANDLE)
     */
    virtual void FlushOutput();
 

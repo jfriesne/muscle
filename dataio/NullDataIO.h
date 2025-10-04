@@ -9,7 +9,7 @@ namespace muscle {
 
 /**
  *  Data I/O equivalent to /dev/null.  A NullDataIO's methods always just return success, but never actually do anything.
- *  The only time they will return an error is if Shutdown() has been called; in that case they will an error code.
+ *  The only time they will return an error is if Shutdown() has been called; in that case they will return an error code.
  */
 class NullDataIO : public DataIO
 {

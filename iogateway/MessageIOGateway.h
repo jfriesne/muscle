@@ -44,12 +44,11 @@ typedef status_t(*MessageFlattenedCallback)(const MessageRef & msgRef, void * us
  *
  * The default protocol format used by this class is:
  *   -# 4 bytes (uint32) indicating the flattened size of the message
- *   -# 4 bytes (uint32) indicating the encoding type (should always be MUSCLE_MESSAGE_ENCODING_DEFAULT for now)
+ *   -# 4 bytes (uint32) indicating the encoding-type (e.g. MUSCLE_MESSAGE_ENCODING_DEFAULT)
  *   -# n bytes of flattened Message (where n is the value specified in 1)
  *   -# goto 1 ...
  *
- * An example flattened Message byte structure is provided at the bottom of the
- * MessageIOGateway.h header file.
+ * @note A hex-dump of an example flattened Message is provided at the bottom of MessageIOGateway.h
  */
 class MessageIOGateway : public AbstractMessageIOGateway
 {

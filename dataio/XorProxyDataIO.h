@@ -30,40 +30,36 @@ public:
    /** Virtual destructor, to keep C++ honest.  */
    virtual ~XorProxyDataIO() {/* empty */}
 
-   /** Implemented to XOR the child DataIO's read bytes before returning.
+   /** Implemented to use the child DataIO object to read in some bytes, and then
+     * un-XOR the read bytes before returning them to the caller.
      * @copydoc ProxyDataIO::Read(void *, uint32)
      */
    virtual io_status_t Read(void * buffer, uint32 size)
    {
       const io_status_t ret = ProxyDataIO::Read(buffer, size);
-      if (ret.GetByteCount() > 0) XorCopy(buffer, buffer, size);
+      if (ret.GetByteCount() > 0) XorMemCpy(buffer, buffer, ret.GetByteCount());
       return ret;
    }
 
-   /** Implemented to pass XOR's bytes to the child DataIO's Write() method.
+   /** Implemented to make an XOR'd copy of the passed-in bytes, and then use
+     * the child DataIO object to transit the XOR'd bytes.
      * @copydoc ProxyDataIO::Write(const void *, uint32)
      */
    virtual io_status_t Write(const void * buffer, uint32 size)
    {
       if (GetChildDataIO()() == NULL) return B_BAD_OBJECT;
-      MRETURN_ON_ERROR(_tempBuf.SetNumBytes(size, buffer));
+      MRETURN_ON_ERROR(_tempBuf.SetNumBytes(size, false));
 
-      XorCopy(_tempBuf.GetBuffer(), buffer, size);
+      XorMemCpy(_tempBuf.GetBuffer(), buffer, size);
       return ProxyDataIO::Write(_tempBuf.GetBuffer(), size);
    }
 
 private:
-   void XorCopy(const void * to, const void * from, uint32 numBytes)
+   void XorMemCpy(const void * to, const void * from, uint32 numBytes) const
    {
-      // Do the bulk of the copy a word at a time, for faster speed
-      unsigned long * uto = (unsigned long *) to;
-      const unsigned long * ufrom = (const unsigned long *) from;
-      for (int32 i=(numBytes/sizeof(unsigned long))-1; i>=0; i--) *uto++ = ~(*ufrom++);
-
-      // The last few bytes we have to do a byte a time though
-      uint8 * cto = (uint8 *) uto;
-      const uint8 * cfrom = (const uint8 *) ufrom;
-      for (int32 i=(numBytes%sizeof(unsigned long))-1; i>=0; i--) *cto++ = ~(*cfrom++);
+      uint8 * cto = (uint8 *) to;
+      const uint8 * cfrom = (const uint8 *) from;
+      for (uint32 i=0; i<numBytes; i++) cto[i] = ~cfrom[i];
    }
 
    ByteBuffer _tempBuf;   // holds the XOR'd bytes temporarily for us

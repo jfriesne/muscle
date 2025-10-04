@@ -16,7 +16,9 @@
 namespace muscle {
 
 /**
- *  Data I/O to and from a file descriptor (useful for talking to Linux device drivers and the like)
+ *  A DataIO for communicating using a POSIX-style file descriptor -- useful for talking to Linux device drivers and the like.
+ *  @note This class doesn't do anything useful under Windows, since Windows never uses POSIX-style file descriptors.
+ *        The equivalent class for Windows is Win32FileHandleDataIO.
  */
 class FileDescriptorDataIO : public SeekableDataIO
 {
