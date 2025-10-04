@@ -9,8 +9,9 @@ namespace muscle {
 
 /**
  * This policy allows you to enforce an aggregate maximum bandwidth usage for the set
- * of AbstractReflectSessionSessions that use it.  Each policy object may referenced by
- * zero or more PolicyHolders at once.
+ * of AbstractReflectSessionSessions that use it (for example, "this set of sessions should
+ * be rate-limited to never use more than 50kB/second of bandwidth total between them").
+ * Each RateLimitSessionIOPolicy object may referenced by zero or more PolicyHolders at once.
  */
 class RateLimitSessionIOPolicy : public AbstractSessionIOPolicy
 {
@@ -43,6 +44,7 @@ public:
 
 private:
    void UpdateTransferTally(uint64 now);
+   uint32 GetCutoff() const {return _byteLimit/2;}
 
    uint32 _maxRate;
    uint32 _byteLimit;

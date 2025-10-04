@@ -4,8 +4,6 @@
 
 namespace muscle {
 
-#define CUTOFF (_byteLimit/2)
-
 RateLimitSessionIOPolicy ::
 RateLimitSessionIOPolicy(uint32 maxRate, uint32 primeBytes)
    : _maxRate(maxRate)
@@ -49,7 +47,7 @@ BeginIO(uint64 now)
    // If we aren't going to allow anyone to transfer,
    // we'll need to make sure the server wakes up so
    // we can do transfers later, after some time has passed.
-   if (_transferTally>=CUTOFF) InvalidatePulseTime();
+   if (_transferTally>=GetCutoff()) InvalidatePulseTime();
 }
 
 uint64
@@ -57,7 +55,7 @@ RateLimitSessionIOPolicy ::
 GetPulseTime(const PulseArgs & args)
 {
    // Schedule a pulse for when we estimate _transferTally will sink back down to zero.
-   return ((_maxRate > 0)&&(_transferTally>=CUTOFF))?(args.GetCallbackTime()+((_transferTally*MICROS_PER_SECOND)/_maxRate)):MUSCLE_TIME_NEVER;
+   return ((_maxRate > 0)&&(_transferTally>=GetCutoff()))?(args.GetCallbackTime()+((_transferTally*MICROS_PER_SECOND)/_maxRate)):MUSCLE_TIME_NEVER;
 }
 
 void
@@ -85,7 +83,7 @@ bool
 RateLimitSessionIOPolicy ::
 OkayToTransfer(const PolicyHolder &)
 {
-   if ((_maxRate > 0)&&(_transferTally < CUTOFF))
+   if ((_maxRate > 0)&&(_transferTally < GetCutoff()))
    {
       _numParticipants++;
       return true;
