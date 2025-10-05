@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.75 - Released 10/4/2025
    - Added GetLastValidIndex() and IsIndexValid() convenience
      methods to the Queue, Hashtable, and String classes.
    - DataUnflattener::ReadCString() now takes an optional
