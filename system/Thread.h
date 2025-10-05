@@ -316,7 +316,7 @@ public:
       NUM_PRIORITIES              /**< guard value         */
    };
 
-   /** Convenience method:  Given a PRIORITY_* value, returns a corresponding human-readable string (e.g. "High" or "Higher")
+   /** Convenience method:  Given a PRIORITY_* value, returns a corresponding human-readable string (eg "High" or "Higher")
      * @param priority a PRIORITY_* value
      * @note Negative values will return "Unspecified", and values greater than or equal to NUM_PRIORITIES will return "???"
      */
@@ -344,7 +344,7 @@ public:
       NUM_SCHEDULERS               /**< Guard value */
    };
 
-   /** Convenience method:  Given a SCHEDULER_* value, returns a corresponding human-readable string (e.g. "Real Time" or "Non Real Time")
+   /** Convenience method:  Given a SCHEDULER_* value, returns a corresponding human-readable string (eg "Real Time" or "Non Real Time")
      * @param sched a SCHEDULER_* value
      * @note Negative values will return "Unspecified", and values greater than or equal to NUM_SCHEDULERS will return "???"
      */

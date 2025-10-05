@@ -535,9 +535,9 @@ public:
    }
 
    /** Returns a human-readable String listing the bit-indices that are currently set.
-     * If a labels-array was specified (e.g. via the DECLARE_LABELLED_BITCHORD_FLAGS_TYPE macro),
+     * If a labels-array was specified (eg via the DECLARE_LABELLED_BITCHORD_FLAGS_TYPE macro),
      * then this will be a list of human-readable bit-label strings corresponding to the set bits
-     * (e.g. "Foo,Bar,Baz").  Otherwise the returned String will be numeric in nature; e.g. if
+     * (eg "Foo,Bar,Baz").  Otherwise the returned String will be numeric in nature; eg if
      * bits #0, #3, #4, #5, and #7 are set, the returned String would be "0,3-5,7".
      * @param returnAllBitsSet if true, and all of our bits are set, the string "AllBitsSet" will be returned.
      *                         if false, then all bits will be listed individually in this case.  Defaults to true.

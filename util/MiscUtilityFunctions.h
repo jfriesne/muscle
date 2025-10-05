@@ -555,7 +555,7 @@ String HexBytesToString(const Queue<uint8> & bytes, bool withSpaces = true);
   */
 String Base64Encode(const uint8 * inBytes, uint32 numInBytes);
 
-/** Given a Base-64-encoded string (e.g. as previously returned by Base64Encode())
+/** Given a Base-64-encoded string (eg as previously returned by Base64Encode())
   * returns the corresponding original (unencoded) data, or an error if the base64
   * string could not be encoded
   * @param base64String a base64-encoded string.

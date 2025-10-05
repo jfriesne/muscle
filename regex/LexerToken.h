@@ -89,7 +89,7 @@ public:
      */
    uint32 GetValueStringType(uint32 explicitCastType) const;
 
-   /** Convenience method:  Returns the B_*_TYPE associated with this token if this token is an explicit-cast (e.g. "(int32)", or B_ANY_TYPE otherwise */
+   /** Convenience method:  Returns the B_*_TYPE associated with this token if this token is an explicit-cast (eg "(int32)", or B_ANY_TYPE otherwise */
    uint32 GetExplicitCastTypeCode() const;
 
    /** Returns the StringQueryFilter::OP_* value associated with this infix operator, or StringQueryFilter::NUM_STRING_OPERATORS on failure

@@ -141,7 +141,7 @@ public:
       return ((whichBit<NumBits)&&((GetDataBitsWord() & GetInternalBitMaskForBitIndex(whichBit)) != 0));
    }
 
-   /** Returns this PointerAndBits to its default state (i.e. (NULL, 0)) */
+   /** Returns this PointerAndBits to its default state (ie (NULL, 0)) */
    void Reset()
    {
       _pointer = 0;

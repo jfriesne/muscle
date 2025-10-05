@@ -36,7 +36,7 @@ public:
    bool IsHandshakeInProgress() const {return ((_handshakeState == WEBSOCKET_HANDSHAKE_AS_SERVER)||(_handshakeState == WEBSOCKET_HANDSHAKE_AS_CLIENT));}
 
    /** If we are configured as a client, then after the handshake terminates, this method will return the protcool the server
-     * indicated to us that he will be using (i.e. one of the protocols we proposed)
+     * indicated to us that he will be using (ie one of the protocols we proposed)
      */
    const String & GetAcceptedProtocol() const {return _acceptedProtocol;}
 

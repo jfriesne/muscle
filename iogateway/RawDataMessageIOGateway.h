@@ -19,6 +19,9 @@ namespace muscle {
 /**
  * This gateway is used to send and receive raw data (ie streams of uint8's)
  * without making any attempt to convert the bytes from/to a higher-level message-format.
+ * @note Messages sent and received by a RawDataMessageIOGateway should have all of their
+ *       data contained in a field of type B_RAW_DATA, named PR_NAME_DATA_CHUNKS (aka "rd").
+ *       Any other fields will be happily ignored.
  */
 class RawDataMessageIOGateway : public AbstractMessageIOGateway
 {

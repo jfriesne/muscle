@@ -38,11 +38,11 @@ namespace muscle {
 class ReadOnlyMutexGuard;  // forward declaration
 class ReadWriteMutexGuard;  // forward declaration
 
-/** This class is a platform-independent API for a recursive reader/writer lock (a.k.a mutex).
+/** This class is a platform-independent API for a recursive reader/writer lock (aka mutex).
   * Typically used to serialize the execution of critical sections in a multithreaded API
   * This class allows multiple threads to hold the read-only lock simultaneously, but guarantees that
-  * only one thread can hold the read/write lock at any given time (and that no read-only threads
-  * will hold any lock while a thread holds the read/write lock).  When compiling with the
+  * only one thread can hold the read/write lock at any given time, and that no read-only threads
+  * will hold any lock while a thread holds the read/write lock.  When compiling with the
   * MUSCLE_SINGLE_THREAD_ONLY preprocessor flag defined, this class becomes a no-op.
   */
 class ReaderWriterMutex MUSCLE_FINAL_CLASS : public NotCopyable
@@ -346,7 +346,7 @@ public:
    /** Destructor.  Unlocks the ReaderWriterMutex previously specified in the constructor. */
    ~ReadOnlyMutexGuard() {UnlockAux();}
 
-   /** Call this to unlock our guarded Mutex "early" (i.e. right now, instead of when our destructor executes)
+   /** Call this to unlock our guarded Mutex "early" (ie right now, instead of when our destructor executes)
      * If called more than once, the second and further calls will have no effect.
      */
    void UnlockEarly() {UnlockAux();}
@@ -408,7 +408,7 @@ public:
    /** Destructor.  Unlocks the ReaderWriterMutex previously specified in the constructor. */
    ~ReadWriteMutexGuard() {UnlockAux();}
 
-   /** Call this to unlock our guarded Mutex "early" (i.e. right now, instead of when our destructor executes)
+   /** Call this to unlock our guarded Mutex "early" (ie right now, instead of when our destructor executes)
      * If called more than once, the second and further calls will have no effect.
      */
    void UnlockEarly() {UnlockAux();}

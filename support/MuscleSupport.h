@@ -1898,7 +1898,7 @@ static inline void StoreTraceValue(uint32 v) {(void) v;}  /* named param is nece
   * should preallocate space for.  The only reason for passing that value via this class (as opposed to
   * just having the container's constructor take a uint32 argument) is that this class forces the caller
   * to specify explicitly that the passed value is intended to be a preallocation-size and not something
-  * else, to reduce the chances of passing e.g. an item-value as a preallocation-size by mistake.
+  * else, to reduce the chances of passing eg an item-value as a preallocation-size by mistake.
   */
 class PreallocatedItemSlotsCount
 {

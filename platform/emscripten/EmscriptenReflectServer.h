@@ -41,7 +41,7 @@ public:
    /** Call this to stop the ReflectServer's "running".  Has no effect if we aren't currently running. */
    void Stop() {_isRunning = false;}
 
-   /** Returns true if we are currently in our running mode (i.e. Start() has been called but not Stop()) */
+   /** Returns true if we are currently in our running mode (ie Start() has been called but not Stop()) */
    bool IsRunning() const {return _isRunning;}
 
 protected:

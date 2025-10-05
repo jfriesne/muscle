@@ -199,7 +199,7 @@ public:
    status_t WaitForChildProcessToExit(uint64 maxWaitTime = MUSCLE_TIME_NEVER);
 
    /** Returns our child-process's exit code, expressed as a byte-count, iff our
-     * child-process exited normally (i.e. by returning from main() or calling exit()).
+     * child-process exited normally (ie by returning from main() or calling exit()).
      *
      * Otherwise, returns an error describing what caused the child-process to
      * exit (e.g. the name of the signal that killed the child process)

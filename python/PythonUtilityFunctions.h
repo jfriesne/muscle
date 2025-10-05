@@ -33,7 +33,7 @@ class String;
  */
 status_t ParsePythonArgs(PyObject * args, PyObject * keywords, Message & msg);
 
-/** Given a Message with the specified field (e.g. as previously added by AddPyObjectToMessage()), attempts to
+/** Given a Message with the specified field (eg as previously added by AddPyObjectToMessage()), attempts to
  *  return a newly referenced PyObject that represents the value at the (index)'th position in the field.
  *  @note This function is only useful if you are interfacing Python and MUSCLE C++ code together in the same executable.
  *  @param msg The Message to look into

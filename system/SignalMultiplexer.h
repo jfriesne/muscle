@@ -27,10 +27,10 @@ public:
      */
    SignalEventInfo(int sigNum, muscle_pid_t fromProcessID) : _sigNum(sigNum), _fromProcessID(fromProcessID) {/* empty */}
 
-   /** Returns the signal-number associated with this event (e.g. SIGBUS or SIGINT or etc) */
+   /** Returns the signal-number associated with this event (eg SIGBUS or SIGINT or etc) */
    int GetSignalNumber() const {return _sigNum;}
 
-   /** Returns the process ID of the process that sent us the signal, or 0 if that informatin is unknown. */
+   /** Returns the process ID of the process that sent us the signal, or 0 if that information is unknown. */
    muscle_pid_t GetFromProcessID() const {return _fromProcessID;}
 
    /** Part of the PseudoFlattenable pseudo-interface:  Returns true */

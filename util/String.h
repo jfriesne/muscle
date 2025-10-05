@@ -1665,7 +1665,7 @@ public:
    MUSCLE_NODISCARD int Compare(const String & s1, const String & s2, void *) const {return s1.NumericAwareCompareToIgnoreCase(s2);}
 };
 
-/** Convenience method:  returns a string with no characters in it (a.k.a. "") */
+/** Convenience method:  returns a string with no characters in it (aka "") */
 inline const String & GetEmptyString() {return GetDefaultObjectForType<String>();}
 
 template<class T> inline String operator+(const String & lhs, const T & rhs) {return rhs.ToString().WithPrepend(lhs);}

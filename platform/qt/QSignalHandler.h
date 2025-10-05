@@ -12,12 +12,11 @@
 namespace muscle {
 
 /**
- *  This is a useful Qt class that will catch system signals
- *  (eg SIGINT/SIGHUP/SIGTERM.... *not* Qt signals) and emit
- *  a signalReceived(int) Qt signal in response.  It uses the
+ *  This is a useful Qt class that will catch POSIX-style signals
+ *  (eg SIGINT/SIGHUP/SIGTERM -- not to be confused with Qt signal/slot signals!)
+ *  and emit a signalReceived(int) Qt signal in response.  It uses the
  *  SignalReflectSession MUSCLE class in its implementation so it
  *  will have the same signal-handling semantics as that class.
- *  In all other respects it works like a SignalHandler object.
  */
 class QSignalHandler : public QObject, public ISignalHandler
 {

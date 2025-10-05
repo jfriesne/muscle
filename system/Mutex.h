@@ -80,7 +80,7 @@ extern bool _muscleSingleThreadOnly;
 
 class MutexGuard;  // forward declaration
 
-/** This class is a platform-independent API for a recursive mutual exclusion semaphore (a.k.a mutex).
+/** This class is a platform-independent API for a recursive mutual exclusion semaphore (aka mutex).
   * Typically used to serialize the execution of critical sections in a multithreaded API
   * (eg the MUSCLE ObjectPool or Thread classes)
   * When compiling with the MUSCLE_SINGLE_THREAD_ONLY preprocessor flag defined, this class becomes a no-op.

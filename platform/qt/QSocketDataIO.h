@@ -10,17 +10,15 @@
 namespace muscle {
 
 /** This class was contributed to the MUSCLE archive by Jonathon Padfield
-  * (jpadfield@hotkey.net.au).  It's a good alternative to the QMessageTransceiverThread
-  * class if you don't want to use the multi-threaded version of Qt.
+  * (jpadfield@hotkey.net.au).
   *
   * The QSocket object emits signals whenever it receives data, which you
-  * can connect to your Muscle client. eg.
-  *
+  * can connect to your Muscle client. eg.<pre>
   *  connect(muscleSocket, SIGNAL(hostFound()), SLOT(slotHostFound()));
   *  connect(muscleSocket, SIGNAL(connected()), SLOT(slotConnected()));
   *  connect(muscleSocket, SIGNAL(readyRead()), SLOT(slotReadyRead()));
   *  connect(muscleSocket, SIGNAL(bytesWritten(int)), SLOT(slotBytesWritten(int)));
-  *
+  * </pre>
   * You can then use the normal QSocket routines to connect to the server
   * while running all the input through the MessageIO interface.
   *

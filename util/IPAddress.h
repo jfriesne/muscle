@@ -266,7 +266,7 @@ public:
    /** Returns true iff this address qualifies as an IPv6 link-local multicast address.  */
    MUSCLE_NODISCARD bool IsIPv6LinkLocalMulticast() const {return IsIPv6LocalMulticast(0x02);}
 
-   /** Returns true iff this address is IPv6-link-local (i.e. it can use the network-interface-index field) */
+   /** Returns true iff this address is IPv6-link-local (ie it can use the network-interface-index field) */
    MUSCLE_NODISCARD bool IsIPv6LinkLocal() const;
 
    /** Returns true iff this address qualifies as a standard loopback-device address (eg 127.0.0.1 or ::1 or fe80::1) */
