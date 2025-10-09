@@ -888,7 +888,7 @@ private:
 
 /** A trivial RAII class -- its constructor pushes a specified value onto the end of the specified Queue,
   * and its destructor pops that value off of the end of that same Queue.  Useful for reliably pushing state
-  * information for method-calls to read when passing the data as via method-arguments is too onerous.
+  * information for method-calls to read (when passing the data as via method-arguments is too onerous).
   * @tparam ItemType the type of object held by the Queue that we will push/pop items to/from.
   */
 template <typename ItemType> class MUSCLE_NODISCARD QueueStackGuard : private NotCopyable
@@ -898,13 +898,13 @@ public:
      * @param q the Queue to add an item to
      * @param item the item to add to the end of the Queue
      */
-   QueueStackGuard(Queue<ItemType> & q, const ItemType & item) : _queue(q) {(void) _queue.AddTail(item);}
+   QueueStackGuard(Queue<ItemType> & q, const ItemType & item) : _optQueue(q.AddTail(item).IsOK() ? &q : NULL) {/* empty */}
 
    /** Destructor -- pops the last item out of the Queue that was specified in the constructor. */
-   ~QueueStackGuard() {(void) _queue.RemoveTail();}
+   ~QueueStackGuard() {if (_optQueue) (void) _optQueue->RemoveTail();}
 
 private:
-   Queue<ItemType> & _queue;
+   Queue<ItemType> * _optQueue;
 };
 
 template <class ItemType>

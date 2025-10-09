@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a SwapContentsGuard class (in utils/SwapContentsGuard.h)
+     for reliable RAII-object-swapping/unswapping.
+   * QueueStackGuard now handles out-of-memory errors more gracefully.
+
 9.75 - Released 10/4/2025
    - Added GetLastValidIndex() and IsIndexValid() convenience
      methods to the Queue, Hashtable, and String classes.
