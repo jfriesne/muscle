@@ -275,11 +275,16 @@ public:
    /** Returns true iff this address is a stateless/self-assigned IP address (ie 169.254.*.* for IPv4, or fe80::* for IPv6) */
    MUSCLE_NODISCARD bool IsSelfAssigned() const;
 
-   /** Returns a human-readable string equivalent to this IPAddress object.  Behaves the same as Inet_NtoA(*this, printIPv4AddressesInIPv4Style).
+   /** Returns a human-readable string equivalent to this IPAddress object.  Behaves the same as Inet_NtoA(*this, printIPv4AddressesInIPv4Style, expandScopeIndicesToNetworkInterfaceNames).
      * @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
      *                                      Defaults to true.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
+     * @param expandScopeIndicesToNetworkInterfaceNames If set to true, IPv6 addresses with multicast-scope annotations (e.g. fe80::123@5)
+     *                                      will result in a string with the multicast-scope annotation returned as its interface-name
+     *                                      (e.g. "fe80::123%en0") instead of just the scope ID integer.  Enabling this option does make this
+     *                                      call significantly more expensive (since it may need to iterate through the local NICs listing)
+     *                                      so this argument defaults to false.
      */
-   String ToString(bool printIPv4AddressesInIPv4Style = true) const;
+   String ToString(bool printIPv4AddressesInIPv4Style = true, bool expandScopeIndicesToNetworkInterfaceNames = false) const;
 
    /** Given a human-readable IP-address string (as returned by ToString()), sets this IPAddress object to the
      * value represented by the string.  Behaves similarly to Inet_AtoN()
@@ -287,6 +292,12 @@ public:
      * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the String could not be parsed.
      */
    status_t SetFromString(const String & ipAddressString);
+
+   /** Convenience method for producing a URL (e.g. "http://127.0.0.1") string from this IP address
+     * @param handler the handler-type to include (e.g. "http" or "https")
+     * @returns the computed URL string, or an empty String if this IPAddress isn't valid
+     */
+   String ToURL(const String & handler) const;
 
    /** Sets us to the IPv4 address specified by (bits)
      * @param bits a 32-bit representation of an IPv4 address.
@@ -480,8 +491,19 @@ public:
      * @param includePort If true, the port will be included in the string.  Defaults to true.
      * @param printIPv4AddressesInIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
      *                                      Defaults to true.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
+     * @param expandScopeIndicesToNetworkInterfaceNames If set to true, IPv6 addresses with multicast-scope annotations (e.g. fe80::123@5)
+     *                                      will result in a string with the multicast-scope annotation returned as its interface-name
+     *                                      (e.g. "fe80::123%en0") instead of just the scope ID integer.  Enabling this option does make this
+     *                                      call significantly more expensive (since it may need to iterate through the local NICs listing)
+     *                                      so this argument defaults to false.
      */
-   String ToString(bool includePort = true, bool printIPv4AddressesInIPv4Style = true) const;
+   String ToString(bool includePort = true, bool printIPv4AddressesInIPv4Style = true, bool expandScopeIndicesToNetworkInterfaceNames = false) const;
+
+   /** Convenience method for producing a URL (e.g. "http://127.0.0.1:8080") string from this IPAddressAndPort
+     * @param handler the handler-type to include (e.g. "http" or "https")
+     * @returns the computed URL string, or an empty String if this IPAddressAndPort's IPAddress isn't valid
+     */
+   String ToURL(const String & handler) const;
 
    /** Convenience method:  Writes our current state out to (writeToSockAddrIn), if possible.
      * @param writeToSockAddrIn on return, this object's fields will be filled out based on our state.

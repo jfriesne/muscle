@@ -13,21 +13,23 @@ namespace muscle {
 class AbstractReflectSession;
 class EmscriptenAsyncCallback;
 class EmscriptenWebSocketWatcher;
+class IPAddressAndPort;
 
 /** This DataIO knows how to read and write bytes via an EmscriptenWebSocket */
 class EmscriptenWebSocketDataIO : public DataIO, private EmscriptenWebSocketWatcher
 {
 public:
    /** Convenience Constructor
-     * @param host hostname to connect to
-     * @param port port number to connect to
+     * @param destURL the destination URL (e.g. "ws://localhost:8080") that we should pass to the WebSockets API to tell it where to
+     *                connect our WebSocket to.  You may want to call IPAddress::ToURL("ws") or IPAddressAndPort::ToURL("ws") to
+     *                generate this String.
      * @param optSession if non-NULL, we will make callbacks on this session when we receive callbacks from the EmscriptenWebSocket.
      * @param optAsyncCallback if non-NULL, we will schedule callbacks on this to handle the I/O for us
      */
-   EmscriptenWebSocketDataIO(const String & host, uint16 port, AbstractReflectSession * optSession, EmscriptenAsyncCallback * optAsyncCallback);
+   EmscriptenWebSocketDataIO(const String & destURL, AbstractReflectSession * optSession, EmscriptenAsyncCallback * optAsyncCallback);
 
    /** Constructor
-     * @param emSockRef Reference to a pre-created EmscriptenWebSocket to use instead of creating our own
+     * @param emSockRef Reference to an EmscriptenWebSocket (e.g. as previously created by CreateClientWebSocket()) for this DataIO to use.
      * @param optSession if non-NULL, we will make callbacks on this session when we receive callbacks from the EmscriptenWebSocket.
      * @param optAsyncCallback if non-NULL, we will schedule callbacks on this to handle the I/O for us
      */

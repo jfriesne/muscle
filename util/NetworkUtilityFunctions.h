@@ -375,15 +375,25 @@ ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog = 20, uint16 * 
  *                This buffer must be at least 64 bytes long (or at least 16 bytes long if MUSCLE_AVOID_IPV6 is defined)
  *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
  *                         Defaults to false.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
+ * @param expandScopeIndicesToNetworkInterfaceNames If set to true, IPv6 addresses with multicast-scope annotations (e.g. fe80::123@5)
+ *                         will result in a string with the multicast-scope annotation returned as its interface-name
+ *                         (e.g. "fe80::123%en0") instead of just the scope ID integer.  Enabling this option does make this
+ *                         call significantly more expensive (since it may need to iterate through the local NICs listing)
+ *                         so this argument defaults to false.
  */
-void Inet_NtoA(const IPAddress & address, char * outBuf, bool preferIPv4Style = false);
+void Inet_NtoA(const IPAddress & address, char * outBuf, bool preferIPv4Style = false, bool expandScopeIndicesToNetworkInterfaceNames = false);
 
 /** A more convenient version of INet_NtoA().  Given an IP address, returns a human-readable String representation of that address.
-  *  @param ipAddress the IP address to return in String form.
-  *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
-  *                         Defaults to false.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
-  */
-String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4Style = false);
+ *  @param ipAddress the IP address to return in String form.
+ *  @param preferIPv4Style If set true, then IPv4 addresses will be returned as eg "192.168.1.1", not "::192.168.1.1" or "::ffff:192.168.1.1".
+ *                         Defaults to false.  If MUSCLE_AVOID_IPV6 is defined, then this argument isn't used.
+ *  @param expandScopeIndicesToNetworkInterfaceNames If set to true, IPv6 addresses with multicast-scope annotations (e.g. fe80::123@5)
+ *                         will result in a string with the multicast-scope annotation returned as its interface-name
+ *                         (e.g. "fe80::123%en0") instead of just the scope ID integer.  Enabling this option does make this
+ *                         call significantly more expensive (since it may need to iterate through the local NICs listing)
+ *                         so this argument defaults to false.
+ */
+String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4Style = false, bool expandScopeIndicesToNetworkInterfaceNames = false);
 
 /** Returns true iff (s) is a well-formed IP address (eg "192.168.0.1" or "ff12::888" or etc)
   * @param s An ASCII string to check the formatting of

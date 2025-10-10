@@ -5,8 +5,17 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added an optional (expandMulticastScopes) argument to Inet_NtoA()
+     and IPAddress::ToString() and IPAddressAndPort::ToString().  If
+     specified as true, multicast-scope-suffixies (like @6) will be
+     expanded out to their interface-name equivalents (like %eth0)
+   - Added ToURL() convenience-methods to the IPAddressAndPort and
+     IPAddress classes.
    - Added a SwapContentsGuard class (in utils/SwapContentsGuard.h)
      for reliable RAII-object-swapping/unswapping.
+   o Modified CreateClientWebSocket() and the EmscriptenWebSocketDataIO
+     constructor to take a single URL String, rather than separate
+     hostname and port arguments.
    * QueueStackGuard now handles out-of-memory errors more gracefully.
 
 9.75 - Released 10/4/2025

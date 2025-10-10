@@ -110,13 +110,11 @@ void EmscriptenWebSocket :: EmscriptenWebSocketConnectionClosed() {_state = STAT
 void EmscriptenWebSocket :: EmscriptenWebSocketMessageReceived(const uint8 * dataBytes, uint32 numDataBytes, bool isText) {if (_watcher) _watcher->EmscriptenWebSocketMessageReceived(*this, dataBytes, numDataBytes, isText);}
 #endif
 
-EmscriptenWebSocketRef EmscriptenWebSocketWatcher :: CreateClientWebSocket(const String & host, uint16 port)
+EmscriptenWebSocketRef EmscriptenWebSocketWatcher :: CreateClientWebSocket(const String & destURL)
 {
 #if defined(__EMSCRIPTEN__)
    // Docs: https://github.com/emscripten-core/emscripten/blob/main/system/include/emscripten/websocket.h
-   const String wsURL = String("ws://%1:%2").Arg(host).Arg(port);
-   EmscriptenWebSocketCreateAttributes ws_attrs = {wsURL(), "binary", false};
-
+   EmscriptenWebSocketCreateAttributes ws_attrs = {destURL(), "binary", false};
    EMSCRIPTEN_WEBSOCKET_T s = emscripten_websocket_new(&ws_attrs);
    if (s <= 0)
    {
@@ -132,8 +130,7 @@ EmscriptenWebSocketRef EmscriptenWebSocketWatcher :: CreateClientWebSocket(const
 
    return ret;
 #else
-   (void) host;
-   (void) port;
+   (void) destURL;
    return B_UNIMPLEMENTED;
 #endif
 }

@@ -9,6 +9,7 @@ namespace muscle {
 
 class EmscriptenAsyncCallback;
 class EmscriptenWebSocketWatcher;
+class IPAddressAndPort;
 class String;
 
 /** Special Socket class that holds an Emscripten websocket and makes sure it gets cleaned up properly when no longer in use */
@@ -65,12 +66,12 @@ public:
    /** Default constructor */
    EmscriptenWebSocketWatcher() {/* empty */}
 
-   /** Utility method: Sets up and returns an outgoing WebSocket to the given host and port
-     * @param host hostname to connect to
-     * @param port port number to connect to
+   /** Utility method: Sets up and returns an outgoing WebSocket to the given hostname and port
+     * @param destURL the URL to pass to the WebSocket API (e.g. "ws://localhost:8080").  You may want
+     *        to call IPAddress::ToURL("ws") or IPAddressAndPort::ToURL("ws") to generate this String.
      * @returns a valid ref on success, or a NULL ref on failure.
      */
-   EmscriptenWebSocketRef CreateClientWebSocket(const String & host, uint16 port);
+   EmscriptenWebSocketRef CreateClientWebSocket(const String & destURL);
 
 protected:
 #if defined(__EMSCRIPTEN__) || defined(DOXYGEN_SHOULD_IGNORE_THIS)

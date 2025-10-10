@@ -11,8 +11,8 @@
 
 namespace muscle {
 
-EmscriptenWebSocketDataIO :: EmscriptenWebSocketDataIO(const String & host, uint16 port, AbstractReflectSession * optSession, EmscriptenAsyncCallback * optAsyncCallback)
-   : _emSockRef(CreateClientWebSocket(host, port))
+EmscriptenWebSocketDataIO :: EmscriptenWebSocketDataIO(const String & url, AbstractReflectSession * optSession, EmscriptenAsyncCallback * optAsyncCallback)
+   : _emSockRef(CreateClientWebSocket(url))
    , _sockRef(_emSockRef())
    , _optSession(optSession)
    , _optAsyncCallback(optAsyncCallback)

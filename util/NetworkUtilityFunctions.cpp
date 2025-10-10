@@ -2164,7 +2164,38 @@ static void Inet4_NtoA(uint32 addr, char * buf)
         else *buf = '\0';  // return an invalid IPv4 address as ""
 }
 
-void Inet_NtoA(const IPAddress & addr, char * ipbuf, bool preferIPv4)
+static const int MIN_IPBUF_LENGTH = 64;
+
+static status_t AddNamedInterfaceScopeSuffix(uint32 iidx, char * ipbuf, bool forceGNII, bool & retDidGNII)
+{
+   static Mutex _mutex;
+   static uint64 _lastInterfacesInfosUpdate = 0;
+   static Queue<NetworkInterfaceInfo> _interfaceInfos;
+
+   DECLARE_MUTEXGUARD(_mutex);  // serialize access to _interfaceInfos, in case we get called from multiple threads
+   if ((forceGNII)||(OnceEvery(SecondsToMicros(5), _lastInterfacesInfosUpdate)))
+   {
+      _interfaceInfos.Clear();
+      (void) GetNetworkInterfaceInfos(_interfaceInfos);
+      retDidGNII = true;
+   }
+
+   for (int32 i=_interfaceInfos.GetLastValidIndex(); i>=0; i--)
+   {
+      const NetworkInterfaceInfo & nii = _interfaceInfos[i];
+      const IPAddress & nextIP         = nii.GetLocalAddress();
+      if ((nextIP.IsInterfaceIndexValid())&&(nextIP.GetInterfaceIndex() == iidx)&&(nii.GetName().HasChars()))
+      {
+         const size_t ipbuflen = strlen(ipbuf);
+         muscleSnprintf(ipbuf+ipbuflen, MIN_IPBUF_LENGTH-ipbuflen, "%%%s", nii.GetName()());
+         return B_NO_ERROR;
+      }
+   }
+
+   return B_DATA_NOT_FOUND;
+}
+
+void Inet_NtoA(const IPAddress & addr, char * ipbuf, bool preferIPv4, bool expandScopes)
 {
 #ifdef MUSCLE_AVOID_IPV6
    (void) preferIPv4;
@@ -2173,13 +2204,20 @@ void Inet_NtoA(const IPAddress & addr, char * ipbuf, bool preferIPv4)
    if ((preferIPv4)&&((addr.IsValid() == false)||(addr.IsIPv4()))) Inet4_NtoA((uint32)(addr.GetLowBits()&0xFFFFFFFF), ipbuf);
    else
    {
-      const int MIN_IPBUF_LENGTH = 64;
       uint8 ip6[16]; addr.WriteToNetworkArray(ip6, NULL);
       if (Inet_NtoP(AF_INET6, (const in6_addr *) ip6, ipbuf, MIN_IPBUF_LENGTH) != NULL)
       {
          if (addr.IsInterfaceIndexValid())
          {
-            // Add the index suffix
+            if (expandScopes)
+            {
+               bool didGNII = false;
+               const uint32 iidx = addr.GetInterfaceIndex();
+               if (AddNamedInterfaceScopeSuffix(iidx, ipbuf, false, didGNII).IsOK()) return;  // try it first using cached GNII info
+               if ((didGNII==false)&&(AddNamedInterfaceScopeSuffix(iidx, ipbuf,  true, didGNII).IsOK())) return;  // if that didn't work, try again without cached GNII info
+            }
+
+            // If all else fails, just add the numeric-index-suffix (e.g. @5 for multicast scope 5)
             const size_t ipbuflen = strlen(ipbuf);
             muscleSnprintf(ipbuf+ipbuflen, MIN_IPBUF_LENGTH-ipbuflen, "@" UINT32_FORMAT_SPEC, addr.GetInterfaceIndex());
          }
@@ -2189,10 +2227,10 @@ void Inet_NtoA(const IPAddress & addr, char * ipbuf, bool preferIPv4)
 #endif
 }
 
-String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4)
+String Inet_NtoA(const IPAddress & ipAddress, bool preferIPv4, bool expandScopes)
 {
-   char buf[64];
-   Inet_NtoA(ipAddress, buf, preferIPv4);
+   char buf[MIN_IPBUF_LENGTH];
+   Inet_NtoA(ipAddress, buf, preferIPv4, expandScopes);
    return buf;
 }
 
@@ -2238,9 +2276,22 @@ IPAddress Inet_AtoN(const char * buf)
    return (ret.SetFromString(buf).IsOK()) ? ret : IPAddress();
 }
 
-String IPAddress :: ToString(bool preferIPv4Style) const
+String IPAddress :: ToString(bool preferIPv4Style, bool expandScopes) const
 {
-   return Inet_NtoA(*this, preferIPv4Style);
+   return Inet_NtoA(*this, preferIPv4Style, expandScopes);
+}
+
+String IPAddress :: ToURL(const String & handler) const
+{
+   return IsValid()
+        ? handler + "://" + (IsStandardLoopbackDeviceAddress() ? "localhost" : (IsIPv4() ? ToString() : ToString(true, true).WithPrefix('[').WithSuffix(']')))
+        : GetEmptyString();
+}
+
+String IPAddressAndPort :: ToURL(const String & handler) const
+{
+   const String ret = _ip.ToURL(handler);
+   return ((ret.HasChars())&&(_port > 0)) ? (ret+String(":%1").Arg(_port)) : ret;
 }
 
 status_t IPAddress :: SetFromString(const String & ipAddressString)
@@ -2313,9 +2364,9 @@ void IPAddressAndPort :: SetFromString(const String & s, uint16 defaultPort, boo
    }
 }
 
-String IPAddressAndPort :: ToString(bool includePort, bool preferIPv4Style) const
+String IPAddressAndPort :: ToString(bool includePort, bool preferIPv4Style, bool expandScopes) const
 {
-   const String s = Inet_NtoA(_ip, preferIPv4Style);
+   const String s = Inet_NtoA(_ip, preferIPv4Style, expandScopes);
 
    if ((includePort)&&(_port > 0))
    {
