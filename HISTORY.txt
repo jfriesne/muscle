@@ -16,6 +16,8 @@ key:  - new feature
    o Modified CreateClientWebSocket() and the EmscriptenWebSocketDataIO
      constructor to take a single URL String, rather than separate
      hostname and port arguments.
+   - Added a definition of MUSCLE_NODISCARD for older versions of C++
+     being compiled under g++ or clang++.
    * QueueStackGuard now handles out-of-memory errors more gracefully.
 
 9.75 - Released 10/4/2025

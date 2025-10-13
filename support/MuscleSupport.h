@@ -138,6 +138,8 @@
 #ifndef MUSCLE_AVOID_NODISCARD
 # if defined(__cplusplus) && ((__cplusplus >= 201703L) || (defined(__clang__) && (__cplusplus >= 201100L)))
 #  define MUSCLE_NODISCARD [[nodiscard]]
+# elif defined(__GNUC__) && (__GNUC__ >= 4) // clang also defines these
+#  define MUSCLE_NODISCARD __attribute__((warn_unused_result))
 # elif defined(_MSC_VER) && (_MSC_VER >= 1700)
 #  define MUSCLE_NODISCARD _Check_return_
 # endif
