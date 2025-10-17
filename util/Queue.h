@@ -529,12 +529,12 @@ public:
    /** Convenient read-only array-style operator (be sure to only use valid indices!)
      * @param index the index of the item to get (between 0 and GetLastValidIndex(), inclusive)
      */
-   const ItemType & operator [](uint32 index) const;
+   MUSCLE_NODISCARD const ItemType & operator [](uint32 index) const;
 
    /** Convenient read-write array-style operator (be sure to only use valid indices!)
      * @param index the index of the item to get (between 0 and GetLastValidIndex(), inclusive)
      */
-   ItemType & operator [](uint32 index);
+   MUSCLE_NODISCARD ItemType & operator [](uint32 index);
 
    /** Makes sure there is enough space allocated for at least (numSlots) items.
     *  You only need to call this if you wish to minimize the number of data re-allocations done,
@@ -803,7 +803,7 @@ public:
      * @returns a pointer to an array of items for the caller to own, or NULL on failure.  Call delete[] on the returned value to avoid a memory leak.
      * @note Don't call this method unless you know what you are doing!
      */
-   ItemType * ReleaseRawDataArray(uint32 * optRetArrayLen = NULL);
+   MUSCLE_NODISCARD ItemType * ReleaseRawDataArray(uint32 * optRetArrayLen = NULL);
 
    /** Steals the contents of (rhs) for our own use.
      * @param rhs the Queue to plunder.  On return, (rhs) will be empty,
