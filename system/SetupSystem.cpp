@@ -1971,7 +1971,7 @@ DebugTimer :: ~DebugTimer()
          const uint64 et = _elapsedTimes[i];
          if ((et > 0)&&(et >= _minLogTime))
          {
-            const bool useMillis = (et >= MillisToMicros(1));
+            const bool useMillis = (et >= (uint64)MillisToMicros(1));
             _outputPrinter.printf("%s: mode %u: " UINT64_FORMAT_SPEC " %s elapsed\n", _title(), i, useMillis?MicrosToMillis(et):et, useMillis?"milliseconds":"microseconds");
          }
       }
