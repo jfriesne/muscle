@@ -379,7 +379,7 @@ protected:
          while(_threadKeepGoingIfZero.GetCount() == 0)
          {
             ::HANDLE junk;
-            int nacRet = NotifyAddrChange(&junk, &olap);
+            const int nacRet = NotifyAddrChange(&junk, &olap);
             if ((nacRet == NO_ERROR)||(WSAGetLastError() == WSA_IO_PENDING))
             {
                if (hiddenWindow)
@@ -389,12 +389,14 @@ protected:
                }
 
                ::HANDLE events[] = {olap.hEvent, _wakeupSignal};
-               DWORD waitResult = hiddenWindow ? MsgWaitForMultipleObjects(ARRAYITEMS(events), events, false, INFINITE, QS_ALLINPUT) : WaitForMultipleObjects(ARRAYITEMS(events), events, false, INFINITE);
+               const DWORD waitResult = hiddenWindow ? MsgWaitForMultipleObjects(ARRAYITEMS(events), events, false, INFINITE, QS_ALLINPUT) : WaitForMultipleObjects(ARRAYITEMS(events), events, false, INFINITE);
                if (waitResult == WAIT_OBJECT_0)
                {
+# ifdef MUSCLE_AVOID_NETIOAPI  // send an empty Message if we have no choice, as it forces reconnects across all NICs.
                   // Serialized since the NotifyUnicast*Change() callbacks get called from a different thread
                   static Message _msg(DNCCS_MESSAGE_INTERFACES_CHANGED);
                   ThreadSafeSendMessageToSessions(DummyMessageRef(_msg));
+#endif
                }
                else if ((hiddenWindow)&&(waitResult == DWORD(WAIT_OBJECT_0+ARRAYITEMS(events))))
                {

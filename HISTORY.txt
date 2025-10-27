@@ -19,6 +19,9 @@ key:  - new feature
    - Added a definition of MUSCLE_NODISCARD for older versions of C++
      being compiled under g++ or clang++.
    * QueueStackGuard now handles out-of-memory errors more gracefully.
+   * Windows implementation of DetectNetworkConfigChangesSession no
+     longer flags all NICs as changed in the cases where it can
+     determine which one(s) actually changed.
 
 9.75 - Released 10/4/2025
    - Added GetLastValidIndex() and IsIndexValid() convenience
