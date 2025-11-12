@@ -725,7 +725,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
             _childProcessExitCode = GetExitCodeFromWaitPIDStatus(status);
             return B_NO_ERROR;  // yay, he exited!
          }
-         else if (r == -1) return B_ERRNO;  // fail on error
+         else if (r == -1) return (errno == ECHILD) ? B_NO_ERROR : B_ERRNO;  // fail on error
 
          const int64 microsLeft = endTime-GetRunTime64();
          if (microsLeft <= 0) break;   // we're out of time!

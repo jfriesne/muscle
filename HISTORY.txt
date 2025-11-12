@@ -22,6 +22,8 @@ key:  - new feature
    * Windows implementation of DetectNetworkConfigChangesSession no
      longer flags all NICs as changed in the cases where it can
      determine which one(s) actually changed.
+   * ChildProcessDataIO::WaitForChildProcessToExit() no longer returns
+     an error if the child process has already exited.
 
 9.75 - Released 10/4/2025
    - Added GetLastValidIndex() and IsIndexValid() convenience
