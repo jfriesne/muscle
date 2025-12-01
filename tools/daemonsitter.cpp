@@ -1,7 +1,7 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
-#ifndef WIN32
+#ifndef _WIN32
 # include <signal.h>  // for SIGINT
 #endif
 

@@ -1,12 +1,12 @@
-#include "util/CPULoadMeter.h"
-#include "util/StringTokenizer.h"
-
 #ifdef __APPLE__
 # include <mach/mach_init.h>
 # include <mach/mach_error.h>
 # include <mach/mach_host.h>
 # include <mach/vm_map.h>
 #endif
+
+#include "util/CPULoadMeter.h"
+#include "util/StringTokenizer.h"
 
 namespace muscle {
 

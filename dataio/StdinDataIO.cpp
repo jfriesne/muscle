@@ -1,12 +1,12 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#include "dataio/StdinDataIO.h"
-#include "util/Hashtable.h"
-
-#if defined(WIN32) || defined(CYGWIN)
+#if defined(_WIN32) || defined(CYGWIN)  // yes, it must be _WIN32 because WIN32 might not be defined at this point
 # define USE_WIN32_STDINDATAIO_IMPLEMENTATION
 # include <process.h>  // for _beginthreadex()
 #endif
+
+#include "dataio/StdinDataIO.h"
+#include "util/Hashtable.h"
 
 namespace muscle {
 

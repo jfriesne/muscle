@@ -12,7 +12,7 @@
 # endif // !(TARGET_OS_IPHONE)
 #endif // __APPLE__
 
-#if defined(WIN32) || defined(__CYGWIN__)
+#if defined(_WIN32) || defined(__CYGWIN__)
 # include <process.h>  // for _beginthreadex()
 # include "util/Queue.h"
 # define USE_WINDOWS_IMPLEMENTATION

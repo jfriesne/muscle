@@ -1,6 +1,6 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#if defined(_WIN32) || defined(WIN32)
+#if defined(_WIN32)
 # include <errno.h>
 # include <io.h>
 #else

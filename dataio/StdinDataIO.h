@@ -3,7 +3,7 @@
 #ifndef StdinDataIO_h
 #define StdinDataIO_h
 
-#include "util/NetworkUtilityFunctions.h"  // for ConstSocketRef, WIN32, etc.
+#include "util/NetworkUtilityFunctions.h"  // for ConstSocketRef
 
 #if defined(WIN32) || defined(CYGWIN)
 # include "dataio/DataIO.h"

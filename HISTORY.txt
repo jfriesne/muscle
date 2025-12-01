@@ -24,6 +24,9 @@ key:  - new feature
      determine which one(s) actually changed.
    * ChildProcessDataIO::WaitForChildProcessToExit() no longer returns
      an error if the child process has already exited.
+   * Changed top-of-file #ifdef(WIN32) calls to #ifdef(_WIN32), because
+     WIN32 isn't guaranteed to be set until after MuscleSupport.h has
+     been parsed.
 
 9.75 - Released 10/4/2025
    - Added GetLastValidIndex() and IsIndexValid() convenience

@@ -18,7 +18,7 @@
 # include <sched.h>
 #endif
 
-#ifndef WIN32
+#ifndef _WIN32
 # include <sys/stat.h>  // for umask()
 #endif
 

@@ -1,6 +1,6 @@
 /* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#if defined(WIN32) || defined(__CYGWIN__)
+#if defined(_WIN32) || defined(__CYGWIN__)   // yes, it must be _WIN32 and not WIN32 here because WIN32 might not be defined by the compiler but _WIN32 always will be
 # include <process.h>  // for _beginthreadex()
 # include <ntstatus.h> // for STATUS_*
 #endif
