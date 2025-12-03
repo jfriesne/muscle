@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.76 - Released 12/3/2025
    - Added an optional (expandMulticastScopes) argument to Inet_NtoA()
      and IPAddress::ToString() and IPAddressAndPort::ToString().  If
      specified as true, multicast-scope-suffixies (like @6) will be
