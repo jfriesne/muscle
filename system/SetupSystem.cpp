@@ -180,7 +180,12 @@ void Crash(const char * fileName, int lineNumber)
    const size_t len2 = strlen(buf2);
    if ((len1+len2) < sizeof(buf1)) memcpy(buf1+len1,                  buf2, len2+1);
                               else memcpy(buf1+sizeof(buf1)-(len2+1), buf2, len2+1);
-   pthread_setname_np(buf1);
+# if defined(__APPLE__)
+   (void) pthread_setname_np(buf1);
+# else
+   (void) pthread_setname_np(pthread_self(), buf1);
+# endif
+
 # endif
    abort();
 #endif
