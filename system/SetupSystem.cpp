@@ -17,9 +17,10 @@
 #ifdef MUSCLE_ENABLE_SSL
 # include <openssl/err.h>
 # include <openssl/ssl.h>
-# ifndef WIN32
-#  include <pthread.h>
-# endif
+#endif
+
+#ifndef WIN32
+# include <pthread.h>  // for pthread_setname_mp
 #endif
 
 #if defined(__APPLE__)
@@ -156,11 +157,31 @@ void ExitWithoutCleanup(int exitCode)
    _exit(exitCode);
 }
 
-void Crash()
+void Crash(const char * fileName, int lineNumber)
 {
+   fprintf(stderr, "muscle::Crash() was called from %s:%i\n", fileName, lineNumber);
 #ifdef WIN32
+   (void) fileName;   // I'm not sure how to include these
+   (void) lineNumber; // in the windows crash report
    RaiseException(EXCEPTION_BREAKPOINT, 0, 0, NULL);
 #else
+# if defined(__APPLE__) || defined(__linux__)
+   // I do this so that I can see the fileName/lineNumber in the macOS .ips file's stack trace
+#  if defined(__APPLE__)
+   char buf1[64];  // yes, it has to be this short or pthread_setname_mp() will fail :(
+#  else
+   char buf1[16];  // yes, it has to be this short or pthread_setname_mp() will fail :(
+#  endif
+   const char * f = strrchr(fileName, '/');
+   muscleSprintf(buf1, "%s", f?(f+1):fileName);
+
+   char buf2[16]; muscleSprintf(buf2, ":%i", lineNumber);
+   const size_t len1 = strlen(buf1);
+   const size_t len2 = strlen(buf2);
+   if ((len1+len2) < sizeof(buf1)) memcpy(buf1+len1,                  buf2, len2+1);
+                              else memcpy(buf1+sizeof(buf1)-(len2+1), buf2, len2+1);
+   pthread_setname_np(buf1);
+# endif
    abort();
 #endif
 }

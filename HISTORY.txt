@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - muscle::Crash() now takes a file name and line number as
+     arguments, for better crash-location debugging.
+
 9.76 - Released 12/3/2025
    - Added an optional (expandMulticastScopes) argument to Inet_NtoA()
      and IPAddress::ToString() and IPAddressAndPort::ToString().  If

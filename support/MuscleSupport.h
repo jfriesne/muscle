@@ -273,7 +273,7 @@ using std::set_new_handler;
 /** This macro crashes the process with the specified error message.
   * @param msg a text string to include in the critical error printed to the log just before we call Crash()
   */
-#define MCRASH(msg) {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); (void) muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); muscle::Crash();}
+#define MCRASH(msg) {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); (void) muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); muscle::Crash(__FILE__, __LINE__);}
 
 /** This macro immediately and rudely exits the process (by calling ExitWithoutCleanup(retVal)) after logging the specified critical error message.
   * @param retVal the integer value to pass to ExitWithoutCleanup()
@@ -1825,7 +1825,7 @@ class DataNode;  // FogBugz #9816 tweakage
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
 // forward declarations
-MUSCLE_NORETURN extern void Crash();
+MUSCLE_NORETURN extern void Crash(const char * fileName, int lineNumber);
 MUSCLE_NORETURN extern void ExitWithoutCleanup(int);
 #endif
 

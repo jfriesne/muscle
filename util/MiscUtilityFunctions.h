@@ -280,10 +280,12 @@ MUSCLE_NORETURN void ExitWithoutCleanup(int exitCode);
 /** Causes this process to terminate abnormally (ie with a crash).
   * Under Windows, this is implemented by calling RaiseException(EXCEPTION_BREAKPOINT).
   * Under all other OS's, this is implemented by calling abort().
+  * @param fileName name of the source file to report in the crash (e.g. pass in __FILE__ here)
+  * @param lineNumber line number to report in the crash (e.g. pass in __LINE__ here)
   * @note this function will not return!
   */
 //coverity[+kill]
-MUSCLE_NORETURN void Crash();
+MUSCLE_NORETURN void Crash(const char * fileName, uint32 lineNumber);
 
 /** Calls fork(), setsid(), chdir(), umask(), etc, to fork an independent daemon process.
  *  Also closes all open file descriptors.
