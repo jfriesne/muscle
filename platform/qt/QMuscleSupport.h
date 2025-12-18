@@ -28,7 +28,7 @@ public:
    MUSCLE_NODISCARD uint32 operator () (const QString & str) const
    {
 #if QT_VERSION >= 0x040000
-      return qHash(str);
+      return (uint32) qHash(str);
 #else
       QByteArray ba = str.utf8();  // Yes, in Qt 3.x it's called utf8(), not toUtf8()
       return muscle::CalculateHashCode(ba.data(), ba.size());
