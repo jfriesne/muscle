@@ -7,6 +7,8 @@ key:  - new feature
 
    - muscle::Crash() now takes a file name and line number as
      arguments, for better crash-location debugging.
+   - Added a EnsureFileHasNoSharedHardLinks(const char * filePath)
+     function to MiscUtilityFunctions.cpp.
 
 9.76 - Released 12/3/2025
    - Added an optional (expandMulticastScopes) argument to Inet_NtoA()

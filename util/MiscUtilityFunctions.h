@@ -622,6 +622,17 @@ status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFold
   */
 status_t DeleteFile(const char * filePath);
 
+/** Checks to see if the file at (filePath) has a hard-link count greater than one.
+  * If it does, this function will make a copy of the file and rename it back to its
+  * original name, thereby severing the hardlinks from the filePath so that any future
+  * changes to the file at (filePath) will modify only the data at this (filePath) and
+  * not any other "files" that happened to be hardlinked to the same data.
+  * @param filePath the filepath to check
+  * @returns B_NO_ERROR on success (or if no operation was necessary because the
+  *          hardlink count was less than 2 already).
+  */
+status_t EnsureFileHasNoSharedHardLinks(const char * filePath);
+
 /** Given argv[0], returns a human-readable program title based on the file name.
   * For example, "c:\Program Files\Blah.exe" is returned as "Blah", or
   * "/Users/jaf/MyProg/MyProg.app/Contents/MacOS/MyProg" is returned as "MyProg".

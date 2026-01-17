@@ -1088,6 +1088,28 @@ status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFold
    return ret;
 }
 
+status_t EnsureFileHasNoSharedHardLinks(const char * filePath)
+{
+   const FilePathInfo fpi(filePath);
+   if ((fpi.Exists() == false)||(fpi.IsRegularFile() == false)) return B_FILE_NOT_FOUND;
+
+   if (fpi.GetHardLinkCount() < 2) return B_NO_ERROR;  // nothing to do, if we aren't hardlinking anyway
+
+   // Oops, gotta make a copy, so that it can be modified without affecting anyone else
+   const String tempPath = String(".%1").Arg(GetRunTime64()+GetInsecurePseudoRandomNumber()).WithPrepend(filePath);
+   MRETURN_ON_ERROR(CopyFile(filePath, tempPath()));
+
+   // Rename() will move the new copy over to the path
+   const status_t ret = RenameFile(tempPath(), filePath);
+   if (ret.IsOK()) return B_NO_ERROR;
+   else
+   {
+      // if the Rename() failed for whatever reason, roll back our side effects and exit cleanly
+      (void) DeleteFile(tempPath());
+      return ret;
+   }
+}
+
 #if defined(__linux__) || defined(__APPLE__)
 static double ParseMemValue(const char * b)
 {
