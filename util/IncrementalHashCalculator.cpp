@@ -625,6 +625,8 @@ void IncrementalHashCalculator :: Reset()
       LogTime(MUSCLE_LOG_CRITICALERROR, "IncrementalHashCalculator %p:  Unable to create hash context for algorithm " UINT32_FORMAT_SPEC "\n", this, _algorithm);
       FreeContext(false);
    }
+
+   (void) _nativeHashState;  // just to suppress a compiler warning about it being unused
 #else
    switch(_algorithm)
    {
