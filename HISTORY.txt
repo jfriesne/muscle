@@ -9,6 +9,9 @@ key:  - new feature
      arguments, for better crash-location debugging.
    - Added a EnsureFileHasNoSharedHardLinks(const char * filePath)
      function to MiscUtilityFunctions.cpp.
+   - IncrementalHashCalculator class now uses the faster hashing
+     functions from OpenSSL, if MUSCLE_ENABLE_SSL is defined.
+     It falls back to its internal implementation otherwise.
 
 9.76 - Released 12/3/2025
    - Added an optional (expandMulticastScopes) argument to Inet_NtoA()

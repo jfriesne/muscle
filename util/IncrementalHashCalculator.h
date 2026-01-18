@@ -3,6 +3,10 @@
 #ifndef IncrementalHashCalculator_h
 #define IncrementalHashCalculator_h
 
+#ifdef MUSCLE_ENABLE_SSL
+# include <openssl/evp.h>
+#endif
+
 #include "support/NotCopyable.h"
 #include "support/PseudoFlattenable.h"
 #include "dataio/DataIO.h"
@@ -94,7 +98,21 @@ public:
    /** Constructor
      * @param algorithm a HASH_ALGORITHM_* value indicating which algorithm to use
      */
-   IncrementalHashCalculator(uint32 algorithm) : _algorithm(algorithm) {Reset();}
+   IncrementalHashCalculator(uint32 algorithm) : _algorithm(algorithm)
+#ifdef MUSCLE_ENABLE_SSL
+      , _context(NULL)
+      , _tempContext(NULL)
+#endif
+   {
+      Reset();
+   }
+
+   ~IncrementalHashCalculator()
+   {
+#ifdef MUSCLE_ENABLE_SSL
+      FreeContext();
+#endif
+   }
 
    /** Resets this object back to its just-constructed state */
    void Reset();
@@ -132,15 +150,38 @@ public:
      */
    MUSCLE_NODISCARD static uint32 GetNumResultBytesUsedByAlgorithm(uint32 algorithm);
 
+   /** Returns true iff this object is in a usable state.
+     * @note if MUSCLE_ENABLE_SSL is not defined, then this method will always return true,
+     *       as initialization of our internal hashing mechanisms can never fail.
+     */
+   bool IsValid() const
+   {
+#ifdef MUSCLE_ENABLE_SSL
+      return (_context != NULL);
+#else
+      return true;
+#endif
+   }
+
 private:
    const uint32 _algorithm;  // HASH_ALGORITHM_*
 
+#ifdef MUSCLE_ENABLE_SSL
+   void FreeContext();
+
+   // pass-through to OpenSSL's hashing API (may be faster than our native implementation)
+   enum {MAX_STATE_SIZE = EVP_MAX_MD_SIZE};
+   EVP_MD_CTX * _context;
+   EVP_MD_CTX * _tempContext;
+#else
+   // native implementation (useful when we don't want to depend on the presence of the OpenSSL libraries)
    enum {
       MD5_STATE_SIZE  = 152, // aka sizeof(MD5_CTX)
       SHA1_STATE_SIZE = 248  // aka sizeof(sha1_context)
    };
    template <int S1, int S2> struct _maxx {enum {sz = (S1>S2)?S1:S2};};
    enum {MAX_STATE_SIZE = ((_maxx<MD5_STATE_SIZE, SHA1_STATE_SIZE>::sz)*2)};  // the *2 is just paranoia, in case other CPUs have more padding bytes or something
+#endif
 
    union {
       uint64 _forceAlignment;

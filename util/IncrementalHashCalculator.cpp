@@ -3,6 +3,8 @@
 
 namespace muscle {
 
+#ifndef MUSCLE_ENABLE_SSL
+
 // NOLINTBEGIN
 
 /*
@@ -581,32 +583,89 @@ static void sha1_finish( sha1_context *ctx, unsigned char output[20] )
     PUT_ULONG_BE( ctx->state[4], output, 16 );
 }
 
+#endif
+
 String IncrementalHash :: ToString() const {return HexBytesToString(_hashBytes, ARRAYITEMS(_hashBytes));}
+
+#ifdef MUSCLE_ENABLE_SSL
+void IncrementalHashCalculator :: FreeContext()
+{
+   if (_context)     {EVP_MD_CTX_free(_context);         _context = NULL;}
+   if (_tempContext) {EVP_MD_CTX_free(_tempContext); _tempContext = NULL;}
+}
+#endif
 
 void IncrementalHashCalculator :: Reset()
 {
    muscleClearArray(_union._stateBytes);
 
+#ifdef MUSCLE_ENABLE_SSL
+   FreeContext();
+
+   _context     = EVP_MD_CTX_new();
+   _tempContext = EVP_MD_CTX_new();
+   if ((_context)&&(_tempContext))
+   {
+      int ret = 0;  // failure
+      switch(_algorithm)
+      {
+         case HASH_ALGORITHM_MD5:  ret = ((EVP_DigestInit_ex(_context, EVP_md5(),  NULL))&&(EVP_DigestInit_ex(_tempContext, EVP_md5(),  NULL))); break;
+         case HASH_ALGORITHM_SHA1: ret = ((EVP_DigestInit_ex(_context, EVP_sha1(), NULL))&&(EVP_DigestInit_ex(_tempContext, EVP_sha1(), NULL))); break;
+         default:                  LogTime(MUSCLE_LOG_CRITICALERROR, "IncrementalHashCalculator %p:  Unknown algorithm " UINT32_FORMAT_SPEC "\n", this, _algorithm); break;
+      }
+      if (ret != 1)
+      {
+         LogTime(MUSCLE_LOG_CRITICALERROR, "IncrementalHashCalculator %p:  Unable to initialize digest for algorithm " UINT32_FORMAT_SPEC "\n", this, _algorithm);
+         FreeContext();
+      }
+   }
+   else
+   {
+      LogTime(MUSCLE_LOG_CRITICALERROR, "IncrementalHashCalculator %p:  Unable to create hash context for algorithm " UINT32_FORMAT_SPEC "\n", this, _algorithm);
+      FreeContext();
+   }
+#else
    switch(_algorithm)
    {
-      case HASH_ALGORITHM_MD5:  MD5_Init(reinterpret_cast<MD5_CTX *>(_union._stateBytes));                                                             break;
-      case HASH_ALGORITHM_SHA1: sha1_starts(reinterpret_cast<sha1_context *>(_union._stateBytes));                                                     break;
+      case HASH_ALGORITHM_MD5:  MD5_Init(reinterpret_cast<MD5_CTX *>(_union._stateBytes));         break;
+      case HASH_ALGORITHM_SHA1: sha1_starts(reinterpret_cast<sha1_context *>(_union._stateBytes)); break;
       default:                  LogTime(MUSCLE_LOG_CRITICALERROR, "IncrementalHashCalculator %p:  Unknown algorithm " UINT32_FORMAT_SPEC "\n", this, _algorithm); break;
    }
+#endif
 }
 
 void IncrementalHashCalculator :: HashBytes(const uint8 * inBytes, uint32 numInBytes)
 {
+#ifdef MUSCLE_ENABLE_SSL
+   if (IsValid() == false) MCRASH("IncrementalHashCalculator can't hash when not in a valid state");
+   if (EVP_DigestUpdate(_context, inBytes, numInBytes) != 1)
+   {
+      LogTime(MUSCLE_LOG_CRITICALERROR, "IncrementalHashCalculator %p:  EVP_DigestUpdate failed for algorithm " UINT32_FORMAT_SPEC "\n", this, _algorithm);
+      MCRASH("EVP_DigestUpdate() failed");
+   }
+#else
    switch(_algorithm)
    {
       case HASH_ALGORITHM_MD5:  MD5_Update( reinterpret_cast<MD5_CTX *>     (_union._stateBytes), inBytes, numInBytes); break;
       case HASH_ALGORITHM_SHA1: sha1_update(reinterpret_cast<sha1_context *>(_union._stateBytes), inBytes, numInBytes); break;
       default:                  /* empty */                                                                             break;
    }
+#endif
 }
 
 IncrementalHash IncrementalHashCalculator :: GetCurrentHash() const
 {
+   uint8 outBytes[IncrementalHash::MAX_HASH_RESULT_SIZE_BYTES];
+
+#ifdef MUSCLE_ENABLE_SSL
+   if (IsValid() == false) MCRASH("IncrementalHashCalculator can't get current hash when not in a valid state");
+
+   EVP_MD_CTX_copy_ex(_tempContext, _context);
+
+   unsigned int numOutBytes;
+   EVP_DigestFinal_ex(_tempContext, outBytes, &numOutBytes);
+   return IncrementalHash(outBytes, numOutBytes);
+#else
    // Make a copy of the hashing-state so we can finalize the copy without finalizing the ongoing-hash
    union {
       uint64 _forceAlignment;
@@ -614,7 +673,6 @@ IncrementalHash IncrementalHashCalculator :: GetCurrentHash() const
    } tempUnion;
    memcpy(tempUnion._stateBytes, _union._stateBytes, sizeof(tempUnion._stateBytes));
 
-   uint8 outBytes[IncrementalHash::MAX_HASH_RESULT_SIZE_BYTES];
    switch(_algorithm)
    {
       case HASH_ALGORITHM_MD5:  MD5_Final(outBytes, reinterpret_cast<MD5_CTX *>(tempUnion._stateBytes));        break;
@@ -622,6 +680,7 @@ IncrementalHash IncrementalHashCalculator :: GetCurrentHash() const
       default:                  muscleClearArray(outBytes); /* this is here solely to make pvs-studio happy */  break;
    }
    return IncrementalHash(outBytes, GetNumResultBytesUsedByAlgorithm(_algorithm));
+#endif
 }
 
 IncrementalHash IncrementalHashCalculator :: CalculateHashSingleShot(uint32 algorithm, const uint8 * inBytes, uint32 numInBytes)
@@ -642,8 +701,12 @@ IncrementalHash IncrementalHashCalculator :: CalculateHashSingleShot(uint32 algo
       if (rfRet.IsOK())
       {
          const uint32 numBytesRead = rfRet.GetByteCount();
-         hc.HashBytes(tempBuf, numBytesRead);
-         maxNumBytesToRead -= numBytesRead;
+         if (numBytesRead > 0)
+         {
+            hc.HashBytes(tempBuf, numBytesRead);
+            maxNumBytesToRead -= numBytesRead;
+         }
+         else break;
       }
       else break;
    }
