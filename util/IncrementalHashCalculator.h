@@ -98,20 +98,14 @@ public:
    /** Constructor
      * @param algorithm a HASH_ALGORITHM_* value indicating which algorithm to use
      */
-   IncrementalHashCalculator(uint32 algorithm) : _algorithm(algorithm)
-#ifdef MUSCLE_ENABLE_SSL
-      , _context(NULL)
-      , _tempContext(NULL)
-#endif
+   IncrementalHashCalculator(uint32 algorithm) : _algorithm(algorithm), _context(NULL), _tempContext(NULL)
    {
       Reset();
    }
 
    ~IncrementalHashCalculator()
    {
-#ifdef MUSCLE_ENABLE_SSL
-      FreeContext();
-#endif
+      FreeContext(true);
    }
 
    /** Resets this object back to its just-constructed state */
@@ -154,26 +148,25 @@ public:
      * @note if MUSCLE_ENABLE_SSL is not defined, then this method will always return true,
      *       as initialization of our internal hashing mechanisms can never fail.
      */
-   bool IsValid() const
-   {
-#ifdef MUSCLE_ENABLE_SSL
-      return (_context != NULL);
-#else
-      return true;
-#endif
-   }
+   bool IsValid() const;
 
 private:
    const uint32 _algorithm;  // HASH_ALGORITHM_*
 
-#ifdef MUSCLE_ENABLE_SSL
-   void FreeContext();
+   void FreeContext(bool inDestructor);
 
-   // pass-through to OpenSSL's hashing API (may be faster than our native implementation)
-   enum {MAX_STATE_SIZE = EVP_MAX_MD_SIZE};
-   EVP_MD_CTX * _context;
-   EVP_MD_CTX * _tempContext;
+#ifdef MUSCLE_ENABLE_SSL
+   typedef EVP_MD_CTX INCREMENTAL_HASH_CONTEXT_TYPE; // pass-through to OpenSSL's hashing API (may be faster than our native implementation)
 #else
+   typedef void INCREMENTAL_HASH_CONTEXT_TYPE;  // unused dummy implementation, for when OpenSSL support is disabled
+#endif
+
+   // Note that I keep member variables present for both implementations, solely so that
+   // the code will work correctly even if the muscle library is compiled with MUSCLE_ENABLE_SSL
+   // and the application code is not, or vice-versa.
+   INCREMENTAL_HASH_CONTEXT_TYPE * _context;
+   INCREMENTAL_HASH_CONTEXT_TYPE * _tempContext;
+
    // native implementation (useful when we don't want to depend on the presence of the OpenSSL libraries)
    enum {
       MD5_STATE_SIZE  = 152, // aka sizeof(MD5_CTX)
@@ -181,12 +174,12 @@ private:
    };
    template <int S1, int S2> struct _maxx {enum {sz = (S1>S2)?S1:S2};};
    enum {MAX_STATE_SIZE = ((_maxx<MD5_STATE_SIZE, SHA1_STATE_SIZE>::sz)*2)};  // the *2 is just paranoia, in case other CPUs have more padding bytes or something
-#endif
-
-   union {
+   union NativeHashState
+   {
       uint64 _forceAlignment;
       uint8 _stateBytes[MAX_STATE_SIZE];
-   } _union;
+   };
+   NativeHashState _nativeHashState;
 };
 
 };  // end namespace muscle
