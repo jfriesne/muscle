@@ -782,7 +782,7 @@ enum {
            /** Returns the byte-count indicated by the I/O operation, or a negative value if the operation failed. */
            MUSCLE_CONSTEXPR int32 GetByteCount() const {return _byteCount;}
 
-           /** Convenience method:  If this object's current state is the default state (ie no errors and a byte-count),
+           /** Convenience method:  If this object's current state is the default state (ie no errors and a zero byte-count),
              *                      this method returns (subsequentError).  Otherwise it returns (*this).
              * @param subsequentError an error value that was encountered in an I/O routine
              * @note this method is useful in I/O loops when an error has occurred, but you want
