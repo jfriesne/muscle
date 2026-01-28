@@ -7,9 +7,10 @@
 
 namespace muscle {
 
-MessageTransceiverThread :: MessageTransceiverThread(ICallbackMechanism * optCallbackMechanism)
+MessageTransceiverThread :: MessageTransceiverThread(ICallbackMechanism * optCallbackMechanism, bool sendMessagesToOwner)
    : Thread(true, optCallbackMechanism)
    , _forwardAllIncomingMessagesToSupervisor(true)
+   , _sendMessagesToOwner(sendMessagesToOwner)
 {
    // empty
 }
@@ -448,7 +449,7 @@ void MessageTransceiverThread :: InternalThreadEntry()
       (void) _server()->ServerProcessLoop();
       _server()->Cleanup();
    }
-   (void) SendMessageToOwner(GetMessageFromPool(MTT_EVENT_SERVER_EXITED));
+   (void) MaybeSendMessageToOwner(GetMessageFromPool(MTT_EVENT_SERVER_EXITED));
 }
 
 ThreadWorkerSession :: ThreadWorkerSession()
@@ -637,7 +638,7 @@ void ThreadSupervisorSession :: AboutToDetachFromServer()
 
 void ThreadSupervisorSession :: DrainTagIsBeingDeleted(DrainTag * tag)
 {
-   if (_drainTags.Remove(tag).IsOK()) (void) _mtt->SendMessageToOwner(tag->GetReplyMessage());
+   if (_drainTags.Remove(tag).IsOK()) (void) _mtt->MaybeSendMessageToOwner(tag->GetReplyMessage());
 }
 
 AbstractMessageIOGatewayRef ThreadSupervisorSession :: CreateGateway()
@@ -666,13 +667,13 @@ void ThreadSupervisorSession :: MessageReceivedFromGateway(const MessageRef &, v
 void ThreadSupervisorSession :: MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msgRef, void *)
 {
    if (msgRef()) (void) msgRef()->AddString(MTT_NAME_FROMSESSION, from.GetSessionRootPath());
-   (void) _mtt->SendMessageToOwner(msgRef);
+   (void) _mtt->MaybeSendMessageToOwner(msgRef);
 }
 
 void ThreadSupervisorSession :: MessageReceivedFromFactory(ReflectSessionFactory & from, const MessageRef & msgRef, void *)
 {
    if (msgRef()) (void) msgRef()->AddInt32(MTT_NAME_FACTORY_ID, from.GetFactoryID());
-   (void) _mtt->SendMessageToOwner(msgRef);
+   (void) _mtt->MaybeSendMessageToOwner(msgRef);
 }
 
 bool ThreadSupervisorSession :: ClientConnectionClosed()
@@ -690,7 +691,7 @@ status_t ThreadSupervisorSession :: AddNewWorkerConnectSession(const AbstractRef
    {
       // We have to synthesize the MTT_NAME_FROMSESSION path ourselves, since the session was never added to the server and thus its path isn't set
       MessageRef errorMsg = GetMessageFromPool(MTT_EVENT_SESSION_DISCONNECTED);
-      if ((errorMsg())&&(errorMsg()->AddString(MTT_NAME_FROMSESSION, String("/%1/%2").Arg(Inet_NtoA(hostIAP.GetIPAddress())).Arg(sessionRef()->GetSessionID())).IsOK())) (void) _mtt->SendMessageToOwner(errorMsg);
+      if ((errorMsg())&&(errorMsg()->AddString(MTT_NAME_FROMSESSION, String("/%1/%2").Arg(Inet_NtoA(hostIAP.GetIPAddress())).Arg(sessionRef()->GetSessionID())).IsOK())) (void) _mtt->MaybeSendMessageToOwner(errorMsg);
    }
    return ret;
 }

@@ -315,8 +315,11 @@ public:
      * @param optCallbackMechanism if specified non-NULL, the SignalOwner() method will call
      *                             RequestCallbackInDispatchThread() on this object in order to request that
      *                             the dispatch-thread call DispatchCallbacks() later on.
+     * @param sendMessagesToOwner if set to false, we'll never send any reply Messages back to our owning
+     *                            thread.  Only set this false if you don't plan on every responding to reply Messages anyway.
+     *                            Defaults to true.
      */
-   MessageTransceiverThread(ICallbackMechanism * optCallbackMechanism = NULL);
+   MessageTransceiverThread(ICallbackMechanism * optCallbackMechanism = NULL, bool sendMessagesToOwner = true);
 
    /** Destructor.  If the internal thread was started, you must make sure it has been
      * shut down by calling ShutdownInternalThread() before deleting the MessageTransceiverThread object.
@@ -719,6 +722,7 @@ private:
    void UpdateWorkerSessionFactoryForwardingLogic(ThreadWorkerSessionFactoryRef & fRef) const;
    status_t SendAddNewSessionMessage(const AbstractReflectSessionRef & sessionRef, const ConstSocketRef & socket, const char * hostName, const IPAddressAndPort & hostIAP, bool expandLocalhost, uint64 autoReconnectDelay, uint64 maxAsyncConnectPeriod);
    status_t SetNewPolicyAux(uint32 what, const AbstractSessionIOPolicyRef & pref, const String & optDistPath);
+   status_t MaybeSendMessageToOwner(const MessageRef & msg) {return _sendMessagesToOwner ? SendMessageToOwner(msg) : B_NO_ERROR;}
 
    ReflectServerRef _server;
    String _defaultDistributionPath;
@@ -733,6 +737,7 @@ private:
    String _pskPassword;            // used for pre-shared-key connections
 
    bool _forwardAllIncomingMessagesToSupervisor;
+   const bool _sendMessagesToOwner;
 
    DECLARE_COUNTED_OBJECT(MessageTransceiverThread);
 };
