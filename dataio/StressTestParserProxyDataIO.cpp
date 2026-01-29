@@ -6,9 +6,9 @@ StressTestParserProxyDataIO :: StressTestParserProxyDataIO(const DataIORef & chi
    : ProxyDataIO(childIO)
    , _minChildWriteSize(minChildWriteSize)
    , _maxChildWriteSize(maxChildWriteSize)
-   , _optMinimumDelayBetweenWritesMicros(optMinimumDelayBetweenWritesMicros)
    , _outputBufferBytesSent(0)
    , _mostRecentChildWriteTime(0)
+   , _optMinimumDelayBetweenWritesMicros(optMinimumDelayBetweenWritesMicros)
 {
    // empty
 }
