@@ -4,6 +4,7 @@
 
 #include "dataio/ChildProcessDataIO.h"
 #include "dataio/FileDataIO.h"
+#include "dataio/StressTestParserProxyDataIO.cpp"
 #include "dataio/StdinDataIO.h"
 #include "dataio/TCPSocketDataIO.h"
 #include "dataio/RS232DataIO.h"
@@ -294,6 +295,24 @@ static void DoSession(DataIORef io, bool allowRead = true)
    }
 }
 
+static void DoSession(const Message & args, DataIORef io, bool allowRead = true)
+{
+   const char * stressMinBytesStr = args.GetCstr("stressminbytes");
+   const char * stressMaxBytesStr = args.GetCstr("stressmaxbytes");
+   const char * stressDelayStr    = args.GetCstr("stressdelay");
+
+   const uint32 minBytes = stressMinBytesStr ? atol(stressMinBytesStr) : 0;
+   const uint32 maxBytes = stressMaxBytesStr ? atol(stressMaxBytesStr) : MUSCLE_NO_LIMIT;
+   const uint64 delayMicros    = stressDelayStr    ? ParseHumanReadableUnsignedTimeIntervalString(stressDelayStr)  : 0;
+   if ((minBytes != 0)||(maxBytes != MUSCLE_NO_LIMIT))
+   {
+      LogTime(MUSCLE_LOG_INFO, "Enabled StressTestParserProxyDataIO on output data (minBytes=" UINT32_FORMAT_SPEC ", maxBytes=" UINT32_FORMAT_SPEC ", delay=%s)\n", minBytes, maxBytes, GetHumanReadableUnsignedTimeIntervalString(delayMicros)());
+      StressTestParserProxyDataIO stressIO(io, minBytes, maxBytes, delayMicros);
+      DoSession(DummyDataIORef(stressIO), allowRead);
+   }
+   else DoSession(io, allowRead);
+}
+
 static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticastGroup, int optBindPort, bool forceSharePort, const IPAddress & optExplicitLocalIP)
 {
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
@@ -529,7 +548,7 @@ int hextermmain(const char * argv0, const Message & args)
       if (cpdio.LaunchChildProcess(arg()).IsOK(ret))
       {
          LogTime(MUSCLE_LOG_INFO, "Communicating with child process (%s), childArgs=[%s]\n", childProgName(), childArgs());
-         DoSession(DummyDataIORef(cpdio));
+         DoSession(args, DummyDataIORef(cpdio));
          LogTime(MUSCLE_LOG_INFO, "Child process session aborted, exiting.\n");
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open child process (%s) with childArgs (%s) [%s]\n", childProgName(), childArgs(), ret());
@@ -557,7 +576,7 @@ int hextermmain(const char * argv0, const Message & args)
             if (io.IsPortAvailable())
             {
                LogTime(MUSCLE_LOG_INFO, "Communicating with serial port %s (baud rate " UINT32_FORMAT_SPEC ")\n", serName(), baudRate);
-               DoSession(DummyDataIORef(io));
+               DoSession(args, DummyDataIORef(io));
                LogTime(MUSCLE_LOG_INFO, "Serial session aborted, exiting.\n");
             }
             else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open serial device %s (baud rate " UINT32_FORMAT_SPEC ").\n", serName(), baudRate);
@@ -578,7 +597,7 @@ int hextermmain(const char * argv0, const Message & args)
       if (fdio.GetFile() != NULL)
       {
          LogTime(MUSCLE_LOG_INFO, "Reading input bytes from file [%s]\n", arg());
-         DoSession(DummyDataIORef(fdio));
+         DoSession(args, DummyDataIORef(fdio));
          LogTime(MUSCLE_LOG_INFO, "Reading of input file complete.\n");
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open input file [%s]\n", arg());
@@ -589,7 +608,7 @@ int hextermmain(const char * argv0, const Message & args)
       if (fdio.GetFile() != NULL)
       {
          LogTime(MUSCLE_LOG_INFO, "Writing output bytes to file [%s]\n", arg());
-         DoSession(DummyDataIORef(fdio), false);
+         DoSession(args, DummyDataIORef(fdio), false);
          LogTime(MUSCLE_LOG_INFO, "Writing of output file complete.\n");
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open input file [%s]\n", arg());
@@ -602,7 +621,7 @@ int hextermmain(const char * argv0, const Message & args)
       {
          LogTime(MUSCLE_LOG_INFO, "Connected to [%s:%i]\n", host(), port);
          TCPSocketDataIO io(ss, false);
-         DoSession(DummyDataIORef(io));
+         DoSession(args, DummyDataIORef(io));
          LogTime(MUSCLE_LOG_INFO, "Session socket disconnected, exiting.\n");
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to connect to %s [%s]\n", GetConnectString(host, port)(), ss.GetStatus()());
@@ -623,7 +642,7 @@ int hextermmain(const char * argv0, const Message & args)
                char hbuf[64]; Inet_NtoA(acceptedFromIP, hbuf);
                LogTime(MUSCLE_LOG_INFO, "Accepted TCP connection from %s on interface %s, awaiting data...\n", cbuf, hbuf);
                TCPSocketDataIO io(ss, false);
-               DoSession(DummyDataIORef(io));
+               DoSession(args, DummyDataIORef(io));
                LogTime(MUSCLE_LOG_ERROR, "Session socket disconnected, awaiting next connection.\n");
             }
          }

@@ -16,6 +16,10 @@ key:  - new feature
      MessageTransceiverThread constructor.  If set to false,
      the internal thread won't send any reply Messages back to
      the owning thread.
+   - Added a StressTestParserDataIO class, to produce varying
+     traffic patterns that help debug byte-stream parsers.
+   - Added "stressminbytes", "stressmaxbytes", and "stressdelay"
+     arguments to hexterm, to exercise StressTestParserDataIO.
 
 9.76 - Released 12/3/2025
    - Added an optional (expandMulticastScopes) argument to Inet_NtoA()
