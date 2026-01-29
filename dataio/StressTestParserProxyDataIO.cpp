@@ -4,11 +4,11 @@ namespace muscle {
 
 StressTestParserProxyDataIO :: StressTestParserProxyDataIO(const DataIORef & childIO, uint32 minChildWriteSize, uint32 maxChildWriteSize, uint64 optMinimumDelayBetweenWritesMicros)
    : ProxyDataIO(childIO)
+   , _outputBufferBytesSent(0)
    , _minChildWriteSize(minChildWriteSize)
    , _maxChildWriteSize(maxChildWriteSize)
-   , _outputBufferBytesSent(0)
-   , _mostRecentChildWriteTime(0)
    , _optMinimumDelayBetweenWritesMicros(optMinimumDelayBetweenWritesMicros)
+   , _mostRecentChildWriteTime(0)
 {
    // empty
 }

@@ -20,6 +20,8 @@ key:  - new feature
      traffic patterns that help debug byte-stream parsers.
    - Added "stressminbytes", "stressmaxbytes", and "stressdelay"
      arguments to hexterm, to exercise StressTestParserDataIO.
+   * Fixed a bug in WebSocketMessageIOGateway::DoOutputImplementation()
+     that was causing short writes to be handled incorrectly.
 
 9.76 - Released 12/3/2025
    - Added an optional (expandMulticastScopes) argument to Inet_NtoA()

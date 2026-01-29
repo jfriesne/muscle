@@ -434,7 +434,7 @@ io_status_t WebSocketMessageIOGateway :: DoOutputImplementation(uint32 maxBytes)
       return ret;
    }
 
-   int32 bytesWritten = 0;
+   int32 totalBytesWritten = 0;
    while(maxBytes > 0)
    {
       if (_outputBytesWritten < _outputBuf.GetNumBytes())
@@ -446,9 +446,9 @@ io_status_t WebSocketMessageIOGateway :: DoOutputImplementation(uint32 maxBytes)
          if (numBytesWritten > 0)
          {
             LogTime(MUSCLE_LOG_TRACE, "WebSocketMessageIOGateway::DoOutputImplementation():  %p wrote " INT32_FORMAT_SPEC " bytes of outgoing WebSocket data.\n", this, numBytesWritten);
-            bytesWritten        += numBytesWritten;
-            _outputBytesWritten += bytesWritten;
-            maxBytes            -= bytesWritten;
+            totalBytesWritten   += numBytesWritten;
+            _outputBytesWritten += numBytesWritten;
+            maxBytes            -= numBytesWritten;
          }
          else break;
       }
@@ -511,7 +511,7 @@ io_status_t WebSocketMessageIOGateway :: DoOutputImplementation(uint32 maxBytes)
       }
    }
 
-   return io_status_t(bytesWritten);
+   return io_status_t(totalBytesWritten);
 }
 
 status_t WebSocketMessageIOGateway :: CreateReplyFrame(const uint8 * data, uint32 numBytes, uint8 opCode)
