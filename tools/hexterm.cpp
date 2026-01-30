@@ -4,7 +4,7 @@
 
 #include "dataio/ChildProcessDataIO.h"
 #include "dataio/FileDataIO.h"
-#include "dataio/StressTestParserProxyDataIO.cpp"
+#include "dataio/StressTestParserProxyDataIO.h"
 #include "dataio/StdinDataIO.h"
 #include "dataio/TCPSocketDataIO.h"
 #include "dataio/RS232DataIO.h"
