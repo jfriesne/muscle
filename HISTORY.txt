@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added an ICallbackSubscriber constructor that takes its
+     ICallbackMechanism argument by-reference, for emcc's convenience.
+
 9.77 - Released 2/9/2026
    - muscle::Crash() now takes a file name and line number as
      arguments, for better crash-location debugging.

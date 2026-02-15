@@ -17,10 +17,16 @@ class ICallbackSubscriber
 {
 public:
    /** Constructor
-     * @param mechanism the ICallbackMechanism to register with.  May be NULL, if you plan
+     * @param mechanism pointer to the ICallbackMechanism to register with.  May be NULL, if you plan
      *                 to call SetCallbackMechanism() later, instead.
      */
    ICallbackSubscriber(ICallbackMechanism * mechanism) : _mechanism(NULL) {SetCallbackMechanism(mechanism);}
+
+   /** Constructor
+     * @param mechanism reference to the ICallbackMechanism to register with.
+     * @note this constructor exists primarily to make this class easier to bind to JavaScript code under emcc4.0.22+
+     */
+   ICallbackSubscriber(ICallbackMechanism & mechanism) : _mechanism(NULL) {SetCallbackMechanism(&mechanism);}
 
    /** Copy constructor
      * @param rhs the ICallbackSubscriber to copy from.  This subscriber will register with the same
