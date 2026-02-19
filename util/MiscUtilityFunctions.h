@@ -671,12 +671,19 @@ MUSCLE_NODISCARD float GetSystemMemoryUsagePercentage();
   */
 MUSCLE_NODISCARD uint64 GetProcessMemoryUsage();
 
+/** Similar to the above, but returns a status_t instead of a String
+  * @param envVarName the name of the environment variable whose value we want to know
+  * @param retValue on success, the environment variables' value will be written into this String
+  * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure
+  */
+status_t GetEnvironmentVariableValue(const String & envVarName, String & retValue);
+
 /** Convenience method for safely returning the value of an environment variable.
-  * @param envVarName the name of the environment variable to returns
+  * @param envVarName the name of the environment variable whose value we should return
   * @param defaultValue the value to return if the requested environment variable does not exist.
   *                     Defaults to an empty String.
   */
-String GetEnvironmentVariableValue(const String & envVarName, const String & defaultValue = GetEmptyString());
+String GetEnvironmentVariableValueWithDefault(const String & envVarName, const String & defaultValue = GetEmptyString());
 
 /** Returns a cheap-and-cheerful pseudo-random number between 0 and (maxVal-1)
   * @param maxVal If set, the number returned will be less than this value.  Defaults to MUSCLE_NO_LIMIT.

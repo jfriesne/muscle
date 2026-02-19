@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a new GetEnvironmentVariable() function that returns
+     a status_t and writes the string into an out-parameter.
+   o Renamed the existing GetEnvironmentVariable() function to
+     GetEnvironmentVariableWithDefault()
    - Added an ICallbackSubscriber constructor that takes its
      ICallbackMechanism argument by-reference, for emcc's convenience.
 

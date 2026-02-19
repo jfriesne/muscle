@@ -2707,16 +2707,52 @@ uint64 GetProcessMemoryUsage()
    return 0;
 }
 
-String GetEnvironmentVariableValue(const String & envVarName, const String & defaultValue)
+status_t GetEnvironmentVariableValue(const String & envVarName, String & retValue)
 {
-#ifdef _MSC_VER
-   char s[4096];
-   const DWORD res = GetEnvironmentVariableA(envVarName(), s, sizeof(s));
-   return (res > 0) ? String(s) : defaultValue;
+#ifdef WIN32
+   char s[1024];
+
+   const DWORD numChars = GetEnvironmentVariableA(envVarName(), s, sizeof(s));
+        if (numChars < 0) return B_LOGIC_ERROR;  // wtf?
+   else if (numChars == 0)  // either an error, or the env var exists and and is set to an empty string
+   {
+      switch(GetLastError())
+      {
+         case ERROR_SUCCESS:          retValue = GetEmptyString(); return B_NO_ERROR;
+         case ERROR_ENVVAR_NOT_FOUND:                              return B_DATA_NOT_FOUND;
+         default:                                                  return B_ERROR;
+      }
+   }
+   else if (numChars >= sizeof(s))  // our stack buffer was too small?
+   {
+      const uint32 heapBufSize = numChars+1;
+      char * heapBuf = newnothrow char[heapBufSize];
+      if (heapBuf == NULL) MRETURN_OUT_OF_MEMORY;
+
+      const DWORD newNumChars = GetEnvironmentVariableA(envVarName(), heapBuf, heapBufSize);
+      if (newNumChars < 0)
+      {
+         delete [] heapBuf;
+         return B_LOGIC_ERROR;
+      }
+      else
+      {
+         const status_t ret = retValue.SetCstr(heapBuf, newNumChars);
+         delete [] heapBuf;
+         return ret;
+      }
+   }
+   else return retValue.SetCstr(s, numChars);
 #else
    const char * s = getenv(envVarName());
-   return s ? String(s) : defaultValue;
+   return s ? retValue.SetCstr(s) : B_DATA_NOT_FOUND;
 #endif
+}
+
+String GetEnvironmentVariableValueWithDefault(const String & envVarName, const String & defaultValue)
+{
+   String temp;
+   return GetEnvironmentVariableValue(envVarName, temp).IsOK() ? temp : defaultValue;
 }
 
 void OutputPrinter :: printf(const char * fmt, ...) const

@@ -180,8 +180,8 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
 
       case SYSTEM_PATH_USERHOME:  // user's home directory
       {
-         String homeDir = GetEnvironmentVariableValue("HOME");
-         if (homeDir.IsEmpty()) homeDir = GetEnvironmentVariableValue("USERPROFILE");
+         String homeDir = GetEnvironmentVariableValueWithDefault("HOME");
+         if (homeDir.IsEmpty()) homeDir = GetEnvironmentVariableValueWithDefault("USERPROFILE");
 #ifndef WIN32
          if (homeDir.IsEmpty())
          {
@@ -214,7 +214,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
       case SYSTEM_PATH_ROOT:  // the highest possible directory
       {
 #ifdef WIN32
-         const String homeDrive = GetEnvironmentVariableValue("HOMEDRIVE");
+         const String homeDrive = GetEnvironmentVariableValueWithDefault("HOMEDRIVE");
          if (homeDrive.HasChars())
          {
             outStr = homeDrive;
