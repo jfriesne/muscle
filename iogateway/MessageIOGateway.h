@@ -246,13 +246,6 @@ protected:
    MUSCLE_NODISCARD virtual bool IsSynchronousPongMessage(const MessageRef & msg, uint32 syncPingCounter) const;
 
    /**
-     * Removes the next MessageRef from our outgoing Message queue and returns it in (retMsg).
-     * @param retMsg on success, the next MessageRef to send will be written into this MessageRef.
-     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (queue was empty)
-     */
-   virtual status_t PopNextOutgoingMessage(MessageRef & retMsg);
-
-   /**
      * Should return true iff we need to make sure that any outgoing Messages that we've deflated
      * are inflatable independently of each other.  The default method always returns false, since it
      * allowed better compression ratios if we can assume the receiver will be re-inflating the

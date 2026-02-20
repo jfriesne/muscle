@@ -65,7 +65,7 @@ void ProxyIOGateway :: HandleIncomingByteBuffer(AbstractGatewayMessageReceiver &
 void ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ)
 {
    MessageRef msg;
-   if (GetOutgoingMessageQueue().RemoveHead(msg).IsError()) return;
+   if (PopNextOutgoingMessage(msg).IsError()) return;
 
    if (_slaveGateway())
    {

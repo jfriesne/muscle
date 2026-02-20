@@ -52,14 +52,6 @@ protected:
    virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
    virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
 
-   /** Removes the next MessageRef from the head of our outgoing-Messages
-     * queue and returns it.  Returns a NULL MessageRef if there is no
-     * outgoing Message in the queue.
-     * (broken out into a virtual method so its behavior can be modified
-     * by subclasses, if necessary)
-     */
-   virtual MessageRef PopNextOutgoingMessage();
-
 private:
    MessageRef _sendMsgRef;
    const void * _sendBuf;
@@ -106,7 +98,7 @@ public:
    virtual void Reset();
 
 protected:
-   virtual MessageRef PopNextOutgoingMessage();
+   virtual status_t PopNextOutgoingMessage(MessageRef & retMsg);
 
 private:
    uint32 GetNumRawBytesInMessage(const MessageRef & messageRef) const;

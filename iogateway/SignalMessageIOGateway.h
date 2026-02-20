@@ -48,7 +48,9 @@ protected:
       (void) maxBytes;  // avoid compiler warning
 
       // Just eat and drop ... we don't really support outgoing messages
-      while(GetOutgoingMessageQueue().RemoveHead().IsOK()) {/* keep doing it */}
+      MessageRef junk;
+      while(PopNextOutgoingMessage(junk).IsOK()) {/* keep doing it */}
+
       return io_status_t();
    }
 

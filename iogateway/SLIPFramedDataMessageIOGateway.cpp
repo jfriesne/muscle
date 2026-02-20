@@ -82,27 +82,28 @@ static ByteBufferRef SLIPEncodeBytes(const uint8 * bytes, uint32 numBytes)
    return bufRef;
 }
 
-MessageRef SLIPFramedDataMessageIOGateway :: PopNextOutgoingMessage()
+status_t SLIPFramedDataMessageIOGateway :: PopNextOutgoingMessage(MessageRef & retMsg)
 {
-   MessageRef msg = RawDataMessageIOGateway::PopNextOutgoingMessage();
-   MRETURN_ON_ERROR(msg);
+   MessageRef rawMsg;
+   MRETURN_ON_ERROR(RawDataMessageIOGateway::PopNextOutgoingMessage(rawMsg));
 
-   MessageRef slipMsg = GetLightweightCopyOfMessageFromPool(*msg());
+   MessageRef slipMsg = GetLightweightCopyOfMessageFromPool(*rawMsg());
    MRETURN_ON_ERROR(slipMsg);
 
-   (void) slipMsg()->RemoveName(PR_NAME_DATA_CHUNKS);  // make sure we don't modify the field object in (msg)
+   (void) slipMsg()->RemoveName(PR_NAME_DATA_CHUNKS);  // make sure we don't modify the field object in (rawMsg)
 
-   // slipMsg will be like (msg), except that we've slip-encoded each data item
+   // slipMsg will be like (rawMsg), except that we've slip-encoded each data item
    const uint8 * buf;
    uint32 numBytes;
-   for (int32 i=0; msg()->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, i, (const void **) &buf, &numBytes).IsOK(); i++)
+   for (int32 i=0; rawMsg()->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, i, (const void **) &buf, &numBytes).IsOK(); i++)
    {
       ByteBufferRef slipData = SLIPEncodeBytes(buf, numBytes);
       MRETURN_ON_ERROR(slipData);
       MRETURN_ON_ERROR(slipMsg()->AddFlat(PR_NAME_DATA_CHUNKS, slipData));
    }
 
-   return slipMsg;
+   retMsg = slipMsg;
+   return B_NO_ERROR;
 }
 
 void SLIPFramedDataMessageIOGateway :: AddPendingByte(uint8 b)

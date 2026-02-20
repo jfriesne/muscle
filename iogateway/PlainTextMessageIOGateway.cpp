@@ -31,7 +31,7 @@ DoOutputImplementation(uint32 maxBytes)
       // It'll be up to the user to make sure not to put too much text in one Message
       io_status_t totalNumBytesSent;
       MessageRef nextMsg;
-      while(((uint32)totalNumBytesSent.GetByteCount() < maxBytes)&&(GetOutgoingMessageQueue().RemoveHead(nextMsg).IsOK()))
+      while(((uint32)totalNumBytesSent.GetByteCount() < maxBytes)&&(PopNextOutgoingMessage(nextMsg).IsOK()))
       {
          uint32 outBufLen = 1; // 1 for the one extra NUL byte at the end of all the strings (per String::Flatten(), below)
          const String * nextStr;
@@ -80,7 +80,7 @@ DoOutputImplementationAux(uint32 maxBytes, uint32 recurseDepth)
    if (msg == NULL)
    {
       // try to get the next message from our queue
-      (void) GetOutgoingMessageQueue().RemoveHead(_currentSendingMessage);
+      if (PopNextOutgoingMessage(_currentSendingMessage).IsError()) _currentSendingMessage.Reset();
       msg = _currentSendingMessage();
       _currentSendLineIndex = _currentSendOffset = -1;
    }

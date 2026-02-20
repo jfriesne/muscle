@@ -9,6 +9,8 @@ key:  - new feature
      a status_t and writes the string into an out-parameter.
    o Renamed the existing GetEnvironmentVariable() function to
      GetEnvironmentVariableWithDefault()
+   o Regularized the signature of the PopNextOutgoingMessage()
+     method so that it returns a status_t in all cases.
    - Added an ICallbackSubscriber constructor that takes its
      ICallbackMechanism argument by-reference, for emcc's convenience.
 

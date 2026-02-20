@@ -10,7 +10,7 @@
 namespace muscle {
 
 /** This is a utility class that you can subclass from when you want to implement a "decorator"
-  * gateway * that holds a child-gateway that it uses to create outgoing ByteBuffers and/or parse
+  * gateway that holds a child-gateway that it uses to create outgoing ByteBuffers and/or parse
   * incoming ByteBuffers before doing further processing on them.
   */
 class ProxyIOGateway : public AbstractMessageIOGateway

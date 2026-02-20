@@ -35,8 +35,11 @@ protected:
 protected:
    virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
 
-   /** Overridden to SLIP-encode the popped Message before returning it. */
-   virtual MessageRef PopNextOutgoingMessage();
+   /** Overridden to SLIP-encode the popped Message before returning it.
+     * @param retMsg on success, the SLIP-encoded Message is placed here
+     * @returns B_NO_ERROR on success, or another value (e.g. B_DATA_NOT_FOUND) on error (queue empty?)
+     */
+   virtual status_t PopNextOutgoingMessage(MessageRef & retMsg);
 
 private:
    void AddPendingByte(uint8 b);

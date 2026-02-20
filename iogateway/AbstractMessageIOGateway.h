@@ -220,6 +220,13 @@ protected:
    /** Called by ExecuteSynchronousMessaging() to see if we are still awaiting our reply Messages.  Default implementation calls HasBytesToOutput() and returns that value. */
    MUSCLE_NODISCARD virtual bool IsStillAwaitingSynchronousMessagingReply() const {return HasBytesToOutput();}
 
+   /**
+     * Removes the next MessageRef from the head of our outgoing Message queue and returns it in (retMsg).
+     * @param retMsg on success, the next MessageRef to send will be written into this MessageRef.
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (outgoing message queue was empty)
+     */
+   virtual status_t PopNextOutgoingMessage(MessageRef & retMsg) {return _outgoingMessages.RemoveHead(retMsg);}
+
    /** Called by ExecuteSynchronousMessaging() when a Message is received.  Default implementation just passes the call on to the like-named method in (r)
      * @param msg the Message that was received
      * @param userData the user-data pointer, as was passed to ExecuteSynchronousMessaging()

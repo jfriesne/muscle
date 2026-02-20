@@ -38,7 +38,7 @@ DoOutputImplementation(uint32 maxBytes)
    if (msg == NULL)
    {
       // try to get the next message from our queue
-      _sendMsgRef = PopNextOutgoingMessage();
+      if (PopNextOutgoingMessage(_sendMsgRef).IsError()) _sendMsgRef.Reset();
       msg = _sendMsgRef();
       _sendBufLength = _sendBufIndex = _sendBufByteOffset = -1;
    }
@@ -214,13 +214,6 @@ Reset()
    _recvMsgRef.Reset();
 }
 
-MessageRef
-RawDataMessageIOGateway ::
-PopNextOutgoingMessage()
-{
-   return GetOutgoingMessageQueue().RemoveHeadWithDefault();
-}
-
 CountedRawDataMessageIOGateway :: CountedRawDataMessageIOGateway(uint32 minChunkSize, uint32 maxChunkSize)
    : RawDataMessageIOGateway(minChunkSize, maxChunkSize)
    , _outgoingByteCount(0)
@@ -244,17 +237,18 @@ void CountedRawDataMessageIOGateway :: Reset()
    _outgoingByteCount = 0;
 }
 
-MessageRef CountedRawDataMessageIOGateway :: PopNextOutgoingMessage()
+status_t CountedRawDataMessageIOGateway :: PopNextOutgoingMessage(MessageRef & retMsg)
 {
-   MessageRef ret = RawDataMessageIOGateway::PopNextOutgoingMessage();
+   MRETURN_ON_ERROR(RawDataMessageIOGateway::PopNextOutgoingMessage(retMsg));
+
    if (GetOutgoingMessageQueue().HasItems())
    {
-      const uint32 retSize = GetNumRawBytesInMessage(ret);
+      const uint32 retSize = GetNumRawBytesInMessage(retMsg);
       _outgoingByteCount = (retSize<_outgoingByteCount) ? (_outgoingByteCount-retSize) : 0;  // paranoia to avoid underflow
    }
    else _outgoingByteCount = 0;  // semi-paranoia about meddling via GetOutgoingMessageQueue() access
 
-   return ret;
+   return B_NO_ERROR;
 }
 
 uint32 CountedRawDataMessageIOGateway :: GetNumRawBytesInMessage(const MessageRef & messageRef) const

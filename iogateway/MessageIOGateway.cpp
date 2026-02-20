@@ -59,13 +59,6 @@ MessageIOGateway :: ~MessageIOGateway()
 #endif
 }
 
-status_t
-MessageIOGateway ::
-PopNextOutgoingMessage(MessageRef & retMsg)
-{
-   return GetOutgoingMessageQueue().RemoveHead(retMsg);
-}
-
 // For this method, B_NO_ERROR means "keep sending", and B_ERROR means "stop sending for now", and isn't fatal to the stream
 // If there is a fatal error in the stream it will call SetUnrecoverableErrorStatus() to indicate that.
 status_t
