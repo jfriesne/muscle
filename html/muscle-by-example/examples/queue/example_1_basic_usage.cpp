@@ -28,6 +28,7 @@ int main(int argc, char ** argv)
       (void) q.AddTail(15);   // the return values of the AddTail() calls
       (void) q.AddTail(20);
 
+      // Simple (non-iterator-based) way to iterate over the items in a Queue
       for (uint32 i=0; i<q.GetNumItems(); i++)
       {
          printf("   Value at position #" UINT32_FORMAT_SPEC " is:  %i\n", i, q[i]);
@@ -47,9 +48,10 @@ int main(int argc, char ** argv)
       (void) q.AddHead(15);
       (void) q.AddHead(20);
 
-      for (uint32 i=0; i<q.GetNumItems(); i++)
+      // Alternative (safer) way to iterate over the items of a Queue
+      for (QueueIterator<int> qIter(q); qIter.HasData(); qIter++)
       {
-         printf("   Value at position #" UINT32_FORMAT_SPEC " is:  %i\n", i, q[i]);
+         printf("   Value at position #" UINT32_FORMAT_SPEC " is:  %i\n", qIter.GetIndex(), qIter.GetValue());
       }
    }
 

@@ -168,13 +168,19 @@ static status_t UnitTestQueue(bool isFromScript)
       for (QueueIterator<int> qIter(q); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Basic backward iteration:\n");
-      for (QueueIterator<int> qIter = q.GetIteratorAtEnd(); qIter.HasData(); qIter--) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (QueueIterator<int> qIter = q.GetBackwardIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Forward starting at third index:\n");
       for (QueueIterator<int> qIter = q.GetIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Backward starting at third index:\n");
-      for (QueueIterator<int> qIter = q.GetIteratorAt(2); qIter.HasData(); qIter--) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (QueueIterator<int> qIter = q.GetBackwardIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+
+      printf("  Forward at double-stride:\n");
+      for (QueueIterator<int> qIter(q, 0, 2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+
+      printf("  Increment as we go:\n");
+      for (QueueIterator<int> qIter = q.GetIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), ++qIter.GetValueUnchecked());
    }
 
    // Check that C++11's move semantics aren't stealing values they shouldn't

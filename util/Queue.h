@@ -69,38 +69,44 @@ public:
     * constructor are "empty", so they won't be useful until you set them equal to a
     * QueueIterator that was returned by Queue::GetIterator().
     */
-   QueueIterator() : _queue(&GetDefaultObjectForType<QueueType>()), _currentIndex(0) {/* empty */}
+   QueueIterator() : _queue(&GetDefaultObjectForType<QueueType>()), _currentIndex(0), _stride(1) {/* empty */}
 
    /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIteratorAt().
      * @param table the Queue to iterate over.
      * @param startIndex index of the first value that should be returned by the iteration.  If (startIndex) is not a valid index into
      *                   the Queue, this iterator will not return any results.  Defaults to zero.
+     * @param stride the number our ++() operator should add to our current-index state.  Defaults to 1 (i.e. forward-iteration)
+     *               but you could pass -1 for backward-iteration, or even other values if you wanted to skip past items during the iteration.
      * @note the QueueIterator assumes that (table) will remain valid during QueueIterator operations.
      */
-   QueueIterator(const QueueType & table, uint32 startIndex = 0) : _queue(&table), _currentIndex(startIndex) {/* empty */}
+   QueueIterator(const QueueType & table, uint32 startIndex = 0, int32 stride = 1) : _queue(&table), _currentIndex(startIndex), _stride(stride) {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   QueueIterator(const QueueIterator & rhs) : _queue(rhs._queue), _currentIndex(rhs._currentIndex) {/* empty */}
+   QueueIterator(const QueueIterator & rhs) : _queue(rhs._queue), _currentIndex(rhs._currentIndex), _stride(rhs._stride) {/* empty */}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** This constructor is declared deleted to keep QueueIterators from being accidentally associated with temporary objects */
    QueueIterator(QueueType && table) = delete;
 
    /** This constructor is declared deleted to keep QueueIterators from being accidentally associated with temporary objects */
-   QueueIterator(QueueType && table, uint32 startIndex) = delete;
+   QueueIterator(QueueType && table, uint32 startIndex, int32 stride) = delete;
 #endif
 
    /** Destructor */
    ~QueueIterator() {/* empty */}
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
-   QueueIterator & operator=(const QueueIterator & rhs) {_queue = rhs._queue; _currentIndex = rhs._currentIndex; return *this;}
+   QueueIterator & operator=(const QueueIterator & rhs) {_queue = rhs._queue; _currentIndex = rhs._currentIndex; _stride = rhs._stride; return *this;}
 
-   /** Advances this iterator by one entry in the table.  */
-   void operator++(int) {_currentIndex++;}
+   /** Advances this iterator by one step in the table.
+     * @note the direction and stride of the step is determined by the (stride) argument to our constructor
+     */
+   void operator++(int) {_currentIndex += _stride;}
 
-   /** Retracts this iterator by one entry in the table.  The opposite of the ++ operator. */
-   void operator--(int) {_currentIndex--;}
+   /** Retracts this iterator by one step in the table.  The opposite of the ++ operator.
+     * @note the direction and stride of the step is determined by the (stride) argument to our constructor
+     */
+   void operator--(int) {_currentIndex -= _stride;}
 
    /** Returns true iff this iterator is pointing to valid key/value data. */
    MUSCLE_NODISCARD bool HasData() const {return _queue->IsIndexValid(_currentIndex);}
@@ -121,20 +127,15 @@ public:
     */
    MUSCLE_NODISCARD ItemType & GetValueUnchecked() const {return *_queue->GetItemAtUnchecked(_currentIndex);}
 
-   /** Convenience method.  Returns true iff we are currently referencing the first value in the Queue. */
-   MUSCLE_NODISCARD bool IsAtStart() const {return ((_currentIndex == 0)&&(HasData()));}
-
-   /** Convenience method.  Returns true iff we are currently referencing the final value in the Queue. */
-   MUSCLE_NODISCARD bool IsAtEnd() const {return ((HasData())&&(_currentIndex == _queue->GetLastValidIndex()));}
-
    /** This method swaps the state of this iterator with the iterator in the argument.
     *  @param swapMe The iterator whose state we are to swap with
     */
-   void SwapContents(QueueIterator & swapMe) MUSCLE_NOEXCEPT {muscleSwap(_queue, swapMe._queue); muscleSwap(_currentIndex, swapMe._currentIndex);}
+   void SwapContents(QueueIterator & swapMe) MUSCLE_NOEXCEPT {muscleSwap(_queue, swapMe._queue); muscleSwap(_currentIndex, swapMe._currentIndex); muscleSwap(_stride, swapMe._stride);}
 
 private:
    const QueueType * _queue;  // table that we are associated with (guaranteed never to be NULL)
    uint32 _currentIndex;
+   int32 _stride;  // e.g. 1 for forward-iteration, or -1 for reverse-iteration
 };
 
 /** This class implements a templated double-ended-queue data structure, using
@@ -650,18 +651,24 @@ public:
    MUSCLE_NODISCARD IteratorType GetIterator() const {return IteratorType(*this);}
 
    /** Returns a forward-iterator for use with this table, starting at the given index.
-     * @param startAt The index in this Queue to start the iteration at (0=first item, 1=second, and so on)
+     * @param startAtIndex The index in this Queue to start the iteration at (0=first item, 1=second, and so on)
      * @return an iterator object that can be used to examine the items in the Queue, starting at
      *         the specified index.  If the specified index isn't valid for this table, an empty iterator will be returned.
      */
    MUSCLE_NODISCARD IteratorType GetIteratorAt(uint32 startAtIndex) const {return IteratorType(*this, startAtIndex);}
 
-   /** Convenience method:  Returns an iterator that is currently pointing to the final value in the Queue.
+   /** Convenience method:  Returns an iterator that is currently pointing to the final value in the Queue and iterates towards the start of the Queue.
      * @return an iterator object that can be used to examine the items in the Queue, starting at
      *         the specified index.  If the specified index isn't valid for this table, an empty iterator will be returned.
-     * @note this method is particularly useful for doing a reverse-iteration (i.e. using the Iterator's --() operator to iterate backwards)
      */
-   MUSCLE_NODISCARD IteratorType GetIteratorAtEnd() const {return IteratorType(*this, GetLastValidIndex());}
+   MUSCLE_NODISCARD IteratorType GetBackwardIterator() const {return IteratorType(*this, GetLastValidIndex(), -1);}
+
+   /** Convenience method:  Returns an iterator that is currently pointing to the (nth) item in the Queue and iterates towards the start of the Queue.
+     * @param startAtIndex The index in this Queue to start the backwards-iteration at (0=first item, 1=second, and so on, relative to the front of the Queue)
+     * @return an iterator object that can be used to examine the items in the Queue, starting at
+     *         the specified index.  If the specified index isn't valid for this table, an empty iterator will be returned.
+     */
+   MUSCLE_NODISCARD IteratorType GetBackwardIteratorAt(uint32 startAtIndex) const {return IteratorType(*this, startAtIndex, -1);}
 
    /** Makes sure there is enough space allocated for at least (numSlots) items.
     *  You only need to call this if you wish to minimize the number of data re-allocations done,

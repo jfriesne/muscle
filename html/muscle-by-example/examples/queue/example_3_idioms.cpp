@@ -70,7 +70,7 @@ int main(int argc, char ** argv)
 void PrintQueue(const char * desc, const Queue<String> & q)
 {
    printf("%s (" UINT32_FORMAT_SPEC " items in Queue):\n", desc, q.GetNumItems());
-   for (uint32 i=0; i<q.GetNumItems(); i++) printf("   %s\n", q[i]());
+   for (QueueIterator<String> qIter(q); qIter.HasData(); qIter++) printf("   %s\n", qIter.GetValue()());
    printf("\n");
 }
 

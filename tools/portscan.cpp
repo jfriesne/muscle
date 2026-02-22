@@ -47,7 +47,7 @@ int main(int argc, char ** argv)
    if (foundPorts.HasItems())
    {
       LogTime(MUSCLE_LOG_INFO, "The following " UINT32_FORMAT_SPEC " TCP ports were found open:\n", foundPorts.GetNumItems());
-      for (uint32 i=0; i<foundPorts.GetNumItems(); i++) LogTime(MUSCLE_LOG_INFO, "    %i\n", foundPorts[i]);
+      for (QueueIterator<int> qIter(foundPorts); qIter.HasData(); qIter++) LogTime(MUSCLE_LOG_INFO, "    %i\n", qIter.GetValue());
    }
    else LogTime(MUSCLE_LOG_INFO, "No TCP ports were found open.\n");
 
