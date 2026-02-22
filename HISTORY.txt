@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added a QueueIterator convenience class to Queue.h, for
+     safer iteration over the items in a Queue.
    - Added a new GetEnvironmentVariable() function that returns
      a status_t and writes the string into an out-parameter.
    o Renamed the existing GetEnvironmentVariable() function to
