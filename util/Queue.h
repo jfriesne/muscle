@@ -132,6 +132,9 @@ public:
     */
    void SwapContents(QueueIterator & swapMe) MUSCLE_NOEXCEPT {muscleSwap(_queue, swapMe._queue); muscleSwap(_currentIndex, swapMe._currentIndex); muscleSwap(_stride, swapMe._stride);}
 
+   /** Synonym for GetValue(), so that you can write *qIter instead of qIter.GetValue() */
+   MUSCLE_NODISCARD const ItemType & operator *() const {return GetValue();}
+
 private:
    const QueueType * _queue;  // table that we are associated with (guaranteed never to be NULL)
    uint32 _currentIndex;

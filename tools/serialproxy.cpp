@@ -133,11 +133,11 @@ int main(int argc, char ** argv)
       if (RS232DataIO::GetAvailableSerialPortNames(devs).IsOK())
       {
          String serName;
-         for (int32 i=devs.GetLastValidIndex(); i>=0; i--)
+         for (QueueIterator<String> qIter = devs.GetBackwardIterator(); qIter.HasData(); qIter++)
          {
-            if (devs[i] == devName)
+            if (*qIter == devName)
             {
-               serName = devs[i];
+               serName = *qIter;
                break;
             }
          }
@@ -174,7 +174,7 @@ int main(int argc, char ** argv)
          {
             LogTime(MUSCLE_LOG_CRITICALERROR, "Serial device %s not found.\n", devName());
             LogTime(MUSCLE_LOG_CRITICALERROR, "Available serial devices are:\n");
-            for (uint32 i=0; i<devs.GetNumItems(); i++) LogTime(MUSCLE_LOG_CRITICALERROR, "   %s\n", devs[i]());
+            for (QueueIterator<String> qIter(devs); qIter.HasData(); qIter++) LogTime(MUSCLE_LOG_CRITICALERROR, "   %s\n", (*qIter)());
          }
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Could not get list of serial device names!\n");

@@ -1460,7 +1460,7 @@ PathMatches(DataNode & node, ConstMessageRef & optData, const PathMatcherEntry &
    if ((int32)nextSubscription->GetStringMatchers().GetNumItems() != ((int32)node.GetDepth())-rootDepth) return false;  // only paths with the same number of clauses as the node's path (less rootDepth) can ever match
 
    DataNode * travNode = &node;
-   for (int j=nextSubscription->GetStringMatchers().GetLastValidIndex(); j>=rootDepth; j--,travNode=travNode->GetParent())
+   for (int32 j=nextSubscription->GetStringMatchers().GetLastValidIndex(); j>=rootDepth; j--,travNode=travNode->GetParent())
    {
       const StringMatcher * nextMatcher = nextSubscription->GetStringMatchers().GetItemAt(j)->GetItemPointer();
       if ((nextMatcher)&&(nextMatcher->Match(travNode->GetNodeName()()) == false)) return false;
