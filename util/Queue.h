@@ -125,7 +125,7 @@ public:
     * @note this method's implementation does no error-checking at all, so be entirely certain that this iterator
     *       is pointing to a valid item (i.e. HasData() returns true) before calling it, or you'll invoke undefined behavior.
     */
-   MUSCLE_NODISCARD ItemType & GetValueUnchecked() const {return *_queue->GetItemAtUnchecked(_currentIndex);}
+   MUSCLE_NODISCARD ItemType & GetValueUnchecked() const {return _queue->GetItemAtUnchecked(_currentIndex);}
 
    /** This method swaps the state of this iterator with the iterator in the argument.
     *  @param swapMe The iterator whose state we are to swap with
@@ -452,15 +452,13 @@ public:
     *  @param index Index of the item to return a pointer to.
     *  @return a pointer to the internally held item, or NULL if (index) was invalid.
     */
-   MUSCLE_NODISCARD ItemType * GetItemAt(uint32 index) const {return IsIndexValid(index)?GetItemAtUnchecked(index):NULL;}
+   MUSCLE_NODISCARD ItemType * GetItemAt(uint32 index) const {return IsIndexValid(index) ? &GetItemAtUnchecked(index) : NULL;}
 
-   /** The same as GetItemAt(), except this version doesn't check to make sure
-    *  (index) is valid.
-    *  @param index Index of the item to return a pointer to.  Must be a valid index!
-    *  @return a pointer to the internally held item.  The returned value is undefined
-    *          if the index isn't valid, so be careful!
+   /** Similar to GetItemAt(), except this version doesn't check to make sure (index) is valid.
+    *  @param index Index of the item to return a reference to.  Must be a valid index!
+    *  @return a reference to the internally-held item.  The returned value is undefined if the index isn't valid, so be careful!
     */
-   MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL ItemType * GetItemAtUnchecked(uint32 index) const {return &_queue[InternalizeIndex(index)];}
+   MUSCLE_NODISCARD ItemType & GetItemAtUnchecked(uint32 index) const {return _queue[InternalizeIndex(index)];}
 
    /** Returns a reference to the (index)'th item in the Queue, if such an item exists,
      * or a reference to a default item if it doesn't.  Unlike the [] operator,
@@ -595,10 +593,10 @@ public:
    MUSCLE_NODISCARD bool HasItems() const {return (_itemCount > 0);}
 
    /** Returns a read-only reference to the first item in the Queue.  You must not call this when the Queue is empty! */
-   MUSCLE_NODISCARD const ItemType & Head() const {return *GetItemAtUnchecked(0);}
+   MUSCLE_NODISCARD const ItemType & Head() const {return GetItemAtUnchecked(0);}
 
    /** Returns a read-only reference to the last item in the Queue.  You must not call this when the Queue is empty! */
-   MUSCLE_NODISCARD const ItemType & Tail() const {return *GetItemAtUnchecked(_itemCount-1);}
+   MUSCLE_NODISCARD const ItemType & Tail() const {return GetItemAtUnchecked(_itemCount-1);}
 
    /** Returns a read-only reference the first item in the Queue, or a reference to a default-constructed item if the Queue is empty. */
    MUSCLE_NODISCARD const ItemType & HeadWithDefault() const {return HasItems() ? Head() : GetDefaultItem();}
@@ -623,10 +621,10 @@ public:
    MUSCLE_NODISCARD ItemType TailWithDefault(const ItemType & defaultItem) const {return HasItems() ? Tail() : defaultItem;}
 
    /** Returns a writable reference the first item in the Queue.  You must not call this when the Queue is empty! */
-   MUSCLE_NODISCARD ItemType & Head() {return *GetItemAtUnchecked(0);}
+   MUSCLE_NODISCARD ItemType & Head() {return GetItemAtUnchecked(0);}
 
    /** Returns a writable reference the last item in the Queue.  You must not call this when the Queue is empty! */
-   MUSCLE_NODISCARD ItemType & Tail() {return *GetItemAtUnchecked(_itemCount-1);}
+   MUSCLE_NODISCARD ItemType & Tail() {return GetItemAtUnchecked(_itemCount-1);}
 
    /** Returns a pointer to the first item in the Queue, or NULL if the Queue is empty */
    MUSCLE_NODISCARD ItemType * HeadPointer() const {return GetItemAt(0);}
@@ -1147,7 +1145,7 @@ const ItemType &
 Queue<ItemType>::operator[](uint32 i) const
 {
    MASSERT(IsIndexValid(i), "Invalid index to Queue::[]");
-   return *GetItemAtUnchecked(i);
+   return GetItemAtUnchecked(i);
 }
 
 template <class ItemType>
@@ -1530,13 +1528,13 @@ InsertItemAt(uint32 index, QQ_SinkItemParam item)
    {
       // Add a space at the front, and shift things back
       MRETURN_ON_ERROR(AddHead());  // allocate an extra slot
-      for (uint32 i=0; i<index; i++) (void) ReplaceItemAt(i, QQ_ForwardItem(*GetItemAtUnchecked(i+1)));
+      for (uint32 i=0; i<index; i++) (void) ReplaceItemAt(i, QQ_ForwardItem(GetItemAtUnchecked(i+1)));
    }
    else
    {
       // Add a space at the rear, and shift things forward
       MRETURN_ON_ERROR(AddTail());  // allocate an extra slot
-      for (int32 i=((int32)_itemCount)-1; i>((int32)index); i--) (void) ReplaceItemAt(i, QQ_ForwardItem(*GetItemAtUnchecked(i-1)));
+      for (int32 i=((int32)_itemCount)-1; i>((int32)index); i--) (void) ReplaceItemAt(i, QQ_ForwardItem(GetItemAtUnchecked(i-1)));
    }
    return ReplaceItemAt(index, QQ_ForwardItem(item));
 }
@@ -1641,7 +1639,7 @@ EnsureSizeAux(uint32 size, bool setNumItems, uint32 extraPreallocs, ItemType ** 
       if (_queue)  // just to make Coverity happy
       {
          for (uint32 i=0; i<_itemCount; i++)
-            newQueue[i] = QQ_PlunderItem(*GetItemAtUnchecked(i));  // we know that (_itemCount < size)
+            newQueue[i] = QQ_PlunderItem(GetItemAtUnchecked(i));  // we know that (_itemCount < size)
       }
 
       if (setNumItems) _itemCount = size;
@@ -1686,7 +1684,7 @@ IndexOf(const ItemType & item, uint32 startAt, uint32 endAtPlusOne) const
    if (startAt >= GetNumItems()) return -1;
 
    endAtPlusOne = muscleMin(endAtPlusOne, GetNumItems());
-   for (uint32 i=startAt; i<endAtPlusOne; i++) if (*GetItemAtUnchecked(i) == item) return i;
+   for (uint32 i=startAt; i<endAtPlusOne; i++) if (GetItemAtUnchecked(i) == item) return i;
    return -1;
 }
 
@@ -1698,7 +1696,7 @@ LastIndexOf(const ItemType & item, uint32 startAt, uint32 endAt) const
    if (endAt >= GetNumItems()) return -1;
 
    startAt = muscleMin(startAt, GetNumItems()-1);
-   for (int32 i=(int32)startAt; i>=((int32)endAt); i--) if (*GetItemAtUnchecked(i) == item) return i;
+   for (int32 i=(int32)startAt; i>=((int32)endAt); i--) if (GetItemAtUnchecked(i) == item) return i;
    return -1;
 }
 
@@ -1743,7 +1741,7 @@ Sort(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, void * o
             {
                for (uint32 j=i; j>from; j--)
                {
-                  const int ret = compareFunctor.Compare(*(GetItemAtUnchecked(j)), *(GetItemAtUnchecked(j-1)), optCookie);
+                  const int ret = compareFunctor.Compare(GetItemAtUnchecked(j), GetItemAtUnchecked(j-1), optCookie);
                   if (ret < 0) Swap(j, j-1);
                           else break;
                }
@@ -1865,7 +1863,7 @@ Merge(const CompareFunctorType & compareFunctor, uint32 from, uint32 pivot, uint
    {
       if (len1+len2 == 2)
       {
-         if (compareFunctor.Compare(*(GetItemAtUnchecked(pivot)), *(GetItemAtUnchecked(from)), optCookie) < 0) Swap(pivot, from);
+         if (compareFunctor.Compare(GetItemAtUnchecked(pivot), GetItemAtUnchecked(from), optCookie) < 0) Swap(pivot, from);
       }
       else
       {
@@ -1875,14 +1873,14 @@ Merge(const CompareFunctorType & compareFunctor, uint32 from, uint32 pivot, uint
          {
             len11      = len1/2;
             first_cut  = from + len11;
-            second_cut = Lower(compareFunctor, pivot, to, *GetItemAtUnchecked(first_cut), optCookie);
+            second_cut = Lower(compareFunctor, pivot, to, GetItemAtUnchecked(first_cut), optCookie);
             len22      = second_cut - pivot;
          }
          else
          {
             len22      = len2/2;
             second_cut = pivot + len22;
-            first_cut  = Upper(compareFunctor, from, pivot, *GetItemAtUnchecked(second_cut), optCookie);
+            first_cut  = Upper(compareFunctor, from, pivot, GetItemAtUnchecked(second_cut), optCookie);
             len11      = first_cut - from;
          }
 
@@ -1904,13 +1902,13 @@ Merge(const CompareFunctorType & compareFunctor, uint32 from, uint32 pivot, uint
 
             while(n--)
             {
-               ItemType val = QQ_PlunderItem(*GetItemAtUnchecked(first_cut+n));
+               ItemType val = QQ_PlunderItem(GetItemAtUnchecked(first_cut+n));
                const uint32 shift = pivot - first_cut;
                uint32 p1 = first_cut+n;
                uint32 p2 = p1+shift;
                while (p2 != first_cut + n)
                {
-                  (void) ReplaceItemAt(p1, QQ_PlunderItem(*GetItemAtUnchecked(p2)));
+                  (void) ReplaceItemAt(p1, QQ_PlunderItem(GetItemAtUnchecked(p2)));
                   p1 = p2;
                   if (second_cut - p2 > shift) p2 += shift;
                                           else p2  = first_cut + (shift - (second_cut - p2));
@@ -1940,7 +1938,7 @@ Lower(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, const I
       {
          const uint32 half = len/2;
          const uint32 mid  = from + half;
-         if (compareFunctor.Compare(*(GetItemAtUnchecked(mid)), val, optCookie) < 0)
+         if (compareFunctor.Compare(GetItemAtUnchecked(mid), val, optCookie) < 0)
          {
             from = mid+1;
             len  = len - half - 1;
@@ -1964,7 +1962,7 @@ Upper(const CompareFunctorType & compareFunctor, uint32 from, uint32 to, const I
       {
          const uint32 half = len/2;
          const uint32 mid  = from + half;
-         if (compareFunctor.Compare(val, *(GetItemAtUnchecked(mid)), optCookie) < 0) len = half;
+         if (compareFunctor.Compare(val, GetItemAtUnchecked(mid), optCookie) < 0) len = half;
          else
          {
             from = mid+1;

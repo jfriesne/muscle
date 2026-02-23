@@ -11,6 +11,8 @@ key:  - new feature
      and GetBackwardIteratorAt() methods to the Queue class.
    - Added a new GetEnvironmentVariable() function that returns
      a status_t and writes the string into an out-parameter.
+   o Modified Queue::GetItemAtUnchecked() to return a reference
+     instead of a pointer, since it can never return NULL anyway.
    o Renamed the existing GetEnvironmentVariable() function to
      GetEnvironmentVariableWithDefault()
    o Regularized the signature of the PopNextOutgoingMessage()
