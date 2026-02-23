@@ -38,14 +38,14 @@ template <class ItemType> class Queue; // forward declaration
 /**
  * This class is an iterator object, useful for iterating over the sequence
  * of items in a Queue.  You can use this if you prefer syntax that is a little
- * safer than the traditional for (uint32 i=0; i<q.GetNumItems(); i++) {...} loop.
+ * safer than the traditional <pre>for (uint32 i=0; i<q.GetNumItems(); i++) {...}</pre> loop.
  *
  * Given a Queue object, you can obtain one or more of these
  * iterator objects by calling the Queue's GetIterator() method;
  * or you can just specify the Queue you want to iterate over as
  * an argument to the QueueIterator constructor.
  *
- * The most common form for a Queue iteration is this:
+ * The most common form for a Queue iteration is this:<pre>
  *
  * const Queue<int> q = {1,2,3};
  * for (QueueIterator<int> iter(q); iter.HasData(); iter++)
@@ -53,7 +53,7 @@ template <class ItemType> class Queue; // forward declaration
  *    const uint32 idx = iter.GetIndex();
  *    const int & nextValue = iter.GetValue();
  *    [...]
- * }
+ * }</pre>
  *
  * @tparam ItemType the type of values that this object will iterate over.
  */
@@ -71,25 +71,28 @@ public:
     */
    QueueIterator() : _queue(&GetDefaultObjectForType<QueueType>()), _currentIndex(0), _stride(1) {/* empty */}
 
-   /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIteratorAt().
-     * @param table the Queue to iterate over.
+   /** Convenience Constructor -- makes an iterator equivalent to the value returned by queue.GetIteratorAt().
+     * @param queue the Queue to iterate over.
      * @param startIndex index of the first value that should be returned by the iteration.  If (startIndex) is not a valid index into
      *                   the Queue, this iterator will not return any results.  Defaults to zero.
      * @param stride the number our ++() operator should add to our current-index state.  Defaults to 1 (i.e. forward-iteration)
      *               but you could pass -1 for backward-iteration, or even other values if you wanted to skip past items during the iteration.
-     * @note the QueueIterator assumes that (table) will remain valid during QueueIterator operations.
+     * @note the QueueIterator object retains a pointer to (queue) and requires that pointer to remain valid during its iteration.
      */
-   QueueIterator(const QueueType & table, uint32 startIndex = 0, int32 stride = 1) : _queue(&table), _currentIndex(startIndex), _stride(stride) {/* empty */}
+   QueueIterator(const QueueType & queue, uint32 startIndex = 0, int32 stride = 1) : _queue(&queue), _currentIndex(startIndex), _stride(stride) {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    QueueIterator(const QueueIterator & rhs) : _queue(rhs._queue), _currentIndex(rhs._currentIndex), _stride(rhs._stride) {/* empty */}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
-   /** This constructor is declared deleted to keep QueueIterators from being accidentally associated with temporary objects */
-   QueueIterator(QueueType && table) = delete;
+   /** This constructor is declared deleted to keep QueueIterators from being accidentally associated with temporary Queue objects */
+   QueueIterator(QueueType &&) = delete;
 
-   /** This constructor is declared deleted to keep QueueIterators from being accidentally associated with temporary objects */
-   QueueIterator(QueueType && table, uint32 startIndex, int32 stride) = delete;
+   /** This constructor is declared deleted to keep QueueIterators from being accidentally associated with temporary Queue objects */
+   QueueIterator(QueueType &&, uint32) = delete;
+
+   /** This constructor is declared deleted to keep QueueIterators from being accidentally associated with temporary Queue objects */
+   QueueIterator(QueueType &&, uint32, int32) = delete;
 #endif
 
    /** Destructor */
@@ -98,12 +101,12 @@ public:
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    QueueIterator & operator=(const QueueIterator & rhs) {_queue = rhs._queue; _currentIndex = rhs._currentIndex; _stride = rhs._stride; return *this;}
 
-   /** Advances this iterator by one step in the table.
+   /** Advances this iterator by one step in the queue.
      * @note the direction and stride of the step is determined by the (stride) argument to our constructor
      */
    void operator++(int) {_currentIndex += _stride;}
 
-   /** Retracts this iterator by one step in the table.  The opposite of the ++ operator.
+   /** Retracts this iterator by one step in the queue.  The opposite of the ++ operator.
      * @note the direction and stride of the step is determined by the (stride) argument to our constructor
      */
    void operator--(int) {_currentIndex -= _stride;}
@@ -136,7 +139,7 @@ public:
    MUSCLE_NODISCARD const ItemType & operator *() const {return GetValue();}
 
 private:
-   const QueueType * _queue;  // table that we are associated with (guaranteed never to be NULL)
+   const QueueType * _queue;  // queue that we are associated with (guaranteed never to be NULL)
    uint32 _currentIndex;
    int32 _stride;  // e.g. 1 for forward-iteration, or -1 for reverse-iteration
 };
