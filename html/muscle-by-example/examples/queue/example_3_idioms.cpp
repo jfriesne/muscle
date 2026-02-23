@@ -70,7 +70,15 @@ int main(int argc, char ** argv)
 void PrintQueue(const char * desc, const Queue<String> & q)
 {
    printf("%s (" UINT32_FORMAT_SPEC " items in Queue):\n", desc, q.GetNumItems());
-   for (QueueIterator<String> qIter(q); qIter.HasData(); qIter++) printf("   %s\n", qIter.GetValue()());
+
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   for (QueueIterator< const Queue<String> > qIter = q.GetIterator(); qIter.HasData(); qIter++)
+#else
+   for (auto qIter = q.GetIterator(); qIter.HasData(); qIter++)
+#endif
+   {
+      const String & s = *qIter;
+      printf("   %s\n", s());
+   }
    printf("\n");
 }
-

@@ -48,8 +48,12 @@ int main(int argc, char ** argv)
       (void) q.AddHead(15);
       (void) q.AddHead(20);
 
-      // Alternative (safer) way to iterate over the items of a Queue
-      for (QueueIterator<int> qIter(q); qIter.HasData(); qIter++)
+      // Alternative (slightly safer) way to iterate over the items of a Queue
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+      for (QueueIterator< Queue<int > > qIter = q.GetIterator(); qIter.HasData(); qIter++)
+#else
+      for (auto qIter = q.GetIterator(); qIter.HasData(); qIter++)
+#endif
       {
          printf("   Value at position #" UINT32_FORMAT_SPEC " is:  %i\n", qIter.GetIndex(), qIter.GetValue());
       }

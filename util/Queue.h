@@ -5,6 +5,7 @@
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
 # include <initializer_list>
+# include <type_traits>
 #endif
 
 #include "support/MuscleSupport.h"
@@ -41,27 +42,32 @@ template <class ItemType> class Queue; // forward declaration
  * safer than the traditional <pre>for (uint32 i=0; i<q.GetNumItems(); i++) {...}</pre> loop.
  *
  * Given a Queue object, you can obtain one or more of these
- * iterator objects by calling the Queue's GetIterator() method;
- * or you can just specify the Queue you want to iterate over as
- * an argument to the QueueIterator constructor.
+ * iterator objects by calling the Queue's GetIterator() method.
  *
  * The most common form for a Queue iteration is this:<pre>
  *
  * const Queue<int> q = {1,2,3};
- * for (QueueIterator<int> iter(q); iter.HasData(); iter++)
+ * for (auto iter = q.GetIterator(); iter.HasData(); iter++)
  * {
  *    const uint32 idx = iter.GetIndex();
  *    const int & nextValue = iter.GetValue();
  *    [...]
  * }</pre>
  *
- * @tparam ItemType the type of values that this object will iterate over.
+ * @tparam QueueType the type of the Queue that we will iterate over (possibly const-qualified)
  */
-template <class ItemType> class MUSCLE_NODISCARD QueueIterator MUSCLE_FINAL_CLASS
+template <class QueueType> class MUSCLE_NODISCARD QueueIterator MUSCLE_FINAL_CLASS
 {
 public:
-   /** Convenience typedef for the type of Queue this QueueIterator is associated with. */
-   typedef Queue<ItemType> QueueType;
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   typedef typename QueueType::QueueItemType MaybeConstItemType;  // less const-correct but guaranteed to compile under C++03
+#else
+   /** Convenience typedef for the type of value-item this QueueIterator is associated with (not const-qualified) */
+   typedef typename std::remove_const<QueueType>::type::QueueItemType NonConstItemType;
+
+   /** Convenience typedef for the type of value-item this QueueIterator is associated with (const-qualified only if QueueType is cost-qualified) */
+   typedef typename std::conditional<std::is_const<QueueType>::value, typename std::add_const<NonConstItemType>::type, NonConstItemType>::type MaybeConstItemType;
+#endif
 
    /**
     * Default constructor.  It's here only so that you can include QueueIterators
@@ -79,7 +85,7 @@ public:
      *               but you could pass -1 for backward-iteration, or even other values if you wanted to skip past items during the iteration.
      * @note the QueueIterator object retains a pointer to (queue) and requires that pointer to remain valid during its iteration.
      */
-   QueueIterator(const QueueType & queue, uint32 startIndex = 0, int32 stride = 1) : _queue(&queue), _currentIndex(startIndex), _stride(stride) {/* empty */}
+   QueueIterator(QueueType & queue, uint32 startIndex = 0, int32 stride = 1) : _queue(&queue), _currentIndex(startIndex), _stride(stride) {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    QueueIterator(const QueueIterator & rhs) : _queue(rhs._queue), _currentIndex(rhs._currentIndex), _stride(rhs._stride) {/* empty */}
@@ -118,28 +124,22 @@ public:
    MUSCLE_NODISCARD uint32 GetIndex() const {return _currentIndex;}
 
    /**
-    * Returns a read-only reference to the value in the Queue that this iterator is currently pointing at.
-    * If the iterator isn't valid, a reference to a default-constructed ItemType will be returned.
-    */
-   MUSCLE_NODISCARD const ItemType & GetValue() const {return _queue->GetWithDefault(_currentIndex);}
-
-   /**
-    * Returns a read/write reference to the value in the Queue that this iterator is currently pointing at.
-    * @note this method's implementation does no error-checking at all, so be entirely certain that this iterator
+    * Returns a reference to the value in the Queue that this iterator is currently pointing at.
+    * @note this method's implementation does no error-checking at all, so you need to be entirely certain that this iterator
     *       is pointing to a valid item (i.e. HasData() returns true) before calling it, or you'll invoke undefined behavior.
     */
-   MUSCLE_NODISCARD ItemType & GetValueUnchecked() const {return _queue->GetItemAtUnchecked(_currentIndex);}
+   MUSCLE_NODISCARD MaybeConstItemType & GetValue() const {return _queue->GetItemAtUnchecked(_currentIndex);}
+
+   /** Synonym for GetValue(), so that you can write *qIter instead of qIter.GetValue() if you want */
+   MUSCLE_NODISCARD MaybeConstItemType & operator *() const {return GetValue();}
 
    /** This method swaps the state of this iterator with the iterator in the argument.
     *  @param swapMe The iterator whose state we are to swap with
     */
    void SwapContents(QueueIterator & swapMe) MUSCLE_NOEXCEPT {muscleSwap(_queue, swapMe._queue); muscleSwap(_currentIndex, swapMe._currentIndex); muscleSwap(_stride, swapMe._stride);}
 
-   /** Synonym for GetValue(), so that you can write *qIter instead of qIter.GetValue() */
-   MUSCLE_NODISCARD const ItemType & operator *() const {return GetValue();}
-
 private:
-   const QueueType * _queue;  // queue that we are associated with (guaranteed never to be NULL)
+   QueueType * _queue;  // queue that we are associated with (guaranteed never to be NULL; may or may not be const)
    uint32 _currentIndex;
    int32 _stride;  // e.g. 1 for forward-iteration, or -1 for reverse-iteration
 };
@@ -645,34 +645,46 @@ public:
      */
    MUSCLE_NODISCARD ItemType & operator [](uint32 index);
 
+   /** The item type that goes with this Queue type */
+   typedef ItemType QueueItemType;
+
    /** The iterator type that goes with this Queue type */
-   typedef QueueIterator<ItemType> IteratorType;
+   typedef QueueIterator< Queue<ItemType> > IteratorType;
+   typedef QueueIterator< const Queue<ItemType> > ConstIteratorType;
 
    /** Returns a forward-iterator for use with this Queue.
      * @return an iterator object that can be used to examine all the items in the Queue, starting at index 0.
      *         If the Queue is empty, an empty iterator will be returned.
      */
-   MUSCLE_NODISCARD IteratorType GetIterator() const {return IteratorType(*this);}
+   MUSCLE_NODISCARD IteratorType GetIterator() {return IteratorType(*this);}
 
    /** Returns a forward-iterator for use with this table, starting at the given index.
      * @param startAtIndex The index in this Queue to start the iteration at (0=first item, 1=second, and so on)
      * @return an iterator object that can be used to examine the items in the Queue, starting at
      *         the specified index.  If the specified index isn't valid for this table, an empty iterator will be returned.
      */
-   MUSCLE_NODISCARD IteratorType GetIteratorAt(uint32 startAtIndex) const {return IteratorType(*this, startAtIndex);}
+   MUSCLE_NODISCARD IteratorType GetIteratorAt(uint32 startAtIndex) {return IteratorType(*this, startAtIndex);}
 
    /** Convenience method:  Returns an iterator that is currently pointing to the final value in the Queue and iterates towards the start of the Queue.
      * @return an iterator object that can be used to examine the items in the Queue, starting at
      *         the specified index.  If the specified index isn't valid for this table, an empty iterator will be returned.
      */
-   MUSCLE_NODISCARD IteratorType GetBackwardIterator() const {return IteratorType(*this, GetLastValidIndex(), -1);}
+   MUSCLE_NODISCARD IteratorType GetBackwardIterator() {return IteratorType(*this, GetLastValidIndex(), -1);}
 
    /** Convenience method:  Returns an iterator that is currently pointing to the (nth) item in the Queue and iterates towards the start of the Queue.
      * @param startAtIndex The index in this Queue to start the backwards-iteration at (0=first item, 1=second, and so on, relative to the front of the Queue)
      * @return an iterator object that can be used to examine the items in the Queue, starting at
      *         the specified index.  If the specified index isn't valid for this table, an empty iterator will be returned.
      */
-   MUSCLE_NODISCARD IteratorType GetBackwardIteratorAt(uint32 startAtIndex) const {return IteratorType(*this, startAtIndex, -1);}
+   MUSCLE_NODISCARD IteratorType GetBackwardIteratorAt(uint32 startAtIndex) {return IteratorType(*this, startAtIndex, -1);}
+
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+   // When we're const-qualified, the iterators we return should be read-only as well!
+   MUSCLE_NODISCARD ConstIteratorType GetIterator()                              const {return ConstIteratorType(*this);}
+   MUSCLE_NODISCARD ConstIteratorType GetIteratorAt(uint32 startAtIndex)         const {return ConstIteratorType(*this, startAtIndex);}
+   MUSCLE_NODISCARD ConstIteratorType GetBackwardIteratorAt(uint32 startAtIndex) const {return ConstIteratorType(*this, startAtIndex, -1);}
+   MUSCLE_NODISCARD ConstIteratorType GetBackwardIterator()                      const {return ConstIteratorType(*this, GetLastValidIndex(), -1);}
+#endif
 
    /** Makes sure there is enough space allocated for at least (numSlots) items.
     *  You only need to call this if you wish to minimize the number of data re-allocations done,

@@ -28,7 +28,10 @@ void Print(const Queue<int> & q)
    }
 }
 
-#define TEST_MOVE_OPERATORS 1
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+# define TEST_MOVE_OPERATORS 1
+#endif
+
 #ifdef TEST_MOVE_OPERATORS
 class MovableItem
 {
@@ -164,23 +167,25 @@ static status_t UnitTestQueue(bool isFromScript)
       Queue<int> q;
       for (int i=0; i<5; i++) (void) q.AddTail(i);
 
+      typedef QueueIterator< Queue<int> > IntQIterType;  // in C++11 or later I'd just specify auto, but I want this code to compile under C++03 also
+
       printf("  Basic forward iteration:\n");
-      for (QueueIterator<int> qIter(q); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (IntQIterType qIter = q.GetIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Basic backward iteration:\n");
-      for (QueueIterator<int> qIter = q.GetBackwardIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (IntQIterType qIter = q.GetBackwardIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Forward starting at third index:\n");
-      for (QueueIterator<int> qIter = q.GetIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (IntQIterType qIter = q.GetIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Backward starting at third index:\n");
-      for (QueueIterator<int> qIter = q.GetBackwardIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (IntQIterType qIter = q.GetBackwardIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Forward at double-stride:\n");
-      for (QueueIterator<int> qIter(q, 0, 2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (QueueIterator< Queue<int> > qIter(q, 0, 2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
-      printf("  Increment as we go:\n");
-      for (QueueIterator<int> qIter = q.GetIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), ++qIter.GetValueUnchecked());
+      printf("  Pre-incrementing values as we go:\n");
+      for (IntQIterType qIter = q.GetIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), ++qIter.GetValue());
    }
 
    // Check that C++11's move semantics aren't stealing values they shouldn't
@@ -355,9 +360,9 @@ static status_t UnitTestQueue(bool isFromScript)
 
    if (!isFromScript)
    {
+      printf("\nStress-testing Queue::Normalize()... this may take a minute\n");
       for (uint32 i=0; i<20000; i++)
       {
-         printf("\nStress-testing Queue::Normalize()... this may take a minute\n");
          Queue<int> qq;
          int counter = 0;
          for (uint32 j=0; j<i; j++)

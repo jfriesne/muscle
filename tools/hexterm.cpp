@@ -562,11 +562,11 @@ int hextermmain(const char * argv0, const Message & args)
       if (RS232DataIO::GetAvailableSerialPortNames(devs).IsOK(ret))
       {
          String serName;
-         for (QueueIterator<String> qIter = devs.GetBackwardIterator(); qIter.HasData(); qIter++)
+         for (int32 i=devs.GetLastValidIndex(); i>=0; i--)
          {
-            if (*qIter == devName)
+            if (devs[i] == devName)
             {
-               serName = *qIter;
+               serName = devs[i];
                break;
             }
          }
