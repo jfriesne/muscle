@@ -19,6 +19,9 @@ key:  - new feature
      method so that it returns a status_t in all cases.
    - Added an ICallbackSubscriber constructor that takes its
      ICallbackMechanism argument by-reference, for emcc's convenience.
+   * Fixed the Head(), Tail(), HeadPointer(), TailPointer(),
+     GetItemAt() and GetItemAtChecked() methods in the Queue
+     class to be properly const-correct.
 
 9.77 - Released 2/9/2026
    - muscle::Crash() now takes a file name and line number as

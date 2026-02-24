@@ -473,19 +473,33 @@ public:
     */
    status_t GetItemAt(uint32 index, ItemType & returnItem) const;
 
-   /** Returns a pointer to an item in the array (ie no copying of the item is done).
+   /** Returns a read/write pointer to an item in the array (ie no copying of the item is done).
     *  Included for efficiency; be careful with this: modifying the Queue can invalidate
     *  the returned pointer!
     *  @param index Index of the item to return a pointer to.
     *  @return a pointer to the internally held item, or NULL if (index) was invalid.
     */
-   MUSCLE_NODISCARD ItemType * GetItemAt(uint32 index) const {return IsIndexValid(index) ? &GetItemAtUnchecked(index) : NULL;}
+   MUSCLE_NODISCARD ItemType * GetItemAt(uint32 index) {return IsIndexValid(index) ? &GetItemAtUnchecked(index) : NULL;}
+
+   /** Returns a read-only pointer to an item in the array (ie no copying of the item is done).
+    *  Included for efficiency; be careful with this: modifying the Queue can invalidate
+    *  the returned pointer!
+    *  @param index Index of the item to return a pointer to.
+    *  @return a pointer to the internally held item, or NULL if (index) was invalid.
+    */
+   MUSCLE_NODISCARD const ItemType * GetItemAt(uint32 index) const {return IsIndexValid(index) ? &GetItemAtUnchecked(index) : NULL;}
 
    /** Similar to GetItemAt(), except this version doesn't check to make sure (index) is valid.
     *  @param index Index of the item to return a reference to.  Must be a valid index!
-    *  @return a reference to the internally-held item.  The returned value is undefined if the index isn't valid, so be careful!
+    *  @return a read/write reference to the internally-held item.  The returned value is undefined if the index isn't valid, so be careful!
     */
-   MUSCLE_NODISCARD ItemType & GetItemAtUnchecked(uint32 index) const {return _queue[InternalizeIndex(index)];}
+   MUSCLE_NODISCARD ItemType & GetItemAtUnchecked(uint32 index) {return _queue[InternalizeIndex(index)];}
+
+   /** Similar to GetItemAt(), except this version doesn't check to make sure (index) is valid.
+    *  @param index Index of the item to return a reference to.  Must be a valid index!
+    *  @return a read-only reference to the internally-held item.  The returned value is undefined if the index isn't valid, so be careful!
+    */
+   MUSCLE_NODISCARD const ItemType & GetItemAtUnchecked(uint32 index) const {return _queue[InternalizeIndex(index)];}
 
    /** Returns a reference to the (index)'th item in the Queue, if such an item exists,
      * or a reference to a default item if it doesn't.  Unlike the [] operator,
@@ -619,12 +633,6 @@ public:
    /** Convenience method:  Returns true iff there is at least one item in the Queue. */
    MUSCLE_NODISCARD bool HasItems() const {return (_itemCount > 0);}
 
-   /** Returns a read-only reference to the first item in the Queue.  You must not call this when the Queue is empty! */
-   MUSCLE_NODISCARD const ItemType & Head() const {return GetItemAtUnchecked(0);}
-
-   /** Returns a read-only reference to the last item in the Queue.  You must not call this when the Queue is empty! */
-   MUSCLE_NODISCARD const ItemType & Tail() const {return GetItemAtUnchecked(_itemCount-1);}
-
    /** Returns a read-only reference the first item in the Queue, or a reference to a default-constructed item if the Queue is empty. */
    MUSCLE_NODISCARD const ItemType & HeadWithDefault() const {return HasItems() ? Head() : GetDefaultItem();}
 
@@ -647,27 +655,39 @@ public:
      */
    MUSCLE_NODISCARD ItemType TailWithDefault(const ItemType & defaultItem) const {return HasItems() ? Tail() : defaultItem;}
 
-   /** Returns a writable reference the first item in the Queue.  You must not call this when the Queue is empty! */
+   /** Returns a read/write reference the first item in the Queue.  You must not call this when the Queue is empty! */
    MUSCLE_NODISCARD ItemType & Head() {return GetItemAtUnchecked(0);}
 
-   /** Returns a writable reference the last item in the Queue.  You must not call this when the Queue is empty! */
+   /** Returns a read-only reference the first item in the Queue.  You must not call this when the Queue is empty! */
+   MUSCLE_NODISCARD const ItemType & Head() const {return GetItemAtUnchecked(0);}
+
+   /** Returns a read/write reference the last item in the Queue.  You must not call this when the Queue is empty! */
    MUSCLE_NODISCARD ItemType & Tail() {return GetItemAtUnchecked(_itemCount-1);}
 
-   /** Returns a pointer to the first item in the Queue, or NULL if the Queue is empty */
-   MUSCLE_NODISCARD ItemType * HeadPointer() const {return GetItemAt(0);}
+   /** Returns a read-only reference the last item in the Queue.  You must not call this when the Queue is empty! */
+   MUSCLE_NODISCARD const ItemType & Tail() const {return GetItemAtUnchecked(_itemCount-1);}
 
-   /** Returns a pointer to the last item in the Queue, or NULL if the Queue is empty */
-   MUSCLE_NODISCARD ItemType * TailPointer() const {return GetItemAt(GetLastValidIndex());}
+   /** Returns a read/write pointer to the first item in the Queue, or NULL if the Queue is empty */
+   MUSCLE_NODISCARD ItemType * HeadPointer() {return GetItemAt(0);}
 
-   /** Convenient read-only array-style operator (be sure to only use valid indices!)
-     * @param index the index of the item to get (between 0 and GetLastValidIndex(), inclusive)
-     */
-   MUSCLE_NODISCARD const ItemType & operator [](uint32 index) const;
+   /** Returns a read-only pointer to the first item in the Queue, or NULL if the Queue is empty */
+   MUSCLE_NODISCARD const ItemType * HeadPointer() const {return GetItemAt(0);}
+
+   /** Returns a read/write pointer to the last item in the Queue, or NULL if the Queue is empty */
+   MUSCLE_NODISCARD ItemType * TailPointer() {return GetItemAt(GetLastValidIndex());}
+
+   /** Returns a read-only pointer to the last item in the Queue, or NULL if the Queue is empty */
+   MUSCLE_NODISCARD const ItemType * TailPointer() const {return GetItemAt(GetLastValidIndex());}
 
    /** Convenient read-write array-style operator (be sure to only use valid indices!)
      * @param index the index of the item to get (between 0 and GetLastValidIndex(), inclusive)
      */
    MUSCLE_NODISCARD ItemType & operator [](uint32 index);
+
+   /** Convenient read-only array-style operator (be sure to only use valid indices!)
+     * @param index the index of the item to get (between 0 and GetLastValidIndex(), inclusive)
+     */
+   MUSCLE_NODISCARD const ItemType & operator [](uint32 index) const;
 
    /** The item type that goes with this Queue type */
    typedef ItemType QueueItemType;
