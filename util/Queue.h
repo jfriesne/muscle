@@ -54,19 +54,27 @@ template <class ItemType> class Queue; // forward declaration
  *    [...]
  * }</pre>
  *
- * @tparam QueueType the type of the Queue that we will iterate over (possibly const-qualified)
+ * @tparam MaybeConstItemType the type of the items in the Queue that we will iterate over (possibly const-qualified, if we want our iterator to not provide item-write-access to the calling code)
  */
-template <class QueueType> class MUSCLE_NODISCARD QueueIterator MUSCLE_FINAL_CLASS
+template <class MaybeConstItemType> class MUSCLE_NODISCARD QueueIterator MUSCLE_FINAL_CLASS
 {
 public:
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
-   typedef typename QueueType::QueueItemType MaybeConstItemType;  // less const-correct but guaranteed to compile under C++03
+   /** Convenience typedef for the type of value-item this QueueIterator is associated with (not const-qualified) */
+   typedef typename muscle_private::remove_const<MaybeConstItemType>::type NonConstItemType;
 #else
    /** Convenience typedef for the type of value-item this QueueIterator is associated with (not const-qualified) */
-   typedef typename std::remove_const<QueueType>::type::QueueItemType NonConstItemType;
+   typedef typename std::remove_const<MaybeConstItemType>::type NonConstItemType;
+#endif
 
-   /** Convenience typedef for the type of value-item this QueueIterator is associated with (const-qualified only if QueueType is cost-qualified) */
-   typedef typename std::conditional<std::is_const<QueueType>::value, typename std::add_const<NonConstItemType>::type, NonConstItemType>::type MaybeConstItemType;
+   typedef Queue<NonConstItemType> QueueType;
+
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   /** Convenience typedef for our effective Queue type (const-tagged iff our MaybeConstItemType template-parameter is const-tagged) */
+   typedef typename muscle_private::conditional<muscle_private::is_const<MaybeConstItemType>::value, typename muscle_private::add_const<QueueType>::type, QueueType>::type MaybeConstQueueType;
+#else
+   /** Convenience typedef for our effective Queue type (const-tagged iff our MaybeConstItemType template-parameter is const-tagged) */
+   typedef typename std::conditional<std::is_const<MaybeConstItemType>::value, typename std::add_const<QueueType>::type, QueueType>::type MaybeConstQueueType;
 #endif
 
    /**
@@ -85,10 +93,15 @@ public:
      *               but you could pass -1 for backward-iteration, or even other values if you wanted to skip past items during the iteration.
      * @note the QueueIterator object retains a pointer to (queue) and requires that pointer to remain valid during its iteration.
      */
-   QueueIterator(QueueType & queue, uint32 startIndex = 0, int32 stride = 1) : _queue(&queue), _currentIndex(startIndex), _stride(stride) {/* empty */}
+   QueueIterator(MaybeConstQueueType & queue, uint32 startIndex = 0, int32 stride = 1) : _queue(&queue), _currentIndex(startIndex), _stride(stride) {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    QueueIterator(const QueueIterator & rhs) : _queue(rhs._queue), _currentIndex(rhs._currentIndex), _stride(rhs._stride) {/* empty */}
+
+   /** Templated pseudo-copy-constructor:  This is here so that we can allow a QueueIterator&lt;const T&gt; to be set from a QueueIterator&lt;T&gt;.
+     * @param rhs the QueueIterator to make this object a copy of
+     */
+   template<class RHSItemType> QueueIterator(const QueueIterator<RHSItemType> & rhs) : _queue(&rhs.GetQueue()), _currentIndex(rhs.GetIndex()), _stride(rhs.GetStride()) {/* empty */}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** This constructor is declared deleted to keep QueueIterators from being accidentally associated with temporary Queue objects */
@@ -106,6 +119,11 @@ public:
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    QueueIterator & operator=(const QueueIterator & rhs) {_queue = rhs._queue; _currentIndex = rhs._currentIndex; _stride = rhs._stride; return *this;}
+
+   /** Templated pseudo-assignment-operator:  This is here so that we can allow a QueueIterator&lt;const T&gt; to be set from a QueueIterator&lt;T&gt;.
+     * @param rhs the QueueIterator to set this object equal to
+     */
+   template<class RHSItemType> QueueIterator & operator=(const QueueIterator<RHSItemType> & rhs) {_queue = &rhs.GetQueue(); _currentIndex = rhs.GetIndex(); _stride = rhs.GetStride(); return *this;}
 
    /** Advances this iterator by one step in the queue.
      * @note the direction and stride of the step is determined by the (stride) argument to our constructor
@@ -133,13 +151,19 @@ public:
    /** Synonym for GetValue(), so that you can write *qIter instead of qIter.GetValue() if you want */
    MUSCLE_NODISCARD MaybeConstItemType & operator *() const {return GetValue();}
 
+   /** Returns this iterator's stride (typically 1 for a forward-iterator or -1 for a backward-iterator) */
+   MUSCLE_NODISCARD int32 GetStride() const {return _stride;}
+
+   /** Returns a reference to the Queue we are iterating over */
+   MUSCLE_NODISCARD MaybeConstQueueType & GetQueue() const {return *_queue;}
+
    /** This method swaps the state of this iterator with the iterator in the argument.
     *  @param swapMe The iterator whose state we are to swap with
     */
    void SwapContents(QueueIterator & swapMe) MUSCLE_NOEXCEPT {muscleSwap(_queue, swapMe._queue); muscleSwap(_currentIndex, swapMe._currentIndex); muscleSwap(_stride, swapMe._stride);}
 
 private:
-   QueueType * _queue;  // queue that we are associated with (guaranteed never to be NULL; may or may not be const)
+   MaybeConstQueueType * _queue;  // queue that we are associated with (guaranteed never to be NULL)
    uint32 _currentIndex;
    int32 _stride;  // e.g. 1 for forward-iteration, or -1 for reverse-iteration
 };
@@ -648,9 +672,11 @@ public:
    /** The item type that goes with this Queue type */
    typedef ItemType QueueItemType;
 
-   /** The iterator type that goes with this Queue type */
-   typedef QueueIterator< Queue<ItemType> > IteratorType;
-   typedef QueueIterator< const Queue<ItemType> > ConstIteratorType;
+   /** The iterator type that goes with this Queue type.  This iterator type allows the iterating code to modify the values as it iterates over them. */
+   typedef QueueIterator<ItemType> IteratorType;
+
+   /** The iterator type that goes with this Queue type.  This iterator type does not allow the iterating code to modify the values as it iterates over them. */
+   typedef QueueIterator<const ItemType> ConstIteratorType;
 
    /** Returns a forward-iterator for use with this Queue.
      * @return an iterator object that can be used to examine all the items in the Queue, starting at index 0.

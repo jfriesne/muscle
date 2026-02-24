@@ -17,14 +17,18 @@ void Print(const Queue<int> & q);
 void Print(const Queue<int> & q)
 {
    printf("Queue state is:\n");
-   for (uint32 i=0; i<q.GetNumItems(); i++)
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   for (QueueIterator<const int> qIter(q); qIter.HasData(); qIter++)  // hard way to get an iterator over a const-Queue
+#else
+   for (auto qIter = q.GetIterator(); qIter.HasData(); qIter++)  // easy way to get an iterator over a const-Queue
+#endif
    {
 /*
       int val;
       TEST(q.GetItemAt(i, val));
       printf(UINT32_FORMAT_SPEC " -> %i\n",i,val);
 */
-      printf(UINT32_FORMAT_SPEC " -> %i\n",i,q[i]);
+      printf(UINT32_FORMAT_SPEC " -> %i\n", qIter.GetIndex(), qIter.GetValue());
    }
 }
 
@@ -167,7 +171,8 @@ static status_t UnitTestQueue(bool isFromScript)
       Queue<int> q;
       for (int i=0; i<5; i++) (void) q.AddTail(i);
 
-      typedef QueueIterator< Queue<int> > IntQIterType;  // in C++11 or later I'd just specify auto, but I want this code to compile under C++03 also
+      typedef QueueIterator<int> IntQIterType;             // in C++11 or later I'd just specify auto, but I want this code to compile under C++03 also
+      typedef QueueIterator<const int> ConstIntQIterType;  // ditto
 
       printf("  Basic forward iteration:\n");
       for (IntQIterType qIter = q.GetIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
@@ -176,13 +181,13 @@ static status_t UnitTestQueue(bool isFromScript)
       for (IntQIterType qIter = q.GetBackwardIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Forward starting at third index:\n");
-      for (IntQIterType qIter = q.GetIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (ConstIntQIterType qIter = q.GetIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Backward starting at third index:\n");
-      for (IntQIterType qIter = q.GetBackwardIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (ConstIntQIterType qIter = q.GetBackwardIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Forward at double-stride:\n");
-      for (QueueIterator< Queue<int> > qIter(q, 0, 2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (QueueIterator<const int> qIter(q, 0, 2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Pre-incrementing values as we go:\n");
       for (IntQIterType qIter = q.GetIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), ++qIter.GetValue());

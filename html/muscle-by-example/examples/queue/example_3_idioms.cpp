@@ -72,7 +72,7 @@ void PrintQueue(const char * desc, const Queue<String> & q)
    printf("%s (" UINT32_FORMAT_SPEC " items in Queue):\n", desc, q.GetNumItems());
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
-   for (QueueIterator< const Queue<String> > qIter = q.GetIterator(); qIter.HasData(); qIter++)
+   for (QueueIterator<const String> qIter = q.GetIterator(); qIter.HasData(); qIter++)
 #else
    for (auto qIter = q.GetIterator(); qIter.HasData(); qIter++)
 #endif

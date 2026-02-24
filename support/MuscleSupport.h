@@ -2024,27 +2024,37 @@ MUSCLE_NODISCARD static inline uint32 CalculateChecksum(const void * buffer, uin
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
 namespace muscle_private
 {
-   // Hand-rolled fallback type_traits for use with C++03 which doesn't have a <type_traits> header
-   template <typename T, typename U> struct is_same        {static const bool value = false;};
-   template <typename T>             struct is_same<T, T>  {static const bool value = true;};
-   template <typename T>             struct is_pointer     {static const bool value = false;};
-   template <typename T>             struct is_pointer<T*> {static const bool value = true;};
-   template <typename T>             struct is_array       {static const bool value = false;};
-   template <typename T>             struct is_array<T[]>  {static const bool value = true;};
+   // Some hand-rolled fallback type_traits for use with C++03, which doesn't have a <type_traits> header
+   template <typename T, typename U> struct is_same           {static const bool value = false;};
+   template <typename T>             struct is_same<T, T>     {static const bool value = true;};
+   template <typename T>             struct is_pointer        {static const bool value = false;};
+   template <typename T>             struct is_pointer<T*>    {static const bool value = true;};
+   template <typename T>             struct is_array          {static const bool value = false;};
+   template <typename T>             struct is_array<T[]>     {static const bool value = true;};
+   template <typename T>             struct is_const          {static const bool value = false;};
+   template <typename T>             struct is_const<const T> {static const bool value = true;};
    template <typename T> class is_class {private: template <typename C> static char t(int C::*); template <typename C> static int t(...); public: static const bool value = (sizeof(t<T>(0)) == sizeof(char));};
 
    template <bool Condition, typename T = void> struct enable_if {};
    template <typename T>                        struct enable_if<true, T> { typedef T type; };
 
-   template <typename T> struct remove_reference     {typedef T type;};
-   template <typename T> struct remove_reference<T&> {typedef T type;};
+   template <typename T> struct add_const             {typedef const T type;};
+   template <typename T> struct remove_const          {typedef T type;};
+   template <typename T> struct remove_const<const T> {typedef T type;};
+   template <typename T> struct remove_reference      {typedef T type;};
+   template <typename T> struct remove_reference<T&>  {typedef T type;};
+
+   template <bool B, typename T, typename F> struct conditional              {typedef T type;};
+   template <        typename T, typename F> struct conditional<false, T, F> {typedef F type;};
 };
 # define MUSCLE_ENABLE_IF_IS_SAME(returnType, argType) typename muscle_private::enable_if<muscle_private::is_same<T,argType> ::value, returnType>::type
+# define MUSCLE_ENABLE_IF_IS_CONST(returnType)         typename muscle_private::enable_if<muscle_private::is_const<T>        ::value, returnType>::type
 # define MUSCLE_ENABLE_IF_IS_CLASS(returnType)         typename muscle_private::enable_if<muscle_private::is_class<T>        ::value, returnType>::type
 # define MUSCLE_ENABLE_IF_IS_ARRAY(returnType)         typename muscle_private::enable_if< muscle_private::is_array<muscle_private::remove_reference<T> > ::value, returnType>::type
 # define MUSCLE_ENABLE_IF_IS_NOT_ARRAY(returnType)     typename muscle_private::enable_if<!muscle_private::is_array<muscle_private::remove_reference<T> > ::value, returnType>::type
 #else
 # define MUSCLE_ENABLE_IF_IS_SAME(returnType, argType) typename std::enable_if<std::is_same<T,argType> ::value, returnType>::type
+# define MUSCLE_ENABLE_IF_IS_CONST(returnType)         typename std::enable_if<std::is_const<T>        ::value, returnType>::type
 # define MUSCLE_ENABLE_IF_IS_CLASS(returnType)         typename std::enable_if<std::is_class<T>        ::value, returnType>::type
 # define MUSCLE_ENABLE_IF_IS_ARRAY(returnType)         typename std::enable_if< std::is_array<std::remove_reference<T> > ::value, returnType>::type
 # define MUSCLE_ENABLE_IF_IS_NOT_ARRAY(returnType)     typename std::enable_if<!std::is_array<std::remove_reference<T> > ::value, returnType>::type
