@@ -1369,7 +1369,7 @@ private:
 
    MUSCLE_NODISCARD const KeyType * GetKeyWithValueAux(const ValueType & value, bool backwards) const
    {
-      for (IteratorType iter(*this, HTIT_FLAG_NOREGISTER|(backwards?HTIT_FLAG_NOREGISTER:0)); iter.HasData(); iter++)
+      for (ConstIteratorType iter(*this, HTIT_FLAG_NOREGISTER|(backwards?HTIT_FLAG_NOREGISTER:0)); iter.HasData(); iter++)
          if (iter.GetValue() == value) return &iter.GetKey();
       return NULL;
    }
