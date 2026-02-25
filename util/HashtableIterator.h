@@ -70,7 +70,7 @@ namespace muscle_private {
 template <class KeyType, class ValueType, class HashFunctorType> class HashtableIteratorImp;
 
 // Internal/private implementation of the HashtableIterator class
-template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class MUSCLE_NODISCARD HashtableIteratorImp MUSCLE_FINAL_CLASS
+template <class KeyType, class ValueType, class HashFunctorType> class MUSCLE_NODISCARD HashtableIteratorImp MUSCLE_FINAL_CLASS
 {
 public:
    /** Convenience typedef for the type of Hashtable this HashtableIteratorImp is associated with. */
@@ -131,11 +131,10 @@ public:
    MUSCLE_NODISCARD bool IsAtStart() const {return ((HasData())&&(_currentKey == (IsBackwards() ? _owner->GetLastKey() : _owner->GetFirstKey())));}
    MUSCLE_NODISCARD bool IsAtEnd() const {return ((HasData())&&(_currentKey == (IsBackwards() ? _owner->GetFirstKey() : _owner->GetLastKey())));}
    void SwapContents(HashtableIteratorImp & swapMe) MUSCLE_NOEXCEPT {SwapContentsAux(swapMe, false);}
+   void SwapContentsAux(HashtableIteratorImp & swapMe, bool swapMeIsGoingAway) MUSCLE_NOEXCEPT;
 
 private:
    friend class HashtableBase<KeyType, ValueType, HashFunctorType>;
-
-   void SwapContentsAux(HashtableIteratorImp & swapMe, bool swapMeIsGoingAway) MUSCLE_NOEXCEPT;
 
    HT_UniversalSinkKeyValueRef void SetScratchValues(HT_SinkKeyParam key, HT_SinkValueParam val)
    {
@@ -190,8 +189,8 @@ private:
 }  // end namespace muscle_private
 
 /**
- * This class is an iterator object, used for iterating over the set
- * of keys or values in a Hashtable.  Note that the Hashtable class
+ * This class is a read/write iterator object, used for iterating over the set
+ * of keys or values in a non-const Hashtable.  Note that the Hashtable class
  * maintains the ordering of its keys and values, unlike many hash table
  * implementations.
  *
@@ -200,14 +199,13 @@ private:
  * or you can just specify the Hashtable you want to iterate over as
  * an argument to the HashtableIterator constructor.
  *
- * The most common form for a Hashtable iteration is this:
- *
- * for (HashtableIterator<String, int> iter(table); iter.HasData(); iter++)
+ * The most common form for a Hashtable iteration is this:<pre>
+ * for (auto iter = table.GetIterator(); iter.HasData(); iter++)
  * {
  *    const String & nextKey = iter.GetKey();
  *    int nextValue = iter.GetValue();
  *    [...]
- * }
+ * }</pre>
  *
  * It is safe to modify or delete a Hashtable during an iteration-traversal (from the same
  * thread only); any HashtableIterators that are in the middle of iterating over the Hashtable
@@ -215,7 +213,7 @@ private:
  * (and in particular, not continue to point to any no-longer-existing hashtable entries).
  * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable that this object will iterate over.
  * @tparam ValueType the type of the values of the key-value pairs in the Hashtable that this object will iterate over.
- * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
+ * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE magic.
  */
 template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class MUSCLE_NODISCARD HashtableIterator MUSCLE_FINAL_CLASS
 {
@@ -311,7 +309,7 @@ public:
    /** This method swaps the state of this iterator with the iterator in the argument.
     *  @param swapMe The iterator whose state we are to swap with
     */
-   void SwapContents(HashtableIterator & swapMe) MUSCLE_NOEXCEPT {_imp.SwapContents(swapMe._imp, false);}
+   void SwapContents(HashtableIterator & swapMe) MUSCLE_NOEXCEPT {_imp.SwapContents(swapMe._imp);}
 
 private:
    friend class HashtableBase<KeyType, ValueType, HashFunctorType>;
@@ -331,14 +329,13 @@ private:
  * or you can just specify the Hashtable you want to iterate over as
  * an argument to the HashtableIterator constructor.
  *
- * The most common form for a Hashtable iteration is this:
- *
- * for (ConstHashtableIterator<String, int> iter(table); iter.HasData(); iter++)
+ * The most common form for a Hashtable iteration is this:<pre>
+ * for (auto iter = table.GetIterator(); iter.HasData(); iter++)
  * {
  *    const String & nextKey = iter.GetKey();
  *    int nextValue = iter.GetValue();
  *    [...]
- * }
+ * }</pre>
  *
  * It is safe to modify or delete a Hashtable during an iteration-traversal (from the same
  * thread only); any HashtableIterators that are in the middle of iterating over the Hashtable
@@ -346,7 +343,7 @@ private:
  * (and in particular, not continue to point to any no-longer-existing hashtable entries).
  * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable that this object will iterate over.
  * @tparam ValueType the type of the values of the key-value pairs in the Hashtable that this object will iterate over.
- * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
+ * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE magic.
  */
 template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class MUSCLE_NODISCARD ConstHashtableIterator MUSCLE_FINAL_CLASS
 {
@@ -452,7 +449,7 @@ public:
    /** This method swaps the state of this iterator with the iterator in the argument.
     *  @param swapMe The iterator whose state we are to swap with
     */
-   void SwapContents(ConstHashtableIterator & swapMe) MUSCLE_NOEXCEPT {_imp.SwapContents(swapMe._imp, false);}
+   void SwapContents(ConstHashtableIterator & swapMe) MUSCLE_NOEXCEPT {_imp.SwapContents(swapMe._imp);}
 
 private:
    friend class HashtableBase<KeyType, ValueType, HashFunctorType>;

@@ -20,7 +20,7 @@ static const uint32 MUSCLE_HASHTABLE_INVALID_SLOT_INDEX = (uint32)-1;
 /** This internal superclass is an implementation detail and should not be instantiated directly.  Instantiate a Hashtable, OrderedKeysHashtable, or OrderedValuesHashtable instead.
   * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable.
   * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
-  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
+  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE magic.
   */
 template<class KeyType, class ValueType, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType) > class MUSCLE_NODISCARD HashtableBase
 {
@@ -1431,7 +1431,7 @@ private:
 /** This class should not be instantiated directly.  Instantiate a Hashtable, OrderedKeysHashtable, or OrderedValuesHashtable instead.
   * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable.
   * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
-  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
+  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE magic.
   * @tparam SubclassType the type of the subclasss that is instantiating this HashtableMid class (used for CRTP pattern)
   */
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType> class MUSCLE_NODISCARD HashtableMid : public HashtableBase<KeyType, ValueType, HashFunctorType>
@@ -1898,7 +1898,7 @@ private:
  *     key-value entry for tables larger than that.
  * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable.
  * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
- * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
+ * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE magic.
  */
 template <class KeyType, class ValueType, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType) > class MUSCLE_NODISCARD Hashtable MUSCLE_FINAL_CLASS : public HashtableMid<KeyType, ValueType, HashFunctorType, Hashtable<KeyType, ValueType, HashFunctorType> >
 {
@@ -2108,8 +2108,8 @@ private:
 /** This is a specialized Hashtable that keeps its iteration entries sorted-by-key at all times (unless you specifically call SetAutoSortEnabled(false))
   * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable.
   * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
-  * @tparam KeyCompareFunctorType type of the key-compare functor to use when comparing two keys for sorting purposes.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
-  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
+  * @tparam KeyCompareFunctorType type of the key-compare functor to use when comparing two keys for sorting purposes.  If not explicitly specified, an appropriate type will be chosen via SFINAE magic.
+  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not explicitly specified, an appropriate type will be chosen via SFINAE magic.
   * @note the price of keeping keys sorted at all times is that Put()-ing new keys into the Hashtable becomes more expensive -- O(N) instead of O(1).  If insertion-performance is important,
   *       you might want to consider using a different data structure like std::map<KeyType, ValueType> instead.
   */
@@ -2195,8 +2195,8 @@ public:
 /** This is a specialized Hashtable that keeps its iteration entries sorted-by-value at all times (unless you specifically call SetAutoSortEnabled(false))
   * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable.
   * @tparam ValueType the type of the values of the key-value pairs in the Hashtable.
-  * @tparam ValueCompareFunctorType type of the value-compare functor to use when comparing two values for sorting purposes.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
-  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not explicitly specified, an appropriate type will be chosen via SFINAE.
+  * @tparam ValueCompareFunctorType type of the value-compare functor to use when comparing two values for sorting purposes.  If not explicitly specified, an appropriate type will be chosen via SFINAE magic.
+  * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not explicitly specified, an appropriate type will be chosen via SFINAE magic.
   * @note the price of keeping values sorted at all times is that Put()-ing items into the Hashtable becomes more expensive -- O(N) instead of O(1).  If insertion performance is important,
   *       you might want to consider using a different data structure instead.
   */
