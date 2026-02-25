@@ -53,6 +53,7 @@ namespace muscle {
 
 // Forward declarations
 template <class KeyType, class ValueType, class HashFunctorType>                     class HashtableIterator;
+template <class KeyType, class ValueType, class HashFunctorType>                     class HashtableIteratorImp;
 template <class KeyType, class ValueType, class HashFunctorType>                     class HashtableBase;
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType> class HashtableMid;
 
@@ -62,6 +63,124 @@ template <class KeyType, class ValueType, class HashFunctorType, class SubclassT
 enum {
    HTIT_FLAG_BACKWARDS  = (1<<0), /**< iterate backwards. */
    HTIT_FLAG_NOREGISTER = (1<<1), /**< don't register the iterator object with Hashtable object */
+};
+
+// Internal/private implementation of the HashtableIterator class
+template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class MUSCLE_NODISCARD HashtableIteratorImp MUSCLE_FINAL_CLASS
+{
+public:
+   /** Convenience typedef for the type of Hashtable this HashtableIteratorImp is associated with. */
+   typedef HashtableBase<KeyType, ValueType, HashFunctorType> HashtableType;
+
+   HashtableIteratorImp();
+   HashtableIteratorImp(const HashtableIteratorImp & rhs);
+   HashtableIteratorImp(const HashtableType & table, uint32 flags = 0);
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   HashtableIteratorImp(HashtableIteratorImp && rhs) MUSCLE_NOEXCEPT;
+   HashtableIteratorImp(HashtableType && table, uint32 flags = 0) = delete;
+   HashtableIteratorImp & operator=(HashtableIteratorImp && rhs) {SwapContentsAux(rhs, true); return *this;}
+#endif
+
+   HT_UniversalSinkKeyRef HashtableIteratorImp(const HashtableType & table, HT_SinkKeyParam startAt, uint32 flags);
+   ~HashtableIteratorImp();
+
+   HashtableIteratorImp & operator=(const HashtableIteratorImp & rhs);
+
+   void operator++(int)
+   {
+      if (_scratchKeyAndValue.EnsureObjectDestructed() == false) _iterCookie = _owner ? _owner->GetSubsequentEntry(_iterCookie, _flags) : NULL;
+      UpdateKeyAndValuePointers();
+   }
+
+   void operator--(int) {const bool b = IsBackwards(); SetBackwards(!b); (*this)++; SetBackwards(b);}
+
+   MUSCLE_NODISCARD bool HasData() const {return (_currentKey != NULL);}
+
+   MUSCLE_NODISCARD const KeyType & GetKey() const
+   {
+#ifdef __clang_analyzer__
+      assert(_currentKey != NULL);
+#endif
+      return *_currentKey;
+   }
+
+   MUSCLE_NODISCARD ValueType & GetValue() const
+   {
+#ifdef __clang_analyzer__
+      assert(_currentVal != NULL);
+#endif
+      return *_currentVal;
+   }
+
+   MUSCLE_NODISCARD const ValueType & GetConstValue() const
+   {
+#ifdef __clang_analyzer__
+      assert(_currentVal != NULL);
+#endif
+      return *_currentVal;
+   }
+
+   MUSCLE_NODISCARD uint32 GetFlags() const {return _flags;}
+   void SetBackwards(bool backwards) {if (backwards) _flags |= HTIT_FLAG_BACKWARDS; else _flags &= ~HTIT_FLAG_BACKWARDS;}
+   MUSCLE_NODISCARD bool IsBackwards() const {return ((_flags & HTIT_FLAG_BACKWARDS) != 0);}
+   MUSCLE_NODISCARD bool IsAtStart() const {return ((HasData())&&(_currentKey == (IsBackwards() ? _owner->GetLastKey() : _owner->GetFirstKey())));}
+   MUSCLE_NODISCARD bool IsAtEnd() const {return ((HasData())&&(_currentKey == (IsBackwards() ? _owner->GetFirstKey() : _owner->GetLastKey())));}
+   void SwapContents(HashtableIteratorImp & swapMe) MUSCLE_NOEXCEPT {SwapContentsAux(swapMe, false);}
+
+private:
+   friend class HashtableBase<KeyType, ValueType, HashFunctorType>;
+
+   void SwapContentsAux(HashtableIteratorImp & swapMe, bool swapMeIsGoingAway) MUSCLE_NOEXCEPT;
+
+   HT_UniversalSinkKeyValueRef void SetScratchValues(HT_SinkKeyParam key, HT_SinkValueParam val)
+   {
+      KeyAndValue & kav = _scratchKeyAndValue.GetObject();
+      kav._key   = HT_ForwardKey(key);
+      kav._value = HT_ForwardValue(val);
+   }
+
+   void UpdateKeyAndValuePointers()
+   {
+      if (_scratchKeyAndValue.IsObjectConstructed())
+      {
+         _currentKey = &_scratchKeyAndValue.GetObjectUnchecked()._key;
+         _currentVal = &_scratchKeyAndValue.GetObjectUnchecked()._value;
+      }
+      else if ((_iterCookie)&&(_owner))  // (_owner) test isn't strictly necessary, but it keeps clang++ happy
+      {
+         _currentKey = &_owner->GetKeyFromCookie(_iterCookie);
+         _currentVal = &_owner->GetValueFromCookie(_iterCookie);
+      }
+      else
+      {
+         _currentKey = NULL;
+         _currentVal = NULL;
+      }
+   }
+
+   void * _iterCookie;           // points to the HashtableEntryBase object that we are currently associated with
+   const KeyType * _currentKey;  // cached result, so that GetKey() can be a branch-free inline method
+   ValueType * _currentVal;      // cached result, so that GetValue() can be a branch-free inline method
+
+   uint32 _flags;
+   HashtableIteratorImp * _prevIter; // for the doubly linked list so that the table can notify us if it is modified
+   HashtableIteratorImp * _nextIter; // for the doubly linked list so that the table can notify us if it is modified
+   const HashtableType * _owner;  // table that we are associated with
+   void * _scratchSpace;         // ignore this; it's temp scratch space used by EnsureSize().
+
+   // Used for emergency storage of scratch values
+   class KeyAndValue
+   {
+   public:
+      KeyAndValue() : _key(), _value() {/* empty */}
+      HT_UniversalSinkKeyValueRef KeyAndValue(HT_SinkKeyParam key, HT_SinkValueParam value) : _key(HT_ForwardKey(key)), _value(HT_ForwardValue(value)) {/* empty */}
+
+      KeyType _key;
+      ValueType _value;
+   };
+   DemandConstructedObject<KeyAndValue> _scratchKeyAndValue;
+   bool _okayToUnsetThreadID;
 };
 
 /**
@@ -104,26 +223,26 @@ public:
     * constructor are "empty", so they won't be useful until you set them equal to a
     * HashtableIterator that was returned by Hashtable::GetIterator().
     */
-   HashtableIterator();
+   HashtableIterator() {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
-   HashtableIterator(const HashtableIterator & rhs);
+   HashtableIterator(const HashtableIterator & rhs) : _imp(rhs._imp) {/* empty */}
 
    /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIterator().
      * @param table the Hashtable to iterate over.
      * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Defaults to zero for default behaviour.
      */
-   HashtableIterator(const HashtableType & table, uint32 flags = 0);
+   HashtableIterator(const HashtableType & table, uint32 flags = 0) : _imp(table, flags) {/* empty */}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   HashtableIterator(HashtableIterator && rhs) MUSCLE_NOEXCEPT;
+   HashtableIterator(HashtableIterator && rhs) MUSCLE_NOEXCEPT : _imp(rhs._imp) {/* empty */}
 
    /** This constructor is declared deleted to keep HashtableIterators from being accidentally associated with temporary objects */
    HashtableIterator(HashtableType && table, uint32 flags = 0) = delete;
 
    /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
-   HashtableIterator & operator=(HashtableIterator && rhs) {SwapContentsAux(rhs, true); return *this;}
+   HashtableIterator & operator=(HashtableIterator && rhs) {_imp.SwapContentsAux(rhs._imp, true); return *this;}
 #endif
 
    /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIteratorAt().
@@ -132,29 +251,25 @@ public:
      *                the iterator will not return any results.
      * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Set to zero to get the default behaviour.
      */
-   HT_UniversalSinkKeyRef HashtableIterator(const HashtableType & table, HT_SinkKeyParam startAt, uint32 flags);
+   HT_UniversalSinkKeyRef HashtableIterator(const HashtableType & table, HT_SinkKeyParam startAt, uint32 flags) : _imp(table, startAt, flags) {/* empty */}
 
    /** Destructor */
-   ~HashtableIterator();
+   ~HashtableIterator() {/* empty */}
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
-   HashtableIterator & operator=(const HashtableIterator & rhs);
+   HashtableIterator & operator=(const HashtableIterator & rhs) {_imp = rhs._imp; return *this;}
 
    /** Advances this iterator by one entry in the table.  */
-   void operator++(int)
-   {
-      if (_scratchKeyAndValue.EnsureObjectDestructed() == false) _iterCookie = _owner ? _owner->GetSubsequentEntry(_iterCookie, _flags) : NULL;
-      UpdateKeyAndValuePointers();
-   }
+   void operator++(int) {_imp++;}
 
    /** Retracts this iterator by one entry in the table.  The opposite of the ++ operator. */
-   void operator--(int) {bool b = IsBackwards(); SetBackwards(!b); (*this)++; SetBackwards(b);}
+   void operator--(int) {_imp--;}
 
    /** Returns true iff this iterator is pointing to valid key/value data.  Do not call GetKey() or GetValue()
      * unless this method returns true!  Note that the value returned by this method can change if the
      * Hashtable is modified.
      */
-   MUSCLE_NODISCARD bool HasData() const {return (_currentKey != NULL);}
+   MUSCLE_NODISCARD bool HasData() const {return _imp.HasData();}
 
    /**
     * Returns a reference to the key this iterator is currently pointing at.  This method does not change the state of the iterator.
@@ -163,13 +278,7 @@ public:
     *       Typically you should only call this function after checking to see that HasData() returns true.
     * @note The returned reference is only guaranteed to remain valid for as long as the Hashtable remains unchanged.
     */
-   MUSCLE_NODISCARD const KeyType & GetKey() const
-   {
-#ifdef __clang_analyzer__
-      assert(_currentKey != NULL);
-#endif
-      return *_currentKey;
-   }
+   MUSCLE_NODISCARD const KeyType & GetKey() const {return _imp.GetKey();}
 
    /**
     * Returns a reference to the value this iterator is currently pointing at.
@@ -178,92 +287,37 @@ public:
     *       Typically you should only call this function after checking to see that HasData() returns true.
     * @note The returned reference is only guaranteed to remain valid for as long as the Hashtable remains unchanged.
     */
-   MUSCLE_NODISCARD ValueType & GetValue() const
-   {
-#ifdef __clang_analyzer__
-      assert(_currentVal != NULL);
-#endif
-      return *_currentVal;
-   }
+   MUSCLE_NODISCARD ValueType & GetValue() const {return _imp.GetValue();}
 
    /** Returns this iterator's HTIT_FLAG_* bit-chord value. */
-   MUSCLE_NODISCARD uint32 GetFlags() const {return _flags;}
+   MUSCLE_NODISCARD uint32 GetFlags() const {return _imp.GetFlags();}
 
    /** Sets or unsets the HTIT_FLAG_BACKWARDS flag on this iterator.
      * @param backwards If true, this iterator will be set to iterate backwards from wherever it is currently;
      *                  if false, this iterator will be set to iterate forwards from wherever it is currently.
      */
-   void SetBackwards(bool backwards) {if (backwards) _flags |= HTIT_FLAG_BACKWARDS; else _flags &= ~HTIT_FLAG_BACKWARDS;}
+   void SetBackwards(bool backwards) {_imp.SetBackwards(backwards);}
 
    /** Returns true iff this iterator is set to iterate in reverse order -- ie if HTIT_FLAG_BACKWARDS
      * was passed in to the constructor, or if SetBackwards(true) was called.
      */
-   MUSCLE_NODISCARD bool IsBackwards() const {return ((_flags & HTIT_FLAG_BACKWARDS) != 0);}
+   MUSCLE_NODISCARD bool IsBackwards() const {return _imp.IsBackwards();}
 
    /** Convenience method.  Returns true iff we are currently referencing the first key/value pair in our iteration-sequence */
-   MUSCLE_NODISCARD bool IsAtStart() const {return ((HasData())&&(_currentKey == (IsBackwards() ? _owner->GetLastKey() : _owner->GetFirstKey())));}
+   MUSCLE_NODISCARD bool IsAtStart() const {return _imp.IsAtStart();}
 
    /** Convenience method.  Returns true iff we are currently referencing the final key/value pair in our iteration-sequence */
-   MUSCLE_NODISCARD bool IsAtEnd() const {return ((HasData())&&(_currentKey == (IsBackwards() ? _owner->GetFirstKey() : _owner->GetLastKey())));}
+   MUSCLE_NODISCARD bool IsAtEnd() const {return _imp.IsAtEnd();}
 
    /** This method swaps the state of this iterator with the iterator in the argument.
     *  @param swapMe The iterator whose state we are to swap with
     */
-   void SwapContents(HashtableIterator & swapMe) MUSCLE_NOEXCEPT {SwapContentsAux(swapMe, false);}
+   void SwapContents(HashtableIterator & swapMe) MUSCLE_NOEXCEPT {_imp.SwapContents(swapMe._imp, false);}
 
 private:
    friend class HashtableBase<KeyType, ValueType, HashFunctorType>;
 
-   void SwapContentsAux(HashtableIterator & swapMe, bool swapMeIsGoingAway) MUSCLE_NOEXCEPT;
-
-   HT_UniversalSinkKeyValueRef void SetScratchValues(HT_SinkKeyParam key, HT_SinkValueParam val)
-   {
-      KeyAndValue & kav = _scratchKeyAndValue.GetObject();
-      kav._key   = HT_ForwardKey(key);
-      kav._value = HT_ForwardValue(val);
-   }
-
-   void UpdateKeyAndValuePointers()
-   {
-      if (_scratchKeyAndValue.IsObjectConstructed())
-      {
-         _currentKey = &_scratchKeyAndValue.GetObjectUnchecked()._key;
-         _currentVal = &_scratchKeyAndValue.GetObjectUnchecked()._value;
-      }
-      else if ((_iterCookie)&&(_owner))  // (_owner) test isn't strictly necessary, but it keeps clang++ happy
-      {
-         _currentKey = &_owner->GetKeyFromCookie(_iterCookie);
-         _currentVal = &_owner->GetValueFromCookie(_iterCookie);
-      }
-      else
-      {
-         _currentKey = NULL;
-         _currentVal = NULL;
-      }
-   }
-
-   void * _iterCookie;           // points to the HashtableEntryBase object that we are currently associated with
-   const KeyType * _currentKey;  // cached result, so that GetKey() can be a branch-free inline method
-   ValueType * _currentVal;      // cached result, so that GetValue() can be a branch-free inline method
-
-   uint32 _flags;
-   HashtableIterator * _prevIter; // for the doubly linked list so that the table can notify us if it is modified
-   HashtableIterator * _nextIter; // for the doubly linked list so that the table can notify us if it is modified
-   const HashtableType * _owner;  // table that we are associated with
-   void * _scratchSpace;         // ignore this; it's temp scratch space used by EnsureSize().
-
-   // Used for emergency storage of scratch values
-   class KeyAndValue
-   {
-   public:
-      KeyAndValue() : _key(), _value() {/* empty */}
-      HT_UniversalSinkKeyValueRef KeyAndValue(HT_SinkKeyParam key, HT_SinkValueParam value) : _key(HT_ForwardKey(key)), _value(HT_ForwardValue(value)) {/* empty */}
-
-      KeyType _key;
-      ValueType _value;
-   };
-   DemandConstructedObject<KeyAndValue> _scratchKeyAndValue;
-   bool _okayToUnsetThreadID;
+   HashtableIteratorImp<KeyType, ValueType, HashFunctorType> _imp;
 };
 
 } // end namespace muscle

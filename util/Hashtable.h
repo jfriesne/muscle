@@ -181,6 +181,7 @@ public:
    MUSCLE_NODISCARD const KeyType * GetKey(const KeyType & lookupKey) const;
 
    /** The iterator type that goes with this HashtableBase type */
+   typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
 
    /** Get an iterator for use with this table.
@@ -1124,26 +1125,27 @@ private:
    MUSCLE_NODISCARD HashtableEntryBase * IndexToEntryChecked(uint32 idx) const {return (idx == MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) ? NULL : IndexToEntryUnchecked(idx);}
 
    friend class HashtableIterator<KeyType, ValueType, HashFunctorType>;
+   friend class HashtableIteratorImp<KeyType, ValueType, HashFunctorType>;
 
-   void InitializeIterator(IteratorType & iter) const
+   void InitializeIterator(IteratorImpType & iter) const
    {
       RegisterIterator(&iter, this->IndexToEntryChecked((iter._flags & HTIT_FLAG_BACKWARDS) ? _iterTailIdx : _iterHeadIdx));
       iter.UpdateKeyAndValuePointers();
    }
 
-   void InitializeIteratorAt(IteratorType & iter, const KeyType & startAt) const
+   void InitializeIteratorAt(IteratorImpType & iter, const KeyType & startAt) const
    {
       RegisterIterator(&iter, this->GetEntry(this->ComputeHash(startAt), startAt));
       iter.UpdateKeyAndValuePointers();
    }
 
    // These ugly methods are here to expose the HashtableIterator's privates to the Hashtable class without exposing them to the rest of the world
-   MUSCLE_NODISCARD void * GetIteratorScratchSpace(const IteratorType & iter) const {return iter._scratchSpace;}
-   void SetIteratorScratchSpace(IteratorType & iter, void * val) const {iter._scratchSpace = val;}
-   MUSCLE_NODISCARD void * GetIteratorNextCookie(const IteratorType & iter) const {return iter._iterCookie;}
-   void SetIteratorNextCookie(IteratorType & iter, void * val) const {iter._iterCookie = val;}
-   void UpdateIteratorKeyAndValuePointers(IteratorType & iter) const {iter.UpdateKeyAndValuePointers();}
-   MUSCLE_NODISCARD IteratorType * GetIteratorNextIterator(const IteratorType & iter) const {return iter._nextIter;}
+   MUSCLE_NODISCARD void * GetIteratorScratchSpace(const IteratorImpType & iter) const {return iter._scratchSpace;}
+   void SetIteratorScratchSpace(IteratorImpType & iter, void * val) const {iter._scratchSpace = val;}
+   MUSCLE_NODISCARD void * GetIteratorNextCookie(const IteratorImpType & iter) const {return iter._iterCookie;}
+   void SetIteratorNextCookie(IteratorImpType & iter, void * val) const {iter._iterCookie = val;}
+   void UpdateIteratorKeyAndValuePointers(IteratorImpType & iter) const {iter.UpdateKeyAndValuePointers();}
+   MUSCLE_NODISCARD IteratorImpType * GetIteratorNextIterator(const IteratorImpType & iter) const {return iter._nextIter;}
 
    // Give these classes (and only these classes!) access to the HashtableEntryBase inner class
    template<class HisKeyType, class HisValueType, class HisHashFunctorType>                                 friend class HashtableBase;
@@ -1191,8 +1193,8 @@ private:
       return (GetEntryMapToUnchecked(IndexToEntryUnchecked(e->_hash%_tableSize)) == e);
    }
 
-   // HashtableIterator's private API
-   void RegisterIterator(IteratorType * iter, void * newIterCookie) const
+   // HashtableIteratorImp's private API
+   void RegisterIterator(IteratorImpType * iter, void * newIterCookie) const
    {
       iter->_iterCookie = newIterCookie;
 
@@ -1242,7 +1244,7 @@ private:
       }
    }
 
-   void UnregisterIterator(IteratorType * iter) const
+   void UnregisterIterator(IteratorImpType * iter) const
    {
       if (iter->_flags & HTIT_FLAG_NOREGISTER) iter->_prevIter = iter->_nextIter = NULL;
       else
@@ -1378,14 +1380,14 @@ private:
 
    HashtableEntryBase * _table; // our array of table entries (actually an array of HashtableEntry objects of some flavor: NOT an array of HashtableEntryBase objects!  Be careful!)
 
-   mutable IteratorType * _iterList;  // list of existing iterators for this table
+   mutable IteratorImpType * _iterList;  // list of existing iterators for this table
 #ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
 # ifdef MUSCLE_AVOID_CPLUSPLUS11
    mutable muscle_thread_id _iteratorThreadID; // this is the ID of the thread that is allowed to register iterators (or 0 if none are registered)
 # else
    mutable std::atomic<muscle_thread_id> _iteratorThreadID; // this is the ID of the thread that is allowed to register iterators (or 0 if none are registered)
 # endif
-   mutable AtomicCounter _iteratorCount;       // this represents the number of HashtableIterators currently registered with this Hashtable
+   mutable AtomicCounter _iteratorCount;       // this represents the number of HashtableIteratorImps currently registered with this Hashtable
 #endif
 };
 
@@ -1400,6 +1402,7 @@ template <class KeyType, class ValueType, class HashFunctorType, class SubclassT
 public:
    /** The iterator type that goes with this HashtableMid type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
+   typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
 
    /** Equality operator.  Returns true iff both hash tables contains the same set of keys and values.
      * Note that the ordering of the keys is NOT taken into account!
@@ -1864,6 +1867,7 @@ template <class KeyType, class ValueType, class HashFunctorType=typename DEFAULT
 public:
    /** The iterator type that goes with this HashtableMid type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
+   typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
 
    /** Default constructor. */
    Hashtable() : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(MUSCLE_HASHTABLE_DEFAULT_CAPACITY) {/* empty */}
@@ -1966,6 +1970,7 @@ template <class KeyType, class ValueType, class HashFunctorType, class EntryComp
 public:
    /** The iterator type that goes with this HashtableMid type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
+   typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
 
    /** This method can be used to deactivate or re-activate auto-sorting on this Hashtable.
      * Auto-sorting is active by default.
@@ -2073,6 +2078,7 @@ template <class KeyType, class ValueType, class KeyCompareFunctorType=CompareFun
 public:
    // Some convenient typedefs, for brevity's sake
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
+   typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
 
    /** Default constructor.
      * @param optCompareCookie the value that will be passed to our compare functor.  Defaults to NULL.
@@ -2158,6 +2164,7 @@ template <class KeyType, class ValueType, class ValueCompareFunctorType=CompareF
 public:
    // Some convenient typedefs, for brevity's sake
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
+   typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
 
    /** Default constructor.
      * @param optCompareCookie the value that will be passed to our compare functor.  Defaults to NULL.
@@ -2722,7 +2729,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableBase<
 
       // Lastly, swap the owners of all iterators, so that they will unregister from the correct table when they die
       {
-         IteratorType * next = _iterList;
+         IteratorImpType * next = _iterList;
          while(next)
          {
             next->_owner = &swapMe;
@@ -2730,7 +2737,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableBase<
          }
       }
       {
-         IteratorType * next = swapMe._iterList;
+         IteratorImpType * next = swapMe._iterList;
          while(next)
          {
             next->_owner = this;
@@ -2937,7 +2944,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Clear(bool releaseCachedBuffer
    {
       if (_iterList->_iterCookie) _iterList->SetScratchValues(GetKeyFromCookie(_iterList->_iterCookie), GetValueFromCookie(_iterList->_iterCookie));
 
-      IteratorType * next = _iterList->_nextIter;
+      IteratorImpType * next = _iterList->_nextIter;
       _iterList->_owner = NULL;
       _iterList->_iterCookie = _iterList->_prevIter = _iterList->_nextIter = NULL;
       _iterList->UpdateKeyAndValuePointers();
@@ -3179,7 +3186,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::RemoveIterationEntry(Hashtable
 {
    // Update any iterators that were pointing at (e), so that they now point to the entry after e.
    // That way, on the next (iter++) they will move to the entry after the now-removed e, as God intended.
-   IteratorType * next = this->_iterList;
+   IteratorImpType * next = this->_iterList;
    while(next)
    {
       if (next->_iterCookie == e)
@@ -3311,7 +3318,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
 
    // 1. Initialize the scratch space for our active iterators.
    {
-      IteratorType * nextIter = this->_iterList;
+      IteratorImpType * nextIter = this->_iterList;
       while(nextIter)
       {
          this->SetIteratorScratchSpace(*nextIter, NULL);
@@ -3336,7 +3343,7 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
          if (hisClone)
          {
             // Mark any iterators that will need to be redirected to point to the new nodes.
-            IteratorType * nextIter = this->_iterList;
+            IteratorImpType * nextIter = this->_iterList;
             while(nextIter)
             {
                if (this->GetIteratorNextCookie(*nextIter) == next) this->SetIteratorScratchSpace(*nextIter, hisClone);
@@ -3354,10 +3361,10 @@ HashtableMid<KeyType,ValueType,HashFunctorType,SubclassType>::EnsureSize(uint32 
 
    // 5. Lastly, fix up our iterators to point to their new entries.
    {
-      IteratorType * nextIter = this->_iterList;
+      IteratorImpType * nextIter = this->_iterList;
       while(nextIter)
       {
-         IteratorType & ni = *nextIter;
+         IteratorImpType & ni = *nextIter;
          this->SetIteratorNextCookie(ni, this->GetIteratorScratchSpace(ni));
          this->UpdateIteratorKeyAndValuePointers(ni);
          nextIter = this->GetIteratorNextIterator(ni);
@@ -3558,11 +3565,11 @@ ComputeValuesHistogram() const
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS  // workaround for apparent DOxygen generator bug
 
 //===============================================================
-// Implementation of HashtableIterator
+// Implementation of HashtableIteratorImp
 //===============================================================
 
 template <class KeyType, class ValueType, class HashFunctorType>
-HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator()
+HashtableIteratorImp<KeyType, ValueType, HashFunctorType>::HashtableIteratorImp()
    : _iterCookie(NULL)
    , _currentKey(NULL)
    , _currentVal(NULL)
@@ -3577,7 +3584,7 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator()
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableIterator & rhs)
+HashtableIteratorImp<KeyType, ValueType, HashFunctorType>::HashtableIteratorImp(const HashtableIteratorImp & rhs)
    : _flags(0)
    , _prevIter(NULL)  // just to keep clang-tidy happy
    , _nextIter(NULL)  // just to keep clang-tidy happy
@@ -3589,7 +3596,7 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const 
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, uint32 flags)
+HashtableIteratorImp<KeyType, ValueType, HashFunctorType>::HashtableIteratorImp(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, uint32 flags)
    : _flags(flags)
    , _prevIter(NULL)  // just to keep clang-tidy happy
    , _nextIter(NULL)  // just to keep clang-tidy happy
@@ -3602,7 +3609,7 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const 
 
 template <class KeyType, class ValueType, class HashFunctorType>
 HT_UniversalSinkKeyRef
-HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, HT_SinkKeyParam startAt, uint32 flags)
+HashtableIteratorImp<KeyType, ValueType, HashFunctorType>::HashtableIteratorImp(const HashtableBase<KeyType, ValueType, HashFunctorType> & table, HT_SinkKeyParam startAt, uint32 flags)
    : _flags(flags)
    , _prevIter(NULL)  // just to keep clang-tidy happy
    , _nextIter(NULL)  // just to keep clang-tidy happy
@@ -3614,14 +3621,14 @@ HashtableIterator<KeyType, ValueType, HashFunctorType>::HashtableIterator(const 
 }
 
 template <class KeyType, class ValueType, class HashFunctorType>
-HashtableIterator<KeyType, ValueType, HashFunctorType>::~HashtableIterator()
+HashtableIteratorImp<KeyType, ValueType, HashFunctorType>::~HashtableIteratorImp()
 {
    if (_owner) _owner->UnregisterIterator(this);
 }
 
 # ifndef MUSCLE_AVOID_CPLUSPLUS11
 template <class KeyType, class ValueType, class HashFunctorType>
-HashtableIterator<KeyType,ValueType,HashFunctorType>::HashtableIterator(HashtableIterator && rhs) MUSCLE_NOEXCEPT
+HashtableIteratorImp<KeyType,ValueType,HashFunctorType>::HashtableIteratorImp(HashtableIteratorImp && rhs) MUSCLE_NOEXCEPT
    : _iterCookie(NULL)
    , _currentKey(NULL)
    , _currentVal(NULL)
@@ -3637,8 +3644,8 @@ HashtableIterator<KeyType,ValueType,HashFunctorType>::HashtableIterator(Hashtabl
 # endif
 
 template <class KeyType, class ValueType, class HashFunctorType>
-HashtableIterator<KeyType,ValueType,HashFunctorType> &
-HashtableIterator<KeyType,ValueType,HashFunctorType>:: operator=(const HashtableIterator<KeyType,ValueType,HashFunctorType> & rhs)
+HashtableIteratorImp<KeyType,ValueType,HashFunctorType> &
+HashtableIteratorImp<KeyType,ValueType,HashFunctorType>:: operator=(const HashtableIteratorImp<KeyType,ValueType,HashFunctorType> & rhs)
 {
    if (this != &rhs)
    {
@@ -3657,7 +3664,7 @@ HashtableIterator<KeyType,ValueType,HashFunctorType>:: operator=(const Hashtable
 
 template <class KeyType, class ValueType, class HashFunctorType>
 void
-HashtableIterator<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableIterator<KeyType,ValueType,HashFunctorType> & rhs, bool rhsIsGoingAway) MUSCLE_NOEXCEPT
+HashtableIteratorImp<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableIteratorImp<KeyType,ValueType,HashFunctorType> & rhs, bool rhsIsGoingAway) MUSCLE_NOEXCEPT
 {
    if (this != &rhs)
    {
