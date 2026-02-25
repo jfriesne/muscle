@@ -5,8 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
-   - Added a QueueIterator convenience class to Queue.h, for
-     safer iteration over the items in a Queue.
+9.80 -
+   - Added a QueueIterator and ConstQueueIterator convenience
+     classes to util/QueueIterator.h, for safer iteration over
+     the items in a Queue.
    - Added GetIterator(), GetIteratorAt(), GetBackwardIterator(),
      and GetBackwardIteratorAt() methods to the Queue class.
    - Added a new GetEnvironmentVariable() function that returns
