@@ -31,7 +31,7 @@ QMessageTransceiverThread :: ~QMessageTransceiverThread()
    ShutdownInternalThread();  // just in case (note this assumes the user isn't going to subclass this class!)
 
    // Make sure our handlers don't try to reference us anymore
-   for (HashtableIterator<uint32, QMessageTransceiverHandler *> iter(_handlers); iter.HasData(); iter++) iter.GetValue()->ClearRegistrationFields();
+   for (ConstHashtableIterator<uint32, QMessageTransceiverHandler *> iter(_handlers); iter.HasData(); iter++) iter.GetValue()->ClearRegistrationFields();
 }
 
 status_t QMessageTransceiverThread :: SendMessageToSessions(const MessageRef & msgRef, const String & optDistPath)
@@ -138,7 +138,7 @@ void QMessageTransceiverThread :: RemoveFromSeenList(QMessageTransceiverHandler 
 void QMessageTransceiverThread :: Reset()
 {
    FlushSeenHandlers(true);
-   for (HashtableIterator<uint32, QMessageTransceiverHandler *> iter(_handlers); iter.HasData(); iter++) iter.GetValue()->ClearRegistrationFields();
+   for (ConstHashtableIterator<uint32, QMessageTransceiverHandler *> iter(_handlers); iter.HasData(); iter++) iter.GetValue()->ClearRegistrationFields();
    _handlers.Clear();
 
    MessageTransceiverThread::Reset();
@@ -198,7 +198,7 @@ QMessageTransceiverThreadPool :: ~QMessageTransceiverThreadPool()
 
 void QMessageTransceiverThreadPool :: ShutdownAllThreads()
 {
-   for (HashtableIterator<QMessageTransceiverThread *, Void> iter(_threads); iter.HasData(); iter++)
+   for (ConstHashtableIterator<QMessageTransceiverThread *, Void> iter(_threads); iter.HasData(); iter++)
    {
       QMessageTransceiverThread * mtt = iter.GetKey();
       mtt->ShutdownInternalThread();

@@ -218,13 +218,13 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 
                   // Now we can make a new environment-variables-block out of (curEnvVars)
                   uint32 newBlockSize = 1;  // this represents the final NUL terminator (after the last string)
-                  for (HashtableIterator<String, String> iter(curEnvVars); iter.HasData(); iter++) newBlockSize += iter.GetKey().FlattenedSize()+iter.GetValue().FlattenedSize();  // includes NUL terminators
+                  for (ConstHashtableIterator<String, String> iter(curEnvVars); iter.HasData(); iter++) newBlockSize += iter.GetKey().FlattenedSize()+iter.GetValue().FlattenedSize();  // includes NUL terminators
 
                   newBlock = newnothrow_array(uint8, newBlockSize);
                   if (newBlock)
                   {
                      DataFlattener flat(newBlock, newBlockSize);
-                     for (HashtableIterator<String, String> iter(curEnvVars); iter.HasData(); iter++)
+                     for (ConstHashtableIterator<String, String> iter(curEnvVars); iter.HasData(); iter++)
                      {
                         flat.WriteFlat(iter.GetKey());
                         *(flat.GetCurrentWritePointer()-1) = '=';  // replace key's trailing-NUL with an '=' sign
@@ -388,7 +388,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 
       if (optEnvironmentVariables)
       {
-         for (HashtableIterator<String,String> iter(*optEnvironmentVariables); iter.HasData(); iter++) (void) setenv(iter.GetKey()(), iter.GetValue()(), 1);
+         for (ConstHashtableIterator<String,String> iter(*optEnvironmentVariables); iter.HasData(); iter++) (void) setenv(iter.GetKey()(), iter.GetValue()(), 1);
       }
 
       if (ChildProcessReadyToRun().IsOK(ret))

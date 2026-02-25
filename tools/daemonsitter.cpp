@@ -167,7 +167,7 @@ public:
                   StringMatcher wildcardMatcher(targetProcessName);
 
                   uint32 sentCount = 0;
-                  for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+                  for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
                   {
                      ChildProcessSession * cps = dynamic_cast<ChildProcessSession *>(iter.GetValue()());
                      if ((cps)&&(wildcardMatcher.Match(cps->GetProcessLabel())))
@@ -188,7 +188,7 @@ public:
                StringMatcher wildcardMatcher(tok());
 
                uint32 killCount = 0;
-               for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+               for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
                {
                   ChildProcessSession * cps = dynamic_cast<ChildProcessSession *>(iter.GetValue()());
                   if ((cps)&&(wildcardMatcher.Match(cps->GetProcessLabel())))

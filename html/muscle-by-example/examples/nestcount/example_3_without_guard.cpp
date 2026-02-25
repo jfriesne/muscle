@@ -35,7 +35,7 @@ public:
       if (_inBatch.Decrement())
       {
          printf("End of batch.  Processing all the values that were queued up during the batch:\n");
-         for (HashtableIterator<int, Void> iter(_queuedValues); iter.HasData(); iter++) ProcessValue(iter.GetKey());
+         for (ConstHashtableIterator<int, Void> iter(_queuedValues); iter.HasData(); iter++) ProcessValue(iter.GetKey());
          _queuedValues.Clear();
       }
    }

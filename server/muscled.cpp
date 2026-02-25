@@ -279,7 +279,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    // Set up ports.  We allow multiple ports, mostly just to show how it can be done;
    // they all get the same set of ban/require patterns (since they all do the same thing anyway).
    if (listenPorts.IsEmpty()) (void) listenPorts.PutWithDefault(IPAddressAndPort(invalidIP, DEFAULT_MUSCLED_PORT));
-   for (HashtableIterator<IPAddressAndPort, Void> iter(listenPorts); iter.HasData(); iter++)
+   for (ConstHashtableIterator<IPAddressAndPort, Void> iter(listenPorts); iter.HasData(); iter++)
    {
       const IPAddressAndPort & iap = iter.GetKey();
 

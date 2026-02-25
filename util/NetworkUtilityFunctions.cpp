@@ -1110,7 +1110,7 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6
    IPAddress ret;
    if (_hostNameResolvers.HasItems())
    {
-      for (HashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
+      for (ConstHashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
       {
          if (iter.GetValue() < 0) break;  // we'll do any negative-priority callbacks only after our built-in functionality has failed
          if (iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret).IsOK()) break;  // returning here bothers clang-tidy
@@ -1123,7 +1123,7 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6
 
    if (_hostNameResolvers.HasItems())
    {
-      for (HashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
+      for (ConstHashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
       {
          if ((iter.GetValue() < 0)&&(iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret).IsOK())) break;  // returning here bothers clang-tidy
       }
@@ -2432,7 +2432,7 @@ ICallbackMechanism :: ~ICallbackMechanism()
 {
    // Prevent dangling pointers in any still-registered ICallbackSubscriber objects
    DECLARE_MUTEXGUARD(_registeredSubscribersMutex);  // probably pointless since any internal thread should be dead already, but just for consistency's sake
-   for (HashtableIterator<ICallbackSubscriber *, Void> iter(_registeredSubscribers); iter.HasData(); iter++) iter.GetKey()->SetCallbackMechanism(NULL);
+   for (ConstHashtableIterator<ICallbackSubscriber *, Void> iter(_registeredSubscribers); iter.HasData(); iter++) iter.GetKey()->SetCallbackMechanism(NULL);
 }
 
 void ICallbackMechanism :: DispatchCallbacks()
@@ -2446,7 +2446,7 @@ void ICallbackMechanism :: DispatchCallbacks()
    // Perform requested callbacks
    {
       DECLARE_MUTEXGUARD(_registeredSubscribersMutex);
-      for (HashtableIterator<ICallbackSubscriber *, uint32> iter(_scratchSubscribers); iter.HasData(); iter++)
+      for (ConstHashtableIterator<ICallbackSubscriber *, uint32> iter(_scratchSubscribers); iter.HasData(); iter++)
       {
          ICallbackSubscriber * sub = iter.GetKey();
          if (_registeredSubscribers.ContainsKey(sub)) sub->DispatchCallbacks(iter.GetValue());  // yes, the if-test is necessary!

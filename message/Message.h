@@ -109,7 +109,7 @@ public:
      * @param msg the Message whose field names we want to iterate over
      * @param type Type of fields you wish to iterate over, or B_ANY_TYPE to iterate over all fields.
      * @param flags Bit-chord of HTIT_FLAG_* flags you want to use to affect the iteration behaviour.
-     *              This bit-chord will get passed on to the underlying HashtableIterator.  Defaults
+     *              This bit-chord will get passed on to the underlying ConstHashtableIterator.  Defaults
      *              to zero, which provides the default behaviour.
      */
    MessageFieldNameIterator(const Message & msg, uint32 type = B_ANY_TYPE, uint32 flags = 0);
@@ -141,11 +141,11 @@ public:
 
 private:
    friend class Message;
-   MessageFieldNameIterator(const HashtableIterator<String, muscle_private::MessageField> & iter, uint32 tc) : _typeCode(tc), _iter(iter) {if (_typeCode != B_ANY_TYPE) SkipNonMatchingFieldNames();}
+   MessageFieldNameIterator(const ConstHashtableIterator<String, muscle_private::MessageField> & iter, uint32 tc) : _typeCode(tc), _iter(iter) {if (_typeCode != B_ANY_TYPE) SkipNonMatchingFieldNames();}
    void SkipNonMatchingFieldNames();
 
    uint32 _typeCode;
-   HashtableIterator<String, muscle_private::MessageField> _iter;
+   ConstHashtableIterator<String, muscle_private::MessageField> _iter;
 };
 
 // Version number of the Message serialization protocol.
@@ -1681,7 +1681,7 @@ public:
     * in the traversal.  Otherwise, only names of the given type will be included.
     * @param type Type of fields you wish to iterate over, or B_ANY_TYPE to iterate over all fields.
     * @param flags Bit-chord of HTIT_FLAG_* flags you want to use to affect the iteration behaviour.
-    *              This bit-chord will get passed on to the underlying HashtableIterator.  Defaults
+    *              This bit-chord will get passed on to the underlying ConstHashtableIterator.  Defaults
     *              to zero, which provides the default behaviour.
     */
    MessageFieldNameIterator GetFieldNameIterator(uint32 type = B_ANY_TYPE, uint32 flags = 0) const {return MessageFieldNameIterator(_entries.GetIterator(flags), type);}
@@ -1692,7 +1692,7 @@ public:
     * @param startFieldName the field name to start with.  If (startFieldName) isn't present, the iteration will be empty.
     * @param type Type of fields you wish to iterate over, or B_ANY_TYPE to iterate over all fields.
     * @param flags Bit-chord of HTIT_FLAG_* flags you want to use to affect the iteration behaviour.
-    *              This bit-chord will get passed on to the underlying HashtableIterator.  Defaults
+    *              This bit-chord will get passed on to the underlying ConstHashtableIterator.  Defaults
     *              to zero, which provides the default behaviour.
     */
    MessageFieldNameIterator GetFieldNameIteratorAt(const String & startFieldName, uint32 type = B_ANY_TYPE, uint32 flags = 0) const {return MessageFieldNameIterator(_entries.GetIteratorAt(startFieldName, flags), type);}

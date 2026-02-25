@@ -769,7 +769,7 @@ private:
             uint32 * count = histogram.GetOrPut(seq[i]);
             if (count) (*count)++;
          }
-         for (HashtableIterator<const void *, uint32> iter(histogram); iter.HasData(); iter++)
+         for (ConstHashtableIterator<const void *, uint32> iter(histogram); iter.HasData(); iter++)
          {
             const void * deDupMe = iter.GetKey();
             if (iter.GetValue() > 1)
@@ -912,7 +912,7 @@ static bool SequencesAreInconsistent(const Queue<const void *> & seqA, const Que
 // Returns true iff at least one details-string isn't a shared-string
 static bool SequenceHasExclusiveLock(const Hashtable<muscle_thread_id, Queue<MutexLockRecord> > & table)
 {
-   for (HashtableIterator<muscle_thread_id, Queue<MutexLockRecord> > iter(table); iter.HasData(); iter++)
+   for (ConstHashtableIterator<muscle_thread_id, Queue<MutexLockRecord> > iter(table); iter.HasData(); iter++)
    {
       const Queue<MutexLockRecord> & q = iter.GetValue();
       for (uint32 i=0; i<q.GetNumItems(); i++)
@@ -938,9 +938,9 @@ static void PrintSequenceReport(const OutputPrinter & p, const char * desc, cons
    p.printf("  %s: [%s] was executed by " UINT32_FORMAT_SPEC " threads:\n", desc, LockSequenceToString(seq)(), detailsTable.GetNumItems());
 
    Hashtable<Queue<MutexLockRecord>, Queue<muscle_thread_id> > detailsToThreads;
-   for (HashtableIterator<muscle_thread_id, Queue<MutexLockRecord> > iter(detailsTable); iter.HasData(); iter++) (void) detailsToThreads.GetOrPut(iter.GetValue())->AddTailIfNotAlreadyPresent(iter.GetKey());
+   for (ConstHashtableIterator<muscle_thread_id, Queue<MutexLockRecord> > iter(detailsTable); iter.HasData(); iter++) (void) detailsToThreads.GetOrPut(iter.GetValue())->AddTailIfNotAlreadyPresent(iter.GetKey());
 
-   for (HashtableIterator<Queue<MutexLockRecord>, Queue<muscle_thread_id> > iter(detailsToThreads); iter.HasData(); iter++)
+   for (ConstHashtableIterator<Queue<MutexLockRecord>, Queue<muscle_thread_id> > iter(detailsToThreads); iter.HasData(); iter++)
    {
       Queue<muscle_thread_id> & threadsList = iter.GetValue();
       threadsList.Sort();
@@ -968,12 +968,12 @@ status_t PrintMutexLockingReport(const OutputPrinter & p)
    Hashtable< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > capturedResults;  // mutex-sequence -> (threadID -> details)
    {
       DECLARE_MUTEXGUARD(_mutexLogTableMutex);
-      for (HashtableIterator<muscle_thread_id, MutexLockRecordLog *> iter(_mutexLogTable); iter.HasData(); iter++) iter.GetValue()->CaptureResults(capturedResults);
+      for (ConstHashtableIterator<muscle_thread_id, MutexLockRecordLog *> iter(_mutexLogTable); iter.HasData(); iter++) iter.GetValue()->CaptureResults(capturedResults);
    }
 
    if (p.GetAddToString() == NULL) p.printf("\n");
    p.printf("------------------- " UINT32_FORMAT_SPEC " UNIQUE LOCK SEQUENCES DETECTED -----------------\n", capturedResults.GetNumItems());
-   for (HashtableIterator< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iter(capturedResults); iter.HasData(); iter++)
+   for (ConstHashtableIterator< Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iter(capturedResults); iter.HasData(); iter++)
       p.printf("LockSequence [%s] was executed by " UINT32_FORMAT_SPEC " threads\n", LockSequenceToString(iter.GetKey())(), iter.GetValue().GetNumItems());
 
    // Now we check for inconsistent locking order.  Two sequences are inconsistent with each other if they lock the same two mutexes
@@ -981,12 +981,12 @@ status_t PrintMutexLockingReport(const OutputPrinter & p)
    Hashtable<uint32, uint32> inconsistentSequencePairs;  // smaller key-position -> larger key-position
    {
       uint32 idxA = 0;
-      for (HashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iterA(capturedResults); iterA.HasData(); iterA++,idxA++)
+      for (ConstHashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iterA(capturedResults); iterA.HasData(); iterA++,idxA++)
       {
          const bool iterAHasExclusiveLock = SequenceHasExclusiveLock(iterA.GetValue());
 
          uint32 idxB = 0;
-         for (HashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iterB(capturedResults); ((idxB < idxA)&&(iterB.HasData())); iterB++,idxB++)
+         for (ConstHashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iterB(capturedResults); ((idxB < idxA)&&(iterB.HasData())); iterB++,idxB++)
             if (((iterAHasExclusiveLock)||(SequenceHasExclusiveLock(iterB.GetValue())))&&(SequencesAreInconsistent(iterA.GetKey(), iterB.GetKey())))
               MRETURN_ON_ERROR(inconsistentSequencePairs.Put(idxB, idxA));
       }
@@ -998,7 +998,7 @@ status_t PrintMutexLockingReport(const OutputPrinter & p)
       p.printf("\n");
       p.printf("--------- WARNING: " UINT32_FORMAT_SPEC " INCONSISTENT LOCK SEQUENCE%s DETECTED --------------\n", inconsistentSequencePairs.GetNumItems(), (inconsistentSequencePairs.GetNumItems()==1)?"":"S");
       uint32 idx = 0;
-      for (HashtableIterator<uint32, uint32> iter(inconsistentSequencePairs); iter.HasData(); iter++,idx++)
+      for (ConstHashtableIterator<uint32, uint32> iter(inconsistentSequencePairs); iter.HasData(); iter++,idx++)
       {
          p.printf("\n");
          p.printf("INCONSISTENT LOCKING ORDER REPORT #" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " --------\n", idx+1, inconsistentSequencePairs.GetNumItems());
@@ -2372,7 +2372,7 @@ void PrintCountedObjectInfo(const OutputPrinter & p)
    if (GetCountedObjectInfo(table).IsOK())
    {
       table.SortByValue(CompareSizesFunctor());  // so they'll be printed in alphabetical order
-      for (HashtableIterator<const char *, uint64> iter(table, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
+      for (ConstHashtableIterator<const char *, uint64> iter(table, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
       {
          const uint64 v        = iter.GetValue();
          const uint32 objSize  = ((v>>32) & 0xFFFFFFFF);
@@ -2382,7 +2382,7 @@ void PrintCountedObjectInfo(const OutputPrinter & p)
       }
 
       p.printf("Counted Object Info report follows: (" UINT32_FORMAT_SPEC " types counted, " UINT64_FORMAT_SPEC " total objects, %.02f total MB, average " UINT64_FORMAT_SPEC " bytes/object)\n", table.GetNumItems(), totalNumObjects, ((double)totalNumBytes)/(1024*1024), (uint64)((totalNumObjects>0)?(totalNumBytes/totalNumObjects):0));
-      for (HashtableIterator<const char *, uint64> iter(table, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
+      for (ConstHashtableIterator<const char *, uint64> iter(table, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
       {
          const uint64 v        = iter.GetValue();
          const uint32 objSize  = ((v>>32) & 0xFFFFFFFF);

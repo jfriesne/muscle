@@ -28,35 +28,35 @@ int main(int argc, char ** argv)
 
    printf("\n");
    printf("Standard iteration:\n");
-   for (HashtableIterator<String, int> iter(table); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, int> iter(table); iter.HasData(); iter++)
    {
       printf("   Key=[%s] -> Value=%i\n", iter.GetKey()(), iter.GetValue());
    }
 
    printf("\n");
    printf("Backwards iteration:\n");
-   for (HashtableIterator<String, int> iter(table, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, int> iter(table, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
    {
       printf("   Key=[%s] -> Value=%i\n", iter.GetKey()(), iter.GetValue());
    }
 
    printf("\n");
    printf("Iteration starting at key \"Eight\":\n");
-   for (HashtableIterator<String, int> iter(table, "Eight", 0); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, int> iter(table, "Eight", 0); iter.HasData(); iter++)
    {
       printf("   Key=[%s] -> Value=%i\n", iter.GetKey()(), iter.GetValue());
    }
 
    printf("\n");
    printf("Backwards Iteration starting at key \"Eight\":\n");
-   for (HashtableIterator<String, int> iter(table, "Eight", HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, int> iter(table, "Eight", HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
    {
       printf("   Key=[%s] -> Value=%i\n", iter.GetKey()(), iter.GetValue());
    }
 
    printf("\n");
    printf("Iteration while removing any key/value pairs whose value is even:\n");
-   for (HashtableIterator<String, int> iter(table); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, int> iter(table); iter.HasData(); iter++)
    {
       if ((iter.GetValue() % 2) == 0)
       {
@@ -68,7 +68,7 @@ int main(int argc, char ** argv)
 
    printf("\n");
    printf("Final iteration (after removals)\n");
-   for (HashtableIterator<String, int> iter(table); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, int> iter(table); iter.HasData(); iter++)
    {
       printf("   Key=[%s] -> Value=%i\n", iter.GetKey()(), iter.GetValue());
    }

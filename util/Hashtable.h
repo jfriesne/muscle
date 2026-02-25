@@ -180,26 +180,63 @@ public:
     */
    MUSCLE_NODISCARD const KeyType * GetKey(const KeyType & lookupKey) const;
 
-   /** The iterator type that goes with this HashtableBase type */
+   /** The iterator types that go with this HashtableBase type */
    typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
+   typedef ConstHashtableIterator<KeyType,ValueType,HashFunctorType> ConstIteratorType;
 
-   /** Get an iterator for use with this table.
+   /** Get a read-only iterator for use with this table.
      * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Defaults to zero, for default behaviour.
      * @return an iterator object that can be used to examine the items in the hash table, starting at
      *         the specified key.  If the specified key is not in this table, an empty iterator will be returned.
      */
-   MUSCLE_NODISCARD IteratorType GetIterator(uint32 flags = 0) const {return IteratorType(*this, flags);}
+   MUSCLE_NODISCARD ConstIteratorType GetIterator(uint32 flags = 0) const {return ConstIteratorType(*this, flags);}
 
-   /** Get an iterator for use with this table, starting at the given entry.
+   /** Get a read-only iterator for use with this table, starting at the given entry.
      * @param startAt The key in this table to start the iteration at.
      * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Defaults to zero, for default behaviour.
      * @return an iterator object that can be used to examine the items in the hash table, starting at
      *         the specified key.  If the specified key is not in this table, an empty iterator will be returned.
      */
-   HT_UniversalSinkKeyRef MUSCLE_NODISCARD IteratorType GetIteratorAt(HT_SinkKeyParam startAt, uint32 flags = 0) const
+   HT_UniversalSinkKeyRef MUSCLE_NODISCARD ConstIteratorType GetIteratorAt(HT_SinkKeyParam startAt, uint32 flags = 0) const
+   {
+      return ConstIteratorType(*this, HT_ForwardKey(startAt), flags);
+   }
+
+   /** Get a read/write iterator for use with this table.
+     * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Defaults to zero, for default behaviour.
+     * @return an iterator object that can be used to examine the items in the hash table, starting at
+     *         the specified key.  If the specified key is not in this table, an empty iterator will be returned.
+     */
+   MUSCLE_NODISCARD IteratorType GetIterator(uint32 flags = 0) {return IteratorType(*this, flags);}
+
+   /** Get a read/write iterator for use with this table, starting at the given entry.
+     * @param startAt The key in this table to start the iteration at.
+     * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Defaults to zero, for default behaviour.
+     * @return an iterator object that can be used to examine the items in the hash table, starting at
+     *         the specified key.  If the specified key is not in this table, an empty iterator will be returned.
+     */
+   HT_UniversalSinkKeyRef MUSCLE_NODISCARD IteratorType GetIteratorAt(HT_SinkKeyParam startAt, uint32 flags = 0)
    {
       return IteratorType(*this, HT_ForwardKey(startAt), flags);
+   }
+
+   /** Get a read-only iterator for use with this table.
+     * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Defaults to zero, for default behaviour.
+     * @return an iterator object that can be used to examine the items in the hash table, starting at
+     *         the specified key.  If the specified key is not in this table, an empty iterator will be returned.
+     */
+   MUSCLE_NODISCARD ConstIteratorType GetConstIterator(uint32 flags = 0) const {return ConstIteratorType(*this, flags);}
+
+   /** Get a read-only iterator for use with this table, starting at the given entry.
+     * @param startAt The key in this table to start the iteration at.
+     * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Defaults to zero, for default behaviour.
+     * @return an iterator object that can be used to examine the items in the hash table, starting at
+     *         the specified key.  If the specified key is not in this table, an empty iterator will be returned.
+     */
+   HT_UniversalSinkKeyRef MUSCLE_NODISCARD ConstIteratorType GetConstIteratorAt(HT_SinkKeyParam startAt, uint32 flags = 0) const
+   {
+      return ConstIteratorType(*this, HT_ForwardKey(startAt), flags);
    }
 
    /** Returns a pointer to the (index)'th key in this Hashtable.
@@ -1400,9 +1437,10 @@ private:
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType> class MUSCLE_NODISCARD HashtableMid : public HashtableBase<KeyType, ValueType, HashFunctorType>
 {
 public:
-   /** The iterator type that goes with this HashtableMid type */
+   /** The iterator types that go with this HashtableMid type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
    typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
+   typedef ConstHashtableIterator<KeyType,ValueType,HashFunctorType> ConstIteratorType;
 
    /** Equality operator.  Returns true iff both hash tables contains the same set of keys and values.
      * Note that the ordering of the keys is NOT taken into account!
@@ -1451,7 +1489,7 @@ public:
    MUSCLE_NODISCARD uint32 CalculateChecksum() const
    {
       uint32 ret = 0;
-      for (HashtableIterator<KeyType, ValueType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+      for (ConstHashtableIterator<KeyType, ValueType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
          ret += CalculatePODChecksum(iter.GetKey()) + CalculatePODChecksum(iter.GetValue());
       return ret;
    }
@@ -1865,9 +1903,10 @@ private:
 template <class KeyType, class ValueType, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType) > class MUSCLE_NODISCARD Hashtable MUSCLE_FINAL_CLASS : public HashtableMid<KeyType, ValueType, HashFunctorType, Hashtable<KeyType, ValueType, HashFunctorType> >
 {
 public:
-   /** The iterator type that goes with this HashtableMid type */
+   /** The iterator types that go with this Hashtable type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
    typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
+   typedef ConstHashtableIterator<KeyType,ValueType,HashFunctorType> ConstIteratorType;
 
    /** Default constructor. */
    Hashtable() : HashtableMid<KeyType,ValueType,HashFunctorType,Hashtable<KeyType,ValueType,HashFunctorType> >(MUSCLE_HASHTABLE_DEFAULT_CAPACITY) {/* empty */}
@@ -1968,9 +2007,10 @@ private:
 template <class KeyType, class ValueType, class HashFunctorType, class EntryCompareFunctorType, class SubclassType > class MUSCLE_NODISCARD OrderedHashtable : public HashtableMid<KeyType, ValueType, HashFunctorType, SubclassType>
 {
 public:
-   /** The iterator type that goes with this HashtableMid type */
+   /** The iterator types that go with this OrderedHashtable type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
    typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
+   typedef ConstHashtableIterator<KeyType,ValueType,HashFunctorType> ConstIteratorType;
 
    /** This method can be used to deactivate or re-activate auto-sorting on this Hashtable.
      * Auto-sorting is active by default.
@@ -2036,7 +2076,7 @@ public:
    {
       uint32 idx = 0;
       uint32 ret = 0;
-      for (HashtableIterator<KeyType, ValueType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+      for (ConstHashtableIterator<KeyType, ValueType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
          ret += (++idx)*(CalculatePODChecksum(iter.GetKey())*CalculatePODChecksum(iter.GetValue()));
       return ret;
    }
@@ -2076,9 +2116,10 @@ private:
 template <class KeyType, class ValueType, class KeyCompareFunctorType=CompareFunctor<KeyType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class MUSCLE_NODISCARD OrderedKeysHashtable MUSCLE_FINAL_CLASS : public OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByKeyEntryCompareFunctor<KeyCompareFunctorType>, OrderedKeysHashtable<KeyType, ValueType, KeyCompareFunctorType, HashFunctorType> >
 {
 public:
-   // Some convenient typedefs, for brevity's sake
+   /** The iterator types that go with this OrderedKeysHashtable type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
    typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
+   typedef ConstHashtableIterator<KeyType,ValueType,HashFunctorType> ConstIteratorType;
 
    /** Default constructor.
      * @param optCompareCookie the value that will be passed to our compare functor.  Defaults to NULL.
@@ -2162,9 +2203,10 @@ public:
 template <class KeyType, class ValueType, class ValueCompareFunctorType=CompareFunctor<ValueType>, class HashFunctorType=typename DEFAULT_HASH_FUNCTOR(KeyType)> class MUSCLE_NODISCARD OrderedValuesHashtable MUSCLE_FINAL_CLASS : public OrderedHashtable<KeyType, ValueType, HashFunctorType, typename HashtableBase<KeyType,ValueType,HashFunctorType>::template ByValueEntryCompareFunctor<ValueCompareFunctorType>, OrderedValuesHashtable<KeyType, ValueType, ValueCompareFunctorType, HashFunctorType> >
 {
 public:
-   // Some convenient typedefs, for brevity's sake
+   /** The iterator types that go with this OrderedValuesHashtable type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
    typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
+   typedef ConstHashtableIterator<KeyType,ValueType,HashFunctorType> ConstIteratorType;
 
    /** Default constructor.
      * @param optCompareCookie the value that will be passed to our compare functor.  Defaults to NULL.
@@ -2286,8 +2328,8 @@ WouldBeEqualToAfterPutOrRemove(const HashtableBase & rhs, const KeyType & key, c
          if (rhs.GetNumItems() != this->GetNumItems()) return false;  // rhs can't be our post-replacement-state unless it is sized the same as (this)
          if (considerOrdering)
          {
-            HashtableIterator<KeyType, ValueType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
-            for (HashtableIterator<KeyType, ValueType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++,rhsIter++)
+            ConstHashtableIterator<KeyType, ValueType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
+            for (ConstHashtableIterator<KeyType, ValueType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++,rhsIter++)
             {
                const KeyType & nextKey = iter.GetKey();
                if ((!AreKeysEqual(rhsIter.GetKey(), nextKey))||(!(rhsIter.GetValue() == (AreKeysEqual(nextKey,key)?*optValue:iter.GetValue())))) return false;
@@ -2296,7 +2338,7 @@ WouldBeEqualToAfterPutOrRemove(const HashtableBase & rhs, const KeyType & key, c
          else
          {
             // Make sure the two tables are equal, except for (key) which will be set to the new value in rhs
-            for (HashtableIterator<KeyType, ValueType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+            for (ConstHashtableIterator<KeyType, ValueType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
             {
                const KeyType & nextKey = iter.GetKey();
                const ValueType * hisVal = rhs.Get(nextKey);
@@ -2579,12 +2621,12 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeySetsEqual(const Hashtabl
    if (GetNumItems() != rhs.GetNumItems()) return false;
    if (considerOrdering)
    {
-      HashtableIterator<KeyType, ValueType, HashFunctorType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
-      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++, rhsIter++) if (!AreKeysEqual(iter.GetKey(),rhsIter.GetKey())) return false;
+      ConstHashtableIterator<KeyType, ValueType, HashFunctorType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
+      for (ConstHashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++, rhsIter++) if (!AreKeysEqual(iter.GetKey(),rhsIter.GetKey())) return false;
    }
    else
    {
-      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) if (rhs.ContainsKey(iter.GetKey()) == false) return false;
+      for (ConstHashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) if (rhs.ContainsKey(iter.GetKey()) == false) return false;
    }
    return true;
 }
@@ -2597,8 +2639,8 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeysASubsetOf(const Hashtab
    if (GetNumItems() > rhs.GetNumItems()) return false;  // pigeonhole principle!
    if (considerOrdering)
    {
-      HashtableIterator<KeyType, ValueType, HashFunctorType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
-      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++,rhsIter++)
+      ConstHashtableIterator<KeyType, ValueType, HashFunctorType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
+      for (ConstHashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++,rhsIter++)
       {
          if (rhsIter.HasData() == false) return false;  // yes, this check is necessary
          while(!AreKeysEqual(iter.GetKey(),rhsIter.GetKey()))
@@ -2610,7 +2652,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeysASubsetOf(const Hashtab
    }
    else
    {
-      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) if (rhs.ContainsKey(iter.GetKey()) == false) return false;
+      for (ConstHashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) if (rhs.ContainsKey(iter.GetKey()) == false) return false;
    }
    return true;
 }
@@ -2622,8 +2664,8 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeysAndValuesASubsetOf(cons
    if (GetNumItems() > rhs.GetNumItems()) return false;  // pigeonhole principle!
    if (considerOrdering)
    {
-      HashtableIterator<KeyType, ValueType, HashFunctorType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
-      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++,rhsIter++)
+      ConstHashtableIterator<KeyType, ValueType, HashFunctorType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
+      for (ConstHashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++,rhsIter++)
       {
          if (rhsIter.HasData() == false) return false;  // yes, this check is necessary
          while(!AreKeysEqual(iter.GetKey(),rhsIter.GetKey()))
@@ -2636,7 +2678,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeysAndValuesASubsetOf(cons
    }
    else
    {
-      for (HashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+      for (ConstHashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
       {
          const ValueType * hisVal = rhs.Get(iter.GetKey());
          if ((hisVal == NULL)||(!(*hisVal == iter.GetValue()))) return false;
@@ -3024,7 +3066,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::CountAverageLookupComparisons(
    if (totalNumItems > 0)
    {
       uint64 totalCounts = 0, totalExtras = 0;
-      for (HashtableIterator<uint32, uint32> iter(histogram); iter.HasData(); iter++)
+      for (ConstHashtableIterator<uint32, uint32> iter(histogram); iter.HasData(); iter++)
       {
          const uint32 curChainSize           = iter.GetKey();
          const uint32 numChainsOfThisSize    = iter.GetValue();
@@ -3543,7 +3585,7 @@ Hashtable<KeyType, ValueType, HashFunctorType> ::
 ComputeInvertedTable(uint32 iterFlags) const
 {
    Hashtable<ValueType, KeyType, ValueHashFunctorType> ret;
-   for (HashtableIterator<KeyType, ValueType> iter(*this, iterFlags); iter.HasData(); iter++) (void) ret.Put(iter.GetValue(), iter.GetKey());
+   for (ConstHashtableIterator<KeyType, ValueType> iter(*this, iterFlags); iter.HasData(); iter++) (void) ret.Put(iter.GetValue(), iter.GetKey());
    return ret;
 }
 
@@ -3554,7 +3596,7 @@ Hashtable<KeyType, ValueType, HashFunctorType> ::
 ComputeValuesHistogram() const
 {
    Hashtable<ValueType, uint32, ValueHashFunctorType> ret;
-   for (HashtableIterator<KeyType, ValueType> iter(*this); iter.HasData(); iter++)
+   for (ConstHashtableIterator<KeyType, ValueType> iter(*this); iter.HasData(); iter++)
    {
       uint32 * count = ret.GetOrPut(iter.GetValue());
       if (count) (*count)++;

@@ -48,9 +48,9 @@ uint32 ThreadPool :: Shutdown()
    DECLARE_MUTEXGUARD(_poolLock);
    _shuttingDown = true;
 
-   for (HashtableIterator<uint32, ThreadPoolThreadRef> iter(_availableThreads); iter.HasData(); iter++) iter.GetValue()()->ShutdownInternalThread();
-   for (HashtableIterator<uint32, ThreadPoolThreadRef> iter(_activeThreads);    iter.HasData(); iter++) iter.GetValue()()->ShutdownInternalThread();
-   for (HashtableIterator<IThreadPoolClient *, bool> iter(_registeredClients);  iter.HasData(); iter++) iter.GetKey()->_threadPool = NULL;  // so they won't try to unregister from us
+   for (ConstHashtableIterator<uint32, ThreadPoolThreadRef> iter(_availableThreads); iter.HasData(); iter++) iter.GetValue()()->ShutdownInternalThread();
+   for (ConstHashtableIterator<uint32, ThreadPoolThreadRef> iter(_activeThreads);    iter.HasData(); iter++) iter.GetValue()()->ShutdownInternalThread();
+   for (ConstHashtableIterator<IThreadPoolClient *, bool> iter(_registeredClients);  iter.HasData(); iter++) iter.GetKey()->_threadPool = NULL;  // so they won't try to unregister from us
 
    const uint32 ret = _availableThreads.GetNumItems()+_activeThreads.GetNumItems()+_registeredClients.GetNumItems()+_pendingMessages.GetNumItems()+_deferredMessages.GetNumItems()+_waitingForCompletion.GetNumItems();
    _availableThreads.Clear();

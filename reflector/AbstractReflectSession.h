@@ -79,7 +79,7 @@ protected:
     */
    template <class SessionType> void BroadcastToAllSessionsOfType(const MessageRef & msgRef, void * userData = NULL)
    {
-      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+      for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
       {
          SessionType * session = dynamic_cast<SessionType *>(iter.GetValue()());
          if (session) session->MessageReceivedFromFactory(*this, msgRef, userData);
@@ -441,7 +441,7 @@ public:
     */
    template <class SessionType> void BroadcastToAllSessionsOfType(const MessageRef & msgRef, void * userData = NULL, bool includeSelf=true)
    {
-      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+      for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
       {
          SessionType * session = dynamic_cast<SessionType *>(iter.GetValue()());
          if ((session)&&((includeSelf)||(session != this))) session->MessageReceivedFromSession(*this, msgRef, userData);

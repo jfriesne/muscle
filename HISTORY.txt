@@ -15,6 +15,9 @@ key:  - new feature
      a status_t and writes the string into an out-parameter.
    - Added an ICallbackSubscriber constructor that takes its
      ICallbackMechanism argument by-reference, for emcc's convenience.
+   - Made Hashtable::GetIterator() and Hashtable::GetIteratorAt()
+     const-correct.
+   - Added Hashtable::GetConstIterator() and Hashtable::GetConstIteratorAt().
    o Modified Queue::GetItemAtUnchecked() to return a reference
      instead of a pointer, since it can never return NULL anyway.
    o Renamed the existing GetEnvironmentVariable() function to
@@ -23,6 +26,9 @@ key:  - new feature
      method so that it returns a status_t in all cases.
    o Moved the HashtableIterator class out into its own header
      file at util/HashtableIterator.h
+   o Made the HashtableIterator class const-correct (it now
+     requires its Hashtable to be non-const)
+   o Added a ConstHashtableIterator class for read-only iterations.
    * Fixed the Head(), Tail(), HeadPointer(), TailPointer(),
      GetItemAt() and GetItemAtChecked() methods in the Queue
      class to be properly const-correct.

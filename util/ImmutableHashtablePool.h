@@ -47,7 +47,7 @@ public:
      */
    template<class RHSHashFunctorType, class RHSSubclassType> ImmutableHashtable(const HashtableMid<KeyType,ValueType,RHSHashFunctorType,RHSSubclassType> & rhs) : _hashCodeSum(0), _table(rhs)
    {
-      for (HashtableIterator<KeyType, ValueType> iter(_table, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) _hashCodeSum += GetHashCodeForKeyValuePair(iter.GetKey(), iter.GetValue());
+      for (ConstHashtableIterator<KeyType, ValueType> iter(_table, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) _hashCodeSum += GetHashCodeForKeyValuePair(iter.GetKey(), iter.GetValue());
    }
 
    /** Returns a read-only reference to the immutable Hashtable. */
@@ -133,7 +133,7 @@ public:
      */
    void DropAllCacheEntriesContainingKey(const KeyType & key)
    {
-      for (HashtableIterator<uint64, ConstImmutableHashtableTypeRef> iter(_lruCache); iter.HasData(); iter++)
+      for (ConstHashtableIterator<uint64, ConstImmutableHashtableTypeRef> iter(_lruCache); iter.HasData(); iter++)
          if (iter.GetValue()()->GetTable().ContainsKey(key)) (void) _lruCache.Remove(iter.GetKey());
    }
 
@@ -143,7 +143,7 @@ public:
      */
    template<typename ValType> void DropAllCacheEntriesContainingAnyOfTheseKeys(const Hashtable<KeyType, ValType> & keys)
    {
-      for (HashtableIterator<uint64, ConstImmutableHashtableTypeRef> iter(_lruCache); iter.HasData(); iter++)
+      for (ConstHashtableIterator<uint64, ConstImmutableHashtableTypeRef> iter(_lruCache); iter.HasData(); iter++)
          if (keys.HasKeysInCommonWith(iter.GetValue()()->GetTable())) (void) _lruCache.Remove(iter.GetKey());
    }
 
@@ -205,7 +205,7 @@ private:
       if ((newTab)&&(newTab->EnsureSize(newSize,true).IsOK()))
       {
          // Copy over all of the old table's contents, but with our one update applied to the new table
-         for (HashtableIterator<KeyType, ValueType> oldIter(oldTable); oldIter.HasData(); oldIter++)
+         for (ConstHashtableIterator<KeyType, ValueType> oldIter(oldTable); oldIter.HasData(); oldIter++)
          {
             const KeyType & nextKey = oldIter.GetKey();
             if (nextKey == key)

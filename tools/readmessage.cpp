@@ -44,7 +44,7 @@ static void PrintMessageReport(Message & msg, bool isSizeReport)
       Hashtable<String, uint32> results;
       GenerateMessageSizeReportAux(GetEmptyString(), msg, results);
       results.SortByValue();
-      for (HashtableIterator<String, uint32> iter(results); iter.HasData(); iter++) printf("%s:  %s\n", GetBytesSizeString(iter.GetValue())(), iter.GetKey()());
+      for (ConstHashtableIterator<String, uint32> iter(results); iter.HasData(); iter++) printf("%s:  %s\n", GetBytesSizeString(iter.GetValue())(), iter.GetKey()());
    }
    else msg.Print(stdout);
 }

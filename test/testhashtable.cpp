@@ -113,7 +113,7 @@ static int DoInteractiveTest()
       {
          bool first = true;
          printf("\nCurrent contents: ");
-         for (HashtableIterator<int, String> iter(table); iter.HasData(); iter++)
+         for (ConstHashtableIterator<int, String> iter(table); iter.HasData(); iter++)
          {
             const String & nextValue = iter.GetValue();
             MASSERT((atoi(nextValue()) == iter.GetKey()), "value/key mismatch A!\n");
@@ -270,7 +270,7 @@ static void CheckTable(Hashtable<uint32, Void> & table, uint32 numItems, bool ba
 {
    uint32 count = 0;
    uint32 last = backwards ? MUSCLE_NO_LIMIT : 0;
-   for (HashtableIterator<uint32, Void> iter(table,backwards?HTIT_FLAG_BACKWARDS:0); iter.HasData(); iter++)
+   for (ConstHashtableIterator<uint32, Void> iter(table,backwards?HTIT_FLAG_BACKWARDS:0); iter.HasData(); iter++)
    {
       if (backwards ? (last < iter.GetKey()) : (last > iter.GetKey())) printf("ERROR!  Sort out of order in %s traversal!!!!\n", backwards?"backwards":"forwards");
       last = iter.GetKey();
@@ -404,7 +404,7 @@ int main(int argc, char ** argv)
       (void) keysOnly.PutWithDefault(2);
       (void) keysOnly.PutWithDefault(5);
       (void) keysOnly.PutWithDefault(10);
-      for (HashtableIterator<int, Void> iter(keysOnly, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++) printf("key=%i isAtStart=%i isAtEnd=%i\n", iter.GetKey(), iter.IsAtStart(), iter.IsAtEnd());
+      for (ConstHashtableIterator<int, Void> iter(keysOnly, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++) printf("key=%i isAtStart=%i isAtEnd=%i\n", iter.GetKey(), iter.IsAtStart(), iter.IsAtEnd());
       printf("B sizeof(keysOnly)=%u hash=" UINT32_FORMAT_SPEC " numItems= " UINT32_FORMAT_SPEC "\n", (unsigned int) sizeof(keysOnly), keysOnly.HashCode(), keysOnly.GetNumItems());
    }
 
@@ -427,9 +427,9 @@ int main(int argc, char ** argv)
       printf("t1.SwapWithTable(8, t2) returned [%s] (failure is expected)\n", ret());
 
       printf("t1 now contains:\n");
-      for (HashtableIterator<int, int> iter(t1); iter.HasData(); iter++) printf("  %i -> %i\n", iter.GetKey(), iter.GetValue());
+      for (ConstHashtableIterator<int, int> iter(t1); iter.HasData(); iter++) printf("  %i -> %i\n", iter.GetKey(), iter.GetValue());
       printf("t2 now contains:\n");
-      for (HashtableIterator<int, int> iter(t2); iter.HasData(); iter++) printf("  %i -> %i\n", iter.GetKey(), iter.GetValue());
+      for (ConstHashtableIterator<int, int> iter(t2); iter.HasData(); iter++) printf("  %i -> %i\n", iter.GetKey(), iter.GetValue());
    }
 
    {
@@ -443,7 +443,7 @@ int main(int argc, char ** argv)
       MyType b; b[0] = 7; b[1] = 8;
       (void) tupleTable.Put(a, 1);
       (void) tupleTable.Put(b, 2);
-      for (HashtableIterator<MyType, int> iter(tupleTable); iter.HasData(); iter++)
+      for (ConstHashtableIterator<MyType, int> iter(tupleTable); iter.HasData(); iter++)
       {
          const MyType & key = iter.GetKey();
          printf("key=%i,%i val=%i\n", key[0], key[1], iter.GetValue());
@@ -463,7 +463,7 @@ int main(int argc, char ** argv)
       const Rect b(5,6,7,8);
       (void) tupleTable.Put(a, 1);
       (void) tupleTable.Put(b, 2);
-      for (HashtableIterator<Rect, int> iter(tupleTable); iter.HasData(); iter++)
+      for (ConstHashtableIterator<Rect, int> iter(tupleTable); iter.HasData(); iter++)
       {
          const Rect & key = iter.GetKey();
          printf("key=%f,%f,%f,%f val=%i\n", key.left(), key.top(), key.right(), key.bottom(), iter.GetValue());
@@ -483,7 +483,7 @@ int main(int argc, char ** argv)
       const Point b(-11,-12);
       (void) tupleTable.Put(a, 1);
       (void) tupleTable.Put(b, 2);
-      for (HashtableIterator<Point, int> iter(tupleTable); iter.HasData(); iter++)
+      for (ConstHashtableIterator<Point, int> iter(tupleTable); iter.HasData(); iter++)
       {
          const Point & key = iter.GetKey();
          printf("key=%f,%f val=%i\n", key.x(), key.y(), iter.GetValue());
@@ -514,7 +514,7 @@ int main(int argc, char ** argv)
       (void) qTable.Put(key2, 200);
       printf("qTable hash C = " UINT32_FORMAT_SPEC "\n", qTable.HashCode());
 
-      for (HashtableIterator<Queue<int>, int> iter(qTable); iter.HasData(); iter++)
+      for (ConstHashtableIterator<Queue<int>, int> iter(qTable); iter.HasData(); iter++)
       {
          const Queue<int> & key = iter.GetKey();
          printf("qkey=[");
@@ -548,11 +548,11 @@ int main(int argc, char ** argv)
       (void) tableTable.Put(key2, 200);
       printf("tableTable hash C = " UINT32_FORMAT_SPEC "\n", tableTable.HashCode());
 
-      for (HashtableIterator< Hashtable<int, int>, int> iter(tableTable); iter.HasData(); iter++)
+      for (ConstHashtableIterator< Hashtable<int, int>, int> iter(tableTable); iter.HasData(); iter++)
       {
          const Hashtable<int, int> & key = iter.GetKey();
          printf("hkey=[");
-         for (HashtableIterator<int, int> subIter(key); subIter.HasData(); subIter++) printf("(%i->%i)", subIter.GetKey(), subIter.GetValue());
+         for (ConstHashtableIterator<int, int> subIter(key); subIter.HasData(); subIter++) printf("(%i->%i)", subIter.GetKey(), subIter.GetValue());
          printf("] -> %i\n", iter.GetValue());
       }
    }
@@ -613,15 +613,15 @@ int main(int argc, char ** argv)
       (void) table.Put("Also Five",  5);
 
       LogTime(MUSCLE_LOG_INFO, "Original table:\n");
-      for (HashtableIterator<String, int> iter(table); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO, "   [%s] -> %i\n", iter.GetKey()(), iter.GetValue());
+      for (ConstHashtableIterator<String, int> iter(table); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO, "   [%s] -> %i\n", iter.GetKey()(), iter.GetValue());
 
       const Hashtable<int, String> inverted = table.ComputeInvertedTable<DEFAULT_HASH_FUNCTOR(int)>(HTIT_FLAG_BACKWARDS);
       LogTime(MUSCLE_LOG_INFO, "Inverted table:\n");
-      for (HashtableIterator<int, String> iter(inverted); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO, "   %i -> [%s]\n", iter.GetKey(), iter.GetValue()());
+      for (ConstHashtableIterator<int, String> iter(inverted); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO, "   %i -> [%s]\n", iter.GetKey(), iter.GetValue()());
 
       const Hashtable<int, uint32> hist = table.ComputeValuesHistogram<DEFAULT_HASH_FUNCTOR(int)>();
       LogTime(MUSCLE_LOG_INFO, "Histogram:\n");
-      for (HashtableIterator<int, uint32> iter(hist); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO, "   %i -> " UINT32_FORMAT_SPEC "\n", iter.GetKey(), iter.GetValue());
+      for (ConstHashtableIterator<int, uint32> iter(hist); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO, "   %i -> " UINT32_FORMAT_SPEC "\n", iter.GetKey(), iter.GetValue());
    }
 
    // Test the sort algorithm for efficiency and correctness
@@ -667,7 +667,7 @@ int main(int argc, char ** argv)
 
       {
          LogTime(MUSCLE_LOG_INFO, "String Table contents\n");
-         for (HashtableIterator<String, String> iter(table); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO,"[%s] -> [%s]\n", iter.GetKey()(), iter.GetValue()());
+         for (ConstHashtableIterator<String, String> iter(table); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO,"[%s] -> [%s]\n", iter.GetKey()(), iter.GetValue()());
       }
 
       (void) table.CountAverageLookupComparisons(true);
@@ -685,7 +685,7 @@ int main(int argc, char ** argv)
 
       {
          LogTime(MUSCLE_LOG_INFO, "Test partial backwards iteration\n");
-         for (HashtableIterator<String, String> iter(table, "Slash", HTIT_FLAG_BACKWARDS); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO,"[%s] -> [%s]\n", iter.GetKey()(), iter.GetValue()());
+         for (ConstHashtableIterator<String, String> iter(table, "Slash", HTIT_FLAG_BACKWARDS); iter.HasData(); iter++) LogTime(MUSCLE_LOG_INFO,"[%s] -> [%s]\n", iter.GetKey()(), iter.GetValue()());
       }
 
       String lookup;
@@ -696,12 +696,12 @@ int main(int argc, char ** argv)
 
 
       LogTime(MUSCLE_LOG_INFO, "Testing delete-as-you-go traveral\n");
-      for (HashtableIterator<String, String> st(table); st.HasData(); st++)
+      for (ConstHashtableIterator<String, String> st(table); st.HasData(); st++)
       {
          LogTime(MUSCLE_LOG_INFO, "t3 = %s -> %s (tableSize=" UINT32_FORMAT_SPEC ")\n", st.GetKey()(), st.GetValue()(), table.GetNumItems());
          if (table.Remove(st.GetKey()).IsError()) bomb("Could not remove string!\n");
 #if 0
-         for (HashtableIterator<String,String> st2(table); st2.HasData(); st2++) printf("  tx = %s -> %s\n", nextKeyString(), nextValueString());
+         for (ConstHashtableIterator<String,String> st2(table); st2.HasData(); st2++) printf("  tx = %s -> %s\n", nextKeyString(), nextValueString());
 #endif
       }
 
@@ -719,7 +719,7 @@ int main(int argc, char ** argv)
       printf("100 -> %s\n", tempStr);
 
       printf("Entries in sillyTable:\n");
-      for (HashtableIterator<uint32, const char *> it(sillyTable); it.HasData(); it++)
+      for (ConstHashtableIterator<uint32, const char *> it(sillyTable); it.HasData(); it++)
       {
          const char * nextValue = NULL;
          status_t ret = sillyTable.Get(it.GetKey(), nextValue);
@@ -764,7 +764,7 @@ int main(int argc, char ** argv)
          AddTally(tallies, "clear", startTime, NUM_ITEMS);
       }
       printf("GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC " RUNS ARE:\n", NUM_RUNS);
-      for (HashtableIterator<String, double> iter(tallies); iter.HasData(); iter++) printf("   %f items/second for %s\n", iter.GetValue()/NUM_RUNS, iter.GetKey()());
+      for (ConstHashtableIterator<String, double> iter(tallies); iter.HasData(); iter++) printf("   %f items/second for %s\n", iter.GetValue()/NUM_RUNS, iter.GetKey()());
    }
 
    // Now some timing test with String keys and values, for testing of the C++11 move semantics
@@ -805,7 +805,7 @@ int main(int argc, char ** argv)
          AddTally(tallies, "clear", startTime, NUM_ITEMS);
       }
       printf("STRING GRAND AVERAGES OVER ALL " UINT32_FORMAT_SPEC " RUNS ARE:\n", NUM_RUNS);
-      for (HashtableIterator<String, double> iter(tallies); iter.HasData(); iter++) printf("   STRING %f items/second for %s\n", iter.GetValue()/NUM_RUNS, iter.GetKey()());
+      for (ConstHashtableIterator<String, double> iter(tallies); iter.HasData(); iter++) printf("   STRING %f items/second for %s\n", iter.GetValue()/NUM_RUNS, iter.GetKey()());
       PrintAndClearStringCopyCounts(stdout, "After String Sort test");
    }
 
@@ -859,7 +859,7 @@ int main(int argc, char ** argv)
             _state = 7;
             {
                uint32 count = 0;
-               for (HashtableIterator<String, uint32> iter(t); iter.HasData(); iter++)
+               for (ConstHashtableIterator<String, uint32> iter(t); iter.HasData(); iter++)
                {
                   char buf[300];
                   muscleSprintf(buf, UINT32_FORMAT_SPEC, count);
@@ -889,7 +889,7 @@ int main(int argc, char ** argv)
                for (uint32 i=0; i<half; i++) sum += i;
 
                uint32 count = 0, checkSum = 0;
-               for (HashtableIterator<String, uint32> iter(t); iter.HasData(); iter++)
+               for (ConstHashtableIterator<String, uint32> iter(t); iter.HasData(); iter++)
                {
                   count++;
                   checkSum += iter.GetValue();

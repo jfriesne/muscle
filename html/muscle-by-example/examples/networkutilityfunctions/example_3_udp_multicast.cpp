@@ -52,7 +52,7 @@ int main(int argc, char ** argv)
    // works more reliably that way, than if we tried to get a single socket to
    // handle traffic on all the interfaces at once -- sadly)
    Hashtable<ConstSocketRef, int> udpSocks;   // socket -> scopeID
-   for (HashtableIterator<uint32, Void> iter(scopeIDs); iter.HasData(); iter++)
+   for (ConstHashtableIterator<uint32, Void> iter(scopeIDs); iter.HasData(); iter++)
    {
       const uint32 scopeID = iter.GetKey();
 
@@ -86,14 +86,14 @@ int main(int argc, char ** argv)
    SocketMultiplexer sm;
    while(true)
    {
-      for (HashtableIterator<ConstSocketRef, int> iter(udpSocks); iter.HasData(); iter++) (void) sm.RegisterSocketForReadReady(iter.GetKey().GetFileDescriptor());
+      for (ConstHashtableIterator<ConstSocketRef, int> iter(udpSocks); iter.HasData(); iter++) (void) sm.RegisterSocketForReadReady(iter.GetKey().GetFileDescriptor());
       (void) sm.WaitForEvents(nextPingTime);
 
       const uint64 now = GetRunTime64();
       if (now >= nextPingTime)
       {
          const String pingData = String("Hi guys, from process #%1 at time %2").Arg(pid).Arg(now);
-         for (HashtableIterator<ConstSocketRef, int> iter(udpSocks); iter.HasData(); iter++)
+         for (ConstHashtableIterator<ConstSocketRef, int> iter(udpSocks); iter.HasData(); iter++)
          {
             const IPAddress destAddr =  multicastGroup.GetIPAddress().WithInterfaceIndex(iter.GetValue());
             const io_status_t numBytesSent = SendDataUDP(iter.GetKey(), pingData(), pingData.FlattenedSize(), true, destAddr, multicastGroup.GetPort());
@@ -107,7 +107,7 @@ int main(int argc, char ** argv)
          nextPingTime += SecondsToMicros(5);
       }
 
-      for (HashtableIterator<ConstSocketRef, int> iter(udpSocks); iter.HasData(); iter++)
+      for (ConstHashtableIterator<ConstSocketRef, int> iter(udpSocks); iter.HasData(); iter++)
       {
          if (sm.IsSocketReadyForRead(iter.GetKey().GetFileDescriptor()))
          {

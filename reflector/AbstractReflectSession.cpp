@@ -248,7 +248,7 @@ BroadcastToAllSessions(const MessageRef & msgRef, void * userData, bool toSelf)
 {
    TCHECKPOINT;
 
-   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+   for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
    {
       AbstractReflectSession * session = iter.GetValue()();
       if ((session)&&((toSelf)||(session != this))) session->MessageReceivedFromSession(*this, msgRef, userData);
@@ -261,7 +261,7 @@ BroadcastToAllFactories(const MessageRef & msgRef, void * userData)
 {
    TCHECKPOINT;
 
-   for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
+   for (ConstHashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
    {
       ReflectSessionFactory * factory = iter.GetValue()();
       if (factory) factory->MessageReceivedFromSession(*this, msgRef, userData);
@@ -390,7 +390,7 @@ BroadcastToAllSessions(const MessageRef & msgRef, void * userData)
 {
    TCHECKPOINT;
 
-   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+   for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
    {
       AbstractReflectSession * session = iter.GetValue()();
       if (session) session->MessageReceivedFromFactory(*this, msgRef, userData);
@@ -403,7 +403,7 @@ BroadcastToAllFactories(const MessageRef & msgRef, void * userData, bool toSelf)
 {
    TCHECKPOINT;
 
-   for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
+   for (ConstHashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
    {
       ReflectSessionFactory * factory = iter.GetValue()();
       if ((factory)&&((toSelf)||(factory != this))) factory->MessageReceivedFromFactory(*this, msgRef, userData);
@@ -500,7 +500,7 @@ PrintFactoriesInfo(const OutputPrinter & p) const
 {
    p.printf("There are " UINT32_FORMAT_SPEC " factories attached:\n", GetFactories().GetNumItems());
    const uint64 now = GetRunTime64();
-   for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
+   for (ConstHashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
    {
       const ReflectSessionFactory & f = *iter.GetValue()();
       p.printf("   %s #" UINT32_FORMAT_SPEC " is listening at %s (%sAcceptCount=" UINT32_FORMAT_SPEC, f.GetTypeName(), f.GetFactoryID(), iter.GetKey().ToString()(), f.IsReadyToAcceptSessions()?"ReadyToAcceptSessions, ":"", f.GetAcceptCount());
@@ -530,7 +530,7 @@ PrintSessionsInfo(const OutputPrinter & p) const
 
    const uint64 now = GetRunTime64();
    uint32 totalNumCachedSubscribersTables = 0, totalNumOutMessages = 0, totalNumOutBytes = 0, totalNumNodes = 0, totalNumNodeBytes = 0;
-   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(t); iter.HasData(); iter++)
+   for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(t); iter.HasData(); iter++)
    {
       AbstractReflectSession * ars = iter.GetValue()();
 

@@ -32,7 +32,7 @@ AbstractReflectSessionRef FilterSessionFactory :: CreateSession(const String & c
    if (_maxSessionsPerHost != MUSCLE_NO_LIMIT)
    {
       uint32 count = 0;
-      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+      for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
       {
          if ((iter.GetValue()())&&(strcmp(iter.GetValue()()->GetHostName()(), clientHostIP()) == 0)&&(++count >= _maxSessionsPerHost))
          {
@@ -49,7 +49,7 @@ AbstractReflectSessionRef FilterSessionFactory :: CreateSession(const String & c
    if (_requires.HasItems())
    {
       bool matched = false;
-      for (HashtableIterator<String, StringMatcherRef> iter(_requires); iter.HasData(); iter++)
+      for (ConstHashtableIterator<String, StringMatcherRef> iter(_requires); iter.HasData(); iter++)
       {
          if (iter.GetValue()()->Match(clientHostIP()))
          {
@@ -65,7 +65,7 @@ AbstractReflectSessionRef FilterSessionFactory :: CreateSession(const String & c
    }
 
    // This IP must *not* match any of our bans!
-   for (HashtableIterator<String, StringMatcherRef> iter(_bans); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, StringMatcherRef> iter(_bans); iter.HasData(); iter++)
    {
       if (iter.GetValue()()->Match(clientHostIP()))
       {
@@ -157,14 +157,14 @@ status_t FilterSessionFactory :: RemoveRequirePattern(const String & requirePatt
 void FilterSessionFactory :: RemoveMatchingBanPatterns(const String & exp)
 {
    StringMatcher sm(exp);
-   for (HashtableIterator<String, StringMatcherRef> iter(_bans); iter.HasData(); iter++) if (sm.Match(iter.GetKey()())) (void) RemoveBanPattern(iter.GetKey());
+   for (ConstHashtableIterator<String, StringMatcherRef> iter(_bans); iter.HasData(); iter++) if (sm.Match(iter.GetKey()())) (void) RemoveBanPattern(iter.GetKey());
 }
 
 
 void FilterSessionFactory :: RemoveMatchingRequirePatterns(const String & exp)
 {
    StringMatcher sm(exp);
-   for (HashtableIterator<String, StringMatcherRef> iter(_requires); iter.HasData(); iter++) if (sm.Match(iter.GetKey()())) (void) RemoveRequirePattern(iter.GetKey());
+   for (ConstHashtableIterator<String, StringMatcherRef> iter(_requires); iter.HasData(); iter++) if (sm.Match(iter.GetKey()())) (void) RemoveRequirePattern(iter.GetKey());
 }
 
 } // end namespace muscle

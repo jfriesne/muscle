@@ -47,14 +47,14 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
 
          // Now send the data we read from stdin to all the registered sockets
          bool trim = false;
-         for (HashtableIterator<uint32, ConstSocketRef> iter(temp); iter.HasData(); iter++) if (SendData(iter.GetValue(), buf, numBytesRead, true) != numBytesRead) {trim = true; iter.GetValue().Reset();}
+         for (ConstHashtableIterator<uint32, ConstSocketRef> iter(temp); iter.HasData(); iter++) if (SendData(iter.GetValue(), buf, numBytesRead, true) != numBytesRead) {trim = true; iter.GetValue().Reset();}
 
          // Lastly, remove from the registered-sockets-set any sockets that SendData() errored out on.
          // This will cause the socket connection to be closed and the master thread(s) to be notified.
          if (trim)
          {
             DECLARE_MUTEXGUARD(_slaveSocketsMutex);
-            for (HashtableIterator<uint32, ConstSocketRef> iter(_slaveSockets); iter.HasData(); iter++)
+            for (ConstHashtableIterator<uint32, ConstSocketRef> iter(_slaveSockets); iter.HasData(); iter++)
             {
                const ConstSocketRef * v = temp.Get(iter.GetKey());
                if ((v)&&(v->IsValid() == false)) (void) _slaveSockets.Remove(iter.GetKey());

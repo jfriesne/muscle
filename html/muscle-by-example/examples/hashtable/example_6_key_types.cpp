@@ -89,7 +89,7 @@ int main(int argc, char ** argv)
    (void) myTable.Put(MyKeyClass(37, 19), 6);
 
    printf("myTable's contents are:\n");
-   for (HashtableIterator<MyKeyClass, int> iter(myTable); iter.HasData(); iter++)
+   for (ConstHashtableIterator<MyKeyClass, int> iter(myTable); iter.HasData(); iter++)
    {
       printf("   [%s] -> %i\n", iter.GetKey().ToString()(), iter.GetValue());
    }
@@ -120,7 +120,7 @@ int main(int argc, char ** argv)
 
    printf("\n");
    printf("ptrTable's contents are:\n");
-   for (HashtableIterator<const String *, int> iter(ptrTable); iter.HasData(); iter++)
+   for (ConstHashtableIterator<const String *, int> iter(ptrTable); iter.HasData(); iter++)
    {
       printf("   %s -> %i\n", iter.GetKey()->Cstr(), iter.GetValue());
    }
@@ -133,7 +133,7 @@ int main(int argc, char ** argv)
    for (int i=0; i<10; i++) (void) sockTable.PutWithDefault(CreateUDPSocket());
 
    printf("sockTable's contents are:\n");
-   for (HashtableIterator<ConstSocketRef, Void> iter(sockTable); iter.HasData(); iter++)
+   for (ConstHashtableIterator<ConstSocketRef, Void> iter(sockTable); iter.HasData(); iter++)
    {
       const Socket * s = iter.GetKey()();
       printf("   socket descriptor #%i\n", s ? s->GetFileDescriptor() : -1);

@@ -244,7 +244,7 @@ status_t ReaderWriterMutex :: NotifyNextWriterThread() const
 status_t ReaderWriterMutex :: NotifyAllReaderThreads() const
 {
    status_t ret = B_NO_ERROR;
-   for (HashtableIterator<muscle_thread_id, ThreadState> iter(_waitingReaderThreads); iter.HasData(); iter++)
+   for (ConstHashtableIterator<muscle_thread_id, ThreadState> iter(_waitingReaderThreads); iter.HasData(); iter++)
    {
       RefCountableWaitCondition * wc = iter.GetValue()._waitConditionRef();
       if (wc) ret |= wc->_waitCondition.Notify();

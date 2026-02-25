@@ -72,7 +72,7 @@ void PrintTable(const char * desc, const Hashtable<String, int> & table)
 {
    printf("\n");
    printf("%s\n", desc);
-   for (HashtableIterator<String, int> iter(table); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, int> iter(table); iter.HasData(); iter++)
    {
       printf("   Key=[%s] -> Value=%i\n", iter.GetKey()(), iter.GetValue());
    }

@@ -284,7 +284,7 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
          const Hashtable<ConstSocketRef, bool> & t = tsd._socketSets[i];
          if (t.HasItems())
          {
-            for (HashtableIterator<ConstSocketRef, bool> iter(t, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+            for (ConstHashtableIterator<ConstSocketRef, bool> iter(t, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
             {
                const int nextFD = iter.GetKey().GetFileDescriptor();
                if (nextFD >= 0) (void) tsd._multiplexer.RegisterSocketForEventsByTypeIndex(nextFD, i);

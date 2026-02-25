@@ -285,7 +285,7 @@ ReflectServer :: Cleanup()
 {
    // Detach all sessions
    {
-      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(_sessions); iter.HasData(); iter++)
+      for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(_sessions); iter.HasData(); iter++)
       {
          AbstractReflectSessionRef nextValue = iter.GetValue();
          if (nextValue())
@@ -379,7 +379,7 @@ uint64 ReflectServer :: PrepareToWaitForEvents()
    // Set up the session factories so we can be notified when a new connection is received
    if (_factories.HasItems())
    {
-      for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++)
+      for (ConstHashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++)
       {
          ConstSocketRef * nextAcceptSocket = iter.GetValue()()->IsReadyToAcceptSessions() ? _factorySockets.Get(iter.GetKey()) : NULL;
          const int nfd = nextAcceptSocket ? nextAcceptSocket->GetFileDescriptor() : -1;
@@ -393,7 +393,7 @@ uint64 ReflectServer :: PrepareToWaitForEvents()
    // Set up the sessions, their associated IO-gateways, and their IOPolicies
    if (_sessions.HasItems())
    {
-      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+      for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
       {
          AbstractReflectSession * session = iter.GetValue()();
          if (session)
@@ -456,7 +456,7 @@ uint64 ReflectServer :: PrepareToWaitForEvents()
    {
       // Now that the policies know *who* amongst their policyholders will be reading/writing,
       // let's ask each activated policy *how much* each policyholder should be allowed to read/write.
-      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+      for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
       {
          AbstractReflectSession * session = iter.GetValue()();
          if (session)
@@ -470,7 +470,7 @@ uint64 ReflectServer :: PrepareToWaitForEvents()
 
       // Now that all is prepared, calculate all the policies' wakeup times
       TCHECKPOINT;
-      for (HashtableIterator<AbstractSessionIOPolicyRef, Void> iter(_preparedPolicies); iter.HasData(); iter++) CallGetPulseTimeAux(*iter.GetKey()(), now, nextPulseAt);
+      for (ConstHashtableIterator<AbstractSessionIOPolicyRef, Void> iter(_preparedPolicies); iter.HasData(); iter++) CallGetPulseTimeAux(*iter.GetKey()(), now, nextPulseAt);
       TCHECKPOINT;
    }
 
@@ -636,7 +636,7 @@ void ReflectServer :: HandleEvents()
    if (_preparedPolicies.HasItems())
    {
       // Tell the session policies we're done doing I/O (for now)
-      for (HashtableIterator<AbstractSessionIOPolicyRef, Void> iter(_preparedPolicies); iter.HasData(); iter++)
+      for (ConstHashtableIterator<AbstractSessionIOPolicyRef, Void> iter(_preparedPolicies); iter.HasData(); iter++)
       {
          AbstractSessionIOPolicy * p = iter.GetKey()();
          if (p->_hasBegun)
@@ -647,7 +647,7 @@ void ReflectServer :: HandleEvents()
       }
 
       // Pulse the Policies
-      for (HashtableIterator<AbstractSessionIOPolicyRef, Void> iter(_preparedPolicies); iter.HasData(); iter++) CallPulseAux(*iter.GetKey()(), GetRunTime64());
+      for (ConstHashtableIterator<AbstractSessionIOPolicyRef, Void> iter(_preparedPolicies); iter.HasData(); iter++) CallPulseAux(*iter.GetKey()(), GetRunTime64());
       _preparedPolicies.Clear();  // not strictly necessary since we'll clear it at the top of PrepareToWaitForEvents() also, but just in case
    }
 
@@ -659,7 +659,7 @@ void ReflectServer :: HandleEvents()
    // Lastly, check our accepting ports to see if anyone is trying to connect...
    if (_factories.HasItems())
    {
-      for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++)
+      for (ConstHashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++)
       {
          ReflectSessionFactory * factory = iter.GetValue()();
          CallSetCycleStartTime(*factory, GetRunTime64());
@@ -716,7 +716,7 @@ status_t ReflectServer :: DoFirstTimeServerSetup()
       if (_factories.HasItems())
       {
          bool listeningOnAll = false;
-         for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++)
+         for (ConstHashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++)
          {
             const IPAddressAndPort & iap = iter.GetKey();
             LogTime(MUSCLE_LOG_DEBUG, "%s is listening on port %u ", GetServerName(), iap.GetPort());
@@ -909,7 +909,7 @@ uint32 ReflectServer :: DumpBoggedSessions()
    // This could happen if someone has a really slow Internet connection, or has decided to
    // stop reading from their end indefinitely for some reason.
    const int MAX_MEGABYTES = 5;
-   for (HashtableIterator<const String *, AbstractReflectSessionRef> xiter(GetSessions()); xiter.HasData(); xiter++)
+   for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> xiter(GetSessions()); xiter.HasData(); xiter++)
    {
       AbstractReflectSession * asr = xiter.GetValue()();
       if ((asr)&&(asr->IsExpendable()))
@@ -1070,7 +1070,7 @@ RemoveAcceptFactory(uint16 port, const IPAddress & optInterfaceIP)
    if (port > 0) return RemoveAcceptFactoryAux(IPAddressAndPort(optInterfaceIP, port));
    else
    {
-      for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++) (void) RemoveAcceptFactoryAux(iter.GetKey());
+      for (ConstHashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(_factories); iter.HasData(); iter++) (void) RemoveAcceptFactoryAux(iter.GetKey());
       return B_NO_ERROR;
    }
 }
@@ -1138,7 +1138,7 @@ AddLameDuckSession(AbstractReflectSession * who)
 {
    TCHECKPOINT;
 
-   for (HashtableIterator<const String *, AbstractReflectSessionRef> xiter(GetSessions()); xiter.HasData(); xiter++)
+   for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> xiter(GetSessions()); xiter.HasData(); xiter++)
    {
       if (xiter.GetValue()() == who)
       {
@@ -1158,7 +1158,7 @@ SetComputerIsAboutToSleep(bool isAboutToSleep)
    if (_computerIsAboutToSleep)
    {
       uint32 disconnectCount = 0, scheduleCount = 0;
-      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(_sessions); iter.HasData(); iter++)
+      for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(_sessions); iter.HasData(); iter++)
       {
          const String & sessionID = *iter.GetKey();
          const AbstractReflectSessionRef & s = iter.GetValue();
@@ -1188,7 +1188,7 @@ SetComputerIsAboutToSleep(bool isAboutToSleep)
    {
       // Just woke up!  Now is the time to try to reconnect anyone who we put to sleep previously
       uint32 reconnectCount = 0;
-      for (HashtableIterator<String, bool> iter(_sessionsToReconnectOnWakeup); iter.HasData(); iter++)
+      for (ConstHashtableIterator<String, bool> iter(_sessionsToReconnectOnWakeup); iter.HasData(); iter++)
       {
          AbstractReflectSessionRef s = GetSession(iter.GetKey());
          if (s())

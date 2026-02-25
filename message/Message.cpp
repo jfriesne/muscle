@@ -1001,7 +1001,7 @@ MessageRef Message :: CreateMessageTemplate() const
    MessageRef ret = GetMessageFromPool(what);
    MRETURN_ON_ERROR(ret);
 
-   for (HashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const String & fn = iter.GetKey();
       const MessageField & mf = iter.GetValue();
@@ -1070,7 +1070,7 @@ uint32 Message :: GetNumNames(uint32 type) const
 
    // oops, gotta count just the entries of the given type
    uint32 total = 0;
-   for (HashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) if (iter.GetValue().TypeCode() == type) total++;
+   for (ConstHashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++) if (iter.GetValue().TypeCode() == type) total++;
    return total;
 }
 
@@ -1092,7 +1092,7 @@ void Message :: Print(const OutputPrinter & p, uint32 maxRecurseLevel) const
 
    p.printf("Message:  what='%s' (" INT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), entryCount=" INT32_FORMAT_SPEC ", flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", prettyTypeCodeBuf, what, what, GetNumNames(B_ANY_TYPE), FlattenedSize(), CalculateChecksum());
 
-   for (HashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const MessageField & mf = iter.GetValue();
       const uint32 tc = mf.TypeCode();
@@ -1151,7 +1151,7 @@ uint32 Message :: FlattenedSize() const
    uint32 sum = 3 * sizeof(uint32);  // For the message header:  4 bytes for the protocol revision #, 4 bytes for the number-of-entries field, 4 bytes for what code
 
    // For each flattenable field: 4 bytes for the name length, name data, 4 bytes for entry type code, 4 bytes for entry data length, entry data
-   for (HashtableIterator<String, MessageField> it(_entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++)
+   for (ConstHashtableIterator<String, MessageField> it(_entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++)
    {
       const MessageField & mf = it.GetValue();
       if (mf.IsFlattenable()) sum += sizeof(uint32) + it.GetKey().FlattenedSize() + sizeof(uint32) + sizeof(uint32) + mf.FlattenedSize();
@@ -1164,7 +1164,7 @@ uint32 Message :: CalculateChecksum(bool countNonFlattenableFields) const
    uint32 ret = what;
 
    // Calculate the number of flattenable entries (may be less than the total number of entries!)
-   for (HashtableIterator<String, MessageField> it(_entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++)
+   for (ConstHashtableIterator<String, MessageField> it(_entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++)
    {
       // Note that I'm deliberately NOT considering the ordering of the fields when computing the checksum!
       const MessageField & mf = it.GetValue();
@@ -1202,7 +1202,7 @@ void Message :: Flatten(DataFlattener flat) const
 
    // Write entries
    uint32 numFlattenedEntries = 0;
-   for (HashtableIterator<String, MessageField> it(_entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++)
+   for (ConstHashtableIterator<String, MessageField> it(_entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++)
    {
       const MessageField & mf = it.GetValue();
       if (mf.IsFlattenable())
@@ -2096,7 +2096,7 @@ bool Message :: FieldsAreSubsetOf(const Message & rhs, bool compareContents) con
    TCHECKPOINT;
 
    // Returns true iff every one of our fields has a like-named, liked-typed, equal-length field in (rhs).
-   for (HashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const MessageField * hisNextValue = rhs._entries.Get(iter.GetKey());
       if ((hisNextValue == NULL)||(iter.GetValue().IsEqualTo(*hisNextValue, compareContents) == false)) return false;
@@ -2129,7 +2129,7 @@ uint64 Message :: TemplateHashCode64() const
 uint64 Message :: TemplateHashCode64Aux(uint32 & count) const
 {
    uint64 sum = 0;
-   for (HashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const MessageField & mf = iter.GetValue();
       if (mf.IsFlattenable())
@@ -2151,7 +2151,7 @@ uint64 Message :: TemplateHashCode64Aux(uint32 & count) const
 uint32 Message :: TemplatedFlattenedSize(const Message & templateMsg) const
 {
    uint32 sum = sizeof(uint32);  // For the what-code
-   for (HashtableIterator<String, MessageField> iter(templateMsg._entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, MessageField> iter(templateMsg._entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const MessageField & mf = iter.GetValue();
       if (mf.IsFlattenable()) sum += mf.TemplatedFlattenedSize(_entries.Get(iter.GetKey()));
@@ -2164,7 +2164,7 @@ void Message :: TemplatedFlatten(const Message & templateMsg, DataFlattener flat
    flat.WriteInt32(what);
    uint8 * origBuffer = flat.GetCurrentWritePointer();
    uint8 * buffer     = origBuffer;
-   for (HashtableIterator<String, MessageField> iter(templateMsg._entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, MessageField> iter(templateMsg._entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const MessageField & mf = iter.GetValue();
       if (mf.IsFlattenable())
@@ -2189,7 +2189,7 @@ status_t Message :: TemplatedUnflatten(const Message & templateMsg, DataUnflatte
    what = unflat.ReadInt32();
    MRETURN_ON_ERROR(unflat.GetStatus());
 
-   for (HashtableIterator<String, MessageField> iter(templateMsg._entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, MessageField> iter(templateMsg._entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const MessageField & mf = iter.GetValue();
       if (mf.IsFlattenable())

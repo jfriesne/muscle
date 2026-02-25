@@ -28,7 +28,7 @@ int main(int argc, char ** argv)
    (void) table.Put("Three",    3);
 
    printf("   The table currently has " UINT32_FORMAT_SPEC " key/value pairs in it.\n", table.GetNumItems());
-   for (HashtableIterator<String, int> iter(table); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, int> iter(table); iter.HasData(); iter++)
    {
       printf("   Key=[%s] -> Value=%i\n", iter.GetKey()(), iter.GetValue());
    }
@@ -83,7 +83,7 @@ int main(int argc, char ** argv)
 
    printf("\n");
    printf("After our changes, the table now has " UINT32_FORMAT_SPEC " items.  Its current contents are:\n", table.GetNumItems());
-   for (HashtableIterator<String, int> iter(table); iter.HasData(); iter++)
+   for (ConstHashtableIterator<String, int> iter(table); iter.HasData(); iter++)
    {
       printf("   Key=[%s] -> Value=%i\n", iter.GetKey()(), iter.GetValue());
    }

@@ -353,7 +353,7 @@ uint32 DataNode :: CalculateChecksum(uint32 maxRecursionDepth) const
    {
       uint32 ret = _cachedDataChecksum;
       if (_orderedIndex) for (int32 i=_orderedIndex->GetLastValidIndex(); i>=0; i--) ret += (*_orderedIndex)[i]()->GetNodeName().CalculateChecksum();
-      if (_children) for (HashtableIterator<const String *, DataNodeRef> iter(*_children); iter.HasData(); iter++) ret += iter.GetValue()()->CalculateChecksum(maxRecursionDepth-1);
+      if (_children) for (ConstHashtableIterator<const String *, DataNodeRef> iter(*_children); iter.HasData(); iter++) ret += iter.GetValue()()->CalculateChecksum(maxRecursionDepth-1);
       return ret;
    }
 }
@@ -378,7 +378,7 @@ void DataNode :: Print(const OutputPrinter & p, uint32 maxRecursionDepth, int in
       {
          p.putc(' ', indentLevel);
          p.printf("Children for node [%s] follow:\n", np());
-         for (HashtableIterator<const String *, DataNodeRef> iter(*_children); iter.HasData(); iter++) iter.GetValue()()->Print(p, maxRecursionDepth-1, indentLevel+2);
+         for (ConstHashtableIterator<const String *, DataNodeRef> iter(*_children); iter.HasData(); iter++) iter.GetValue()()->Print(p, maxRecursionDepth-1, indentLevel+2);
       }
    }
 }

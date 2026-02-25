@@ -620,7 +620,7 @@ ThreadSupervisorSession :: ~ThreadSupervisorSession()
 void ThreadSupervisorSession :: AboutToDetachFromServer()
 {
    // Neutralize all outstanding DrainTrags so that they won't try to call DrainTagIsBeingDeleted() on me after I'm gone.
-   for (HashtableIterator<DrainTag *, Void> tagIter(_drainTags); tagIter.HasData(); tagIter++) tagIter.GetKey()->SetNotify(NULL);
+   for (ConstHashtableIterator<DrainTag *, Void> tagIter(_drainTags); tagIter.HasData(); tagIter++) tagIter.GetKey()->SetNotify(NULL);
 
    // Nerf any ThreadWorkerSessions' cached pointers to us so they won't dangle
    Queue<AbstractReflectSessionRef> workers;

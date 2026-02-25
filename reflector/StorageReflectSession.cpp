@@ -252,7 +252,7 @@ NotifySubscribersThatNodeChanged(DataNode & modifiedNode, const ConstMessageRef 
 {
    TCHECKPOINT;
 
-   for (HashtableIterator<uint32, uint32> subIter(modifiedNode.GetSubscribers()); subIter.HasData(); subIter++)
+   for (ConstHashtableIterator<uint32, uint32> subIter(modifiedNode.GetSubscribers()); subIter.HasData(); subIter++)
    {
       StorageReflectSession * next = dynamic_cast<StorageReflectSession *>(GetSession(subIter.GetKey())());
       if ((next)&&((next != this)||(IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF)))) next->NodeChanged(modifiedNode, oldData, nodeChangeFlags);
@@ -267,7 +267,7 @@ NotifySubscribersThatNodeIndexChanged(DataNode & modifiedNode, char op, uint32 i
 {
    TCHECKPOINT;
 
-   for (HashtableIterator<uint32, uint32> subIter(modifiedNode.GetSubscribers()); subIter.HasData(); subIter++)
+   for (ConstHashtableIterator<uint32, uint32> subIter(modifiedNode.GetSubscribers()); subIter.HasData(); subIter++)
    {
       AbstractReflectSessionRef nRef = GetSession(subIter.GetKey());
       StorageReflectSession * s = dynamic_cast<StorageReflectSession *>(nRef());
@@ -283,7 +283,7 @@ NotifySubscribersOfNewNode(DataNode & newNode)
 {
    TCHECKPOINT;
 
-   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+   for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
    {
       StorageReflectSession * next = dynamic_cast<StorageReflectSession *>(iter.GetValue()());
       if (next) next->NodeCreated(newNode);  // always notify; !Self filtering will be done elsewhere
@@ -1188,7 +1188,7 @@ PushSubscriptionMessages()
       _sharedData->_subsDirty = false;
 
       // Send out any subscription results that were generated...
-      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+      for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
       {
          StorageReflectSession * nextSession = dynamic_cast<StorageReflectSession *>(iter.GetValue()());
          if (nextSession)
@@ -1431,7 +1431,7 @@ MatchesNode(DataNode & node, ConstMessageRef & optData, int rootDepth) const
 {
    const int32 relativeDepth = ((int32)node.GetDepth())-rootDepth;
    if (relativeDepth >= 0)
-      for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()[relativeDepth]); iter.HasData(); iter++)
+      for (ConstHashtableIterator<String, PathMatcherEntry> iter(GetEntries()[relativeDepth]); iter.HasData(); iter++)
          if (PathMatches(node, optData, iter.GetValue(), rootDepth)) return true;
    return false;
 }
@@ -1445,7 +1445,7 @@ GetMatchCount(DataNode & node, const Message * optData, int rootDepth) const
    if (relativeDepth >= 0)
    {
       DummyConstMessageRef fakeRef(optData);
-      for (HashtableIterator<String, PathMatcherEntry> iter(GetEntries()[relativeDepth]); iter.HasData(); iter++) if (PathMatches(node, fakeRef, iter.GetValue(), rootDepth)) matchCount++;
+      for (ConstHashtableIterator<String, PathMatcherEntry> iter(GetEntries()[relativeDepth]); iter.HasData(); iter++) if (PathMatches(node, fakeRef, iter.GetValue(), rootDepth)) matchCount++;
    }
    return matchCount;
 }
@@ -1489,11 +1489,11 @@ DoTraversalAux(TraversalContext & data, DataNode & node)
       const int32 relativeDepth = depth-data.GetRootDepth();
 
       // If none of our parsers are using wildcarding at our current level, we can use direct hash lookups (faster)
-      for (HashtableIterator<uint32, Hashtable<String, PathMatcherEntry> > iter(GetEntries()); ((parsersHaveWildcards == false)&&(iter.HasData())); iter++)
+      for (ConstHashtableIterator<uint32, Hashtable<String, PathMatcherEntry> > iter(GetEntries()); ((parsersHaveWildcards == false)&&(iter.HasData())); iter++)
       {
          if ((int32)iter.GetKey() <= relativeDepth) continue;
 
-         for (HashtableIterator<String, PathMatcherEntry> subIter(iter.GetValue()); subIter.HasData(); subIter++)
+         for (ConstHashtableIterator<String, PathMatcherEntry> subIter(iter.GetValue()); subIter.HasData(); subIter++)
          {
             const StringMatcherQueue * nextQueue = subIter.GetValue().GetParser()();
             if (nextQueue)
@@ -1523,11 +1523,11 @@ DoTraversalAux(TraversalContext & data, DataNode & node)
       Hashtable<DataNode *, Void> alreadyDid;  // To make sure we don't do the same child twice (could happen if two matchers are the same)
       int32 entryIdx = 0;
       const int32 relativeDepth = depth-data.GetRootDepth();
-      for (HashtableIterator<uint32, Hashtable<String, PathMatcherEntry> > iter(GetEntries()); iter.HasData(); iter++)
+      for (ConstHashtableIterator<uint32, Hashtable<String, PathMatcherEntry> > iter(GetEntries()); iter.HasData(); iter++)
       {
          if ((int32)iter.GetKey() <= relativeDepth) continue;
 
-         for (HashtableIterator<String, PathMatcherEntry> subIter(iter.GetValue()); subIter.HasData(); subIter++)
+         for (ConstHashtableIterator<String, PathMatcherEntry> subIter(iter.GetValue()); subIter.HasData(); subIter++)
          {
             scratchStr.Clear();  // otherwise we might get leftover data from the previous PathMatcherEntry in the iteration
 
@@ -1602,11 +1602,11 @@ CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optK
       // Try all parsers and see if any of them match at this level
       int32 entryIdx = 0;
       const int32 relativeDepth = depth-data.GetRootDepth();
-      for (HashtableIterator<uint32, Hashtable<String, PathMatcherEntry> > iter(GetEntries()); iter.HasData(); iter++)
+      for (ConstHashtableIterator<uint32, Hashtable<String, PathMatcherEntry> > iter(GetEntries()); iter.HasData(); iter++)
       {
          if ((int32)iter.GetKey() <= relativeDepth) continue;
 
-         for (HashtableIterator<String, PathMatcherEntry> subIter(iter.GetValue()); subIter.HasData(); subIter++)
+         for (ConstHashtableIterator<String, PathMatcherEntry> subIter(iter.GetValue()); subIter.HasData(); subIter++)
          {
             const StringMatcherQueue * nextQueue = subIter.GetValue().GetParser()();
             if (nextQueue)

@@ -82,7 +82,7 @@ void ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ)
          Hashtable<ByteBufferRef, IPAddressAndPort> & b = _fakePacketSendIO.GetWrittenBuffers();
          if (b.HasItems())
          {
-            for (HashtableIterator<ByteBufferRef, IPAddressAndPort> iter(b); iter.HasData(); iter++) (void) outQ.AddTail(iter.GetKey());
+            for (ConstHashtableIterator<ByteBufferRef, IPAddressAndPort> iter(b); iter.HasData(); iter++) (void) outQ.AddTail(iter.GetKey());
             b.Clear();
          }
       }

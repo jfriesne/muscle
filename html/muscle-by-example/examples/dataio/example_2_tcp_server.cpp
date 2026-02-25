@@ -56,7 +56,7 @@ int main(int argc, char ** argv)
       // Tell the SocketMultiplexer what sockets to listen to
       (void) sm.RegisterSocketForReadReady(stdinIO.GetReadSelectSocket().GetFileDescriptor());
       (void) sm.RegisterSocketForReadReady(acceptSock.GetFileDescriptor());
-      for (HashtableIterator<DataIORef, Void> iter(tcpClients); iter.HasData(); iter++)
+      for (ConstHashtableIterator<DataIORef, Void> iter(tcpClients); iter.HasData(); iter++)
       {
          (void) sm.RegisterSocketForReadReady(iter.GetKey()()->GetReadSelectSocket().GetFileDescriptor());
       }
@@ -93,7 +93,7 @@ int main(int argc, char ** argv)
             else
             {
                printf("Read %i bytes from stdin, forwarding them to " UINT32_FORMAT_SPEC " TCP clients.\n", readRet.GetByteCount(), tcpClients.GetNumItems());
-               for (HashtableIterator<DataIORef, Void> iter(tcpClients); iter.HasData(); iter++)
+               for (ConstHashtableIterator<DataIORef, Void> iter(tcpClients); iter.HasData(); iter++)
                {
                   const io_status_t writeRet = iter.GetKey()()->Write(inputBuf, readRet.GetByteCount());
                   if (writeRet != readRet) printf("Error [%s] writing to TCP client %p\n", writeRet.GetStatus()(), iter.GetKey()());
@@ -104,7 +104,7 @@ int main(int argc, char ** argv)
       }
 
       // Time to read from a TCP client?
-      for (HashtableIterator<DataIORef, Void> iter(tcpClients); iter.HasData(); iter++)
+      for (ConstHashtableIterator<DataIORef, Void> iter(tcpClients); iter.HasData(); iter++)
       {
          DataIO * clientIO = iter.GetKey()();
          if (sm.IsSocketReadyForRead(clientIO->GetReadSelectSocket().GetFileDescriptor()))

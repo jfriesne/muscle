@@ -223,7 +223,7 @@ status_t SimulatedMulticastDataIO :: EnqueueOutgoingMulticastControlCommand(uint
    {
       // Include the next (n) member-IAPs (not including our own) to the PONG's data so that the
       // receiver can add them all, even if he doesn't get all of the PONGs directly from everyone
-      HashtableIterator<IPAddressAndPort, uint64> iter = _knownMembers.ContainsKey(_localAddressAndPort) ? _knownMembers.GetIteratorAt(_localAddressAndPort) : _knownMembers.GetIterator();
+      ConstHashtableIterator<IPAddressAndPort, uint64> iter = _knownMembers.ContainsKey(_localAddressAndPort) ? _knownMembers.GetConstIteratorAt(_localAddressAndPort) : _knownMembers.GetConstIterator();
       IPAddressAndPort firstAdded;
       uint32 numAdded = 0;
       for (uint32 count = 0; count < _knownMembers.GetNumItems(); count++)
@@ -472,7 +472,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
                   Queue<ConstByteBufferRef> pq; (void) pq.AddTail(nextPacket);
 
                   (void) _outgoingPacketsTable.EnsureSize(_knownMembers.GetNumItems());
-                  for (HashtableIterator<IPAddressAndPort, uint64> iter(_knownMembers); iter.HasData(); iter++) (void) _outgoingPacketsTable.Put(iter.GetKey(), pq);
+                  for (ConstHashtableIterator<IPAddressAndPort, uint64> iter(_knownMembers); iter.HasData(); iter++) (void) _outgoingPacketsTable.Put(iter.GetKey(), pq);
                }
             }
 
@@ -493,7 +493,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
 
          // And we'll also send unicast pings to anyone who we haven't heard from in a while, just to double-check
          // If we haven't heard from someone for a very long time, we'll drop them
-         for (HashtableIterator<IPAddressAndPort, uint64> iter(_knownMembers); iter.HasData(); iter++)
+         for (ConstHashtableIterator<IPAddressAndPort, uint64> iter(_knownMembers); iter.HasData(); iter++)
          {
             const IPAddressAndPort & destIAP = iter.GetKey();
             const uint64 timeSinceMicros = (now-iter.GetValue());

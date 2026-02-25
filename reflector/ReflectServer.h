@@ -187,7 +187,7 @@ public:
      */
    template <class SessionType> MUSCLE_NODISCARD SessionType * FindFirstSessionOfType() const
    {
-      for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+      for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
       {
          SessionType * ret = dynamic_cast<SessionType *>(iter.GetValue()());
          if (ret) return ret;
@@ -205,7 +205,7 @@ public:
    {
       if (maxSessionsToReturn > 0)
       {
-         for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+         for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
          {
             SessionType * ret = dynamic_cast<SessionType *>(iter.GetValue()());
             if (ret)

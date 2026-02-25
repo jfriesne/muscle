@@ -59,10 +59,10 @@ void ExampleWidget :: paintEvent(QPaintEvent *)
       // First, draw lines from our local position to all the other user's positions, just cause it looks cool
       QPoint myPt = NormalizedToQtCoords(_master->_localState()->GetPoint("position"));
       p.setPen(Qt::black);
-      for (HashtableIterator<String, ConstMessageRef> iter(_master->_states); iter.HasData(); iter++) p.drawLine(myPt, NormalizedToQtCoords(iter.GetValue()()->GetPoint("position")));
+      for (ConstHashtableIterator<String, ConstMessageRef> iter(_master->_states); iter.HasData(); iter++) p.drawLine(myPt, NormalizedToQtCoords(iter.GetValue()()->GetPoint("position")));
 
       // And finally draw everyone's position-indicator bubble
-      for (HashtableIterator<String, ConstMessageRef> iter(_master->_states); iter.HasData(); iter++) DrawUser(p, iter.GetValue());
+      for (ConstHashtableIterator<String, ConstMessageRef> iter(_master->_states); iter.HasData(); iter++) DrawUser(p, iter.GetValue());
       DrawUser(p, _master->_localState);
    }
    else

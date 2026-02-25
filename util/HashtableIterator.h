@@ -54,8 +54,10 @@ namespace muscle {
 // Forward declarations
 template <class KeyType, class ValueType, class HashFunctorType>                     class HashtableIterator;
 template <class KeyType, class ValueType, class HashFunctorType>                     class HashtableIteratorImp;
+template <class KeyType, class ValueType, class HashFunctorType>                     class ConstHashtableIterator;
 template <class KeyType, class ValueType, class HashFunctorType>                     class HashtableBase;
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType> class HashtableMid;
+
 
 /** These flags can be passed to the HashtableIterator constructor (or to the GetIterator()/GetIteratorAt()
   * functions in the Hashtable class) to modify the iterator's behaviour.
@@ -113,7 +115,7 @@ public:
       return *_currentVal;
    }
 
-   MUSCLE_NODISCARD const ValueType & GetConstValue() const
+   MUSCLE_NODISCARD const ValueType & GetValueConst() const
    {
 #ifdef __clang_analyzer__
       assert(_currentVal != NULL);
@@ -217,12 +219,7 @@ public:
    /** Convenience typedef for the type of Hashtable this HashtableIterator is associated with. */
    typedef HashtableBase<KeyType, ValueType, HashFunctorType> HashtableType;
 
-   /**
-    * Default constructor.  It's here only so that you can include HashtableIterators
-    * as member variables, in arrays, etc.  HashtableIterators created with this
-    * constructor are "empty", so they won't be useful until you set them equal to a
-    * HashtableIterator that was returned by Hashtable::GetIterator().
-    */
+   /** Default constructor.  */
    HashtableIterator() {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
@@ -232,7 +229,7 @@ public:
      * @param table the Hashtable to iterate over.
      * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Defaults to zero for default behaviour.
      */
-   HashtableIterator(const HashtableType & table, uint32 flags = 0) : _imp(table, flags) {/* empty */}
+   HashtableIterator(HashtableType & table, uint32 flags = 0) : _imp(table, flags) {/* empty */}
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
@@ -251,7 +248,7 @@ public:
      *                the iterator will not return any results.
      * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Set to zero to get the default behaviour.
      */
-   HT_UniversalSinkKeyRef HashtableIterator(const HashtableType & table, HT_SinkKeyParam startAt, uint32 flags) : _imp(table, startAt, flags) {/* empty */}
+   HT_UniversalSinkKeyRef HashtableIterator(HashtableType & table, HT_SinkKeyParam startAt, uint32 flags) : _imp(table, startAt, flags) {/* empty */}
 
    /** Destructor */
    ~HashtableIterator() {/* empty */}
@@ -273,18 +270,16 @@ public:
 
    /**
     * Returns a reference to the key this iterator is currently pointing at.  This method does not change the state of the iterator.
-    * @note Be careful with this method, if this iterator isn't currently pointing at any key,
-    *       it will return a NULL reference and your program will crash when you try to use it.
-    *       Typically you should only call this function after checking to see that HasData() returns true.
+    * @note This method may only be called if the iterator is pointing to a valid entry (i.e. if HasData() returns true).
+    *       Calling it when HasData()==false will invoke undefined behavior!
     * @note The returned reference is only guaranteed to remain valid for as long as the Hashtable remains unchanged.
     */
    MUSCLE_NODISCARD const KeyType & GetKey() const {return _imp.GetKey();}
 
    /**
     * Returns a reference to the value this iterator is currently pointing at.
-    * @note Be careful with this method, if this iterator isn't currently pointing at any value,
-    *       it will return a NULL reference and your program will crash when you try to use it.
-    *       Typically you should only call this function after checking to see that HasData() returns true.
+    * @note This method may only be called if the iterator is pointing to a valid entry (i.e. if HasData() returns true).
+    *       Calling it when HasData()==false will invoke undefined behavior!
     * @note The returned reference is only guaranteed to remain valid for as long as the Hashtable remains unchanged.
     */
    MUSCLE_NODISCARD ValueType & GetValue() const {return _imp.GetValue();}
@@ -313,6 +308,147 @@ public:
     *  @param swapMe The iterator whose state we are to swap with
     */
    void SwapContents(HashtableIterator & swapMe) MUSCLE_NOEXCEPT {_imp.SwapContents(swapMe._imp, false);}
+
+private:
+   friend class HashtableBase<KeyType, ValueType, HashFunctorType>;
+   friend class ConstHashtableIterator<KeyType, ValueType, HashFunctorType>;
+
+   HashtableIteratorImp<KeyType, ValueType, HashFunctorType> _imp;
+};
+
+/**
+ * This class is a read-only iterator object, used for iterating over the set
+ * of keys or values in a const Hashtable.  Note that the Hashtable class
+ * maintains the ordering of its keys and values, unlike many hash table
+ * implementations.
+ *
+ * Given a Hashtable object, you can obtain one or more of these
+ * iterator objects by calling the Hashtable's GetIterator() method;
+ * or you can just specify the Hashtable you want to iterate over as
+ * an argument to the HashtableIterator constructor.
+ *
+ * The most common form for a Hashtable iteration is this:
+ *
+ * for (ConstHashtableIterator<String, int> iter(table); iter.HasData(); iter++)
+ * {
+ *    const String & nextKey = iter.GetKey();
+ *    int nextValue = iter.GetValue();
+ *    [...]
+ * }
+ *
+ * It is safe to modify or delete a Hashtable during an iteration-traversal (from the same
+ * thread only); any HashtableIterators that are in the middle of iterating over the Hashtable
+ * will be automatically notified about the modification, so that they can do the right thing
+ * (and in particular, not continue to point to any no-longer-existing hashtable entries).
+ * @tparam KeyType the type of the keys of the key-value pairs in the Hashtable that this object will iterate over.
+ * @tparam ValueType the type of the values of the key-value pairs in the Hashtable that this object will iterate over.
+ * @tparam HashFunctorType the type of the hash functor to use to calculate hashes of keys in the hash table.  If not specified, an appropriate type will be chosen via SFINAE.
+ */
+template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class MUSCLE_NODISCARD ConstHashtableIterator MUSCLE_FINAL_CLASS
+{
+public:
+   /** Convenience typedef for the type of Hashtable this ConstHashtableIterator is associated with. */
+   typedef HashtableBase<KeyType, ValueType, HashFunctorType> HashtableType;
+
+   /** Default constructor. */
+   ConstHashtableIterator() {/* empty */}
+
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
+   ConstHashtableIterator(const ConstHashtableIterator & rhs) : _imp(rhs._imp) {/* empty */}
+
+   /** Pseudo-copy-constructor for creating a ConstHashtableIterator from a HashtableIterator
+     * @param rhs the HashtableIterator to make this a read-only copy of
+     */
+   ConstHashtableIterator(const HashtableIterator<KeyType, ValueType, HashFunctorType> & rhs) : _imp(rhs._imp) {/* empty */}
+
+   /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIterator().
+     * @param table the Hashtable to iterate over.
+     * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Defaults to zero for default behaviour.
+     */
+   ConstHashtableIterator(const HashtableType & table, uint32 flags = 0) : _imp(table, flags) {/* empty */}
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
+   ConstHashtableIterator(ConstHashtableIterator && rhs) MUSCLE_NOEXCEPT : _imp(rhs._imp) {/* empty */}
+
+   /** This constructor is declared deleted to keep ConstHashtableIterators from being accidentally associated with temporary objects */
+   ConstHashtableIterator(HashtableType && table, uint32 flags = 0) = delete;
+
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
+   ConstHashtableIterator & operator=(ConstHashtableIterator && rhs) {_imp.SwapContentsAux(rhs._imp, true); return *this;}
+#endif
+
+   /** Convenience Constructor -- makes an iterator equivalent to the value returned by table.GetIteratorAt().
+     * @param table the Hashtable to iterate over.
+     * @param startAt the first key that should be returned by the iteration.  If (startAt) is not in the table,
+     *                the iterator will not return any results.
+     * @param flags A bit-chord of HTIT_FLAG_* constants (see above).  Set to zero to get the default behaviour.
+     */
+   HT_UniversalSinkKeyRef ConstHashtableIterator(const HashtableType & table, HT_SinkKeyParam startAt, uint32 flags) : _imp(table, startAt, flags) {/* empty */}
+
+   /** Destructor */
+   ~ConstHashtableIterator() {/* empty */}
+
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
+   ConstHashtableIterator & operator=(const ConstHashtableIterator & rhs) {_imp = rhs._imp; return *this;}
+
+   /** Pseudo-assignment operator for setting a ConstHashtableIterator equal to a HashtableIterator.
+     * @param rhs the HashtableIterator to make this a read-only copy of
+     */
+   ConstHashtableIterator & operator=(const HashtableIterator<KeyType, ValueType, HashFunctorType> & rhs) {_imp = rhs._imp; return *this;}
+
+   /** Advances this iterator by one entry in the table.  */
+   void operator++(int) {_imp++;}
+
+   /** Retracts this iterator by one entry in the table.  The opposite of the ++ operator. */
+   void operator--(int) {_imp--;}
+
+   /** Returns true iff this iterator is pointing to valid key/value data.  Do not call GetKey() or GetValue()
+     * unless this method returns true!  Note that the value returned by this method can change if the
+     * Hashtable is modified.
+     */
+   MUSCLE_NODISCARD bool HasData() const {return _imp.HasData();}
+
+   /**
+    * Returns a reference to the key this iterator is currently pointing at.  This method does not change the state of the iterator.
+    * @note This method may only be called if the iterator is pointing to a valid entry (i.e. if HasData() returns true).
+    *       Calling it when HasData()==false will invoke undefined behavior!
+    * @note The returned reference is only guaranteed to remain valid for as long as the Hashtable remains unchanged.
+    */
+   MUSCLE_NODISCARD const KeyType & GetKey() const {return _imp.GetKey();}
+
+   /**
+    * Returns a read-only reference to the value this iterator is currently pointing at.
+    * @note This method may only be called if the iterator is pointing to a valid entry (i.e. if HasData() returns true).
+    *       Calling it when HasData()==false will invoke undefined behavior!
+    * @note The returned reference is only guaranteed to remain valid for as long as the Hashtable remains unchanged.
+    */
+   MUSCLE_NODISCARD const ValueType & GetValue() const {return _imp.GetValueConst();}
+
+   /** Returns this iterator's HTIT_FLAG_* bit-chord value. */
+   MUSCLE_NODISCARD uint32 GetFlags() const {return _imp.GetFlags();}
+
+   /** Sets or unsets the HTIT_FLAG_BACKWARDS flag on this iterator.
+     * @param backwards If true, this iterator will be set to iterate backwards from wherever it is currently;
+     *                  if false, this iterator will be set to iterate forwards from wherever it is currently.
+     */
+   void SetBackwards(bool backwards) {_imp.SetBackwards(backwards);}
+
+   /** Returns true iff this iterator is set to iterate in reverse order -- ie if HTIT_FLAG_BACKWARDS
+     * was passed in to the constructor, or if SetBackwards(true) was called.
+     */
+   MUSCLE_NODISCARD bool IsBackwards() const {return _imp.IsBackwards();}
+
+   /** Convenience method.  Returns true iff we are currently referencing the first key/value pair in our iteration-sequence */
+   MUSCLE_NODISCARD bool IsAtStart() const {return _imp.IsAtStart();}
+
+   /** Convenience method.  Returns true iff we are currently referencing the final key/value pair in our iteration-sequence */
+   MUSCLE_NODISCARD bool IsAtEnd() const {return _imp.IsAtEnd();}
+
+   /** This method swaps the state of this iterator with the iterator in the argument.
+    *  @param swapMe The iterator whose state we are to swap with
+    */
+   void SwapContents(ConstHashtableIterator & swapMe) MUSCLE_NOEXCEPT {_imp.SwapContents(swapMe._imp, false);}
 
 private:
    friend class HashtableBase<KeyType, ValueType, HashFunctorType>;

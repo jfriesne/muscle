@@ -48,7 +48,7 @@ int main(int argc, char ** argv)
       (void) socketMux.RegisterSocketForReadReady(acceptSock.GetFileDescriptor());
 
       // Register our client-sockets so we'll know if any of them send us data
-      for (HashtableIterator<ConstSocketRef, Void> iter(connectedClients); iter.HasData(); iter++)
+      for (ConstHashtableIterator<ConstSocketRef, Void> iter(connectedClients); iter.HasData(); iter++)
       {
          (void) socketMux.RegisterSocketForReadReady(iter.GetKey().GetFileDescriptor());
       }
@@ -81,7 +81,7 @@ int main(int argc, char ** argv)
       }
 
       // See if any of our existing TCP sockets have any data for us
-      for (HashtableIterator<ConstSocketRef, Void> iter(connectedClients); iter.HasData(); iter++)
+      for (ConstHashtableIterator<ConstSocketRef, Void> iter(connectedClients); iter.HasData(); iter++)
       {
          const ConstSocketRef & clientSock = iter.GetKey();
          if (socketMux.IsSocketReadyForRead(clientSock.GetFileDescriptor()))

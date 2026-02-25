@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
    (void) okTable.Put(6, "Six");
 
    printf("Contents of OrderedKeysHashtable: (auto-sorted by key)\n");
-   for (HashtableIterator<int, String> iter(okTable); iter.HasData(); iter++)
+   for (ConstHashtableIterator<int, String> iter(okTable); iter.HasData(); iter++)
    {
       printf("   %i -> %s\n", iter.GetKey(), iter.GetValue()());
    }
@@ -57,7 +57,7 @@ int main(int argc, char ** argv)
    (void) ovTable.Put(5, "Five");
 
    printf("Contents of OrderedValuesHashtable (Note value-strings are auto-sorted alphabetically):\n");
-   for (HashtableIterator<int, String> iter(ovTable); iter.HasData(); iter++)
+   for (ConstHashtableIterator<int, String> iter(ovTable); iter.HasData(); iter++)
    {
       printf("   %i -> %s\n", iter.GetKey(), iter.GetValue()());
    }

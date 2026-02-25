@@ -118,7 +118,7 @@ io_status_t SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTim
       if (r >= 0)
       {
          // Record that kevent() accepted our _scratchChanges into its kernel-state, so we'll know not to send the changes again next time
-         for (HashtableIterator<int, uint16> iter(_bits); iter.HasData(); iter++)
+         for (ConstHashtableIterator<int, uint16> iter(_bits); iter.HasData(); iter++)
          {
             uint16 & b = iter.GetValue();
             uint16 userBits = (b&0x0F);
@@ -281,7 +281,7 @@ status_t SocketMultiplexer :: FDState :: ComputeStateBitsChangeRequests()
       }
       if (_scratchClosedSockets.HasItems())
       {
-         for (HashtableIterator<int, Void> iter(_scratchClosedSockets); iter.HasData(); iter++)
+         for (ConstHashtableIterator<int, Void> iter(_scratchClosedSockets); iter.HasData(); iter++)
          {
             uint16 * bits = _bits.Get(iter.GetKey());
             if (bits)
@@ -297,7 +297,7 @@ status_t SocketMultiplexer :: FDState :: ComputeStateBitsChangeRequests()
 
    // Generate change requests to the kernel, based on how the userBits differ from the kernelBits
    status_t ret;
-   for (HashtableIterator<int, uint16> iter(_bits); iter.HasData(); iter++)
+   for (ConstHashtableIterator<int, uint16> iter(_bits); iter.HasData(); iter++)
    {
       uint16 & bits  = iter.GetValue();
       bits &= ~(0xF00);  // get rid of any leftover results-bits from the previous iteration

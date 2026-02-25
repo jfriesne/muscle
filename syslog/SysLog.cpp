@@ -221,7 +221,7 @@ uint32 DefaultFileLogger :: AddPreExistingLogFiles(const String & filePattern)
       pathToTime.SortByValue();
 
       // And add the results to our _oldFileNames queue.  That way when the log file is opened, the oldest files will be deleted (if appropriate)
-      for (HashtableIterator<String, uint64> iter(pathToTime); iter.HasData(); iter++) (void) _oldLogFileNames.AddTail(iter.GetKey());
+      for (ConstHashtableIterator<String, uint64> iter(pathToTime); iter.HasData(); iter++) (void) _oldLogFileNames.AddTail(iter.GetKey());
    }
    return pathToTime.GetNumItems();
 }
@@ -546,7 +546,7 @@ void CloseCurrentLogFile()
 static void UpdateMaxLogLevel()
 {
    int maxLogThreshold = muscleMax(_dfl.GetLogLevelThreshold(), _dcl.GetLogLevelThreshold());
-   for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+   for (ConstHashtableIterator<LogCallbackRef, Void> iter(_logCallbacks, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const LogCallback * cb = iter.GetKey()();
       if (cb) maxLogThreshold = muscleMax(maxLogThreshold, cb->GetLogLevelThreshold());
@@ -627,7 +627,7 @@ static NestCount _inWarnOutOfMemory;  // avoid potential infinite recursion if w
 }
 
 #define DO_LOGGING_CALLBACKS(ll)                                                             \
-   for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++) \
+   for (ConstHashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++) \
    {                                                                                         \
       LogCallback * cb = iter.GetKey()();                                                    \
       if ((cb)&&((ll) <= cb->GetLogLevelThreshold())) DO_LOGGING_CALLBACK((*cb));            \
@@ -683,7 +683,7 @@ status_t LogTimeAux(int ll, const char * fmt, ...)
 void LogFlush()
 {
    DECLARE_MUTEXGUARD(_logMutex);
-   for (HashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++)
+   for (ConstHashtableIterator<LogCallbackRef, Void> iter(_logCallbacks); iter.HasData(); iter++)
    {
       const LogCallbackRef & lcr = iter.GetKey();
       if (lcr()) lcr()->Flush();

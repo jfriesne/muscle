@@ -110,7 +110,7 @@ private:
 
       uint32 roCount = _readOnlyOwnerToRecurseCount.GetNumItems();
       uint32 rwCount = _readWriteOwnerToRecurseCount.GetNumItems();
-      for (HashtableIterator<muscle_thread_id, uint32> iter(_readWriteOwnerToRecurseCount); iter.HasData(); iter++)
+      for (ConstHashtableIterator<muscle_thread_id, uint32> iter(_readWriteOwnerToRecurseCount); iter.HasData(); iter++)
       {
          const muscle_thread_id tid = iter.GetKey();
          if (_readOnlyOwnerToRecurseCount.ContainsKey(tid)) roCount--;  // if it's a read/write owner that also has a read-only lock, that's okay
@@ -129,9 +129,9 @@ private:
                char tempBuf[20];
 
                printf("ReadOnlyTable:\n");
-               for (HashtableIterator<muscle_thread_id, uint32> iter(_readOnlyOwnerToRecurseCount); iter.HasData(); iter++) printf("  %s -> " UINT32_FORMAT_SPEC "\n", iter.GetKey().ToString(tempBuf), iter.GetValue());
+               for (ConstHashtableIterator<muscle_thread_id, uint32> iter(_readOnlyOwnerToRecurseCount); iter.HasData(); iter++) printf("  %s -> " UINT32_FORMAT_SPEC "\n", iter.GetKey().ToString(tempBuf), iter.GetValue());
                printf("ReadWriteTable:\n");
-               for (HashtableIterator<muscle_thread_id, uint32> iter(_readWriteOwnerToRecurseCount); iter.HasData(); iter++) printf("  %s -> " UINT32_FORMAT_SPEC "\n", iter.GetKey().ToString(tempBuf), iter.GetValue());
+               for (ConstHashtableIterator<muscle_thread_id, uint32> iter(_readWriteOwnerToRecurseCount); iter.HasData(); iter++) printf("  %s -> " UINT32_FORMAT_SPEC "\n", iter.GetKey().ToString(tempBuf), iter.GetValue());
 
                MCRASH("Doh! A");
             }

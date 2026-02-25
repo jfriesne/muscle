@@ -47,7 +47,7 @@ private:
       // This is a super-minimalist display of what nodes our session has; a proper
       // program would do a better job of this (and would probably also be more specific
       // regarding what information it was looking for)
-      for (HashtableIterator<String, ConstMessageRef> iter(_data); iter.HasData(); iter++)
+      for (ConstHashtableIterator<String, ConstMessageRef> iter(_data); iter.HasData(); iter++)
       {
          // Show the sub-path
          s += iter.GetKey();

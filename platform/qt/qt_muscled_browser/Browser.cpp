@@ -189,7 +189,7 @@ void BrowserWindow :: SetNodeSubscribed(const String & nodePath, bool isSubscrib
 
          // Also remove from our tree of locally-cached data any nodes that start with this path
          const String removePath = nodePath + "/";
-         for (HashtableIterator<String, ConstMessageRef> iter(_pathToMessage); iter.HasData(); iter++) if (iter.GetKey().StartsWith(removePath))
+         for (ConstHashtableIterator<String, ConstMessageRef> iter(_pathToMessage); iter.HasData(); iter++) if (iter.GetKey().StartsWith(removePath))
          {
             (void) _pathToMessage.Remove(iter.GetKey());
             LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p dropped node for [%s]\n", this, iter.GetKey()());
@@ -210,7 +210,7 @@ void BrowserWindow :: NodeCollapsed(QTreeWidgetItem * node)
 {
    NodeTreeWidgetItem * ntwi = static_cast<NodeTreeWidgetItem *>(node);
    const String subPath = ntwi->GetPath() + "/";
-   for (HashtableIterator<String, Void> iter(_subscriptions); iter.HasData(); iter++) if (iter.GetKey().StartsWith(subPath)) SetNodeSubscribed(iter.GetKey().Substring(0, iter.GetKey().Length()-2), false);
+   for (ConstHashtableIterator<String, Void> iter(_subscriptions); iter.HasData(); iter++) if (iter.GetKey().StartsWith(subPath)) SetNodeSubscribed(iter.GetKey().Substring(0, iter.GetKey().Length()-2), false);
    ntwi->DeleteChildren();
 }
 

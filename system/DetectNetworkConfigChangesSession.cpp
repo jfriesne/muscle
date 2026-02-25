@@ -138,7 +138,7 @@ public:
    void ThreadSafeSendMessageToSessions(const MessageRef & msg)
    {
       DECLARE_MUTEXGUARD(_singletonThreadMutex);
-      for (HashtableIterator<DetectNetworkConfigChangesSession *, Void> iter(_registeredSessions); iter.HasData(); iter++)
+      for (ConstHashtableIterator<DetectNetworkConfigChangesSession *, Void> iter(_registeredSessions); iter.HasData(); iter++)
          (void) iter.GetKey()->ThreadSafeMessageReceivedFromSingletonThread(msg);
    }
 
@@ -260,7 +260,7 @@ public:
       if (optInterfaceNames.HasItems())
       {
          msg = GetMessageFromPool(DNCCS_MESSAGE_INTERFACES_CHANGED);
-         if (msg()) for (HashtableIterator<String, Void> iter(optInterfaceNames); iter.HasData(); iter++) (void) msg()->AddString("if", iter.GetKey());
+         if (msg()) for (ConstHashtableIterator<String, Void> iter(optInterfaceNames); iter.HasData(); iter++) (void) msg()->AddString("if", iter.GetKey());
       }
 
       static Message _defaultMsg(DNCCS_MESSAGE_INTERFACES_CHANGED);
@@ -748,13 +748,13 @@ void DetectNetworkConfigChangesSession :: ScheduleSendReport()
 
 void DetectNetworkConfigChangesSession :: CallNetworkInterfacesChangedOnAllTargets(const Hashtable<String, Void> & interfaceNames)
 {
-   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+   for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
    {
       INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
       if (t) t->NetworkInterfacesChanged(interfaceNames);
    }
 
-   for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
+   for (ConstHashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
    {
       INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
       if (t) t->NetworkInterfacesChanged(interfaceNames);
@@ -769,13 +769,13 @@ void DetectNetworkConfigChangesSession :: CallComputerIsAboutToSleepOnAllTargets
       if (rs) rs->ComputerIsAboutToSleep();
    }
 
-   for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
+   for (ConstHashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
    {
       INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
       if (t) t->ComputerIsAboutToSleep();
    }
 
-   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+   for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
    {
       INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
       if (t) t->ComputerIsAboutToSleep();
@@ -784,13 +784,13 @@ void DetectNetworkConfigChangesSession :: CallComputerIsAboutToSleepOnAllTargets
 
 void DetectNetworkConfigChangesSession :: CallComputerJustWokeUpOnAllTargets()
 {
-   for (HashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
+   for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
    {
       INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
       if (t) t->ComputerJustWokeUp();
    }
 
-   for (HashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
+   for (ConstHashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
    {
       INetworkConfigChangesTarget * t = dynamic_cast<INetworkConfigChangesTarget *>(iter.GetValue()());
       if (t) t->ComputerJustWokeUp();
