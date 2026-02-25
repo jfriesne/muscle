@@ -181,7 +181,7 @@ public:
    MUSCLE_NODISCARD const KeyType * GetKey(const KeyType & lookupKey) const;
 
    /** The iterator types that go with this HashtableBase type */
-   typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
+   typedef muscle_private::HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
    typedef ConstHashtableIterator<KeyType,ValueType,HashFunctorType> ConstIteratorType;
 
@@ -1162,7 +1162,7 @@ private:
    MUSCLE_NODISCARD HashtableEntryBase * IndexToEntryChecked(uint32 idx) const {return (idx == MUSCLE_HASHTABLE_INVALID_SLOT_INDEX) ? NULL : IndexToEntryUnchecked(idx);}
 
    friend class HashtableIterator<KeyType, ValueType, HashFunctorType>;
-   friend class HashtableIteratorImp<KeyType, ValueType, HashFunctorType>;
+   friend class muscle_private::HashtableIteratorImp<KeyType, ValueType, HashFunctorType>;
 
    void InitializeIterator(IteratorImpType & iter) const
    {
@@ -1439,7 +1439,7 @@ template <class KeyType, class ValueType, class HashFunctorType, class SubclassT
 public:
    /** The iterator types that go with this HashtableMid type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
-   typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
+   typedef muscle_private::HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
    typedef ConstHashtableIterator<KeyType,ValueType,HashFunctorType> ConstIteratorType;
 
    /** Equality operator.  Returns true iff both hash tables contains the same set of keys and values.
@@ -1905,7 +1905,7 @@ template <class KeyType, class ValueType, class HashFunctorType=typename DEFAULT
 public:
    /** The iterator types that go with this Hashtable type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
-   typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
+   typedef muscle_private::HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
    typedef ConstHashtableIterator<KeyType,ValueType,HashFunctorType> ConstIteratorType;
 
    /** Default constructor. */
@@ -2009,7 +2009,7 @@ template <class KeyType, class ValueType, class HashFunctorType, class EntryComp
 public:
    /** The iterator types that go with this OrderedHashtable type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
-   typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
+   typedef muscle_private::HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
    typedef ConstHashtableIterator<KeyType,ValueType,HashFunctorType> ConstIteratorType;
 
    /** This method can be used to deactivate or re-activate auto-sorting on this Hashtable.
@@ -2118,7 +2118,7 @@ template <class KeyType, class ValueType, class KeyCompareFunctorType=CompareFun
 public:
    /** The iterator types that go with this OrderedKeysHashtable type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
-   typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
+   typedef muscle_private::HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
    typedef ConstHashtableIterator<KeyType,ValueType,HashFunctorType> ConstIteratorType;
 
    /** Default constructor.
@@ -2205,7 +2205,7 @@ template <class KeyType, class ValueType, class ValueCompareFunctorType=CompareF
 public:
    /** The iterator types that go with this OrderedValuesHashtable type */
    typedef HashtableIterator<KeyType,ValueType,HashFunctorType> IteratorType;
-   typedef HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
+   typedef muscle_private::HashtableIteratorImp<KeyType,ValueType,HashFunctorType> IteratorImpType;
    typedef ConstHashtableIterator<KeyType,ValueType,HashFunctorType> ConstIteratorType;
 
    /** Default constructor.
@@ -3605,6 +3605,7 @@ ComputeValuesHistogram() const
 }
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS  // workaround for apparent DOxygen generator bug
+namespace muscle_private {
 
 //===============================================================
 // Implementation of HashtableIteratorImp
@@ -3745,6 +3746,7 @@ HashtableIteratorImp<KeyType,ValueType,HashFunctorType>::SwapContentsAux(Hashtab
    }
 }
 
+} // end namespace muscle_private
 #endif
 
 } // end namespace muscle

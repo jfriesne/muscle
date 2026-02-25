@@ -53,11 +53,9 @@ namespace muscle {
 
 // Forward declarations
 template <class KeyType, class ValueType, class HashFunctorType>                     class HashtableIterator;
-template <class KeyType, class ValueType, class HashFunctorType>                     class HashtableIteratorImp;
 template <class KeyType, class ValueType, class HashFunctorType>                     class ConstHashtableIterator;
 template <class KeyType, class ValueType, class HashFunctorType>                     class HashtableBase;
 template <class KeyType, class ValueType, class HashFunctorType, class SubclassType> class HashtableMid;
-
 
 /** These flags can be passed to the HashtableIterator constructor (or to the GetIterator()/GetIteratorAt()
   * functions in the Hashtable class) to modify the iterator's behaviour.
@@ -66,6 +64,10 @@ enum {
    HTIT_FLAG_BACKWARDS  = (1<<0), /**< iterate backwards. */
    HTIT_FLAG_NOREGISTER = (1<<1), /**< don't register the iterator object with Hashtable object */
 };
+
+namespace muscle_private {
+
+template <class KeyType, class ValueType, class HashFunctorType> class HashtableIteratorImp;
 
 // Internal/private implementation of the HashtableIterator class
 template <class KeyType, class ValueType, class HashFunctorType = typename AutoChooseHashFunctorHelper<KeyType>::Type > class MUSCLE_NODISCARD HashtableIteratorImp MUSCLE_FINAL_CLASS
@@ -184,6 +186,8 @@ private:
    DemandConstructedObject<KeyAndValue> _scratchKeyAndValue;
    bool _okayToUnsetThreadID;
 };
+
+}  // end namespace muscle_private
 
 /**
  * This class is an iterator object, used for iterating over the set
@@ -313,7 +317,7 @@ private:
    friend class HashtableBase<KeyType, ValueType, HashFunctorType>;
    friend class ConstHashtableIterator<KeyType, ValueType, HashFunctorType>;
 
-   HashtableIteratorImp<KeyType, ValueType, HashFunctorType> _imp;
+   muscle_private::HashtableIteratorImp<KeyType, ValueType, HashFunctorType> _imp;
 };
 
 /**
@@ -453,7 +457,7 @@ public:
 private:
    friend class HashtableBase<KeyType, ValueType, HashFunctorType>;
 
-   HashtableIteratorImp<KeyType, ValueType, HashFunctorType> _imp;
+   muscle_private::HashtableIteratorImp<KeyType, ValueType, HashFunctorType> _imp;
 };
 
 } // end namespace muscle
