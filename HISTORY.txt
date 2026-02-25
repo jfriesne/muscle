@@ -13,14 +13,16 @@ key:  - new feature
      and GetBackwardIteratorAt() methods to the Queue class.
    - Added a new GetEnvironmentVariable() function that returns
      a status_t and writes the string into an out-parameter.
+   - Added an ICallbackSubscriber constructor that takes its
+     ICallbackMechanism argument by-reference, for emcc's convenience.
    o Modified Queue::GetItemAtUnchecked() to return a reference
      instead of a pointer, since it can never return NULL anyway.
    o Renamed the existing GetEnvironmentVariable() function to
      GetEnvironmentVariableWithDefault()
    o Regularized the signature of the PopNextOutgoingMessage()
      method so that it returns a status_t in all cases.
-   - Added an ICallbackSubscriber constructor that takes its
-     ICallbackMechanism argument by-reference, for emcc's convenience.
+   o Moved the HashtableIterator class out into its own header
+     file at util/HashtableIterator.h
    * Fixed the Head(), Tail(), HeadPointer(), TailPointer(),
      GetItemAt() and GetItemAtChecked() methods in the Queue
      class to be properly const-correct.
