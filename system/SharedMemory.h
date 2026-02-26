@@ -120,7 +120,7 @@ private:
    ::HANDLE _map;
    String _fileName;
 #else
-   status_t AdjustSemaphore(short delta);
+   status_t AdjustSemaphore(short delta, bool enableUndoOnProcessExit);
    key_t _key;
    int _areaID;
    int _semID;

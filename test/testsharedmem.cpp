@@ -25,7 +25,12 @@ int main(int argc, char ** argv)
    SharedMemory m;
    if (m.SetArea(TEST_KEY, TEST_AREA_SIZE, true).IsOK(ret))
    {
-      if (deleteArea) LogTime(MUSCLE_LOG_INFO, "Deletion of area:  %s %s\n", m.GetAreaName()(), m.DeleteArea()());
+      if (deleteArea)
+      {
+         const String areaName = m.GetAreaName();
+         const status_t delRet = m.DeleteArea();
+         LogTime(MUSCLE_LOG_INFO, "Deletion of area:  %s %s\n", areaName(), delRet());
+      }
       else
       {
          uint8 * a = m.GetAreaPointer();

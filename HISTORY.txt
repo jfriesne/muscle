@@ -34,6 +34,7 @@ key:  - new feature
      GetItemAt() and GetItemAtChecked() methods in the Queue
      class to be properly const-correct.
    * Fixed several logic errors that were detected by Claude Code.
+   * Fixed a potential race-condition in SharedMemory::SetArea().
 
 9.77 - Released 2/9/2026
    - muscle::Crash() now takes a file name and line number as

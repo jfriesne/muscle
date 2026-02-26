@@ -1,4 +1,5 @@
 #include "system/SharedMemory.h"  // must be first!
+#include "util/TimeUtilityFunctions.h"  // for Snooze64()
 
 #if !defined(WIN32) && !defined(MUSCLE_FAKE_SHARED_MEMORY)
 # include <sys/types.h>
@@ -139,17 +140,52 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
    }
 
    DECLARE_SEMCTL_ARG(semopts);
+   memset(&semopts, 0, sizeof(semopts));
    const int permissionBits = 0777;
 
    // Try to create a new semaphore to control access to our area
    _semID = semget(requestedKey, 1, IPC_CREAT|IPC_EXCL|permissionBits);
    if (_semID >= 0)
    {
-      // race condition here!?
-      semopts.val = LARGEST_SEMAPHORE_DELTA;
-      if (semctl(_semID, 0, SETVAL, semopts) < 0) _semID = -1; // oops!
+      // there's a small race condition here, but we'll poll sem_otime in the other process/codepath to avoid getting bit by it
+
+      semopts.val = LARGEST_SEMAPHORE_DELTA-1;  // -1 only because I'm going to increment it by one more just below
+      if ((semctl(_semID, 0, SETVAL, semopts) < 0)||(AdjustSemaphore(1, false).IsError()))  // AdjustSemaphore(1) will update sem_otime for us
+      {
+         // roll back the creation of the semaphore on error
+         const int savedErrno = errno;
+         (void) semctl(_semID, 0, IPC_RMID);  // clean up
+         errno = savedErrno;
+         _semID = -1;
+      }
    }
-   else _semID = semget(requestedKey, 1, permissionBits);  // Couldn't create?  then get the existing one
+   else
+   {
+      _semID = semget(requestedKey, 1, permissionBits);  // Couldn't create a new semaphore?  then try to open the existing one
+      if (_semID >= 0)
+      {
+         bool okToGo = false;
+
+         // avoid a potential race condition by not continuing until we see sem_otime become non-zero
+         for (uint32 i=0; i<10; i++)
+         {
+            struct semid_ds semInfo = {};  // the braces zero-initialize the struct for us, to keep clang++SA happy
+            semopts.buf = &semInfo;
+            if (semctl(_semID, 0, IPC_STAT, semopts) == 0)
+            {
+               if (semInfo.sem_otime != 0)
+               {
+                  okToGo = true;
+                  break;
+               }
+               else (void) Snooze64(MillisToMicros(10));  // give the creator a little more time to finish up
+            }
+            else break;  // hmm, something is wrong
+         }
+
+         if (okToGo == false) _semID = -1;
+      }
+   }
 
    if (_semID >= 0)
    {
@@ -318,7 +354,7 @@ status_t SharedMemory :: LockArea(bool readOnly)
       if (WaitForSingleObject(_mutex, INFINITE) == WAIT_OBJECT_0) return B_NO_ERROR;
                                                              else ret = B_ERRNO;
 # else
-      if (AdjustSemaphore(_isLockedReadOnly ? -1: -LARGEST_SEMAPHORE_DELTA).IsOK(ret)) return B_NO_ERROR;
+      if (AdjustSemaphore(_isLockedReadOnly ? -1: -LARGEST_SEMAPHORE_DELTA, true).IsOK(ret)) return B_NO_ERROR;
 # endif
       _isLocked = _isLockedReadOnly = false;  // oops, roll back!
    }
@@ -336,7 +372,7 @@ void SharedMemory :: UnlockArea()
 # elif defined(MUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE)
       // empty
 # else
-      (void) AdjustSemaphore(_isLockedReadOnly ? 1 : LARGEST_SEMAPHORE_DELTA);
+      (void) AdjustSemaphore(_isLockedReadOnly ? 1 : LARGEST_SEMAPHORE_DELTA, true);
 # endif
 #endif
       _isLocked = _isLockedReadOnly = false;
@@ -344,11 +380,12 @@ void SharedMemory :: UnlockArea()
 }
 
 #if !defined(WIN32) && !defined(MUSCLE_FAKE_SHARED_MEMORY) && !defined(MUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE)
-status_t SharedMemory :: AdjustSemaphore(short delta)
+status_t SharedMemory :: AdjustSemaphore(short delta, bool enableUndoOnProcessExit)
 {
    if (_semID >= 0)
    {
-      struct sembuf sop = {0, delta, SEM_UNDO};
+      const short flags = enableUndoOnProcessExit ? SEM_UNDO : 0;  // kept separate just to keep the compiler happy
+      struct sembuf sop = {0, delta, flags};
 
       while(1)
       {
