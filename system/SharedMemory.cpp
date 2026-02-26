@@ -148,9 +148,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
    if (_semID >= 0)
    {
       // there's a small race condition here, but we'll poll sem_otime in the other process/codepath to avoid getting bit by it
-
-      semopts.val = LARGEST_SEMAPHORE_DELTA-1;  // -1 only because I'm going to increment it by one more just below
-      if ((semctl(_semID, 0, SETVAL, semopts) < 0)||(AdjustSemaphore(1, false).IsError()))  // AdjustSemaphore(1) will update sem_otime for us
+      if (AdjustSemaphore(LARGEST_SEMAPHORE_DELTA, false).IsError(ret))  // AdjustSemaphore() will set sem_otime to non-zero for other processes to see
       {
          // roll back the creation of the semaphore on error
          const int savedErrno = errno;
@@ -178,7 +176,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
                   okToGo = true;
                   break;
                }
-               else (void) Snooze64(MillisToMicros(10));  // give the creator a little more time to finish up
+               else (void) Snooze64(MillisToMicros(i*5));  // give the creator a little more time (up to 225mS) to finish his semaphore-setup
             }
             else break;  // hmm, something is wrong
          }
