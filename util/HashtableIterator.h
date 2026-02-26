@@ -235,7 +235,7 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   HashtableIterator(HashtableIterator && rhs) MUSCLE_NOEXCEPT : _imp(rhs._imp) {/* empty */}
+   HashtableIterator(HashtableIterator && rhs) MUSCLE_NOEXCEPT : _imp(std_move_if_available(rhs._imp)) {/* empty */}
 
    /** This constructor is declared deleted to keep HashtableIterators from being accidentally associated with temporary objects */
    HashtableIterator(HashtableType && table, uint32 flags = 0) = delete;
@@ -370,7 +370,7 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   ConstHashtableIterator(ConstHashtableIterator && rhs) MUSCLE_NOEXCEPT : _imp(rhs._imp) {/* empty */}
+   ConstHashtableIterator(ConstHashtableIterator && rhs) MUSCLE_NOEXCEPT : _imp(std_move_if_available(rhs._imp)) {/* empty */}
 
    /** This constructor is declared deleted to keep ConstHashtableIterators from being accidentally associated with temporary objects */
    ConstHashtableIterator(HashtableType && table, uint32 flags = 0) = delete;

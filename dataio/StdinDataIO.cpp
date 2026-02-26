@@ -123,7 +123,7 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
          {
             DWORD junkThreadID;
 #if __STDC_WANT_SECURE_LIB__
-            FILE * junkFD;
+            FILE * junkFD = NULL;
 #endif
             _stdinThreadStatus = ((DuplicateHandle(GetCurrentProcess(), GetStdHandle(STD_INPUT_HANDLE), GetCurrentProcess(), &_stdinHandle, 0, false, DUPLICATE_SAME_ACCESS))&&
 #if __STDC_WANT_SECURE_LIB__

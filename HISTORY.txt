@@ -6,7 +6,7 @@ key:  - new feature
       o other
 
 9.80 -
-   - Added a QueueIterator and ConstQueueIterator convenience
+   - Added QueueIterator and ConstQueueIterator convenience
      classes to util/QueueIterator.h, for safer iteration over
      the items in a Queue.
    - Added GetIterator(), GetIteratorAt(), GetBackwardIterator(),
