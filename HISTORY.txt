@@ -18,6 +18,7 @@ key:  - new feature
    - Made Hashtable::GetIterator() and Hashtable::GetIteratorAt()
      const-correct.
    - Added Hashtable::GetConstIterator() and Hashtable::GetConstIteratorAt().
+   - Added String::GetMaxStringLength().
    o Modified Queue::GetItemAtUnchecked() to return a reference
      instead of a pointer, since it can never return NULL anyway.
    o Renamed the existing GetEnvironmentVariable() function to
@@ -32,6 +33,7 @@ key:  - new feature
    * Fixed the Head(), Tail(), HeadPointer(), TailPointer(),
      GetItemAt() and GetItemAtChecked() methods in the Queue
      class to be properly const-correct.
+   * Fixed several logic errors that were detected by Claude Code.
 
 9.77 - Released 2/9/2026
    - muscle::Crash() now takes a file name and line number as

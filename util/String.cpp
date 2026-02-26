@@ -13,7 +13,7 @@ namespace muscle {
 
 const char * StrcasestrEx(const char * haystack, uint32 haystackLen, const char * needle, uint32 needleLen, bool searchBackwards)
 {
-   if ((haystack==NULL)||(needle==NULL)) return NULL;
+   if ((haystack==NULL)||(needle==NULL)||(haystackLen == 0)||(needleLen == 0)) return NULL;
 
    if (haystackLen >= needleLen)
    {
@@ -287,6 +287,7 @@ static bool IsSeparatorChar(uint8 c, const uint32 * sepBits) {return ((sepBits[c
 String String :: WithCharsEscaped(const char * charsToEscape, char escapeChar) const
 {
    if (charsToEscape == NULL) charsToEscape = "";
+   if (escapeChar == '\0') return charsToEscape;  // you can't insert a NUL into the middle of a String, so do nothing
 
    uint32 sepBits[8]; memset(sepBits, 0, sizeof(sepBits));
    {
@@ -676,7 +677,10 @@ status_t String :: InsertCharsAux(uint32 insertAtIdx, const char * str, uint32 n
       return InsertCharsAux(insertAtIdx, tempStr(), muscleMin(tempStr.Length(), numCharsToInsert), insertCount);
    }
 
-   const uint32 totalNumCharsToInsert = numCharsToInsert*insertCount;
+   const uint64 totalNumCharsToInsert64 = ((uint64)numCharsToInsert)*((uint64)insertCount);
+   if ((totalNumCharsToInsert64+Length()) >= ((uint64)GetMaxStringLength())) return B_RESOURCE_LIMIT;  // semi-paranoia, but let's not get exploited here
+
+   const uint32 totalNumCharsToInsert = (uint32) totalNumCharsToInsert64;
    if (totalNumCharsToInsert == 0) return B_NO_ERROR;  // nothing to do
 
    const uint32 oldLen = Length();

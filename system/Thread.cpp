@@ -344,6 +344,7 @@ void Thread :: QtSocketReadReady(int /*sock*/)
    {
       if (WaitForNextMessageFromOwner(msgRef, 0).IsOK())  // 0 because we don't want to block here, this is a poll only
       {
+         uint32 numLeft = 0;
          if (MessageReceivedFromOwner(msgRef, numLeft).IsError())
          {
             // Oops, MessageReceivedFromOwner() wants us to exit!

@@ -89,11 +89,11 @@ WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const String & getPath, c
 
    // Generate the HTTP request that we will send ASAP
    _httpTextToWrite  = String("GET %1 HTTP/1.1\r\n").Arg(getPath);
-   _httpTextToWrite += String("Host: %1\n\n").Arg(host);
+   _httpTextToWrite += String("Host: %1\r\n").Arg(host);
    _httpTextToWrite += "Upgrade: websocket\r\n";
    _httpTextToWrite += "Connection: Upgrade\r\n";
    _httpTextToWrite += String("Sec-WebSocket-Key: %1\r\n").Arg(_clientGeneratedKey);
-   if (protocolsStr.HasChars()) _httpTextToWrite += String("Sec-WebSocket-Protocol: %4\r\n").Arg(protocolsStr);
+   if (protocolsStr.HasChars()) _httpTextToWrite += String("Sec-WebSocket-Protocol: %1\r\n").Arg(protocolsStr);
    _httpTextToWrite += "Sec-WebSocket-Version: 13\r\n";
    if (origin.HasChars()) _httpTextToWrite += String("Origin: %1\r\n").Arg(origin);
 }
@@ -107,7 +107,7 @@ void WebSocketMessageIOGateway :: ResetHeaderReceiveState()
 
 status_t WebSocketMessageIOGateway :: HandleReceivedHTTPText()
 {
-   bool hasGet = false, hasSwitching = false;;
+   bool hasGet = false, hasSwitching = false;
    Hashtable<String, String> args;
    {
       StringTokenizer tok(_receivedHTTPText(), "\r\n");
@@ -117,7 +117,7 @@ status_t WebSocketMessageIOGateway :: HandleReceivedHTTPText()
          String s = t;
          s = s.Trimmed();
 
-              if ((_handshakeState == WEBSOCKET_HANDSHAKE_AS_CLIENT)&&(s == "HTTP 1.1 101 Switching Protocols")) hasSwitching = true;
+              if ((_handshakeState == WEBSOCKET_HANDSHAKE_AS_CLIENT)&&(s == "HTTP/1.1 101 Switching Protocols")) hasSwitching = true;
          else if ((_handshakeState == WEBSOCKET_HANDSHAKE_AS_SERVER)&&(s.StartsWithIgnoreCase("GET "))&&(s.EndsWithIgnoreCase(" HTTP/1.1")))
          {
             hasGet = true;

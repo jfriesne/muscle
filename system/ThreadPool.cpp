@@ -108,13 +108,15 @@ status_t ThreadPool :: ThreadPoolThread :: SendMessagesToInternalThread(IThreadP
 
    _currentClient = client;
    _internalQueue.SwapContents(mq);
-   if (SendMessageToInternalThread(DummyMessageRef(_dummyMsg)).IsOK()) return B_NO_ERROR;  // Send an empty Message, just to signal the internal thread
+
+   const status_t ret = SendMessageToInternalThread(DummyMessageRef(_dummyMsg));  // Send an empty Message, just to signal the internal thread
+   if (ret.IsOK()) return B_NO_ERROR;
    else
    {
       // roll back!
       _currentClient = NULL;
       _internalQueue.SwapContents(mq);
-      return B_NO_ERROR;
+      return ret;
    }
 }
 

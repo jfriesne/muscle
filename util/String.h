@@ -1513,6 +1513,9 @@ public:
      */
    MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uint32 GetMaxShortStringLength() {return sizeof(ShortStringData)-1;}  // -1 for _ssoFreeBytesLeft (which is also a NUL byte if need be)
 
+   /** Returns the maximum number of characters of String-data (not including the NUL terminator byte) that a String object can hold under any circumstances.  */
+   MUSCLE_NODISCARD static inline MUSCLE_CONSTEXPR uint32 GetMaxStringLength() {return (((uint32)-1)/2)-1;}
+
    /** @copydoc DoxyTemplate::Print(const OutputPrinter &) const */
    void Print(const OutputPrinter & p) const {p.printf("%s", Cstr());}
 

@@ -1816,12 +1816,15 @@ static uint32 ConvertLinuxInterfaceType(int saFamily)
 #if defined(__FreeBSD__) || defined(BSD) || defined(__APPLE__) || defined(__linux__)
 static uint32 GetNetworkInterfaceMTU(const ConstSocketRef & dummySocket, const String & iname)
 {
+   uint32 mtu = 0;
+
    struct ifreq ifr;
    memset(&ifr, 0, sizeof(ifr));
-   memcpy(ifr.ifr_name, iname(), iname.FlattenedSize());
-
-   uint32 mtu = 0;
-   if ((dummySocket())&&(ioctl(dummySocket()->GetFileDescriptor(), SIOCGIFMTU, &ifr) == 0)) mtu = ifr.ifr_mtu;
+   if (iname.Length() < sizeof(ifr.ifr_name))  // strictly less-than because there's also the NUL byte
+   {
+      memcpy(ifr.ifr_name, iname(), iname.FlattenedSize());
+      if ((dummySocket())&&(ioctl(dummySocket()->GetFileDescriptor(), SIOCGIFMTU, &ifr) == 0)) mtu = ifr.ifr_mtu;
+   }
    return mtu;
 }
 #endif

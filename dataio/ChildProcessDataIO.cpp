@@ -80,7 +80,7 @@ static void SafeCloseHandle(::HANDLE & h)
 
 static HANDLE GetBitBucketHandle(::HANDLE & h, bool isForWrite)
 {
-   if (h == INVALID_HANDLE_VALUE) CreateFileA("NUL", isForWrite?GENERIC_WRITE:GENERIC_READ, isForWrite?FILE_SHARE_WRITE:FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+   if (h == INVALID_HANDLE_VALUE) h = CreateFileA("NUL", isForWrite?GENERIC_WRITE:GENERIC_READ, isForWrite?FILE_SHARE_WRITE:FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
    return h;
 }
 #endif
