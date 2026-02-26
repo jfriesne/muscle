@@ -287,7 +287,7 @@ static bool IsSeparatorChar(uint8 c, const uint32 * sepBits) {return ((sepBits[c
 String String :: WithCharsEscaped(const char * charsToEscape, char escapeChar) const
 {
    if (charsToEscape == NULL) charsToEscape = "";
-   if (escapeChar == '\0') return charsToEscape;  // you can't insert a NUL into the middle of a String, so do nothing
+   if (escapeChar == '\0') return *this;  // you can't insert a NUL into the middle of a String, so do nothing
 
    uint32 sepBits[8]; memset(sepBits, 0, sizeof(sepBits));
    {

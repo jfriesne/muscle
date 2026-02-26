@@ -1820,7 +1820,7 @@ static uint32 GetNetworkInterfaceMTU(const ConstSocketRef & dummySocket, const S
 
    struct ifreq ifr;
    memset(&ifr, 0, sizeof(ifr));
-   if (iname.Length() < sizeof(ifr.ifr_name))  // strictly less-than because there's also the NUL byte
+   if (iname.FlattenedSize() <= sizeof(ifr.ifr_name))
    {
       memcpy(ifr.ifr_name, iname(), iname.FlattenedSize());
       if ((dummySocket())&&(ioctl(dummySocket()->GetFileDescriptor(), SIOCGIFMTU, &ifr) == 0)) mtu = ifr.ifr_mtu;
@@ -1926,17 +1926,21 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                         // let's investigate a bit further and try to figure out what this network interface *really* is!
                         if ((dummySocket())&&((devType == NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN)||(devType == NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET)))
                         {
-                           struct ifreq ifr; memset(&ifr, 0, sizeof(ifr)); memcpy(ifr.ifr_name, iname(), iname.FlattenedSize());
-                           if (ioctl(dummySocket()->GetFileDescriptor(), SIOCGIFFUNCTIONALTYPE, &ifr) == 0)
+                           struct ifreq ifr; memset(&ifr, 0, sizeof(ifr));
+                           if (iname.FlattenedSize() <= sizeof(ifr.ifr_name))
                            {
-                              switch(ifr.ifr_ifru.ifru_functional_type)
+                              memcpy(ifr.ifr_name, iname(), iname.FlattenedSize());
+                              if (ioctl(dummySocket()->GetFileDescriptor(), SIOCGIFFUNCTIONALTYPE, &ifr) == 0)
                               {
-                                 case IFRTYPE_FUNCTIONAL_LOOPBACK:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK; break;
-                                 case IFRTYPE_FUNCTIONAL_WIRED:      devType = NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET; break;
-                                 case IFRTYPE_FUNCTIONAL_WIFI_INFRA: devType = NETWORK_INTERFACE_HARDWARE_TYPE_WIFI;     break;
-                                 case IFRTYPE_FUNCTIONAL_WIFI_AWDL:  devType = NETWORK_INTERFACE_HARDWARE_TYPE_WIFI;     break;
-                                 case IFRTYPE_FUNCTIONAL_CELLULAR:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_CELLULAR; break;
-                                 default:                            /* empty */                                         break;
+                                 switch(ifr.ifr_ifru.ifru_functional_type)
+                                 {
+                                    case IFRTYPE_FUNCTIONAL_LOOPBACK:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK; break;
+                                    case IFRTYPE_FUNCTIONAL_WIRED:      devType = NETWORK_INTERFACE_HARDWARE_TYPE_ETHERNET; break;
+                                    case IFRTYPE_FUNCTIONAL_WIFI_INFRA: devType = NETWORK_INTERFACE_HARDWARE_TYPE_WIFI;     break;
+                                    case IFRTYPE_FUNCTIONAL_WIFI_AWDL:  devType = NETWORK_INTERFACE_HARDWARE_TYPE_WIFI;     break;
+                                    case IFRTYPE_FUNCTIONAL_CELLULAR:   devType = NETWORK_INTERFACE_HARDWARE_TYPE_CELLULAR; break;
+                                    default:                            /* empty */                                         break;
+                                 }
                               }
                            }
                         }
@@ -1972,9 +1976,9 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
             if (dummySocket())
             {
                struct ifreq ifr;
-               if (iname.Length() < sizeof(ifr.ifr_name))  // strictly less-than because there's also the NUL byte
+               if (iname.FlattenedSize() <= sizeof(ifr.ifr_name))
                {
-                  memcpy(ifr.ifr_name, iname(), iname.Length()+1);
+                  memcpy(ifr.ifr_name, iname(), iname.FlattenedSize());
                   if (ioctl(dummySocket()->GetFileDescriptor(), SIOCGIFHWADDR, &ifr) == 0) hardwareType = ConvertLinuxInterfaceType(ifr.ifr_hwaddr.sa_family);
                }
             }
