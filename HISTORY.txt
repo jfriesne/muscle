@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-9.80 -
+9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
      classes to util/QueueIterator.h, for safer iteration over
      the items in a Queue.
