@@ -147,13 +147,13 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
    _semID = semget(requestedKey, 1, IPC_CREAT|IPC_EXCL|permissionBits);
    if (_semID >= 0)
    {
-      // there's a small race condition here, but we'll poll sem_otime in the other process/codepath to avoid getting bit by it
+      // there's a small race condition here (between when we create the semaphore and when
+      // we adjust its value upwards), so we'll poll-loop on sem_otime in the other process/codepath
+      // to avoid any chance of getting bit by it
       if (AdjustSemaphore(LARGEST_SEMAPHORE_DELTA, false).IsError(ret))  // AdjustSemaphore() will set sem_otime to non-zero for other processes to see
       {
          // roll back the creation of the semaphore on error
-         const int savedErrno = errno;
          (void) semctl(_semID, 0, IPC_RMID);  // clean up
-         errno = savedErrno;
          _semID = -1;
       }
    }
@@ -164,7 +164,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
       {
          bool okToGo = false;
 
-         // avoid a potential race condition by not continuing until we see sem_otime become non-zero
+         // avoid a potential race condition by not continuing onwards until we see sem_otime become non-zero
          for (uint32 i=0; i<10; i++)
          {
             struct semid_ds semInfo = {};  // the braces zero-initialize the struct for us, to keep clang++SA happy
@@ -178,11 +178,16 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
                }
                else (void) Snooze64(MillisToMicros(i*5));  // give the creator a little more time (up to 225mS) to finish his semaphore-setup
             }
-            else break;  // hmm, something is wrong
+            else
+            {
+               ret = B_ERRNO;
+               break;  // hmm, something is wrong
+            }
          }
 
          if (okToGo == false) _semID = -1;
       }
+      else ret = B_ERRNO;
    }
 
    if (_semID >= 0)
