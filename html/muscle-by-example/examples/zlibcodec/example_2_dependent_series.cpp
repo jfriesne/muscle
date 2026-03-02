@@ -26,7 +26,7 @@ static ByteBufferRef GenerateMoreRawData()
 
 // Returns true iff the inflated data matches the pattern we originally
 // generated inside GenerateMoreRawData()
-status_t VerifyInflatedData(const ByteBuffer & inflatedData)
+static status_t VerifyInflatedData(const ByteBuffer & inflatedData)
 {
    const uint8 * b       = inflatedData.GetBuffer();
    const uint32 numBytes = inflatedData.GetNumBytes();
@@ -41,7 +41,7 @@ status_t VerifyInflatedData(const ByteBuffer & inflatedData)
    return B_NO_ERROR;
 }
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

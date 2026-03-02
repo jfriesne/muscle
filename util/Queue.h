@@ -1246,7 +1246,7 @@ AddHeadMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItem
 
    MRETURN_ON_ERROR(EnsureSize(numNewItems+GetNumItems()));
 
-   for (int32 i=((int)startIndex+numNewItems)-1; i>=(int32)startIndex; i--) (void) AddHead(queue[i]);  // guaranteed not to fail
+   for (int32 i=(int32)(startIndex+numNewItems-1); i>=(int32)startIndex; i--) (void) AddHead(queue[i]);  // guaranteed not to fail
    return B_NO_ERROR;
 }
 
@@ -1630,7 +1630,7 @@ IndexOf(const ItemType & item, uint32 startAt, uint32 endAtPlusOne) const
    if (startAt >= GetNumItems()) return -1;
 
    endAtPlusOne = muscleMin(endAtPlusOne, GetNumItems());
-   for (uint32 i=startAt; i<endAtPlusOne; i++) if (GetItemAtUnchecked(i) == item) return i;
+   for (uint32 i=startAt; i<endAtPlusOne; i++) if (GetItemAtUnchecked(i) == item) return (int32) i;
    return -1;
 }
 

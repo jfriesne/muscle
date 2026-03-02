@@ -12,7 +12,7 @@ static void PrintExampleDescription(const OutputPrinter & p)
 }
 
 /* This little program demonstrates the parsing of IPAddress strings */
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

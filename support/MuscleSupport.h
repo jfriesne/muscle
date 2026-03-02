@@ -74,7 +74,7 @@
 # endif
 #endif
 
-#if (_MSC_VER >= 1310)
+#if defined(_MSC_VER) && (_MSC_VER >= 1310)
 # define MUSCLE_USE_MSVC_SWAP_FUNCTIONS 1
 #endif
 
@@ -136,7 +136,7 @@
 #endif
 
 #ifndef MUSCLE_AVOID_NODISCARD
-# if defined(__cplusplus) && ((__cplusplus >= 201703L) || (defined(__clang__) && (__cplusplus >= 201100L)))
+# if defined(__cplusplus) && (__cplusplus >= 201703L)
 #  define MUSCLE_NODISCARD [[nodiscard]]
 # elif defined(__GNUC__) && (__GNUC__ >= 4) // clang also defines these
 #  define MUSCLE_NODISCARD __attribute__((warn_unused_result))
@@ -813,7 +813,7 @@ enum {
            status_t _status;
            int32 _byteCount;
         };
-     };
+     }
 # endif  /* defined(__cplusplus) */
 #endif  /* !MUSCLE_TYPES_PREDEFINED */
 
@@ -1222,7 +1222,7 @@ MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleRintf(float f) {return (f>=0.
 /** Returns -1 if the value is less than zero, +1 if it is greater than zero, or 0 otherwise. */
 template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleSgn(T arg) {return (arg<0)?-1:((arg>0)?1:0);}
 
-};  // end namespace muscle
+}  // end namespace muscle
 
 #endif  /* __cplusplus */
 
@@ -1234,7 +1234,7 @@ template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleSgn(T ar
 # define MUSCLE_PRINTF_ARGS_ANNOTATION_PREFIX(stringIdx, firstVarArgIdx)
 #endif
 
-# if (_MSC_VER >= 1400)
+# if defined(_MSC_VER) && (_MSC_VER >= 1400)
 /** For MSVC, we provide CRT-friendly implementations of these functions to avoid security warnings */
 static inline FILE * muscleFopen(const char * path, const char * mode) {FILE * fp; return (fopen_s(&fp, path, mode) == 0) ? fp : NULL;}
 # else
@@ -1343,7 +1343,7 @@ const char * io_status_t :: GetDescription() const
    }
 }
 
-}; // end namespace muscle
+} // end namespace muscle
 #endif
 
 /*
@@ -1829,7 +1829,7 @@ MUSCLE_NORETURN extern void Crash(const char * fileName, int lineNumber);
 MUSCLE_NORETURN extern void ExitWithoutCleanup(int);
 #endif
 
-#if MUSCLE_TRACE_CHECKPOINTS > 0
+#if defined(MUSCLE_TRACE_CHECKPOINTS) && (MUSCLE_TRACE_CHECKPOINTS > 0)
 
 /** Exposed as an implementation detail.  Please ignore! */
 extern volatile uint32 * _muscleTraceValues;
@@ -1990,7 +1990,7 @@ public:
 MUSCLE_NODISCARD static inline uint32 EuclideanModulo(int32 value, uint32 divisor)
 {
    // Derived from the code posted at https://stackoverflow.com/a/51959866/131930
-   return (value < 0) ? ((divisor-1)-((-1-value)%divisor)) : (value%divisor);
+   return (value < 0) ? ((divisor-1)-(((uint32)(-1-value))%divisor)) : (((uint32)value)%divisor);
 }
 
 /** Hash function for arbitrary data.  Note that the current implementation of this function
@@ -2273,11 +2273,11 @@ template<typename T> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T & 
   *                 on each array item; otherwise a PODHashFunctor object will be used.
   * @returns a hash code for the array.
   */
-template<typename T, int size1> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T (&theArray)[size1])
+template<typename T, size_t size1> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T (&theArray)[size1])
 {
    typename DEFAULT_HASH_FUNCTOR(T) hashFunctor;
    uint32 ret = 0;
-   for (int i=0; i<size1; i++) ret += ((i+1)*hashFunctor(theArray[i]));
+   for (uint32 i=0; i<size1; i++) ret += ((i+1)*hashFunctor(theArray[i]));
    return ret;
 }
 
@@ -2287,7 +2287,7 @@ template<typename T, int size1> MUSCLE_NODISCARD inline uint32 CalculateHashCode
   *                 on each array item; otherwise a PODHashFunctor object will be used.
   * @returns a hash code for the array.
   */
-template<typename T, int size1, int size2> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T (&theArray)[size1][size2])
+template<typename T, size_t size1, size_t size2> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T (&theArray)[size1][size2])
 {
    typename DEFAULT_HASH_FUNCTOR(T) hashFunctor;
    uint32 idx = 0;
@@ -2304,7 +2304,7 @@ template<typename T, int size1, int size2> MUSCLE_NODISCARD inline uint32 Calcul
   *                 on each array item; otherwise a PODHashFunctor object will be used.
   * @returns a hash code for the array.
   */
-template<typename T, int size1, int size2, int size3> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T (&theArray)[size1][size2][size3])
+template<typename T, size_t size1, size_t size2, size_t size3> MUSCLE_NODISCARD inline uint32 CalculateHashCode(const T (&theArray)[size1][size2][size3])
 {
    typename DEFAULT_HASH_FUNCTOR(T) hashFunctor;
    uint32 idx = 0;

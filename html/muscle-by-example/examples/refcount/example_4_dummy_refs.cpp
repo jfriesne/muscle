@@ -21,12 +21,12 @@ public:
 };
 DECLARE_REFTYPES(MyClass);  // defines MyClassRef and ConstMyClassRef
 
-void SomeFunctionThatTakesAMyClassRef(const MyClassRef & myClassRef)
+static void SomeFunctionThatTakesAMyClassRef(const MyClassRef & myClassRef)
 {
    myClassRef()->SayHello();
 }
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

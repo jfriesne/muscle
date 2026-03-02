@@ -12,7 +12,7 @@
 # if defined(QT_CORE_LIB)  // is Qt4 available?
 #  include <Qt>  // to bring in the proper value of QT_VERSION
 # endif
-# if defined(QT_THREAD_SUPPORT) || (QT_VERSION >= 0x040000)
+# if defined(QT_THREAD_SUPPORT) || defined(QT_VERSION) && (QT_VERSION >= 0x040000)
 #  define MUSCLE_QT_HAS_THREADS 1
 # endif
 # if !defined(MUSCLE_AVOID_CPLUSPLUS11)

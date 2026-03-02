@@ -28,7 +28,7 @@ public:
 };
 
 /* This little program demonstrates the manipulation of the ordering of items in a Hashtable<String,int> */
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

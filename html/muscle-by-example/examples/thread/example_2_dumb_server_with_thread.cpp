@@ -73,7 +73,7 @@ public:
    }
 
    /** Called whenever we receive a Message from one of our neighboring (i.e. TCP-client) sessions */
-   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msgRef, void * userData)
+   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msgRef, void * /*userData*/)
    {
       LogTime(MUSCLE_LOG_INFO, "SlaveThreadSession received a Message from a fellow session, handing it off to my internal Thread\n");
 
@@ -92,7 +92,7 @@ public:
 
 protected:
    /** Called, in the slave thread, whenever the main thread has a Message to give the slave Thread */
-   virtual status_t MessageReceivedFromOwner(const MessageRef & msgRef, uint32 numLeft)
+   virtual status_t MessageReceivedFromOwner(const MessageRef & msgRef, uint32 /*numLeft*/)
    {
       if (msgRef())
       {
@@ -129,7 +129,7 @@ private:
    uint32 _count;
 };
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

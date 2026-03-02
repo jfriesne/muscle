@@ -49,7 +49,7 @@ private:
 };
 
 /* This little program demonstrates the semantics of the keys used in a Hashtable */
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

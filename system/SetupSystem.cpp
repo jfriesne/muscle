@@ -4,6 +4,7 @@
 #include "support/Flattenable.h"
 #include "dataio/SeekableDataIO.h"
 #include "reflector/SignalHandlerSession.h"  // for SetMainReflectServerCatchSignals()
+#include "system/SystemInfo.h"               // for GetBuildFlags() (just to keep -Wmissing-prototypes happy)
 #include "util/ObjectPool.h"
 #include "util/ByteBuffer.h"
 #include "util/DebugTimer.h"
@@ -1299,7 +1300,7 @@ status_t Snooze64(uint64 micros)
       if (micros != MUSCLE_TIME_NEVER) micros -= longTimeMicros;
    }
 
-#if WIN32
+#if defined(WIN32)
    Sleep((DWORD)((micros/1000)+(((micros%1000)!=0)?1:0)));
    return B_NO_ERROR;
 #elif defined(__linux__)
@@ -1361,7 +1362,7 @@ uint64 GetCurrentTime64(uint32 timeType)
 #endif
 }
 
-#if MUSCLE_TRACE_CHECKPOINTS > 0
+#if defined(MUSCLE_TRACE_CHECKPOINTS) && (MUSCLE_TRACE_CHECKPOINTS > 0)
 static volatile uint32 _defaultTraceLocation[MUSCLE_TRACE_CHECKPOINTS];
 volatile uint32 * _muscleTraceValues = _defaultTraceLocation;
 uint32 _muscleNextTraceValueIndex = 0;
@@ -2763,9 +2764,9 @@ void OutputPrinter :: printf(const char * fmt, ...) const
    // been printed, not including the NUL terminator byte.
    // So if (buf) is too small, it's possible that (numChars1 >= sizeof(buf))
    va_list va1; va_start(va1, fmt);
-#if __STDC_WANT_SECURE_LIB__
+#if defined(__STDC_WANT_SECURE_LIB__)
    const int numChars1 = _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va1);
-#elif WIN32
+#elif defined(WIN32)
    const int numChars1 = _vsnprintf(  buf, sizeof(buf),            fmt, va1);
 #else
    const int numChars1 =  vsnprintf(  buf, sizeof(buf),            fmt, va1);
@@ -2783,9 +2784,9 @@ void OutputPrinter :: printf(const char * fmt, ...) const
          if (heapBuf)
          {
             va_list va2; va_start(va2, fmt);
-#if __STDC_WANT_SECURE_LIB__
+#if defined(__STDC_WANT_SECURE_LIB__)
             const int numChars2 = _vsnprintf_s(heapBuf, heapBufSize, _TRUNCATE, fmt, va2);
-#elif WIN32
+#elif defined(WIN32)
             const int numChars2 = _vsnprintf(  heapBuf, heapBufSize,            fmt, va2);
 #else
             const int numChars2 =  vsnprintf(  heapBuf, heapBufSize,            fmt, va2);

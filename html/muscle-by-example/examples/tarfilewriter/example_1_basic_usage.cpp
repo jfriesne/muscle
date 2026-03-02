@@ -33,7 +33,7 @@ static status_t WriteFakeFileDataToTarFile(TarFileWriter & writer, const char * 
    return writer.WriteFileData(fakeDataBuf, sizeof(fakeDataBuf));
 }
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

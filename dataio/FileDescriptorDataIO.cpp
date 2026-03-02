@@ -61,8 +61,8 @@ io_status_t FileDescriptorDataIO :: Write(const void * buffer, uint32 size)
    const int fd = _fd.GetFileDescriptor();
    if (fd < 0) return B_BAD_OBJECT;
 
-   const long   w = write_ignore_eintr(fd, buffer, size);
-   const int32 ew = _blocking ? (int32)w : ConvertReturnValueToMuscleSemantics(w, size, _blocking);
+   const int32  w = (int32) write_ignore_eintr(fd, buffer, size);
+   const int32 ew = _blocking ? w : ConvertReturnValueToMuscleSemantics(w, size, _blocking);
    return (ew >= 0) ? io_status_t(ew) : io_status_t(B_ERRNO);
 }
 

@@ -125,7 +125,6 @@ template <class DataType> class FixedSizeDataArray : public AbstractDataArray
 {
 public:
    FixedSizeDataArray() {/* empty */}
-   virtual ~FixedSizeDataArray() {/* empty */}
 
    virtual uint32 GetNumItems() const {return _data.GetNumItems();}
 
@@ -196,7 +195,6 @@ class TagDataArray : public FixedSizeDataArray<RefCountableRef>
 {
 public:
    TagDataArray() {/* empty */}
-   virtual ~TagDataArray() {/* empty */}
 
    virtual void FlattenAux(DataFlattener, uint32) const
    {
@@ -246,11 +244,6 @@ template <class DataType, int FlatItemSize, uint32 ItemTypeCode> class FixedSize
 {
 public:
    FixedSizeFlatObjectArray()
-   {
-      // empty
-   }
-
-   virtual ~FixedSizeFlatObjectArray()
    {
       // empty
    }
@@ -309,7 +302,6 @@ template <class DataType> class PrimitiveTypeDataArray : public FixedSizeDataArr
 {
 public:
    PrimitiveTypeDataArray() {/* empty */}
-   virtual ~PrimitiveTypeDataArray() {/* empty */}
 
    virtual void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const
    {
@@ -368,7 +360,6 @@ class PointDataArray : public FixedSizeFlatObjectArray<Point,sizeof(Point),B_POI
 {
 public:
    PointDataArray() {/* empty */}
-   virtual ~PointDataArray() {/* empty */}
    virtual AbstractDataArrayRef Clone() const;
    virtual void PrintItem(const OutputPrinter & p, const Point & q) const {p.puts(PointToString(q)());}
 
@@ -394,7 +385,6 @@ class RectDataArray : public FixedSizeFlatObjectArray<Rect,sizeof(Rect),B_RECT_T
 {
 public:
    RectDataArray() {/* empty */}
-   virtual ~RectDataArray() {/* empty */}
    virtual AbstractDataArrayRef Clone() const;
    virtual void PrintItem(const OutputPrinter & p, const Rect & r) const {p.puts(RectToString(r)());}
 
@@ -414,7 +404,6 @@ class Int8DataArray : public PrimitiveTypeDataArray<int8>
 {
 public:
    Int8DataArray() {/* empty */}
-   virtual ~Int8DataArray() {/* empty */}
 
    virtual uint32 TypeCode() const {return B_INT8_TYPE;}
 
@@ -438,7 +427,6 @@ class BoolDataArray : public PrimitiveTypeDataArray<bool>
 {
 public:
    BoolDataArray() {/* empty */}
-   virtual ~BoolDataArray() {/* empty */}
 
    virtual uint32 TypeCode() const {return B_BOOL_TYPE;}
 
@@ -462,7 +450,6 @@ class Int16DataArray : public PrimitiveTypeDataArray<int16>
 {
 public:
    Int16DataArray() {/* empty */}
-   virtual ~Int16DataArray() {/* empty */}
 
    virtual uint32 TypeCode() const {return B_INT16_TYPE;}
 
@@ -486,7 +473,6 @@ class Int32DataArray : public PrimitiveTypeDataArray<int32>
 {
 public:
    Int32DataArray() {/* empty */}
-   virtual ~Int32DataArray() {/* empty */}
 
    virtual uint32 TypeCode() const {return B_INT32_TYPE;}
 
@@ -510,7 +496,6 @@ class Int64DataArray : public PrimitiveTypeDataArray<int64>
 {
 public:
    Int64DataArray() {/* empty */}
-   virtual ~Int64DataArray() {/* empty */}
 
    virtual uint32 TypeCode() const {return B_INT64_TYPE;}
 
@@ -534,7 +519,6 @@ class FloatDataArray : public PrimitiveTypeDataArray<float>
 {
 public:
    FloatDataArray() {/* empty */}
-   virtual ~FloatDataArray() {/* empty */}
 
    virtual uint32 TypeCode() const {return B_FLOAT_TYPE;}
 
@@ -558,7 +542,6 @@ class DoubleDataArray : public PrimitiveTypeDataArray<double>
 {
 public:
    DoubleDataArray() {/* empty */}
-   virtual ~DoubleDataArray() {/* empty */}
 
    virtual uint32 TypeCode() const {return B_DOUBLE_TYPE;}
 
@@ -582,7 +565,6 @@ class PointerDataArray : public FixedSizeDataArray<void *>
 {
 public:
    PointerDataArray() {/* empty */}
-   virtual ~PointerDataArray() {/* empty */}
 
    virtual uint32 TypeCode() const {return B_POINTER_TYPE;}
 
@@ -628,7 +610,6 @@ template <class RefType, uint32 ItemTypeCode> class FlatCountableRefDataArray : 
 {
 public:
    FlatCountableRefDataArray() {/* empty */}
-   virtual ~FlatCountableRefDataArray() {/* empty */}
 
    virtual uint32 GetItemSize(uint32 index) const
    {
@@ -697,7 +678,6 @@ public:
    {
       // empty
    }
-   virtual ~ByteBufferDataArray() {/* empty */}
 
    /** Sets our type code.  Typically called after using the default ctor. */
    void SetTypeCode(uint32 tc) {_typeCode = tc;}
@@ -819,7 +799,6 @@ class MessageDataArray : public FlatCountableRefDataArray<MessageRef, B_MESSAGE_
 {
 public:
    MessageDataArray() {/* empty */}
-   virtual ~MessageDataArray() {/* empty */}
 
    /** For backwards compatibility with older muscle streams */
    virtual bool ShouldWriteNumItems() const {return false;}
@@ -907,7 +886,6 @@ template <class DataType> class VariableSizeFlatObjectArray : public FixedSizeDa
 {
 public:
    VariableSizeFlatObjectArray() {/* empty */}
-   virtual ~VariableSizeFlatObjectArray() {/* empty */}
 
    virtual uint32 GetItemSize(uint32 index) const {return this->ItemAt(index).FlattenedSize();}
    virtual bool ElementsAreFixedSize() const {return false;}
@@ -946,7 +924,6 @@ class StringDataArray : public VariableSizeFlatObjectArray<String>
 {
 public:
    StringDataArray() {/* empty */}
-   virtual ~StringDataArray() {/* empty */}
 
    virtual uint32 TypeCode() const {return B_STRING_TYPE;}
 

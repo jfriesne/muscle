@@ -23,7 +23,7 @@ public:
 };
 DECLARE_REFTYPES(MyClass);  // defines MyClassRef and ConstMyClassRef
 
-MyClassRef MyFactoryFunction()
+static MyClassRef MyFactoryFunction()
 {
    if (GetInsecurePseudoRandomNumber(2) == 0)
    {
@@ -32,7 +32,7 @@ MyClassRef MyFactoryFunction()
    else return B_ACCESS_DENIED;  // simulate some kind of problem that prevents us from returning a valid/non-NULL Ref
 }
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

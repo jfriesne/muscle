@@ -16,7 +16,7 @@ static int SomeFunction(int val)
    return val;
 }
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

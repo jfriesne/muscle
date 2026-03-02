@@ -33,6 +33,7 @@
 
 #if defined(__linux__) || defined(__APPLE__)
 extern "C" {  // necessary for the OS's signal-handler-callback to call us legally
+void MUSCLECrashSignalHandler(int sig); // just to make the -Wmissing-prototypes checker happy
 void MUSCLECrashSignalHandler(int sig)  // deliberately not declared static
 {
    // Uninstall this handler, to avoid the possibility of an infinite regress
@@ -1182,17 +1183,17 @@ String Base64Encode(const uint8 * inBytes, uint32 numInBytes)
    {
       for(int i=0;i<9;i++)
       {
-         _dtable[i]      = 'A'+i;
-         _dtable[i+9]    = 'J'+i;
-         _dtable[26+i]   = 'a'+i;
-         _dtable[26+i+9] = 'j'+i;
+         _dtable[i]      = (uint8) ('A'+i);
+         _dtable[i+9]    = (uint8) ('J'+i);
+         _dtable[26+i]   = (uint8) ('a'+i);
+         _dtable[26+i+9] = (uint8) ('j'+i);
       }
       for(int i=0;i<8;i++)
       {
-         _dtable[i+18]    = 'S'+i;
-         _dtable[26+i+18] = 's'+i;
+         _dtable[i+18]    = (uint8) ('S'+i);
+         _dtable[26+i+18] = (uint8) ('s'+i);
       }
-      for(int i=0;i<10;i++) _dtable[52+i]= '0'+i;
+      for(int i=0;i<10;i++) _dtable[52+i] = (uint8) ('0'+i);
       _dtable[62]= '+';
       _dtable[63]= '/';
 
@@ -1240,13 +1241,13 @@ static ByteBufferRef Base64DecodeAux(const char * base64String, uint32 numBytes)
    if (_firstTime)
    {
       memset(_dtable, 0x80, sizeof(_dtable));
-      for (int i='A'; i<='I'; i++) _dtable[i] =  0+(i-'A');
-      for (int i='J'; i<='R'; i++) _dtable[i] =  9+(i-'J');
-      for (int i='S'; i<='Z'; i++) _dtable[i] = 18+(i-'S');
-      for (int i='a'; i<='i'; i++) _dtable[i] = 26+(i-'a');
-      for (int i='j'; i<='r'; i++) _dtable[i] = 35+(i-'j');
-      for (int i='s'; i<='z'; i++) _dtable[i] = 44+(i-'s');
-      for (int i='0'; i<='9'; i++) _dtable[i] = 52+(i-'0');
+      for (int i='A'; i<='I'; i++) _dtable[i] = (uint8) ( 0+(i-'A'));
+      for (int i='J'; i<='R'; i++) _dtable[i] = (uint8) ( 9+(i-'J'));
+      for (int i='S'; i<='Z'; i++) _dtable[i] = (uint8) (18+(i-'S'));
+      for (int i='a'; i<='i'; i++) _dtable[i] = (uint8) (26+(i-'a'));
+      for (int i='j'; i<='r'; i++) _dtable[i] = (uint8) (35+(i-'j'));
+      for (int i='s'; i<='z'; i++) _dtable[i] = (uint8) (44+(i-'s'));
+      for (int i='0'; i<='9'; i++) _dtable[i] = (uint8) (52+(i-'0'));
 
       _dtable[(int) '+'] = 62;
       _dtable[(int) '/'] = 63;

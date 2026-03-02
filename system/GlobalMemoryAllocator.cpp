@@ -393,7 +393,7 @@ namespace muscle {
 int _globalMemoryAllocatorDummySymbol = 0;
 };
 
-# if MUSCLE_ENABLE_MEMORY_PARANOIA > 0
+# if defined(MUSCLE_ENABLE_MEMORY_PARANOIA) && (MUSCLE_ENABLE_MEMORY_PARANOIA > 0)
 #  error "If you want to enable MUSCLE_ENABLE_MEMORY_PARANOIA, you must define MUSCLE_ENABLE_MEMORY_TRACKING also!"
 # endif
 #endif

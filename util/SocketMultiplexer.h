@@ -159,7 +159,7 @@ private:
 
       void Reset();
 
-      inline status_t RegisterSocket(int fd, int whichSet)
+      inline status_t RegisterSocket(int fd, uint32 whichSet)
       {
          if (fd < 0) return B_BAD_ARGUMENT;
 
@@ -179,7 +179,7 @@ private:
 #  ifndef WIN32  // Window supports file descriptors that are greater than FD_SETSIZE!  Other OS's do not
          if (fd >= FD_SETSIZE)
          {
-            LogTime(MUSCLE_LOG_ERROR, "SocketMultiplexer::RegisterSocket(%i):  file descriptor %i is too large for select() to support!  Maybe compile with -DMUSCLE_USE_POLL instead?\n", whichSet, fd);
+            LogTime(MUSCLE_LOG_ERROR, "SocketMultiplexer::RegisterSocket(" UINT32_FORMAT_SPEC "):  file descriptor %i is too large for select() to support!  Maybe compile with -DMUSCLE_USE_POLL instead?\n", whichSet, fd);
             return B_BAD_ARGUMENT;
          }
 #  endif
@@ -190,7 +190,7 @@ private:
          return B_NO_ERROR;
       }
 
-      MUSCLE_NODISCARD inline bool IsSocketReady(int fd, int whichSet) const
+      MUSCLE_NODISCARD inline bool IsSocketReady(int fd, uint32 whichSet) const
       {
          if (fd < 0) return false;
 

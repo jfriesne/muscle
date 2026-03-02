@@ -70,7 +70,7 @@ public:
             if (chk)
             {
                const uint32 chkVal = (uint32) Atoull(chk+10);
-               const uint32 expectedChk = String(curVal(), chk-curVal()).CalculateChecksum();
+               const uint32 expectedChk = String(curVal(), (uint32)(chk-curVal())).CalculateChecksum();
                if (chkVal != expectedChk) LogTime(MUSCLE_LOG_ERROR, "Thread %p:  Read string value [%s] contains checksum " UINT32_FORMAT_SPEC ", expected checksum " UINT32_FORMAT_SPEC ", corruption detected!\n", this, curVal(), chkVal, expectedChk);
             }
             else LogTime(MUSCLE_LOG_ERROR, "Thread %p:  Read string value [%s] doesn't contain any checksum!\n", this, curVal());
@@ -106,7 +106,7 @@ private:
    String _previousReadValue;
 };
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

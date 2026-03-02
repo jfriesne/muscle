@@ -696,7 +696,7 @@ static inline uint32 GetInsecurePseudoRandomNumber(uint32 maxVal = MUSCLE_NO_LIM
 
    // coverity[dont_call] - don't care that rand() isn't secure, because this function isn't meant to be secure
    const int r = rand();
-   return (maxVal == MUSCLE_NO_LIMIT) ? r : (r%maxVal);
+   return (maxVal == MUSCLE_NO_LIMIT) ? (uint32)r : (((uint32)r)%maxVal);
 }
 
 /** Given a mangled C++ symbol, tries to return a more human-readable (aka unmangled) form of it.

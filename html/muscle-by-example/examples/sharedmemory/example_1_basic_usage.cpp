@@ -22,7 +22,7 @@ static void PrintExampleDescription(const OutputPrinter & p)
 }
 
 /* This little program demonstrates basic usage of the muscle::SharedMemory class */
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

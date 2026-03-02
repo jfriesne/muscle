@@ -536,7 +536,7 @@ status_t WebSocketMessageIOGateway :: CreateReplyFrame(const uint8 * data, uint3
    else if (numBytes > 125)
    {
       flat.WriteInt8(126);   // magic number for 2-byte payload
-      flat.WriteInt16(numBytes);
+      flat.WriteInt16((int16) numBytes);
    }
    else flat.WriteInt8((uint8) numBytes);
 

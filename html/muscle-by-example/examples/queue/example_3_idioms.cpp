@@ -13,7 +13,7 @@ static void PrintExampleDescription(const OutputPrinter & p)
 
 void PrintQueue(const char * desc, const Queue<String> & q); // forward declaration (see bottom of file)
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

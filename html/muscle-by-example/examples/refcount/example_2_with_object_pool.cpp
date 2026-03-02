@@ -34,6 +34,12 @@ public:
       printf("MyClass destructor called, this=%p, g_myClassCounter=%i\n", this, --g_myClassCounter);
       if (g_myClassCounter == 0) printf("\nAll MyClass objects have been destroyed, yay!\n");
    }
+
+   MyClass & operator =(const MyClass & rhs)
+   {
+      printf("MyClass assignment operator called, this=%p, rhs=%p, g_myClassCounter=%i\n", this, &rhs, g_myClassCounter);
+      return *this;
+   }
 };
 DECLARE_REFTYPES(MyClass);  // defines MyClassRef and ConstMyClassRef
 
@@ -43,7 +49,7 @@ DECLARE_REFTYPES(MyClass);  // defines MyClassRef and ConstMyClassRef
 // out as the program needs them.
 static ObjectPool<MyClass> g_myClassPool;
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

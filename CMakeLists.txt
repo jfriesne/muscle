@@ -251,6 +251,80 @@ else()
    message("Note:  -DWITH_QT=OFF argument was specified:  Qt executables and support code for MUSCLE will not be built")
 endif()
 
+# A library to turn on warnings on targets
+#
+# Example:
+#   target_link_libraries(<target> PUBLIC recommended_warning_flags)
+add_library(recommended_warning_flags INTERFACE)
+
+if ((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC"))
+    target_compile_options(recommended_warning_flags INTERFACE "/W4" "/wd4702" "/we4668")
+elseif ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))
+    target_compile_options(recommended_warning_flags INTERFACE
+        -Wall
+        -Wundef
+        -Wshadow-all
+        -Wshorten-64-to-32
+        -Wstrict-aliasing
+        -Wuninitialized
+        -Wunused-parameter
+        -Wconversion
+        -Wsign-compare
+        -Wint-conversion
+        -Wconditional-uninitialized
+        -Wconstant-conversion
+        -Wno-sign-conversion
+        -Wbool-conversion
+        -Wunreachable-code
+        -Wcast-align
+        -Wshift-sign-overflow
+        -Wmissing-prototypes
+        -Wnullable-to-nonnull-conversion
+        -Wignored-qualifiers
+        -Wswitch-enum
+        -Wpedantic
+        -Wdeprecated
+        -Wdeprecated-declarations
+        -Wmissing-field-initializers
+        -Wno-c++98-compat-extra-semi
+        -Wno-format-pedantic
+        -Wno-extra-semi
+        $<$<OR:$<COMPILE_LANGUAGE:CXX>,$<COMPILE_LANGUAGE:OBJCXX>>:
+        -Wunused-private-field
+        -Woverloaded-virtual
+        -Wreorder
+        -Winconsistent-missing-destructor-override>
+        $<$<OR:$<COMPILE_LANGUAGE:OBJC>,$<COMPILE_LANGUAGE:OBJCXX>>:
+        -Wunguarded-availability
+        -Wunguarded-availability-new>)
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(recommended_warning_flags INTERFACE
+        -Wall
+        -Wundef
+        -Wextra
+        -Wpedantic
+        -Wstrict-aliasing
+        -Wuninitialized
+        -Wunused-parameter
+        -Wsign-compare
+        -Wno-sign-conversion
+        -Wunreachable-code
+        -Wcast-align
+        -Wimplicit-fallthrough
+        -Wmaybe-uninitialized
+        -Wignored-qualifiers
+        -Wswitch-enum
+        -Wredundant-decls
+        -Wstrict-overflow
+        -Wshadow
+        -Wmissing-field-initializers
+        $<$<COMPILE_LANGUAGE:CXX>:
+        -Woverloaded-virtual
+        -Wreorder>)
+endif ()
+
+target_link_libraries(muscle recommended_warning_flags)
+
 target_include_directories(muscle PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_compile_definitions(muscle PUBLIC MUSCLE_ENABLE_ZLIB_ENCODING MUSCLE_NO_EXCEPTIONS)
 if (WITH_SSL)

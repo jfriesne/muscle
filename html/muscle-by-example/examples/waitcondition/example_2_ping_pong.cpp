@@ -59,7 +59,7 @@ private:
    int _countdown;
 };
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

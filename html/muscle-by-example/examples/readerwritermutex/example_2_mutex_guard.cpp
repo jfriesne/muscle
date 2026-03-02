@@ -18,7 +18,7 @@ class ThreadThatUsesAReaderWriterMutex : public Thread
 public:
    ThreadThatUsesAReaderWriterMutex() : _writerModeEnabled(false) {/* empty */}
 
-   void SetWriterModeEnabled(bool writerModeEnabled) {_writerModeEnabled = true;}
+   void SetWriterModeEnabled(bool writerModeEnabled) {_writerModeEnabled = writerModeEnabled;}
 
 protected:
    virtual void InternalThreadEntry()
@@ -57,7 +57,7 @@ private:
    }
 };
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

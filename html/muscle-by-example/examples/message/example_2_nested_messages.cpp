@@ -16,7 +16,7 @@ enum {
    COMMAND_CODE_DELIVERY_INFO
 };
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

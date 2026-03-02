@@ -15,7 +15,7 @@ static void PrintExampleDescription(const OutputPrinter & p)
  * to safely populate a ByteBuffer with big-endian data.  You could alternatively
  * use a LittleEndianDataFlattener or a NativeEndianDataFlattener the same way.
  */
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

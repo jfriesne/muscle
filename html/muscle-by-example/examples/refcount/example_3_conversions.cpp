@@ -31,7 +31,7 @@ public:
 };
 DECLARE_REFTYPES(MySubClass);  // defines MySubClassRef and ConstMySubClassRef
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

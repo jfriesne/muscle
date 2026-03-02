@@ -92,7 +92,7 @@ public:
      * environments, so it may already be wrong by the time it is returned.
      * Be careful!
      */
-   MUSCLE_NODISCARD uint32 GetRefCount() const {return _refCount.GetCount();}
+   MUSCLE_NODISCARD uint32 GetRefCount() const {return (uint32) _refCount.GetCount();}
 
 #ifdef MUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS
    /** If -DMUSCLE_RECORD_REFCOUNTABLE_ALLOCATION_LOCATIONS was specified on the compile line,

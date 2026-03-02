@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
    }
 
    // Serve the ball to start the game (if the user specified a port number to serve to)
-   const uint16 targetPort = (argc > 1) ? atoi(argv[1]) : 0;
+   const uint16 targetPort = (argc > 1) ? (uint16) atoi(argv[1]) : 0;
    if (targetPort > 0)
    {
       const uint8 serveBuf[] = "Serve!";

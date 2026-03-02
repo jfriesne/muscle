@@ -11,7 +11,7 @@ static void PrintExampleDescription(const OutputPrinter & p)
 }
 
 /* This little program demonstrates using the byte-buffers pool */
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

@@ -73,7 +73,7 @@ float CPULoadMeter :: GetCPULoad()
       }
       fclose(fpIn);
    }
-#elif WIN32
+#elif defined(WIN32)
 # ifdef USE_KERNEL32_DLL_FOR_GETSYSTEMTIMES
    if (_getSystemTimesProc)
    {

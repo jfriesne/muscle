@@ -304,6 +304,7 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
 }
 
 #ifdef UNIFIED_DAEMON
+int muscledmain(int argc, char ** argv);  // just to keep -Wmissing-prototypes happy
 int muscledmain(int argc, char ** argv)
 #else
 int main(int argc, char ** argv)

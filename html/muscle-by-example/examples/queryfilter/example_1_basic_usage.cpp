@@ -17,7 +17,7 @@ static void TestTheMessage(const Message & msg, const char * filterDescription, 
    LogTime(MUSCLE_LOG_ERROR, "QueryFilter \"%s\" says the Message %s\n", filterDescription, qf.Matches(msgRef, NULL)?"MATCHES":"doesn't match");
 }
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

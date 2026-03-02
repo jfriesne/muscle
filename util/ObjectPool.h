@@ -370,7 +370,7 @@ public:
                if (arrayPtr[i] != NULL) numValid++;
                                    else {ret = B_OUT_OF_MEMORY; break;}
             }
-            for (int32 i=numValid-1; i>=0; i--)
+            for (int32 i=((int32)numValid)-1; i>=0; i--)
             {
                ObjectSlab * slabToDelete = ReleaseObjectAux(arrayPtr[i]);
                if (slabToDelete) delete slabToDelete;  // this should never happen, but I'm paranoid

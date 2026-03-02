@@ -1361,7 +1361,7 @@ status_t StackTrace :: CaptureStackFrames(uint32 maxDepth)
 #if defined(MUSCLE_USE_BACKTRACE)
    MRETURN_ON_ERROR(_stackFrames.EnsureSize(maxDepth, true));
    const size_t size = backtrace(_stackFrames.HeadPointer(), maxDepth);
-   (void) _stackFrames.EnsureSize(size, true);  // trim off unused frames
+   (void) _stackFrames.EnsureSize((uint32) size, true);  // trim off unused frames
    return B_NO_ERROR;
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
    StackWalkerState * sws = new StackWalkerState;

@@ -39,9 +39,9 @@ public:
    static void Import(const void * readFrom,   bool & writeTo) {writeTo = muscleCopyIn< bool>(readFrom);}
    static void Import(const void * readFrom,   int8 & writeTo) {writeTo = muscleCopyIn< int8>(readFrom);}
    static void Import(const void * readFrom,  uint8 & writeTo) {writeTo = muscleCopyIn<uint8>(readFrom);}
-   static void Import(const void * readFrom,  int16 & writeTo) {writeTo = B_LENDIAN_TO_HOST_INT16(  muscleCopyIn< int16>(readFrom));}
-   static void Import(const void * readFrom,  int32 & writeTo) {writeTo = B_LENDIAN_TO_HOST_INT32(  muscleCopyIn< int32>(readFrom));}
-   static void Import(const void * readFrom,  int64 & writeTo) {writeTo = B_LENDIAN_TO_HOST_INT64(  muscleCopyIn< int64>(readFrom));}
+   static void Import(const void * readFrom,  int16 & writeTo) {writeTo = (int16) B_LENDIAN_TO_HOST_INT16(muscleCopyIn<int16>(readFrom));}
+   static void Import(const void * readFrom,  int32 & writeTo) {writeTo = (int32) B_LENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(readFrom));}
+   static void Import(const void * readFrom,  int64 & writeTo) {writeTo = (int64) B_LENDIAN_TO_HOST_INT64(muscleCopyIn<int64>(readFrom));}
    static void Import(const void * readFrom,  float & writeTo) {writeTo = B_LENDIAN_TO_HOST_IFLOAT( muscleCopyIn< int32>(readFrom));}
    static void Import(const void * readFrom, double & writeTo) {writeTo = B_LENDIAN_TO_HOST_IDOUBLE(muscleCopyIn< int64>(readFrom));}
    static void Import(const void * readFrom, uint16 & writeTo) {writeTo = B_LENDIAN_TO_HOST_INT16(  muscleCopyIn<uint16>(readFrom));}
@@ -97,9 +97,9 @@ public:
    static void Import(const void * readFrom,   bool & writeTo) {writeTo = muscleCopyIn< bool>(readFrom);}
    static void Import(const void * readFrom,   int8 & writeTo) {writeTo = muscleCopyIn< int8>(readFrom);}
    static void Import(const void * readFrom,  uint8 & writeTo) {writeTo = muscleCopyIn<uint8>(readFrom);}
-   static void Import(const void * readFrom,  int16 & writeTo) {writeTo = B_BENDIAN_TO_HOST_INT16(  muscleCopyIn< int16>(readFrom));}
-   static void Import(const void * readFrom,  int32 & writeTo) {writeTo = B_BENDIAN_TO_HOST_INT32(  muscleCopyIn< int32>(readFrom));}
-   static void Import(const void * readFrom,  int64 & writeTo) {writeTo = B_BENDIAN_TO_HOST_INT64(  muscleCopyIn< int64>(readFrom));}
+   static void Import(const void * readFrom,  int16 & writeTo) {writeTo = (int16) B_BENDIAN_TO_HOST_INT16(muscleCopyIn<int16>(readFrom));}
+   static void Import(const void * readFrom,  int32 & writeTo) {writeTo = (int16) B_BENDIAN_TO_HOST_INT32(muscleCopyIn<int32>(readFrom));}
+   static void Import(const void * readFrom,  int64 & writeTo) {writeTo = (int16) B_BENDIAN_TO_HOST_INT64(muscleCopyIn<int64>(readFrom));}
    static void Import(const void * readFrom,  float & writeTo) {writeTo = B_BENDIAN_TO_HOST_IFLOAT( muscleCopyIn< int32>(readFrom));}
    static void Import(const void * readFrom, double & writeTo) {writeTo = B_BENDIAN_TO_HOST_IDOUBLE(muscleCopyIn< int64>(readFrom));}
    static void Import(const void * readFrom, uint16 & writeTo) {writeTo = B_BENDIAN_TO_HOST_INT16(  muscleCopyIn<uint16>(readFrom));}

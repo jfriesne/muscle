@@ -31,9 +31,6 @@ public:
     */
    SegmentedStringMatcher(const String & matchString, bool isSimpleFormat = true, const char * segmentSeparatorChars = "/", uint32 maxSegments = MUSCLE_NO_LIMIT);
 
-   /** Destructor */
-   ~SegmentedStringMatcher();
-
    /**
     * Set a new wildcard pattern or regular expression for this SegmentedStringMatcher to use in future Match() calls.
     * @param matchString The new globbing pattern or regular expression to match with.  It may be segmented using any of the

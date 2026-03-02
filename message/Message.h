@@ -114,9 +114,6 @@ public:
      */
    MessageFieldNameIterator(const Message & msg, uint32 type = B_ANY_TYPE, uint32 flags = 0);
 
-   /** Destructor. */
-   ~MessageFieldNameIterator() {/* empty */}
-
    /** Moves this iterator forward by one in the field-names list.  */
    void operator++(int) {_iter++; if (_typeCode != B_ANY_TYPE) SkipNonMatchingFieldNames();}
 
@@ -1625,7 +1622,7 @@ public:
          for (MessageFieldNameIterator fnIter = GetFieldNameIterator(B_MESSAGE_TYPE); fnIter.HasData(); fnIter++)
          {
             MessageRef subMsg;
-            for (int32 i=0; FindMessage(fnIter.GetFieldName(), i, subMsg).IsOK(); i++) subMsg()->SortFieldNames(subMaxRecursions);
+            for (uint32 i=0; FindMessage(fnIter.GetFieldName(), i, subMsg).IsOK(); i++) subMsg()->SortFieldNames(subMaxRecursions);
          }
       }
    }

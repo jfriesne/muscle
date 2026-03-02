@@ -73,7 +73,7 @@ protected:
 };
 
 /* This little program demonstrates basic usage of the muscle::AtomicCounter class */
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

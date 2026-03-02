@@ -9,6 +9,7 @@ using namespace muscle;
 
 // This program just repeatedly prints out the contents of the SharedMemory region with the specified name
 // Useful if you want to watch what some other program is doing with a region of shared memory!
+int snoopsharedmemmain(const Message & args);  // just to keep -Wmissing-prototypes happy
 int snoopsharedmemmain(const Message & args)
 {
    CompleteSetupSystem css;
@@ -23,7 +24,7 @@ int snoopsharedmemmain(const Message & args)
 
 
    const char * maxBytesStr = args.GetCstr("head");
-   const uint32 maxBytesArg = maxBytesStr ? atol(maxBytesStr) : MUSCLE_NO_LIMIT;
+   const uint32 maxBytesArg = maxBytesStr ? (uint32) atol(maxBytesStr) : MUSCLE_NO_LIMIT;
    if (maxBytesArg != MUSCLE_NO_LIMIT)
    {
       maxBytesToPrint = muscleMin(maxBytesToPrint, maxBytesArg);

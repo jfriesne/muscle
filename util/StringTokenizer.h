@@ -101,8 +101,8 @@ public:
    MUSCLE_NODISCARD static String Join(const Queue<String> & tokenizedStrings, bool includeEmptyStrings, const String & joinChars, char escapeChar = '\0');
 
 private:
-   MUSCLE_NODISCARD bool IsHardSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_hardSepsBitChord, c)));}
-   MUSCLE_NODISCARD bool IsSoftSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_softSepsBitChord, c)));}
+   MUSCLE_NODISCARD bool IsHardSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_hardSepsBitChord, (uint8)c)));}
+   MUSCLE_NODISCARD bool IsSoftSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_softSepsBitChord, (uint8)c)));}
 
    void DefaultInitialize();
    void DeletePrivateBufferIfNecessary();

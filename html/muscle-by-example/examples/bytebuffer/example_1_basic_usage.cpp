@@ -11,7 +11,7 @@ static void PrintExampleDescription(const OutputPrinter & p)
 }
 
 /* This little program demonstrates basic usage of the muscle::ByteBuffer class */
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 
@@ -23,7 +23,7 @@ int main(int argc, char ** argv)
    uint8 * b = buf.GetBuffer();
    if (b)  // just to reassure Coverity
    {
-      for (uint32 i=0; i<buf.GetNumBytes(); i++) b[i] = i;
+      for (uint32 i=0; i<buf.GetNumBytes(); i++) b[i] = (uint8) i;
    }
    buf.Print(stdout); // let's view its contents
 

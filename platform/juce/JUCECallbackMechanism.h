@@ -34,6 +34,6 @@ private:
    NestCount _handleAsyncNestCount;  // avoid problems with JUCE calling handleAsyncUpdate() re-entrantly
 };
 
-}  // end muscle namespace
+};  // end muscle namespace
 
 #endif

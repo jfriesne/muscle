@@ -78,13 +78,13 @@ class TimerStorageReflectSessionFactory : public StorageReflectSessionFactory
 public:
    TimerStorageReflectSessionFactory() {/* empty */}
 
-   virtual AbstractReflectSessionRef CreateSession(const String & clientAddress, const IPAddressAndPort & factoryInfo)
+   virtual AbstractReflectSessionRef CreateSession(const String & /*clientAddress*/, const IPAddressAndPort & /*factoryInfo*/)
    {
       return AbstractReflectSessionRef(new TimerStorageReflectSession);
    }
 };
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

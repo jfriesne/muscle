@@ -131,7 +131,7 @@ int main(int argc, char ** argv)
    }
 
    uint16 acceptPort = 2961;
-   if (args.HasName("acceptport")) acceptPort = atoi(args.GetString("acceptport")());
+   if (args.HasName("acceptport")) acceptPort = (uint16) atoi(args.GetString("acceptport")());
    if (acceptPort == 0)
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to parse acceptport value [%s]\n", args.GetString("acceptport")());

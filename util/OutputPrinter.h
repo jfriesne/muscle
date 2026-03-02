@@ -40,9 +40,6 @@ public:
      */
    OutputPrinter(int optLogSeverity, String * optAddToString, FILE * optWriteToFile, uint32 indent = 0) : _logSeverity(optLogSeverity), _addToString(optAddToString), _file(optWriteToFile), _indent(indent), _isAtStartOfLine(true) {/* empty */}
 
-   /** Destructor -- doesn't do anything */
-   ~OutputPrinter() {/* empty */}
-
    /** Writes the specified printf()-style text to a file, and/or appends it to a String and/or prints it to the Log.
      * @param fmt a printf()-style format-specified (followed by zero or more printf()-style arguments to be used for string interpolation)
      */

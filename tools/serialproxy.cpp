@@ -119,7 +119,7 @@ int main(int argc, char ** argv)
    uint16 port = 0;
    {
       const String * ps = args.GetStringPointer("port");
-      if (ps) port = atoi(ps->Cstr());
+      if (ps) port = (uint16) atoi(ps->Cstr());
    }
    if (port == 0) port = DEFAULT_PORT;
 

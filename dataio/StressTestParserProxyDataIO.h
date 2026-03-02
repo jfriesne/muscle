@@ -47,7 +47,7 @@ public:
    MUSCLE_NODISCARD uint32 GetMaxChildWriteSize() const {return _maxChildWriteSize;}
 
    /** Returns the minimum delay between Write() calls to our child's DataIO, as specified in our constructor */
-   MUSCLE_NODISCARD uint32 GetMinimumDelayBetweenWritesMicros() const {return _optMinimumDelayBetweenWritesMicros;}
+   MUSCLE_NODISCARD uint64 GetMinimumDelayBetweenWritesMicros() const {return _optMinimumDelayBetweenWritesMicros;}
 
    virtual io_status_t Write(const void * buffer, uint32 size);
    virtual void Shutdown() {ProxyDataIO::Shutdown(); _outputBuffer.Clear(true);}

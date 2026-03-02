@@ -13,7 +13,7 @@
 #if defined(QT_CORE_LIB)  // is Qt4 available?
 # include <Qt>  // to bring in the proper value of QT_VERSION
 #endif
-#if defined(QT_THREAD_SUPPORT) || (QT_VERSION >= 0x040000)
+#if defined(QT_THREAD_SUPPORT) || defined(QT_VERSION) && (QT_VERSION >= 0x040000)
 # define MUSCLE_QT_HAS_THREADS 1
 #endif
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
@@ -226,7 +226,7 @@ private:
    }
    status_t WaitUntilAux(uint64 wakeupTime, uint32 & retNotificationsCount) const
    {
-      int64 timeDeltaMicros = wakeupTime-GetRunTime64();  // how far in the future the wakeup-time is, in microseconds
+      int64 timeDeltaMicros = (int64) (wakeupTime-GetRunTime64());  // how far in the future the wakeup-time is, in microseconds
       if (timeDeltaMicros <= 0) return B_TIMED_OUT;
 
       status_t ret;

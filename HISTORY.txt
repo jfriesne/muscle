@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added various compiler-warning flags to CMakeLists.txt.
+   * Fixed various compiler-warnings detected by the new build flags.
+
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
      classes to util/QueueIterator.h, for safer iteration over

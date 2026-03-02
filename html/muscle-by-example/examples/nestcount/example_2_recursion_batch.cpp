@@ -47,7 +47,7 @@ private:
    NestCount _inRecursiveMethod;
 };
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

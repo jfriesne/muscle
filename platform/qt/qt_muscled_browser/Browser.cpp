@@ -232,7 +232,7 @@ NodeTreeWidgetItem * BrowserWindow :: GetNodeFromPath(const String & nodePath)
 NodeTreeWidgetItem * BrowserWindow :: GetNodeFromPathAux(NodeTreeWidgetItem * node, const char * path)
 {
    const char * slash = strchr(path, '/');
-   NodeTreeWidgetItem * child = node->GetChildByName(String(path, slash?(slash-path):MUSCLE_NO_LIMIT));
+   NodeTreeWidgetItem * child = node->GetChildByName(String(path, slash?((uint32)(slash-path)):MUSCLE_NO_LIMIT));
    return child ? (slash ? GetNodeFromPathAux(child, slash+1) : child) : NULL;
 }
 

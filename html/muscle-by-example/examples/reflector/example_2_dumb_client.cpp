@@ -34,7 +34,7 @@ public:
    MyDumbStdinSession() {/* empty */}
 
    // We need this session to read from stdin
-   virtual DataIORef CreateDataIO(const ConstSocketRef & socket)
+   virtual DataIORef CreateDataIO(const ConstSocketRef & /*socket*/)
    {
       return DataIORef(new StdinDataIO(false));  // false == non-blocking mode (ReflectServers prefer non-blocking mode)
    }
@@ -67,7 +67,7 @@ public:
    // Called when we've received a MessageRef from another session object on
    // our ReflectServer.  (In this case it would have to be from the
    // DumbReflectSession object since that is the only other session object present)
-   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData)
+   virtual void MessageReceivedFromSession(AbstractReflectSession & /*from*/, const MessageRef & msg, void * /*userData*/)
    {
       printf("\n");
       LogTime(MUSCLE_LOG_INFO, "Received Message from the dumb server:\n");
@@ -84,7 +84,7 @@ public:
    }
 };
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

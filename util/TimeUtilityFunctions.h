@@ -105,13 +105,13 @@ MUSCLE_NODISCARD inline bool OnceEvery(uint64 interval, uint64 & lastTime)
  */
 #define PRINT_CALLS_PER_SECOND(x) \
 { \
-   static uint32 count     = 0; \
-   static uint64 startTime = 0; \
-   static uint64 lastTime  = 0; \
-   const uint64 now = GetRunTime64(); \
-   if (startTime == 0) startTime = now; \
-   count++; \
-   if ((OnceEvery(500000, lastTime))&&(now>startTime)) printf("%s: " UINT64_FORMAT_SPEC "/s\n", x, (MICROS_PER_SECOND*((uint64)count))/(now-startTime)); \
+   static uint32 cpc_count     = 0; \
+   static uint64 cpc_startTime = 0; \
+   static uint64 cpc_lastTime  = 0; \
+   const uint64 cpc_now = GetRunTime64(); \
+   if (cpc_startTime == 0) cpc_startTime = cpc_now; \
+   cpc_count++; \
+   if ((OnceEvery(500000, cpc_lastTime))&&(cpc_now>cpc_startTime)) printf("%s: " UINT64_FORMAT_SPEC "/s\n", x, (MICROS_PER_SECOND*((uint64)cpc_count))/(cpc_now-cpc_startTime)); \
 }
 
 /** @} */ // end of timeutilityfunctions doxygen group

@@ -312,7 +312,7 @@ MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int64 WeeksToHours(int64 w)       {retu
  *  @param tv a timeval to convert
  *  @return A uint64 representing the same time.
  */
-MUSCLE_NODISCARD inline uint64 ConvertTimeValTo64(const struct timeval & tv) {return SecondsToMicros(tv.tv_sec) + ((uint64)tv.tv_usec);}
+MUSCLE_NODISCARD inline uint64 ConvertTimeValTo64(const struct timeval & tv) {return (uint64)SecondsToMicros(tv.tv_sec) + ((uint64)tv.tv_usec);}
 
 /** Given a uint64, writes the equivalent timeval struct into the second argument.
  *  @param val A uint64 time value in microseconds

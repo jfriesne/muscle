@@ -55,7 +55,7 @@ enum {
 #endif
 };
 extern const char * _gniiFlagLabels[];
-DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(GNIIFlags, NUM_GNII_FLAGS, _gniiFlagLabels);
+DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(GNIIFlags, NUM_GNII_FLAGS, _gniiFlagLabels)
 
 #define GNII_FLAGS_INCLUDE_ALL_INTERFACES (GNIIFlags::WithAllBitsSet())  /**< If set, all interfaces will be returned */
 #define GNII_FLAGS_INCLUDE_ALL_ADDRESSED_INTERFACES (GNIIFlags::WithAllBitsSetExceptThese(GNII_FLAG_INCLUDE_UNADDRESSED_INTERFACES))  /**< default setting -- all interfaces that currently have an IP address will be returned */

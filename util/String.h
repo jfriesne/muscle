@@ -925,14 +925,14 @@ public:
    String Substring(const String & markerString) const
    {
       const int idx = LastIndexOf(markerString);
-      return (idx >= 0) ? String(*this, idx+markerString.Length()) : *this;
+      return (idx >= 0) ? String(*this, ((uint32)idx)+markerString.Length()) : *this;
    }
 
    /** @copydoc String::Substring(const String &) const */
    String Substring(const char * markerString) const
    {
       const int idx = LastIndexOf(markerString);
-      return (idx >= 0) ? String(*this, idx+(int)strlen(markerString)) : *this;  // if (idx >= 0), then we know markerString is non-NULL
+      return (idx >= 0) ? String(*this, (uint32)(strlen(markerString)+(size_t)idx)) : *this;  // if (idx >= 0), then we know markerString is non-NULL
    }
 
    /** Returns a String that consists of only the characters in the string from range (beginIndex) until the character just before
@@ -1545,13 +1545,13 @@ private:
       void SetLength(uint32 len) {_strlen = len;}
       MUSCLE_NODISCARD uint32 Length() const {return _strlen;}
 
-      MUSCLE_NODISCARD uint32 GetNumAllocatedBytes() const {return B_LENDIAN_TO_HOST_INT32(_encBufLen) & ~((uint32)(1<<31));}
+      MUSCLE_NODISCARD uint32 GetNumAllocatedBytes() const {return B_LENDIAN_TO_HOST_INT32(_encBufLen) & ~((uint32)(1U<<31));}
 
       void SetBuffer(char * newBuffer, uint32 newBufLen, uint32 oldStrlen)
       {
          _bigBuffer = newBuffer;
          _strlen    = oldStrlen;
-         _encBufLen = B_HOST_TO_LENDIAN_INT32(newBufLen) | ((uint32)(1<<31));
+         _encBufLen = B_HOST_TO_LENDIAN_INT32(newBufLen) | ((uint32)(1U<<31));
       }
 
       void FreeBuffer() {muscleFree(_bigBuffer);}  // no need to clear member-variables as ClearShortStringBuffer() will be called right after this

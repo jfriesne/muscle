@@ -42,7 +42,7 @@ public:
    MySmartStdinSession() {/* empty */}
 
    // We need this session to read from stdin
-   virtual DataIORef CreateDataIO(const ConstSocketRef & socket)
+   virtual DataIORef CreateDataIO(const ConstSocketRef & /*socket*/)
    {
       return DataIORef(new StdinDataIO(false));  // false == non-blocking mode (ReflectServers prefer non-blocking mode)
    }
@@ -54,7 +54,7 @@ public:
    }
 
    // Called when some data has come in from our PlainTextMessageIOGateway
-   virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userPtr)
+   virtual void MessageReceivedFromGateway(const MessageRef & msg, void * /*userPtr*/)
    {
       const String * nextStr;
       for (int32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr).IsOK(); i++) HandleStdinCommandFromUser(*nextStr);
@@ -63,7 +63,7 @@ public:
    // Called when we've received a MessageRef from another session object on
    // our ReflectServer.  (In this case it would have to be from the
    // StorageReflectSession object since that is the only other session object present)
-   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * userData)
+   virtual void MessageReceivedFromSession(AbstractReflectSession & /*from*/, const MessageRef & msg, void * /*userData*/)
    {
       printf("\n");
       LogTime(MUSCLE_LOG_INFO, "Received Message from the smart server:\n");
@@ -205,7 +205,7 @@ private:
    }
 };
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

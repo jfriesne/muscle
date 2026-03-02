@@ -196,7 +196,7 @@ int main(int argc, char ** argv)
                   // Expected behavior is that the server will stop at a path-depth of 100, and print
                   // an error message to its stdout.
                   String evilPath = "EVIL";
-                  for (int i=0; i<500; i++) evilPath += String("/DEEPER_%1").Arg(i);
+                  for (int j=0; j<500; j++) evilPath += String("/DEEPER_%1").Arg(j);
 
                   ref()->what = PR_COMMAND_SETDATA;
                   (void) ref()->AddMessage(evilPath(), GetMessageFromPool(MakeWhatCode("EVIL")));

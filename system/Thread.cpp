@@ -27,7 +27,7 @@
 #endif
 
 #ifdef __APPLE__
-extern int pthread_threadid_np(pthread_t _Nullable,__uint64_t* _Nullable);
+extern int pthread_threadid_np(pthread_t, __uint64_t *);
 #endif
 
 namespace muscle {

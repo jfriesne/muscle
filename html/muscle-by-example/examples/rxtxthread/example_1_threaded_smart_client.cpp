@@ -146,7 +146,7 @@ static MessageRef ParseStdinCommand(const String & stdinCommand)
    return MessageRef();  // nothing to send for now
 }
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

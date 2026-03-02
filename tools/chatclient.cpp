@@ -259,8 +259,8 @@ int main(int argc, char ** argv)
                case NET_CLIENT_NEW_CHAT_TEXT:
                {
                   // Someone has sent a line of chat text to display
-                  const char * text;
-                  const char * session;
+                  const char * text    = NULL;  // initialization isn't really necessary here
+                  const char * session = NULL;  // but it keeps the compiler from warning
                   if ((msg()->FindString("text", &text).IsOK())&&(msg()->FindString("session", &session).IsOK()))
                   {
                      if (strncmp(text, "/me ", 4) == 0) LogTime(MUSCLE_LOG_INFO, "<ACTION>: %s %s\n", GetUserName(_users, session)(), &text[4]);

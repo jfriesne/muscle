@@ -86,7 +86,7 @@ private:
    int32 _zipCode;
 };
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

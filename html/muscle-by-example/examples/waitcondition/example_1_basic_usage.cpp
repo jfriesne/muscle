@@ -31,7 +31,7 @@ private:
    const WaitCondition & _waitCondition;
 };
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

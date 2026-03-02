@@ -133,9 +133,9 @@ static uint16 GET_SOCKADDR_PORT_IPV6(const struct sockaddr_in6 & addr)
    }
 }
 
-static void   SET_SOCKADDR_FAMILY_IPV6(      struct sockaddr_in6 & addr, uint16 family) {addr.sin6_family = family;}
-static void   SET_SOCKADDR_PORT_IPV6(        struct sockaddr_in6 & addr, uint16 port)   {addr.sin6_port   = htons(port);}
-static uint16 GET_SOCKADDR_FAMILY_IPV6(const struct sockaddr_in6 & addr)                {return addr.sin6_family;}
+static void   SET_SOCKADDR_FAMILY_IPV6(      struct sockaddr_in6 & addr, uint8 family) {addr.sin6_family = family;}
+static void   SET_SOCKADDR_PORT_IPV6(        struct sockaddr_in6 & addr, uint16 port)  {addr.sin6_port   = htons(port);}
+static uint16 GET_SOCKADDR_FAMILY_IPV6(const struct sockaddr_in6 & addr)               {return addr.sin6_family;}
 static void InitializeSockAddr6(struct sockaddr_in6 & addr, const IPAddress * optFrom, uint16 port)
 {
    memset(&addr, 0, sizeof(struct sockaddr_in6));
@@ -164,9 +164,9 @@ void IPAddressAndPort :: WriteToSockAddrIn6(struct sockaddr_in6 & writeToMe) con
 static void GET_SOCKADDR_IP_IPV4(const struct sockaddr_in & sockAddr, IPAddress & ipAddr) {ipAddr.SetIPv4AddressFromUint32(ntohl(sockAddr.sin_addr.s_addr));}
 static void SET_SOCKADDR_IP_IPV4(struct sockaddr_in & sockAddr, const IPAddress & ipAddr) {sockAddr.sin_addr.s_addr = htonl(ipAddr.GetIPv4AddressAsUint32());}
 static uint16 GET_SOCKADDR_PORT_IPV4(const struct sockaddr_in & addr) {return ntohs(addr.sin_port);}
-static void SET_SOCKADDR_PORT_IPV4(struct sockaddr_in & addr, uint16 port) {addr.sin_port = htons(port);}
-static uint16 GET_SOCKADDR_FAMILY_IPV4(const struct sockaddr_in & addr) {return addr.sin_family;}
-static void SET_SOCKADDR_FAMILY_IPV4(struct sockaddr_in & addr, uint16 family) {addr.sin_family = family;}
+static void SET_SOCKADDR_PORT_IPV4(struct sockaddr_in & addr, uint16 port)    {addr.sin_port = htons(port);}
+static uint16 GET_SOCKADDR_FAMILY_IPV4(const struct sockaddr_in & addr)       {return addr.sin_family;}
+static void SET_SOCKADDR_FAMILY_IPV4(struct sockaddr_in & addr, uint8 family) {addr.sin_family = family;}
 static void InitializeSockAddr4(struct sockaddr_in & addr, const IPAddress * optFrom, uint16 port)
 {
    memset(&addr, 0, sizeof(struct sockaddr_in));

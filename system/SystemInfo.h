@@ -64,6 +64,9 @@ MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL inline const char * GetFilePathSepara
 #endif
 }
 
+/** Returns the compile-flags this library was built with as a list of human-readable Strings */
+Queue<String> GetBuildFlags();
+
 /** Prints a summary of our build flags using the passed-in OutputPrinter.
   * @param p the OutputPrinter to use for printing.
   */

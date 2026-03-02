@@ -22,9 +22,11 @@ static void RecursivePrint(const OutputPrinter & p, int recurseCount)
    else p.printf("Recursion base case reached!\n");
 }
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
+
+   PrintExampleDescription(stdout);
 
    RecursivePrint(MUSCLE_LOG_INFO, 5);
    return 0;

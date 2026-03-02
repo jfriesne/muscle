@@ -53,7 +53,6 @@ private:
 };
 DECLARE_ALL_TUPLE_OPERATORS(MyTupleSubclass, float);
 
-
 static void PrintEquation2(const char * op, const MyTupleSubclass & a, const MyTupleSubclass & b, const MyTupleSubclass & c);
 static void PrintEquation2(const char * op, const MyTupleSubclass & a, const MyTupleSubclass & b, const MyTupleSubclass & c)
 {

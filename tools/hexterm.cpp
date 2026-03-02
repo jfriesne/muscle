@@ -301,8 +301,8 @@ static void DoSession(const Message & args, DataIORef io, bool allowRead = true)
    const char * stressMaxBytesStr = args.GetCstr("stressmaxbytes");
    const char * stressDelayStr    = args.GetCstr("stressdelay");
 
-   const uint32 minBytes = stressMinBytesStr ? atol(stressMinBytesStr) : 0;
-   const uint32 maxBytes = stressMaxBytesStr ? atol(stressMaxBytesStr) : MUSCLE_NO_LIMIT;
+   const uint32 minBytes = stressMinBytesStr ? (uint32)atol(stressMinBytesStr) : 0;
+   const uint32 maxBytes = stressMaxBytesStr ? (uint32)atol(stressMaxBytesStr) : MUSCLE_NO_LIMIT;
    const uint64 delayMicros    = stressDelayStr    ? ParseHumanReadableUnsignedTimeIntervalString(stressDelayStr)  : 0;
    if ((minBytes != 0)||(maxBytes != MUSCLE_NO_LIMIT))
    {
@@ -455,6 +455,7 @@ static void LogUsage(const char * argv0)
 }
 
 // Secondary entry point, used when embedding hexterm in a unified daemon
+int hextermmain(const char * argv0, const Message & args);  // just to keep -WMissing-prototypes happy
 int hextermmain(const char * argv0, const Message & args)
 {
    g_printChecksums = args.HasName("printchecksums");
@@ -514,9 +515,9 @@ int hextermmain(const char * argv0, const Message & args)
    if (args.HasName("spamspersecond"))
    {
       const char * sizeStr = args.GetCstr("spamsize");
-      if (sizeStr) g_spamSize = atol(sizeStr);
+      if (sizeStr) g_spamSize = (uint32) atol(sizeStr);
 
-      g_spamsPerSecond = atoi(args.GetCstr("spamspersecond"));
+      g_spamsPerSecond = (uint32) atoi(args.GetCstr("spamspersecond"));
       LogTime(MUSCLE_LOG_INFO, "Will generate and send " UINT32_FORMAT_SPEC " " UINT32_FORMAT_SPEC "-byte spam-transmissions per second.\n", g_spamsPerSecond, g_spamSize);
    }
 

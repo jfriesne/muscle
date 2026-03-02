@@ -10,7 +10,7 @@ struct in_addr;       // forward declaration
 struct sockaddr_in6;  // forward declaration
 struct in6_addr;      // forward declaration
 #endif
-};
+}
 
 #include "support/PseudoFlattenable.h"
 #include "util/String.h"

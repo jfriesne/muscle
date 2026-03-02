@@ -311,7 +311,7 @@ void ExampleWindow :: CloneWindow()
    if (muscleInRange(*p, '0', '9'))
    {
       int i = atoi(p);
-      newUserName = newUserName.Substring(0, p-newUserName())+String("%1").Arg(i+1);
+      newUserName = newUserName.Substring(0, (uint32)(p-newUserName()))+String("%1").Arg(i+1);
    }
    else newUserName += " #2";
 
@@ -468,7 +468,7 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;  // necessary for MUSCLE initialization
    QApplication app(argc, argv);
 
-   srand(time(NULL));
+   srand((unsigned int) time(NULL));
 
    ByteBufferRef publicKey;
    for (int i=1; i<argc; i++)

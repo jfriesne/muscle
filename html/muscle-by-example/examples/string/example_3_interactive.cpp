@@ -12,7 +12,7 @@ static void PrintExampleDescription(const OutputPrinter & p)
 
 void PrintSingleStringInfo(const char * desc, const String & s);   // forward declaration -- see bottom of this file
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

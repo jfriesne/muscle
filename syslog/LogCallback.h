@@ -36,9 +36,6 @@ public:
      */
    LogCallbackArgs(const time_t & when, int logLevel, const char * sourceFile, const char * sourceFunction, int sourceLine, const char * logText) : _when(when), _logLevel(logLevel), _sourceFile(sourceFile), _sourceFunction(sourceFunction), _sourceLine(sourceLine), _text(logText) {/* empty */}
 
-   /** Destructor */
-   ~LogCallbackArgs() {/* empty */}
-
    /** Returns the timestamp indicating when this message was generated, in (seconds since 1970) format. */
    MUSCLE_NODISCARD const time_t & GetWhen() const {return _when;}
 

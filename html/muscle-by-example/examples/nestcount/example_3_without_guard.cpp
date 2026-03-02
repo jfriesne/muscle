@@ -50,7 +50,7 @@ private:
    Hashtable<int, Void> _queuedValues;
 };
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

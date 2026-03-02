@@ -367,9 +367,9 @@ void LogLineCallback :: LogAux(const LogCallbackArgs & a, va_list & argList)
 
    // Generate the new text
    const size_t sizeOfBuffer = (sizeof(_buf)-1)-(_writeTo-_buf);  // the -1 is for the guaranteed NUL terminator
-#if __STDC_WANT_SECURE_LIB__
+#if defined(__STDC_WANT_SECURE_LIB__)
    const int bytesAttempted = _vsnprintf_s(_writeTo, sizeOfBuffer, _TRUNCATE, a.GetText(), argList);
-#elif WIN32
+#elif defined(WIN32)
    const int bytesAttempted =   _vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            argList);
 #else
    const int bytesAttempted =    vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            argList);

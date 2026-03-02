@@ -15,7 +15,7 @@
 #  include <IOKit/IOMessage.h>
 # endif
 # include <SystemConfiguration/SystemConfiguration.h>
-#elif WIN32
+#elif defined(WIN32)
 # if defined(UNICODE) && !defined(_UNICODE)
 #  define _UNICODE 1
 # endif
@@ -99,7 +99,7 @@ public:
 # if !(TARGET_OS_IPHONE)
       , _rootPortPointer(NULL)
 # endif
-#elif WIN32
+#elif defined(WIN32)
       , _wakeupSignal(MY_INVALID_HANDLE_VALUE)
 #endif
    {
@@ -456,7 +456,7 @@ private:
          DECLARE_MUTEXGUARD(_threadRunLoopMutex);
          if (_threadRunLoop) CFRunLoopStop((CFRunLoopRef)_threadRunLoop);
       }
-#elif WIN32
+#elif defined(WIN32)
       SetEvent(_wakeupSignal);
 #endif
 

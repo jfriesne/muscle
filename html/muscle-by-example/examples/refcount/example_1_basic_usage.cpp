@@ -41,7 +41,7 @@ public:
 };
 DECLARE_REFTYPES(MyClass);  // defines MyClassRef and ConstMyClassRef
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 

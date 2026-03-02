@@ -28,11 +28,6 @@ SegmentedStringMatcher :: SegmentedStringMatcher(const String & str, bool simple
    (void) SetPattern(str, simple, sc, maxSegments);
 }
 
-SegmentedStringMatcher :: ~SegmentedStringMatcher()
-{
-   // empty
-}
-
 void SegmentedStringMatcher :: Clear()
 {
    _negate = false;

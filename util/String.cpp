@@ -766,7 +766,7 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
    // We use high bit of the buffer-size word to indicate that the short-string-optimization is active.
    // That means we can't use it as part of the actual buffer-size, so our maximum string length is
    // just under 2GB instead of just under 4GB.
-   if ((newBufLen & (1<<31)) != 0) return B_RESOURCE_LIMIT;
+   if ((newBufLen & (1U<<31)) != 0) return B_RESOURCE_LIMIT;
 
    const uint32 oldStrlen         = Length();
    const bool goToSmallBufferMode = ((allowShrink)&&(newBufLen <= (GetMaxShortStringLength()+1)));

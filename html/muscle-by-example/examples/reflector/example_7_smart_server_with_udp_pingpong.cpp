@@ -61,7 +61,7 @@ public:
       return AbstractMessageIOGatewayRef(new RawDataMessageIOGateway);
    }
 
-   virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData)
+   virtual void MessageReceivedFromGateway(const MessageRef & msg, void * /*userData*/)
    {
       ByteBufferRef receivedData;
       if (msg()->FindFlat(PR_NAME_DATA_CHUNKS, receivedData).IsOK())
@@ -119,7 +119,7 @@ private:
    Hashtable<MessageRef, uint64> _pendingReplies;  // Message -> timeToSendItAt
 };
 
-int main(int argc, char ** argv)
+int main(int /*argc*/, char ** /*argv*/)
 {
    CompleteSetupSystem css;
 
