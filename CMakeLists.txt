@@ -281,7 +281,7 @@ elseif ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQ
         -Wmissing-prototypes
         -Wnullable-to-nonnull-conversion
         -Wignored-qualifiers
-        -Wswitch-enum
+        -Wno-switch-enum
         -Wpedantic
         -Wdeprecated
         -Wdeprecated-declarations
@@ -289,6 +289,7 @@ elseif ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQ
         -Wno-c++98-compat-extra-semi
         -Wno-format-pedantic
         -Wno-extra-semi
+        -Wno-deprecated-copy-with-user-provided-dtor
         $<$<OR:$<COMPILE_LANGUAGE:CXX>,$<COMPILE_LANGUAGE:OBJCXX>>:
         -Wunused-private-field
         -Woverloaded-virtual
@@ -313,7 +314,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         -Wimplicit-fallthrough
         -Wmaybe-uninitialized
         -Wignored-qualifiers
-        -Wswitch-enum
+        -Wno-switch-enum
         -Wredundant-decls
         -Wstrict-overflow
         -Wshadow
