@@ -1214,7 +1214,7 @@ template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR bool muscleInRange
 template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleCompare(const T & arg1, const T & arg2) {return (arg2<arg1) ? 1 : ((arg1<arg2) ? -1 : 0);}
 
 /** Returns the absolute value of (arg) */
-template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleAbs(T arg) {return (arg<0)?(-arg):arg;}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleAbs(T arg) {return (arg<0)?((T)(-arg)):arg;}
 
 /** Rounds the given float to the nearest integer value. */
 MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleRintf(float f) {return (f>=0.0f) ? ((int)(f+0.5f)) : -((int)((-f)+0.5f));}
@@ -1384,7 +1384,7 @@ const char * io_status_t :: GetDescription() const
  */
 
 #ifndef BYTE_ORDER
-  #if (BSD >= 199103)
+  #if defined(BSD) && (BSD >= 199103)
     #include <machine/endian.h>
   #else
     #if defined(linux) || defined(__linux__)

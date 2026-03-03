@@ -635,7 +635,7 @@ void HandleStandardDaemonArgs(const Message & args)
       signal(SIGILL,  MUSCLECrashSignalHandler);
       signal(SIGABRT, MUSCLECrashSignalHandler);
       signal(SIGFPE,  MUSCLECrashSignalHandler);
-#elif MUSCLE_USE_MSVC_STACKWALKER
+#elif defined(MUSCLE_USE_MSVC_STACKWALKER)
 # ifndef MUSCLE_INLINE_LOGGING
       LogTime(MUSCLE_LOG_INFO, "Enabling stack-trace printing when a crash occurs.\n");
       SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER) Win32FaultHandler);
@@ -1268,7 +1268,7 @@ static ByteBufferRef Base64DecodeAux(const char * base64String, uint32 numBytes)
 
    const uint8 * start = (const uint8 *) base64String;
    const uint8 * in    = start;
-   while((in-start)<numBytes)
+   while((uint32)(in-start)<numBytes)
    {
       uint8 a[4] = {0,0,0,0}, b[4] = {0,0,0,0};
       for (uint32 i=0; i<4; i++)
@@ -1300,7 +1300,7 @@ ByteBufferRef Base64Decode(const char * base64String, uint32 maxBytes)
 
    // This is faster than calling strlen(base64String) when (maxBytes) is small
    const char * b = base64String;
-   while((*b)&&((b-base64String)<maxBytes)) b++;
+   while((*b)&&((uint32)(b-base64String)<maxBytes)) b++;
 
    return Base64DecodeAux(base64String, muscleMin(maxBytes, (uint32) (b-base64String)));
 }
@@ -1328,11 +1328,14 @@ String GetUnmangledSymbolName(const char * mangled_name)
 
 String GetBytesSizeString(uint64 val)
 {
-   const double b = 1000.0;  // note that we defined 1KB=1000 bytes, not 1024 bytes!
+   const uint64 b  = 1000;  // note that we defined 1KB=1000 bytes, not 1024 bytes!
+   const double db = (double) b;
+   const double dv = (double) val;
+
         if (val < b)     return String("%1 bytes").Arg(val);
-   else if (val < b*b)   return String("%1kB").Arg(((double)val)/b,       "%.1f");
-   else if (val < b*b*b) return String("%1MB").Arg(((double)val)/(b*b),   "%.1f");
-   else                  return String("%1GB").Arg(((double)val)/(b*b*b), "%.2f");
+   else if (val < b*b)   return String("%1kB").Arg(dv/(db),       "%.1f");
+   else if (val < b*b*b) return String("%1MB").Arg(dv/(db*db),    "%.1f");
+   else                  return String("%1GB").Arg(dv/(db*db*db), "%.2f");
 }
 
 uint64 ParseBytesSizeString(const String & ss)
@@ -1346,7 +1349,7 @@ uint64 ParseBytesSizeString(const String & ss)
    else if ((s.ContainsIgnoreCase("MB"))||(s.EndsWith("M"))) base = b*b;
    else if ((s.ContainsIgnoreCase("GB"))||(s.EndsWith("G"))) base = b*b*b;
 
-   return s.Contains(".") ? ((uint64)(atof(s())*base)) : Atoull(s())*base;  // avoid floating point math if possible
+   return s.Contains(".") ? ((uint64)(atof(s())*((double)base))) : Atoull(s())*base;  // avoid floating point math if possible
 }
 
 } // end namespace muscle

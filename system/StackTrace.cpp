@@ -1261,7 +1261,7 @@ StackTrace :: StackTrace(const StackTrace & rhs)
    , _stackWalkerState(rhs._stackWalkerState)
 #endif
 {
-   // empty
+   (void) rhs;  // avoid a compiler warning in the no-defines-matched case
 }
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
@@ -1339,6 +1339,8 @@ void StackTrace :: SwapContents(StackTrace & swapWithMe) MUSCLE_NOEXCEPT
    _stackFrames.SwapContents(swapWithMe._stackFrames);
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
    _stackWalkerState.SwapContents(swapWithMe._stackWalkerState);
+#else
+   (void) swapWithMe;
 #endif
 }
 

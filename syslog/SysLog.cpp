@@ -1154,7 +1154,7 @@ uint64 ParseHumanReadableUnsignedTimeIntervalString(const String & s)
    const char * afterLetters = letters;
    while((*afterLetters)&&((*afterLetters==',')||(muscleIsAlpha(*afterLetters)||(muscleIsSpace(*afterLetters))))) afterLetters++;
 
-   uint64 ret = IsFloatingPointNumber(digits) ? (uint64)(atof(digits)*multiplier) : (Atoull(digits)*multiplier);
+   uint64 ret = IsFloatingPointNumber(digits) ? (uint64)(atof(digits)*(double)multiplier) : (Atoull(digits)*multiplier);
    if (*afterLetters) ret += ParseHumanReadableUnsignedTimeIntervalString(afterLetters);
    return ret;
 }

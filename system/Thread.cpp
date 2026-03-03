@@ -49,6 +49,10 @@ Thread :: Thread(bool useMessagingSockets, ICallbackMechanism * optCallbackMecha
    , _threadTid(0)
 #endif
 {
+#if defined(__EMSCRIPTEN__)
+   (void) useMessagingSockets;  // avoid a compiler warning
+#endif
+
 #if defined(MUSCLE_USE_QT_THREADS)
    _thread.SetOwner(this);
 #endif

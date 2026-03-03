@@ -2844,11 +2844,11 @@ void OutputPrinter :: putsAux(const char * s, uint32 numChars) const
    if ((_indent > 0)||(_logSeverity > MUSCLE_LOG_NONE))
    {
       const char * orig = s;
-      while((*s)&&((s-orig) < numChars))
+      while((*s)&&((uint32)(s-orig) < numChars))
       {
          // Find the next newline, if any
          const char * pc = s;
-         while((*pc)&&((pc-orig)<numChars))
+         while((*pc)&&((uint32)(pc-orig)<numChars))
          {
             if (*pc == '\n')
             {

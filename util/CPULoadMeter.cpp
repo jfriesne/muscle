@@ -40,7 +40,7 @@ float CPULoadMeter :: CalculateCPULoad(uint64 idleTicks, uint64 totalTicks)
 {
    const uint64 totalTicksSinceLastTime = totalTicks-_previousTotalTicks;
    const uint64 idleTicksSinceLastTime  = idleTicks-_previousIdleTicks;
-   const float ret = 1.0f-((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime)/totalTicksSinceLastTime : 0);
+   const float ret = 1.0f-((totalTicksSinceLastTime > 0) ? (((float)idleTicksSinceLastTime)/((float)totalTicksSinceLastTime)) : 0);
    _previousTotalTicks = totalTicks;
    _previousIdleTicks  = idleTicks;
    return ret;
@@ -86,7 +86,7 @@ float CPULoadMeter :: GetCPULoad()
       if (GetSystemTimes(&idleTime, &kernelTime, &userTime)) sysLoadPercentage = CalculateCPULoad(FileTimeToInt64(idleTime), FileTimeToInt64(kernelTime)+FileTimeToInt64(userTime));
    }
 # endif
-#elif __APPLE__
+#elif defined(__APPLE__)
    host_cpu_load_info_data_t cpuinfo;
    mach_msg_type_number_t count = HOST_CPU_LOAD_INFO_COUNT;
    if (host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, (host_info_t)&cpuinfo, &count) == KERN_SUCCESS)

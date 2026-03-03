@@ -198,7 +198,7 @@ String & String :: operator-=(const String & other)
          {
             char * b = GetBuffer();
             const int32 len = Length();
-            memmove(b+idx, b+newEndIdx, 1+len-newEndIdx);
+            memmove(b+idx, b+newEndIdx, (size_t)(1+len-newEndIdx));
             SetLength(len-other.Length());
          }
       }

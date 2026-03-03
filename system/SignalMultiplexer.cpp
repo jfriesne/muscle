@@ -42,6 +42,9 @@ status_t ISignalHandler :: GetNthSignalNumber(uint32 n, int & signalNumber) cons
       case 2:  signalNumber = SIGHUP;  return B_NO_ERROR;
       default: /* empty */             return B_BAD_ARGUMENT;
    }
+#else
+   (void) n;
+   (void) signalNumber;
 #endif
    return B_UNIMPLEMENTED;
 }

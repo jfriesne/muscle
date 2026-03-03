@@ -253,10 +253,9 @@ ConstSocketRef CreateUDPSocket(int socketFamily)
 {
 #if defined(__EMSCRIPTEN__)
    return B_UNIMPLEMENTED;  // No UDP in Emscripten-land, sorry!
-#endif
-
+#else
    ConstSocketRef ret = CreateMuscleSocket(SOCK_DGRAM, GlobalSocketCallback::SOCKET_CALLBACK_CREATE_UDP, socketFamily);
-#if defined(WIN32) && !defined(__MINGW32__)
+# if defined(WIN32) && !defined(__MINGW32__)
    if (ret())
    {
       // This setup code avoids the UDP WSAECONNRESET problem
@@ -265,8 +264,9 @@ ConstSocketRef CreateUDPSocket(int socketFamily)
       BOOL bNewBehavior = FALSE;
       if (WSAIoctl(ret.GetFileDescriptor(), SIO_UDP_CONNRESET, &bNewBehavior, sizeof(bNewBehavior), NULL, 0, &dwBytesReturned, NULL, NULL) != 0) ret.SetStatus(B_IO_ERROR);
    }
-#endif
+# endif
    return ret;
+#endif
 }
 
 status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRetPort, const IPAddress & optFrom, bool allowShared)
@@ -1273,12 +1273,12 @@ status_t CreateConnectedSocketPair(ConstSocketRef & socket1, ConstSocketRef & so
       socket2 = GetConstSocketRefFromPool(temp[1]);
       if ((SetSocketBlockingEnabled(socket1, blocking).IsOK(ret))&&(SetSocketBlockingEnabled(socket2, blocking).IsOK(ret))) return B_NO_ERROR;
    }
-   else return B_ERRNO;
+   else ret = B_ERRNO;
 #elif defined(__EMSCRIPTEN__)
    (void) socket1;
    (void) socket2;
    (void) blocking;
-   return B_UNIMPLEMENTED;  // sorry guys, they simply can't do it
+   ret = B_UNIMPLEMENTED;  // sorry guys, they simply can't do it
 #else
    uint16 port;
    socket1 = CreateAcceptingSocket(0, 1, &port, localhostIP);
@@ -1432,7 +1432,7 @@ status_t FinalizeAsyncConnect(const ConstSocketRef & sock)
    return (getpeername(fd, (struct sockaddr *)&junk, &length) == 0) ? B_NO_ERROR : B_ERRNO;
 #else
    // For most platforms, the code below is all we need
-   char junk;
+   char junk = 0;
    return (send_ignore_eintr(fd, &junk, 0, 0L) == 0) ? B_NO_ERROR : B_ERRNO;
 #endif
 }
@@ -1697,6 +1697,7 @@ bool IPAddress :: IsSelfAssigned() const
 #endif
 }
 
+#if !defined(__EMSCRIPTEN__)
 static bool IsGNIIBitMatch(const IPAddress & ip, bool isInterfaceEnabled, GNIIFlags includeFlags)
 {
    if ((includeFlags.IsBitSet(GNII_FLAG_INCLUDE_ENABLED_INTERFACES)  == false)&&( isInterfaceEnabled)) return false;
@@ -1719,6 +1720,7 @@ static bool IsGNIIBitMatch(const IPAddress & ip, bool isInterfaceEnabled, GNIIFl
 
    return true;
 }
+#endif
 
 # if defined(__APPLE__) && !(TARGET_OS_IPHONE)
 // Given an Apple-style interface-type string, returns the corresponding NETWORK_INTERFACE_HARDWARE_TYPE_* value, or NETWORK_INTERFACE_TYPE_UNKNOWN.
@@ -2150,7 +2152,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
       }
    }
 #else
-   return B_UNIMPLEMENTED; // for other OS's (including Android before API level 24), this function isn't implemented (patches are welcome!)
+   ret = B_UNIMPLEMENTED; // for other OS's (including Android before API level 24), this function isn't implemented (patches are welcome!)
 #endif
 
    return ((ret.IsOK())&&(results.GetNumItems() == origResultsSize)&&(includeFlags.IsBitSet(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT))) ? GetNetworkInterfaceInfos(results, includeFlags.WithBit(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES).WithoutBit(GNII_FLAG_INCLUDE_LOOPBACK_INTERFACES_ONLY_AS_LAST_RESORT)) : ret;

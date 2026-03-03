@@ -205,7 +205,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
             _key = semInfo.sem_perm.__key;
 
 // Mac os-x leopard uses '_key' by default. Both Tiger and Leopard may use _key if the following condition is true, otherwise they use 'key'.
-# elif (defined(__APPLE__) && (defined(__POSIX_C_SOURCE) || defined(__LP64__))) || __DARWIN_UNIX03
+# elif (defined(__APPLE__) && (defined(__POSIX_C_SOURCE) || defined(__LP64__))) || defined(__DARWIN_UNIX03)
             _key = semInfo.sem_perm._key;
 # else
             _key = semInfo.sem_perm.key;
