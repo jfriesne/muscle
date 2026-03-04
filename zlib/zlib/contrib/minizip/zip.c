@@ -420,9 +420,9 @@ local char *block_central_name(block_t *block, set_t *set) {
         /* Go through the remaining fixed-length portion of the record,
         // extracting the lengths of the three variable-length fields. */
         block_skip(block, 24);
-        unsigned flen = block_get2(block);      /* file name length */
-        unsigned xlen = block_get2(block);      /* extra field length */
-        unsigned clen = block_get2(block);      /* comment field length */
+        unsigned flen = (unsigned) block_get2(block);      /* file name length */
+        unsigned xlen = (unsigned) block_get2(block);      /* extra field length */
+        unsigned clen = (unsigned) block_get2(block);      /* comment field length */
         if (block_skip(block, 12) == -1)
             /* Premature end of the record. */
             break;
@@ -2160,8 +2160,8 @@ extern int ZEXPORT zipRemoveExtraInfoBlock(char* pData, int* dataLen, short sHea
 
   while(p < (pData + *dataLen))
   {
-    header = *(short*)p;
-    dataSize = *(((short*)p)+1);
+    header   = *( (short*)((void *)p));
+    dataSize = *(((short*)((void *)p))+1);
 
     if( header == sHeader ) /* Header found. */
     {

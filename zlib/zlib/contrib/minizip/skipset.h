@@ -80,11 +80,12 @@ typedef struct {
 } set_rand_t;
 /* --private-- Initialize the state *gen using seed and seq. seed seeds the
 // advancing 64-bit state. seq is a sequence selection constant. */
-void set_seed(set_rand_t *gen, ui64_t seed, ui64_t seq) {
+static void set_seed(set_rand_t *gen, ui64_t seed, ui64_t seq) {
     gen->inc = (seq << 1) | 1;
     gen->state = (seed + gen->inc) * 6364136223846793005ULL + gen->inc;
 }
 /* Return 32 random bits, advancing the state *gen. */
+ui32_t set_rand(set_rand_t *gen);
 ui32_t set_rand(set_rand_t *gen) {
     ui64_t state = gen->state;
     gen->state = state * 6364136223846793005ULL + gen->inc;
@@ -145,6 +146,7 @@ typedef struct set_s {
 #    define SET_ALLOC_SIZE(ptr) 0
 #  endif
 // With tracking.
+void *set_alloc(set_t *set, void *ptr, size_t size);
 void *set_alloc(set_t *set, void *ptr, size_t size) {
     size_t had = ptr == NULL ? 0 : SET_ALLOC_SIZE(ptr);
     void *mem = realloc(ptr, size);
@@ -154,6 +156,7 @@ void *set_alloc(set_t *set, void *ptr, size_t size) {
     set->memory += SET_ALLOC_SIZE(mem) - had;
     return mem;
 }
+void set_free(set_t *set, void *ptr);
 void set_free(set_t *set, void *ptr) {
     if (ptr != NULL) {
         set->allocs--;
@@ -163,12 +166,14 @@ void set_free(set_t *set, void *ptr) {
 }
 #else
 /* Without tracking. */
+void *set_alloc(set_t *set, void *ptr, size_t size);
 void *set_alloc(set_t *set, void *ptr, size_t size) {
     void *mem = realloc(ptr, size);
     if (mem == NULL)
         longjmp(set->env, ENOMEM);
     return mem;
 }
+void set_free(set_t *set, void *ptr);
 void set_free(set_t *set, void *ptr) {
     (void)set;
     free(ptr);
@@ -179,7 +184,8 @@ void set_free(set_t *set, void *ptr) {
 // want links. If fill is true, assure that the first want links are filled in,
 // setting them to set->head if not previously filled in. Otherwise it is
 // assumed that the first want links are about to be filled in. */
-void set_grow(set_t *set, set_node_t *node, int want, int fill) {
+static void set_grow(set_t *set, set_node_t *node, int want, int fill);
+static void set_grow(set_t *set, set_node_t *node, int want, int fill) {
     if (node->size < want) {
         int more = node->size ? node->size : 1;
         while (more < want)
@@ -195,7 +201,8 @@ void set_grow(set_t *set, set_node_t *node, int want, int fill) {
 }
 
 /* --private-- Return a new node. key is left uninitialized. */
-set_node_t *set_node(set_t *set) {
+static set_node_t *set_node(set_t *set);
+static set_node_t *set_node(set_t *set) {
     set_node_t *node = set_alloc(set, NULL, sizeof(set_node_t));
     node->size = 0;
     node->fill = 0;
@@ -204,7 +211,8 @@ set_node_t *set_node(set_t *set) {
 }
 
 /* --private-- Free the list linked from head, along with the keys. */
-void set_sweep(set_t *set) {
+static void set_sweep(set_t *set);
+static void set_sweep(set_t *set) {
     set_node_t *step = set->head->right[0];
     while (step != set->head) {
         set_node_t *next = step->right[0];      /* save link to next node */
@@ -221,6 +229,7 @@ void set_sweep(set_t *set) {
 // errno.h.) The set can still be used if this happens, assuming that it didn't
 // happen during set_start(). Whether set_start() completed or not, set_end()
 // can be used to free the set's memory after a longjmp(). */
+void set_start(set_t *set);
 void set_start(set_t *set) {
 #ifdef SET_TRACK
     set->allocs = 0;
@@ -239,6 +248,7 @@ void set_start(set_t *set) {
 
 /* Return true if *set appears to be in a usable state. If *set has been zeroed
 // out, then set_ok(set) will be false and set_end(set) will be safe. */
+int set_ok(set_t *set);
 int set_ok(set_t *set) {
     return set->head != NULL &&
            set->head->right != NULL &&
@@ -247,6 +257,7 @@ int set_ok(set_t *set) {
 
 /* Empty the set. This frees the memory used for the previous set contents.
 // After set_clear(), *set is ready for use, as if after a set_start(). */
+void set_clear(set_t *set);
 void set_clear(set_t *set) {
     assert(set_ok(set) && "improper use");
 
@@ -265,6 +276,7 @@ void set_clear(set_t *set) {
 // permitted after this is set_start(). Though another set_end() would do no
 // harm. This can be done at any time after a set_start(), or after a longjmp()
 // on any allocation failure, including during a set_start(). */
+void set_end(set_t *set);
 void set_end(set_t *set) {
     if (set->head != NULL) {
         /* Empty the set and free the head node. */
@@ -292,6 +304,7 @@ void set_end(set_t *set) {
 
 /* Look for key. Return 1 if found or 0 if not. This also puts the path to get
 // there in set->path, for use by set_insert(). */
+int set_found(set_t *set, set_key_t key);
 int set_found(set_t *set, set_key_t key) {
     assert(set_ok(set) && "improper use");
 
@@ -312,6 +325,7 @@ int set_found(set_t *set, set_key_t key) {
 }
 
 /* Insert the key key. Return 0 on success, or 1 if key is already in the set. */
+int set_insert(set_t *set, set_key_t key);
 int set_insert(set_t *set, set_key_t key) {
     assert(set_ok(set) && "improper use");
 
