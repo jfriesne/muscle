@@ -249,6 +249,13 @@ static ConstSocketRef CreateMuscleSocket(int socketType, uint32 createType, int 
    return ConstSocketRef();
 }
 
+template<typename T> const sockaddr * UpcastToSockAddr(const T * val) {return reinterpret_cast<const sockaddr *>(val);}
+template<typename T>       sockaddr * UpcastToSockAddr(      T * val) {return reinterpret_cast<      sockaddr *>(val);}
+
+// Note that the (void *) interim cast is included solely to avoid a -Wcast-align warning
+template<typename T>       T * DowncastFromSockAddr(      struct sockaddr * sa) {return reinterpret_cast<      T *>(reinterpret_cast<      void *>(sa));}
+template<typename T> const T * DowncastFromSockAddr(const struct sockaddr * sa) {return reinterpret_cast<const T *>(reinterpret_cast<const void *>(sa));}
+
 ConstSocketRef CreateUDPSocket(int socketFamily)
 {
 #if defined(__EMSCRIPTEN__)
@@ -288,12 +295,12 @@ status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRet
       case SOCKET_FAMILY_IPV4:
       {
          DECLARE_SOCKADDR_IPV4(saSocket, &optFrom, port);
-         if (bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)
+         if (bind(fd, UpcastToSockAddr(&saSocket), sizeof(saSocket)) == 0)
          {
             if (optRetPort)
             {
                muscle_socklen_t len = sizeof(saSocket);
-               if (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0)
+               if (getsockname(fd, UpcastToSockAddr(&saSocket), &len) == 0)
                {
                   *optRetPort = GET_SOCKADDR_PORT_IPV4(saSocket);
                   return B_NO_ERROR;
@@ -310,12 +317,12 @@ status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRet
       case SOCKET_FAMILY_IPV6:
       {
          DECLARE_SOCKADDR_IPV6(saSocket, &optFrom, port);
-         if (bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) == 0)
+         if (bind(fd, UpcastToSockAddr(&saSocket), sizeof(saSocket)) == 0)
          {
             if (optRetPort)
             {
                muscle_socklen_t len = sizeof(saSocket);
-               if (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0)
+               if (getsockname(fd, UpcastToSockAddr(&saSocket), &len) == 0)
                {
                   *optRetPort = GET_SOCKADDR_PORT_IPV6(saSocket);
                   return B_NO_ERROR;
@@ -343,14 +350,14 @@ status_t SetUDPSocketTarget(const ConstSocketRef & sock, const IPAddress & remot
       case SOCKET_FAMILY_IPV4:
       {
          DECLARE_SOCKADDR_IPV4(saAddr, &remoteIP, remotePort);
-         return (connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr)) == 0) ? B_NO_ERROR : B_ERRNO;
+         return (connect(fd, UpcastToSockAddr(&saAddr), sizeof(saAddr)) == 0) ? B_NO_ERROR : B_ERRNO;
       }
 
 #ifndef MUSCLE_AVOID_IPV6
       case SOCKET_FAMILY_IPV6:
       {
          DECLARE_SOCKADDR_IPV6(saAddr, &remoteIP, remotePort);
-         return (connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr)) == 0) ? B_NO_ERROR : B_ERRNO;
+         return (connect(fd, UpcastToSockAddr(&saAddr), sizeof(saAddr)) == 0) ? B_NO_ERROR : B_ERRNO;
       }
 #endif
 
@@ -392,12 +399,12 @@ ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRe
       case SOCKET_FAMILY_IPV4:
       {
          DECLARE_SOCKADDR_IPV4(saSocket, &optInterfaceIP, port);
-         if (bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) != 0) return B_ERRNO;
+         if (bind(fd, UpcastToSockAddr(&saSocket), sizeof(saSocket)) != 0) return B_ERRNO;
          if (listen(fd, maxbacklog) != 0) return B_ERRNO;
          if (optRetPort)
          {
             muscle_socklen_t len = sizeof(saSocket);
-            *optRetPort = (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) ? GET_SOCKADDR_PORT_IPV4(saSocket) : 0;
+            *optRetPort = (getsockname(fd, UpcastToSockAddr(&saSocket), &len) == 0) ? GET_SOCKADDR_PORT_IPV4(saSocket) : 0;
          }
       }
       return ret;
@@ -406,12 +413,12 @@ ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRe
       case SOCKET_FAMILY_IPV6:
       {
          DECLARE_SOCKADDR_IPV6(saSocket, &optInterfaceIP, port);
-         if (bind(fd, (struct sockaddr *) &saSocket, sizeof(saSocket)) != 0) return B_ERRNO;
+         if (bind(fd, UpcastToSockAddr(&saSocket), sizeof(saSocket)) != 0) return B_ERRNO;
          if (listen(fd, maxbacklog) != 0) return B_ERRNO;
          if (optRetPort)
          {
             muscle_socklen_t len = sizeof(saSocket);
-            *optRetPort = (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) ? GET_SOCKADDR_PORT_IPV6(saSocket) : 0;
+            *optRetPort = (getsockname(fd, UpcastToSockAddr(&saSocket), &len) == 0) ? GET_SOCKADDR_PORT_IPV6(saSocket) : 0;
          }
       }
       return ret;
@@ -464,7 +471,7 @@ io_status_t ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 si
          {
             DECLARE_SOCKADDR_IPV4(fromAddr, NULL, 0);
             muscle_socklen_t fromAddrLen = sizeof(fromAddr);
-            r = recvfrom_ignore_eintr(fd, (char *)buffer, size, 0L, (struct sockaddr *) &fromAddr, &fromAddrLen);
+            r = recvfrom_ignore_eintr(fd, (char *)buffer, size, 0L, UpcastToSockAddr(&fromAddr), &fromAddrLen);
             if (r >= 0)
             {
                if (optFromIP) GET_SOCKADDR_IP_IPV4(fromAddr, *optFromIP);
@@ -478,7 +485,7 @@ io_status_t ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 si
          {
             DECLARE_SOCKADDR_IPV6(fromAddr, NULL, 0);
             muscle_socklen_t fromAddrLen = sizeof(fromAddr);
-            r = recvfrom_ignore_eintr(fd, (char *)buffer, size, 0L, (struct sockaddr *) &fromAddr, &fromAddrLen);
+            r = recvfrom_ignore_eintr(fd, (char *)buffer, size, 0L, UpcastToSockAddr(&fromAddr), &fromAddrLen);
             if (r >= 0)
             {
                if (optFromIP) GET_SOCKADDR_IP_IPV6(fromAddr, *optFromIP);
@@ -535,13 +542,13 @@ static io_status_t SendDataUDPIPv4(const ConstSocketRef & sock, const void * buf
       {
          // Fill in the values with our socket's current target-values, as defaults
          muscle_socklen_t length = sizeof(sockaddr_in);
-         if (getpeername(fd, (struct sockaddr *)&toAddr, &length) != 0) return B_ERRNO;
+         if (getpeername(fd, UpcastToSockAddr(&toAddr), &length) != 0) return B_ERRNO;
          if (GET_SOCKADDR_FAMILY_IPV4(toAddr) != AF_INET) return B_BAD_OBJECT;
       }
 
       if (optToIP != invalidIP) SET_SOCKADDR_IP_IPV4(toAddr, optToIP);
       if (optToPort) SET_SOCKADDR_PORT_IPV4(toAddr, optToPort);
-      s = sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, (struct sockaddr *)&toAddr, sizeof(toAddr));
+      s = sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, UpcastToSockAddr(&toAddr), sizeof(toAddr));
    }
    else s = send_ignore_eintr(fd, (const char *)buffer, size, 0L);
 
@@ -581,7 +588,7 @@ static io_status_t SendDataUDPIPv6(const ConstSocketRef & sock, const void * buf
       {
          // Fill in the values with our socket's current target-values, as defaults
          muscle_socklen_t length = sizeof(sockaddr_in);
-         if (getpeername(fd, (struct sockaddr *)&toAddr, &length) != 0) return B_ERRNO;
+         if (getpeername(fd, UpcastToSockAddr(&toAddr), &length) != 0) return B_ERRNO;
          if (GET_SOCKADDR_FAMILY_IPV6(toAddr) != AF_INET6) return B_BAD_OBJECT;
       }
 
@@ -604,7 +611,7 @@ static io_status_t SendDataUDPIPv6(const ConstSocketRef & sock, const void * buf
 #endif
       }
       if (optToPort) SET_SOCKADDR_PORT_IPV6(toAddr, optToPort);
-      s = sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, (struct sockaddr *)&toAddr, sizeof(toAddr));
+      s = sendto_ignore_eintr(fd, (const char *)buffer, size, 0L, UpcastToSockAddr(&toAddr), sizeof(toAddr));
    }
    else s = send_ignore_eintr(fd, (const char *)buffer, size, 0L);
 
@@ -668,7 +675,7 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
          DECLARE_SOCKADDR_IPV4(saSocket, NULL, 0);
          muscle_socklen_t nLen = sizeof(saSocket);
 
-         const int cfd = (int) accept(sfd, (struct sockaddr *)&saSocket, &nLen);  // int cast is to quiet MSVC warning
+         const int cfd = (int) accept(sfd, UpcastToSockAddr(&saSocket), &nLen);  // int cast is to quiet MSVC warning
          if (cfd < 0) return B_ERRNO;  // mostly just to keep Coverity happy
 
          ConstSocketRef ret = GetConstSocketRefFromPool(cfd);
@@ -678,8 +685,8 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
          if (optRetInterfaceIP)
          {
             muscle_socklen_t len = sizeof(saSocket);
-            if (getsockname(cfd, (struct sockaddr *)&saSocket, &len) == 0) GET_SOCKADDR_IP_IPV4(saSocket, *optRetInterfaceIP);
-                                                                      else *optRetInterfaceIP = invalidIP;
+            if (getsockname(cfd, UpcastToSockAddr(&saSocket), &len) == 0) GET_SOCKADDR_IP_IPV4(saSocket, *optRetInterfaceIP);
+                                                                     else *optRetInterfaceIP = invalidIP;
          }
          return ret;
       }
@@ -690,7 +697,7 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
          DECLARE_SOCKADDR_IPV6(saSocket, NULL, 0);
          muscle_socklen_t nLen = sizeof(saSocket);
 
-         const int cfd = (int) accept(sfd, (struct sockaddr *)&saSocket, &nLen);  // int cast to quiet MSVC warning
+         const int cfd = (int) accept(sfd, UpcastToSockAddr(&saSocket), &nLen);  // int cast to quiet MSVC warning
          if (cfd < 0) return B_ERRNO;  // mostly just to keep Coverity happy
 
          ConstSocketRef ret = GetConstSocketRefFromPool(cfd);
@@ -700,8 +707,8 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
          if (optRetInterfaceIP)
          {
             muscle_socklen_t len = sizeof(saSocket);
-            if (getsockname(cfd, (struct sockaddr *)&saSocket, &len) == 0) GET_SOCKADDR_IP_IPV6(saSocket, *optRetInterfaceIP);
-                                                                      else *optRetInterfaceIP = invalidIP;
+            if (getsockname(cfd, UpcastToSockAddr(&saSocket), &len) == 0) GET_SOCKADDR_IP_IPV6(saSocket, *optRetInterfaceIP);
+                                                                     else *optRetInterfaceIP = invalidIP;
          }
          return ret;
       }
@@ -748,7 +755,7 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
             case SOCKET_FAMILY_IPV4:
             {
                DECLARE_SOCKADDR_IPV4(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
-               const int r = connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr));
+               const int r = connect(fd, UpcastToSockAddr(&saAddr), sizeof(saAddr));
                if (r < 0) ret = B_ERRNO;
             }
             break;
@@ -757,7 +764,7 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
             case SOCKET_FAMILY_IPV6:
             {
                DECLARE_SOCKADDR_IPV6(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
-               const int r = connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr));
+               const int r = connect(fd, UpcastToSockAddr(&saAddr), sizeof(saAddr));
                if (r < 0) ret = B_ERRNO;
             }
             break;
@@ -867,7 +874,7 @@ static const char * Inet_NtoP(int af, const void * src, char * dst, muscle_sockl
          memset(&in, 0, sizeof(in));
          in.sin_family = AF_INET;
          memcpy(&in.sin_addr, src, sizeof(struct in_addr));
-         return (getnameinfo((struct sockaddr *)&in, sizeof(struct sockaddr_in), dst, size, NULL, 0, NI_NUMERICHOST) == 0) ? dst : NULL;
+         return (getnameinfo(UpcastToSockAddr(&in), sizeof(struct sockaddr_in), dst, size, NULL, 0, NI_NUMERICHOST) == 0) ? dst : NULL;
       }
 
       case AF_INET6:
@@ -876,7 +883,7 @@ static const char * Inet_NtoP(int af, const void * src, char * dst, muscle_sockl
          memset(&in, 0, sizeof(in));
          in.sin6_family = AF_INET6;
          memcpy(&in.sin6_addr, src, sizeof(struct in_addr6));
-         return (getnameinfo((struct sockaddr *)&in, sizeof(in), dst, size, NULL, 0, NI_NUMERICHOST) == 0) ? dst : NULL;
+         return (getnameinfo(UpcastToSockAddr(&in), sizeof(in), dst, size, NULL, 0, NI_NUMERICHOST) == 0) ? dst : NULL;
       }
 
       default:
@@ -904,7 +911,7 @@ static int Inet_PtoN(int af, const char * src, struct in6_addr * dst)
          case AF_INET:
             if (res->ai_addrlen == sizeof(struct sockaddr_in))
             {
-               struct sockaddr_in * sin = (struct sockaddr_in *) res->ai_addr;
+               struct sockaddr_in * sin = DowncastFromSockAddr<struct sockaddr_in>(res->ai_addr);
                memset(dst, 0, sizeof(*dst));
                // Copy IPv4 bits to the low word of the IPv6 address
                memcpy(((char *)dst)+12, &sin->sin_addr.s_addr, sizeof(uint32));
@@ -918,7 +925,7 @@ static int Inet_PtoN(int af, const char * src, struct in6_addr * dst)
          case AF_INET6:
             if (res->ai_addrlen == sizeof(struct sockaddr_in6))
             {
-               struct sockaddr_in6 * sin6 = (struct sockaddr_in6 *) res->ai_addr;
+               struct sockaddr_in6 * sin6 = DowncastFromSockAddr<struct sockaddr_in6>(res->ai_addr);
                memcpy(dst, &sin6->sin6_addr, sizeof(*dst));
                ok = true;
             }
@@ -1052,15 +1059,15 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
             case AF_INET:
                if (ret.IsValid() == false)
                {
-                  ret.SetIPv4AddressFromUint32(ntohl(((struct sockaddr_in *) next->ai_addr)->sin_addr.s_addr)); // read IPv4 address into low bits of IPv6 address structure
-                  ret.SetLowBits(ret.GetLowBits() | ((uint64)0xFFFF)<<32);                                      // and make it IPv6-mapped (why doesn't AI_V4MAPPED do this?)
+                  ret.SetIPv4AddressFromUint32(ntohl(DowncastFromSockAddr<const struct sockaddr_in>(next->ai_addr)->sin_addr.s_addr)); // read IPv4 address into low bits of IPv6 address structure
+                  ret.SetLowBits(ret.GetLowBits() | ((uint64)0xFFFF)<<32);                                                             // and make it IPv6-mapped (why doesn't AI_V4MAPPED do this?)
                }
             break;
 
             case AF_INET6:
                if (ret6.IsValid() == false)
                {
-                  struct sockaddr_in6 * sin6 = (struct sockaddr_in6 *) next->ai_addr;
+                  const struct sockaddr_in6 * sin6 = DowncastFromSockAddr<const struct sockaddr_in6>(next->ai_addr);
                   const uint32 tmp = sin6->sin6_scope_id;  // MacOS/X uses __uint32_t, which isn't quite the same somehow
                   ret6.ReadFromNetworkArray(sin6->sin6_addr.s6_addr, tmp ? &tmp : NULL);
                }
@@ -1147,7 +1154,7 @@ ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
       case SOCKET_FAMILY_IPV4:
       {
          DECLARE_SOCKADDR_IPV4(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
-         result = connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr));
+         result = connect(fd, UpcastToSockAddr(&saAddr), sizeof(saAddr));
       }
       break;
 
@@ -1155,7 +1162,7 @@ ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
       case SOCKET_FAMILY_IPV6:
       {
          DECLARE_SOCKADDR_IPV6(saAddr, &hostIAP.GetIPAddress(), hostIAP.GetPort());
-         result = connect(fd, (struct sockaddr *) &saAddr, sizeof(saAddr));
+         result = connect(fd, UpcastToSockAddr(&saAddr), sizeof(saAddr));
       }
       break;
 #endif
@@ -1189,7 +1196,7 @@ IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock)
       {
          struct sockaddr_in saSocket;
          muscle_socklen_t len = sizeof(saSocket);
-         if (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) return IPAddressAndPort(saSocket);
+         if (getsockname(fd, UpcastToSockAddr(&saSocket), &len) == 0) return IPAddressAndPort(saSocket);
       }
       break;
 
@@ -1198,7 +1205,7 @@ IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock)
       {
          struct sockaddr_in6 saSocket;
          muscle_socklen_t len = sizeof(saSocket);
-         if (getsockname(fd, (struct sockaddr *)&saSocket, &len) == 0) return IPAddressAndPort(saSocket);
+         if (getsockname(fd, UpcastToSockAddr(&saSocket), &len) == 0) return IPAddressAndPort(saSocket);
       }
       break;
 #endif
@@ -1225,7 +1232,7 @@ IPAddressAndPort GetPeerAddress(const ConstSocketRef & sock, bool expandLocalhos
          {
             DECLARE_SOCKADDR_IPV4(saTempAdd, NULL, 0);
             muscle_socklen_t length = sizeof(saTempAdd);
-            if ((getpeername(fd, (struct sockaddr *)&saTempAdd, &length) == 0)&&(GET_SOCKADDR_FAMILY_IPV4(saTempAdd) == AF_INET))
+            if ((getpeername(fd, UpcastToSockAddr(&saTempAdd), &length) == 0)&&(GET_SOCKADDR_FAMILY_IPV4(saTempAdd) == AF_INET))
             {
                GET_SOCKADDR_IP_IPV4(saTempAdd, ipAddress);
                port = GET_SOCKADDR_PORT_IPV4(saTempAdd);
@@ -1239,7 +1246,7 @@ IPAddressAndPort GetPeerAddress(const ConstSocketRef & sock, bool expandLocalhos
          {
             DECLARE_SOCKADDR_IPV6(saTempAdd, NULL, 0);
             muscle_socklen_t length = sizeof(saTempAdd);
-            if ((getpeername(fd, (struct sockaddr *)&saTempAdd, &length) == 0)&&(GET_SOCKADDR_FAMILY_IPV6(saTempAdd) == AF_INET6))
+            if ((getpeername(fd, UpcastToSockAddr(&saTempAdd), &length) == 0)&&(GET_SOCKADDR_FAMILY_IPV6(saTempAdd) == AF_INET6))
             {
                GET_SOCKADDR_IP_IPV6(saTempAdd, ipAddress);
                port = GET_SOCKADDR_PORT_IPV6(saTempAdd);
@@ -1429,7 +1436,7 @@ status_t FinalizeAsyncConnect(const ConstSocketRef & sock)
    struct sockaddr_in6 junk;  // gotta be in6 to avoid buffer-too-short problems
    muscle_socklen_t length = sizeof(junk);
    memset(&junk, 0, sizeof(junk));
-   return (getpeername(fd, (struct sockaddr *)&junk, &length) == 0) ? B_NO_ERROR : B_ERRNO;
+   return (getpeername(fd, UpcastToSockAddr(&junk), &length) == 0) ? B_NO_ERROR : B_ERRNO;
 #else
    // For most platforms, the code below is all we need
    char junk = 0;
@@ -1577,14 +1584,14 @@ static IPAddress SockAddrToIPAddr(const struct sockaddr * a)
       {
          case AF_INET:
          {
-            const struct sockaddr_in & a4 = *(reinterpret_cast<const struct sockaddr_in *>(a));
+            const struct sockaddr_in & a4 = *(DowncastFromSockAddr<const struct sockaddr_in>(a));
             return IPAddress(a4.sin_addr);
          }
 
 #ifndef MUSCLE_AVOID_IPV6
          case AF_INET6:
          {
-            const struct sockaddr_in6 & a6 = *(reinterpret_cast<const struct sockaddr_in6 *>(a));
+            const struct sockaddr_in6 & a6 = *(DowncastFromSockAddr<const struct sockaddr_in6>(a));
             return IPAddress(a6.sin6_addr, a6.sin6_scope_id);
          }
 #endif
@@ -1893,7 +1900,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 #if defined(__FreeBSD__) || defined(BSD) || defined(__APPLE__)
                if (p->ifa_addr->sa_family == AF_LINK)
                {
-                  const unsigned char * ptr = (const unsigned char *)LLADDR((struct sockaddr_dl *)p->ifa_addr);
+                  const unsigned char * ptr = (const unsigned char *) LLADDR(DowncastFromSockAddr<struct sockaddr_dl>(p->ifa_addr));
                   uint64 mac = 0; for (uint32 i=0; i<6; i++) mac |= (((uint64)ptr[i])<<(8*(5-i)));
                   (void) inameToMAC.Put(iname, mac);
 
@@ -2099,11 +2106,11 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                      const uint32 numLocalAddrs = (bytesReturned/sizeof(INTERFACE_INFO));
                      for (uint32 i=0; i<numLocalAddrs; i++)
                      {
-                        const IPAddress nextIP = SockAddrToIPAddr((const sockaddr *) &localAddrs[i].iiAddress);
+                        const IPAddress nextIP = SockAddrToIPAddr(UpcastToSockAddr(&localAddrs[i].iiAddress));
                         if (nextIP == unicastIP)
                         {
-                           broadIP = SockAddrToIPAddr((const sockaddr *) &localAddrs[i].iiBroadcastAddress);
-                           netmask = SockAddrToIPAddr((const sockaddr *) &localAddrs[i].iiNetmask);
+                           broadIP = SockAddrToIPAddr(UpcastToSockAddr(&localAddrs[i].iiBroadcastAddress));
+                           netmask = SockAddrToIPAddr(UpcastToSockAddr(&localAddrs[i].iiNetmask));
 
                            // Berkeley FogBugz #9902:  If GetAdaptersAddresses() wants to be dumb
                            // and just return 255.255.255.255 as the broadcast address, then we'll

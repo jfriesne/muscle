@@ -2152,7 +2152,7 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
       // Mix
       while(numBytes >= 4)
       {
-         d = *(uint32 *)data;
+         d = muscleCopyIn<uint32>(data);  // was: *(uint32 *)data;
          t = (t >> sr) | (d << sl);
 
          uint32 k = t;
@@ -2216,7 +2216,7 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
    {
       while(numBytes >= 4)
       {
-         uint32 k = *(uint32 *)data;
+         uint32 k = muscleCopyIn<uint32>(data);  // was: *(uint32 *)data;
          MURMUR2_MIX(h,k,m);
          data     += 4;
          numBytes -= 4;
