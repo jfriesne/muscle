@@ -106,7 +106,12 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
             if (_file != INVALID_HANDLE_VALUE)
             {
                _isCreatedLocally = (GetLastError() != ERROR_ALREADY_EXISTS);
-               if (createSize == 0) createSize = GetFileSize(_file, NULL);
+               if (createSize == 0)
+               {
+                  createSize = GetFileSize(_file, NULL);
+                  if (createSize == INVALID_FILE_SIZE) ret = B_ERROR("GetFileSize() failed");
+               }
+
                _areaSize = createSize;  // assume the file will be resized automagically for us
                if (_areaSize > 0)
                {

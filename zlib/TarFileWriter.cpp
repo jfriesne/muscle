@@ -123,7 +123,7 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
          _currentSeekPosition = _currentHeaderOffset;
 
          MRETURN_ON_ERROR(_seekableWriterIO()->WriteFully(_currentHeaderBytes, sizeof(_currentHeaderBytes)));
-         _currentSeekPosition += _currentHeaderOffset;
+         _currentSeekPosition += sizeof(_currentHeaderBytes);
 
          MRETURN_ON_ERROR(_seekableWriterIO()->Seek(0, SeekableDataIO::IO_SEEK_END));
          _currentSeekPosition = _seekableWriterIO()->GetLength();

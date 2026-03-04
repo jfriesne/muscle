@@ -146,18 +146,22 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
          }
          else if (IsOkayForWriterThreadToExecuteNow(tid))
          {
-            ts = _waitingWriterThreads.GetFirstValue();  // necessary since our old (ts) might have been invalidated while (_stateMutex) was unlocked
+            ts = _waitingWriterThreads.Get(tid);  // necessary since our old (ts) might have been invalidated while (_stateMutex) was unlocked (GetFirstValue() also works but it makes Claude nervous)
             MASSERT(ts != NULL, "ReaderWriterMutex::LockReadWrite():  My ThreadState has disappeared while I was waiting!");
 
             // Register our thread into the executing-threads table
-            ThreadState * exTS = GetOrAllocateThreadState(_executingThreads, tid, false);
-            if (exTS)
+            if (ts)
             {
-               exTS->_readOnlyRecurseCount  = ts->_readOnlyRecurseCount;
-               exTS->_readWriteRecurseCount = ts->_readWriteRecurseCount+1;
-               _totalReadWriteRecurseCount++;
+               ThreadState * exTS = GetOrAllocateThreadState(_executingThreads, tid, false);
+               if (exTS)
+               {
+                  exTS->_readOnlyRecurseCount  = ts->_readOnlyRecurseCount;
+                  exTS->_readWriteRecurseCount = ts->_readWriteRecurseCount+1;
+                  _totalReadWriteRecurseCount++;
+               }
+               else ret = B_OUT_OF_MEMORY;
             }
-            else ret = B_OUT_OF_MEMORY;
+            else ret = B_LOGIC_ERROR;  // should never happen, but we're paranoid
 
             (void) _waitingWriterThreads.RemoveFirst();
             return ret;
