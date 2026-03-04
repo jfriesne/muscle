@@ -259,6 +259,7 @@ template<typename T> const T * DowncastFromSockAddr(const struct sockaddr * sa) 
 ConstSocketRef CreateUDPSocket(int socketFamily)
 {
 #if defined(__EMSCRIPTEN__)
+   (void) socketFamily;
    return B_UNIMPLEMENTED;  // No UDP in Emscripten-land, sorry!
 #else
    ConstSocketRef ret = CreateMuscleSocket(SOCK_DGRAM, GlobalSocketCallback::SOCKET_CALLBACK_CREATE_UDP, socketFamily);
