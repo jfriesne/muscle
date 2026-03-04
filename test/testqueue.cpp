@@ -138,7 +138,7 @@ static status_t UnitTestQueue(bool isFromScript)
    MPRINT_ON_ERROR("AddHeadMulti", q.AddHeadMulti(vars, ARRAYITEMS(vars)));
    Print(q);
 
-   printf("REPLACEITEMAT TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
+   printf("ReplaceItemAt TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    {
       for (int i=0; i<testSize; i++)
       {
@@ -147,7 +147,7 @@ static status_t UnitTestQueue(bool isFromScript)
       }
    }
 
-   printf("INSERTITEMAT TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
+   printf("InsertItemAt TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    {
       for (int i=0; i<testSize; i++)
       {
@@ -156,12 +156,58 @@ static status_t UnitTestQueue(bool isFromScript)
       }
    }
 
-   printf("REMOVEITEMAT TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
+   printf("RemoveItemAt TEST hash=" UINT32_FORMAT_SPEC "\n", q.HashCode());
    {
       for (int i=0; i<testSize; i++)
       {
          TEST(q.RemoveItemAt(i));
          Print(q);
+      }
+   }
+
+   printf("RemoveHeadMulti TEST\n");
+   {
+      Queue<int> q = {1,2,3,4,5,6,7,8};
+      TEST(q.AddHead(0));  // just so we can test the wraparound-head case
+
+      const uint32 origNumItems    = q.GetNumItems();
+      const uint32 numToRemove = 4;
+      const uint32 numRemoved  = q.RemoveHeadMulti(numToRemove);  // should remove 0, 1, 2, and 3
+      if (numRemoved != numToRemove) {LogTime(MUSCLE_LOG_CRITICALERROR, "RemoveHeadMulti() only removed " UINT32_FORMAT_SPEC " items instead of " UINT32_FORMAT_SPEC "!\n", numRemoved, numToRemove); ExitWithoutCleanup(10);}
+      if (q.GetNumItems() != (origNumItems-numToRemove)) {LogTime(MUSCLE_LOG_CRITICALERROR, "After RemoveHeadMulti(), queue size is " UINT32_FORMAT_SPEC " instead of " UINT32_FORMAT_SPEC "!\n", q.GetNumItems(), origNumItems-numToRemove); ExitWithoutCleanup(10);}
+
+      for (uint32 i=0; i<q.GetNumItems(); i++)
+      {
+         if (q[i] != (int)(i+numToRemove))
+         {
+            LogTime(MUSCLE_LOG_CRITICALERROR, "After RemoveHeadMulti(" UINT32_FORMAT_SPEC "), item " UINT32_FORMAT_SPEC " is %i instead of %i!\n", numToRemove, i, q[i], i+(int)numToRemove);
+            ExitWithoutCleanup(10);
+         }
+         printf("  After RemoveHeadMulti(), q[" UINT32_FORMAT_SPEC "]=%i\n", i, q[i]);
+      }
+   }
+
+   printf("RemoveTailMulti TEST\n");
+   {
+      Queue<int> q = {1,2,3};
+      TEST(q.AddHead(0));   // just so we can test the wraparound-head case
+      TEST(q.AddHead(-1));  // just so we can test the wraparound-head case
+      TEST(q.AddHead(-2));  // just so we can test the wraparound-head case
+
+      const uint32 origNumItems = q.GetNumItems();
+      const uint32 numToRemove  = 4;
+      const uint32 numRemoved   = q.RemoveTailMulti(numToRemove);  // should remove 3, 2, 1, and 0
+      if (numRemoved != numToRemove) {LogTime(MUSCLE_LOG_CRITICALERROR, "RemoveTailMulti() only removed " UINT32_FORMAT_SPEC " items instead of " UINT32_FORMAT_SPEC "!\n", numRemoved, numToRemove); ExitWithoutCleanup(10);}
+      if (q.GetNumItems() != (origNumItems-numToRemove)) {LogTime(MUSCLE_LOG_CRITICALERROR, "After RemoveTailMulti(), queue size is " UINT32_FORMAT_SPEC " instead of " UINT32_FORMAT_SPEC "!\n", q.GetNumItems(), origNumItems-numToRemove); ExitWithoutCleanup(10);}
+
+      for (uint32 i=0; i<q.GetNumItems(); i++)
+      {
+         if (q[i] != (int)(i+q.HeadWithDefault()))
+         {
+            LogTime(MUSCLE_LOG_CRITICALERROR, "After RemoveTailMulti(" UINT32_FORMAT_SPEC "), item " UINT32_FORMAT_SPEC " is %i instead of %i!\n", numToRemove, i, q[i], i+(int)numToRemove);
+            ExitWithoutCleanup(10);
+         }
+         printf("  After RemoveHeadMulti(), q[" UINT32_FORMAT_SPEC "]=%i\n", i, q[i]);
       }
    }
 

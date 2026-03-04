@@ -6,6 +6,8 @@ key:  - new feature
       o other
 
    - Added various compiler-warning flags to CMakeLists.txt.
+   - Updated Queue::RmoveHeadMulti() and Queue::RemoveTailMulti()
+     to be O(1) in the case where IsPerItemClearNecessary() return false.
    * Fixed various compiler-warnings detected by the new build flags.
 
 9.80 - Released 2/27/2026

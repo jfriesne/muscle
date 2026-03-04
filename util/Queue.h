@@ -275,11 +275,11 @@ public:
      */
    ItemType RemoveHeadWithDefault();
 
-   /** Removes up to (numItems) items from the head of the Queue.
-     * @param numItems The desired number of items to remove
-     * @returns the actual number of items removed (may be less than (numItems) if the Queue was too short)
+   /** Removes up to (numItemsToRemove) items from the head of the Queue.
+     * @param numItemsToRemove The desired number of items to remove
+     * @returns the actual number of items removed (may be less than (numItemsToRemove) if the Queue was too short)
      */
-   uint32 RemoveHeadMulti(uint32 numItems);
+   uint32 RemoveHeadMulti(uint32 numItemsToRemove);
 
    /** Removes the item at the head of the Queue and places it into (returnItem).
     *  @param returnItem On success, the removed item is copied into this object.
@@ -303,11 +303,11 @@ public:
      */
    ItemType RemoveTailWithDefault();
 
-   /** Removes up to (numItems) items from the tail of the Queue.
-     * @param numItems The desired number of items to remove
-     * @returns the actual number of items removed (may be less than (numItems) if the Queue was too short)
+   /** Removes up to (numItemsToRemove) items from the tail of the Queue.
+     * @param numItemsToRemove The desired number of items to remove
+     * @returns the actual number of items removed (may be less than (numItemsToRemove) if the Queue was too short)
      */
-   uint32 RemoveTailMulti(uint32 numItems);
+   uint32 RemoveTailMulti(uint32 numItemsToRemove);
 
    /** Removes the item at the (index)'th position in the Queue.
     *  @param index Which item to remove--can range from zero
@@ -905,7 +905,7 @@ public:
 
 private:
    /** Returns true iff we need to set our ItemType objects to their default-constructed state when we're done using them */
-   MUSCLE_NODISCARD inline bool IsPerItemClearNecessary() const
+   MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR bool IsPerItemClearNecessary() const
    {
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
       return !std::is_trivial<ItemType>::value;
@@ -1282,22 +1282,53 @@ RemoveHead(ItemType & returnItem)
 
 template <class ItemType>
 uint32
-Queue<ItemType>::RemoveHeadMulti(uint32 numItems)
+Queue<ItemType>::RemoveHeadMulti(uint32 numItemsToRemove)
 {
-   numItems = muscleMin(numItems, _itemCount);
-   if (numItems == _itemCount) Clear();
-                          else for (uint32 i=0; i<numItems; i++) (void) RemoveHead();
-   return numItems;
+   numItemsToRemove = muscleMin(numItemsToRemove, _itemCount);
+   if (numItemsToRemove > 0)
+   {
+           if (numItemsToRemove == _itemCount) Clear();
+      else if (IsPerItemClearNecessary())
+      {
+         // I'm doing it this way solely because when our ItemType has a non-trivial
+         // destructor, its destructor-method might actually look at the state of this Queue
+         // so I want to make sure that if that happens, it sees this Queue in a coherent state.
+         for (uint32 i=0; i<numItemsToRemove; i++) (void) RemoveHead();
+      }
+      else
+      {
+         _headIndex = (_headIndex + numItemsToRemove) % _queueSize;
+         _itemCount -= numItemsToRemove;
+      }
+   }
+
+   return numItemsToRemove;
 }
 
 template <class ItemType>
 uint32
-Queue<ItemType>::RemoveTailMulti(uint32 numItems)
+Queue<ItemType>::RemoveTailMulti(uint32 numItemsToRemove)
 {
-   numItems = muscleMin(numItems, _itemCount);
-   if (numItems == _itemCount) Clear();
-                          else for (uint32 i=0; i<numItems; i++) (void) RemoveTail();
-   return numItems;
+   numItemsToRemove = muscleMin(numItemsToRemove, _itemCount);
+   if (numItemsToRemove > 0)
+   {
+           if (numItemsToRemove == _itemCount) Clear();
+      else if (IsPerItemClearNecessary())
+      {
+         // I'm doing it this way solely because when our ItemType has a non-trivial
+         // destructor, its destructor-method might actually look at the state of this Queue
+         // so I want to make sure that if that happens, it sees this Queue in a coherent state.
+         for (uint32 i=0; i<numItemsToRemove; i++) (void) RemoveTail();
+      }
+      else
+      {
+         if (_tailIndex < numItemsToRemove) _tailIndex += _queueSize;  // avoid underflow
+         _tailIndex -= numItemsToRemove;
+         _itemCount -= numItemsToRemove;
+      }
+   }
+
+   return numItemsToRemove;
 }
 
 template <class ItemType>
