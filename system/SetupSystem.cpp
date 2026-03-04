@@ -2727,7 +2727,7 @@ status_t GetEnvironmentVariableValue(const String & envVarName, String & retValu
    else if (numChars >= sizeof(s))  // our stack buffer was too small?
    {
       const uint32 heapBufSize = numChars+1;
-      char * heapBuf = newnothrow char[heapBufSize];
+      char * heapBuf = newnothrow_array(char, heapBufSize);
       if (heapBuf == NULL) MRETURN_OUT_OF_MEMORY;
 
       const DWORD newNumChars = GetEnvironmentVariableA(envVarName(), heapBuf, heapBufSize);
