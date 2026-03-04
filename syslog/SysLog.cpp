@@ -29,7 +29,7 @@ static inline struct tm * muscle_localtime_r(time_t * clock, struct tm * result)
 {
    // Note that in Win32, (ret) points to thread-local storage, so this really
    // is thread-safe despite the fact that it looks like it isn't!
-#if __STDC_WANT_SECURE_LIB__
+#if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
    (void) localtime_s(result, clock);
    return result;
 #else
@@ -43,7 +43,7 @@ static inline struct tm * muscle_gmtime_r(time_t * clock, struct tm * result)
 {
    // Note that in Win32, (ret) points to thread-local storage, so this really
    // is thread-safe despite the fact that it looks like it isn't!
-#if __STDC_WANT_SECURE_LIB__
+#if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
    (void) gmtime_s(result, clock);
    return result;
 #else
@@ -367,7 +367,7 @@ void LogLineCallback :: LogAux(const LogCallbackArgs & a, va_list & argList)
 
    // Generate the new text
    const size_t sizeOfBuffer = (sizeof(_buf)-1)-(_writeTo-_buf);  // the -1 is for the guaranteed NUL terminator
-#if defined(__STDC_WANT_SECURE_LIB__)
+#if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
    const int bytesAttempted = _vsnprintf_s(_writeTo, sizeOfBuffer, _TRUNCATE, a.GetText(), argList);
 #elif defined(WIN32)
    const int bytesAttempted =   _vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            argList);

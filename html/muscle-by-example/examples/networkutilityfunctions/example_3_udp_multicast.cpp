@@ -97,7 +97,7 @@ int main(int /*argc*/, char ** /*argv*/)
          {
             const IPAddress destAddr =  multicastGroup.GetIPAddress().WithInterfaceIndex(iter.GetValue());
             const io_status_t numBytesSent = SendDataUDP(iter.GetKey(), pingData(), pingData.FlattenedSize(), true, destAddr, multicastGroup.GetPort());
-            if (numBytesSent.GetByteCount() == (int32)pingData.FlattenedSize())
+            if (numBytesSent.GetByteCount() == (int32) pingData.FlattenedSize())
             {
                LogTime(MUSCLE_LOG_INFO, "Sent %i-byte multicast packet to [%s] on socket #%i: [%s]\n", numBytesSent.GetByteCount(), destAddr.ToString()(), iter.GetKey().GetFileDescriptor(), pingData());
             }

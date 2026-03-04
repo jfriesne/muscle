@@ -122,11 +122,11 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
          if (_stdinThreadStatus == STDIN_THREAD_STATUS_UNINITIALIZED)
          {
             DWORD junkThreadID;
-#if __STDC_WANT_SECURE_LIB__
+#if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
             FILE * junkFD = NULL;
 #endif
             _stdinThreadStatus = ((DuplicateHandle(GetCurrentProcess(), GetStdHandle(STD_INPUT_HANDLE), GetCurrentProcess(), &_stdinHandle, 0, false, DUPLICATE_SAME_ACCESS))&&
-#if __STDC_WANT_SECURE_LIB__
+#if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
                (freopen_s(&junkFD, "nul", "r", stdin) == 0)
 #else
                (freopen("nul", "r", stdin) != NULL)

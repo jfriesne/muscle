@@ -253,7 +253,7 @@ public:
    /** @copydoc DoxyTemplate::Unflatten(DataUnflattener & unflat) */
    status_t Unflatten(DataUnflattener & unflat)
    {
-      const uint32 numBitsToRead  = (uint32) unflat.ReadInt32();
+      const uint32 numBitsToRead  = unflat.ReadInt32();
       const uint32 numWordsToRead = muscleMin((uint32)NUM_WORDS, (numBitsToRead+NUM_BITS_PER_WORD-1)/NUM_BITS_PER_WORD);
       for (uint32 i=0; i<numWordsToRead; i++) _words[i] = unflat.ReadInt32();
 
@@ -500,7 +500,7 @@ public:
          for (uint32 i=0; i<NumBits; i++)
          {
             const char * bn = optLabelArray[i];
-            if ((bn)&&(Strcasecmp(bitName, bn) == 0)) return (int32) i;
+            if ((bn)&&(Strcasecmp(bitName, bn) == 0)) return i;
          }
       }
       return -1;
@@ -569,8 +569,8 @@ public:
          {
             if (IsBitSet(i))
             {
-               if (runStart < 0) runStart = (int32) i;
-               runEnd = (int32) i;
+               if (runStart < 0) runStart = i;
+               runEnd = i;
             }
             else FlushStringClause(ret, runStart, runEnd);
          }
