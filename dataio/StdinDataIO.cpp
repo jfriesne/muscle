@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
+/* This file is Copyright 2000-2026 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #if defined(_WIN32) || defined(CYGWIN)  // yes, it must be _WIN32 because WIN32 might not be defined at this point
 # define USE_WIN32_STDINDATAIO_IMPLEMENTATION

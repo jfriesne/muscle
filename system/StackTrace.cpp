@@ -1,4 +1,4 @@
-/* This file is Copyright 2000-2022 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
+/* This file is Copyright 2000-2026 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "support/NotCopyable.h"
 #include "system/StackTrace.h"  // this include must be here, so that MUSCLE_USE_MSVC_STACKWALKER will be defined below if appropriate
