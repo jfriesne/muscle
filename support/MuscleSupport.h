@@ -1748,19 +1748,19 @@ typedef pid_t muscle_pid_t; /**< type to use for representing a process ID on th
 # include "syslog/SysLog.h"  /* for LogTime() */
 
 /** Sanity-check: calls MCRASH() if the passed-in pointer isn't correctly aligned such that it can legally point to a value of the template-type */
-template<typename T> void CheckPointerAlignment(void * ptr) {if (reinterpret_cast<uintptr>(ptr) % alignof(T) != 0) MCRASH("CheckPointerAlignment:  Pointer isn't correctly aligned!")}
+template<typename T> void CheckPointerAlignment(const void * ptr) {if (reinterpret_cast<uintptr>(ptr) % alignof(T) != 0) MCRASH("CheckPointerAlignment:  Pointer isn't correctly aligned!")}
 
 /** Convenience method: recasts the given pointer to a pointer of the specified type.
   * @param ptr the pointer that we want to recast
   * @note this call checks (ptrs)'s alignment and will crash the process if (ptr) isn't correctly aligned for the specified pointer-type.
   */
-template<typename T> MUSCLE_NODISCARD T * RecastPointerToType(void * ptr) {CheckPointerAlignment<T>(ptr); return (T *) (void *) ptr;}
+template<typename T> MUSCLE_NODISCARD T * RecastPointerToType(void * ptr) {CheckPointerAlignment<T>(ptr); return reinterpret_cast<T *>(ptr);}
 
 /** Convenience method: recasts the given const-pointer to a const-pointer of the specified type.
   * @param ptr the const-pointer that we want to recast
   * @note this call checks (ptrs)'s alignment and will crash the process if (ptr) isn't correctly aligned for the specified pointer-type.
   */
-template<typename T> MUSCLE_NODISCARD const T * RecastPointerToType(const void * ptr) {CheckPointerAlignment<T>(ptr); return (const T *) (const void *) ptr;}
+template<typename T> MUSCLE_NODISCARD const T * RecastPointerToType(const void * ptr) {CheckPointerAlignment<T>(ptr); return reinterpret_cast<const T *>(ptr);}
 
 #else  /* __cplusplus */
 # define MUSCLE_NO_ARGUMENTS void  /** C wants Func(void) syntax */
