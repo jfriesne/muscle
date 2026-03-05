@@ -188,7 +188,7 @@ public:
    status_t SetFromArchive(const Message & archive);
 };
 
-};  // end namespace muscle
+}  // end namespace muscle
 
 #endif
 

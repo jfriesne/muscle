@@ -334,7 +334,8 @@ inline void Convert64ToTimeVal(uint64 val, struct timeval & retStruct)
       const int64 bigUnitsTruncated  = muscle::smallUnits##To##bigUnits(smallUnitsArg);                     \
       const int64 smallUnitsRestored = muscle::bigUnits##To##smallUnits(bigUnitsTruncated);                 \
       return bigUnitsTruncated+((smallUnitsArg>smallUnitsRestored)?1:0); /* round up on non-zero modulo */  \
-   }
+   }                                                                                                        \
+   MUSCLE_ABSORB_SEMICOLON
 
 MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Nanos,   Micros);  // defines int64 NanosToMicrosRoundUp(int64 nanos)
 MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(Nanos,   Millis);  // defines int64 NanosToMillisRoundUp(int64 nanos)

@@ -43,6 +43,6 @@ private:
    ConstSocketRef _otherThreadsSock;    // this socket is written to by other threads
 };
 
-};  // end muscle namespace
+}  // end muscle namespace
 
 #endif

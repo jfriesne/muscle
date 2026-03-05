@@ -193,7 +193,7 @@ public:
          if (ret) return ret;
       }
       return NULL;
-   };
+   }
 
    /** Convenience method:  Populates the specified table with sessions of the specified session type.
      * @tparam SessionType the type of session object you want to find and place into the (results) Queue.

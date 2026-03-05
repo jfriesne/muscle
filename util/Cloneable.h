@@ -58,7 +58,8 @@ protected:
    MUSCLE_NODISCARD virtual Cloneable * CloneImp() const \
    {                                                     \
       return new class_name(*this);                      \
-   }
+   }                                                     \
+   MUSCLE_ABSORB_SEMICOLON
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
 

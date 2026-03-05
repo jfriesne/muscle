@@ -104,4 +104,4 @@ private:
 };
 DECLARE_REFTYPES(WebSocketMessageIOGateway);
 
-};  // end namespace muscle
+} // end namespace muscle

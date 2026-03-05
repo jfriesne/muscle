@@ -38,6 +38,6 @@ private:
    enum {CALLBACKMECHANISM_EVENT_CODE = QEvent::User+55555};
 };
 
-};  // end muscle namespace
+}  // end muscle namespace
 
 #endif

@@ -131,4 +131,4 @@ if (callbackTime > 0)
 }
 #endif
 
-};  // end namespace muscle
+}  // end namespace muscle

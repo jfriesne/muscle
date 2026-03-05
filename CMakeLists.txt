@@ -275,6 +275,7 @@ elseif ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQ
         -Wconstant-conversion
         -Wno-sign-conversion
         -Wbool-conversion
+        -Wextra-semi
         -Wunreachable-code
         -Wcast-align
         -Wshift-sign-overflow
@@ -283,14 +284,12 @@ elseif ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQ
         -Wignored-qualifiers
         -Wno-switch-enum
         -Wpedantic
-        -Wdeprecated
-        -Wdeprecated-declarations
-        -Wmissing-field-initializers
-        -Wno-c++98-compat-extra-semi
         -Wno-format-pedantic
-        -Wno-extra-semi
-        -Wno-deprecated-copy-with-user-provided-dtor
+        -Wdeprecated
+        -Wno-float-equal
+        -Wmissing-field-initializers
         $<$<OR:$<COMPILE_LANGUAGE:CXX>,$<COMPILE_LANGUAGE:OBJCXX>>:
+        -Wno-zero-as-null-pointer-constant
         -Wunused-private-field
         -Woverloaded-virtual
         -Wreorder
@@ -304,6 +303,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         -Wundef
         -Wextra
         -Wpedantic
+        -Wno-format-pedantic
         -Wstrict-aliasing
         -Wuninitialized
         -Wunused-parameter
@@ -318,10 +318,12 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         -Wredundant-decls
         -Wstrict-overflow
         -Wshadow
+        -Wno-float-equal
         -Wmissing-field-initializers
         $<$<COMPILE_LANGUAGE:CXX>:
         -Woverloaded-virtual
-        -Wreorder>)
+        -Wreorder
+        -Wno-zero-as-null-pointer-constant>)
 endif ()
 
 target_link_libraries(muscle recommended_warning_flags)

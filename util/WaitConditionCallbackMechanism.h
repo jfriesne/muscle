@@ -50,6 +50,6 @@ private:
    WaitCondition & _wcRef;
 };
 
-};  // end muscle namespace
+}  // end muscle namespace
 
 #endif

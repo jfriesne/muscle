@@ -239,7 +239,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
    }
 
    return found ? B_NO_ERROR : B_DATA_NOT_FOUND;
-};
+}
 
 status_t GetNumberOfProcessors(uint32 & retNumProcessors)
 {

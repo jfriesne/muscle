@@ -182,6 +182,6 @@ private:
    NativeHashState _nativeHashState;
 };
 
-};  // end namespace muscle
+}  // end namespace muscle
 
 #endif

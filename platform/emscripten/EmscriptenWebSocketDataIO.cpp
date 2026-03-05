@@ -155,4 +155,4 @@ void EmscriptenWebSocketDataIO :: EmscriptenWebSocketConnectionClosed(Emscripten
 }
 #endif
 
-};  // end namespace muscle
+}  // end namespace muscle

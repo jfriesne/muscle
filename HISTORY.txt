@@ -9,6 +9,8 @@ key:  - new feature
    - Updated Queue::RmoveHeadMulti() and Queue::RemoveTailMulti()
      to be O(1) in the case where IsPerItemClearNecessary() return false.
    * Fixed various compiler-warnings detected by the new build flags.
+   - Added a MUSCLE_ABSORB_SEMICOLON macro to MuscleSupport.h; it is
+     there just to help my other macros not cause -Wextra-semi warnings.
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

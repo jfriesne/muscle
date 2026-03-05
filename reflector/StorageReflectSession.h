@@ -74,7 +74,8 @@ public:
 /** Macro for declaring a MUSCLE DataNode-tree traversal callback within a class.  Declares both the callback method, and a static callback-method that is used to convert the callback's This argument into a genuine C++-"this"-based method call. */
 #define DECLARE_MUSCLE_TRAVERSAL_CALLBACK(sessionClass, funcName) \
  int funcName(DataNode & node, void * userData); \
- static int funcName##Func(StorageReflectSession * This, DataNode & node, void * userData) {return (static_cast<sessionClass *>(This))->funcName(node, userData);}
+ static int funcName##Func(StorageReflectSession * This, DataNode & node, void * userData) {return (static_cast<sessionClass *>(This))->funcName(node, userData);} \
+ MUSCLE_ABSORB_SEMICOLON
 
 /** An intelligent AbstractReflectSession that knows how to
  *  store data on the server, and filter using wildcards.  This class

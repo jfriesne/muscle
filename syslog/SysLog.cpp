@@ -89,7 +89,7 @@ int _maxLogThreshold = MUSCLE_LOG_INFO;  // I guess we'll take our chances here
 #else
 std::atomic<int> _maxLogThreshold(MUSCLE_LOG_INFO);
 #endif
-};
+}
 
 DefaultConsoleLogger :: DefaultConsoleLogger(int defaultLogThreshold)
    : LogCallback(defaultLogThreshold)

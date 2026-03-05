@@ -719,4 +719,4 @@ bool IncrementalHashCalculator :: IsValid() const
 #endif
 }
 
-}; // end namespace muscle
+} // end namespace muscle

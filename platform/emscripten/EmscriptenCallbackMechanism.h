@@ -26,6 +26,6 @@ private:
    virtual void AsyncCallback(uint64 scheduledTime) {(void) scheduledTime; DispatchCallbacks();}
 };
 
-};  // end muscle namespace
+}  // end muscle namespace
 
 #endif

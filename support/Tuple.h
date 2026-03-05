@@ -303,41 +303,47 @@ template <int N,class T> inline const Tuple<N,T> operator /  (const Tuple<N,T> &
 #define DECLARE_ADDITION_TUPLE_OPERATORS(C,I) \
   inline const C operator + (const C & lhs, const I & rhs) {C ret(lhs);                   ret += rhs;     return ret;} \
   inline const C operator + (const I & lhs, const C & rhs) {C ret; ret.FillSubrange(lhs); ret += rhs;     return ret;} \
-  inline const C operator + (const C & lhs, const C & rhs) {C ret(lhs);                   ret += rhs;     return ret;}
+  inline const C operator + (const C & lhs, const C & rhs) {C ret(lhs);                   ret += rhs;     return ret;} \
+  MUSCLE_ABSORB_SEMICOLON
 
 /** Declares the standard "-" operators for a Tuple class and its associated per-Item class. */
 #define DECLARE_SUBTRACTION_TUPLE_OPERATORS(C,I) \
   inline const C operator - (const C & lhs)                {C ret(lhs);                   ret -= lhs+lhs; return ret;} \
   inline const C operator - (const C & lhs, const I & rhs) {C ret(lhs);                   ret -= rhs;     return ret;} \
   inline const C operator - (const I & lhs, const C & rhs) {C ret; ret.FillSubrange(lhs); ret -= rhs;     return ret;} \
-  inline const C operator - (const C & lhs, const C & rhs) {C ret(lhs);                   ret -= rhs;     return ret;}
+  inline const C operator - (const C & lhs, const C & rhs) {C ret(lhs);                   ret -= rhs;     return ret;} \
+  MUSCLE_ABSORB_SEMICOLON
 
 /** Declares the standard "*" operators for a Tuple class and its associated per-Item class. */
 #define DECLARE_MULTIPLICATION_TUPLE_OPERATORS(C,I) \
   inline const C operator * (const C & lhs, const I & rhs) {C ret(lhs);                   ret *= rhs;     return ret;} \
   inline const C operator * (const I & lhs, const C & rhs) {C ret; ret.FillSubrange(lhs); ret *= rhs;     return ret;} \
-  inline const C operator * (const C & lhs, const C & rhs) {C ret(lhs);                   ret *= rhs;     return ret;}
+  inline const C operator * (const C & lhs, const C & rhs) {C ret(lhs);                   ret *= rhs;     return ret;} \
+  MUSCLE_ABSORB_SEMICOLON
 
 /** Declares the standard "/" operators for a Tuple class and its associated per-Item class. */
 #define DECLARE_DIVISION_TUPLE_OPERATORS(C,I) \
   inline const C operator / (const C & lhs, const I & rhs) {C ret(lhs);                   ret /= rhs;     return ret;} \
   inline const C operator / (const I & lhs, const C & rhs) {C ret; ret.FillSubrange(lhs); ret /= rhs;     return ret;} \
-  inline const C operator / (const C & lhs, const C & rhs) {C ret(lhs);                   ret /= rhs;     return ret;}
+  inline const C operator / (const C & lhs, const C & rhs) {C ret(lhs);                   ret /= rhs;     return ret;} \
+  MUSCLE_ABSORB_SEMICOLON
 
 /** Declares the standard ">>" and "<<" operators for a Tuple class and its associated per-Item class. */
 #define DECLARE_SHIFT_TUPLE_OPERATORS(C) \
   inline const C operator >> (const C & lhs, int rhs) {C ret(lhs);                        ret >>= rhs;    return ret;} \
-  inline const C operator << (const C & lhs, int rhs) {C ret(lhs);                        ret <<= rhs;    return ret;}
+  inline const C operator << (const C & lhs, int rhs) {C ret(lhs);                        ret <<= rhs;    return ret;} \
+  MUSCLE_ABSORB_SEMICOLON
 
 /** Classes sublassing a Tuple class can use this macro to get the all the standard operators without having to rewrite them all by hand.
   * If anyone knows how to accomplish this without resorting to preprocessor macro hacks, I'd love to hear about it.
   */
-#define DECLARE_ALL_TUPLE_OPERATORS(C,I) \
-        DECLARE_ADDITION_TUPLE_OPERATORS(C,I) \
-        DECLARE_SUBTRACTION_TUPLE_OPERATORS(C,I) \
-        DECLARE_MULTIPLICATION_TUPLE_OPERATORS(C,I) \
-        DECLARE_DIVISION_TUPLE_OPERATORS(C,I)  \
-        DECLARE_SHIFT_TUPLE_OPERATORS(C)
+#define DECLARE_ALL_TUPLE_OPERATORS(C,I)             \
+        DECLARE_ADDITION_TUPLE_OPERATORS(C,I);       \
+        DECLARE_SUBTRACTION_TUPLE_OPERATORS(C,I);    \
+        DECLARE_MULTIPLICATION_TUPLE_OPERATORS(C,I); \
+        DECLARE_DIVISION_TUPLE_OPERATORS(C,I);       \
+        DECLARE_SHIFT_TUPLE_OPERATORS(C);            \
+        MUSCLE_ABSORB_SEMICOLON
 
 } // end namespace muscle
 

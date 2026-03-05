@@ -103,6 +103,6 @@ private:
    friend class EmscriptenWebSocket;
 };
 
-};  // end namespace muscle
+}  // end namespace muscle
 
 #endif

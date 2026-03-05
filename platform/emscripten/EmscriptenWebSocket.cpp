@@ -135,4 +135,4 @@ EmscriptenWebSocketRef EmscriptenWebSocketWatcher :: CreateClientWebSocket(const
 #endif
 }
 
-};  // end namespace muscle
+}  // end namespace muscle

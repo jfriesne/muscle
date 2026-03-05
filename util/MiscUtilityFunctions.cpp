@@ -49,7 +49,7 @@ void MUSCLECrashSignalHandler(int sig)  // deliberately not declared static
    fflush(stdout);
    abort();
 }
-};
+}
 #endif
 
 namespace muscle {

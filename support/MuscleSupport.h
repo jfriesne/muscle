@@ -823,8 +823,10 @@ template<typename T, size_t rows, size_t cols> MUSCLE_CONSTEXPR uint32 ARRAYROWS
 template<typename T, size_t rows, size_t cols> MUSCLE_CONSTEXPR uint32 ARRAYCOLS(T(&)[rows][cols]) {return (uint32) cols;} /**< Returns # of "columns", along the second axis of the 2D array.  Will error out at compile time if you try to call it with a pointer as an argument.  */
 # if defined(MUSCLE_AVOID_CPLUSPLUS11)
 #  define MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(theArray, expectedNumItems)
+#  define MUSCLE_ABSORB_SEMICOLON /* can't do static_assert() pre-C++11, sorry */
 # else
-#  define MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(theArray, expectedNumItems) static_assert(ARRAYITEMS(theArray)==expectedNumItems, "array declares the wrong number of values!");
+#  define MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(theArray, expectedNumItems) static_assert(ARRAYITEMS(theArray)==expectedNumItems, "array declares the wrong number of values!")
+#  define MUSCLE_ABSORB_SEMICOLON static_assert(true, "")  /* just to help macros avoid producing -Wextra-semi warnings */
 # endif
 #else
 # define ARRAYITEMS(x) (sizeof(x)/sizeof(x[0]))  /**< Returns # of items in the array.  This primitive C-compatible implementation will return an incorrect value if called with a pointer as an argument. */

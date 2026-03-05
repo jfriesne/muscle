@@ -64,6 +64,6 @@ private:
    Hashtable<ICallbackSubscriber *, uint32> _dirtySubscribers; // who has requested a DispatchCallback() call
 };
 
-};  // end muscle namespace
+}  // end muscle namespace
 
 #endif

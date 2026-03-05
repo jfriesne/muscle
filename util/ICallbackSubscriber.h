@@ -85,6 +85,6 @@ private:
    ICallbackMechanism * _mechanism;
 };
 
-};  // end muscle namespace
+}  // end muscle namespace
 
 #endif

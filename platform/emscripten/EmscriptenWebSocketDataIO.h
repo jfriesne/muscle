@@ -68,6 +68,6 @@ private:
 };
 DECLARE_REFTYPES(EmscriptenWebSocketDataIO);
 
-};  // end namespace muscle
+}  // end namespace muscle
 
 #endif

@@ -660,4 +660,4 @@ void WebSocketMessageIOGateway :: ExecuteReceivedFrame(AbstractGatewayMessageRec
    _firstByteToMask  = 0;
 }
 
-};  // end namespace muscle
+}  // end namespace muscle

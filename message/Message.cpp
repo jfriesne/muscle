@@ -22,7 +22,8 @@ const ConstMessageRef & GetEmptyMessageRef() {return _emptyMsgRef;}
       AbstractDataArrayRef ref(NEWFIELD(X));        \
       if (ref()) *(static_cast<X*>(ref())) = *this; \
       return ref;                                   \
-   }
+   }                                                \
+   MUSCLE_ABSORB_SEMICOLON
 // NOLINTEND
 
 #ifdef MUSCLE_DISABLE_MESSAGE_FIELD_POOLS

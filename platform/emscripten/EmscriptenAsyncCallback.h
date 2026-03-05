@@ -74,6 +74,6 @@ public:
 #endif
 };
 
-};  // end namespace muscle
+}  // end namespace muscle
 
 #endif

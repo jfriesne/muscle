@@ -39,6 +39,6 @@ private:
    QSocketNotifier _notifier;
 };
 
-};  // end muscle namespace
+}  // end muscle namespace
 
 #endif

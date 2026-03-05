@@ -983,7 +983,8 @@ template<uint32 NumBits, class TagClass, const char * optLabelArray[]> const Bit
   */
 #define DECLARE_BITCHORD_FLAGS_TYPE(typeName, numBitsInType)   \
    struct _bitchord_tag_class_##typeName##_##numBitsInType {}; \
-   typedef BitChord<numBitsInType, _bitchord_tag_class_##typeName##_##numBitsInType> typeName;
+   typedef BitChord<numBitsInType, _bitchord_tag_class_##typeName##_##numBitsInType> typeName; \
+   MUSCLE_ABSORB_SEMICOLON
 
 /** This macro declares a unique BitChord-type with a specified number of bits, and supplies an array of human-readable
   * name-strings, one per bit, so that the BitChord values can be printed out in a more user-friendly form.
@@ -999,7 +1000,8 @@ template<uint32 NumBits, class TagClass, const char * optLabelArray[]> const Bit
   */
 #define DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(typeName, numBitsInType, labelsArray) \
    struct _bitchord_tag_class_##typeName##_##numBitsInType {};                     \
-   typedef BitChord<numBitsInType, _bitchord_tag_class_##typeName##_##numBitsInType, labelsArray> typeName;
+   typedef BitChord<numBitsInType, _bitchord_tag_class_##typeName##_##numBitsInType, labelsArray> typeName; \
+   MUSCLE_ABSORB_SEMICOLON
 
 } // end namespace muscle
 
