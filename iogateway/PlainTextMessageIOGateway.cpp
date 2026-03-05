@@ -161,7 +161,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
          bigBuf = GetByteBufferFromPool(mtuSize);
          if (bigBuf())
          {
-            pbuf     = (char *) bigBuf()->GetBuffer();
+            pbuf     = bigBuf()->GetBufferAsType<char>();
             pbufSize = bigBuf()->GetNumBytes();
          }
       }

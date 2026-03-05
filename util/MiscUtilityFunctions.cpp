@@ -937,7 +937,7 @@ String NybbleizeString(const String & s)
 String DenybbleizeString(const String & ns)
 {
    ByteBuffer outBuf;
-   return (DenybbleizeData(ns, outBuf).IsOK()) ? String((const char *) outBuf.GetBuffer(), outBuf.GetNumBytes()) : String();
+   return (DenybbleizeData(ns, outBuf).IsOK()) ? String(outBuf.GetBufferAsType<char>(), outBuf.GetNumBytes()) : String();
 }
 
 ByteBufferRef HexBytesFromString(const char * buf)

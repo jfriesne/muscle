@@ -55,7 +55,7 @@ int main(int argc, char ** argv)
                ByteBuffer bb;
                if ((fileLen >= 0)&&(bb.SetNumBytes((uint32)fileLen, false).IsOK())&&(fdio.ReadFully(bb.GetBuffer(), (uint32)fileLen).IsOK()))
                {
-                  const String s((const char *) bb.GetBuffer(), bb.GetNumBytes());
+                  const String s(bb.GetBuffer.GetBufferAsType<char>(), bb.GetNumBytes());
                   Message msg;
                   if (ParseFile(s, msg).IsOK(ret))
                   {
