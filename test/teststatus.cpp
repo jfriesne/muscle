@@ -8,26 +8,26 @@
 
 using namespace muscle;
 
-status_t TestFunction()
+static status_t TestFunction()
 {
    return (GetInsecurePseudoRandomNumber(2)==0)
           ? B_NO_ERROR
           : B_ERROR("Bad luck");
 }
 
-status_t Func1()
+static status_t Func1()
 {
    printf("Called Func1(), returning OK\n");
    return B_NO_ERROR;
 }
 
-status_t Func2()
+static status_t Func2()
 {
    printf("Called Func2(), returning Error\n");
    return B_ERROR("Func2");
 }
 
-status_t Func3()
+static status_t Func3()
 {
    printf("Called Func3(), returning Error\n");
    return B_ERROR("Func3");

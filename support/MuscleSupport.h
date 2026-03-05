@@ -131,7 +131,7 @@
 # define MUSCLE_CONSTEXPR_17
 #endif
 
-#if !defined(MUSCLE_AVOID_CPLUSPLUS11) && !defined(MUSCLE_USE_CPLUSPLUS17) && ((__cplusplus >= 201703L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L)))
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11) && !defined(MUSCLE_USE_CPLUSPLUS17) && defined(__cplusplus) && ((__cplusplus >= 201703L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L)))
 # define MUSCLE_USE_CPLUSPLUS17
 #endif
 
@@ -597,6 +597,12 @@ enum {
 #endif
            return ret;
         }
+
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+        // forward declarations (so that we can call these methods from this file, without having to include MiscUtilityFunctions.h from this file)
+        MUSCLE_NORETURN extern void Crash(const char * fileName, int lineNumber);
+        MUSCLE_NORETURN extern void ExitWithoutCleanup(int);
+#endif
 
 #ifdef __clang_analyzer__
         // Basic/general status_t return codes -- a hacky work-around to prevent Clang Static Analyzer from reporting false-positive warnings
@@ -1738,11 +1744,30 @@ typedef pid_t muscle_pid_t; /**< type to use for representing a process ID on th
 #endif
 
 #ifdef __cplusplus
+# define MUSCLE_NO_ARGUMENTS /* empty -- C++ allows Func() syntax */
 # include "syslog/SysLog.h"  /* for LogTime() */
-#endif  /* __cplusplus */
+
+/** Sanity-check: calls MCRASH() if the passed-in pointer isn't correctly aligned such that it can legally point to a value of the template-type */
+template<typename T> void CheckPointerAlignment(void * ptr) {if (reinterpret_cast<uintptr>(ptr) % alignof(T) != 0) MCRASH("CheckPointerAlignment:  Pointer isn't correctly aligned!")}
+
+/** Convenience method: recasts the given pointer to a pointer of the specified type.
+  * @param ptr the pointer that we want to recast
+  * @note this call checks (ptrs)'s alignment and will crash the process if (ptr) isn't correctly aligned for the specified pointer-type.
+  */
+template<typename T> MUSCLE_NODISCARD T * RecastPointerToType(void * ptr) {CheckPointerAlignment<T>(ptr); return (T *) (void *) ptr;}
+
+/** Convenience method: recasts the given const-pointer to a const-pointer of the specified type.
+  * @param ptr the const-pointer that we want to recast
+  * @note this call checks (ptrs)'s alignment and will crash the process if (ptr) isn't correctly aligned for the specified pointer-type.
+  */
+template<typename T> MUSCLE_NODISCARD const T * RecastPointerToType(const void * ptr) {CheckPointerAlignment<T>(ptr); return (const T *) (const void *) ptr;}
+
+#else  /* __cplusplus */
+# define MUSCLE_NO_ARGUMENTS void  /** C wants Func(void) syntax */
+#endif
 
 /** Platform-neutral interface to reading errno -- returns WSAGetLastError() on Windows, or errno on other OS's */
-MUSCLE_NODISCARD static inline int GetErrno()
+MUSCLE_NODISCARD static inline int GetErrno(MUSCLE_NO_ARGUMENTS)
 {
 #ifdef WIN32
    return WSAGetLastError();
@@ -1767,7 +1792,7 @@ static inline void SetErrno(int e)
   * failed because it would have had to block otherwise.
   * NOTE:  Returns int so that it will compile even in C environments where no bool type is defined.
   */
-MUSCLE_NODISCARD static inline int PreviousOperationWouldBlock()
+MUSCLE_NODISCARD static inline int PreviousOperationWouldBlock(MUSCLE_NO_ARGUMENTS)
 {
    const int e = GetErrno();
 #ifdef WIN32
@@ -1781,7 +1806,7 @@ MUSCLE_NODISCARD static inline int PreviousOperationWouldBlock()
   * failed because it was interrupted by a signal or etc.
   * NOTE:  Returns int so that it will compile even in C environments where no bool type is defined.
   */
-MUSCLE_NODISCARD static inline int PreviousOperationWasInterrupted()
+MUSCLE_NODISCARD static inline int PreviousOperationWasInterrupted(MUSCLE_NO_ARGUMENTS)
 {
    const int e = GetErrno();
 #ifdef WIN32
@@ -1795,7 +1820,7 @@ MUSCLE_NODISCARD static inline int PreviousOperationWasInterrupted()
   * failed because of a transient condition which wasn't fatal to the socket.
   * NOTE:  Returns int so that it will compile even in C environments where no bool type is defined.
   */
-MUSCLE_NODISCARD static inline int PreviousOperationHadTransientFailure()
+MUSCLE_NODISCARD static inline int PreviousOperationHadTransientFailure(MUSCLE_NO_ARGUMENTS)
 {
    const int e = GetErrno();
 #ifdef WIN32
@@ -1823,12 +1848,6 @@ MUSCLE_NODISCARD static inline int32 ConvertReturnValueToMuscleSemantics(int32 o
 #ifdef __cplusplus
 namespace muscle {
 class DataNode;  // FogBugz #9816 tweakage
-#endif
-
-#ifndef DOXYGEN_SHOULD_IGNORE_THIS
-// forward declarations
-MUSCLE_NORETURN extern void Crash(const char * fileName, int lineNumber);
-MUSCLE_NORETURN extern void ExitWithoutCleanup(int);
 #endif
 
 #if defined(MUSCLE_TRACE_CHECKPOINTS) && (MUSCLE_TRACE_CHECKPOINTS > 0)

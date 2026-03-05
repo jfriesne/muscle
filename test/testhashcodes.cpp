@@ -11,7 +11,7 @@ using namespace muscle;
 // numbers will always be the same on all platforms (and thereby avoid false-positives
 // if rand() on platform X gives different values than rand() on platform Y)
 // Stolen directly from Wikipedia:  https://en.wikipedia.org/wiki/Lehmer_random_number_generator
-uint32 lcg_parkmiller()
+static uint32 lcg_parkmiller()
 {
    static uint32 _state = 66;
 

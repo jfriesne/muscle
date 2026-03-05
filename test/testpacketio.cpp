@@ -84,7 +84,7 @@ int main(int argc, char ** argv)
 
          const uint32 nbr = numBytesRead.GetByteCount();
          LogTime(MUSCLE_LOG_INFO, "Read a packet that was " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes long...\n", nbr, mtu);
-         const uint8 c = nbr % 256;
+         const uint8 c = (uint8) (nbr % 256);
          const uint8 * p = buf.GetBuffer();
          for (uint32 i=0; i<nbr; i++)
          {
@@ -102,7 +102,7 @@ int main(int argc, char ** argv)
       while(1)
       {
          const uint32 sendLen = GetInsecurePseudoRandomNumber(mtu);
-         const uint8 c = (sendLen % 256);
+         const uint8 c = (uint8) (sendLen % 256);
          uint8 * b = buf.GetBuffer();
          for (uint32 i=0; i<sendLen; i++) b[i] = c;
          const io_status_t numBytesSent = pack.Write(b, sendLen);

@@ -560,7 +560,7 @@ static inline UMessage UMGetMessage(const UMessage * msg, const char * fieldName
 void SetFieldNameUniquenessEnforced(UBool enforce);
 
 /** Returns true iff field-name-uniqueness is being enforced.  Default value of this flag is true. */
-UBool IsFieldNameUniquenessEnforced();
+UBool IsFieldNameUniquenessEnforced(void);
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
 typedef struct imp_GenericArrayHandle {
@@ -732,7 +732,7 @@ URect UMGetRectFromArray(URectArrayHandle handle, uint32 idx);
 /** @} */ // end of micromessage doxygen group
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif

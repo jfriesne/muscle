@@ -65,7 +65,7 @@ int main(int argc, char ** argv)
       return 10;
    }
 
-   uint16 bindPort = atoi(bindto);
+   uint16 bindPort = (uint16) atoi(bindto);
    uint16 actualPort;
    if (BindUDPSocket(s, bindPort, &actualPort).IsOK()) printf("Bound socket to port %u\n", actualPort);
                                                          else printf("Error, couldn't bind to port %u\n", bindPort);

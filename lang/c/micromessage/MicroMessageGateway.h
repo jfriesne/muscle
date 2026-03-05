@@ -121,7 +121,7 @@ int32 UGDoInput(UMessageGateway * gw, uint32 maxBytes, UGReceiveFunc recvFunc, v
 /** @} */ // end of micromessagegateway doxygen group
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif

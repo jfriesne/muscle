@@ -54,7 +54,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
          {
             for (i=0; i<ITEM_COUNT; i++)
             {
-               data[i] = i;
+               data[i] = (int8) i;
                (void) m.AddInt8("testInt8s", data[i]);
             }
          }
@@ -66,7 +66,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
          {
             for (i=0; i<ITEM_COUNT; i++)
             {
-               data[i] = i;
+               data[i] = (int16) i;
                (void) m.AddInt16("testInt16s", data[i]);
             }
          }
@@ -78,7 +78,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
          {
             for (i=0; i<ITEM_COUNT; i++)
             {
-               data[i] = i;
+               data[i] = (int32) i;
                (void) m.AddInt32("testInt32s", data[i]);
             }
          }
@@ -90,7 +90,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
          {
             for (i=0; i<ITEM_COUNT; i++)
             {
-               data[i] = i;
+               data[i] = (int64) i;
                (void) m.AddInt64("testInt64s", data[i]);
             }
          }
@@ -114,7 +114,7 @@ static MMessage * CreateTestMessage(uint32 recurseCount, Message & m)
          {
             for (i=0; i<ITEM_COUNT; i++)
             {
-               data[i] = i;
+               data[i] = (double) i;
                (void) m.AddDouble("testDoubles", data[i]);
             }
          }

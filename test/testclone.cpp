@@ -46,7 +46,7 @@ public:
 };
 
 // This function is here just to ensure things are done polymorphically
-TestCloneable * CloneTester(const TestCloneable * c)
+static TestCloneable * CloneTester(const TestCloneable * c)
 {
    return static_cast<TestCloneable *>(c->Clone());
 }

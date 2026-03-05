@@ -8,6 +8,10 @@ key:  - new feature
    - Added various compiler-warning flags to CMakeLists.txt.
    - Updated Queue::RmoveHeadMulti() and Queue::RemoveTailMulti()
      to be O(1) in the case where IsPerItemClearNecessary() return false.
+   - Added GetBufferAsType() convenience-methods to the ByteBuffer class.
+   - Added GetAreaPointerAsType() convenience-methods to the SharedMemory class.
+   - Added RecastPointerToType<T>() functions to MuscleSupport.h.
+   - Added CheckPointerAlignment() convenience method to MuscleSupport.h
    * Fixed various compiler-warnings detected by the new build flags.
    - Added a MUSCLE_ABSORB_SEMICOLON macro to MuscleSupport.h; it is
      there just to help my other macros not cause -Wextra-semi warnings.

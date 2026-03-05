@@ -21,7 +21,7 @@ char double_is_8_bytes_assertion[(sizeof(double) == 8) ? 1 : -1];
 
 static uint32 _allocedBytes = 0;  /* for memory-leak debugging */
 
-uint32 MGetNumBytesAllocated() {return _allocedBytes;}
+uint32 MGetNumBytesAllocated(void) {return _allocedBytes;}
 
 #ifdef MUSCLE_ENABLE_MEMORY_TRACKING
 
@@ -76,13 +76,13 @@ static c_status_t ReadData(const uint8 * inBuf, uint32 inputBufferBytes, uint32 
    memcpy(copyTo, &inBuf[*readOffset], blockSize);
    *readOffset += blockSize;
    return CB_NO_ERROR;
-};
+}
 
 static void WriteData(uint8 * outBuf, uint32 * writeOffset, const void * copyFrom, uint32 blockSize)
 {
    memcpy(&outBuf[*writeOffset], copyFrom, blockSize);
    *writeOffset += blockSize;
-};
+}
 
 #define OLDEST_SUPPORTED_PROTOCOL_VERSION 1347235888 /* 'PM00' */
 #define CURRENT_PROTOCOL_VERSION          1347235888 /* 'PM00' */
@@ -1367,5 +1367,5 @@ MBool MMAreMessagesEqual(const MMessage * msg1, const MMessage * msg2)
 }
 
 #ifdef cplusplus
-};
+}
 #endif

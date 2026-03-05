@@ -11,7 +11,7 @@ using namespace muscle;
 
 #define TEST(x) {if ((x).IsError()) {printf("Test failed, line %i\n",__LINE__); return 10;}}
 
-DataIORef GetFileRef(FILE * file)
+static DataIORef GetFileRef(FILE * file)
 {
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    return DataIORef(new ZLibDataIO(DataIORef(new FileDataIO(file))));   // enable transparent file compression!

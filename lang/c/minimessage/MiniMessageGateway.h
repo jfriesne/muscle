@@ -46,7 +46,7 @@ typedef int32 (*MGReceiveFunc)(uint8 * buf, uint32 numBytes, void * arg);
   *          the responsibility of the calling code to call MMFreeMessageGateway() on the
   *          MMessageGateway when it is done using it.
   */
-MMessageGateway * MGAllocMessageGateway();
+MMessageGateway * MGAllocMessageGateway(void);
 
 /** Frees a previously created MMessageGateway and all the data that it holds.
   * @param gw The MMessageGateway to free.  If NULL, no action will be taken.
@@ -92,7 +92,7 @@ int32 MGDoInput(MMessageGateway * gw, uint32 maxBytes, MGReceiveFunc recvFunc, v
 /** @} */ // end of minimessagegateway doxygen group
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif

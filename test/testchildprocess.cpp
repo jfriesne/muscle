@@ -127,7 +127,7 @@ int main(int argc, char ** argv)
    }
 #endif
 
-   const uint32 numProcesses = atol(argv[1]);
+   const uint32 numProcesses = (uint32) atol(argv[1]);
    if ((numProcesses == 0)||(numProcesses > 10000)) PrintUsageAndExit();
 
    const char * cmd = argv[2];

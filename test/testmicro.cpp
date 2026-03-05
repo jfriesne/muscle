@@ -25,15 +25,15 @@ static void CreateTestMessage(uint32 recurseCount, Message & m, UMessage * um)
    {
       for (i=0; i<ITEM_COUNT; i++)
       {
-         if (UMAddInt8(um, "testInt8s", i) != CB_NO_ERROR) printf("UMAddInt8(" UINT32_FORMAT_SPEC ") failed!\n", i);
-         (void) m.AddInt8("testInt8s", i);
+         if (UMAddInt8(um, "testInt8s", (int8) i) != CB_NO_ERROR) printf("UMAddInt8(" UINT32_FORMAT_SPEC ") failed!\n", i);
+         (void) m.AddInt8("testInt8s", (int8) i);
       }
    }
    {
       for (i=0; i<ITEM_COUNT; i++)
       {
-         if (UMAddInt16(um, "testInt16s", i) != CB_NO_ERROR) printf("UMAddInt16(" UINT32_FORMAT_SPEC ") failed!\n", i);
-         (void) m.AddInt16("testInt16s", i);
+         if (UMAddInt16(um, "testInt16s", (int16)i) != CB_NO_ERROR) printf("UMAddInt16(" UINT32_FORMAT_SPEC ") failed!\n", i);
+         (void) m.AddInt16("testInt16s", (int16)i);
       }
    }
    {

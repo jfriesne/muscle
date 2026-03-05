@@ -100,6 +100,16 @@ public:
    /** Convenience synonym for GetAreaPointer(). */
    MUSCLE_NODISCARD uint8 * operator()() const {return (uint8 *) _area;}
 
+   /** Convenience method -- same as GetAreaPointer() but returns the pointer as a specified type.
+     * It's up to the calling code to ensure that the type-conversion makes sense.
+     */
+   template<typename T> MUSCLE_NODISCARD T * GetAreaPointerAsType() {return RecastPointerToType<T>(GetAreaPointer());}
+
+   /** Convenience method -- same as GetAreaPointer() but returns the pointer as a specified type.
+     * It's up to the calling code to ensure that the type-conversion makes sense.
+     */
+   template<typename T> MUSCLE_NODISCARD const T * GetAreaPointerAsType() const {return RecastPointerToType<T>(GetAreaPointer());}
+
    /** Rudely deletes the current shared area.
     *  After this call returns, no processes will be able to SetArea() or LockArea()
     *  our shared memory any more.  Note that this method will call LockAreaReadWrite()

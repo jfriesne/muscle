@@ -17,16 +17,16 @@ struct _MMessageGateway {
 static inline MByteBuffer * GetNextPointer(const MByteBuffer * buf)
 {
    /* coverity[overrun-local] - okay because the MByteBuffer's allocation is greater than sizeof(MByteBuffer) */
-   return *((MByteBuffer **)(&buf->bytes));
+   return *((MByteBuffer **)(void *)(&buf->bytes));
 }
 
 static inline void SetNextPointer(MByteBuffer * buf, const MByteBuffer * next)
 {
    /* coverity[overrun-local] - okay because the MByteBuffer's allocation is greater than sizeof(MByteBuffer) */
-   *((const MByteBuffer **)(&buf->bytes)) = next;
+   *((const MByteBuffer **)(void *)(&buf->bytes)) = next;
 }
 
-MMessageGateway * MGAllocMessageGateway()
+MMessageGateway * MGAllocMessageGateway(void)
 {
    MMessageGateway * ret = MMalloc(sizeof(MMessageGateway));
    if (ret)
@@ -69,7 +69,7 @@ c_status_t MGAddOutgoingMessage(MMessageGateway * gw, const MMessage * msg)
    MByteBuffer * buf = MBAllocByteBuffer(sizeof(MMessage *) + (2*sizeof(uint32)) + flatSize, false);
    if (buf)
    {
-      uint32 * h = (uint32 *)(((MMessage **)(&buf->bytes))+1);
+      uint32 * h = (uint32 *)(((MMessage **)(void *)(&buf->bytes))+1);
 
       SetNextPointer(buf, NULL);
       h[0] = B_HOST_TO_LENDIAN_INT32(flatSize);
@@ -188,7 +188,7 @@ int32 MGDoInput(MMessageGateway * gw, uint32 maxBytes, MGReceiveFunc recvFunc, v
             else
             {
                /* We have our fixed-size headers, now prepare to receive the actual Message body! */
-               const uint32 * h = (const uint32 *)(&gw->_curInput->bytes);
+               const uint32 * h = (const uint32 *)(void *)(&gw->_curInput->bytes);
                uint32 bodySize = B_LENDIAN_TO_HOST_INT32(h[0]);
                if ((bodySize == 0)||(B_LENDIAN_TO_HOST_INT32(h[1]) != _MUSCLE_MESSAGE_ENCODING_DEFAULT)) return -1;  /* unsupported encoding! */
 

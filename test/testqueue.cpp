@@ -167,73 +167,73 @@ static status_t UnitTestQueue(bool isFromScript)
 
    printf("RemoveHeadMulti TEST\n");
    {
-      Queue<int> q = {1,2,3,4,5,6,7,8};
-      TEST(q.AddHead(0));  // just so we can test the wraparound-head case
+      Queue<int> qq = {1,2,3,4,5,6,7,8};
+      TEST(qq.AddHead(0));  // just so we can test the wraparound-head case
 
-      const uint32 origNumItems    = q.GetNumItems();
-      const uint32 numToRemove = 4;
-      const uint32 numRemoved  = q.RemoveHeadMulti(numToRemove);  // should remove 0, 1, 2, and 3
+      const uint32 origNumItems = qq.GetNumItems();
+      const uint32 numToRemove  = 4;
+      const uint32 numRemoved   = qq.RemoveHeadMulti(numToRemove);  // should remove 0, 1, 2, and 3
       if (numRemoved != numToRemove) {LogTime(MUSCLE_LOG_CRITICALERROR, "RemoveHeadMulti() only removed " UINT32_FORMAT_SPEC " items instead of " UINT32_FORMAT_SPEC "!\n", numRemoved, numToRemove); ExitWithoutCleanup(10);}
-      if (q.GetNumItems() != (origNumItems-numToRemove)) {LogTime(MUSCLE_LOG_CRITICALERROR, "After RemoveHeadMulti(), queue size is " UINT32_FORMAT_SPEC " instead of " UINT32_FORMAT_SPEC "!\n", q.GetNumItems(), origNumItems-numToRemove); ExitWithoutCleanup(10);}
+      if (qq.GetNumItems() != (origNumItems-numToRemove)) {LogTime(MUSCLE_LOG_CRITICALERROR, "After RemoveHeadMulti(), queue size is " UINT32_FORMAT_SPEC " instead of " UINT32_FORMAT_SPEC "!\n", qq.GetNumItems(), origNumItems-numToRemove); ExitWithoutCleanup(10);}
 
-      for (uint32 i=0; i<q.GetNumItems(); i++)
+      for (uint32 i=0; i<qq.GetNumItems(); i++)
       {
-         if (q[i] != (int)(i+numToRemove))
+         if (qq[i] != (int)(i+numToRemove))
          {
-            LogTime(MUSCLE_LOG_CRITICALERROR, "After RemoveHeadMulti(" UINT32_FORMAT_SPEC "), item " UINT32_FORMAT_SPEC " is %i instead of %i!\n", numToRemove, i, q[i], i+(int)numToRemove);
+            LogTime(MUSCLE_LOG_CRITICALERROR, "After RemoveHeadMulti(" UINT32_FORMAT_SPEC "), item " UINT32_FORMAT_SPEC " is %i instead of %i!\n", numToRemove, i, qq[i], i+(int)numToRemove);
             ExitWithoutCleanup(10);
          }
-         printf("  After RemoveHeadMulti(), q[" UINT32_FORMAT_SPEC "]=%i\n", i, q[i]);
+         printf("  After RemoveHeadMulti(), qq[" UINT32_FORMAT_SPEC "]=%i\n", i, q[i]);
       }
    }
 
    printf("RemoveTailMulti TEST\n");
    {
-      Queue<int> q = {1,2,3};
-      TEST(q.AddHead(0));   // just so we can test the wraparound-head case
-      TEST(q.AddHead(-1));  // just so we can test the wraparound-head case
-      TEST(q.AddHead(-2));  // just so we can test the wraparound-head case
+      Queue<int> qq = {1,2,3};
+      TEST(qq.AddHead(0));   // just so we can test the wraparound-head case
+      TEST(qq.AddHead(-1));  // just so we can test the wraparound-head case
+      TEST(qq.AddHead(-2));  // just so we can test the wraparound-head case
 
-      const uint32 origNumItems = q.GetNumItems();
+      const uint32 origNumItems = qq.GetNumItems();
       const uint32 numToRemove  = 4;
-      const uint32 numRemoved   = q.RemoveTailMulti(numToRemove);  // should remove 3, 2, 1, and 0
+      const uint32 numRemoved   = qq.RemoveTailMulti(numToRemove);  // should remove 3, 2, 1, and 0
       if (numRemoved != numToRemove) {LogTime(MUSCLE_LOG_CRITICALERROR, "RemoveTailMulti() only removed " UINT32_FORMAT_SPEC " items instead of " UINT32_FORMAT_SPEC "!\n", numRemoved, numToRemove); ExitWithoutCleanup(10);}
-      if (q.GetNumItems() != (origNumItems-numToRemove)) {LogTime(MUSCLE_LOG_CRITICALERROR, "After RemoveTailMulti(), queue size is " UINT32_FORMAT_SPEC " instead of " UINT32_FORMAT_SPEC "!\n", q.GetNumItems(), origNumItems-numToRemove); ExitWithoutCleanup(10);}
+      if (qq.GetNumItems() != (origNumItems-numToRemove)) {LogTime(MUSCLE_LOG_CRITICALERROR, "After RemoveTailMulti(), queue size is " UINT32_FORMAT_SPEC " instead of " UINT32_FORMAT_SPEC "!\n", qq.GetNumItems(), origNumItems-numToRemove); ExitWithoutCleanup(10);}
 
-      for (uint32 i=0; i<q.GetNumItems(); i++)
+      for (uint32 i=0; i<qq.GetNumItems(); i++)
       {
-         if (q[i] != (int)(i+q.HeadWithDefault()))
+         if (qq[i] != (int)(i+qq.HeadWithDefault()))
          {
-            LogTime(MUSCLE_LOG_CRITICALERROR, "After RemoveTailMulti(" UINT32_FORMAT_SPEC "), item " UINT32_FORMAT_SPEC " is %i instead of %i!\n", numToRemove, i, q[i], i+(int)numToRemove);
+            LogTime(MUSCLE_LOG_CRITICALERROR, "After RemoveTailMulti(" UINT32_FORMAT_SPEC "), item " UINT32_FORMAT_SPEC " is %i instead of %i!\n", numToRemove, i, qq[i], i+(int)numToRemove);
             ExitWithoutCleanup(10);
          }
-         printf("  After RemoveHeadMulti(), q[" UINT32_FORMAT_SPEC "]=%i\n", i, q[i]);
+         printf("  After RemoveHeadMulti(), qq[" UINT32_FORMAT_SPEC "]=%i\n", i, qq[i]);
       }
    }
 
    // Basic test of the QueueIterator functionality
    printf("QueueIterator TEST\n");
    {
-      Queue<int> q;
-      for (int i=0; i<5; i++) (void) q.AddTail(i);
+      Queue<int> qq;
+      for (int i=0; i<5; i++) (void) qq.AddTail(i);
 
       printf("  Basic forward iteration:\n");
-      for (ConstQueueIterator<int> qIter = q.GetIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (ConstQueueIterator<int> qIter = qq.GetIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Basic backward iteration:\n");
-      for (ConstQueueIterator<int> qIter = q.GetBackwardIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (ConstQueueIterator<int> qIter = qq.GetBackwardIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Forward starting at third index:\n");
-      for (ConstQueueIterator<int> qIter = q.GetIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (ConstQueueIterator<int> qIter = qq.GetIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Backward starting at third index:\n");
-      for (ConstQueueIterator<int> qIter = q.GetBackwardIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (ConstQueueIterator<int> qIter = qq.GetBackwardIteratorAt(2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Forward at double-stride:\n");
-      for (ConstQueueIterator<int> qIter(q, 0, 2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
+      for (ConstQueueIterator<int> qIter(qq, 0, 2); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), qIter.GetValue());
 
       printf("  Pre-incrementing values as we go:\n");
-      for (QueueIterator<int> qIter = q.GetIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), ++qIter.GetValue());
+      for (QueueIterator<int> qIter = qq.GetIterator(); qIter.HasData(); qIter++) printf("  " UINT32_FORMAT_SPEC ". %i\n", qIter.GetIndex(), ++qIter.GetValue());
    }
 
    // Check that C++11's move semantics aren't stealing values they shouldn't

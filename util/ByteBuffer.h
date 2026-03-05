@@ -57,6 +57,16 @@ public:
    /** Convenience synonym for GetBuffer(). */
    MUSCLE_NODISCARD uint8 * operator()() {return _buffer;}
 
+   /** Convenience method -- same as GetBuffer() but returns the pointer as a specified type.
+     * It's up to the calling code to ensure that the type-conversion makes sense.
+     */
+   template<typename T> MUSCLE_NODISCARD T * GetBufferAsType() {return RecastPointerToType<T>(_buffer);}
+
+   /** Convenience method -- same as GetBuffer() but returns the pointer as a specified type.
+     * It's up to the calling code to ensure that the type-conversion makes sense.
+     */
+   template<typename T> MUSCLE_NODISCARD const T * GetBufferAsType() const {return RecastPointerToType<T>(_buffer);}
+
    /** Returns the size of our held buffer, in bytes. */
    MUSCLE_NODISCARD uint32 GetNumBytes() const {return _numValidBytes;}
 

@@ -24,7 +24,7 @@ void UGGatewayInitialize(UMessageGateway * gw, uint8 * inputBuffer, uint32 numIn
 
 static uint32 UGGetAvailableBytesCount(const UMessageGateway * gw)
 {
-   return (gw->_outputBuffer+gw->_outputBufferSize)-(gw->_firstValidOutputByte+gw->_numValidOutputBytes);
+   return (uint32) ((gw->_outputBuffer+gw->_outputBufferSize)-(gw->_firstValidOutputByte+gw->_numValidOutputBytes));
 }
 
 UMessage UGGetOutgoingMessage(UMessageGateway * gw, uint32 whatCode)
@@ -113,10 +113,8 @@ int32 UGDoOutput(UMessageGateway * gw, uint32 maxBytes, UGSendFunc sendFunc, voi
    int32 totalSent = 0;
    while((gw->_numValidOutputBytes > 0)&&((uint32)totalSent < maxBytes))
    {
-      int32 bytesToSend = gw->_numValidOutputBytes;
-      if (bytesToSend > maxBytes) bytesToSend = maxBytes;
-
-      const int32 bytesSent = sendFunc(gw->_firstValidOutputByte, bytesToSend, arg);
+      const uint32 bytesToSend = (gw->_numValidOutputBytes > maxBytes) ? maxBytes : gw->_numValidOutputBytes;
+      const  int32 bytesSent   = sendFunc(gw->_firstValidOutputByte, bytesToSend, arg);
       if (bytesSent < 0) return -1;  /* error! */
       else
       {
@@ -124,7 +122,7 @@ int32 UGDoOutput(UMessageGateway * gw, uint32 maxBytes, UGSendFunc sendFunc, voi
          gw->_numValidOutputBytes -= bytesSent;
          gw->_firstValidOutputByte = (gw->_numValidOutputBytes == 0) ? gw->_outputBuffer : (gw->_firstValidOutputByte+bytesSent);
       }
-      if (bytesSent < bytesToSend) break;  /* short write indicates that the output buffer is full for now */
+      if (((uint32)bytesSent) < bytesToSend) break;  /* short write indicates that the output buffer is full for now */
    }
    return totalSent;
 }
@@ -166,7 +164,7 @@ int32 UGDoInput(UMessageGateway * gw, uint32 maxBytes, UGReceiveFunc recvFunc, v
             }
          }
       }
-      if (bytesReceived < bytesToRecv) break;  /* short read indicates that the input buffer is empty for now */
+      if (((uint32)bytesReceived) < bytesToRecv) break;  /* short read indicates that the input buffer is empty for now */
    }
    return totalRecvd;
 }

@@ -6,7 +6,7 @@
 
 using namespace muscle;
 
-status_t HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush, uint64 testDuration)
+static status_t HandleSession(const ConstSocketRef & sock, bool myTurnToThrow, bool doFlush, uint64 testDuration)
 {
    LogTime(MUSCLE_LOG_INFO, "Beginning catch session (%s) sock=%i\n", doFlush?"flush enabled":"flush disabled", sock.GetFileDescriptor());
 

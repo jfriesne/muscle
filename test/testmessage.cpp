@@ -257,13 +257,13 @@ int main(int, char **)
 
    TEST(msg.AddMessage("subMessage", subMessage));
 
-   {for (int i=0; i<10; i++) TEST(msg.AddInt8("TestInt8", i));    }
-   {for (int i=0; i<10; i++) TEST(msg.AddInt16("TestInt16", i));  }
-   {for (int i=0; i<10; i++) TEST(msg.AddInt32("TestInt32", i));  }
-   {for (int i=0; i<10; i++) TEST(msg.AddInt64("TestInt64", i));  }
-   {for (int i=0; i<10; i++) TEST(msg.AddDouble("TestDouble", i));}
-   {for (int i=0; i<10; i++) TEST(msg.AddFloat("TestFloat", (float)i));  }
-   {for (int i=0; i<10; i++) TEST(msg.AddBool("TestBool", (i!=0)));}
+   {for (int i=0; i<10; i++) TEST(msg.AddInt8("TestInt8",     (int8)  i));}
+   {for (int i=0; i<10; i++) TEST(msg.AddInt16("TestInt16",   (int16) i));}
+   {for (int i=0; i<10; i++) TEST(msg.AddInt32("TestInt32",   (int32) i));}
+   {for (int i=0; i<10; i++) TEST(msg.AddInt64("TestInt64",   (int64) i));}
+   {for (int i=0; i<10; i++) TEST(msg.AddDouble("TestDouble", (double)i));}
+   {for (int i=0; i<10; i++) TEST(msg.AddFloat("TestFloat",   (float) i));}
+   {for (int i=0; i<10; i++) TEST(msg.AddBool("TestBool",     (i!=0)   ));}
 
    printf("Finished message:\n");
    msg.Print(stdout);

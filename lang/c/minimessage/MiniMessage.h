@@ -591,12 +591,12 @@ void * MRealloc(void * oldBuf, uint32 newSize);
 /** Returns the current number of allocated bytes.
   * Good for catching memory leaks.  Only enabled if MUSCLE_ENABLE_MEMORY_TRACKING is defined; otherwise always returns zero.
   */
-uint32 MGetNumBytesAllocated();
+uint32 MGetNumBytesAllocated(void);
 
 /** @} */ // end of minimessage doxygen group
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif

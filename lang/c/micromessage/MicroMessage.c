@@ -25,7 +25,7 @@ char double_is_8_bytes_assertion[(sizeof(double) == 8) ? 1 : -1];
 
 static UBool _enforceFieldNameUniqueness = UTrue;
 void SetFieldNameUniquenessEnforced(UBool enforce) {_enforceFieldNameUniqueness = enforce;}
-UBool IsFieldNameUniquenessEnforced() {return _enforceFieldNameUniqueness;}
+UBool IsFieldNameUniquenessEnforced(void) {return _enforceFieldNameUniqueness;}
 
 /** Returns the number of bytes that are actually valid (i.e. written to, not garbage bytes) starting at (ptr) */
 static uint32 GetNumValidBytesAt(const UMessage * msg, const uint8 * ptr)
@@ -205,13 +205,6 @@ static UBool IsFieldPointerValid(const UMessage * msg, uint8 * ptr)
       return (GetNumValidBytesAt(msg, fData) > 0);
    }
    return UFalse;
-}
-
-static uint8 * GetNextField(UMessage * msg, uint8 * field)
-{
-   void * ftptr = GetFieldTypePointer(field);
-   uint8 * afterData = GetFieldData(ftptr)+GetFieldDataLength(ftptr);
-   return IsFieldPointerValid(msg, afterData) ? afterData : NULL;
 }
 
 static void IncreaseCurrentFieldDataLength(UMessage * msg, uint32 numBytes);  /* forward declaration */

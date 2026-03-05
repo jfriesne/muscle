@@ -94,17 +94,17 @@ int main(int argc, char ** argv)
    if (port == 0) port = 9999;
 
    uint32 mtu = 0;
-   if (args.FindString("mtu", &temp).IsOK()) mtu = atol(temp);
+   if (args.FindString("mtu", &temp).IsOK()) mtu = (int32) atol(temp);
    if (mtu == 0) mtu = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET;
 
    uint32 magic = 0;
-   if (args.FindString("magic", &temp).IsOK()) magic = atol(temp);
+   if (args.FindString("magic", &temp).IsOK()) magic = (uint32) atol(temp);
    if (magic == 0) magic = 666;
 
    uint64 spamIntervalMicros = 0;
    if (args.FindString("spam", &temp).IsOK())
    {
-      const int spamHz = atol(temp);
+      const int spamHz = atoi(temp);
       spamIntervalMicros = (spamHz > 0) ? MICROS_PER_SECOND/spamHz : 1;
    }
 
@@ -187,13 +187,12 @@ int main(int argc, char ** argv)
    const int readFD  = dio()->GetReadSelectSocket().GetFileDescriptor();
    const int writeFD = dio()->GetWriteSelectSocket().GetFileDescriptor();
    uint64 lastTime = 0;
-   while(1)
+   while(ret.IsOK())
    {
       if (OnceEvery(MICROS_PER_SECOND, lastTime)) LogTime(MUSCLE_LOG_INFO, "Send counter is currently at " UINT32_FORMAT_SPEC ", Receive counter is currently at " UINT32_FORMAT_SPEC "\n", _sendWhatCounter, _recvWhatCounter);
       (void) multiplexer.RegisterSocketForReadReady(readFD);
       if (gateway->HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(writeFD);
 
-      status_t ret;
       if (multiplexer.WaitForEvents((spamIntervalMicros>0)?nextSpamTime:MUSCLE_TIME_NEVER).IsError(ret)) LogTime(MUSCLE_LOG_CRITICALERROR, "testpackettunnel: WaitForEvents() failed! [%s]\n", ret());
 
       const bool reading    = multiplexer.IsSocketReadyForRead(readFD);
@@ -241,5 +240,5 @@ int main(int argc, char ** argv)
       }
    }
 
-   return 0;
+   return ret.IsOK() ? 0 : 10;
 }
