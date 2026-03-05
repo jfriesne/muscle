@@ -286,6 +286,7 @@ elseif ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQ
         -Wpedantic
         -Wno-format-pedantic
         -Wdeprecated
+        -Wno-deprecated-copy-with-user-provided-dtor
         -Wno-float-equal
         -Wmissing-field-initializers
         $<$<OR:$<COMPILE_LANGUAGE:CXX>,$<COMPILE_LANGUAGE:OBJCXX>>:
