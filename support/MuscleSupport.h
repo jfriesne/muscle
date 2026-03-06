@@ -1750,11 +1750,15 @@ typedef pid_t muscle_pid_t; /**< type to use for representing a process ID on th
 /** Sanity-check: calls MCRASH() if the passed-in pointer isn't correctly aligned such that it can legally point to a value of the template-type */
 template<typename T> void CheckPointerAlignment(const void * ptr)
 {
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   (void) ptr;  // there's no alignof keyword in C++03, alas
+#else
    if (reinterpret_cast<uintptr>(ptr) % alignof(T) != 0)
    {
       printf("CheckPointerAlignment(%p):  Pointer isn't correctly aligned for %zu!\n", ptr, alignof(T));
       muscle::Crash(__FILE__, __LINE__);  // Not calling MCRASH() here only because constant MUSCLE_LOG_CRITICALERROR might not be available here
    }
+#endif
 }
 
 /** Convenience method: recasts the given pointer to a pointer of the specified type.
