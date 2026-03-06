@@ -21,10 +21,10 @@ etc).
 The MUSCLE toy programs can be compiled under any popular OS.  The Makefiles that
 are included to compile them will work under Linux and MacOS/X (and possibly
 other POSIX-y OS's too).  Alternatively you can compile everything (including
-the example programs) using cmake:
+the example programs) under any supported OS using cmake:
 
    cd muscle
-   cmake -B _build -S .
+   cmake -B _build -S . -DWITH_EXAMPLES=ON
    cmake --build _build --parallel 8
 
 If you'd like to generate your own HTML from the Markdown files in the "docs" folder,

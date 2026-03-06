@@ -258,7 +258,7 @@ endif()
 add_library(recommended_warning_flags INTERFACE)
 
 if ((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC"))
-    target_compile_options(recommended_warning_flags INTERFACE "/W4" "/wd4702" "/we4668")
+    target_compile_options(recommended_warning_flags INTERFACE "/W4" "/wd4702" "/wd4127")
 elseif ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))
     target_compile_options(recommended_warning_flags INTERFACE
         -Wall

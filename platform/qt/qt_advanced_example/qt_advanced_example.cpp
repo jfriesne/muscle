@@ -216,8 +216,8 @@ void AdvancedExampleWindow :: MessageReceivedFromServer(const MessageRef & msg, 
             String sessionStr, subPath;
             if (ParsePath(pathStr, sessionStr, subPath).IsOK())
             {
-               ConstMessageRef data;
-               for (int32 i=0; msg()->FindMessage(iter.GetFieldName(), i, data).IsOK(); i++)
+               ConstMessageRef theData;
+               for (int32 i=0; msg()->FindMessage(iter.GetFieldName(), i, theData).IsOK(); i++)
                {
                   // Create a SessionListViewItem for this sessionStr, if we don't already have one
                   SessionListViewItem * item;
@@ -227,7 +227,7 @@ void AdvancedExampleWindow :: MessageReceivedFromServer(const MessageRef & msg, 
                      (void) _sessionLookup.Put(sessionStr, item);
                      printf("GUI Thread adding SessionListViewItem %p (for session [%s])\n", item, sessionStr());
                   }
-                  if (subPath.HasChars()) item->DataReceived(subPath, data);
+                  if (subPath.HasChars()) item->DataReceived(subPath, theData);
                }
             }
             else printf("GUI Thread error:  Unexpected sub-Message path [%s]\n", pathStr());

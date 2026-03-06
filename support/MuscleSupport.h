@@ -995,7 +995,7 @@ template<typename T> inline void muscleCopyOut(void * dest, const T & source) {m
   * would return ((T*)0x4) on memory failure instead of NULL.
   * See http://gcc.gnu.org/bugzilla/show_bug.cgi?id=10300
   */
-#if __GNUC__ == 3
+#if defined(__GNUC__) && (__GNUC__ == 3)
 template <typename T> inline T * broken_gcc_newnothrow_array(size_t count)
 {
    T * ret = newnothrow T[count];

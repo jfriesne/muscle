@@ -1576,8 +1576,8 @@ private:
 
       void Clear()
       {
-         _smallBuffer[0]   = '\0';                      // NUL-terminate the SSO string buffer
-         _ssoFreeBytesLeft = GetMaxShortStringLength(); // all bytes available
+         _smallBuffer[0]   = '\0';                              // NUL-terminate the SSO string buffer
+         _ssoFreeBytesLeft = (uint8) GetMaxShortStringLength(); // all bytes available
       }
 
       void SetLength(uint32 len) {_ssoFreeBytesLeft = (uint8) (((uint32)sizeof(_smallBuffer))-len);}

@@ -882,14 +882,14 @@ status_t GetTimeStampFromHumanReadableTimeValues(const HumanReadableTimeValues &
 
 #ifdef WIN32
    SYSTEMTIME st; memset(&st, 0, sizeof(st));
-   st.wYear         = v.GetYear();
-   st.wMonth        = v.GetMonth()+1;
-   st.wDayOfWeek    = v.GetDayOfWeek();
-   st.wDay          = v.GetDayOfMonth()+1;
-   st.wHour         = v.GetHour();
-   st.wMinute       = v.GetMinute();
-   st.wSecond       = v.GetSecond();
-   st.wMilliseconds = v.GetMicrosecond()/1000;
+   st.wYear         = (WORD) v.GetYear();
+   st.wMonth        = (WORD) v.GetMonth()+1;
+   st.wDayOfWeek    = (WORD) v.GetDayOfWeek();
+   st.wDay          = (WORD) v.GetDayOfMonth()+1;
+   st.wHour         = (WORD) v.GetHour();
+   st.wMinute       = (WORD) v.GetMinute();
+   st.wSecond       = (WORD) v.GetSecond();
+   st.wMilliseconds = (WORD) (v.GetMicrosecond()/1000);
 
    if (timeType == MUSCLE_TIMEZONE_UTC)
    {

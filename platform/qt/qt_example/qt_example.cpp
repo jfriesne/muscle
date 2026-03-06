@@ -72,9 +72,9 @@ void ExampleWidget :: paintEvent(QPaintEvent *)
    }
 }
 
-void ExampleWidget :: DrawUser(QPainter & p, const ConstMessageRef & data)
+void ExampleWidget :: DrawUser(QPainter & p, const ConstMessageRef & theData)
 {
-   if (data()) DrawText(p, NormalizedToQtCoords(data()->GetPoint("position")), data()->GetString("username")(), QColor(QRgb(data()->GetInt32("color"))), true);
+   if (theData()) DrawText(p, NormalizedToQtCoords(theData()->GetPoint("position")), theData()->GetString("username")(), QColor(QRgb(theData()->GetInt32("color"))), true);
 }
 
 void ExampleWidget :: DrawText(QPainter & p, const QPoint & pt, const QString & text, const QColor & c, bool inBox)
@@ -420,11 +420,11 @@ void ExampleWindow :: MessageReceived(const MessageRef & msg)
          {
             for (MessageFieldNameIterator iter = msg()->GetFieldNameIterator(B_MESSAGE_TYPE); iter.HasData(); iter++)
             {
-               ConstMessageRef data;
-               for (uint32 i=0; msg()->FindMessage(iter.GetFieldName(), i, data).IsOK(); i++)
+               ConstMessageRef theData;
+               for (uint32 i=0; msg()->FindMessage(iter.GetFieldName(), i, theData).IsOK(); i++)
                {
-                  if (_states.ContainsKey(iter.GetFieldName()) == false) AddChatText(QString("[%1] has connected to the server.").arg(data()->GetString("username")()));
-                  (void) _states.Put(iter.GetFieldName(), data);
+                  if (_states.ContainsKey(iter.GetFieldName()) == false) AddChatText(QString("[%1] has connected to the server.").arg(theData()->GetString("username")()));
+                  (void) _states.Put(iter.GetFieldName(), theData);
                }
                _exampleWidget->update();
             }

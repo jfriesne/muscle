@@ -283,10 +283,10 @@ void BrowserWindow :: MessageReceivedFromServer(const MessageRef & msg)
             for (MessageFieldNameIterator iter = msg()->GetFieldNameIterator(B_MESSAGE_TYPE); iter.HasData(); iter++)
             {
                const String & nodePath = iter.GetFieldName();
-               ConstMessageRef data;
-               for (uint32 i=0; msg()->FindMessage(nodePath, i, data).IsOK(); i++)
+               ConstMessageRef theData;
+               for (uint32 i=0; msg()->FindMessage(nodePath, i, theData).IsOK(); i++)
                {
-                  if (_pathToMessage.Put(nodePath, data).IsOK())
+                  if (_pathToMessage.Put(nodePath, theData).IsOK())
                   {
                      UpdateDataNodeInTreeView(nodePath);
                      LogTime(MUSCLE_LOG_INFO, "BrowserWindow %p added/updated node at [%s]\n", this, nodePath());
