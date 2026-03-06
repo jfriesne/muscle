@@ -12,9 +12,12 @@ key:  - new feature
    - Added GetAreaPointerAsType() convenience-methods to the SharedMemory class.
    - Added RecastPointerToType<T>() functions to MuscleSupport.h.
    - Added CheckPointerAlignment() convenience method to MuscleSupport.h
-   * Fixed various compiler-warnings detected by the new build flags.
    - Added a MUSCLE_ABSORB_SEMICOLON macro to MuscleSupport.h; it is
      there just to help my other macros not cause -Wextra-semi warnings.
+   o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
+     DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
+     variadic macros.
+   * Fixed various compiler-warnings detected by the new build flags.
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

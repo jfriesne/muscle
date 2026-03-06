@@ -8,11 +8,10 @@
 namespace muscle {
 
 /** This macro is the best way to declare a BatchGuard object */
-#ifdef _MSC_VER
-#define DECLARE_BATCHGUARD(bo, ...) const BatchOperatorBase::BatchGuard & MUSCLE_UNIQUE_NAME = (bo).GetBatchGuard(__VA_ARGS__); (void) MUSCLE_UNIQUE_NAME
-#else
-# define DECLARE_BATCHGUARD(bo, args...) const BatchOperatorBase::BatchGuard & MUSCLE_UNIQUE_NAME = (bo).GetBatchGuard(args); (void) MUSCLE_UNIQUE_NAME
-#endif
+#define DECLARE_BATCHGUARD(bo)                    const BatchOperatorBase::BatchGuard & MUSCLE_UNIQUE_NAME = (bo).GetBatchGuard();    (void) MUSCLE_UNIQUE_NAME
+
+/** This macro is the best way to declare a BatchGuard object that takes an explicit BatchArgs argument */
+#define DECLARE_BATCHGUARD_WITH_ARGUMENT(bo, arg) const BatchOperatorBase::BatchGuard & MUSCLE_UNIQUE_NAME = (bo).GetBatchGuard(arg); (void) MUSCLE_UNIQUE_NAME
 
 /** This class includes the common functionality of a BatchOperator that is the same across all template
   * instantiations of the BatchOperator family.  It should not be used directly by user code.
