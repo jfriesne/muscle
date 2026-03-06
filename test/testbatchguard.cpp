@@ -149,10 +149,10 @@ int main(int, char **)
    {
       TestArgsABatchOperator bo;
       printf("First guard...\n");
-      DECLARE_BATCHGUARD(bo, TestArgsA("Hi", 666));
+      DECLARE_BATCHGUARD_WITH_ARGUMENT(bo, TestArgsA("Hi", 666));
       {
          printf("  Second guard...\n");
-         DECLARE_BATCHGUARD(bo, TestArgsA("Bye", 667));
+         DECLARE_BATCHGUARD_WITH_ARGUMENT(bo, TestArgsA("Bye", 667));
          {
             printf("    Third guard...\n");
             DECLARE_BATCHGUARD(bo);
@@ -172,13 +172,13 @@ int main(int, char **)
       printf("  Manual begin (TestArgsA)...\n");
       bo.BeginOperationBatch(TestArgsA("xxx", 123));
 
-      DECLARE_BATCHGUARD(bo, TestArgsA("Hi", 666));
+      DECLARE_BATCHGUARD_WITH_ARGUMENT(bo, TestArgsA("Hi", 666));
       {
          printf("  Second guard (TestArgsA)...\n");
-         DECLARE_BATCHGUARD(bo, TestArgsA("Bye", 667));
+         DECLARE_BATCHGUARD_WITH_ARGUMENT(bo, TestArgsA("Bye", 667));
          {
             printf("    Third guard (TestArgsB)...\n");
-            DECLARE_BATCHGUARD(bo, TestArgsB("CCC", 999));
+            DECLARE_BATCHGUARD_WITH_ARGUMENT(bo, TestArgsB("CCC", 999));
 
             printf("  Manual end (TestArgsA)...\n");
             bo.EndOperationBatch(TestArgsA("xxx", 123));

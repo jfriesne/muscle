@@ -1362,7 +1362,7 @@ uint64 GetCurrentTime64(uint32 timeType)
 #endif
 }
 
-#if defined(MUSCLE_TRACE_CHECKPOINTS) && (MUSCLE_TRACE_CHECKPOINTS > 0)
+#if defined(MUSCLE_TRACE_CHECKPOINTS)
 static volatile uint32 _defaultTraceLocation[MUSCLE_TRACE_CHECKPOINTS];
 volatile uint32 * _muscleTraceValues = _defaultTraceLocation;
 uint32 _muscleNextTraceValueIndex = 0;

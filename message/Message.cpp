@@ -2351,7 +2351,7 @@ void MessageField :: SingleSetValue(const void * data, uint32 /*size*/)
       case B_INT32_TYPE:   SetInlineItemAsInt32(  data ? *static_cast<const int32         *>(data) : 0);        break;
       case B_INT16_TYPE:   SetInlineItemAsInt16(  data ? *static_cast<const int16         *>(data) : 0);        break;
       case B_INT8_TYPE:    SetInlineItemAsInt8(   data ? *static_cast<const int8          *>(data) : 0);        break;
-      case B_POINTER_TYPE: SetInlineItemAsPointer(data ? *static_cast<const MFVoidPointer *>(data) : 0);        break;
+      case B_POINTER_TYPE: SetInlineItemAsPointer(data ? *static_cast<const MFVoidPointer *>(data) : NULL);     break;
       case B_POINT_TYPE:   SetInlineItemAsPoint(  data ? *static_cast<const Point         *>(data) : Point());  break;
       case B_RECT_TYPE:    SetInlineItemAsRect(   data ? *static_cast<const Rect          *>(data) : Rect());   break;
       case B_STRING_TYPE:  SetInlineItemAsString( data ? *static_cast<const String        *>(data) : String()); break;

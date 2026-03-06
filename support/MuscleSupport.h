@@ -84,6 +84,8 @@
 # endif
 # ifndef MUSCLE_AVOID_CPLUSPLUS11
 #  define MUSCLE_NOEXCEPT noexcept       /**< MUSCLE_NOEXCEPT expands to noexcept only in C++11 or newer.  In C++03 it expands to nothing. */
+#  define MUSCLE_NULLPTR_OR_ZERO nullptr /**< MUSCLE_NULLPTR_OR_ZERO expands to nullptr only in C++11 or newer.  In C++03 it expands to 0. */
+#  define MUSCLE_DEFAULT_INITIALIZER {}  /**< MUSCLE_DEFAULT_INITIALIZER expands to {} in C++11 or newer.  In C++03 it expands to 0. */
 #  if !defined(MUSCLE_USE_PTHREADS) && !defined(MUSCLE_SINGLE_THREAD_ONLY) && !defined(MUSCLE_AVOID_CPLUSPLUS11_THREADS)
 #   define MUSCLE_USE_CPLUSPLUS11_THREADS
 #  endif
@@ -192,6 +194,10 @@
 
 #ifndef MUSCLE_NOEXCEPT
 # define MUSCLE_NOEXCEPT   /**< MUSCLE_NOEXCEPT expands to noexcept only in C++11 or newer.  In C++03 it expands to nothing. */
+#endif
+
+#ifndef MUSCLE_NULLPTR_OR_ZERO
+# define MUSCLE_NULLPTR_OR_ZERO 0  /**< MUSCLE_DEFAULT_INITIALIZER expands to {} in C++11 or newer.  In C++03 it expands to 0. */
 #endif
 
 #ifdef MUSCLE_CONSTEXPR_IS_SUPPORTED
@@ -1125,7 +1131,7 @@ namespace muscle_private
       template <typename T> yes swapcontents_tester(test_swapcontents_wrapper<T, &T::SwapContents>*);
       template <typename T> no  swapcontents_tester(...);
 
-      template <typename T> struct test_swapcontents_impl {static const bool value = sizeof(swapcontents_tester<T>(0)) == sizeof(yes);};
+      template <typename T> struct test_swapcontents_impl {static const bool value = sizeof(swapcontents_tester<T>(MUSCLE_NULLPTR_OR_ZERO)) == sizeof(yes);};
 
       template <class T> struct has_swapcontents_method : test_swapcontents_impl<T> {};
       template <bool Condition, typename TrueResult, typename FalseResult> struct if_;
@@ -1861,7 +1867,7 @@ namespace muscle {
 class DataNode;  // FogBugz #9816 tweakage
 #endif
 
-#if defined(MUSCLE_TRACE_CHECKPOINTS) && (MUSCLE_TRACE_CHECKPOINTS > 0)
+#if defined(MUSCLE_TRACE_CHECKPOINTS)
 
 /** Exposed as an implementation detail.  Please ignore! */
 extern volatile uint32 * _muscleTraceValues;
@@ -2065,7 +2071,7 @@ namespace muscle_private
    template <typename T>             struct is_array<T[]>     {static const bool value = true;};
    template <typename T>             struct is_const          {static const bool value = false;};
    template <typename T>             struct is_const<const T> {static const bool value = true;};
-   template <typename T> class is_class {private: template <typename C> static char t(int C::*); template <typename C> static int t(...); public: static const bool value = (sizeof(t<T>(0)) == sizeof(char));};
+   template <typename T> class is_class {private: template <typename C> static char t(int C::*); template <typename C> static int t(...); public: static const bool value = (sizeof(t<T>(MUSCLE_NULLPTR_OR_ZERO)) == sizeof(char));};
 
    template <bool Condition, typename T = void> struct enable_if {};
    template <typename T>                        struct enable_if<true, T> { typedef T type; };
@@ -2219,7 +2225,7 @@ namespace muscle_private
       template <typename T> yes hashcode_tester(test_hashcode_wrapper<T, &T::HashCode>*);
       template <typename T> no  hashcode_tester(...);
 
-      template <typename T> struct test_hashcode_impl {static const bool value = sizeof(hashcode_tester<T>(0)) == sizeof(yes);};
+      template <typename T> struct test_hashcode_impl {static const bool value = sizeof(hashcode_tester<T>(MUSCLE_NULLPTR_OR_ZERO)) == sizeof(yes);};
 
       template <class T> struct has_hashcode_method : test_hashcode_impl<T> {};
       template <bool Condition, typename TrueResult, typename FalseResult> struct if_;
