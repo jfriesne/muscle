@@ -1063,76 +1063,6 @@ ThreadSetupSystem :: ~ThreadSetupSystem()
 
 static uint32 _networkSetupCount = 0;
 
-#if defined(MUSCLE_ENABLE_SSL) && !defined(MUSCLE_SINGLE_THREAD_ONLY)
-
-// OpenSSL thread-safety-callback setup code provided by Tosha at
-// http://stackoverflow.com/questions/3417706/openssl-and-multi-threads/12810000#12810000
-# if defined(WIN32)
-#  define OPENSSL_MUTEX_TYPE       HANDLE
-#  define OPENSSL_MUTEX_SETUP(x)   (x) = CreateMutex(NULL, FALSE, NULL)
-#  define OPENSSL_MUTEX_CLEANUP(x) CloseHandle(x)
-#  define OPENSSL_MUTEX_LOCK(x)    WaitForSingleObject((x), INFINITE)
-#  define OPENSSL_MUTEX_UNLOCK(x)  ReleaseMutex(x)
-#  define OPENSSL_THREAD_ID        GetCurrentThreadId()
-# else
-#  define OPENSSL_MUTEX_TYPE       pthread_mutex_t
-#  define OPENSSL_MUTEX_SETUP(x)   pthread_mutex_init(&(x), NULL)
-#  define OPENSSL_MUTEX_CLEANUP(x) pthread_mutex_destroy(&(x))
-#  define OPENSSL_MUTEX_LOCK(x)    pthread_mutex_lock(&(x))
-#  define OPENSSL_MUTEX_UNLOCK(x)  pthread_mutex_unlock(&(x))
-#  define OPENSSL_THREAD_ID        pthread_self()
-# endif
-
-/* This array will store all of the mutexes available to OpenSSL. */
-static OPENSSL_MUTEX_TYPE *mutex_buf=NULL;
-
-static void openssl_locking_function(int mode, int n, const char * file, int line)
-{
-   (void) file;
-   (void) line;
-   if (mode & CRYPTO_LOCK) OPENSSL_MUTEX_LOCK(mutex_buf[n]);
-                      else OPENSSL_MUTEX_UNLOCK(mutex_buf[n]);
-}
-
-static unsigned long openssl_id_function(void) {return ((unsigned long)OPENSSL_THREAD_ID);}
-
-static int openssl_thread_setup(void)
-{
-   mutex_buf = (OPENSSL_MUTEX_TYPE *) malloc(CRYPTO_num_locks() * sizeof(OPENSSL_MUTEX_TYPE));
-   if (!mutex_buf) return -1;
-
-   for (int i=0;  i<CRYPTO_num_locks();  i++) OPENSSL_MUTEX_SETUP(mutex_buf[i]);
-
-   CRYPTO_set_id_callback(openssl_id_function);
-#ifndef _MSC_VER
-   (void) openssl_id_function;       // just to avoid a compiler warning with newer OpenSSL versions where CRYPTO_set_id_callback() is a no-op macro
-#endif
-
-   CRYPTO_set_locking_callback(openssl_locking_function);
-#ifndef _MSC_VER
-   (void) openssl_locking_function;  // just to avoid a compiler warning with newer OpenSSL versions where CRYPTO_set_locking_callback() is a no-op macro
-#endif
-
-   return 0;
-}
-
-static int openssl_thread_cleanup(void)
-{
-   if (!mutex_buf) return -1;
-
-   CRYPTO_set_id_callback(NULL);
-   CRYPTO_set_locking_callback(NULL);
-
-   for (int i=0;  i < CRYPTO_num_locks();  i++) OPENSSL_MUTEX_CLEANUP(mutex_buf[i]);
-
-   free(mutex_buf);
-   mutex_buf = NULL;
-
-   return 0;
-}
-
-#endif
-
 NetworkSetupSystem :: NetworkSetupSystem()
 {
    if (++_networkSetupCount == 1)
@@ -1155,9 +1085,6 @@ NetworkSetupSystem :: NetworkSetupSystem()
       ERR_load_BIO_strings();
 # endif
       SSL_library_init();
-# ifndef MUSCLE_SINGLE_THREAD_ONLY
-      if (openssl_thread_setup() != 0) MCRASH("Error setting up thread-safety callbacks for OpenSSL!");
-# endif
 #endif
    }
 }
@@ -1166,9 +1093,6 @@ NetworkSetupSystem :: ~NetworkSetupSystem()
 {
    if (--_networkSetupCount == 0)
    {
-#if defined(MUSCLE_ENABLE_SSL) && !defined(MUSCLE_SINGLE_THREAD_ONLY)
-      (void) openssl_thread_cleanup();
-#endif
 #ifdef WIN32
       WSACleanup();
 #endif

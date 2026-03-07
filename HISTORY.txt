@@ -17,6 +17,8 @@ key:  - new feature
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
      DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
      variadic macros.
+   o Removed some obsolete OpenSSL setup/cleanup routines from
+     SetupSystem.cpp.
    * Fixed various compiler-warnings detected by the new build flags.
 
 9.80 - Released 2/27/2026
