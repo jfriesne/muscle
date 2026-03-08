@@ -212,8 +212,8 @@ int stop 			/* character this ERE should end at */
 )
 {
 	register char c;
-	register sopno prevback;
-	register sopno prevfwd;
+	register sopno prevback = 0;
+	register sopno prevfwd = 0;
 	register sopno conc;
 	register int first = 1;		/* is this the first alternative? */
 
@@ -861,11 +861,11 @@ int ch
 {
 	assert(safe_isalpha(ch));
 	if (isupper(ch))
-		return(tolower(ch));
+		return((char) tolower(ch));
 	else if (islower(ch))
-		return(toupper(ch));
+		return((char) toupper(ch));
 	else			/* peculiar, but could happen */
-		return(ch);
+		return((char) ch);
 }
 
 /*
@@ -887,7 +887,7 @@ int ch
 	assert(othercase(ch) != ch);	/* p_bracket() would recurse */
 	p->next = bracket;
 	p->end = bracket+2;
-	bracket[0] = ch;
+	bracket[0] = (char) ch;
 	bracket[1] = ']';
 	bracket[2] = '\0';
 	p_bracket(p);
@@ -913,7 +913,7 @@ register int ch
 	else {
 		EMIT(OCHAR, (unsigned char)ch);
 		if (cap[ch] == 0)
-			cap[ch] = p->g->ncategories++;
+			cap[ch] = (cat_t) (p->g->ncategories++);
 	}
 }
 
@@ -1410,7 +1410,7 @@ register struct re_guts *g
 
 	for (c = CHAR_MIN; c <= CHAR_MAX; c++)
 		if (cats[c] == 0 && isinsets(g, c)) {
-			cat = g->ncategories++;
+			cat = (cat_t) g->ncategories++;
 			cats[c] = cat;
 			for (c2 = c+1; c2 <= CHAR_MAX; c2++)
 				if (cats[c2] == 0 && samesets(g, c, c2))

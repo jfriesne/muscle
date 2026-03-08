@@ -96,8 +96,8 @@ typedef struct {
 	char *multis;		/* -> char[smulti]  ab\0cd\0ef\0\0 */
 } cset;
 /* note that CHadd and CHsub are unsafe, and CHIN doesn't yield 0/1 */
-#define	CHadd(cs, c)	((cs)->ptr[(uch)(c)] |= (cs)->mask, (cs)->hash += (c))
-#define	CHsub(cs, c)	((cs)->ptr[(uch)(c)] &= ~(cs)->mask, (cs)->hash -= (c))
+#define	CHadd(cs, c)	((cs)->ptr[(uch)(c)] |= (uch)   (cs)->mask,  (cs)->hash = (uch) (((cs)->hash)+(c)))
+#define	CHsub(cs, c)	((cs)->ptr[(uch)(c)] &= (uch) (~(cs)->mask), (cs)->hash = (uch) (((cs)->hash)-(c)))
 #define	CHIN(cs, c)	((cs)->ptr[(uch)(c)] & (cs)->mask)
 #define	MCadd(p, cs, cp)	mcadd(p, cs, cp)	/* regcomp() internal fns */
 #define	MCsub(p, cs, cp)	mcsub(p, cs, cp)
