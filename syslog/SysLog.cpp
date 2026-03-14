@@ -9,6 +9,7 @@
 #include "syslog/LogCallback.h"
 #include "system/SetupSystem.h"
 #include "system/SystemInfo.h"  // for GetFilePathSeparator()
+#include "util/ByteBuffer.h"
 #include "util/Directory.h"
 #include "util/FilePathInfo.h"
 #include "util/Hashtable.h"
@@ -312,20 +313,23 @@ void DefaultFileLogger :: CloseLogFile()
                bool ok = true;
 
                const uint32 bufSize = 128*1024;
-               char * buf = new char[bufSize];
-               while(1)
+               ByteBuffer bb;
+               if (bb.SetNumBytes(bufSize, false).IsOK())
                {
-                  const int32 bytesRead = inIO.Read(buf, bufSize).GetByteCount();
-                  if (bytesRead < 0) break;  // EOF
-
-                  const int bytesWritten = gzwrite(gzOut, buf, bytesRead);
-                  if (bytesWritten <= 0)
+                  uint8 * buf = bb.GetBuffer();
+                  while(1)
                   {
-                     ok = false;  // write error, oh dear
-                     break;
+                     const int32 bytesRead = inIO.Read(buf, bufSize).GetByteCount();
+                     if (bytesRead < 0) break;  // EOF
+
+                     const int bytesWritten = gzwrite(gzOut, buf, bytesRead);
+                     if (bytesWritten <= 0)
+                     {
+                        ok = false;  // write error, oh dear
+                        break;
+                     }
                   }
                }
-               delete [] buf;
 
                gzclose(gzOut);
 

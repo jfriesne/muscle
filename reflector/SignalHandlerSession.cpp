@@ -1,6 +1,7 @@
 /* This file is Copyright 2000-2026 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "reflector/SignalHandlerSession.h"
+#include "system/AtomicCounter.h"
 #include "system/SignalMultiplexer.h"
 #include "util/NetworkUtilityFunctions.h"
 
@@ -59,8 +60,8 @@ void SignalHandlerSession :: SignalReceived(const SignalEventInfo & sei)
    EndServer();
 }
 
-static bool _wasSignalCaught = false;
-bool WasSignalCaught() {return _wasSignalCaught;}
+static AtomicCounter _numSignalsCaught;
+uint32 GetNumSignalsCaught() {return (uint32) _numSignalsCaught.GetCount();}
 
 void SignalHandlerSession :: SignalHandlerFunc(const SignalEventInfo & sei)
 {
@@ -75,7 +76,7 @@ void SignalHandlerSession :: SignalHandlerFunc(const SignalEventInfo & sei)
       {
          if (sei.GetSignalNumber() == nextSigNum)
          {
-            _wasSignalCaught = true;
+            (void) _numSignalsCaught.AtomicIncrement();
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11
             uint8 buf[sizeof(int32)+sizeof(uint64)];  // ugly hack because C++03 doesn't know about constexpr methods

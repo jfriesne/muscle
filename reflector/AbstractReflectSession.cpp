@@ -543,7 +543,7 @@ PrintSessionsInfo(const OutputPrinter & p) const
       {
          const Queue<MessageRef> & q = gw->GetOutgoingMessageQueue();
          numOutMessages = q.GetNumItems();
-         for (uint32 i=0; i<numOutMessages; i++) numOutBytes = q[i]()->FlattenedSize();
+         for (uint32 i=0; i<numOutMessages; i++) numOutBytes += q[i]()->FlattenedSize();
       }
 
       String stateStr;

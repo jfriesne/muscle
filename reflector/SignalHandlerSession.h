@@ -52,8 +52,8 @@ private:
 };
 DECLARE_REFTYPES(SignalHandlerSession);
 
-/** Returns true iff any SignalHandlerSession ever caught a signal since this process was started. */
-MUSCLE_NODISCARD bool WasSignalCaught();
+/** Returns the total number of signals that have been caught SignalHandlerSession's signal-handler routine since this process was started. */
+MUSCLE_NODISCARD uint32 GetNumSignalsCaught();
 
 /** Sets whether or not the ReflectServer in the main thread should try to handle signals.
   * Default state is false, unless MUSCLE_CATCH_SIGNALS_BY_DEFAULT was defined at compile time.

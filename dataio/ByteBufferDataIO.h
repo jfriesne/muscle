@@ -59,7 +59,7 @@ public:
    virtual status_t Seek(int64 offset, int whence);
 
    /** Returns our current seek-position within the ByteBuffer */
-   MUSCLE_NODISCARD virtual int64 GetPosition() const {return _seekPos;}
+   MUSCLE_NODISCARD virtual int64 GetPosition() const {return (int64) _seekPos;}
 
    /** Returns the number of valid bytes that are currently in our ByteBuffer */
    MUSCLE_NODISCARD virtual int64 GetLength() const {return _buf() ? _buf()->GetNumBytes() : 0;}
@@ -80,8 +80,15 @@ public:
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return GetNullSocket();}
 
 private:
+   // Returns the number of bytes that can still be read starting at the current seek-position
+   uint32 GetNumBytesAvailable() const
+   {
+      const uint32 numBytesInBuffer = _buf() ? _buf()->GetNumBytes() : 0;
+      return (_seekPos < numBytesInBuffer) ? (numBytesInBuffer-_seekPos) : 0;
+   }
+
    ByteBufferRef _buf;
-   int32 _seekPos;
+   uint32 _seekPos;
 
    DECLARE_COUNTED_OBJECT(ByteBufferDataIO);
 };

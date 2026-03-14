@@ -2,6 +2,7 @@
 
 #include "support/NotCopyable.h"
 #include "system/StackTrace.h"  // this include must be here, so that MUSCLE_USE_MSVC_STACKWALKER will be defined below if appropriate
+#include "util/ByteBuffer.h"
 
 #if defined(__EMSCRIPTEN__)
 # include <emscripten/emscripten.h>
@@ -145,10 +146,14 @@ private:
 #ifdef _UNICODE
       size_t len;
       (void) wcstombs_s(&len, NULL, 0, szText, wcslen(szText));
-      char * buf = new char[len];
-      (void) wcstombs_s(&len, buf, len, szText, wcslen(szText));
-      if (len > 0) p.puts(buf);
-      delete [] buf;
+
+      ByteBuffer bb;
+      if (bb.SetNumBytes((uint32) len, false).IsOK())
+      {
+         char * buf = bb.GetBufferAsType<char>();
+         (void) wcstombs_s(&len, buf, len, szText, wcslen(szText));
+         if (len > 0) p.puts(buf);
+      }
 #else
       p.puts(szText);
 #endif

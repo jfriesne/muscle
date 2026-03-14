@@ -5,7 +5,8 @@
 namespace muscle {
 
 ByteBufferDataIO :: ByteBufferDataIO(const ByteBufferRef & buf)
-   : _buf(buf), _seekPos(0)
+   : _buf(buf)
+   , _seekPos(0)
 {
    // empty
 }
@@ -17,14 +18,14 @@ ByteBufferDataIO :: ~ByteBufferDataIO()
 
 io_status_t ByteBufferDataIO :: Read(void * buffer, uint32 size)
 {
-   if (_buf())
-   {
-      const int32 copyBytes = muscleMin((int32)size, muscleMax((int32)0, (int32)(_buf()->GetNumBytes()-_seekPos)));
-      memcpy(buffer, _buf()->GetBuffer()+_seekPos, copyBytes);
-      _seekPos += copyBytes;
-      return copyBytes;
-   }
-   return B_BAD_OBJECT;
+   if (_buf() == NULL) return B_BAD_OBJECT;
+
+   const uint32 numBytesToCopy = muscleMin(size, GetNumBytesAvailable());
+   if (numBytesToCopy == 0) return B_END_OF_STREAM;  // as opposed to "nothing more to read right now"
+
+   memcpy(buffer, _buf()->GetBuffer()+_seekPos, numBytesToCopy);
+   _seekPos += numBytesToCopy;
+   return numBytesToCopy;
 }
 
 io_status_t ByteBufferDataIO :: Write(const void * buffer, uint32 size)
@@ -32,41 +33,38 @@ io_status_t ByteBufferDataIO :: Write(const void * buffer, uint32 size)
    if (_buf() == NULL) return B_BAD_OBJECT;
 
    const uint32 oldBufSize = _buf()->GetNumBytes();
-   const uint32 pastOffset = muscleMax(oldBufSize, _seekPos+size);
-   if (pastOffset > oldBufSize)
-   {
-      const uint32 preallocBytes = (pastOffset*2);  // exponential resize to avoid too many reallocs
-      MRETURN_ON_ERROR(_buf()->SetNumBytes(preallocBytes, true));   // allocate the memory
-      memset(_buf()->GetBuffer()+oldBufSize, 0, preallocBytes-oldBufSize);  // make sure newly alloc'd memory is zeroed out!
-      _buf()->TruncateToLength(pastOffset);
-   }
+   const uint32 newBufSize = muscleMax(oldBufSize, _seekPos+size);
+   if (newBufSize > oldBufSize) MRETURN_ON_ERROR(_buf()->AppendBytes(NULL, newBufSize-oldBufSize, true)); // enlarge the buffer
 
    memcpy(_buf()->GetBuffer()+_seekPos, buffer, size);
    _seekPos += size;
+   MRETURN_ON_ERROR(_buf()->SetNumBytes(_seekPos, true));  // never touches the heap since we know the ByteBuffer's buffer is already big enough to hold (_seekPos) bytes
+
    return size;
 }
 
 status_t ByteBufferDataIO :: Seek(int64 offset, int whence)
 {
-   const uint32 fileLen = _buf() ? _buf()->GetNumBytes() : 0;
-   const int32 o = (int32) offset;
-   int32 newSeekPos = -1;
+   if (_buf() == NULL) return B_BAD_OBJECT;
+
+   int64 newSeekPos;
    switch(whence)
    {
-      case IO_SEEK_SET:  newSeekPos = o;          break;
-      case IO_SEEK_CUR:  newSeekPos = _seekPos+o; break;
-      case IO_SEEK_END:  newSeekPos = fileLen-o;  break;
-      default:           return B_BAD_ARGUMENT;
+      case IO_SEEK_SET: newSeekPos = offset;             break;
+      case IO_SEEK_CUR: newSeekPos = offset+_seekPos;    break;
+      case IO_SEEK_END: newSeekPos = GetLength()+offset; break;  // yes, the + is intentional
+      default:          return B_BAD_ARGUMENT;
    }
-   if (newSeekPos < 0) return B_BAD_ARGUMENT;
-   _seekPos = newSeekPos;
+   if ((offset < 0)||(offset > GetLength())) return B_BAD_ARGUMENT;  // yes, the strictly-greater-than test is intentional, so we can successfully seek to EOF
+
+   _seekPos = (uint32) newSeekPos;
    return B_NO_ERROR;
 }
 
 status_t ByteBufferDataIO :: Truncate()
 {
-   return ((_buf())&&(_seekPos >= 0))
-        ? _buf()->SetNumBytes((uint32)_seekPos, true)
+   return _buf()
+        ? _buf()->SetNumBytes(_seekPos, true)
         : B_BAD_OBJECT;
 }
 
