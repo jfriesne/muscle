@@ -163,7 +163,7 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
             }
             else ret = B_LOGIC_ERROR;  // should never happen, but we're paranoid
 
-            (void) _waitingWriterThreads.RemoveFirst();
+            (void) _waitingWriterThreads.Remove(tid);   // RemoveFirst() would also work here but it makes Claude nervous
             return ret;
          }
       }

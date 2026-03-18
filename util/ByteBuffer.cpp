@@ -96,7 +96,11 @@ status_t ByteBuffer :: AppendBytes(const uint8 * bytes, uint32 numBytes, bool al
 
 status_t ByteBuffer :: SetNumBytesWithExtraSpace(uint32 newNumValidBytes, bool allocExtra)
 {
-   MRETURN_ON_ERROR(SetNumBytes(((allocExtra)&&(newNumValidBytes > _numAllocatedBytes)) ? muscleMax(newNumValidBytes*4, (uint32)128) : newNumValidBytes, true));
+   const uint32 mult  = 4;
+   const bool doAlloc = ((allocExtra)&&(newNumValidBytes > _numAllocatedBytes));
+   if ((doAlloc)&&(newNumValidBytes > (((uint32)-1)/mult))) return B_RESOURCE_LIMIT;  // avoid potential 32-bit overflow
+
+   MRETURN_ON_ERROR(SetNumBytes(doAlloc ? muscleMax(newNumValidBytes*mult, (uint32)128) : newNumValidBytes, true));
    _numValidBytes = newNumValidBytes;
    return B_NO_ERROR;
 }
@@ -158,7 +162,10 @@ String ByteBuffer :: ToAnnotatedHexString(uint32 maxBytesToInclude, uint32 numCo
 ByteBuffer operator+(const ByteBuffer & lhs, const ByteBuffer & rhs)
 {
    ByteBuffer ret;
-   if (ret.SetNumBytes(lhs.GetNumBytes()+rhs.GetNumBytes(), false).IsOK())
+   const uint32 combinedLen = lhs.GetNumBytes()+rhs.GetNumBytes();
+   if (combinedLen < lhs.GetNumBytes()) MCRASH("ByteBuffer::operator+():  can't append ByteBuffers, result is too large");
+
+   if (ret.SetNumBytes(combinedLen, false).IsOK())
    {
       memcpy(ret.GetBuffer(), lhs.GetBuffer(), lhs.GetNumBytes());
       memcpy(ret.GetBuffer()+lhs.GetNumBytes(), rhs.GetBuffer(), rhs.GetNumBytes());
