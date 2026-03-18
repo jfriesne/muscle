@@ -37,6 +37,7 @@ SOURCES += \
         $$MUSCLE_DIR/system/SignalMultiplexer.cpp \
         $$MUSCLE_DIR/system/GlobalMemoryAllocator.cpp \
         $$MUSCLE_DIR/zlib/ZLibCodec.cpp \
+        $$MUSCLE_DIR/zlib/ZLibUtilityFunctions.cpp \
         $$MUSCLE_DIR/regex/StringMatcher.cpp \
         $$MUSCLE_DIR/regex/QueryFilter.cpp \
         $$MUSCLE_DIR/regex/PathMatcher.cpp \

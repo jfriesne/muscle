@@ -11,6 +11,7 @@
 #include "Browser.h"
 #include "system/SetupSystem.h"
 #include "util/MiscUtilityFunctions.h"  // for ParseConnectArg()
+#include "zlib/ZLibUtilityFunctions.h"  // for InflateMessage()
 
 // Convenience macro
 #define FromQ(qs) ((qs).toUtf8().constData())
@@ -157,6 +158,15 @@ void BrowserWindow :: SetMessageContentsViewContents(QTreeWidgetItem * item)
       {
          t = QString("Message at path [%1] is:\n\n").arg(itemPath());
          t += m->GetItemPointer()->ToString()();
+
+         if (IsMessageDeflated(*m))
+         {
+            t += tr("\nDeflated Message inflates to:\n\n");
+
+            ConstMessageRef infMsg = InflateMessage(*m);
+            if (infMsg()) t += infMsg()->ToString()();
+                     else t += tr("[Inflate error %1]").arg(infMsg.GetStatus()());
+         }
       }
       else t = QString("Message at path [%1] isn't known").arg(itemPath());
 

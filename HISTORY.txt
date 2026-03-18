@@ -14,6 +14,8 @@ key:  - new feature
    - Added CheckPointerAlignment() convenience method to MuscleSupport.h
    - Added a MUSCLE_ABSORB_SEMICOLON macro to MuscleSupport.h; it is
      there just to help my other macros not cause -Wextra-semi warnings.
+   - qt_muscle_browser now inflates deflated Message payloads so they
+     can be examined more easily.
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
      DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
      variadic macros.
