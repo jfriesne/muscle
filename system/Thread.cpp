@@ -144,7 +144,9 @@ status_t Thread :: StartInternalThreadAuxAux()
       pthread_attr_init(&attr);
       (void) pthread_attr_setstacksize(&attr, _suggestedStackSize);
    }
-   return B_ERRNUM(pthread_create(&_thread, (_suggestedStackSize!=0)?&attr:NULL, InternalThreadEntryFunc, this));
+   const status_t ret = B_ERRNUM(pthread_create(&_thread, (_suggestedStackSize!=0)?&attr:NULL, InternalThreadEntryFunc, this));
+   if (_suggestedStackSize != 0) pthread_attr_destroy(&attr);
+   return ret;
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
    typedef unsigned (__stdcall *PTHREAD_START) (void *);
    return ((_thread = (::HANDLE)_beginthreadex(NULL, _suggestedStackSize, (PTHREAD_START)InternalThreadEntryFunc, this, 0, (unsigned *)&_threadID)) != NULL) ? B_NO_ERROR : B_ERRNO;

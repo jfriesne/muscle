@@ -1875,7 +1875,7 @@ status_t Message :: ReplaceData(bool okayToAdd, const String & fieldName, uint32
    for (uint32 i=index; i<index+numElements; i++)
    {
       FlatCountableRef fcRef;
-      const void * dataToAdd = &dataBuf[i*elementSize];
+      const void * dataToAdd = &dataBuf[(i-index)*elementSize];
       uint32 addSize = elementSize;
       if (isVariableSize)
       {

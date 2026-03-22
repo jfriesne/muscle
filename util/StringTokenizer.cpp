@@ -99,8 +99,18 @@ void StringTokenizer :: CopyDataToPrivateBuffer(const StringTokenizer & copyFrom
    if (_bufLen <= sizeof(_smallStringBuf))
    {
       _allocedBufferOnHeap = false;
-      memcpy(_smallStringBuf, copyFrom._tokenizeMe, _bufLen);
-      SetPointersAnalogousTo(_smallStringBuf, copyFrom);
+      if (_bufLen > 0)
+      {
+         memcpy(_smallStringBuf, copyFrom._tokenizeMe, _bufLen);
+         SetPointersAnalogousTo(_smallStringBuf, copyFrom);
+      }
+      else
+      {
+         // (copyFrom) is writing NUL bytes directly into the user-supplied buffer, so just adopt his state verbatim
+         _tokenizeMe  = copyFrom._tokenizeMe;
+         _nextToRead  = copyFrom._nextToRead;
+         _nextToWrite = copyFrom._nextToWrite;
+      }
    }
    else
    {

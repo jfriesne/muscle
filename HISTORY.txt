@@ -26,6 +26,10 @@ key:  - new feature
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO::Read() now returns B_END_OF_STREAM when it has
      no more bytes to provide, rather than 0.
+   * Fixed an indexing bug in Message::ReplaceData() (found by Claude)
+   * Fixed a bug in StringTokenizer's copy-constructor (found by Claude)
+   * Fixed a potential memory leak in Thread::StartInternalThreadAuxAux()
+     (found by Claude)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
