@@ -426,6 +426,7 @@ public:
    status_t RemoveLast(KeyType & setRemovedKey, ValueType & setRemovedValue)
    {
       HashtableEntryBase * e = this->IndexToEntryChecked(_iterTailIdx);
+      if (e == NULL) return B_DATA_NOT_FOUND;
       setRemovedKey = e->_key;
       return RemoveEntry(e, &setRemovedValue);
    }
@@ -917,7 +918,7 @@ private:
    uint32 GetTableIndexType() const {return this->ComputeTableIndexTypeForTableSize(_tableSize);}
 #endif
 
-   MUSCLE_NODISCARD static uint32 ComputeTableIndexTypeForTableSize(uint32 tableSize) {return (tableSize>=255) + (tableSize>=65535);}
+   MUSCLE_NODISCARD static uint32 ComputeTableIndexTypeForTableSize(uint32 tableSize) {return (tableSize>=255) + (tableSize>=65535);}  // note that the largest possible index ((uintN)-1) is used as a sentinel-value, that's why these numbers are one smaller than a power-of-two
 
    /** This class is an implementation detail, please ignore it.  Do not access it directly. */
    class HashtableEntryBase
@@ -1102,7 +1103,7 @@ private:
    void SetEntryIterNextChecked(  HashtableEntryBase * e, const HashtableEntryBase * v) {this->SetEntryIndexValue(e, HTE_INDEX_ITER_NEXT,   this->EntryToIndexChecked(v));}
    void SetEntryIterPrevChecked(  HashtableEntryBase * e, const HashtableEntryBase * v) {this->SetEntryIndexValue(e, HTE_INDEX_ITER_PREV,   this->EntryToIndexChecked(v));}
    void SetEntryMapToChecked(     HashtableEntryBase * e, const HashtableEntryBase * v) {this->SetEntryIndexValue(e, HTE_INDEX_MAP_TO,      this->EntryToIndexChecked(v));}
-   void SetEntryMappedFromChecked(HashtableEntryBase * e, const HashtableEntryBase * v) {this->GetEntryIndexValue(e, HTE_INDEX_MAPPED_FROM, this->EntryToIndexChecked(v));}
+   void SetEntryMappedFromChecked(HashtableEntryBase * e, const HashtableEntryBase * v) {this->SetEntryIndexValue(e, HTE_INDEX_MAPPED_FROM, this->EntryToIndexChecked(v));}
 
    // Convenience methods (these assume the requested value will be valid -- be careful, as calling them when it isn't valid will mess things up badly!)
    void SetEntryBucketNextUnchecked(HashtableEntryBase * e, const HashtableEntryBase * v) {this->SetEntryIndexValue(e, HTE_INDEX_BUCKET_NEXT, this->EntryToIndexUnchecked(v));}
@@ -1110,7 +1111,7 @@ private:
    void SetEntryIterNextUnchecked(  HashtableEntryBase * e, const HashtableEntryBase * v) {this->SetEntryIndexValue(e, HTE_INDEX_ITER_NEXT,   this->EntryToIndexUnchecked(v));}
    void SetEntryIterPrevUnchecked(  HashtableEntryBase * e, const HashtableEntryBase * v) {this->SetEntryIndexValue(e, HTE_INDEX_ITER_PREV,   this->EntryToIndexUnchecked(v));}
    void SetEntryMapToUnchecked(     HashtableEntryBase * e, const HashtableEntryBase * v) {this->SetEntryIndexValue(e, HTE_INDEX_MAP_TO,      this->EntryToIndexUnchecked(v));}
-   void SetEntryMappedFromUnchecked(HashtableEntryBase * e, const HashtableEntryBase * v) {this->GetEntryIndexValue(e, HTE_INDEX_MAPPED_FROM, this->EntryToIndexUnchecked(v));}
+   void SetEntryMappedFromUnchecked(HashtableEntryBase * e, const HashtableEntryBase * v) {this->SetEntryIndexValue(e, HTE_INDEX_MAPPED_FROM, this->EntryToIndexUnchecked(v));}
 
    // Convenience methods
    void SetEntryBucketNext(HashtableEntryBase * e, uint32 idx) {this->SetEntryIndexValue(e, HTE_INDEX_BUCKET_NEXT, idx);}
@@ -1369,7 +1370,7 @@ private:
 
    MUSCLE_NODISCARD const KeyType * GetKeyWithValueAux(const ValueType & value, bool backwards) const
    {
-      for (ConstIteratorType iter(*this, HTIT_FLAG_NOREGISTER|(backwards?HTIT_FLAG_NOREGISTER:0)); iter.HasData(); iter++)
+      for (ConstIteratorType iter(*this, HTIT_FLAG_NOREGISTER|(backwards?HTIT_FLAG_BACKWARDS:0)); iter.HasData(); iter++)
          if (iter.GetValue() == value) return &iter.GetKey();
       return NULL;
    }
@@ -1792,17 +1793,25 @@ public:
      * extra space allocated to fit another (numExtras) items without having to do a reallocation.
      * If it doesn't, it will do a reallocation so that it does have at least that much extra space.
      * @param numExtraSlots How many extra items we want to ensure room for.  Defaults to 1.
-     * @returns B_NO_ERROR if the extra space now exists, or B_OUT_OF_MEMORY on failure.
+     * @returns B_NO_ERROR if the extra space now exists, or an error code on failure.
      */
-   status_t EnsureCanPut(uint32 numExtraSlots = 1) {return EnsureSize(this->GetNumItems()+numExtraSlots, false);}
+   status_t EnsureCanPut(uint32 numExtraSlots = 1)
+   {
+      if (WillUnsignedAddOverflow(this->GetNumItems(), numExtraSlots)) return B_RESOURCE_LIMIT;
+      return EnsureSize(this->GetNumItems()+numExtraSlots, false);
+   }
 
    /** Convenience wrapper around EnsureSize():  This method shrinks the Hashtable so that its size is
      * equal to the size of the data it contains, plus (numExtraSlots).
      * @param numExtraSlots the number of extra empty slots the Hashtable should contains after the shrink.
      *                      Defaults to zero.
-     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+     * @returns B_NO_ERROR if the extra space now exists, or an error code on failure.
      */
-   status_t ShrinkToFit(uint32 numExtraSlots = 0) {return EnsureSize(this->GetNumItems()+numExtraSlots, true);}
+   status_t ShrinkToFit(uint32 numExtraSlots = 0)
+   {
+      if (WillUnsignedAddOverflow(this->GetNumItems(), numExtraSlots)) return B_RESOURCE_LIMIT;
+      return EnsureSize(this->GetNumItems()+numExtraSlots, true);
+   }
 
    /** Sorts this Hashtable's contents according to its built-in sort ordering.
      * Specifically, if this object is an OrderedKeysHashtable, the contents will be sorted by key;
