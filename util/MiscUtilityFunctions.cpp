@@ -65,9 +65,20 @@ static status_t ParseArgAux(const String & a, Message * optAddToMsg, Queue<Strin
    // Remove any initial dashes
    String argName = a.Trimmed();
    const char * s = argName();
+   while(*s == '-') s++;
    if (s > argName()) argName = argName.Substring(s-argName);
 
-        if (optAddToQueue) return optAddToQueue->AddTail(argName);
+   if (optAddToQueue)
+   {
+      const int equalsAt = cs ? -1 : argName.IndexOf('=');
+      if (equalsAt >= 0)
+      {
+         const String argValue         = argName.Substring(equalsAt+1).Trimmed();
+         const String argNameAndEquals = argName.Substring(0, equalsAt+1).Trimmed().ToLowerCase();
+         return optAddToQueue->AddTail(argNameAndEquals+argValue);
+      }
+      else return optAddToQueue->AddTail(argName);
+   }
    else if (optAddToMsg)  // mostly just to keep Coverity happy
    {
       const int equalsAt = argName.IndexOf('=');
@@ -132,11 +143,11 @@ String UnparseArgs(const Message & argsMsg)
    return ret;
 }
 
-String UnparseArgs(const Queue<String> & args, uint32 startIdx, uint32 endIdx)
+String UnparseArgs(const Queue<String> & args, uint32 startIdx, uint32 afterEndIdx)
 {
    String ret;
-   endIdx = muscleMin(endIdx, args.GetNumItems());
-   for (uint32 i=startIdx; i<endIdx; i++)
+   afterEndIdx = muscleMin(afterEndIdx, args.GetNumItems());
+   for (uint32 i=startIdx; i<afterEndIdx; i++)
    {
       String subRet = args[i];
       subRet.Replace("\"", "\\\"");
@@ -1194,8 +1205,8 @@ String Base64Encode(const uint8 * inBytes, uint32 numInBytes)
          _dtable[26+i+18] = (uint8) ('s'+i);
       }
       for(int i=0;i<10;i++) _dtable[52+i] = (uint8) ('0'+i);
-      _dtable[62]= '+';
-      _dtable[63]= '/';
+      _dtable[62] = '+';
+      _dtable[63] = '/';
 
       _firstTime = false;
    }
@@ -1204,28 +1215,30 @@ String Base64Encode(const uint8 * inBytes, uint32 numInBytes)
    while(numInBytes > 0)
    {
       uint8 igroup[3], ogroup[4];
-      int c,n;
 
-      igroup[0]= igroup[1]= igroup[2]= 0;
-      for(n=0;n<3;n++)
+      igroup[0] = igroup[1] = igroup[2] = 0;
+
+      int n;
+      for (n=0; n<3; n++)
       {
-         c=(numInBytes>0)?(int)(*inBytes):EOF;
+         const int c = (numInBytes>0) ? (int)(*inBytes) : EOF;
          if (numInBytes > 0) {inBytes++; numInBytes--;}
-         if(c==EOF) break;
-         igroup[n]=(uint8)c;
+         if (c==EOF) break;
+         igroup[n] = (uint8)c;
       }
-      if(n>0)
+
+      if (n>0)
       {
-         ogroup[0]=_dtable[igroup[0]>>2];
-         ogroup[1]=_dtable[((igroup[0]&3)<<4)|(igroup[1]>>4)];
-         ogroup[2]=_dtable[((igroup[1]&0xF)<<2)|(igroup[2]>>6)];
-         ogroup[3]=_dtable[igroup[2]&0x3F];
-         if(n<3)
+         ogroup[0] = _dtable[igroup[0]>>2];
+         ogroup[1] = _dtable[((igroup[0]&3)<<4)|(igroup[1]>>4)];
+         ogroup[2] = _dtable[((igroup[1]&0xF)<<2)|(igroup[2]>>6)];
+         ogroup[3] = _dtable[igroup[2]&0x3F];
+         if (n<3)
          {
-            ogroup[3]='=';
-            if(n<2) ogroup[2]='=';
+            ogroup[3] = '=';
+            if (n<2) ogroup[2] = '=';
          }
-         for(int i=0;i<4;i++) ret += (char) ogroup[i];
+         for (int i=0; i<4; i++) ret += (char) ogroup[i];
       }
    }
    return ret;

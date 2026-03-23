@@ -56,6 +56,9 @@ key:  - new feature
    * Queue::ReverseItemOrdering() now correctly handles calls where the
      (to) argument isn't greater than the (from) argument.  (found by
      Claude)
+   * Fixed the dash-stripping behavior of ParseArgs().  (found by Claude)
+   * ParseArgs() now correctly lower-cases arguments when adding them
+     to a Queue.
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
