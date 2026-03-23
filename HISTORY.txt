@@ -30,6 +30,8 @@ key:  - new feature
    * Fixed a bug in StringTokenizer's copy-constructor (found by Claude)
    * Fixed a potential memory leak in Thread::StartInternalThreadAuxAux()
      (found by Claude)
+   * Fixed a potential one-byte-past-end-of-struct overwrite in
+     String::EnsureBufferSize() (found by Claude)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

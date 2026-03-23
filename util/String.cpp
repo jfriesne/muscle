@@ -313,11 +313,7 @@ String String :: WithCharsEscaped(const char * charsToEscape, char escapeChar) c
    {
       const char curChar  = thisStr[i];
       const char nextChar = thisStr[i+1];
-      if (prevCharWasEscape == false)
-      {
-              if (IsSeparatorChar(curChar, sepBits))                                                        escapedName += escapeChar;
-         else if ((curChar == escapeChar)&&(nextChar != escapeChar)&&(!IsSeparatorChar(nextChar, sepBits))) escapedName += escapeChar;
-      }
+      if ((prevCharWasEscape == false)&&((IsSeparatorChar(curChar, sepBits))||((curChar == escapeChar)&&(nextChar != '\0')&&(nextChar != escapeChar)&&(!IsSeparatorChar(nextChar, sepBits))))) escapedName += escapeChar;
 
       escapedName       += curChar;
       prevCharWasEscape  = ((curChar == escapeChar)&&(actualPrevChar != escapeChar));
@@ -778,7 +774,7 @@ status_t String :: EnsureBufferSize(uint32 requestedBufLen, bool retainValue, bo
          if (goToSmallBufferMode)
          {
             char * bigBuffer = _stringData._longStringData.GetBuffer();   // gotta make a copy of this pointer beforehand as SetBuffer() will munge it
-            _stringData._shortStringData.SetBuffer(bigBuffer, newBufLen); // copy the string back into our inline/SSO array
+            _stringData._shortStringData.SetBuffer(bigBuffer, oldStrlen); // copy the string back into our inline/SSO array
             muscleFree(bigBuffer);   // get rid of the dynamically allocated array we were using before
             return B_NO_ERROR;       // return now to avoid setting _stringData._longStringData below
          }
@@ -1010,7 +1006,7 @@ String String :: Arg(double f, uint32 minDigitsAfterDecimal, uint32 maxDigitsAft
    else
    {
       char formatBuf[128];
-      muscleSprintf(formatBuf, "%%.0" UINT32_FORMAT_SPEC "f", maxDigitsAfterDecimal);
+      muscleSprintf(formatBuf, "%%.0" UINT32_FORMAT_SPEC "f", muscleMin(maxDigitsAfterDecimal, (uint32)100));
       muscleSprintf(buf, formatBuf, f);
    }
 

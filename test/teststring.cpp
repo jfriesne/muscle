@@ -193,6 +193,11 @@ static status_t UnitTestString()
    printf("q=[%s]\n", q());
    if (q != "what if this is not right") return B_LOGIC_ERROR;
 
+   const char * charsToEscape = "or";
+   const String escapeMe = "Foobar\\";
+   const String escaped  = escapeMe.WithCharsEscaped(charsToEscape);
+   printf("Escape chars [%s] in [%s] -> [%s]\n", charsToEscape, escapeMe(), escaped());
+
    return B_NO_ERROR;
 }
 
