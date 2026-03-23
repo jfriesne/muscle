@@ -361,14 +361,6 @@ protected:
     */
    virtual status_t AttachNewSession(const AbstractReflectSessionRef & ref);
 
-   /** Called by a session to send a message to its factory.
-     * @param session the session that is sending the Message
-     * @param msgRef the Message that is being sent
-     * @param userData an application-specific user-data value
-     * @see AbstractReflectSession::SendMessageToFactory() for details.
-     */
-   status_t SendMessageToFactory(AbstractReflectSession * session, const MessageRef & msgRef, void * userData);
-
    /**
     * Called by a session to get itself replaced (the
     * new session will continue using the same message io streams

@@ -27,14 +27,6 @@ extern bool _mainReflectServerCatchSignals;  // from SetupSystem.cpp
 
 static const char * DEFAULT_SESSION_HOSTNAME = "_unknown_";
 
-#ifndef MUSCLE_ENABLE_SSL
-static status_t ComplainAboutNoSSL(const char * funcName)
-{
-   LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::AddNewSession():  Can't call %s, because MUSCLE was compiled without -DMUSCLE_ENABLE_SSL\n", funcName);
-   return B_UNIMPLEMENTED;
-}
-#endif
-
 status_t
 ReflectServer ::
 AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
@@ -94,9 +86,16 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
                   io = sslIORef;
                   gatewayRef.SetRef(new SSLSocketAdapterGateway(gatewayRef));
 #else
-                  if (_publicKey())            return ComplainAboutNoSSL("SetPublicKeyCertificate()");
-                  if (_privateKey())           return ComplainAboutNoSSL("SetPrivateKey()");
-                  if (_pskUserName.HasChars()) return ComplainAboutNoSSL("SetPreSharedKeyLoginInfo()");
+                  const char * errDesc = NULL;
+                  if (_publicKey())            errDesc = "SetPublicKeyCertificate()";
+                  if (_privateKey())           errDesc = "SetPrivateKey()";
+                  if (_pskUserName.HasChars()) errDesc = "SetPreSharedKeyLoginInfo()";
+                  if (errDesc)
+                  {
+                     newSession->SetOwner(NULL);
+                     LogTime(MUSCLE_LOG_CRITICALERROR, "ReflectServer::AddNewSession():  Can't call %s, because MUSCLE was compiled without -DMUSCLE_ENABLE_SSL\n", errDesc);
+                     return B_UNIMPLEMENTED;
+                  }
 #endif
                }
 
@@ -145,9 +144,10 @@ AddNewConnectSession(const AbstractReflectSessionRef & ref, const IPAddressAndPo
    {
       // Oh dear, we're in the time just before the computer is about to go to sleep; it's no good
       // starting a TCP connection now!  Instead we'll make it dormant and call Reconnect() on it when we re-awake.
-      MRETURN_ON_ERROR(AddNewDormantConnectSession(ref, destIAP, autoReconnectDelay, maxAsyncConnectPeriod));
-      (void) _sessionsToReconnectOnWakeup.Put(ref()->GetSessionIDString(), true);  // true indicates "Gotta call Reconnect() when we wake up"
-      return B_NO_ERROR;
+      MRETURN_ON_ERROR(_sessionsToReconnectOnWakeup.Put(ref()->GetSessionIDString(), true));  // true indicates "Gotta call Reconnect() when we wake up"
+      const status_t ret = AddNewDormantConnectSession(ref, destIAP, autoReconnectDelay, maxAsyncConnectPeriod);
+      if (ret.IsError()) (void) _sessionsToReconnectOnWakeup.Remove(ref()->GetSessionIDString());  // roll back!
+      return ret;
    }
 
    ConstSocketRef sock = ConnectAsync(destIAP, session->_isConnected);
@@ -1043,8 +1043,10 @@ PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const
 
 status_t
 ReflectServer ::
-RemoveAcceptFactoryAux(const IPAddressAndPort & iap)
+RemoveAcceptFactoryAux(const IPAddressAndPort & iapRef)
 {
+   const IPAddressAndPort iap(iapRef);  // use this local copy instead of (iapRef), just in case (iapRef) is also a key that one of our Remove() calls will invalidate below
+
    ReflectSessionFactoryRef ref;
    MRETURN_ON_ERROR(_factories.Get(iap, ref));  // ... but don't remove the entry yet, in case AboutToDetachFromServer() calls a method on us
 
