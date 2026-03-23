@@ -25,7 +25,7 @@ CPULoadMeter :: CPULoadMeter()
 #ifdef USE_KERNEL32_DLL_FOR_GETSYSTEMTIMES
    // Gotta dynamically load this system call, because the Borland headers doesn't know about it.  :^P
    _winKernelLib = LoadLibrary(TEXT("kernel32.dll"));
-   if (_winKernelLib) _getSystemTimesProc = (GetSystemTimesProc) GetProcAddress(_winKernelLib, "GetSystemTimes");
+   _getSystemTimesProc = _winKernelLib ? ((GetSystemTimesProc) GetProcAddress(_winKernelLib, "GetSystemTimes")) : NULL;
 #endif
 }
 
@@ -40,10 +40,14 @@ float CPULoadMeter :: CalculateCPULoad(uint64 idleTicks, uint64 totalTicks)
 {
    const uint64 totalTicksSinceLastTime = totalTicks-_previousTotalTicks;
    const uint64 idleTicksSinceLastTime  = idleTicks-_previousIdleTicks;
-   const float ret = 1.0f-((totalTicksSinceLastTime > 0) ? (((float)idleTicksSinceLastTime)/((float)totalTicksSinceLastTime)) : 0);
-   _previousTotalTicks = totalTicks;
-   _previousIdleTicks  = idleTicks;
-   return ret;
+   if (totalTicksSinceLastTime == 0) return -1.0f;  // can't measure CPU load over an empty time-interval
+   else
+   {
+      const float ret = 1.0f-(((float)idleTicksSinceLastTime)/((float)totalTicksSinceLastTime));
+      _previousTotalTicks = totalTicks;
+      _previousIdleTicks  = idleTicks;
+      return ret;
+   }
 }
 
 float CPULoadMeter :: GetCPULoad()
@@ -62,12 +66,18 @@ float CPULoadMeter :: GetCPULoad()
          if (strncmp(buf, "cpu ", 4) == 0)
          {
             StringTokenizer tok(false, &buf[4]);
-            const char *                                        next = tok();
-            const uint64 userTicks   = next ? Atoull(next) : 0; next = tok();
-            const uint64 niceTicks   = next ? Atoull(next) : 0; next = tok();
-            const uint64 systemTicks = next ? Atoull(next) : 0; next = tok();
-            const uint64 idleTicks   = next ? Atoull(next) : 0;
-            sysLoadPercentage = CalculateCPULoad(idleTicks, userTicks+niceTicks+systemTicks+idleTicks);
+            const char *                                           next = tok();
+            const uint64 userTicks      = next ? Atoull(next) : 0; next = tok();
+            const uint64 niceTicks      = next ? Atoull(next) : 0; next = tok();
+            const uint64 systemTicks    = next ? Atoull(next) : 0; next = tok();
+            const uint64 idleTicks      = next ? Atoull(next) : 0; next = tok();
+            const uint64 ioWaitTicks    = next ? Atoull(next) : 0; next = tok();
+            const uint64 irqTicks       = next ? Atoull(next) : 0; next = tok();
+            const uint64 softIrqTicks   = next ? Atoull(next) : 0; next = tok();
+            const uint64 stealTicks     = next ? Atoull(next) : 0; next = tok();
+            const uint64 guestTicks     = next ? Atoull(next) : 0; next = tok();
+            const uint64 guestNiceTicks = next ? Atoull(next) : 0;
+            sysLoadPercentage = CalculateCPULoad(idleTicks, userTicks+niceTicks+systemTicks+idleTicks+ioWaitTicks+irqTicks+softIrqTicks+stealTicks+guestTicks+guestNiceTicks);
             break;
          }
       }
