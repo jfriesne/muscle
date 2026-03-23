@@ -105,10 +105,10 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
          const uint32 readOnlyRecurseCount = ts->_readOnlyRecurseCount;
          mg.UnlockEarly();
 
-         for (uint32 i=0; i<readOnlyRecurseCount; i++) (void) UnlockReadOnly();
-         MRETURN_ON_ERROR(LockReadWriteAux(optTimeoutTimestamp));
-         for (uint32 i=0; i<readOnlyRecurseCount; i++) (void) LockReadOnly();  // safe because at this point we know we're the sole writer
-         return B_NO_ERROR;
+         for (uint32 i=0; i<readOnlyRecurseCount; i++) MRETURN_ON_ERROR(UnlockReadOnly());
+         const status_t ret = LockReadWriteAux(optTimeoutTimestamp);
+         for (uint32 i=0; i<readOnlyRecurseCount; i++) MRETURN_ON_ERROR(LockReadOnly());  // safe because at this point we either failed and are just restoring our original state, or we know we're the sole writer
+         return ret;
       }
    }
    else if (IsOkayForWriterThreadToExecuteNow(tid))
@@ -214,8 +214,13 @@ status_t ReaderWriterMutex :: UnlockReadWriteAux() const
 
    MASSERT(_totalReadWriteRecurseCount > 0, "ReaderWriterMutex::UnlockReadWriteAux():  _totalReadWriteRecurseCount was already zero!?");
 
-   if ((--ts->_readWriteRecurseCount == 0)&&(ts->_readOnlyRecurseCount == 0)) (void) _executingThreads.Remove(tid);  // invalidates (ts)
-   if ((--_totalReadWriteRecurseCount == 0)&&(_executingThreads.IsEmpty())) (void) NotifySomeWaitingThreads();
+   const uint32 tsReadOnlyRecurseCount = ts->_readOnlyRecurseCount;  // save this here in case (ts) gets invalidated on the next line
+   if ((--ts->_readWriteRecurseCount == 0)&&(tsReadOnlyRecurseCount == 0)) (void) _executingThreads.Remove(tid);  // invalidates (ts)
+   if (--_totalReadWriteRecurseCount == 0)
+   {
+           if (tsReadOnlyRecurseCount > 0)  (void) NotifyAllReaderThreads();  // no sense in our thread remaining the only active reader-thread
+      else if (_executingThreads.IsEmpty()) (void) NotifySomeWaitingThreads();
+   }
    return B_NO_ERROR;
 #endif
 }

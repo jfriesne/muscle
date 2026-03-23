@@ -36,6 +36,11 @@ key:  - new feature
      states in its calculations (found by Claude)
    * StringMatcher's assignment-operator wouldn't copy of the state of
      the "negate" flag.  Fixed.  (found by Claude)
+   * When a ReaderWriterMutex downgraded a thread's lock from read/write
+     to read-only, other threads waiting for read-only access are now
+     notified.  (found by Claude)
+   * Improved the rollback handling of a failed LockReadWrite() call
+     in the ReaderWriterMutex class (found by Claude)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

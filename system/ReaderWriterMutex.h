@@ -290,7 +290,7 @@ private:
       ThreadState() : _readOnlyRecurseCount(0), _readWriteRecurseCount(0) {/* empty */}
 
       uint32 _readOnlyRecurseCount;   // how many times this thread has already locked the read-only lock
-      uint32 _readWriteRecurseCount;  // how many times this thread has already locked the read-only lock
+      uint32 _readWriteRecurseCount;  // how many times this thread has already locked the read/write lock
       RefCountableWaitConditionRef _waitConditionRef;  // used to wake up the sleeping thread when it's time for him to run again
    };
 
