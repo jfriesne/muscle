@@ -526,7 +526,11 @@ private:
       if (hToolhelp == NULL) return FALSE;
 
       hSnap = pCT32S( TH32CS_SNAPMODULE, pid );
-      if (hSnap == (HANDLE) -1) return FALSE;
+      if (hSnap == (HANDLE) -1)
+      {
+         FreeLibrary(hToolhelp);
+         return FALSE;
+      }
 
       BOOL keepGoing = !!pM32F( hSnap, &me );
       int cnt = 0;
@@ -942,11 +946,15 @@ status_t StackWalker :: CaptureCallstack(uint32 maxDepth, HANDLE hThread, const 
    if (m_modulesLoaded == FALSE) (void) LoadModules();  // yes, deliberately ignoring the result
    if (m_sw->m_hDbhHelp == NULL) return B_ERROR("DebugHelp DLL not found");
 
+   bool hThreadWasSuspended = false;
+
         if (context) sws._context = *context;
    else if (hThread == GetCurrentThread()) SaveCurrentContext(sws); // If no context is provided, capture the context
    else
    {
       SuspendThread(hThread);
+      hThreadWasSuspended = true;
+
       memset(&sws._context, 0, sizeof(CONTEXT));
       sws._context.ContextFlags = USED_CONTEXT_FLAGS;
       if (GetThreadContext(hThread, &sws._context) == FALSE)
@@ -1027,7 +1035,7 @@ status_t StackWalker :: CaptureCallstack(uint32 maxDepth, HANDLE hThread, const 
       if (s.AddrReturn.Offset == 0) break;  // done!
    }
 
-   if (context == NULL) ResumeThread(hThread);
+   if (hThreadWasSuspended) ResumeThread(hThread);
    return ret;
 }
 
@@ -1282,7 +1290,7 @@ StackTrace & StackTrace :: operator =(StackTrace && rhs) MUSCLE_NOEXCEPT
 }
 #endif
 
-StackTrace & StackTrace :: operator =(const StackTrace & rhs) MUSCLE_NOEXCEPT
+StackTrace & StackTrace :: operator =(const StackTrace & rhs)
 {
    if (this != &rhs)
    {
@@ -1324,7 +1332,9 @@ status_t StackTrace :: StaticPrintStackTrace(const OutputPrinter & p, uint32 max
       void * array[maxStaticDepth];
       const size_t size = backtrace(array, muscleMin(maxDepth, ARRAYITEMS(array)));
       p.printf("--Stack trace follows (%zd frames):", size);
+      fflush(f);  // since backtrace_symbols_fd() writes directly to the file descriptor
       backtrace_symbols_fd(array, (int)size, fd);
+      fflush(f);  // since backtrace_symbols_fd() writes directly to the file descriptor
       p.puts("\n--End Stack trace\n");
       return B_NO_ERROR;
    }

@@ -39,7 +39,7 @@ public:
 #endif
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
-   StackTrace & operator =(const StackTrace & rhs) MUSCLE_NOEXCEPT;
+   StackTrace & operator =(const StackTrace & rhs);
 
    /** Destructor */
    ~StackTrace() {/* empty */}

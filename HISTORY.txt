@@ -41,6 +41,9 @@ key:  - new feature
      notified.  (found by Claude)
    * Improved the rollback handling of a failed LockReadWrite() call
      in the ReaderWriterMutex class (found by Claude)
+   * StackTrace::StaticPrintStackTrace() now calls fflush() when
+     appropriate to avoid incorrect output ordering when also calling
+     backtrace_symbols_fd() (found by Claude)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
