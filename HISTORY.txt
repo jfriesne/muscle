@@ -46,6 +46,16 @@ key:  - new feature
    * StackTrace::StaticPrintStackTrace() now calls fflush() when
      appropriate to avoid incorrect output ordering when also calling
      backtrace_symbols_fd() (found by Claude)
+   * Queue::EndsWith() was broken.  Fixed.  (found by Claude)
+   * Queue::AddHeadAndGet() was calling AddTailAndGet() by mistake
+     (found by Claude)
+   * Queue::AdoptRawDataArray() wasn't setting the _tailIndex value
+     correctly.  (found by Claude)
+   * Queue::RemoveSortedDuplicateItems() wasn't handling an empty
+     Queue correctly.  (found by Claude)
+   * Queue::ReverseItemOrdering() now correctly handles calls where the
+     (to) argument isn't greater than the (from) argument.  (found by
+     Claude)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

@@ -150,12 +150,12 @@ public:
 
    /** Appends (item) to the end of the Queue.  Queue size grows by one.
     *  @param item The item to append.
-    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    QQ_UniversalSinkItemRef status_t AddTail(QQ_SinkItemParam item) {return (AddTailAndGet(QQ_ForwardItem(item)) != NULL) ? B_NO_ERROR : B_OUT_OF_MEMORY;}
 
    /** Appends a default-initialized item to the end of the Queue.  Queue size grows by one.
-    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    status_t AddTail() {return AddTail(GetDefaultItem());}
 
@@ -168,7 +168,7 @@ public:
     *  @param queue The queue to append to our queue.
     *  @param startIndex Index in (queue) to start adding at.  Default to zero.
     *  @param numItems Number of items to add.  If this number is too large, it will be capped appropriately.  Default is to add all items.
-    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    status_t AddTailMulti(const Queue<ItemType> & queue, uint32 startIndex = 0, uint32 numItems = MUSCLE_NO_LIMIT);
 
@@ -177,7 +177,7 @@ public:
     *  more efficient.  On success, the Queue size grows by (numItems).
     *  @param items Pointer to an array of items to add to the Queue.
     *  @param numItems Number of items in the array
-    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    status_t AddTailMulti(const ItemType * items, uint32 numItems);
 
@@ -185,7 +185,7 @@ public:
    /** Available in C++11 only:  Appends the items specified in the initializer
     *  list to this Queue.
     *  @param list The C++11 initializer list of items (eg {1,2,3,4,5}) to add.
-    *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    status_t AddTailMulti(const std::initializer_list<ItemType> & list)
    {
@@ -198,7 +198,7 @@ public:
    /** Convenience method:  Appends (item) to the end of the Queue, if no object equal to (item) is already present in the Queue.
     *  @param item The item to append.
     *  @note this method runs in O(N) time, so be careful about using it on large Queues (maybe use a Hashtable instead?)
-    *  @return B_NO_ERROR on success (or if an equivalent item was already present), or B_OUT_OF_MEMORY on failure.
+    *  @return B_NO_ERROR on success (or if an equivalent item was already present), or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    QQ_UniversalSinkItemRef status_t AddTailIfNotAlreadyPresent(QQ_SinkItemParam item) {return Contains(item) ? B_NO_ERROR : AddTail(item);}
 
@@ -216,12 +216,12 @@ public:
 
    /** Prepends (item) to the start of the Queue.  Queue size grows by one.
     *  @param item The item to prepend.
-    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    QQ_UniversalSinkItemRef status_t AddHead(QQ_SinkItemParam item) {return (AddHeadAndGet(QQ_ForwardItem(item)) != NULL) ? B_NO_ERROR : B_OUT_OF_MEMORY;}
 
    /** Prepends a default-initialized item to the start of the Queue.  Queue size grows by one.
-    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    status_t AddHead() {return AddHead(GetDefaultItem());}
 
@@ -234,7 +234,7 @@ public:
     *  @param queue The queue to prepend to our queue.
     *  @param startIndex Index in (queue) to start adding at.  Default to zero.
     *  @param numItems Number of items to add.  If this number is too large, it will be capped appropriately.  Default is to add all items.
-    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    status_t AddHeadMulti(const Queue<ItemType> & queue, uint32 startIndex = 0, uint32 numItems = MUSCLE_NO_LIMIT);
 
@@ -242,14 +242,14 @@ public:
     *  The semantics are the same as for AddHeadMulti(const Queue<ItemType> &).
     *  @param items Pointer to an array of items to add to the Queue.
     *  @param numItems Number of items in the array
-    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    status_t AddHeadMulti(const ItemType * items, uint32 numItems);
 
    /** Convenience method:  Prepends (item) to the start of the Queue, if no object equal to (item) is already present in the Queue.
     *  @param item The item to prepend.
     *  @note this method runs in O(N) time, so be careful about using it on large Queues (maybe use a Hashtable instead?)
-    *  @return B_NO_ERROR on success (or if an equivalent item was already present), or B_OUT_OF_MEMORY on failure.
+    *  @return B_NO_ERROR on success (or if an equivalent item was already present), or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    QQ_UniversalSinkItemRef status_t AddHeadIfNotAlreadyPresent(QQ_SinkItemParam item) {return Contains(item) ? B_NO_ERROR : AddHead(item);}
 
@@ -431,7 +431,7 @@ public:
     *  @param queue The Queue whose items are to be inserted into this Queue.
     *  @param startIndex Index in (queue) to start reading items from.  Defaults to zero.
     *  @param numNewItems Number of items to insert.  If this number is too large, it will be capped appropriately.  Default is to add all items.
-    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    status_t InsertItemsAt(uint32 index, const Queue<ItemType> & queue, uint32 startIndex = 0, uint32 numNewItems = MUSCLE_NO_LIMIT);
 
@@ -444,7 +444,7 @@ public:
     *  @param index The index into this Queue that items from (queue) should be inserted at.
     *  @param items Pointer to the items to insert into this Queue.
     *  @param numNewItems Number of items to insert.
-    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    status_t InsertItemsAt(uint32 index, const ItemType * items, uint32 numNewItems);
 
@@ -624,7 +624,7 @@ public:
     *  @param allowShrink If set to true, the array will be reallocated even if the new array size is smaller than the
     *                     existing size.  Defaults to false (ie only reallocate if the desired size is greater than
     *                     the existing size).
-    *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+    *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
     */
    status_t EnsureSize(uint32 numSlots, bool setNumItems = false, uint32 extraReallocItems = 0, bool allowShrink = false) {return EnsureSizeAux(numSlots, setNumItems, extraReallocItems, NULL, allowShrink);}
 
@@ -632,17 +632,25 @@ public:
      * extra space allocated to fit another (numExtraSlots) items without having to do a reallocation.
      * If it doesn't have enough space, it will do a reallocation so that it does have at least (numExtraSlots) of extra space.
      * @param numExtraSlots How many extra items we want to ensure room for.  Defaults to 1.
-     * @returns B_NO_ERROR if the extra space now exists, or B_OUT_OF_MEMORY on failure.
+     * @returns B_NO_ERROR if the extra space now exists, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
      */
-   status_t EnsureCanAdd(uint32 numExtraSlots = 1) {return EnsureSize(GetNumItems()+numExtraSlots);}
+   status_t EnsureCanAdd(uint32 numExtraSlots = 1)
+   {
+      if (WillUnsignedAddOverflow(GetNumItems(), numExtraSlots)) return B_RESOURCE_LIMIT;
+      return EnsureSize(GetNumItems()+numExtraSlots);
+   }
 
    /** Convenience wrapper around EnsureSize():  This method shrinks the Queue so that its size is
      * equal to the size of the data it contains, plus (numExtraSlots).
      * @param numExtraSlots the number of extra empty slots the Queue should contains after the shrink.
      *                      Defaults to zero.
-     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
+     * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY or B_RESOURCE_LIMIT on failure.
      */
-   status_t ShrinkToFit(uint32 numExtraSlots = 0) {return EnsureSize(GetNumItems()+numExtraSlots, false, 0, true);}
+   status_t ShrinkToFit(uint32 numExtraSlots = 0)
+   {
+      if (WillUnsignedAddOverflow(GetNumItems(), numExtraSlots)) return B_RESOURCE_LIMIT;
+      return EnsureSize(GetNumItems()+numExtraSlots, false, 0, true);
+   }
 
    /** Convenience method -- works the same as IndexOf() but returns a boolean instead of an int32 index.
     *  @param item The item to look for.
@@ -835,7 +843,7 @@ public:
    /** Returns true iff (val) is physically located in this container's internal items array.
      * @param val Reference to an item.
      */
-   MUSCLE_NODISCARD bool IsItemLocatedInThisContainer(const ItemType & val) const {return ((HasItems())&&((uintptr)((&val)-_queue) < (uintptr)GetNumItems()));}
+   MUSCLE_NODISCARD bool IsItemLocatedInThisContainer(const ItemType & val) const {return ((HasItems())&&((uintptr)((&val)-_queue) < (uintptr)GetNumAllocatedItemSlots()));}
 
    /** Returns a read-only reference to a default-constructed item of this Queue's type.
      * This item is guaranteed to remain valid for the life of the process.
@@ -1149,7 +1157,9 @@ AddTailMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItem
    const uint32 hisSize = queue.GetNumItems();
    numNewItems = muscleMin(numNewItems, (startIndex < hisSize) ? (hisSize-startIndex) : 0);
 
-   const uint32 mySize  = GetNumItems();
+   const uint32 mySize = GetNumItems();
+   if (WillUnsignedAddOverflow(mySize, numNewItems)) return B_RESOURCE_LIMIT;
+
    const uint32 newSize = mySize+numNewItems;
 
    if ((&queue == this)&&(newSize > GetNumAllocatedItemSlots()))
@@ -1171,7 +1181,9 @@ status_t
 Queue<ItemType>::
 AddTailMulti(const ItemType * items, uint32 numItems)
 {
-   const uint32 mySize  = GetNumItems();
+   const uint32 mySize = GetNumItems();
+   if (WillUnsignedAddOverflow(mySize, numItems)) return B_RESOURCE_LIMIT;
+
    const uint32 newSize = mySize+numItems;
    uint32 rhs = 0;
 
@@ -1200,7 +1212,7 @@ AddHeadAndGet(QQ_SinkItemParam item)
    if ((GetNumUnusedItemSlots() < 1)&&(IsItemLocatedInThisContainer(item)))
    {
       const ItemType temp = QQ_ForwardItem(item); // avoid dangling pointer issue by copying the item to a temporary location
-      return AddTailAndGet(temp);
+      return AddHeadAndGet(temp);
    }
 
    ItemType * oldArray;
@@ -1244,6 +1256,7 @@ AddHeadMulti(const Queue<ItemType> & queue, uint32 startIndex, uint32 numNewItem
       return temp.AddTailMulti(queue, startIndex, numNewItems).IsOK(ret) ? AddHeadMulti(temp) : ret;  // yes, AddTailMulti() and then AddHeadMulti() is intentional
    }
 
+   if (WillUnsignedAddOverflow(numNewItems, GetNumItems())) return B_RESOURCE_LIMIT;
    MRETURN_ON_ERROR(EnsureSize(numNewItems+GetNumItems()));
 
    for (int32 i=(int32)(startIndex+numNewItems-1); i>=(int32)startIndex; i--) (void) AddHead(queue[i]);  // guaranteed not to fail
@@ -1533,6 +1546,8 @@ InsertItemsAt(uint32 index, const Queue<ItemType> & queue, uint32 startIndex, ui
    }
 
    const uint32 oldSize = GetNumItems();
+   if (WillUnsignedAddOverflow(oldSize, numNewItems)) return B_RESOURCE_LIMIT;
+
    const uint32 newSize = oldSize+numNewItems;
 
    MRETURN_ON_ERROR(EnsureSize(newSize, true));
@@ -1557,10 +1572,12 @@ InsertItemsAt(uint32 index, const ItemType * items, uint32 numNewItems)
    }
 
    const uint32 oldSize = GetNumItems();
+   if (WillUnsignedAddOverflow(oldSize, numNewItems)) return B_RESOURCE_LIMIT;
+
    const uint32 newSize = oldSize+numNewItems;
 
    ItemType * oldItems = NULL;  // set NULL just to keep the static analyzer happy
-   MRETURN_ON_ERROR(EnsureSizeAux(newSize, true, &oldItems, NULL, false));
+   MRETURN_ON_ERROR(EnsureSizeAux(newSize, true, 0, &oldItems, false));
 
    int32 si = 0;
    for (uint32 i=index; i<oldSize; i++)           (*this)[i+numNewItems] = (*this)[i];
@@ -1741,12 +1758,13 @@ void
 Queue<ItemType>::
 ReverseItemOrdering(uint32 from, uint32 to)
 {
-   const uint32 size = GetNumItems();
+   const uint32 size = (from<to) ? GetNumItems() : 0;
    if (size > 0)
    {
       to--;  // make it inclusive
       if (to >= size) to = size-1;
-      while (from < to) Swap(from++, to--);
+
+      while(from < to) Swap(from++, to--);
    }
 }
 
@@ -1816,6 +1834,8 @@ uint32
 Queue<ItemType>::
 RemoveSortedDuplicateItems()
 {
+   if (IsEmpty()) return 0;
+
    uint32 numWrittenItems  = 1;  // we'll always keep the first item
    const uint32 totalItems = GetNumItems();
    for (uint32 i=0; i<totalItems; i++)
@@ -2063,8 +2083,8 @@ bool
 Queue<ItemType>::EndsWith(const Queue<ItemType> & suffixQueue) const
 {
    if (suffixQueue.GetNumItems() > GetNumItems()) return false;
-   int32 lastToCheck = GetNumItems()-suffixQueue.GetNumItems();
-   for (int32 i=GetLastValidIndex(); i>=lastToCheck; i--) if (!(suffixQueue[i] == (*this)[i])) return false;
+   const int32 lastToCheck = GetNumItems()-suffixQueue.GetNumItems();
+   for (int32 i=GetLastValidIndex(); i>=lastToCheck; i--) if (!(suffixQueue[i-lastToCheck] == (*this)[i])) return false;
    return true;
 }
 
@@ -2163,7 +2183,7 @@ Queue<ItemType>::AdoptRawDataArray(uint32 numItemsInArray, ItemType * array, uin
       _queueSize = numItemsInArray;
       _itemCount = muscleMin(numItemsInArray, validItemCount);
       _headIndex = 0;
-      _tailIndex = 0;
+      _tailIndex = ((_headIndex+_itemCount)-1)%_queueSize;
    }
 }
 
