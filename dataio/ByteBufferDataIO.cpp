@@ -19,6 +19,7 @@ ByteBufferDataIO :: ~ByteBufferDataIO()
 io_status_t ByteBufferDataIO :: Read(void * buffer, uint32 size)
 {
    if (_buf() == NULL) return B_BAD_OBJECT;
+   if (size == 0) return io_status_t(0);
 
    const uint32 numBytesToCopy = muscleMin(size, GetNumBytesAvailable());
    if (numBytesToCopy == 0) return B_END_OF_STREAM;  // as opposed to "nothing more to read right now"
@@ -32,13 +33,14 @@ io_status_t ByteBufferDataIO :: Write(const void * buffer, uint32 size)
 {
    if (_buf() == NULL) return B_BAD_OBJECT;
 
+   if (WillUnsignedAddOverflow(_seekPos, size)) return B_RESOURCE_LIMIT;
+
    const uint32 oldBufSize = _buf()->GetNumBytes();
    const uint32 newBufSize = muscleMax(oldBufSize, _seekPos+size);
    if (newBufSize > oldBufSize) MRETURN_ON_ERROR(_buf()->AppendBytes(NULL, newBufSize-oldBufSize, true)); // enlarge the buffer
 
    memcpy(_buf()->GetBuffer()+_seekPos, buffer, size);
    _seekPos += size;
-   MRETURN_ON_ERROR(_buf()->SetNumBytes(_seekPos, true));  // never touches the heap since we know the ByteBuffer's buffer is already big enough to hold (_seekPos) bytes
 
    return size;
 }
@@ -52,10 +54,10 @@ status_t ByteBufferDataIO :: Seek(int64 offset, int whence)
    {
       case IO_SEEK_SET: newSeekPos = offset;             break;
       case IO_SEEK_CUR: newSeekPos = offset+_seekPos;    break;
-      case IO_SEEK_END: newSeekPos = GetLength()+offset; break;  // yes, the + is intentional
+      case IO_SEEK_END: newSeekPos = GetLength()+offset; break;  // yes, the + is intentional; in this case, offset is expected to be a negative value, or zero
       default:          return B_BAD_ARGUMENT;
    }
-   if ((offset < 0)||(offset > GetLength())) return B_BAD_ARGUMENT;  // yes, the strictly-greater-than test is intentional, so we can successfully seek to EOF
+   if ((newSeekPos < 0)||(newSeekPos > GetLength())) return B_BAD_ARGUMENT;  // yes, the strictly-greater-than test is intentional, so we can successfully seek to EOF
 
    _seekPos = (uint32) newSeekPos;
    return B_NO_ERROR;

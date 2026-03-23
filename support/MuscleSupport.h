@@ -2360,6 +2360,34 @@ template<typename T, size_t size1, size_t size2, size_t size3> MUSCLE_NODISCARD 
   */
 template<typename T> MUSCLE_NODISCARD inline uint64 CalculateHashCode64(const T & val) {return CalculateHashCode64(&val, sizeof(val));}
 
+/** Convenience method:  Checks if summing two unsigned values will overflow.
+  * @param v1 the first value to add
+  * @param v2 the second value to add
+  * @returns true iff summing the two values causes an unsigned-overflow condition.
+  */
+template<typename T> bool WillUnsignedAddOverflow(T v1, T v2)
+{
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+   static_assert(std::is_unsigned<T>::value, "WillUnsignedAddOverflow() requires that its arguments be unsigned");
+   static_assert(std::is_integral<T>::value, "WillUnsignedAddOverflow() requires that its arguments be integral");
+#endif
+   return ((v1+v2) < v1);  // can only occur if there was an overflow
+}
+
+/** Convenience method:  Checks if multiplying two unsigned values will overflow.
+  * @param v1 the first value to multiply
+  * @param v2 the second value to multiply
+  * @returns true iff multiplying the two values causes an unsigned-overflow condition.
+  */
+template<typename T> bool WillUnsignedMultiplyOverflow(T v1, T v2)
+{
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+   static_assert(std::is_unsigned<T>::value, "WillUnsignedMultiplyOverflow() requires that its arguments be unsigned");
+   static_assert(std::is_integral<T>::value, "WillUnsignedMultiplyOverflow() requires that its arguments be integral");
+#endif
+   return (v1 != 0) && (v2 > (((T)-1) / v1));
+}
+
 #endif  // __cplusplus
 
 /** Given an ASCII decimal representation of a non-negative number, returns that number as a uint64. */

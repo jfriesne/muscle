@@ -199,7 +199,7 @@ io_status_t StdinDataIO :: Write(const void * buffer, uint32 size)
    if (_writeToStdout)
    {
       const size_t numBytesWritten = fwrite(buffer, 1, size, stdout);
-      return (numBytesWritten > 0) ? numBytesWritten : (ferror(stdout) ? io_status_t(B_IO_ERROR) : io_status_t(0));
+      return (numBytesWritten > 0) ? io_status_t((int32)numBytesWritten) : (ferror(stdout) ? io_status_t(B_IO_ERROR) : io_status_t(0));
    }
    else return size;  // in this mode, any outgoing bytes are just dropped
 }
