@@ -1,6 +1,6 @@
 /* This file is Copyright 2000-2026 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#if defined(_WIN32)
+#if defined(_WIN32)  // _WIN32 is used here since WIN32 isn't necessarily defined until after we parse the first MUSCLE header
 # include <errno.h>
 # include <io.h>
 #else
@@ -132,6 +132,7 @@ void Directory :: Reset()
       closedir((DIR *)_dirPtr);
       _dirPtr = NULL;
    }
+   _currentFileName = NULL;
 }
 
 bool Directory :: Exists(const char * dirPath)
@@ -172,6 +173,8 @@ status_t Directory :: SetDir(const char * dirPath)
 
 status_t Directory :: MakeDirectory(const char * dirPath, bool forceCreateParentDirsIfNecessary, bool errorIfAlreadyExists)
 {
+   if (dirPath == NULL) return B_BAD_ARGUMENT;
+
    if (forceCreateParentDirsIfNecessary)
    {
       const char sep = *GetFilePathSeparator();  // technically cheating but I don't want to have to write strrstr()
