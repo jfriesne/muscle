@@ -196,8 +196,12 @@ io_status_t StdinDataIO :: Read(void * buffer, uint32 size)
 
 io_status_t StdinDataIO :: Write(const void * buffer, uint32 size)
 {
-   const int32 ret = _writeToStdout ? (int32)fwrite(buffer, 1, size, stdout) : (int32)size;
-   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_IO_ERROR);
+   if (_writeToStdout)
+   {
+      const size_t numBytesWritten = fwrite(buffer, 1, size, stdout);
+      return (numBytesWritten > 0) ? numBytesWritten : (ferror(stdout) ? io_status_t(B_IO_ERROR) : io_status_t(0));
+   }
+   else return size;  // in this mode, any outgoing bytes are just dropped
 }
 
 void StdinDataIO :: FlushOutput()
