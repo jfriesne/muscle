@@ -34,6 +34,8 @@ key:  - new feature
      String::EnsureBufferSize() (found by Claude)
    * CPULoadMeter's Linux implementation now includes all reported CPU
      states in its calculations (found by Claude)
+   * StringMatcher's assignment-operator wouldn't copy of the state of
+     the "negate" flag.  Fixed.  (found by Claude)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

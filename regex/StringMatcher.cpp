@@ -40,6 +40,7 @@ void StringMatcher :: Reset()
 StringMatcher & StringMatcher :: operator = (const StringMatcher & rhs)
 {
    (void) SetPattern(rhs._pattern, rhs._flags.IsBitSet(STRINGMATCHER_FLAG_SIMPLE));
+   SetNegate(rhs.IsNegate());
    return *this;
 }
 
@@ -100,10 +101,10 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
 
                      String afterDash(dash+1); afterDash = DigitsOnly(afterDash);
 
-                     if (beforeDash.HasChars()) min = atoi(beforeDash());
-                     if (afterDash.HasChars())  max = atoi(afterDash());
+                     if (beforeDash.HasChars()) min = (uint32) Atoull(beforeDash());
+                     if (afterDash.HasChars())  max = (uint32) Atoull(afterDash());
                   }
-                  else if (clause[0] != '>') min = max = atoi(String(clause).Trimmed()());
+                  else if (clause[0] != '>') min = max = (uint32) Atoull(String(clause).Trimmed()());
 
                   MRETURN_ON_ERROR(_ranges.AddTail(IDRange(min,max)));
                }
@@ -179,7 +180,7 @@ bool StringMatcher :: Match(const char * const str) const
    }
    else if (muscleInRange(str[0], '0', '9'))
    {
-      const uint32 id = (uint32) atoi(str);
+      const uint32 id = (uint32) Atoull(str);
       for (uint32 i=0; i<_ranges.GetNumItems(); i++)
       {
          const IDRange & r = _ranges[i];
@@ -206,8 +207,13 @@ String StringMatcher :: ToString() const
          const uint32 min  = r.GetMin();
          const uint32 max  = r.GetMax();
          char buf[128];
-         if (max > min) muscleSprintf(buf, UINT32_FORMAT_SPEC "-" UINT32_FORMAT_SPEC, min, max);
-                   else muscleSprintf(buf, UINT32_FORMAT_SPEC, min);
+         if (max > min)
+         {
+            if (max == MUSCLE_NO_LIMIT) muscleSprintf(buf, UINT32_FORMAT_SPEC "-", min);
+                                   else muscleSprintf(buf, UINT32_FORMAT_SPEC "-" UINT32_FORMAT_SPEC, min, max);
+         }
+         else muscleSprintf(buf, UINT32_FORMAT_SPEC, min);
+
          s += buf;
       }
       s += '>';
