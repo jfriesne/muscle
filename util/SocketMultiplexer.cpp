@@ -226,10 +226,10 @@ SocketMultiplexer :: FDState :: FDState()
 {
 #if defined(MUSCLE_USE_KQUEUE)
    _kernelFD = kqueue();
-   if (_kernelFD < 0) printf("FDState:  Error, couldn't allocate a kqueue!\n");
+   if (_kernelFD < 0) LogTime(MUSCLE_LOG_CRITICALERROR, "SocketMultiplexer::FDState:  Error, couldn't allocate a kqueue!\n");
 #elif defined(MUSCLE_USE_EPOLL)
-   _kernelFD = epoll_create(1024);  // note that this argument is ignored in modern unix, it just has to be greater than zero
-   if (_kernelFD < 0) printf("FDState:  Error, epoll_create() failed!\n");
+   _kernelFD = epoll_create1(O_CLOEXEC);
+   if (_kernelFD < 0) LogTime(MUSCLE_LOG_CRITICALERROR, "SocketMultiplexer::FDState:  Error, epoll_create() failed!\n");
 #endif
 
    Reset();

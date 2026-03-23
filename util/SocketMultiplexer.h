@@ -77,10 +77,10 @@ public:
    inline status_t RegisterSocketForWriteReady(int fd) {return GetCurrentFDState().RegisterSocket(fd, FDSTATE_SET_WRITE);}
 
    /** Call this to indicate that you want the next call to WaitForEvents() to return if/when the specified
-     * socket has buffer space available to write to.
+     * socket indicates that an exception has been raised.
      * @note this registration is cleared after WaitForEvents() returns, so you will generally want to re-register
      *       your socket on each iteration of your event loop.
-     * @param fd The file descriptor to watch for space-available-to-write.
+     * @param fd The file descriptor to watch for exception-conditions (the meaning of these can vary depending on the OS)
      * @returns B_NO_ERROR on success, or an error code on failure (out of memory or bad fd value?)
      */
    inline status_t RegisterSocketForExceptionRaised(int fd) {return GetCurrentFDState().RegisterSocket(fd, FDSTATE_SET_EXCEPT);}
@@ -161,7 +161,7 @@ private:
 
       inline status_t RegisterSocket(int fd, uint32 whichSet)
       {
-         if (fd < 0) return B_BAD_ARGUMENT;
+         if ((fd < 0)||(whichSet >= NUM_FDSTATE_SETS)) return B_BAD_ARGUMENT;
 
 #if defined(MUSCLE_USE_DUMMYNOP)
          (void) fd;
@@ -192,7 +192,7 @@ private:
 
       MUSCLE_NODISCARD inline bool IsSocketReady(int fd, uint32 whichSet) const
       {
-         if (fd < 0) return false;
+         if ((fd < 0)||(whichSet >= NUM_FDSTATE_SETS)) return false;
 
 #if defined(MUSCLE_USE_DUMMYNOP)
          return (whichSet != FDSTATE_SET_EXCEPT);  // dummy implementation just always reports ready-for-read and read-for-write
@@ -248,11 +248,7 @@ private:
          {
             case FDSTATE_SET_READ:   return POLLIN |(isRegister?0:POLLHUP);
             case FDSTATE_SET_WRITE:  return POLLOUT|(isRegister?0:POLLHUP);
-#ifdef WIN32
-            case FDSTATE_SET_EXCEPT: return (isRegister?0:POLLERR);  // WSAPoll() won't accept POLLERR as an events flag... see discussion at http://daniel.haxx.se/blog/2012/10/10/wsapoll-is-broken/
-#else
-            case FDSTATE_SET_EXCEPT: return POLLERR;
-#endif
+            case FDSTATE_SET_EXCEPT: return (isRegister?0:POLLERR);  // poll() ignores POLLERR and WSAPoll() won't accept POLLERR as an events flag... see discussion at http://daniel.haxx.se/blog/2012/10/10/wsapoll-is-broken/
             default:                 return 0;
          }
       }
