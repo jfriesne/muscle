@@ -162,7 +162,7 @@ status_t DataNode :: ReorderChild(const DataNodeRef & child, const String * optM
    }
 
    // Now add the child back into the index at his new position
-   MRETURN_ON_ERROR(_orderedIndex->InsertItemAt(targetIndex, child));
+   (void) _orderedIndex->InsertItemAt(targetIndex, child);  // guaranteed not to fail because we already removed this child from the index earlier (in RemoveIndexEntry()), so there is definitely a spot allocated for it now
 
    // Notify anyone monitoring this node that the ordered-index has been updated
    if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, targetIndex, child()->GetNodeName());
@@ -182,7 +182,12 @@ status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * 
    MRETURN_ON_ERROR(child->SetParent(this, optNotifyWithOnSetParent));
 
    DataNodeRef oldNode;
-   MRETURN_ON_ERROR(_children->Put(&child->_nodeName, node, oldNode));
+   const status_t ret = _children->Put(&child->_nodeName, node, oldNode);
+   if (ret.IsError())
+   {
+      (void) child->SetParent(NULL, optNotifyWithOnSetParent);
+      return ret;
+   }
 
    if (optNotifyChangedData)
    {
@@ -192,25 +197,25 @@ status_t DataNode :: PutChild(const DataNodeRef & node, StorageReflectSession * 
    return B_NO_ERROR;
 }
 
-status_t DataNode :: SetParent(DataNode * parent, StorageReflectSession * optNotifyWith)
+status_t DataNode :: SetParent(DataNode * optParent, StorageReflectSession * optNotifyWith)
 {
    TCHECKPOINT;
 
-   if (parent)
+   if (optParent)
    {
       if (_parent) LogTime(MUSCLE_LOG_WARNING, "Warning, overwriting previous parent of node [%s]\n", GetNodeName()());
-      if (parent->_depth >= MUSCLE_MAX_NODE_DEPTH)
+      if (optParent->_depth >= MUSCLE_MAX_NODE_DEPTH)
       {
-         LogTime(MUSCLE_LOG_ERROR, "DataNode::SetParent():  Can't set node [%s] as parent of [%s], maximum node depth (%i) exceeded!\n", parent->GetNodePath()(), GetNodeName()(), MUSCLE_MAX_NODE_DEPTH);
+         LogTime(MUSCLE_LOG_ERROR, "DataNode::SetParent():  Can't set node [%s] as parent of [%s], maximum node depth (%i) exceeded!\n", optParent->GetNodePath()(), GetNodeName()(), MUSCLE_MAX_NODE_DEPTH);
          return B_RESOURCE_LIMIT;
       }
    }
 
-   _parent = parent;
+   _parent = optParent;
    if (_parent)
    {
       const char * nn = _nodeName();
-      _parent->_maxChildIDHint = muscleMax(_parent->_maxChildIDHint, (uint32) atol(&nn[(*nn=='I')?1:0]));
+      _parent->_maxChildIDHint = muscleMax(_parent->_maxChildIDHint, (uint32) Atoull(&nn[(*nn=='I')?1:0]));
    }
    else _subscribers.Reset();
 

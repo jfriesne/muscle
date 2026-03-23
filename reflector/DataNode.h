@@ -99,7 +99,7 @@ public:
     *  @param key The name of the child we wish to remove.
     *  @param optNotifyWith If non-NULL, the StorageReflectSession that should be used to notify subscribers that the given node has been removed
     *  @param recurse if true, the removed child's children will be removed from it, and so on, and so on...
-    *  @param optCounter if non-NULL, this value will be incremented whenever a child is removed (recursively)
+    *  @param optCounter if non-NULL, this value will be decremented whenever a child is removed (recursively)
     *  @return B_NO_ERROR if the given child was found and removed, or B_DATA_NOT_FOUND if it could not be found.
     */
    status_t RemoveChild(const String & key, StorageReflectSession * optNotifyWith, bool recurse, uint32 * optCounter);
