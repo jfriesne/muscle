@@ -73,12 +73,22 @@ public:
    /** Returns the number of bytes we have allocated internally.  Note that this
     *  number may be larger than the number of bytes we officially contain (as returned by GetNumBytes())
     */
-   MUSCLE_NODISCARD uint32 GetNumAllocatedBytes() {return _numAllocatedBytes;}
+   MUSCLE_NODISCARD uint32 GetNumAllocatedBytes() const {return _numAllocatedBytes;}
 
    /** Returns true iff (rhs) is holding data that is byte-for-byte the same as our own data
      * @param rhs the ByteBuffer to compare against
      */
-   bool operator ==(const ByteBuffer &rhs) const {return (this == &rhs) ? true : ((GetNumBytes() == rhs.GetNumBytes()) ? (memcmp(GetBuffer(), rhs.GetBuffer(), GetNumBytes()) == 0) : false);}
+   bool operator ==(const ByteBuffer &rhs) const
+   {
+      if (GetNumBytes() != rhs.GetNumBytes()) return false;
+      if (this == &rhs) return true;
+
+      const uint8 * myBuf  = GetBuffer();
+      const uint8 * hisBuf = rhs.GetBuffer();
+      if ((myBuf == NULL)&&(hisBuf == NULL)) return true;
+      if ((myBuf != NULL)!=(hisBuf != NULL)) return false;
+      return (memcmp(myBuf, hisBuf, GetNumBytes()) == 0);
+   }
 
    /** Returns true iff the data (rhs) is holding is different from our own (byte-for-byte).
      * @param rhs the ByteBuffer to compare against

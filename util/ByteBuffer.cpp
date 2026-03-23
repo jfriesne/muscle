@@ -75,7 +75,10 @@ status_t ByteBuffer :: AppendBytes(const uint8 * bytes, uint32 numBytes, bool al
 {
    if (numBytes == 0) return B_NO_ERROR;
 
-   if ((bytes)&&(IsByteInLocalBuffer(bytes))&&((_numValidBytes+numBytes)>_numAllocatedBytes))
+   const uint32 numBytesSum = _numValidBytes+numBytes;
+   if (numBytesSum < _numValidBytes) return B_RESOURCE_LIMIT;  // avoid potential 32-bit overflow
+
+   if ((bytes)&&(IsByteInLocalBuffer(bytes))&&(numBytesSum>_numAllocatedBytes))
    {
       // Oh dear, caller wants us to add a copy of some of our own bytes to ourself, AND we'll need to perform a reallocation to do it!
       // So to avoid freeing (bytes) before we read from them, we're going to copy them over to a temporary buffer first.
@@ -89,7 +92,7 @@ status_t ByteBuffer :: AppendBytes(const uint8 * bytes, uint32 numBytes, bool al
    }
 
    const uint32 oldValidBytes = _numValidBytes;  // save this value since SetNumBytes() will change it
-   MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(_numValidBytes+numBytes, allocExtra));
+   MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(numBytesSum, allocExtra));
    if (bytes != NULL) memcpy(_buffer+oldValidBytes, bytes, numBytes);
    return B_NO_ERROR;
 }
@@ -161,6 +164,9 @@ String ByteBuffer :: ToAnnotatedHexString(uint32 maxBytesToInclude, uint32 numCo
 
 ByteBuffer operator+(const ByteBuffer & lhs, const ByteBuffer & rhs)
 {
+   if (lhs.GetNumBytes() == 0) return rhs;
+   if (rhs.GetNumBytes() == 0) return lhs;
+
    ByteBuffer ret;
    const uint32 combinedLen = lhs.GetNumBytes()+rhs.GetNumBytes();
    if (combinedLen < lhs.GetNumBytes()) MCRASH("ByteBuffer::operator+():  can't append ByteBuffers, result is too large");
