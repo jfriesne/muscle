@@ -82,12 +82,20 @@ status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message
    else if (PyDict_Check(pyValue))
    {
       MessageRef subMsg = GetMessageFromPool();
-      if ((subMsg())&&(msg.AddMessage(fname(optKey, "_argMessage"), subMsg).IsOK())) ret = ParsePythonDictionary(pyValue, *subMsg());
+      if (subMsg())
+      {
+         if (msg.AddMessage(fname(optKey, "_argMessage"), subMsg).IsOK()) ret = ParsePythonDictionary(pyValue, *subMsg());
+      }
+      else ret = subMsg.GetStatus();
    }
    else if (PySequence_Check(pyValue))
    {
       MessageRef subMsg = GetMessageFromPool();
-      if ((subMsg())&&(msg.AddMessage(fname(optKey, "_argMessage"), subMsg).IsOK())) ret = ParsePythonSequence(pyValue, *subMsg());
+      if (subMsg())
+      {
+         if (msg.AddMessage(fname(optKey, "_argMessage"), subMsg).IsOK()) ret = ParsePythonSequence(pyValue, *subMsg());
+      }
+      else ret = subMsg.GetStatus();
    }
    return ret;
 }
@@ -95,10 +103,18 @@ status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message
 static status_t ParsePythonSequence(PyObject * args, Message & msg)
 {
    msg.what = MESSAGE_PYTHON_LIST;
-   const int seqLen = (int) PySequence_Fast_GET_SIZE(args);
+   const int seqLen = (int) PySequence_Length(args);
 
    status_t ret;
-   for (int i=0; i<seqLen; i++) if (AddPyObjectToMessage("", PySequence_Fast_GET_ITEM(args, i), msg).IsError(ret)) break;
+   for (int i=0; i<seqLen; i++)
+   {
+      PyObject * subItem = PySequence_GetItem(args, i);
+      if (subItem == NULL) return B_LOGIC_ERROR;  // wtf?
+
+      ret |= AddPyObjectToMessage("", subItem, msg);
+      Py_DECREF(subItem);  // must always be done!
+      if (ret.IsError()) break;
+   }
    return ret;
 }
 
@@ -165,7 +181,7 @@ PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fiel
    uint32 type;
    if (msg.GetInfo(fieldName, &type).IsOK())
    {
-      bool setErr = false;
+      bool didSetError = false;
       switch(type)
       {
          case B_BOOL_TYPE:
@@ -264,37 +280,47 @@ PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fiel
                   for (MessageFieldNameIterator iter(*subMsg(), B_ANY_TYPE, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
                   {
                      uint32 j = 0;
-                     while(true)
+                     while(didSetError == false)
                      {
                         PyObject * sub = ConvertMessageItemToPyObject(*subMsg(), iter.GetFieldName(), j++);
                         if (sub)
                         {
                            if (subMsg()->what == MESSAGE_PYTHON_LIST)
                            {
-                              if (PyList_Append(ret, sub) != 0) {Py_DECREF(sub);}
+                              if (PyList_Append(ret, sub) != 0) didSetError = true;
                            }
                            else
                            {
-                              if (PyDict_SetItemString(ret, (char *) iter.GetFieldName()(), sub) != 0) {Py_DECREF(sub);}
+                              if (PyDict_SetItemString(ret, (char *) iter.GetFieldName()(), sub) != 0) didSetError = true;
                            }
+
+                           Py_DECREF(sub);  // since we created (sub), we have to decrement our reference to it when we're done with it
                         }
                         else break;
                      }
                   }
+
+                  if (didSetError)
+                  {
+                     Py_DECREF(ret);
+                     ret = NULL;
+                  }
                   return ret;
                }
+               else didSetError = true;  // PyList_New() and PyDict_New() will set an error if they fail
             }
          }
          break;
 
          default:
             PyErr_SetString(PyExc_RuntimeError, String("Message contained unsupported datatype (field=[%1] index=%2 type=%3)").Arg(fieldName).Arg(index).Arg(type)());
-            setErr = true;
+            didSetError = true;
          break;
       }
-      if (setErr == false) PyErr_SetString(PyExc_RuntimeError, String("Message item [%1] item not found (field=[%1], index=%2)").Arg(fieldName).Arg(index)());
+
+      if (didSetError == false) PyErr_SetString(PyExc_RuntimeError, String("Message item [%1] item not found (index=%2)").Arg(fieldName).Arg(index)());
    }
-   else PyErr_SetString(PyExc_RuntimeError, String("Field name [%1] not found in Message object").Arg(fieldName())());
+   else PyErr_SetString(PyExc_RuntimeError, String("Field name [%1] not found in Message object").Arg(fieldName)());
 
    return NULL;
 }

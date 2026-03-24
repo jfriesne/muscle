@@ -59,6 +59,8 @@ key:  - new feature
    * Fixed the dash-stripping behavior of ParseArgs().  (found by Claude)
    * ParseArgs() now correctly lower-cases arguments when adding them
      to a Queue.
+   * Fixed a couple of memory leaks in PythonUtilityFunctions.cpp
+     (found by Claude)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
