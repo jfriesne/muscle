@@ -155,7 +155,7 @@ public:
    /** As above, except that the inflated data is written into an existing ByteBuffer object rather
      * than allocating a new ByteBuffer from the byte-buffer pool.
      * @param compressedData The compressed data to expand.  This should be data that was previously produced by the Deflate() method.
-     * @param targetBuf On success, this ByteBuffer object will contain the deflated data.
+     * @param targetBuf On success, this ByteBuffer object will contain the inflated data.
      * @returns B_NO_ERROR on success, or an error code on failure.
      */
    status_t Inflate(const ByteBuffer & compressedData, ByteBuffer & targetBuf) {return Inflate(compressedData.GetBuffer(), compressedData.GetNumBytes(), targetBuf);}

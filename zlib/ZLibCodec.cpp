@@ -10,7 +10,7 @@
 namespace muscle {
 
 #ifdef MUSCLE_ENABLE_MEMORY_TRACKING
-static void * muscleZLibAlloc(void *, uInt items, uInt size) {using namespace muscle; return muscleAlloc(items*size);}
+static void * muscleZLibAlloc(void *, uInt items, uInt size) {using namespace muscle; return muscleAlloc(((size_t)items)*size);}
 static void   muscleZLibFree( void *, void * address)        {using namespace muscle; muscleFree(address);}
 # define MUSCLE_ZLIB_ALLOC muscleZLibAlloc
 # define MUSCLE_ZLIB_FREE  muscleZLibFree
@@ -85,7 +85,7 @@ public:
 
             _deflater.next_out  = ret()->GetBuffer()+addHeaderBytes+ZLIB_CODEC_HEADER_SIZE;
             _deflater.total_out = 0;
-            _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
+            _deflater.avail_out = compAvailSize-ZLIB_CODEC_HEADER_SIZE;  // doesn't include the users add-header or add-footer bytes!
 
             if ((deflate(&_deflater, Z_SYNC_FLUSH) == Z_OK)&&(ret()->SetNumBytes((uint32)(addHeaderBytes+ZLIB_CODEC_HEADER_SIZE+_deflater.total_out+addFooterBytes), true).IsOK()))
             {
@@ -118,7 +118,7 @@ public:
 
       _deflater.next_out  = outBuf.GetBuffer()+addHeaderBytes+ZLIB_CODEC_HEADER_SIZE;
       _deflater.total_out = 0;
-      _deflater.avail_out = compAvailSize;  // doesn't include the users add-header or add-footer bytes!
+      _deflater.avail_out = compAvailSize-ZLIB_CODEC_HEADER_SIZE;  // doesn't include the users add-header or add-footer bytes!
 
       if (deflate(&_deflater, Z_SYNC_FLUSH) != Z_OK) return B_ZLIB_ERROR;
 

@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Note: (c) in the text below means the bug was detected by Claude Code.
    - Added various compiler-warning flags to CMakeLists.txt.
    - Updated Queue::RmoveHeadMulti() and Queue::RemoveTailMulti()
      to be O(1) in the case where IsPerItemClearNecessary() return false.
@@ -28,41 +29,38 @@ key:  - new feature
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to
      return B_END_OF_STREAM when it has no more bytes to provide, rather than 0.
-   * Fixed an indexing bug in Message::ReplaceData() (found by Claude)
-   * Fixed a bug in StringTokenizer's copy-constructor (found by Claude)
-   * Fixed a potential memory leak in Thread::StartInternalThreadAuxAux()
-     (found by Claude)
+   * Fixed an indexing bug in Message::ReplaceData() (c)
+   * Fixed a bug in StringTokenizer's copy-constructor (c)
+   * Fixed a potential memory leak in Thread::StartInternalThreadAuxAux() (c)
    * Fixed a potential one-byte-past-end-of-struct overwrite in
-     String::EnsureBufferSize() (found by Claude)
+     String::EnsureBufferSize() (c)
    * CPULoadMeter's Linux implementation now includes all reported CPU
-     states in its calculations (found by Claude)
+     states in its calculations (c)
    * StringMatcher's assignment-operator wouldn't copy of the state of
-     the "negate" flag.  Fixed.  (found by Claude)
+     the "negate" flag.  Fixed.  (c)
    * When a ReaderWriterMutex downgraded a thread's lock from read/write
      to read-only, other threads waiting for read-only access are now
-     notified.  (found by Claude)
+     notified.  (c)
    * Improved the rollback handling of a failed LockReadWrite() call
-     in the ReaderWriterMutex class (found by Claude)
+     in the ReaderWriterMutex class (c)
    * StackTrace::StaticPrintStackTrace() now calls fflush() when
      appropriate to avoid incorrect output ordering when also calling
-     backtrace_symbols_fd() (found by Claude)
-   * Queue::EndsWith() was broken.  Fixed.  (found by Claude)
-   * Queue::AddHeadAndGet() was calling AddTailAndGet() by mistake
-     (found by Claude)
+     backtrace_symbols_fd() (c)
+   * Queue::EndsWith() was broken.  Fixed.  (c)
+   * Queue::AddHeadAndGet() was calling AddTailAndGet() by mistake (c)
    * Queue::AdoptRawDataArray() wasn't setting the _tailIndex value
-     correctly.  (found by Claude)
+     correctly.  (c)
    * Queue::RemoveSortedDuplicateItems() wasn't handling an empty
-     Queue correctly.  (found by Claude)
+     Queue correctly.  (c)
    * Queue::ReverseItemOrdering() now correctly handles calls where the
-     (to) argument isn't greater than the (from) argument.  (found by
-     Claude)
-   * Fixed the dash-stripping behavior of ParseArgs().  (found by Claude)
+     (to) argument isn't greater than the (from) argument.  (c)
+   * Fixed the dash-stripping behavior of ParseArgs().  (c)
    * ParseArgs() now correctly lower-cases arguments when adding them
      to a Queue.
-   * Fixed a couple of memory leaks in PythonUtilityFunctions.cpp
-     (found by Claude)
+   * Fixed a couple of memory leaks in PythonUtilityFunctions.cpp (c)
    * CalculateHashCode64() wasn't handling unaligned pointer arguments
-     correctly.  Fixed (found by Claude)
+     correctly.  Fixed (c)
+   * Fixed a buffer-overrun bug in ZLibCodec::Deflate() (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
