@@ -38,8 +38,9 @@ static String GetWebSocketHashKeyString(const String & orig)
    return Base64Encode(shaHash.GetBytes(), IncrementalHashCalculator::GetNumResultBytesUsedByAlgorithm(HASH_ALGORITHM_SHA1));
 }
 
-WebSocketMessageIOGateway :: WebSocketMessageIOGateway()
-   : _handshakeState(WEBSOCKET_HANDSHAKE_NONE)
+WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const bool * isClient)
+   : _isClient((isClient)&&(*isClient))
+   , _handshakeState(WEBSOCKET_HANDSHAKE_NONE)
    , _numHTTPBytesWritten(0)
    , _headerBytesReceived(0)
    , _headerSize(2)
@@ -53,7 +54,8 @@ WebSocketMessageIOGateway :: WebSocketMessageIOGateway()
 }
 
 WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const StringMatcher & protocolNameMatcher, const StringMatcher & pathMatcher)
-   : _handshakeState(WEBSOCKET_HANDSHAKE_AS_SERVER)
+   : _isClient(false)
+   , _handshakeState(WEBSOCKET_HANDSHAKE_AS_SERVER)
    , _protocolNameMatcher(protocolNameMatcher)
    , _pathMatcher(pathMatcher)
    , _numHTTPBytesWritten(0)
@@ -69,7 +71,8 @@ WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const StringMatcher & pro
 }
 
 WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const String & getPath, const String & host, const String & protocolsStr, const String & origin)
-   : _handshakeState(WEBSOCKET_HANDSHAKE_AS_CLIENT)
+   : _isClient(true)
+   , _handshakeState(WEBSOCKET_HANDSHAKE_AS_CLIENT)
    , _numHTTPBytesWritten(0)
    , _headerBytesReceived(0)
    , _headerSize(2)
@@ -81,9 +84,11 @@ WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const String & getPath, c
 {
    {
       uint8 randomBytes[16];
-      const uint64 nonce = GetCurrentTime64() + GetRunTime64() + ((uintptr)this) + GetInsecurePseudoRandomNumber();
-      memcpy(&randomBytes[0],             &nonce, sizeof(nonce));
-      memcpy(&randomBytes[sizeof(nonce)], &nonce, sizeof(nonce));
+      const uint64 base  =  GetCurrentTime64() + GetRunTime64() + (uint64)((uintptr)this);
+      const uint64 nonce1 = base + (1*GetInsecurePseudoRandomNumber());
+      const uint64 nonce2 = base + (2*GetInsecurePseudoRandomNumber());
+      memcpy(&randomBytes[0],              &nonce1, sizeof(nonce1));
+      memcpy(&randomBytes[sizeof(nonce1)], &nonce2, sizeof(nonce2));
       _clientGeneratedKey = Base64Encode(randomBytes, sizeof(randomBytes));
    }
 
@@ -96,6 +101,7 @@ WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const String & getPath, c
    if (protocolsStr.HasChars()) _httpTextToWrite += String("Sec-WebSocket-Protocol: %1\r\n").Arg(protocolsStr);
    _httpTextToWrite += "Sec-WebSocket-Version: 13\r\n";
    if (origin.HasChars()) _httpTextToWrite += String("Origin: %1\r\n").Arg(origin);
+   _httpTextToWrite += "\r\n";
 }
 
 void WebSocketMessageIOGateway :: ResetHeaderReceiveState()
@@ -148,7 +154,7 @@ status_t WebSocketMessageIOGateway :: HandleReceivedHTTPText()
 
    // Should be present in both the proposal and the response
    const String & conn = args["Connection"];
-   if (!conn.EqualsIgnoreCase("Upgrade"))
+   if (!conn.ContainsIgnoreCase("Upgrade"))
    {
       LogTime(MUSCLE_LOG_ERROR, "WebSocketMessageIOGateway::HandleReceivedHTTPText():  Connection upgrade directive not found!  [%s]\n", conn());
       return B_BAD_DATA;
@@ -177,7 +183,7 @@ status_t WebSocketMessageIOGateway :: HandleReceivedHTTPText()
                   break;
                }
             }
-            if (foundProto.IsEmpty())
+            if ((foundProto.IsEmpty())&&(_protocolNameMatcher.Match("") == false))
             {
                LogTime(MUSCLE_LOG_ERROR, "WebSocketMessageIOGateway::HandleReceivedHTTPText():  No protocol found in [%s] that matches [%s]\n", proto(), _protocolNameMatcher.GetPattern()());
                return B_ACCESS_DENIED;
@@ -327,17 +333,20 @@ io_status_t WebSocketMessageIOGateway :: DoInputImplementation(AbstractGatewayMe
                {
                   case 2:
                   {
+                     const bool peerIsServer = _isClient;  // just for code clarity
+                     const char * peerDesc   = peerIsServer ? "server" : "client";
+
                      if (_headerBytes[0] & 0x70)
                      {
-                        LogTime(MUSCLE_LOG_ERROR, "WebSocketMessageIOGateway:  Frame from client had reserved bits set!  %x\n", _headerBytes[0]);
+                        LogTime(MUSCLE_LOG_ERROR, "WebSocketMessageIOGateway:  Frame from %s had reserved bits set!  %x\n", peerDesc, _headerBytes[0]);
                         SetUnrecoverableErrorStatus(B_BAD_DATA);
                         return B_BAD_DATA;
                      }
 
                      const bool maskBit = ((_headerBytes[1] & 0x80) != 0);
-                     if (maskBit == 0)
+                     if (peerIsServer ? (maskBit != 0) : (maskBit == 0))  // RFC 6455:  clients MUST send us masked frames; servers MUST NOT send us masked frames.  Check incoming frames accordingly.
                      {
-                        LogTime(MUSCLE_LOG_ERROR, "WebSocketMessageIOGateway:  Frame from client didn't have its mask bit set!\n");
+                        LogTime(MUSCLE_LOG_ERROR, "WebSocketMessageIOGateway::DoInputImplementation():  Frame from %s %s its mask bit set! (%x)\n", peerDesc, peerIsServer ? "had" : "didn't have", _headerBytes[1]);
                         SetUnrecoverableErrorStatus(B_BAD_DATA);
                         return B_BAD_DATA;
                      }
@@ -348,7 +357,6 @@ io_status_t WebSocketMessageIOGateway :: DoInputImplementation(AbstractGatewayMe
                         case 127: _headerSize += 8+4; break; /* need to read eight more bytes to find out the payload length, plus mask */
                         default:  _headerSize += 0+4; break; /* need mask only */
                      }
-                     break;
                   }
                   break;
 

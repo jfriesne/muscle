@@ -26,8 +26,8 @@ key:  - new feature
    o Replaced WasSignalCaught() with GetNumSignalsCaught().
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
-   * ByteBufferDataIO::Read() now returns B_END_OF_STREAM when it has
-     no more bytes to provide, rather than 0.
+   * ByteBufferDataIO constructor now offers an option for Read() to
+     return B_END_OF_STREAM when it has no more bytes to provide, rather than 0.
    * Fixed an indexing bug in Message::ReplaceData() (found by Claude)
    * Fixed a bug in StringTokenizer's copy-constructor (found by Claude)
    * Fixed a potential memory leak in Thread::StartInternalThreadAuxAux()

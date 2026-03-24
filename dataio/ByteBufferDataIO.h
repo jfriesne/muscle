@@ -19,8 +19,11 @@ public:
    /** Constructor.
     *  @param buf Reference to the byte buffer to read from.  If not specified (or specified
     *             as a NULL reference), you will need to call SetBuffer() before using this ByteBufferDataIO.
+    *  @param okayToReturnEndOfStream if true, then when Read() has no more data to supply because the
+    *             seek-point has reached the end of the held ByteBuffer, Read() will return B_END_OF_STREAM
+    *             to indicate that fact.  If false, it will just return 0.  Default value is false.
     */
-   ByteBufferDataIO(const ByteBufferRef & buf = ByteBufferRef());
+   ByteBufferDataIO(const ByteBufferRef & buf = ByteBufferRef(), bool okayToReturnEndOfStream = false);
 
    /** Virtual Destructor, to keep C++ honest */
    virtual ~ByteBufferDataIO();
@@ -89,6 +92,7 @@ private:
 
    ByteBufferRef _buf;
    uint32 _seekPos;
+   const bool _okayToReturnEndOfStream;
 
    DECLARE_COUNTED_OBJECT(ByteBufferDataIO);
 };

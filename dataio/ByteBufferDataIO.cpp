@@ -4,9 +4,10 @@
 
 namespace muscle {
 
-ByteBufferDataIO :: ByteBufferDataIO(const ByteBufferRef & buf)
+ByteBufferDataIO :: ByteBufferDataIO(const ByteBufferRef & buf, bool okayToReturnEndOfStream)
    : _buf(buf)
    , _seekPos(0)
+   , _okayToReturnEndOfStream(okayToReturnEndOfStream)
 {
    // empty
 }
@@ -22,7 +23,7 @@ io_status_t ByteBufferDataIO :: Read(void * buffer, uint32 size)
    if (size == 0) return io_status_t(0);
 
    const uint32 numBytesToCopy = muscleMin(size, GetNumBytesAvailable());
-   if (numBytesToCopy == 0) return B_END_OF_STREAM;  // as opposed to "nothing more to read right now"
+   if (numBytesToCopy == 0) return _okayToReturnEndOfStream ? io_status_t(B_END_OF_STREAM) : io_status_t(0);
 
    memcpy(buffer, _buf()->GetBuffer()+_seekPos, numBytesToCopy);
    _seekPos += numBytesToCopy;

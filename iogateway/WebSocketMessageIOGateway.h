@@ -1,3 +1,6 @@
+#ifndef WebSocketMessageIOGateway_h
+#define WebSocketMessageIOGateway_h
+
 #include "iogateway/AbstractMessageIOGateway.h"
 #include "regex/StringMatcher.h"
 #include "util/ByteBuffer.h"
@@ -8,11 +11,14 @@ namespace muscle {
 class WebSocketMessageIOGateway : public AbstractMessageIOGateway
 {
 public:
-   /** Default constructor
+   /** Minimal constructor
      * This contructor sets up a WebSocketMessageIOGateway with no HTTP handshaking phase.  It's assumed that any necessary
      * HTTP->WebSockets upgrade handshaking has already been handled via some other mechanism.
+     * @param isClient if non-NULL and pointing to a true value, we should act as a client (i.e. expect to received non-masked frames from a server)
+     *                 if NULL or pointer to a false value, we should act as a server (i.e. expect to receive masked frames from a client)
+     * @note the argument is passed as a pointer merely to disambiguate calls to this constructor from calls to the one below it.
      */
-   WebSocketMessageIOGateway();
+   WebSocketMessageIOGateway(const bool * isClient);
 
    /** Server-side constructor
      * @param protocolNameMatcher this should match any dotted-protocol-names that we want to accept, and not match any
@@ -72,6 +78,7 @@ private:
    void FlushReceivedMessage(AbstractGatewayMessageReceiver & receiver);
    void ResetHeaderReceiveState();
 
+   const bool _isClient;
    uint32 _handshakeState;
    StringMatcher _protocolNameMatcher;
    StringMatcher _pathMatcher;
@@ -105,3 +112,5 @@ private:
 DECLARE_REFTYPES(WebSocketMessageIOGateway);
 
 } // end namespace muscle
+
+#endif

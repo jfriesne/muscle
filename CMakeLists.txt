@@ -290,7 +290,6 @@ elseif ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQ
         -Wno-float-equal
         -Wmissing-field-initializers
         $<$<OR:$<COMPILE_LANGUAGE:CXX>,$<COMPILE_LANGUAGE:OBJCXX>>:
-        -Wzero-as-null-pointer-constant
         -Wunused-private-field
         -Woverloaded-virtual
         -Wreorder
@@ -323,8 +322,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         -Wmissing-field-initializers
         $<$<COMPILE_LANGUAGE:CXX>:
         -Woverloaded-virtual
-        -Wreorder
-        -Wzero-as-null-pointer-constant>)
+        -Wreorder>)
 endif ()
 
 target_link_libraries(muscle recommended_warning_flags)
