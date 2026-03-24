@@ -75,6 +75,7 @@ static void WriteOctalASCII(uint8 * b, uint64 val, uint8 fieldSize)
 
    char * pi = strchr(formatStr, 'u');
    if (pi) *pi = 'o';  // gotta use octal here!
+      else LogTime(MUSCLE_LOG_ERROR, "WriteOctalASCII:  Couldn't find 'u' in format string [%s] to convert to 'o', tar header size field will likely be written as decimal!\n", formatStr);
 
    char tmp[256];
    muscleSprintf(tmp, formatStr, val);
@@ -103,7 +104,32 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
 
    if (_currentHeaderOffset >= 0)
    {
-      const uint64 currentFileLength = _currentSeekPosition-(_currentHeaderOffset+TAR_BLOCK_SIZE);
+      uint64 currentFileLength = _currentSeekPosition-(_currentHeaderOffset+TAR_BLOCK_SIZE);
+
+      if (_seekableWriterIO() == NULL)
+      {
+         if (currentFileLength > _prestatedFileSize)
+         {
+            LogTime(MUSCLE_LOG_ERROR, "TarFileWriter::FinishCurrentFileDataBlock():  DataIO isn't seekable, and the file-length (" UINT64_FORMAT_SPEC ") of the current entry [%s] is larger than the prestated file-length (" UINT64_FORMAT_SPEC ")!  Can't update the tar entry header!\n", currentFileLength, _currentHeaderBytes, _prestatedFileSize);
+            return B_LOGIC_ERROR;  // should never happen since WriteFileData() will truncate before we get here
+         }
+         else if (currentFileLength < _prestatedFileSize)
+         {
+            uint64 numBytesToPad = (_prestatedFileSize-currentFileLength);
+            LogTime(MUSCLE_LOG_ERROR, "TarFileWriter::FinishCurrentFileDataBlock():  Writing " UINT64_FORMAT_SPEC " zero-pad-bytes to match non-seekable file-size-header (" UINT64_FORMAT_SPEC ") of [%s]\n", numBytesToPad, _prestatedFileSize, (const char *) _currentHeaderBytes);
+
+            uint8 padBuf[1024]; memset(padBuf, 0, sizeof(padBuf));
+            while(numBytesToPad > 0)
+            {
+               const uint32 numPadBytesToWrite = (uint32) muscleMin(numBytesToPad, (uint64) sizeof(padBuf));
+               MRETURN_ON_ERROR(_writerIO()->WriteFully(padBuf, numPadBytesToWrite));
+               numBytesToPad        -= numPadBytesToWrite;
+               _currentSeekPosition += numPadBytesToWrite;
+               currentFileLength    += numPadBytesToWrite;
+            }
+         }
+      }
+
       const int64 extraBytes = (_currentSeekPosition%TAR_BLOCK_SIZE);
       if (extraBytes != 0)
       {
@@ -127,24 +153,6 @@ status_t TarFileWriter :: FinishCurrentFileDataBlock()
 
          MRETURN_ON_ERROR(_seekableWriterIO()->Seek(0, SeekableDataIO::IO_SEEK_END));
          _currentSeekPosition = _seekableWriterIO()->GetLength();
-      }
-      else if (currentFileLength > _prestatedFileSize)
-      {
-         LogTime(MUSCLE_LOG_ERROR, "TarFileWriter::FinishCurrentFileDataBlock():  DataIO isn't seekable, and the file-length (" UINT64_FORMAT_SPEC ") of the current entry [%s] is larger than the prestated file-length (" UINT64_FORMAT_SPEC ")!  Can't update the tar entry header!\n", currentFileLength, _currentHeaderBytes, _prestatedFileSize);
-         return B_LOGIC_ERROR;  // should never happen since WriteFileData() will truncate before we get here
-      }
-      else if (currentFileLength < _prestatedFileSize)
-      {
-         uint64 numBytesToPad = (_prestatedFileSize-currentFileLength);
-         LogTime(MUSCLE_LOG_ERROR, "TarFileWriter::FinishCurrentFileDataBlock():  Writing " UINT64_FORMAT_SPEC " zero-pad-bytes to match non-seekable file-size-header (" UINT64_FORMAT_SPEC ") of [%s]\n", numBytesToPad, _prestatedFileSize, (const char *) _currentHeaderBytes);
-
-         uint8 padBuf[1024]; memset(padBuf, 0, sizeof(padBuf));
-         while(numBytesToPad > 0)
-         {
-            const uint32 numPadBytesToWrite = (uint32) muscleMin(numBytesToPad, (uint64) sizeof(padBuf));
-            MRETURN_ON_ERROR(_writerIO()->WriteFully(padBuf, numPadBytesToWrite));
-            numBytesToPad -= numPadBytesToWrite;
-         }
       }
 
       _currentHeaderOffset = -1;
@@ -239,7 +247,7 @@ status_t TarFileWriter :: WriteFileHeaderAux(const char * fileName, uint32 fileM
    {
       memcpy(&_currentHeaderBytes[257], "ustar\0", 6);  // enable magic ustar extension
       muscleStrncpy((char *)(&_currentHeaderBytes[345]), fileName, ustarPathPrefixLen+1);       // common path-prefix goes here
-      if (ustarPathPrefixLen < _maxPrefixLength) _currentHeaderBytes[345+ustarPathPrefixLen] = '\0';  // NUL-terminate if there's room to do it
+      if (ustarPathPrefixLen <= _maxPrefixLength) _currentHeaderBytes[345+ustarPathPrefixLen] = '\0';  // NUL-terminate if there's room to do it (<= is intentional)
       muscleStrncpy((char *)(&_currentHeaderBytes[0]),   fileName+ustarPathPrefixLen+1, basicFormatMaxLen);   // remainder of filename goes here
    }
 

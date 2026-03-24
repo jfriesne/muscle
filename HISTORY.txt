@@ -62,6 +62,8 @@ key:  - new feature
      correctly.  Fixed (c)
    * Fixed a buffer-overrun bug in ZLibCodec::Deflate() (c)
    * Fixed a data-handling bug in ZLibDataIO::Read() (c)
+   * Fixed a bug in TarFileWriter's handling of block-padding when
+     writing using a non-seekable DataIO. (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
