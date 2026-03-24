@@ -61,6 +61,7 @@ key:  - new feature
    * CalculateHashCode64() wasn't handling unaligned pointer arguments
      correctly.  Fixed (c)
    * Fixed a buffer-overrun bug in ZLibCodec::Deflate() (c)
+   * Fixed a data-handling bug in ZLibDataIO::Read() (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

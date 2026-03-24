@@ -9,7 +9,7 @@
 namespace muscle {
 
 #ifdef MUSCLE_ENABLE_MEMORY_TRACKING
-static void * muscleZLibAlloc(void *, uInt items, uInt size) {return muscleAlloc(items*size);}
+static void * muscleZLibAlloc(void *, uInt items, uInt size) {return muscleAlloc(((size_t)items)*size);}
 static void muscleZLibFree(void *, void * address) {muscleFree(address);}
 # define MUSCLE_ZLIB_ALLOC muscleZLibAlloc
 # define MUSCLE_ZLIB_FREE  muscleZLibFree
@@ -92,7 +92,8 @@ public:
          if (_inputStreamOkay)
          {
             if (_readInflater.avail_in == 0) _readInflater.next_in = _toInflateBuf;
-            const int32 bytesRead = GetChildDataIO()()->Read(_readInflater.next_in, (int32)((_toInflateBuf+sizeof(_toInflateBuf))-_readInflater.next_in)).GetByteCount();
+            uint8 * readInto = _readInflater.next_in + _readInflater.avail_in;
+            const int32 bytesRead = GetChildDataIO()()->Read(readInto, (int32) ((_toInflateBuf+sizeof(_toInflateBuf))-readInto)).GetByteCount();
             if (bytesRead >= 0)
             {
                _readInflater.avail_in += bytesRead;
@@ -246,7 +247,8 @@ private:
          MRETURN_ON_ERROR(postWrittenToChildBytes);
 
          // Try to avoid returning 0 just because zlib needed buffers to be flushed; blocking callers don't like it when WriteFully() returns a short write
-         if (zRet < 0) return B_ZLIB_ERROR;  // avoid infinite recursion if zlib is bonking out
+         if (zRet < 0) return (zRet == Z_BUF_ERROR) ? io_status_t(bytesAbsorbed) : B_ZLIB_ERROR;  // avoid infinite recursion if zlib is bonking out (Z_BUF_ERROR isn't considered fatal though)
+
          return bytesAbsorbed ? io_status_t(bytesAbsorbed) : (((zRet == Z_STREAM_END)&&(preWrittenToChildBytes.GetByteCount()==0)&&(postWrittenToChildBytes.GetByteCount()==0)) ? io_status_t() : WriteAux(buffer, size, flushAtEnd, optFinishingUp));
       }
       return B_BAD_OBJECT;
