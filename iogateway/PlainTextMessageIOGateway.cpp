@@ -33,7 +33,7 @@ DoOutputImplementation(uint32 maxBytes)
       MessageRef nextMsg;
       while(((uint32)totalNumBytesSent.GetByteCount() < maxBytes)&&(PopNextOutgoingMessage(nextMsg).IsOK()))
       {
-         uint32 outBufLen = 1; // 1 for the one extra NUL byte at the end of all the strings (per String::Flatten(), below)
+         uint32 outBufLen = 1; // the 1 is so that I can have a NUL byte at the end of all the of (outBuf)'s buffer, just to make it easier to print out if I want to
          const String * nextStr;
          for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr).IsOK(); i++) outBufLen += (nextStr->Length() + _eolString.Length());
 
@@ -48,7 +48,7 @@ DoOutputImplementation(uint32 maxBytes)
             }
 
             const uint8 * outBytes      = outBuf()->GetBuffer();
-            const uint32 numBytesToSend = outBuf()->GetNumBytes()-1;  // don't sent the NUL terminator byte; receivers shouldn't rely on it anyway
+            const uint32 numBytesToSend = outBuf()->GetNumBytes()-1;  // don't send the NUL terminator byte; receivers shouldn't rely on it anyway
 
             PacketDataIO * pdio = GetPacketDataIO();  // guaranteed non-NULL
             IPAddressAndPort packetDest;
@@ -59,7 +59,8 @@ DoOutputImplementation(uint32 maxBytes)
 
             if (subRet.GetByteCount() == 0)
             {
-               (void) GetOutgoingMessageQueue().AddHead(nextMsg);  // roll back -- no more buffer space to output to.  We'll try again later to send it, maybe
+               const status_t r = GetOutgoingMessageQueue().AddHead(nextMsg);  // roll back -- no more buffer space to output to.  We'll try again later to send it, maybe
+               if ((r.IsError())&&(totalNumBytesSent.GetByteCount() == 0)) totalNumBytesSent = r;
                break;
             }
          }
@@ -167,10 +168,10 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
       }
 
       io_status_t totalBytesRead;
-      while(true)
+      while(((uint32)totalBytesRead.GetByteCount()) < maxBytes)
       {
          IPAddressAndPort sourceIAP;
-         const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(pbuf, muscleMin(maxBytes, (uint32)(pbufSize-1)), sourceIAP);
+         const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(pbuf, muscleMin((uint32)(maxBytes-totalBytesRead.GetByteCount()), (uint32)(pbufSize-1)), sourceIAP);
          MTALLY_BYTES_OR_RETURN_ON_ERROR(totalBytesRead, bytesRead);
 
          if (bytesRead.GetByteCount() > 0)
@@ -285,6 +286,8 @@ Reset()
    AbstractMessageIOGateway::Reset();
    _currentSendingMessage.Reset();
    _currentSendText.Clear();
+   _currentSendLineIndex      = -1;
+   _currentSendOffset         = -1;
    _prevCharWasCarriageReturn = false;
    _incomingText.Clear();
 }

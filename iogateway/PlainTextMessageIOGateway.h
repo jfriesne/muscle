@@ -103,7 +103,7 @@ protected:
 
 private:
    bool _inSubnegotiation;
-   int _commandBytesLeft;
+   uint32 _commandBytesLeft;
 };
 DECLARE_REFTYPES(TelnetPlainTextMessageIOGateway);
 
