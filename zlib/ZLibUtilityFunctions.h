@@ -18,7 +18,7 @@ class DataIO;
  *  @{
  */
 
-/** Given some data, returns a ByteBuffer containing a compressed version of that date.
+/** Given some data, returns a ByteBuffer containing a compressed version of that data.
   * @param bytes Pointer to the data to compress
   * @param numBytes Number of bytes that (bytes) points to
   * @param compressionLevel The level of ZLib compression to use when creating the
@@ -76,7 +76,7 @@ static inline ByteBufferRef DeflateByteBuffer(const ByteBuffer & buf, int compre
   */
 static inline ByteBufferRef DeflateByteBuffer(const ConstByteBufferRef & buf, int compressionLevel = 6, uint32 addHeaderBytes = 0, uint32 addFooterBytes = 0) {return buf() ? DeflateByteBuffer(*buf(), compressionLevel, addHeaderBytes, addFooterBytes) : ByteBufferRef();}
 
-/** Given come compressed data, returns a ByteBuffer containing the original/uncompressed data.
+/** Given some compressed data, returns a ByteBuffer containing the original/uncompressed data.
   * @param bytes Pointer to the data to uncompress
   * @param numBytes Number of bytes that (bytes) points to
   * @returns a reference to an uncompressed ByteBuffer on success, or a NULL reference on failure.

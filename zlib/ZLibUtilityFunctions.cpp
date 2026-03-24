@@ -7,7 +7,11 @@
 #include "system/SetupSystem.h"
 #include "zlib/ZLibCodec.h"
 #include "zlib/ZLibUtilityFunctions.h"
-#ifndef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
+#ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
+# ifndef MUSCLE_AVOID_CPLUSPLUS11
+#  include <atomic>
+# endif
+#else
 # ifdef MUSCLE_SINGLE_THREAD_ONLY
 #  define MUSCLE_AVOID_THREAD_LOCAL_STORAGE
 # else
@@ -22,7 +26,11 @@ static const String MUSCLE_ZLIB_FIELD_NAME_STRING = MUSCLE_ZLIB_FIELD_NAME;
 #ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
 static Mutex _zlibLock;  // a separate lock because using the global lock was causing deadlockfinder hits
 static ZLibCodec * _codecs[10] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
+# if defined(MUSCLE_AVOID_CPLUSPLUS11) || defined(MUSCLE_SINGLE_THREAD_ONLY)
 static bool _cleanupCallbackInstalled = false;
+# else
+static std::atomic<bool> _cleanupCallbackInstalled;
+# endif
 #else
 static ThreadLocalStorage<ZLibCodec> _codecs[10];  // using ThreadLocalStorage == no locking == no headaches :)
 #endif
@@ -38,15 +46,24 @@ static void FreeZLibCodecs()
    }
 }
 
+static bool IsCleanupCallbackInstalledFlagSet()
+{
+# if defined(MUSCLE_AVOID_CPLUSPLUS11) || defined(MUSCLE_SINGLE_THREAD_ONLY)
+   return _cleanupCallbackInstalled;
+#else
+   return _cleanupCallbackInstalled.load();
+#endif
+}
+
 static void EnsureCleanupCallbackInstalled()
 {
-   if (_cleanupCallbackInstalled == false)  // check once without locking, to avoid locking every time
+   if (IsCleanupCallbackInstalledFlagSet() == false)
    {
       const Mutex * m = GetGlobalMuscleLock();
       if (m)
       {
          DECLARE_MUTEXGUARD(*m);
-         if (_cleanupCallbackInstalled == false)  // in case we got scooped before could aquire the lock
+         if (IsCleanupCallbackInstalledFlagSet() == false)  // in case we got scooped before could aquire the lock
          {
             CompleteSetupSystem * css = CompleteSetupSystem::GetCurrentCompleteSetupSystem();
             if (css)
@@ -116,12 +133,16 @@ MessageRef DeflateMessage(const MessageRef & msgRef, int compressionLevel, bool 
    if ((msgRef())&&(msgRef()->HasName(MUSCLE_ZLIB_FIELD_NAME_STRING) == false))
    {
       MessageRef defMsg = GetMessageFromPool(msgRef()->what);
+      MRETURN_ON_ERROR(defMsg);
+
       ByteBufferRef buf = msgRef()->FlattenToByteBuffer();
-      if ((defMsg())&&(buf()))
-      {
-         buf = DeflateByteBuffer(*buf(), compressionLevel);
-         if ((buf())&&(defMsg()->AddFlat(MUSCLE_ZLIB_FIELD_NAME_STRING, buf).IsOK())&&((force)||(defMsg()->FlattenedSize() < msgRef()->FlattenedSize()))) ret = std_move_if_available(defMsg);
-      }
+      MRETURN_ON_ERROR(buf);
+
+      buf = DeflateByteBuffer(*buf(), compressionLevel);
+      MRETURN_ON_ERROR(buf);
+      MRETURN_ON_ERROR(defMsg()->AddFlat(MUSCLE_ZLIB_FIELD_NAME_STRING, buf));
+
+      if ((force)||(defMsg()->FlattenedSize() < msgRef()->FlattenedSize())) ret = std_move_if_available(defMsg);
    }
    return ret;
 }
