@@ -23,7 +23,7 @@ static uLong ZCALLBACK fread_dataio_func (voidpf /*opaque*/, voidpf stream, void
    if (dio == NULL) return 0;
 
    const io_status_t rfRet = dio->ReadFullyUpTo(buf, (uint32)size);
-   return (uLong) rfRet.IsOK() ? rfRet.GetByteCount() : 0;
+   return (uLong) (rfRet.IsOK() ? rfRet.GetByteCount() : 0);
 }
 
 static uLong ZCALLBACK fwrite_dataio_func (voidpf /*opaque*/, voidpf stream, const void * buf, uLong size)
@@ -51,19 +51,17 @@ static long ZCALLBACK fseek_dataio_func (voidpf /*opaque*/, voidpf stream, uLong
    }
    DataIO * dio = (DataIO *)stream;
    SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(dio);
-   return (long) ((sdio)&&(sdio->Seek(offset, muscleSeekOrigin).IsOK())) ? 0 : -1;
+   return (long) (((sdio)&&(sdio->Seek(offset, muscleSeekOrigin).IsOK())) ? 0 : -1);
 }
 
 static int ZCALLBACK fclose_dataio_func (voidpf /*opaque*/, voidpf /*stream*/)
 {
-   // empty
-   return 0;
+   return 0; // empty
 }
 
 static int ZCALLBACK ferror_dataio_func (voidpf /*opaque*/, voidpf /*stream*/)
 {
-   // empty
-   return -1;
+   return 0; // empty
 }
 
 static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Message & msg, int compressionLevel, zip_fileinfo * fileInfo)
@@ -203,7 +201,10 @@ static status_t ReadZipFileAuxAux(zipFile zf, Message & msg, char * nameBuf, uin
          {
             ByteBufferRef bufRef = GetByteBufferFromPool((uint32) fileInfo.uncompressed_size);
             MRETURN_ON_ERROR(bufRef);
-            if (unzReadCurrentFile(zf, bufRef()->GetBuffer(), bufRef()->GetNumBytes()) != (int32)bufRef()->GetNumBytes()) return B_IO_ERROR;
+
+            const int bytesRead = unzReadCurrentFile(zf, bufRef()->GetBuffer(), bufRef()->GetNumBytes());
+            if ((bytesRead < 0) || ((uint32)bytesRead != bufRef()->GetNumBytes())) return B_IO_ERROR;
+
             MRETURN_ON_ERROR(m->AddFlat(fn, bufRef));
          }
          else MRETURN_ON_ERROR(m->AddInt64(fn, fileInfo.uncompressed_size));
