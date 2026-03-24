@@ -126,13 +126,16 @@ DoOutputImplementation(uint32 maxBytes)
                if (_flattenedCallback) (void) _flattenedCallback(nextRef, _flattenedCallbackData);
 
 #ifdef DELIBERATELY_INJECT_ERRORS_INTO_OUTGOING_MESSAGE_FOR_TESTING_ONLY_DONT_ENABLE_THIS_UNLESS_YOU_LIKE_CHAOS
- const uint32 hs    = GetHeaderSize();
- const uint32 bs    = _sendBuffer._buffer()->GetNumBytes() - hs;
- const uint32 start = GetInsecurePseudoRandomNumber(bs);
- const uint32 end   = (start+5)%bs;
- if (start > end) muscleSwap(start, end);
- printf("Bork! %u->%u\n", start, end);
- for (uint32 i=start; i<=end; i++) _sendBuffer._buffer()->GetBuffer()[i+hs] = (uint8) GetInsecurePseudoRandomNumber(256);
+ const uint32 hs = GetHeaderSize();
+ const uint32 bs = _sendBuffer._buffer()->GetNumBytes() - hs;
+ if (bs > 0)
+ {
+    uint32 start = GetInsecurePseudoRandomNumber(bs);
+    uint32 end   = (start+5)%bs;
+    if (start > end) muscleSwap(start, end);
+    printf("Bork! %u->%u\n", start, end);
+    for (uint32 i=start; i<=end; i++) _sendBuffer._buffer()->GetBuffer()[i+hs] = (uint8) GetInsecurePseudoRandomNumber(256);
+ }
 #endif
 
                break;  // now go on to the sending phase
@@ -294,12 +297,22 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                ForgetScratchReceiveBufferIfSubclassIsStillUsingIt();
 
                if (msg() == NULL) {SetUnrecoverableErrorStatus(msg.GetStatus() | B_BAD_DATA); break;}
-               if (_unflattenedCallback) MRETURN_ON_ERROR(_unflattenedCallback(msg, _unflattenedCallbackData));
+               if (_unflattenedCallback)
+               {
+                  const status_t r = _unflattenedCallback(msg, _unflattenedCallbackData);
+                  if (r.IsError())
+                  {
+                     SetUnrecoverableErrorStatus(r);
+                     return (readBytes > 0) ? io_status_t(readBytes) : r;
+                  }
+               }
+
                receiver.CallMessageReceivedFromGateway(msg);
             }
          }
       }
    }
+
    return ((readBytes==0)&&(GetUnrecoverableErrorStatus().IsError())) ? io_status_t(GetUnrecoverableErrorStatus()) : io_status_t(readBytes);
 }
 
@@ -427,7 +440,7 @@ MessageRef MessageIOGateway :: UnflattenHeaderAndMessage(const ConstByteBufferRe
    const uint32 lhbSize = DefaultEndianConverter::Import<uint32>(&lhb[0*sizeof(uint32)]);
    if ((offset+lhbSize) != bufRef()->GetNumBytes())
    {
-      LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  Unexpected lhb size " UINT32_FORMAT_SPEC ", expected " INT32_FORMAT_SPEC "\n", this, lhbSize, bufRef()->GetNumBytes()-offset);
+      LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  Unexpected lhb size " UINT32_FORMAT_SPEC ", expected " UINT32_FORMAT_SPEC "\n", this, lhbSize, bufRef()->GetNumBytes()-offset);
       return B_BAD_DATA;
    }
 
