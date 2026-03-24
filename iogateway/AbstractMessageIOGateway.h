@@ -251,7 +251,7 @@ protected:
      */
    virtual void SynchronousEndMessageReceivedFromGatewayBatch(AbstractGatewayMessageReceiver & r) {r.EndMessageReceivedFromGatewayBatch();}
 
-   /** Implementation of the AbstracteMessageIOGatewayReceiver interface:  calls AddOutgoingMessage(msg).
+   /** Implementation of the AbstractMessageIOGatewayReceiver interface:  calls AddOutgoingMessage(msg).
      * This way you can have the input of one gateway go directly to the output of another, without any intermediate step.
      * @param msg the Message that was received from the gateway
      */

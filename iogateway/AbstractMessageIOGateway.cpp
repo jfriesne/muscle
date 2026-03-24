@@ -75,10 +75,11 @@ public:
       // empty
    }
 
-   virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData) {_gw->SynchronousMessageReceivedFromGateway(msg, userData, *_r);}
-   virtual void AfterMessageReceivedFromGateway(const MessageRef & msg, void * userData) {_gw->SynchronousAfterMessageReceivedFromGateway(msg, userData, *_r);}
-   virtual void BeginMessageReceivedFromGatewayBatch() {_gw->SynchronousBeginMessageReceivedFromGatewayBatch(*_r);}
-   virtual void EndMessageReceivedFromGatewayBatch() {_gw->SynchronousEndMessageReceivedFromGatewayBatch(*_r);}
+   virtual void MessageReceivedFromGateway(     const MessageRef & msg, void * userData) {if (_r) _gw->SynchronousMessageReceivedFromGateway(     msg, userData, *_r);}
+   virtual void AfterMessageReceivedFromGateway(const MessageRef & msg, void * userData) {if (_r) _gw->SynchronousAfterMessageReceivedFromGateway(msg, userData, *_r);}
+
+   virtual void BeginMessageReceivedFromGatewayBatch() {if (_r) _gw->SynchronousBeginMessageReceivedFromGatewayBatch(*_r);}
+   virtual void EndMessageReceivedFromGatewayBatch()   {if (_r) _gw->SynchronousEndMessageReceivedFromGatewayBatch(  *_r);}
 
 private:
    AbstractMessageIOGateway * _gw;
@@ -126,12 +127,17 @@ io_status_t AbstractMessageIOGateway :: DoOutput(uint32 maxBytes)
 
 status_t AbstractMessageIOGateway :: AddOutgoingMessage(const MessageRef & messageRef)
 {
-   const status_t ret = _unrecoverableErrorStatus.IsError() ? B_BAD_OBJECT : _outgoingMessages.AddTail(messageRef);
+   status_t ret = _unrecoverableErrorStatus.IsError() ? B_BAD_OBJECT : _outgoingMessages.AddTail(messageRef);
 #if defined(__EMSCRIPTEN__)
    // A cheap hack to keep Emscripten responsive, because otherwise
    // there's no easy way to trigger the ServerEventLoop to be executed
    // again later on to flush our outgoing-message-queue.
-   while(DoOutput().GetByteCount() > 0) {/* empty */}
+   while(1)
+   {
+      const io_status_t r = DoOutput();
+      if (r.IsError()) ret |= r.GetStatus();
+      if (r.GetByteCount() <= 0) break;
+   }
 #endif
    return ret;
 }
