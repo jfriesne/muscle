@@ -61,6 +61,8 @@ key:  - new feature
      to a Queue.
    * Fixed a couple of memory leaks in PythonUtilityFunctions.cpp
      (found by Claude)
+   * CalculateHashCode64() wasn't handling unaligned pointer arguments
+     correctly.  Fixed (found by Claude)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

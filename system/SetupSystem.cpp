@@ -951,6 +951,8 @@ static void PrintSequenceReport(const OutputPrinter & p, const char * desc, cons
 
 #ifdef MUSCLE_USE_BACKTRACE
       const bool printStackTraces = (GetMaxLogLevel() >= MUSCLE_LOG_DEBUG);
+#else
+      const bool printStackTraces = false;
 #endif
       for (uint32 i=0; i<details.GetNumItems(); i++)
       {
@@ -1259,6 +1261,14 @@ uint64 __Win32FileTimeToMuscleTime(const FILETIME & ft)
 }
 #endif
 
+#ifndef WIN32
+static bool IsDSTSet(time_t now)
+{
+   struct tm result;
+   return ((localtime_r(&now, &result))&&(result.tm_isdst>0));
+}
+#endif
+
 /** Defined here since every MUSCLE program will have to include this file anyway... */
 uint64 GetCurrentTime64(uint32 timeType)
 {
@@ -1273,13 +1283,13 @@ uint64 GetCurrentTime64(uint32 timeType)
    uint64 ret = ConvertTimeValTo64(tv);
    if (timeType == MUSCLE_TIMEZONE_LOCAL)
    {
-      time_t now = time(NULL);
+      const time_t now = time(NULL);
       struct tm gmtm;
       struct tm * tm = gmtime_r(&now, &gmtm);
       if (tm)
       {
          ret += SecondsToMicros(now-mktime(tm));
-         if (tm->tm_isdst>0) ret += HoursToMicros(1);  // FogBugz #4498
+         if (IsDSTSet(now)) ret += HoursToMicros(1);  // FogBugz #4498
       }
    }
    return ret;
@@ -1976,10 +1986,15 @@ uint64 Atoull(const char * str)
    while(muscleInRange(*s, '0', '9')) s++;
 
    // Then iterate back to the beginning, tabulating as we go
-   while((--s >= str)&&(*s >= '0')&&(*s <= '9'))
+   while(s > str)
    {
-      ret  += base * ((uint64)(*s-'0'));
-      base *= (uint64)10;
+      --s;
+
+      if (muscleInRange(*s, '0', '9'))
+      {
+         ret  += base * ((uint64)(*s-'0'));
+         base *= (uint64)10;
+      }
    }
    return ret;
 }
@@ -2007,11 +2022,16 @@ uint64 Atoxll(const char * str)
    while(ParseHexDigit(*s) >= 0) s++;
 
    // Then iterate back to the beginning, tabulating as we go
-   int hd;
-   while((--s >= str)&&((hd = ParseHexDigit(*s)) >= 0))
+   while(s > str)
    {
-      ret  += base * (uint64)hd;
-      base *= (uint64)16;
+      --s;
+
+      const int hd = ParseHexDigit(*s);
+      if (hd >= 0)
+      {
+         ret  += base * (uint64)hd;
+         base *= (uint64)16;
+      }
    }
    return ret;
 }
@@ -2173,12 +2193,14 @@ uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int
 
    uint64 h = seed ^ (numBytes * m);
 
-   const uint64 * data = (const uint64 *)key;
-   const uint64 * end = data + (numBytes/sizeof(uint64));
+   const uint8 * data = (const uint8 *) key;
+   const uint8 * end  = data + ((sizeof(uint64))*((numBytes/sizeof(uint64))));
 
    while(data != end)
    {
-      uint64 k = *data++;
+      uint64 k = muscleCopyIn<uint64>(data);
+      data += sizeof(uint64);
+
       k *= m;
       k ^= k >> r;
       k *= m;
@@ -2186,16 +2208,15 @@ uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int
       h *= m;
    }
 
-   const unsigned char * data2 = (const unsigned char*)data;
    switch(numBytes & 7)
    {
-      case 7: h ^= uint64(data2[6]) << 48; // fall through!
-      case 6: h ^= uint64(data2[5]) << 40; // fall through!
-      case 5: h ^= uint64(data2[4]) << 32; // fall through!
-      case 4: h ^= uint64(data2[3]) << 24; // fall through!
-      case 3: h ^= uint64(data2[2]) << 16; // fall through!
-      case 2: h ^= uint64(data2[1]) << 8;  // fall through!
-      case 1: h ^= uint64(data2[0]);       // fall through!
+      case 7: h ^= uint64(data[6]) << 48; // fall through!
+      case 6: h ^= uint64(data[5]) << 40; // fall through!
+      case 5: h ^= uint64(data[4]) << 32; // fall through!
+      case 4: h ^= uint64(data[3]) << 24; // fall through!
+      case 3: h ^= uint64(data[2]) << 16; // fall through!
+      case 2: h ^= uint64(data[1]) << 8;  // fall through!
+      case 1: h ^= uint64(data[0]);       // fall through!
               h *= m;
       default:  /* empty */ break;
    }
