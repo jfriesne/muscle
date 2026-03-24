@@ -468,7 +468,7 @@ private:
    {
 #ifdef WIN32
       _wakeupSignal = CreateEvent(0, false, false, 0);
-      if (_wakeupSignal == MY_INVALID_HANDLE_VALUE) return B_ERROR("CreateEvent() failed");
+      if (_wakeupSignal == NULL) return B_ERROR("CreateEvent() failed");
 #endif
       return B_NO_ERROR;
    }
@@ -896,9 +896,11 @@ io_status_t DetectNetworkConfigChangesSession :: DoInput(AbstractGatewayMessageR
                      if (rth->rta_type == IFA_LOCAL)
                      {
                         char ifName[IFNAMSIZ];
-                        (void) if_indextoname(ifa->ifa_index, ifName);
-                        (void) _pendingChangedInterfaceNames.PutWithDefault(ifName);
-                        sendReport = true;  // FogBugz #17683:  only notify if IFA_LOCAL was specified, to avoid getting spammed about IFA_CACHEINFO
+                        if (if_indextoname(ifa->ifa_index, ifName) != NULL)
+                        {
+                           (void) _pendingChangedInterfaceNames.PutWithDefault(ifName);
+                           sendReport = true;  // FogBugz #17683:  only notify if IFA_LOCAL was specified, to avoid getting spammed about IFA_CACHEINFO
+                        }
                      }
                      rth = RTA_NEXT(rth, rtl);
                   }
