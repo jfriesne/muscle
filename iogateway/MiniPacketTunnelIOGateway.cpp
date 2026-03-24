@@ -145,7 +145,7 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
             {
                // Add a packet-header to the packet
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
-               const uint32 cLAndID = _sendPacketIDCounter|(_sendCompressionLevel<<24);
+               const uint32 cLAndID = _sendPacketIDCounter|(((uint32)_sendCompressionLevel)<<24);
 #else
                const uint32 cLAndID = _sendPacketIDCounter;
 #endif
@@ -163,7 +163,9 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
       }
 
       // Step 2:  If we have a non-empty packet to send, send it!
+#ifdef MUSCLE_ENABLE_ZLIB_ENCODING
       ByteBufferRef defBuf;
+#endif
       uint8 * writeBuf = _outputPacketBuffer.GetBuffer();  // may be changed below if we deflate
       uint32 writeSize = flat.GetNumBytesWritten();
       if (writeSize > 0)

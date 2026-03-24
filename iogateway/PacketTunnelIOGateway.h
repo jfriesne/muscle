@@ -35,7 +35,7 @@ public:
      *                        Default value is MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka
      *                        1388 if MUSCLE_AVOID_IPV6 is defined, 1168 otherwise).  If the number
      *                        passed in here is less than (FRAGMENT_HEADER_SIZE+1), it will be
-     *                        intepreted as (FRAGMENT_HEADER_SIZE+1).  (aka 21 bytes)
+     *                        interpreted as (FRAGMENT_HEADER_SIZE+1).  (aka 25 bytes)
      * @param magic The "magic number" that is expected to be at the beginning of each packet
      *              sent and received.  You can usually leave this as the default, unless you
      *              are doing several separate instances of this class with different protocols,
