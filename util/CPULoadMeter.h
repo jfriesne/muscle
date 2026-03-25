@@ -30,7 +30,7 @@ public:
      * @note Currently this method is implemented only for Linux, OS/X, and Windows.
      *       For other operating systems, this method will always return a negative value.
      * @returns 0.0f if the CPU was idle, 1.0f if the CPU was fully loaded, or something
-     *          in between.  Returns a negative value if the CPU time could not be measured.
+     *          in between.  Returns -1.0f on error.
      */
    MUSCLE_NODISCARD float GetCPULoad();
 
@@ -39,6 +39,8 @@ private:
 
    uint64 _previousTotalTicks;
    uint64 _previousIdleTicks;
+
+   float _lastValidSysLoadPercentage;
 
 #ifdef WIN32
 # if defined(MUSCLE_USING_NEW_MICROSOFT_COMPILER)

@@ -33,6 +33,8 @@ key:  - new feature
      methods as they were error-prone and also not being used anywhere.
    o PR_COMMAND_SETDATA handler now logs an error message when
      SetDataNode() returns an error. (c)
+   o CPULoadMeter now returns the previous CPU measurement again
+     (rather than -1.0f) if it can't compute a new measurement.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to

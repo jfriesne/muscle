@@ -21,6 +21,7 @@ static uint64 FileTimeToInt64(const FILETIME & ft) {return (((uint64)(ft.dwHighD
 CPULoadMeter :: CPULoadMeter()
    : _previousTotalTicks(0)
    , _previousIdleTicks(0)
+   , _lastValidSysLoadPercentage(-1.0f)
 {
 #ifdef USE_KERNEL32_DLL_FOR_GETSYSTEMTIMES
    // Gotta dynamically load this system call, because the Borland headers doesn't know about it.  :^P
@@ -106,6 +107,10 @@ float CPULoadMeter :: GetCPULoad()
       sysLoadPercentage = CalculateCPULoad(cpuinfo.cpu_ticks[CPU_STATE_IDLE], totalTicks);
    }
 #endif
+
+   // If we don't have a valid measurement, re-use the most recent valid measurement instead
+   if (sysLoadPercentage >= 0.0f) _lastValidSysLoadPercentage = sysLoadPercentage;
+                             else sysLoadPercentage = _lastValidSysLoadPercentage;
 
    return sysLoadPercentage;
 }
