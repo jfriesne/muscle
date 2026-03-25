@@ -2110,7 +2110,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
             // Add some breathing room so that if the required size
             // grows during the time period between the two calls to
             // GetAdaptersAddresses(), we won't have to reallocate again.
-            outBufLen = muscleMax(outBufLen, 65536)*2;
+            outBufLen = muscleMax(outBufLen, (ULONG)65536)*2;
 
             pAddresses = (IP_ADAPTER_ADDRESSES *) muscleAlloc(outBufLen);
             MRETURN_OOM_ON_NULL(pAddresses);

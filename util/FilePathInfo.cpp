@@ -35,8 +35,8 @@ FilePathInfo :: FilePathInfo(bool exists, bool isRegularFile, bool isDir, bool i
 #ifdef WIN32
 static bool Win32IsPathASymLink(const char * filePath)
 {
-   WIN32_FIND_DATA findFileData;
-   HANDLE hFind = FindFirstFile(filePath, &findFileData); // get information about the link itself (not its target)
+   WIN32_FIND_DATAA findFileData;
+   HANDLE hFind = FindFirstFileA(filePath, &findFileData); // get information about the link itself (not its target)
    if (hFind == INVALID_HANDLE_VALUE) return false;
    FindClose(hFind); // Close the handle; we only need the data
    return (findFileData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) ? (findFileData.dwReserved0 == IO_REPARSE_TAG_SYMLINK) : false;
