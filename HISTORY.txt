@@ -31,6 +31,8 @@ key:  - new feature
      (useMessagingSockets) construct argument passed in as false.  (c)
    o Removed Thread::LockAndReturn*Queue() and Thread::Unlock*Queue()
      methods as they were error-prone and also not being used anywhere.
+   o PR_COMMAND_SETDATA handler now logs an error message when
+     SetDataNode() returns an error. (c)
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to
@@ -83,6 +85,12 @@ key:  - new feature
      NetworkUtilityFunctions.{cpp,h} now work correctly for both IPv4
      and IPv6 Sockets. (c)
    * FilePathInfo::IsSymLink() is now implemented properly for Win32.  (c)
+   * Fixed a reference-counting error in StorageReflectSession's
+     GetDataNodeSubscribersTableFromPool() method that could cause
+     subscriptions to remain active after they should have been removed.
+   * StorageReflectSession::CloneDataNodeSubtree() no longer adds
+     index-entries to the clone for child nodes that weren't included
+     in the clone due to being pruned by an ITraversalPruner.
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

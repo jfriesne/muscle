@@ -300,7 +300,9 @@ GetDataNodeSubscribersTableFromPool(const ConstDataNodeSubscribersTableRef & cur
 
    const Hashtable<uint32, uint32> & curTable = curRef() ? curRef()->GetTable() : GetDefaultObjectForType<Hashtable<uint32, uint32> >();
    const uint32 curCount = curTable[sessionID];
-   const uint32 newCount = (delta > 0) ? (curCount+delta) : (((int32)curCount>delta)?(curCount-delta):0);
+   const uint32 newCount = (delta >= 0)
+                         ? (curCount+((uint32)delta))
+                         : ((curCount >= ((uint32)(-delta))) ? (curCount-((uint32)(-delta))) : 0);
 
    DataNodeSubscribersTablePool & cache = _sharedData->_cachedSubscribersTables;
    return (newCount > 0) ? cache.GetWithPut(curRef, sessionID, newCount) : cache.GetWithRemove(curRef, sessionID);
@@ -772,7 +774,11 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
             for (MessageFieldNameIterator it = msg.GetFieldNameIterator(B_MESSAGE_TYPE); it.HasData(); it++)
             {
                MessageRef dataMsgRef;
-               for (int32 i=0; msg.FindMessage(it.GetFieldName(), i, dataMsgRef).IsOK(); i++) (void) SetDataNode(it.GetFieldName(), dataMsgRef, flags);
+               for (int32 i=0; msg.FindMessage(it.GetFieldName(), i, dataMsgRef).IsOK(); i++)
+               {
+                  const status_t r = SetDataNode(it.GetFieldName(), dataMsgRef, flags);
+                  if (r.IsError()) LogTime(MUSCLE_LOG_ERROR, "PR_COMMAND_SET_DATA:  SetDataNode(%s,%p,%s) returned [%s]\n", it.GetFieldName()(), dataMsgRef(), flags.ToString()(), r());
+               }
             }
          }
          break;
@@ -1170,6 +1176,8 @@ status_t StorageReflectSession :: MoveIndexEntries(const String & nodePath, cons
 {
    TCHECKPOINT;
 
+   if (_sessionDir() == NULL) return B_BAD_OBJECT;
+
    NodePathMatcher matcher;
    MRETURN_ON_ERROR(matcher.PutPathString(nodePath, filterRef));
 
@@ -1457,7 +1465,7 @@ PathMatches(DataNode & node, ConstMessageRef & optData, const PathMatcherEntry &
    TCHECKPOINT;
 
    const StringMatcherQueue * nextSubscription = entry.GetParser()();
-   if ((int32)nextSubscription->GetStringMatchers().GetNumItems() != ((int32)node.GetDepth())-rootDepth) return false;  // only paths with the same number of clauses as the node's path (less rootDepth) can ever match
+   if ((nextSubscription == NULL)||((int32)nextSubscription->GetStringMatchers().GetNumItems() != ((int32)node.GetDepth())-rootDepth)) return false;  // only paths with the same number of clauses as the node's path (less rootDepth) can ever match
 
    DataNode * travNode = &node;
    for (int32 j=nextSubscription->GetStringMatchers().GetLastValidIndex(); j>=rootDepth; j--,travNode=travNode->GetParent())
@@ -1808,7 +1816,12 @@ StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const Strin
       if (clone)
       {
          const uint32 idxLen = index->GetNumItems();
-         for (uint32 i=0; i<idxLen; i++) MRETURN_ON_ERROR(clone->InsertIndexEntryAt(i, this, (*index)[i]()->GetNodeName()));
+         uint32 writeIdxCounter = 0;
+         for (uint32 i=0; i<idxLen; i++)
+         {
+            const String & nodeName = (*index)[i]()->GetNodeName();
+            if (clone->HasChild(nodeName)) MRETURN_ON_ERROR(clone->InsertIndexEntryAt(writeIdxCounter++, this, nodeName));
+         }
       }
       else return B_DATA_NOT_FOUND;
    }
