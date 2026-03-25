@@ -87,6 +87,8 @@ public:
    /** Constructor.
      * @param minChunkSize Don't return any data in chunks smaller than this.  Defaults to zero.
      * @param maxChunkSize Don't return any data in chunks larger than this.  Defaults to the largest possible uint32 value.
+     * @note if maxChunkSize is passed as 0, a maxChunkSize of 1 will be used instead.  If maxChunkSize is passed as a value
+     *       smaller than minChunkSize, minChunkSize will be used instead.
      */
    CountedRawDataMessageIOGateway(uint32 minChunkSize=0, uint32 maxChunkSize=MUSCLE_NO_LIMIT);
 

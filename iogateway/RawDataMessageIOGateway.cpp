@@ -16,7 +16,7 @@ RawDataMessageIOGateway(uint32 minChunkSize, uint32 maxChunkSize)
    , _recvScratchSpace(NULL)
    , _recvScratchSpaceSize(0)
    , _minChunkSize(minChunkSize)
-   , _maxChunkSize(maxChunkSize)
+   , _maxChunkSize(muscleMax((uint32)1, minChunkSize, maxChunkSize))
    , _receiveTimestampingEnabled(false)
 {
    // empty
@@ -47,8 +47,13 @@ DoOutputImplementation(uint32 maxBytes)
    {
       if ((_sendBufByteOffset < 0)||(_sendBufByteOffset >= _sendBufLength))
       {
-         // Try to get the next field from our message message
-         if (msg->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, ++_sendBufIndex, &_sendBuf, (uint32*)(&_sendBufLength)).IsOK()) _sendBufByteOffset = 0;
+         // Try to get the next field from our message
+         uint32 temp = 0;
+         if (msg->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, ++_sendBufIndex, &_sendBuf, &temp).IsOK())
+         {
+            _sendBufByteOffset = 0;
+            _sendBufLength     = temp;
+         }
          else
          {
             _sendMsgRef.Reset();  // no more data available?  Go to the next message then.
@@ -139,7 +144,10 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             MessageRef newMsg = GetMessageFromPool(PR_COMMAND_RAW_DATA);
             MRETURN_ON_ERROR(newMsg);
             MRETURN_ON_ERROR(newMsg()->AddData(        PR_NAME_DATA_CHUNKS, B_RAW_TYPE, NULL,      _minChunkSize));
-            MRETURN_ON_ERROR(newMsg()->FindDataPointer(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, &_recvBuf, (uint32*)&_recvBufLength));
+
+            uint32 temp = 0;
+            MRETURN_ON_ERROR(newMsg()->FindDataPointer(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, &_recvBuf, &temp));
+            _recvBufLength = temp;
 
             _recvBufByteOffset = 0;
             _recvMsgRef        = std_move_if_available(newMsg);
@@ -184,7 +192,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             MessageRef ref = GetMessageFromPool(PR_COMMAND_RAW_DATA);
             MRETURN_ON_ERROR(ref);
 
-            if (GetReceiveTimestampingEnabled()) MRETURN_ON_ERROR(_recvMsgRef()->AddInt64(PR_NAME_DATA_TIMESTAMP, GetRunTime64()));
+            if (GetReceiveTimestampingEnabled()) MRETURN_ON_ERROR(ref()->AddInt64(PR_NAME_DATA_TIMESTAMP, GetRunTime64()));
             MRETURN_ON_ERROR(ref()->AddData(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, _recvScratchSpace, bytesRead.GetByteCount()));
 
             receiver.CallMessageReceivedFromGateway(ref);
