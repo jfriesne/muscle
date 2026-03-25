@@ -509,7 +509,7 @@ bool
 StorageReflectSession ::
 HasPrivilege(int priv) const
 {
-   return ((_parameters.GetInt32(PR_NAME_PRIVILEGE_BITS) & (1<<priv)) != 0);
+   return ((_parameters.GetInt32(PR_NAME_PRIVILEGE_BITS) & (1L<<priv)) != 0);
 }
 
 void
@@ -1468,7 +1468,7 @@ PathMatches(DataNode & node, ConstMessageRef & optData, const PathMatcherEntry &
    if ((nextSubscription == NULL)||((int32)nextSubscription->GetStringMatchers().GetNumItems() != ((int32)node.GetDepth())-rootDepth)) return false;  // only paths with the same number of clauses as the node's path (less rootDepth) can ever match
 
    DataNode * travNode = &node;
-   for (int32 j=nextSubscription->GetStringMatchers().GetLastValidIndex(); j>=rootDepth; j--,travNode=travNode->GetParent())
+   for (int32 j=nextSubscription->GetStringMatchers().GetLastValidIndex(); j>=0; j--,travNode=travNode->GetParent())
    {
       const StringMatcher * nextMatcher = nextSubscription->GetStringMatchers().GetItemAt(j)->GetItemPointer();
       if ((nextMatcher)&&(nextMatcher->Match(travNode->GetNodeName()()) == false)) return false;
