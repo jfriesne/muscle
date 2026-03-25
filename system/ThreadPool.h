@@ -150,6 +150,7 @@ private:
    void ThreadFinishedProcessingClientMessages(uint32 threadID, IThreadPoolClient * client);
    MUSCLE_NODISCARD bool DoesClientHaveMessagesOutstandingUnsafe(IThreadPoolClient * client) const;
    void MessageReceivedFromThreadPoolAux(IThreadPoolClient * client, const MessageRef & msg, uint32 numLeft) {client->MessageReceivedFromThreadPool(msg, numLeft);}  // just to skirt protected-member issues
+   MUSCLE_NODISCARD uint32 ShutdownThreadsInTableWithoutDeadlocking(Hashtable<uint32, ThreadPoolThreadRef> & table);
 
    const uint32 _maxThreadCount;
 

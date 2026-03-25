@@ -43,16 +43,40 @@ ThreadPool :: ~ThreadPool()
    (void) Shutdown();
 }
 
+// Should be called without _poolLock already being held
+uint32 ThreadPool :: ShutdownThreadsInTableWithoutDeadlocking(Hashtable<uint32, ThreadPoolThreadRef> & table)
+{
+   Hashtable<uint32, ThreadPoolThreadRef> temp;
+   {
+      DECLARE_MUTEXGUARD(_poolLock);
+      temp.SwapContents(table);  // (table) becomes empty at this point, and (temp) becomes populated
+   }
+
+   for (HashtableIterator<uint32, ThreadPoolThreadRef> iter(temp); iter.HasData(); iter++) iter.GetValue()()->ShutdownInternalThread();
+   return temp.GetNumItems();
+}
+
 uint32 ThreadPool :: Shutdown()
 {
-   DECLARE_MUTEXGUARD(_poolLock);
-   _shuttingDown = true;
+   {
+      DECLARE_MUTEXGUARD(_poolLock);
+      _shuttingDown = true;
+   }
 
-   for (ConstHashtableIterator<uint32, ThreadPoolThreadRef> iter(_availableThreads); iter.HasData(); iter++) iter.GetValue()()->ShutdownInternalThread();
-   for (ConstHashtableIterator<uint32, ThreadPoolThreadRef> iter(_activeThreads);    iter.HasData(); iter++) iter.GetValue()()->ShutdownInternalThread();
+   // Do this part without holding _poolLock, to avoid potential deadlocks with the threads we are shutting down
+   uint32 count = 0;
+   while(true)  // probably paranoia
+   {
+      const uint32 numAvailableThreadsShutDown = ShutdownThreadsInTableWithoutDeadlocking(_availableThreads);
+      const uint32 numActiveThreadsShutDown    = ShutdownThreadsInTableWithoutDeadlocking(_activeThreads);
+      if ((numAvailableThreadsShutDown > 0)||(numActiveThreadsShutDown > 0)) count += (numAvailableThreadsShutDown+numActiveThreadsShutDown);
+                                                                        else break;
+   }
+
+   DECLARE_MUTEXGUARD(_poolLock);
    for (ConstHashtableIterator<IThreadPoolClient *, bool> iter(_registeredClients);  iter.HasData(); iter++) iter.GetKey()->_threadPool = NULL;  // so they won't try to unregister from us
 
-   const uint32 ret = _availableThreads.GetNumItems()+_activeThreads.GetNumItems()+_registeredClients.GetNumItems()+_pendingMessages.GetNumItems()+_deferredMessages.GetNumItems()+_waitingForCompletion.GetNumItems();
+   const uint32 ret = count+_registeredClients.GetNumItems()+_pendingMessages.GetNumItems()+_deferredMessages.GetNumItems()+_waitingForCompletion.GetNumItems();
    _availableThreads.Clear();
    _activeThreads.Clear();
    _registeredClients.Clear();
@@ -154,7 +178,7 @@ status_t ThreadPool :: SendMessageToThreadPool(IThreadPoolClient * client, const
    return B_NO_ERROR;
 }
 
-// Note:  This method assumes the _poolLock is already unlocked!
+// Note:  This method assumes the _poolLock is already locked!
 void ThreadPool :: DispatchPendingMessagesUnsafe()
 {
    if (_shuttingDown) return;  // no sense dispatching more messages if we're in the process of shutting down
@@ -222,6 +246,11 @@ void ThreadPool :: ThreadFinishedProcessingClientMessages(uint32 threadID, IThre
          {
             MASSERT(pendingMessages->IsEmpty(), "ThreadPool::ThreadFinishedProcessingClientMessages():  pendingMessages isn't empty!");
             pendingMessages->SwapContents(*deferredMessages);
+         }
+         else
+         {
+            LogTime(MUSCLE_LOG_CRITICALERROR, "ThreadPool::ThreadFinishedProcessingClientMessages():  couldn't allocate pending Messages Queue, dropping " UINT32_FORMAT_SPEC " deferred Messages!\n", deferredMessages->GetNumItems());
+            deferredMessages->Clear();
          }
       }
    }
