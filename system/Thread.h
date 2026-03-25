@@ -159,40 +159,6 @@ public:
      */
    virtual status_t GetNextReplyFromInternalThread(MessageRef & ref, uint64 wakeupTime = 0, uint32 * optRetNumMessagesLeftInQueue = NULL);
 
-   /** Locks the internal thread's message queue and returns a pointer to it.
-     * Since the queue is locked, you may examine or modify the queue safely.
-     * Once this method has returned successfully, you are responsible for unlocking the
-     * message queue again by calling UnlockMessageQueue().  If you don't, the Thread will
-     * remain locked and stuck!
-     * @returns a pointer to our internal Message queue, on success, or NULL on failure (couldn't lock)
-     */
-   MUSCLE_NODISCARD Queue<MessageRef> * LockAndReturnMessageQueue();
-
-   /** Unlocks our internal message queue, so that the internal thread can again pop messages off of it.
-     * Should be called exactly once after each successful call to LockAndReturnMessageQueue().
-     * After this call returns, it is no longer safe to use the pointer that was
-     * previously returned by LockAndReturnMessageQueue().
-     * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the unlock call failed (perhaps it wasn't locked?)
-     */
-   status_t UnlockMessageQueue();
-
-   /** Locks this Thread's reply queue and returns a pointer to it.  Since the queue is
-     * locked, you may examine or modify the queue safely.
-     * Once this method has returned successfully, you are responsible for unlocking the
-     * message queue again by calling UnlockReplyQueue().  If you don't, the Thread will
-     * remain locked and stuck!
-     * @returns a pointer to our internal reply queue on success, or NULL on failure (couldn't lock)
-     */
-   MUSCLE_NODISCARD Queue<MessageRef> * LockAndReturnReplyQueue();
-
-   /** Unlocks the reply message queue, so that the internal thread can again append messages to it.
-     * Should be called exactly once after each successful call to LockAndReturnReplyQueue().
-     * After this call returns, it is no longer safe to use the pointer that was
-     * previously returned by LockAndReturnReplyQueue().
-     * @returns B_NO_ERROR on success, or B_LOCK_FAILED if the unlock call failed (perhaps it wasn't locked?)
-     */
-   status_t UnlockReplyQueue();
-
    /** Returns the socket that the main thread may select() for read on for wakeup-notification bytes.
      * This Thread object's thread-signalling sockets will be allocated by this method if they aren't already allocated.
      * @note this method will return a NULL reference if this Thread was created with constructor argument useMessagingSockets=false.
@@ -242,8 +208,14 @@ public:
      * @param socketSet a SOCKET_SET_* value specifying which read-for-x state you are interested in
      * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if sock ref was NULL, or B_OUT_OF_MEMORY.
      * @note This method should only be called from the main thread!
+     * @note If the Thread object was constructed with (useMessagingSockets==false), then this method
+     *       will always error out and return B_BAD_OBJECT with no side effects.
      */
-   virtual status_t RegisterOwnerThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return sock() ? GetOwnerThreadSocketSetRW(socketSet).Put(sock, false) : B_BAD_ARGUMENT;}
+   virtual status_t RegisterOwnerThreadSocket(const ConstSocketRef & sock, uint32 socketSet)
+   {
+      if (_useMessagingSockets == false) return B_BAD_OBJECT;
+      return sock() ? GetOwnerThreadSocketSetRW(socketSet).Put(sock, false) : B_BAD_ARGUMENT;
+   }
 
    /** Unregisters the specified socket so that WaitForNextMessageFromOwner() will no longer return
      * because this socket indicated that it is (ready-for-read, ready-for-write, or has-exception)
@@ -251,8 +223,13 @@ public:
      * @param socketSet a SOCKET_SET_* value specifying which read-for-x state you are no longer interested in
      * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (sock wasn't registered?).
      * @note This method should only be called from the main thread!
+     * @note If the Thread object was constructed with (useMessagingSockets==false), then this method
+     *       will always error out and return B_BAD_OBJECT with no side effects.
      */
-   virtual status_t UnregisterOwnerThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return GetOwnerThreadSocketSetRW(socketSet).Remove(sock);}
+   virtual status_t UnregisterOwnerThreadSocket(const ConstSocketRef & sock, uint32 socketSet)
+   {
+      return _useMessagingSockets ? GetOwnerThreadSocketSetRW(socketSet).Remove(sock) : B_BAD_OBJECT;
+   }
 
    /** Unregisters all sockets from the specified socket-set.
      * @param socketSet a SOCKET_SET_* value specifying the socket-set you want to clear.
@@ -331,7 +308,7 @@ public:
    status_t SetThreadScheduler(int newScheduler);
 
    /** Returns a SCHEDULER_* value indicating this thread's current scheduler (as specified
-     * by a previous call to SetThreadScheduler()), or SCHDULER_UNSPECIFIED if no thread scheduler
+     * by a previous call to SetThreadScheduler()), or SCHEDULER_UNSPECIFIED if no thread scheduler
      * has been specified.
      */
    MUSCLE_NODISCARD int GetThreadScheduler() const {return _threadScheduler;}
@@ -495,8 +472,14 @@ protected:
      * @param socketSet a SOCKET_SET_* value specifying which read-for-x state you are interested in
      * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if (sock) was a NULL ref, or B_OUT_OF_MEMORY;
      * @note This method should only be called from the internal thread!
+     * @note If the Thread object was constructed with (useMessagingSockets==false), then this method
+     *       will always error out and return B_BAD_OBJECT with no side effects.
      */
-   virtual status_t RegisterInternalThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return sock() ? GetInternalThreadSocketSetRW(socketSet).Put(sock, false) : B_BAD_ARGUMENT;}
+   virtual status_t RegisterInternalThreadSocket(const ConstSocketRef & sock, uint32 socketSet)
+   {
+      if (_useMessagingSockets == false) return B_BAD_OBJECT;
+      return sock() ? GetInternalThreadSocketSetRW(socketSet).Put(sock, false) : B_BAD_ARGUMENT;
+   }
 
    /** Unregisters the specified socket so that WaitForNextMessageFromOwner() will no longer return
      * because this socket indicated that it is (ready-for-read, ready-for-write, or has-exception)
@@ -504,8 +487,13 @@ protected:
      * @param socketSet a SOCKET_SET_* value specifying which read-for-x state you are no longer interested in
      * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (sock wasn't registered).
      * @note This method should only be called from the internal thread!
+     * @note If the Thread object was constructed with (useMessagingSockets==false), then this method
+     *       will always error out and return B_BAD_OBJECT with no side effects.
      */
-   virtual status_t UnregisterInternalThreadSocket(const ConstSocketRef & sock, uint32 socketSet) {return GetInternalThreadSocketSetRW(socketSet).Remove(sock);}
+   virtual status_t UnregisterInternalThreadSocket(const ConstSocketRef & sock, uint32 socketSet)
+   {
+      return _useMessagingSockets ? GetInternalThreadSocketSetRW(socketSet).Remove(sock) : B_BAD_OBJECT;
+   }
 
    /** Unregisters all sockets from the specified socket-set.
      * @param socketSet a SOCKET_SET_* value specifying the socket-set you want to clear.
@@ -626,7 +614,7 @@ private:
    static Mutex _curThreadsMutex;
    static Hashtable<muscle_thread_key, Thread *> _curThreads;
    uint32 _suggestedStackSize;
-   const uint32 * _threadStackBase;
+   const uint8 * _threadStackBase;
    int _threadPriority;
    int _threadScheduler;
 

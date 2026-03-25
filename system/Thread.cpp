@@ -46,7 +46,7 @@ Thread :: Thread(bool useMessagingSockets, ICallbackMechanism * optCallbackMecha
    , _threadPriority(PRIORITY_UNSPECIFIED)
    , _threadScheduler(SCHEDULER_UNSPECIFIED)
 #ifdef __linux__
-   , _threadTid(0)
+   , _threadTid(-1)  // set to -1 so that if the on-thread-startup race condition bites us, at least SetThreadPriority() won't change the priority of the parent thread by mistake
 #endif
 {
 #if defined(__EMSCRIPTEN__)
@@ -261,6 +261,7 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
    {
       // Be sure to always absorb any signal-bytes that were sent to us, now that we've been awoken,
       // otherwise we could end up in a CPU-burning loop with select() always returning immediately
+      // This won't block because we always set up the _messageSocket sockets to be in non-blocking mode.
       uint8 bytes[256];
       (void) recv_ignore_eintr(tsd._messageSocket.GetFileDescriptor(), (char *)bytes, sizeof(bytes), 0);
    }
@@ -337,7 +338,7 @@ void Thread :: InternalThreadEntry()
    {
       MessageRef msgRef;
       uint32 numLeft = 0;
-      if ((WaitForNextMessageFromOwner(msgRef).IsOK())&&(MessageReceivedFromOwner(msgRef, numLeft).IsError())) break;
+      if ((WaitForNextMessageFromOwner(msgRef, MUSCLE_TIME_NEVER, &numLeft).IsError())||(MessageReceivedFromOwner(msgRef, numLeft).IsError())) break;
    }
 #endif
 }
@@ -348,9 +349,9 @@ void Thread :: QtSocketReadReady(int /*sock*/)
    MessageRef msgRef;
    while(1)
    {
-      if (WaitForNextMessageFromOwner(msgRef, 0).IsOK())  // 0 because we don't want to block here, this is a poll only
+      uint32 numLeft = 0;
+      if (WaitForNextMessageFromOwner(msgRef, 0, &numLeft).IsOK())  // 0 because we don't want to block here, this is a poll only
       {
-         uint32 numLeft = 0;
          if (MessageReceivedFromOwner(msgRef, numLeft).IsError())
          {
             // Oops, MessageReceivedFromOwner() wants us to exit!
@@ -387,9 +388,9 @@ status_t Thread :: WaitForInternalThreadToExit()
       const int pret = pthread_join(_thread, NULL);
       if (pret != 0) ret = B_ERRNUM(pret);
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
-      (void) WaitForSingleObject(_thread, INFINITE);
+      if (WaitForSingleObject(_thread, INFINITE) != WAIT_OBJECT_0) ret = B_ERROR("WaitForSingleObject() failed");
       ::CloseHandle(_thread);  // Raymond Dahlberg's fix for handle-leak problem
-#elif defined(MUSCLE_QT_HAS_THREADS)
+#elif defined(MUSCLE_USE_QT_THREADS)
       (void) _thread.wait();
 #endif
       _threadRunning = false;
@@ -397,28 +398,6 @@ status_t Thread :: WaitForInternalThreadToExit()
       return ret;
    }
    else return B_BAD_OBJECT;
-}
-
-Queue<MessageRef> * Thread :: LockAndReturnMessageQueue()
-{
-   ThreadSpecificData & tsd = _threadData[MESSAGE_THREAD_INTERNAL];
-   return (tsd._queueLock.Lock().IsOK()) ? &tsd._messages : NULL;
-}
-
-status_t Thread :: UnlockMessageQueue()
-{
-   return _threadData[MESSAGE_THREAD_INTERNAL]._queueLock.Unlock();
-}
-
-Queue<MessageRef> * Thread :: LockAndReturnReplyQueue()
-{
-   ThreadSpecificData & tsd = _threadData[MESSAGE_THREAD_OWNER];
-   return (tsd._queueLock.Lock().IsOK()) ? &tsd._messages : NULL;
-}
-
-status_t Thread :: UnlockReplyQueue()
-{
-   return _threadData[MESSAGE_THREAD_OWNER]._queueLock.Unlock();
 }
 
 Hashtable<Thread::muscle_thread_key, Thread *> Thread::_curThreads;
@@ -438,8 +417,8 @@ void Thread::InternalThreadEntryAux()
    _threadTid = syscall(SYS_gettid);  // was: gettid(), but some versions of libc didn't define that properly
 #endif
 
-   const uint32 threadStackBase = 0;  // only here so we can get its address below
-   _threadStackBase = &threadStackBase;  // remember this stack location so GetCurrentStackUsage() can reference it later on
+   const uint8 threadStackBase = 0;     // only here so we can get its address below
+   _threadStackBase = &threadStackBase; // remember this stack location so GetCurrentStackUsage() can reference it later on
 
    muscle_thread_key curThreadKey = GetCurrentThreadKey();
    {
@@ -453,7 +432,14 @@ void Thread::InternalThreadEntryAux()
       LogTime(MUSCLE_LOG_ERROR, "Thread %p:  Unable to set thread priority to (%s/%s) [%s]\n", this, GetThreadSchedulerName(_threadScheduler), GetThreadPriorityName(_threadPriority), ret());
    }
 
-   if (_threadData[MESSAGE_THREAD_OWNER]._messages.HasItems()) SignalOwner();
+   {
+      // If there are already reply-Messages present in the reply-Queue, make sure the owner thread is signalled to come get them
+      // This could happen e.g. if a subclass decided to call SendMessageToOwner() in advance.
+      ThreadSpecificData & ownerTSD = _threadData[MESSAGE_THREAD_OWNER];
+      DECLARE_MUTEXGUARD(ownerTSD._queueLock);
+      if (ownerTSD._messages.HasItems()) SignalOwner();
+   }
+
    InternalThreadEntry();
    _threadData[MESSAGE_THREAD_INTERNAL]._messageSocket.Reset();  // this will wake up the owner thread with EOF on socket
 
@@ -501,8 +487,8 @@ uint32 Thread :: GetCurrentStackUsage() const
 {
    if ((IsCallerInternalThread() == false)||(_threadStackBase == NULL)) return 0;
 
-   const uint32 curStackPos = 0;
-   const uint32 * curStackPtr = &curStackPos;
+   const uint8 curStackPos = 0;
+   const uint8 * curStackPtr = &curStackPos;
    return (uint32) muscleAbs(curStackPtr-_threadStackBase);
 }
 
@@ -579,6 +565,7 @@ static int ThreadSchedulerToSchedPolicy(int scheduler)
    }
 }
 
+# if defined(__linux__)
 static int ThreadPriorityToNiceLevel(int pri)
 {
    switch(pri)
@@ -595,6 +582,8 @@ static int ThreadPriorityToNiceLevel(int pri)
       default:                            return 0;
    }
 }
+# endif
+
 #endif
 
 #ifdef MUSCLE_USE_PTHREADS
@@ -642,7 +631,7 @@ HANDLE Thread :: GetNativeThreadHandle(bool calledFromInternalThread) // deliber
 }
 #endif
 
-status_t Thread :: SetThreadSchedulerAndPriorityAux(int32 newSched, int newPriority, bool calledFromInternalThread)
+status_t Thread :: SetThreadSchedulerAndPriorityAux(int newSched, int newPriority, bool calledFromInternalThread)
 {
    if ((newSched == SCHEDULER_UNSPECIFIED)&&(newPriority == PRIORITY_UNSPECIFIED)) return B_NO_ERROR;  // sure, unspecified is easy, anything goes
 
@@ -668,7 +657,7 @@ status_t Thread :: SetThreadSchedulerAndPriorityAux(int32 newSched, int newPrior
       if ((minPrio == -1)||(maxPrio == -1)) return B_UNIMPLEMENTED;
       param.sched_priority = muscleClamp(((newPriority*(maxPrio-minPrio))/(NUM_PRIORITIES-1))+minPrio, minPrio, maxPrio);
 
-#if defined(__linux__) || defined(__APPLE__)
+#if defined(__linux__)
       if ((minPrio == maxPrio)&&(schedPolicy == SCHED_OTHER))
       {
          // Linux's SCHED_OTHER doesn't support priorities, but we can fake it by making the thread nicer or meaner

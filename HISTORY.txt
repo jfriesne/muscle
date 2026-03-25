@@ -25,6 +25,11 @@ key:  - new feature
    o Removed some obsolete OpenSSL setup/cleanup routines from
      SetupSystem.cpp.
    o Replaced WasSignalCaught() with GetNumSignalsCaught().
+   o Thread::Register*() and Thread::Unregister*() methods now return
+     B_BAD_OBJECT if the Thread was constructed with the
+     (useMessagingSockets) construct argument passed in as false.  (c)
+   o Removed Thread::LockAndReturn*Queue() and Thread::Unlock*Queue()
+     methods as they were error-prone and also not being used anywhere.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to
@@ -67,6 +72,10 @@ key:  - new feature
    * Improved error handling in the ChildProcessDataIO class. (c)
    * SimulatedMulticastDataIO::GetWriteSelectSocket() now returns a
      socket which is always ready-for-write. (c)
+   * Thread::MessageReceivedFromOwner() was being called with the
+     numLeft argument always set to zero.  Fixed.  (c)
+   * Thread::GetCurrentStackUsage() was returning a value that was
+     four times smaller than it ought to.  Fixed.  (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
