@@ -250,7 +250,8 @@ public:
      *                     variables in the child process.
      * @param optRunAsUser if non-NULL, child process will change its user to this account.
      *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
-     * @returns B_NO_ERROR if the child process was launched, or an error code if the child process could not be launched.
+     * @return B_NO_ERROR on success, or an error code if the launch failed, or B_TIMED_OUT if the child process didn't exit within
+     *                    the specified time period and it had to be killed.
      */
    static status_t System(int argc, const char * argv[], ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL);
 
@@ -271,7 +272,8 @@ public:
      *                     variables in the child process.
      * @param optRunAsUser if non-NULL, child process will change its user to this account.
      *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
-     * @return B_NO_ERROR on success, or an error code if the launch failed.
+     * @return B_NO_ERROR on success, or an error code if the launch failed, or B_TIMED_OUT if the child process didn't exit within
+     *                    the specified time period and it had to be killed.
      */
    static status_t System(const Queue<String> & argv, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL);
 
@@ -293,6 +295,8 @@ public:
      *                     variables in the child process.
      * @param optRunAsUser if non-NULL, child process will change its user to this account.
      *                     (Only works if parent-process is running as root.  This feature isn't currently implemented for Windows)
+     * @return B_NO_ERROR on success, or an error code if the launch failed, or B_TIMED_OUT if the child process didn't exit within
+     *                    the specified time period and it had to be killed.
      */
    static status_t System(const char * cmdLine, ChildProcessLaunchFlags launchFlags = ChildProcessLaunchFlags(MUSCLE_DEFAULT_CHILD_PROCESS_LAUNCH_FLAGS), uint64 maxWaitTimeMicros = MUSCLE_TIME_NEVER, const char * optDirectory = NULL, const Hashtable<String,String> * optEnvironmentVariables = NULL, const char * optRunAsUser = NULL);
 

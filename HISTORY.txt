@@ -49,9 +49,9 @@ key:  - new feature
    * Queue::EndsWith() was broken.  Fixed.  (c)
    * Queue::AddHeadAndGet() was calling AddTailAndGet() by mistake (c)
    * Queue::AdoptRawDataArray() wasn't setting the _tailIndex value
-     correctly.  (c)
+     correctly.  Fixed. (c)
    * Queue::RemoveSortedDuplicateItems() wasn't handling an empty
-     Queue correctly.  (c)
+     Queue correctly.  Fixed. (c)
    * Queue::ReverseItemOrdering() now correctly handles calls where the
      (to) argument isn't greater than the (from) argument.  (c)
    * Fixed the dash-stripping behavior of ParseArgs().  (c)
@@ -64,6 +64,7 @@ key:  - new feature
    * Fixed a data-handling bug in ZLibDataIO::Read() (c)
    * Fixed a bug in TarFileWriter's handling of block-padding when
      writing using a non-seekable DataIO. (c)
+   * Improved error handling in the ChildProcessDataIO class. (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

@@ -183,7 +183,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                {
                   const char ** argv = (const char **) args;
                   Queue<String> tmpQ((PreallocatedItemSlotsCount(argc)));  // avoid most-vexing parse under MSVC?
-                  for (int i=0; i<argc; i++) (void) tmpQ.AddTail(argv[i]);
+                  for (int i=0; i<argc; i++) ret |= tmpQ.AddTail(argv[i]);
                   cmd = UnparseArgs(tmpQ);
                }
 
@@ -214,7 +214,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                      FreeEnvironmentStringsA(oldEnvs);
                   }
 
-                  (void) curEnvVars.Put(*optEnvironmentVariables);  // update our existing vars with the specified ones
+                  ret |= curEnvVars.Put(*optEnvironmentVariables);  // update our existing vars with the specified ones
 
                   // Now we can make a new environment-variables-block out of (curEnvVars)
                   uint32 newBlockSize = 1;  // this represents the final NUL terminator (after the last string)
@@ -362,7 +362,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
         if (pid < 0) return B_ERRNO;  // fork failure!
    else if (pid == 0)
    {
-      // we are the child process
+      // in this block, we are the child process
       (void) signal(SIGHUP, SIG_DFL);  // FogBugz #2918
 
       // Close any file descriptors leftover from the parent process
@@ -372,45 +372,73 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
          for (int i=STDERR_FILENO+1; i<fdlimit; i++) close(i);
       }
 
-      if (_childProcessIsIndependent) (void) BecomeDaemonProcess();  // used by the LaunchIndependentChildProcess() static methods only
+      if ((_childProcessIsIndependent)&&(BecomeDaemonProcess().IsError(ret)))  // used by the LaunchIndependentChildProcess() static methods only
+      {
+         printf("LaunchChildProcessAux:  BecomeDaemonProcess() returned [%s]\n", ret());  // deliberately calling printf()
+      }
 
       char absArgv0[PATH_MAX];
       const char ** zargv = &scratchChildArgv[0];
       const char * zargv0 = scratchChildArgv[0];
-      if (optDirectory)
+      if ((ret.IsOK())&&(optDirectory))
       {
          // If we are going to change to a different directory, then we need to
          // generate an absolute-filepath for zargv[0] first, otherwise we won't
          // be able to find the executable to run!
-         if (realpath(zargv[0], absArgv0) != NULL) zargv[0] = zargv0 = absArgv0;
-         if (chdir(optDirectory) < 0) perror("ChildProcessDataIO::chdir");  // FogBugz #10023
-      }
-
-      if (optEnvironmentVariables)
-      {
-         for (ConstHashtableIterator<String,String> iter(*optEnvironmentVariables); iter.HasData(); iter++) (void) setenv(iter.GetKey()(), iter.GetValue()(), 1);
-      }
-
-      if (ChildProcessReadyToRun().IsOK(ret))
-      {
-         if (optRunAsUser)
+         if (realpath(zargv[0], absArgv0) != NULL)
          {
-            // Note:  we must call initgroups() first, because as soon as we call setuid() we might no longer have permission to call initgroups() anymore
-            if (setgid(accountGID)                   != 0) {perror("setgid()");     ExitWithoutCleanup(17);} // to remove old groups
-            if (initgroups(optRunAsUser, accountGID) != 0) {perror("initgroups()"); ExitWithoutCleanup(18);} // to add new groups
-            if (setuid(accountUID)                   != 0) {perror("setuid()");     ExitWithoutCleanup(19);}
+            zargv[0] = zargv0 = absArgv0;
+            if (chdir(optDirectory) < 0)
+            {
+               ret = B_ERRNO;
+               perror("ChildProcessDataIO::chdir");  // FogBugz #10023
+            }
          }
-
-         if (execvp(zargv0, const_cast<char **>(zargv)) < 0) perror("ChildProcessDataIO::execvp");  // execvp() should never return
+         else
+         {
+            ret = B_ERRNO;
+            perror("ChildProcessDataIO::realpath");
+         }
       }
-      else LogTime(MUSCLE_LOG_ERROR, "ChildProcessDataIO:  ChildProcessReadyToRun() returned [%s], not running child process!\n", ret());
+
+      if ((ret.IsOK())&&(optEnvironmentVariables))
+      {
+         for (ConstHashtableIterator<String,String> iter(*optEnvironmentVariables); iter.HasData(); iter++)
+         {
+            if (setenv(iter.GetKey()(), iter.GetValue()(), 1) != 0)
+            {
+               perror("ChildProcessDataIO::setenv");
+               ret = B_ERRNO;
+               break;
+            }
+         }
+      }
+
+      if (ret.IsOK())
+      {
+         if (ChildProcessReadyToRun().IsOK(ret))
+         {
+            if (optRunAsUser)
+            {
+               // Note:  we must call initgroups() first, because as soon as we call setuid() we might no longer have permission to call initgroups() anymore
+               if (setgid(accountGID)                   != 0) {perror("setgid()");     ExitWithoutCleanup(17);} // to remove old groups
+               if (initgroups(optRunAsUser, accountGID) != 0) {perror("initgroups()"); ExitWithoutCleanup(18);} // to add new groups
+               if (setuid(accountUID)                   != 0) {perror("setuid()");     ExitWithoutCleanup(19);}
+            }
+
+            if (execvp(zargv0, const_cast<char **>(zargv)) < 0) perror("ChildProcessDataIO::execvp");  // execvp() should never return
+         }
+         else printf("ChildProcessDataIO:  ChildProcessReadyToRun() returned [%s], not running child process!\n", ret());  // deliberately calling printf() rather than LogTime() here
+      }
+      else printf("ChildProcessDataIO:  environment setup failed [%s], not running child process!\n", ret());  // deliberately calling printf() rather than LogTime() here
 
       ExitWithoutCleanup(20);
    }
-   else if (_handle())   // if we got this far, we are the parent process
+   else
    {
+      // in this block, we are the parent process
       _childPID = pid;
-      if (SetSocketBlockingEnabled(_handle, _blocking).IsOK(ret)) return B_NO_ERROR;
+      if ((_handle())&&(SetSocketBlockingEnabled(_handle, _blocking).IsOK(ret))) return B_NO_ERROR;
    }
 
    Close();  // roll back!
@@ -426,7 +454,7 @@ status_t ChildProcessDataIO :: LaunchPrivilegedChildProcess(const char ** argv)
    OSStatus status;
    AuthorizationRef authRef = NULL;
 
-   AuthorizationItem right = { kAuthorizationRightExecute, strlen(argv[0]), &argv[0], 0 };
+   AuthorizationItem right = { kAuthorizationRightExecute, strlen(argv[0]), (void *) argv[0], 0 };
    AuthorizationRights rightSet = { 1, &right };
 
    AuthorizationEnvironment myAuthorizationEnvironment; memset(&myAuthorizationEnvironment, 0, sizeof(myAuthorizationEnvironment));
@@ -500,6 +528,7 @@ status_t ChildProcessDataIO :: KillChildProcess()
    if (_childPID < 0) return B_BAD_OBJECT;
    if (kill(_childPID, SIGKILL) == 0)
    {
+      _handle.Reset();
       (void) waitpid(_childPID, NULL, 0);  // avoid creating a zombie process
       _childPID = -1;
       return B_NO_ERROR;
@@ -545,8 +574,8 @@ void ChildProcessDataIO :: Close()
    if ((_childProcess != INVALID_HANDLE_VALUE)&&(_childProcessIsIndependent == false)) DoGracefulChildShutdown();  // Windows can't double-fork, so in the independent case we just won't wait for him
    SafeCloseHandle(_childProcess);
    SafeCloseHandle(_childThread);
+   _requestThreadExit.SetCount(0);  // for next time (now that the child-thread is gone, it's safe to do this)
 #else
-
    _handle.Reset();
 
    if (_childPID >= 0) DoGracefulChildShutdown();
@@ -583,8 +612,7 @@ void ChildProcessDataIO :: DoGracefulChildShutdown()
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
 static io_status_t GetExitCodeFromWin32ProcessExitCode(DWORD exitCode)
 {
-   if (exitCode >= 0) return io_status_t((int32)exitCode);
-   else
+   if (exitCode & (1UL<<31))  // assume high bit set means it's a STATUS_* value
    {
       // if it's one of the classic NTSTATUS codes, we'll return a human-readable string as our error code
       switch(exitCode)
@@ -628,19 +656,23 @@ static io_status_t GetExitCodeFromWin32ProcessExitCode(DWORD exitCode)
          {
             MUSCLE_THREAD_LOCAL_OR_STATIC char _buf[64];
             muscleSprintf(_buf, "Exit Code 0x" XINT32_FORMAT_SPEC, (int32) exitCode);
-            return io_status_t(exitCode);
+            return io_status_t(_buf);
          }
          break;
       }
    }
+   else return io_status_t((int32)exitCode);
 }
 #else
 static io_status_t GetExitCodeFromWaitPIDStatus(int status)
 {
-   if (WIFSIGNALED(status)) return io_status_t(strsignal(WTERMSIG(status)));
-   if (WIFSTOPPED(status))  return io_status_t(strsignal(WSTOPSIG(status)));
-   if (WCOREDUMP(status))   return io_status_t("core dumped");
-   if (WIFEXITED(status))   return io_status_t((int32) WEXITSTATUS(status));
+   if (WIFSIGNALED(status))
+   {
+      if (WCOREDUMP(status)) return io_status_t("core dumped");
+                        else return io_status_t(strsignal(WTERMSIG(status)));
+   }
+   if (WIFSTOPPED(status)) return io_status_t(strsignal(WSTOPSIG(status)));
+   if (WIFEXITED(status))  return io_status_t((int32) WEXITSTATUS(status));
 
    const int32 es = (int32) WEXITSTATUS(status);
    return io_status_t(muscleMax(es, (int32)0));
@@ -684,7 +716,7 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
          else
          {
             char junk[1024] = "";
-            if ((fread(junk, sizeof(junk), 1, _ioPipe.GetFile()) == 0)||(feof(_ioPipe.GetFile())))
+            if ((fread(junk, 1, sizeof(junk), _ioPipe.GetFile()) == 0)||(feof(_ioPipe.GetFile())))
             {
                sawEOF = true;
                break;
@@ -701,11 +733,15 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
    if (maxWaitTimeMicros == MUSCLE_TIME_NEVER)
    {
       int status = 0;
-      const muscle_pid_t pid = waitpid(_childPID, &status, 0);
-      if (pid == _childPID)
+      while(1)
       {
-         _childProcessExitCode = GetExitCodeFromWaitPIDStatus(status);
-         return B_NO_ERROR;
+         const muscle_pid_t pid = waitpid(_childPID, &status, 0);
+         if (pid == _childPID)
+         {
+            _childProcessExitCode = GetExitCodeFromWaitPIDStatus(status);
+            return B_NO_ERROR;
+         }
+         else if (PreviousOperationWasInterrupted() == false) return (errno == ECHILD) ? B_NO_ERROR : B_ERRNO;
       }
    }
    else
@@ -734,10 +770,10 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
          if ((int64)pollInterval < MillisToMicros(200)) pollInterval += MillisToMicros(10);
          (void) Snooze64(muscleMin(pollInterval, (uint64)microsLeft));
       }
+
+      return B_TIMED_OUT;
    }
 #endif
-
-   return B_TIMED_OUT;
 }
 
 io_status_t ChildProcessDataIO :: Read(void *buf, uint32 len)
@@ -846,7 +882,7 @@ void ChildProcessDataIO :: IOThreadAbort()
 {
    // If we read zero bytes, that means EOF!  Child process has gone away!
    _slaveNotifySocket.Reset();
-   _requestThreadExit.AtomicIncrement();  // this will cause the I/O thread to go away now
+   _requestThreadExit.AtomicIncrement();  // this will cause the I/O thread's while-loop to stop whiling
 }
 
 void ChildProcessDataIO :: IOThreadEntry()
@@ -877,7 +913,7 @@ void ChildProcessDataIO :: IOThreadEntry()
             }
             else
             {
-               if (bytesWritten < 0) IOThreadAbort();  // use thread connection closed!?
+               if (bytesWritten < 0) IOThreadAbort();  // user-thread connection closed!?
                break;  // can't write any more, for now
             }
          }
@@ -890,7 +926,7 @@ void ChildProcessDataIO :: IOThreadEntry()
             if (ret > 0) outBuf._length += ret;
             else
             {
-               if (ret < 0) IOThreadAbort();  // user thread connection closed!?
+               if (ret < 0) IOThreadAbort();  // user-thread connection closed!?
                break;  // no more to read, for now
             }
          }
@@ -898,11 +934,7 @@ void ChildProcessDataIO :: IOThreadEntry()
 
       // IOThread <-> ChildProcess i/o handling (and blocking) here
       {
-         if (childProcessExited)
-         {
-            if (inBuf._index == inBuf._length) IOThreadAbort();
-            break;
-         }
+         if ((childProcessExited)&&(inBuf._index == inBuf._length)) break;
 
          // block here until an event happens... gotta poll because
          // the Window anonymous pipes system doesn't allow me to
@@ -972,6 +1004,8 @@ void ChildProcessDataIO :: IOThreadEntry()
          }
       }
    }
+
+   _slaveNotifySocket.Reset();  // make sure this always happens no matter what, as it will let the parent thread know we're gone
 }
 #endif
 
@@ -979,8 +1013,7 @@ status_t ChildProcessDataIO :: System(int argc, const char * argv[], ChildProces
 {
    ChildProcessDataIO cpdio(false);
    MRETURN_ON_ERROR(cpdio.LaunchChildProcess(argc, argv, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser));
-   (void) cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
-   return B_NO_ERROR;
+   return cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
 }
 
 status_t ChildProcessDataIO :: System(const Queue<String> & argq, ChildProcessLaunchFlags launchFlags, uint64 maxWaitTimeMicros, const char * optDirectory, const Hashtable<String, String> * optEnvironmentVariables, const char * optRunAsUser)
@@ -1001,8 +1034,7 @@ status_t ChildProcessDataIO :: System(const char * cmdLine, ChildProcessLaunchFl
 {
    ChildProcessDataIO cpdio(false);
    MRETURN_ON_ERROR(cpdio.LaunchChildProcess(cmdLine, launchFlags, optDirectory, optEnvironmentVariables, optRunAsUser));
-   (void) cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
-   return B_NO_ERROR;
+   return cpdio.WaitForChildProcessToExit(maxWaitTimeMicros);
 }
 
 status_t ChildProcessDataIO :: LaunchIndependentChildProcess(int argc, const char * argv[], const char * optDirectory, ChildProcessLaunchFlags launchFlags, const Hashtable<String, String> * optEnvironmentVariables, const char * optRunAsUser)
