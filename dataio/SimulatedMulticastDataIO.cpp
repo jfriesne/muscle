@@ -25,6 +25,10 @@ SimulatedMulticastDataIO :: SimulatedMulticastDataIO(const IPAddressAndPort & mu
    SetEnobufsErrorMode(false);  // initialize _enobufsCount and _nextErrorModeSendTime to their default settings
 
    status_t ret;
+
+   ConstSocketRef junk;
+   if (CreateConnectedSocketPair(junk, _alwaysWritableSocket).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  CreateConnectedSocketPair() failed [%s]\n", this, ret());
+
    if (StartInternalThread().IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  Unable to start internal thread for group [%s] [%s]\n", this, multicastAddress.ToString()(), ret());
 }
 
@@ -267,12 +271,12 @@ void SimulatedMulticastDataIO :: DrainOutgoingPacketsTable()
       {
          const IPAddressAndPort & dest = *_outgoingPacketsTable.GetFirstKey();
          const ConstByteBufferRef & b  = pq.Head();
-         if (SendDataUDP(udpSock, b()->GetBuffer(), b()->GetNumBytes(), false, dest.GetIPAddress(), dest.GetPort()).GetByteCount() == 0)
+         if ((b()->GetNumBytes() > 0)&&(SendDataUDP(udpSock, b()->GetBuffer(), b()->GetNumBytes(), false, dest.GetIPAddress(), dest.GetPort()).GetByteCount() == 0))
          {
             // Work-around for occasional Apple bug where a disabled Wi-Fi interface will errneously show up and appear
             // to be usable and ready-for-write, but every call to SendDataUDP() on it results in immediate ENOBUFS,
             // causing the internal thread to go into a loop and spin the CPU.
-            if ((PreviousOperationHadTransientFailure())&&(b()->GetNumBytes() > 0))
+            if (PreviousOperationHadTransientFailure())
             {
                ++_enobufsCount;
                if (IsInEnobufsErrorMode())
@@ -375,7 +379,6 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
    }
 
    Queue<ConstByteBufferRef> outgoingUserPacketsQueue;
-   Hashtable<IPAddress, Void> userUnicastDests;
    uint64 nextMulticastPingTime = 0;  // ASAP please!
    while(true)
    {

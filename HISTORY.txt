@@ -65,6 +65,8 @@ key:  - new feature
    * Fixed a bug in TarFileWriter's handling of block-padding when
      writing using a non-seekable DataIO. (c)
    * Improved error handling in the ChildProcessDataIO class. (c)
+   * SimulatedMulticastDataIO::GetWriteSelectSocket() now returns a
+     socket which is always ready-for-write. (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

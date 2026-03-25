@@ -35,7 +35,7 @@ public:
    virtual io_status_t WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest);
 
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return const_cast<SimulatedMulticastDataIO &>(*this).GetOwnerWakeupSocket();}
-   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return const_cast<SimulatedMulticastDataIO &>(*this).GetOwnerWakeupSocket();}
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _alwaysWritableSocket;}
    virtual void Shutdown() {ShutdownAux();}
 
    /** Implemented as a no-op:  UDP sockets are always flushed immediately anyway */
@@ -72,7 +72,6 @@ private:
    void UpdateUnicastSocketRegisteredForWrite(bool shouldBeRegisteredForWrite);
    void DrainOutgoingPacketsTable();
    void NoteHeardFromMember(const IPAddressAndPort & heardFromPingSource, uint64 timestampMicros);
-   void EnsureUserUnicastMembershipSetUpToDate();
    status_t EnqueueOutgoingMulticastControlCommand(uint32 whatCode, uint64 now, const IPAddressAndPort & destIAP);
    status_t ParseMulticastControlPacket(const ByteBuffer & buf, uint64 now, uint32 & retWhatCode);
    MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * GetUDPSocketTypeName(uint32 which) const;
@@ -81,6 +80,8 @@ private:
 
    IPAddressAndPort _multicastAddress;
    uint32 _maxPacketSize;
+
+   ConstSocketRef _alwaysWritableSocket;
 
    // Values below this line may be accessed by the internal thread ONLY
 
