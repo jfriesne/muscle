@@ -542,7 +542,7 @@ static io_status_t SendDataUDPIPv4(const ConstSocketRef & sock, const void * buf
       if ((optToPort == 0)||(optToIP == invalidIP))
       {
          // Fill in the values with our socket's current target-values, as defaults
-         muscle_socklen_t length = sizeof(sockaddr_in);
+         muscle_socklen_t length = sizeof(toAddr);
          if (getpeername(fd, UpcastToSockAddr(&toAddr), &length) != 0) return B_ERRNO;
          if (GET_SOCKADDR_FAMILY_IPV4(toAddr) != AF_INET) return B_BAD_OBJECT;
       }
@@ -588,7 +588,7 @@ static io_status_t SendDataUDPIPv6(const ConstSocketRef & sock, const void * buf
       if ((optToPort == 0)||(optToIP == invalidIP))
       {
          // Fill in the values with our socket's current target-values, as defaults
-         muscle_socklen_t length = sizeof(sockaddr_in);
+         muscle_socklen_t length = sizeof(toAddr);
          if (getpeername(fd, UpcastToSockAddr(&toAddr), &length) != 0) return B_ERRNO;
          if (GET_SOCKADDR_FAMILY_IPV6(toAddr) != AF_INET6) return B_BAD_OBJECT;
       }
@@ -626,7 +626,6 @@ static io_status_t SendDataUDPIPv6(const ConstSocketRef & sock, const void * buf
       SetErrno(errnoFromSendCall);  // restore the errno from the send_ignore_eintr() call, in case our calling code wants to examine it
    }
 #endif
-
    if (s == 0) return 0;  // for UDP, zero is a valid send() size, since there is no EOS
           else return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ERRNO);
 }
@@ -751,6 +750,7 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
       status_t ret;
       if (maxConnectTime == MUSCLE_TIME_NEVER)
       {
+         // Not that in this case, s is a blocking socket already
          switch(s()->GetSocketFamily())
          {
             case SOCKET_FAMILY_IPV4:
@@ -774,39 +774,37 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
                ret = B_UNIMPLEMENTED;
          }
       }
+      else if (socketIsReady) ret = SetSocketBlockingEnabled(s, true);  // in this case, s was returned by ConnectAsync() and was non-blocking
       else
       {
-         if (socketIsReady == false)
+         // The harder case:  the user doesn't want the Connect() call to take more than (so many) microseconds.
+         // For this case, we s is in non-blocking mode and we'll run a SocketMultiplexer-loop to get the desired behaviour!
+         ret = B_TIMED_OUT;
+         const uint64 deadline = GetRunTime64()+maxConnectTime;
+         SocketMultiplexer multiplexer;
+         while(GetRunTime64() < deadline)
          {
-            // The harder case:  the user doesn't want the Connect() call to take more than (so many) microseconds.
-            // For this, we'll need to go into non-blocking mode and run a SocketMultiplexer loop to get the desired behaviour!
-            ret = B_TIMED_OUT;
-            const uint64 deadline = GetRunTime64()+maxConnectTime;
-            SocketMultiplexer multiplexer;
-            while(GetRunTime64() < deadline)
-            {
-               (void) multiplexer.RegisterSocketForWriteReady(fd);
+            (void) multiplexer.RegisterSocketForWriteReady(fd);
 #ifdef WIN32
-               (void) multiplexer.RegisterSocketForExceptionRaised(fd);
+            (void) multiplexer.RegisterSocketForExceptionRaised(fd);
 #endif
 
-               const io_status_t eret = multiplexer.WaitForEvents(deadline);
-               if (eret.IsError())
-               {
-                  ret = eret.GetStatus();
-                  break; // error out!
-               }
-               else
-               {
+            const io_status_t eret = multiplexer.WaitForEvents(deadline);
+            if (eret.IsError())
+            {
+               ret = eret.GetStatus();
+               break; // error out!
+            }
+            else
+            {
 #ifdef WIN32
-                  if (multiplexer.IsSocketExceptionRaised(fd)) break; // Win32:  failed async connect detected!
+               if (multiplexer.IsSocketExceptionRaised(fd)) break; // Win32:  failed async connect detected!
 #endif
-                  if (multiplexer.IsSocketReadyForWrite(fd))
-                  {
-                     ret = B_NO_ERROR;
-                     if (FinalizeAsyncConnect(s).IsOK(ret)) ret = SetSocketBlockingEnabled(s, true);
-                     break;
-                  }
+               if (multiplexer.IsSocketReadyForWrite(fd))
+               {
+                  ret = B_NO_ERROR;
+                  if (FinalizeAsyncConnect(s).IsOK(ret)) ret = SetSocketBlockingEnabled(s, true);
+                  break;
                }
             }
          }
@@ -853,7 +851,11 @@ static bool IsIP4Address(const char * s)
       }
       else
       {
-         if ((prevWasDot)&&(atoi(s) > 255)) return false;
+         if (prevWasDot)
+         {
+            const int quadVal = atoi(s);
+            if (muscleInRange(quadVal, 0, 255) == false) return false;
+         }
          prevWasDot = false;
          if ((muscleInRange(*s, '0', '9') == false)||(++numDigits > 3)) return false;
       }
@@ -1037,6 +1039,7 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
             (void) _hostCache.MoveToFront(s);  // LRU logic
             return r->GetIPAddress();
          }
+         else (void) _hostCache.Remove(s);  // no point keeping an expired DNSRecord around
       }
    }
 
@@ -1108,20 +1111,39 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
    return ret;
 }
 
+static Mutex _hostNameResolversMutex;
 static OrderedValuesHashtable<IHostNameResolverRef, int> _hostNameResolvers;
-status_t PutHostNameResolver(const IHostNameResolverRef & resolver, int priority) {return _hostNameResolvers.Put(resolver, priority);}
-status_t RemoveHostNameResolver(const IHostNameResolverRef & resolver) {return _hostNameResolvers.Remove(resolver);}
-void ClearHostNameResolvers() {_hostNameResolvers.Clear();}
+
+status_t PutHostNameResolver(const IHostNameResolverRef & resolver, int priority)
+{
+   DECLARE_MUTEXGUARD(_hostNameResolversMutex);
+   return _hostNameResolvers.Put(resolver, priority);
+}
+
+status_t RemoveHostNameResolver(const IHostNameResolverRef & resolver)
+{
+   DECLARE_MUTEXGUARD(_hostNameResolversMutex);
+   return _hostNameResolvers.Remove(resolver);
+}
+
+void ClearHostNameResolvers()
+{
+   DECLARE_MUTEXGUARD(_hostNameResolversMutex);
+   _hostNameResolvers.Clear();
+}
 
 IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6)
 {
    IPAddress ret;
-   if (_hostNameResolvers.HasItems())
    {
-      for (ConstHashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
+      DECLARE_MUTEXGUARD(_hostNameResolversMutex);
+      if (_hostNameResolvers.HasItems())
       {
-         if (iter.GetValue() < 0) break;  // we'll do any negative-priority callbacks only after our built-in functionality has failed
-         if (iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret).IsOK()) break;  // returning here bothers clang-tidy
+         for (ConstHashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
+         {
+            if (iter.GetValue() < 0) break;  // we'll do any negative-priority callbacks only after our built-in functionality has failed
+            if (iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret).IsOK()) break;  // returning here bothers clang-tidy
+         }
       }
    }
    if (ret.IsValid()) return ret;
@@ -1129,11 +1151,14 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6
    ret = GetHostByNameNative(name, expandLocalhost, preferIPv6);
    if (ret.IsValid()) return ret;
 
-   if (_hostNameResolvers.HasItems())
    {
-      for (ConstHashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
+      DECLARE_MUTEXGUARD(_hostNameResolversMutex);
+      if (_hostNameResolvers.HasItems())
       {
-         if ((iter.GetValue() < 0)&&(iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret).IsOK())) break;  // returning here bothers clang-tidy
+         for (ConstHashtableIterator<IHostNameResolverRef, int> iter(_hostNameResolvers, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
+         {
+            if ((iter.GetValue() < 0)&&(iter.GetKey()()->GetIPAddressForHostName(name, expandLocalhost, preferIPv6, ret).IsOK())) break;  // returning here bothers clang-tidy
+         }
       }
    }
    return ret;
@@ -2085,7 +2110,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
             // Add some breathing room so that if the required size
             // grows during the time period between the two calls to
             // GetAdaptersAddresses(), we won't have to reallocate again.
-            outBufLen *= 2;
+            outBufLen = muscleMax(outBufLen, 65536)*2;
 
             pAddresses = (IP_ADAPTER_ADDRESSES *) muscleAlloc(outBufLen);
             MRETURN_OOM_ON_NULL(pAddresses);
@@ -2139,6 +2164,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                      const uint32 hardwareType = ConvertWindowsInterfaceType(pCurrAddresses->IfType);
                      if (results.AddTail(NetworkInterfaceInfo(pCurrAddresses->AdapterName, outBuf, unicastIP, netmask, broadIP, isEnabled, hasCopper, mac, hardwareType, pCurrAddresses->Mtu)).IsOK(ret))
                      {
+                        DECLARE_MUTEXGUARD(_cachedLocalhostAddressLock);
                         if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;
                      }
                      else
@@ -2261,7 +2287,9 @@ static status_t Inet4_AtoN(const char * buf, IPAddress & retIP)
    {
       if (startQuad)
       {
-         uint8 quad = (uint8) atoi(buf);
+         const int quad = atoi(buf);
+         if (muscleInRange(quad, 0, 255) == false) return B_BAD_ARGUMENT;
+
          bits |= (((uint32)quad) << shift);
          shift -= 8;
       }
@@ -2613,11 +2641,21 @@ status_t SetSocketMulticastToSelf(const ConstSocketRef & sock, bool multicastToS
 {
    const int toSelf = multicastToSelf ? 1 : 0;
    const int fd = sock.GetFileDescriptor();
-#ifdef MUSCLE_AVOID_IPV6
-   return ((fd>=0)&&(setsockopt(fd, IPPROTO_IP,   IP_MULTICAST_LOOP,   (const sockopt_arg *) &toSelf, sizeof(toSelf)) == 0)) ? B_NO_ERROR : B_ERRNO;
-#else
-   return ((fd>=0)&&(setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (const sockopt_arg *) &toSelf, sizeof(toSelf)) == 0)) ? B_NO_ERROR : B_ERRNO;
+   if (fd < 0) return B_BAD_ARGUMENT;
+
+   switch(sock()->GetFamily())
+   {
+#ifndef MUSCLE_AVOID_IPV6
+      case SOCKET_FAMILY_IPV6:
+         return ((setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (const sockopt_arg *) &toSelf, sizeof(toSelf)) == 0)) ? B_NO_ERROR : B_ERRNO;
 #endif
+
+      case SOCKET_FAMILY_IPV4:
+         return ((setsockopt(fd, IPPROTO_IP,   IP_MULTICAST_LOOP,   (const sockopt_arg *) &toSelf, sizeof(toSelf)) == 0)) ? B_NO_ERROR : B_ERRNO;
+
+      default:
+         return B_UNIMPLEMENTED;
+   }
 }
 
 bool GetSocketMulticastToSelf(const ConstSocketRef & sock)
@@ -2625,22 +2663,42 @@ bool GetSocketMulticastToSelf(const ConstSocketRef & sock)
    uint8 toSelf;
    muscle_socklen_t size = sizeof(toSelf);
    const int fd = sock.GetFileDescriptor();
-#ifdef MUSCLE_AVOID_IPV6
-   return ((fd>=0)&&(getsockopt(fd, IPPROTO_IP,   IP_MULTICAST_LOOP,   (sockopt_arg *) &toSelf, &size) == 0)&&(size == sizeof(toSelf))&&(toSelf));
-#else
-   return ((fd>=0)&&(getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (sockopt_arg *) &toSelf, &size) == 0)&&(size == sizeof(toSelf))&&(toSelf));
+   if (fd < 0) return false;
+
+   switch(sock()->GetFamily())
+   {
+#ifndef MUSCLE_AVOID_IPV6
+      case SOCKET_FAMILY_IPV6:
+         return ((getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_LOOP, (sockopt_arg *) &toSelf, &size) == 0)&&(size == sizeof(toSelf))&&(toSelf));
 #endif
+
+      case SOCKET_FAMILY_IPV4:
+         return ((getsockopt(fd, IPPROTO_IP,   IP_MULTICAST_LOOP,   (sockopt_arg *) &toSelf, &size) == 0)&&(size == sizeof(toSelf))&&(toSelf));
+
+      default:
+         return false;
+   }
 }
 
 status_t SetSocketMulticastTimeToLive(const ConstSocketRef & sock, uint8 ttl)
 {
    const int fd = sock.GetFileDescriptor();
    const int ttl_arg = (int) ttl;
-#ifdef MUSCLE_AVOID_IPV6
-   return ((fd>=0)&&(setsockopt(fd, IPPROTO_IP,   IP_MULTICAST_TTL,    (const sockopt_arg *) &ttl_arg, sizeof(ttl_arg)) == 0)) ? B_NO_ERROR : B_ERRNO;
-#else
-   return ((fd>=0)&&(setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (const sockopt_arg *) &ttl_arg, sizeof(ttl_arg)) == 0)) ? B_NO_ERROR : B_ERRNO;
+   if (fd < 0) return B_BAD_ARGUMENT;
+
+   switch(sock()->GetFamily())
+   {
+#ifndef MUSCLE_AVOID_IPV6
+      case SOCKET_FAMILY_IPV6:
+         return ((setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (const sockopt_arg *) &ttl_arg, sizeof(ttl_arg)) == 0)) ? B_NO_ERROR : B_ERRNO;
 #endif
+
+      case SOCKET_FAMILY_IPV4:
+         return ((setsockopt(fd, IPPROTO_IP,   IP_MULTICAST_TTL,    (const sockopt_arg *) &ttl_arg, sizeof(ttl_arg)) == 0)) ? B_NO_ERROR : B_ERRNO;
+
+      default:
+         return B_UNIMPLEMENTED;
+   }
 }
 
 uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock)
@@ -2648,11 +2706,21 @@ uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock)
    int ttl = 0;
    muscle_socklen_t size = sizeof(ttl);
    const int fd = sock.GetFileDescriptor();
-#ifdef MUSCLE_AVOID_IPV6
-   return ((fd>=0)&&(getsockopt(fd, IPPROTO_IP,   IP_MULTICAST_TTL,    (sockopt_arg *) &ttl, &size) == 0)&&(size == sizeof(ttl))) ? (uint8)ttl : 0;
-#else
-   return ((fd>=0)&&(getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (sockopt_arg *) &ttl, &size) == 0)&&(size == sizeof(ttl))) ? (uint8)ttl : 0;
+   if (fd < 0) return 0;
+
+   switch(sock()->GetFamily())
+   {
+#ifndef MUSCLE_AVOID_IPV6
+      case SOCKET_FAMILY_IPV6:
+         return ((getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_HOPS, (sockopt_arg *) &ttl, &size) == 0)&&(size == sizeof(ttl))) ? (uint8)ttl : 0;
 #endif
+
+      case SOCKET_FAMILY_IPV4:
+         return ((getsockopt(fd, IPPROTO_IP,   IP_MULTICAST_TTL,    (sockopt_arg *) &ttl, &size) == 0)&&(size == sizeof(ttl))) ? (uint8)ttl : 0;
+
+      default:
+         return 0;
+   }
 }
 
 static status_t AddSocketToMulticastGroupIPv4(int fd, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)

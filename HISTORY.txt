@@ -76,6 +76,11 @@ key:  - new feature
      numLeft argument always set to zero.  Fixed.  (c)
    * Thread::GetCurrentStackUsage() was returning a value that was
      four times smaller than it ought to.  Fixed.  (c)
+   * The HostNameResolver-management functions in NetworkUtilityFunctions.{cpp,h}
+     are now thread-safe (serialized with a Mutex where necessary) (c)
+   * The SetSocketMulticast*() and GetSocketMulticast*() functions in
+     NetworkUtilityFunctions.{cpp,h} now work correctly for both IPv4
+     and IPv6 Sockets. (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
