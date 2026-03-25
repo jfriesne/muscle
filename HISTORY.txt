@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-   - Note: (c) in the text below means the bug was detected by Claude Code.
+   - Note: (c) in the text below means the issue was detected by Claude Code.
    - Added various compiler-warning flags to CMakeLists.txt.
    - Updated Queue::RmoveHeadMulti() and Queue::RemoveTailMulti()
      to be O(1) in the case where IsPerItemClearNecessary() return false.
@@ -17,8 +17,9 @@ key:  - new feature
      there just to help my other macros not cause -Wextra-semi warnings.
    - Added WillUnsignedAddOverflow() and WillUnsignedMultiplyOverflow()
      convenience functions to MuscleSupport.h.
-   - qt_muscle_browser now inflates deflated Message payloads so they
-     can be examined more easily.
+   - qt_muscle_browser now inflates deflated Message payloads, so their
+     inflated contents can be examined.
+   - Improved the accuracy of FilePathInfo timestamps under Linux. (c)
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
      DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
      variadic macros.
@@ -81,6 +82,7 @@ key:  - new feature
    * The SetSocketMulticast*() and GetSocketMulticast*() functions in
      NetworkUtilityFunctions.{cpp,h} now work correctly for both IPv4
      and IPv6 Sockets. (c)
+   * FilePathInfo::IsSymLink() is now implemented properly for Win32.  (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

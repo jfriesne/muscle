@@ -32,6 +32,17 @@ FilePathInfo :: FilePathInfo(bool exists, bool isRegularFile, bool isDir, bool i
    if (isSymlink)     _flags.SetBit(FPI_FLAG_ISSYMLINK);
 }
 
+#ifdef WIN32
+static bool Win32IsPathASymLink(const char * filePath)
+{
+   WIN32_FIND_DATA findFileData;
+   HANDLE hFind = FindFirstFile(filePath, &findFileData); // get information about the link itself (not its target)
+   if (hFind == INVALID_HANDLE_VALUE) return false;
+   FindClose(hFind); // Close the handle; we only need the data
+   return (findFileData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) ? (findFileData.dwReserved0 == IO_REPARSE_TAG_SYMLINK) : false;
+}
+#endif
+
 void FilePathInfo :: SetFilePath(const char * optFilePath)
 {
    const size_t sLen = optFilePath ? strlen(optFilePath) : 0;
@@ -55,8 +66,9 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
    if (optFilePath)
    {
 #ifdef WIN32
-      // FILE_FLAG_BACKUP_SEMANTICS is necessary or CreateFile() will
-      // fail when trying to open a directory.
+      if (Win32IsPathASymLink(optFilePath)) _flags.SetBits(FPI_FLAG_EXISTS, FPI_FLAG_ISSYMLINK);
+
+      // FILE_FLAG_BACKUP_SEMANTICS is necessary or CreateFile() will fail when trying to open a directory.
       HANDLE hFile = CreateFileA(optFilePath, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
       if (hFile != INVALID_HANDLE_VALUE)
       {
@@ -88,17 +100,17 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
          if (S_ISREG(statInfo.st_mode)) _flags.SetBit(FPI_FLAG_ISREGULARFILE);
 
          _size = statInfo.st_size;
-# if defined(ANDROID)
+# if defined(ANDROID) || defined(__linux__)
          _atime = InternalizeTimeSpec(statInfo.st_atim);
          _ctime = InternalizeTimeSpec(statInfo.st_ctim);
          _mtime = InternalizeTimeSpec(statInfo.st_mtim);
-# elif defined(MUSCLE_64_BIT_PLATFORM) && !defined(_POSIX_SOURCE) && !defined(__CYGWIN__)
+# elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
          _atime = InternalizeTimeSpec(statInfo.st_atimespec);
 #  if !defined(__APPLE__) || (__DARWIN_64_BIT_INO_T == 1)
          _ctime = InternalizeTimeSpec(statInfo.st_birthtimespec);
-#else
+#  else
          _ctime = InternalizeTimeT(statInfo.st_ctime);  // fallback for older Apple APIs that didn't have this
-#endif
+#  endif
          _mtime = InternalizeTimeSpec(statInfo.st_mtimespec);
 # else
          _atime = InternalizeTimeT(statInfo.st_atime);
@@ -106,7 +118,7 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
          _mtime = InternalizeTimeT(statInfo.st_mtime);
 # endif
 
-         _hardLinkCount = statInfo.st_nlink;
+         _hardLinkCount = (uint32) statInfo.st_nlink;
 
          struct stat lstatInfo;
          if ((lstat(optFilePath, &lstatInfo)==0)&&(S_ISLNK(lstatInfo.st_mode))) _flags.SetBit(FPI_FLAG_ISSYMLINK);

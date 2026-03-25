@@ -45,7 +45,7 @@ public:
    /** Returns true iff the item at the specified path is a directory. */
    MUSCLE_NODISCARD bool IsDirectory()    const {return _flags.IsBitSet(FPI_FLAG_ISDIRECTORY);}
 
-   /** Returns true iff the item at the specified path is a directory. */
+   /** Returns true iff the item at the specified path is a symbolic link. */
    MUSCLE_NODISCARD bool IsSymLink()     const {return _flags.IsBitSet(FPI_FLAG_ISSYMLINK);}
 
    /** Returns the current size of the file */
@@ -59,7 +59,7 @@ public:
    /** Returns the most recent modification time, in microseconds since 1970.  */
    MUSCLE_NODISCARD uint64 GetModificationTime() const {return _mtime;}
 
-   /** Returns the most creation time, in microseconds since 1970.  */
+   /** Returns the creation time, in microseconds since 1970.  */
    MUSCLE_NODISCARD uint64 GetCreationTime() const {return _ctime;}
 
    /** Returns the number of directories that this file-path appears under.  (Typically 1, but
