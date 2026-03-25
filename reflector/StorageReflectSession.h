@@ -488,7 +488,7 @@ protected:
     * @param initialValue The Message payload to be given to the new DataNode that will be created.
     * @return A reference to the new DataNode or a NULL reference if out of memory.
     */
-   DataNodeRef GetNewDataNode(const String & nodeName, const ConstMessageRef & initialValue);
+   static DataNodeRef GetNewDataNode(const String & nodeName, const ConstMessageRef & initialValue);
 
    /**
     * Call this when you are done with a DataNode, instead of the DataNode destructor.

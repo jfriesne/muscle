@@ -35,6 +35,7 @@ key:  - new feature
      SetDataNode() returns an error. (c)
    o CPULoadMeter now returns the previous CPU measurement again
      (rather than -1.0f) if it can't compute a new measurement.
+   o StorageReflectSession::GetNewDataNode() is now a static method.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to

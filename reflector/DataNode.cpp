@@ -57,7 +57,7 @@ void DataNode :: Reset()
    _cachedDataChecksum = 0;
 }
 
-status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * notifyWithOnSetParent, StorageReflectSession * optNotifyChangedData, Hashtable<String, DataNodeRef> * optRetAdded)
+status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyChangedData, Hashtable<String, DataNodeRef> * optRetAdded)
 {
    TCHECKPOINT;
 
@@ -65,7 +65,8 @@ status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const Stri
 
    // Find a unique ID string for our new kid
    String temp;  // must be declared out here!
-   if (optNodeName == NULL)
+   const String * nodeName = optNodeName;
+   if (nodeName == NULL)
    {
       while(true)
       {
@@ -73,10 +74,10 @@ status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const Stri
          muscleSprintf(buf, "I" UINT32_FORMAT_SPEC, _orderedCounter++);
          if (HasChild(buf) == false) {temp = buf; break;}
       }
-      optNodeName = &temp;
+      nodeName = &temp;
    }
 
-   DataNodeRef dref = notifyWithOnSetParent->GetNewDataNode(*optNodeName, data);
+   DataNodeRef dref = StorageReflectSession::GetNewDataNode(*nodeName, data);
    MRETURN_ON_ERROR(dref);
 
    uint32 insertIndex = _orderedIndex->GetNumItems();  // default to end of index
@@ -92,7 +93,7 @@ status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const Stri
       }
    }
 
-   MRETURN_ON_ERROR(PutChild(dref, notifyWithOnSetParent, optNotifyChangedData));
+   MRETURN_ON_ERROR(PutChild(dref, optNotifyWithOnSetParent, optNotifyChangedData));
 
    // Update the index
    status_t ret;
@@ -102,9 +103,9 @@ status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const Stri
       if ((optRetAdded)&&(dref()->GetNodePath(np).IsOK())) (void) optRetAdded->Put(np, dref);
 
       // Notify anyone monitoring this node that the ordered-index has been updated
-      notifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, dref()->GetNodeName());
+      if (optNotifyWithOnSetParent) optNotifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, dref()->GetNodeName());
    }
-   else (void) RemoveChild(dref()->GetNodeName(), notifyWithOnSetParent, false, NULL);  // roll back!
+   else (void) RemoveChild(dref()->GetNodeName(), optNotifyWithOnSetParent, false, NULL);  // roll back!
 
    return ret;
 }
@@ -313,11 +314,11 @@ status_t DataNode :: RemoveChild(const String & key, StorageReflectSession * opt
       if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeChanged(*child, child->GetData(), StorageReflectSession::NodeChangeFlags(StorageReflectSession::NODE_CHANGE_FLAG_ISBEINGREMOVED));
 
       (void) child->SetParent(NULL, optNotifyWith);  // guaranteed not to fail because first arg is NULL
-   }
-   if (optCurrentNodeCount) (*optCurrentNodeCount)--;
 
-   (void) _children->Remove(&key, childRef);
-   return B_NO_ERROR;
+      if (optCurrentNodeCount) (*optCurrentNodeCount)--;
+   }
+
+   return _children->Remove(&key, childRef);
 }
 
 status_t DataNode :: RemoveIndexEntry(const String & key, StorageReflectSession * optNotifyWith)
@@ -352,7 +353,12 @@ void DataNode :: SetData(const ConstMessageRef & data, StorageReflectSession * o
 uint32 DataNode :: CalculateChecksum(uint32 maxRecursionDepth) const
 {
    // demand-calculate the local checksum and cache the result, since it can be expensive if the Message is big
-   if (_cachedDataChecksum == 0) _cachedDataChecksum = _nodeName.CalculateChecksum()+(_data()?_data()->CalculateChecksum():0);
+   if (_cachedDataChecksum == 0)
+   {
+      _cachedDataChecksum = _nodeName.CalculateChecksum()+(_data()?_data()->CalculateChecksum():0);
+      if (_cachedDataChecksum == 0) _cachedDataChecksum = 1;  // so we won't keep recomputing the checksum, in the rare occasions where it naturally was computed as 0
+   }
+
    if (maxRecursionDepth == 0) return _cachedDataChecksum;
    else
    {
