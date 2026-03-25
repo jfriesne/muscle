@@ -170,7 +170,7 @@ void DefaultFileLogger :: Log(const LogCallbackArgs & a, va_list & argList)
             _maxLogFileSize = MUSCLE_NO_LIMIT;  // otherwise we'd recurse indefinitely here!
             CloseLogFile();
             _maxLogFileSize = tempStoreSize;
-            (void) EnsureLogFileCreated(a);  // force the opening of the new log file right now, so that the open message show up in the right order
+            (void) EnsureLogFileCreated(a);  // force the opening of the new log file right now, so that the open-message shows up in the right order
          }
       }
    }
@@ -593,7 +593,10 @@ void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & a)
    const size_t MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION = 64;
    struct tm ltm;
    time_t when = a.GetWhen();
-   struct tm * temp = muscle_localtime_r(&when, &ltm);
+   static const tm _dummyTM = {};
+   const tm * temp = muscle_localtime_r(&when, &ltm);
+   if (temp == NULL) temp = &_dummyTM;  // avoid NULL dereferences below
+
 #ifdef MUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
 # ifdef MUSCLE_LOG_VERBOSE_SOURCE_LOCATIONS
    const char * fn = a.GetSourceFile();
@@ -608,7 +611,7 @@ void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & a)
    muscleSnprintf(buf, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION-suffixSize, "[%c %02i/%02i %02i:%02i:%02i] [%s", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec, fn);
    char buf2[suffixSize];
    muscleSnprintf(buf2, sizeof(buf2), ":%i] ", a.GetSourceLineNumber());
-   strncat(buf, buf2, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION);
+   strncat(buf, buf2, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION-strlen(buf)-1);  // sigh
 # else
    muscleSnprintf(buf, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION, "[%c %02i/%02i %02i:%02i:%02i] [%s] ", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec, SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(a.GetSourceFile(), a.GetSourceLineNumber()))());
 #endif
@@ -1062,6 +1065,7 @@ uint64 ParseHumanReadableTimeString(const String & s, uint32 timeType)
    st.tm_mon  = month  ? atoi(month)-1   : 0;
    st.tm_year = year   ? atoi(year)-1900 : 0;
    time_t timeS = mktime(&st);
+   if (timeS < 0) return 0;  // we return zero on failure.
    if (timeType == MUSCLE_TIMEZONE_LOCAL)
    {
       struct tm ltm;
