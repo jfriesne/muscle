@@ -272,7 +272,6 @@ public:
       const uint32 numItems = numBytes / FlatItemSize;
       MRETURN_ON_ERROR(this->_data.EnsureSize(numItems, true));
 
-      DataType temp;
       for (uint32 i=0; i<numItems; i++)
       {
          const DataUnflattenerReadLimiter<DataUnflattener> readLimiter(unflat, FlatItemSize);  // so temp.Unflatten() doesn't "see" more bytes than he is entitled to
@@ -656,9 +655,14 @@ public:
    // Flattenable interface
    virtual uint32 FlattenedSize() const
    {
+      uint32 count = ShouldWriteNumItems() ? sizeof(uint32) : 0;
+
       const uint32 numItems = this->GetNumItems();
-      uint32 count = (numItems+(ShouldWriteNumItems()?1:0))*sizeof(uint32);
-      for (uint32 i=0; i<numItems; i++) count += GetItemSize(i);
+      for (uint32 i=0; i<numItems; i++)
+      {
+         const FlatCountable * next = this->ItemAt(i)();
+         if (next) count += (sizeof(uint32) + GetItemSize(i));
+      }
       return count;
    }
 
@@ -718,17 +722,7 @@ public:
       FlatCountable * fc = fcRef();
       ByteBuffer temp;
       ByteBuffer * bb = dynamic_cast<ByteBuffer *>(fc);
-      if ((bb == NULL)&&(fc))
-      {
-         const uint32 flatSize = fc->FlattenedSize();
-         (void) temp.SetNumBytes(flatSize, false);
-         if (temp())
-         {
-            fc->FlattenToBytes((uint8*)temp(), flatSize);
-            bb = &temp;
-         }
-      }
-
+      if ((bb == NULL)&&(fc)&&(fc->FlattenToByteBuffer(temp).IsOK())) bb = &temp;
       if (bb)
       {
          p.printf("[flattenedSize=" UINT32_FORMAT_SPEC "] ", bb->GetNumBytes());
@@ -991,7 +985,10 @@ MessageRef Message :: CreateMessageTemplate() const
          {
             for (uint32 i=0; i<numItems; i++)
             {
-               MessageRef newSubMsg = static_cast<const Message *>(mf.GetItemAtAsRefCountableRef(i)())->CreateMessageTemplate();
+               const Message * m = static_cast<const Message *>(mf.GetItemAtAsRefCountableRef(i)());
+               if (m == NULL) return B_BAD_OBJECT;
+
+               MessageRef newSubMsg = m->CreateMessageTemplate();
                MRETURN_ON_ERROR(newSubMsg);
                MRETURN_ON_ERROR(ret()->AddMessage(fn, newSubMsg));
             }
@@ -1063,19 +1060,17 @@ void Message :: Print(const OutputPrinter & p, uint32 maxRecurseLevel) const
 {
    TCHECKPOINT;
 
-   String ret;
-
    char prettyTypeCodeBuf[5];
    MakePrettyTypeCodeString(what, prettyTypeCodeBuf);
 
-   p.printf("Message:  what='%s' (" INT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), entryCount=" INT32_FORMAT_SPEC ", flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", prettyTypeCodeBuf, what, what, GetNumNames(B_ANY_TYPE), FlattenedSize(), CalculateChecksum());
+   p.printf("Message:  what='%s' (" UINT32_FORMAT_SPEC "/0x" XINT32_FORMAT_SPEC "), entryCount=" UINT32_FORMAT_SPEC ", flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", prettyTypeCodeBuf, what, what, GetNumNames(B_ANY_TYPE), FlattenedSize(), CalculateChecksum());
 
    for (ConstHashtableIterator<String, MessageField> iter(_entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const MessageField & mf = iter.GetValue();
       const uint32 tc = mf.TypeCode();
       MakePrettyTypeCodeString(tc, prettyTypeCodeBuf);
-      p.printf("  Entry: Name=[%s], GetNumItems()=" INT32_FORMAT_SPEC ", TypeCode()='%s' (" INT32_FORMAT_SPEC ") flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", iter.GetKey()(), mf.GetNumItems(), prettyTypeCodeBuf, tc, mf.FlattenedSize(), mf.CalculateChecksum(false));
+      p.printf("  Entry: Name=[%s], GetNumItems()=" UINT32_FORMAT_SPEC ", TypeCode()='%s' (" UINT32_FORMAT_SPEC ") flatSize=" UINT32_FORMAT_SPEC " checksum=" UINT32_FORMAT_SPEC "\n", iter.GetKey()(), mf.GetNumItems(), prettyTypeCodeBuf, tc, mf.FlattenedSize(), mf.CalculateChecksum(false));
       mf.Print(p, maxRecurseLevel);
    }
 }
@@ -1106,14 +1101,18 @@ const MessageField * Message :: GetMessageFieldAndTypeCode(const String & fieldN
    return NULL;
 }
 
-MessageField * Message :: GetOrCreateMessageField(const String & fieldName, uint32 tc)
+status_t Message :: GetOrCreateMessageField(const String & fieldName, uint32 tc, MessageField * & retPtr)
 {
-   MessageField * mf = GetMessageField(fieldName, tc);
-   if (mf) return mf;
+   retPtr = GetMessageField(fieldName, tc);
+   if (retPtr) return B_NO_ERROR;
 
    // Make sure the problem isn't that there already exists a field, but of the wrong type...
    // If that's the case, we can't create a same-named field of a different type, so fail.
-   return _entries.PutIfNotAlreadyPresent(fieldName, MessageField(tc));
+   if (_entries.ContainsKey(fieldName)) return B_TYPE_MISMATCH;
+
+   retPtr = _entries.PutAndGet(fieldName, MessageField(tc));
+   MRETURN_OOM_ON_NULL(retPtr);
+   return B_NO_ERROR;
 }
 
 status_t Message :: Rename(const String & oldFieldName, const String & newFieldName)
@@ -1176,7 +1175,7 @@ void Message :: Flatten(DataFlattener flat) const
 
    // Remember where to write the number-of-entries value (we'll actually write it at the end of this method)
    uint8 * entryCountPtr = flat.GetCurrentWritePointer();
-   (void) flat.SeekRelative(sizeof(uint32));
+   flat.WriteInt32(0);  // just write a placeholder value for now
 
    // Write entries
    uint32 numFlattenedEntries = 0;
@@ -1250,14 +1249,14 @@ status_t Message :: Unflatten(DataUnflattener & unflat)
       const uint32 eLength = unflat.ReadInt32();
       MRETURN_ON_ERROR(unflat.GetStatus());
 
-      MessageField * nextEntry = GetOrCreateMessageField(entryName, tc);
-      if (nextEntry == NULL)
+      MessageField * nextEntry;
+      status_t ret = GetOrCreateMessageField(entryName, tc, nextEntry);
+      if (ret.IsError())
       {
-         LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to create data field object!  (maxBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " tc=" UINT32_FORMAT_SPEC " entryName=[%s])\n", this, unflat.GetMaxNumBytes(), what, i, numEntries, tc, entryName());
-         return B_BAD_DATA;
+         LogTime(MUSCLE_LOG_DEBUG, "Message %p:  Unable to create data field object!  (maxBytes=" UINT32_FORMAT_SPEC ", what=" UINT32_FORMAT_SPEC " i=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " tc=" UINT32_FORMAT_SPEC " entryName=[%s]) [%s]\n", this, unflat.GetMaxNumBytes(), what, i, numEntries, tc, entryName(), ret());
+         return ret;
       }
 
-      status_t ret;
       const DataUnflattenerReadLimiter<DataUnflattener> readLimiter(unflat, eLength);
       if (unflat.ReadFlat(*nextEntry).IsError(ret))
       {
@@ -1271,88 +1270,106 @@ status_t Message :: Unflatten(DataUnflattener & unflat)
 
 status_t Message :: AddFlatAux(const String & fieldName, const FlatCountableRef & ref, uint32 tc, bool prepend)
 {
-   MessageField * field = ref() ? GetOrCreateMessageField(fieldName, tc) : NULL;
-   return field ? (prepend ? field->PrependDataItem(&ref, sizeof(ref)) : field->AddDataItem(&ref, sizeof(ref))) : B_TYPE_MISMATCH;
+   if (ref() == NULL) return B_BAD_ARGUMENT;
+
+   MessageField * field;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, tc, field));
+   return prepend ? field->PrependDataItem(&ref, sizeof(ref)) : field->AddDataItem(&ref, sizeof(ref));
 }
 
 status_t Message :: AddString(const String & fieldName, const String & val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_STRING_TYPE);
-   return mf ? mf->AddDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_STRING_TYPE, mf));
+   return mf->AddDataItem(&val, sizeof(val));
 }
 
 status_t Message :: AddInt8(const String & fieldName, int8 val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_INT8_TYPE);
-   return mf ? mf->AddDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_INT8_TYPE, mf));
+   return mf->AddDataItem(&val, sizeof(val));
 }
 
 status_t Message :: AddInt16(const String & fieldName, int16 val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_INT16_TYPE);
-   return mf ? mf->AddDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_INT16_TYPE, mf));
+   return mf->AddDataItem(&val, sizeof(val));
 }
 
 status_t Message :: AddInt32(const String & fieldName, int32 val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_INT32_TYPE);
-   return mf ? mf->AddDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_INT32_TYPE, mf));
+   return mf->AddDataItem(&val, sizeof(val));
 }
 
 status_t Message :: AddInt64(const String & fieldName, int64 val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_INT64_TYPE);
-   return mf ? mf->AddDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_INT64_TYPE, mf));
+   return mf->AddDataItem(&val, sizeof(val));
 }
 
 status_t Message :: AddBool(const String & fieldName, bool val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_BOOL_TYPE);
-   return mf ? mf->AddDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_BOOL_TYPE, mf));
+   return mf->AddDataItem(&val, sizeof(val));
 }
 
 status_t Message :: AddFloat(const String & fieldName, float val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_FLOAT_TYPE);
-   return mf ? mf->AddDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_FLOAT_TYPE, mf));
+   return mf->AddDataItem(&val, sizeof(val));
 }
 
 status_t Message :: AddDouble(const String & fieldName, double val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_DOUBLE_TYPE);
-   return mf ? mf->AddDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_DOUBLE_TYPE, mf));
+   return mf->AddDataItem(&val, sizeof(val));
 }
 
 status_t Message :: AddPointer(const String & fieldName, const void * ptr)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_POINTER_TYPE);
-   return mf ? mf->AddDataItem(&ptr, sizeof(ptr)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_POINTER_TYPE, mf));
+   return mf->AddDataItem(&ptr, sizeof(ptr));
 }
 
 status_t Message :: AddPoint(const String & fieldName, const Point & point)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_POINT_TYPE);
-   return mf ? mf->AddDataItem(&point, sizeof(point)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_POINT_TYPE, mf));
+   return mf->AddDataItem(&point, sizeof(point));
 }
 
 status_t Message :: AddRect(const String & fieldName, const Rect & rect)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_RECT_TYPE);
-   return mf ? mf->AddDataItem(&rect, sizeof(rect)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_RECT_TYPE, mf));
+   return mf->AddDataItem(&rect, sizeof(rect));
 }
 
 status_t Message :: AddTag(const String & fieldName, const RefCountableRef & tag)
 {
    if (tag() == NULL) return B_BAD_ARGUMENT;
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_TAG_TYPE);
-   return mf ? mf->AddDataItem(&tag, sizeof(tag)) : B_TYPE_MISMATCH;
+
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_TAG_TYPE, mf));
+   return mf->AddDataItem(&tag, sizeof(tag));
 }
 
 status_t Message :: AddMessage(const String & fieldName, const MessageRef & ref)
 {
    if (ref() == NULL) return B_BAD_ARGUMENT;
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_MESSAGE_TYPE);
-   return (mf) ? mf->AddDataItem(&ref, sizeof(ref)) : B_TYPE_MISMATCH;
+
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_MESSAGE_TYPE, mf));
+   return mf->AddDataItem(&ref, sizeof(ref));
 }
 
 status_t Message :: AddFlat(const String & fieldName, const FlatCountableRef & ref)
@@ -1414,8 +1431,8 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
    }
    if (numBytes % elementSize) return B_BAD_ARGUMENT;  // Can't add half an element, silly!
 
-   MessageField * mf = GetOrCreateMessageField(fieldName, tc);
-   if (mf == NULL) return B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, tc, mf));
 
    const uint32 numElements = numBytes/elementSize;
    const uint8 * dataBuf = (const uint8 *) data;
@@ -1586,7 +1603,7 @@ status_t Message :: FindData(const String & fieldName, uint32 tc, uint32 index, 
       break;
 
       case B_ANY_TYPE:
-         return (field->TypeCode() == B_ANY_TYPE) ? B_BAD_OBJECT : FindData(fieldName, field->TypeCode(), 0, data, setSize);
+         return (field->TypeCode() == B_ANY_TYPE) ? B_BAD_OBJECT : FindData(fieldName, field->TypeCode(), index, data, setSize);
       break;
 
       default:
@@ -1729,6 +1746,8 @@ status_t Message :: ReplaceString(bool okayToAdd, const String & fieldName, uint
 
 status_t Message :: ReplaceFlatAux(bool okayToAdd, const String & fieldName, uint32 index, const FlatCountableRef & ref, uint32 tc)
 {
+   if (ref() == NULL) return B_BAD_ARGUMENT;
+
    MessageField * field = GetMessageField(fieldName, tc);
    if ((okayToAdd)&&((field == NULL)||(index >= field->GetNumItems()))) return AddFlatAux(fieldName, ref, tc, false);
    return field ? field->ReplaceDataItem(index, &ref, sizeof(ref)) : B_DATA_NOT_FOUND;
@@ -1931,8 +1950,7 @@ status_t Message :: MoveName(const String & oldFieldName, Message & moveTo, cons
    if (mf == NULL) return B_DATA_NOT_FOUND;
 
    MRETURN_ON_ERROR(moveTo._entries.Put(newFieldName, *mf));
-   (void) _entries.Remove(oldFieldName);
-   return B_NO_ERROR;
+   return _entries.Remove(oldFieldName);
 }
 
 status_t Message :: SwapName(const String & fieldName, Message & swapWith)
@@ -1942,82 +1960,97 @@ status_t Message :: SwapName(const String & fieldName, Message & swapWith)
 
 status_t Message :: PrependString(const String & fieldName, const String & val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_STRING_TYPE);
-   return mf ? mf->PrependDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_STRING_TYPE, mf));
+   return mf->PrependDataItem(&val, sizeof(val));
 }
 
 status_t Message :: PrependInt8(const String & fieldName, int8 val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_INT8_TYPE);
-   return mf ? mf->PrependDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_INT8_TYPE, mf));
+   return mf->PrependDataItem(&val, sizeof(val));
 }
 
 status_t Message :: PrependInt16(const String & fieldName, int16 val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_INT16_TYPE);
-   return mf ? mf->PrependDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_INT16_TYPE, mf));
+   return mf->PrependDataItem(&val, sizeof(val));
 }
 
 status_t Message :: PrependInt32(const String & fieldName, int32 val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_INT32_TYPE);
-   return mf ? mf->PrependDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_INT32_TYPE, mf));
+   return mf->PrependDataItem(&val, sizeof(val));
 }
 
 status_t Message :: PrependInt64(const String & fieldName, int64 val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_INT64_TYPE);
-   return mf ? mf->PrependDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_INT64_TYPE, mf));
+   return mf->PrependDataItem(&val, sizeof(val));
 }
 
 status_t Message :: PrependBool(const String & fieldName, bool val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_BOOL_TYPE);
-   return mf ? mf->PrependDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_BOOL_TYPE, mf));
+   return mf->PrependDataItem(&val, sizeof(val));
 }
 
 status_t Message :: PrependFloat(const String & fieldName, float val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_FLOAT_TYPE);
-   return mf ? mf->PrependDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_FLOAT_TYPE, mf));
+   return mf->PrependDataItem(&val, sizeof(val));
 }
 
 status_t Message :: PrependDouble(const String & fieldName, double val)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_DOUBLE_TYPE);
-   return mf ? mf->PrependDataItem(&val, sizeof(val)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_DOUBLE_TYPE, mf));
+   return mf->PrependDataItem(&val, sizeof(val));
 }
 
 status_t Message :: PrependPointer(const String & fieldName, const void * ptr)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_POINTER_TYPE);
-   return mf ? mf->PrependDataItem(&ptr, sizeof(ptr)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_POINTER_TYPE, mf));
+   return mf->PrependDataItem(&ptr, sizeof(ptr));
 }
 
 status_t Message :: PrependPoint(const String & fieldName, const Point & point)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_POINT_TYPE);
-   return mf ? mf->PrependDataItem(&point, sizeof(point)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_POINT_TYPE, mf));
+   return mf->PrependDataItem(&point, sizeof(point));
 }
 
 status_t Message :: PrependRect(const String & fieldName, const Rect & rect)
 {
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_RECT_TYPE);
-   return mf ? mf->PrependDataItem(&rect, sizeof(rect)) : B_TYPE_MISMATCH;
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_RECT_TYPE, mf));
+   return mf->PrependDataItem(&rect, sizeof(rect));
 }
 
 status_t Message :: PrependTag(const String & fieldName, const RefCountableRef & tag)
 {
    if (tag() == NULL) return B_BAD_ARGUMENT;
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_TAG_TYPE);
-   return mf ? mf->PrependDataItem(&tag, sizeof(tag)) : B_TYPE_MISMATCH;
+
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_TAG_TYPE, mf));
+   return mf->PrependDataItem(&tag, sizeof(tag));
 }
 
 status_t Message :: PrependMessage(const String & fieldName, const MessageRef & ref)
 {
    if (ref() == NULL) return B_BAD_ARGUMENT;
-   MessageField * mf = GetOrCreateMessageField(fieldName, B_MESSAGE_TYPE);
-   return mf ? mf->PrependDataItem(&ref, sizeof(ref)) : B_TYPE_MISMATCH;
+
+   MessageField * mf;
+   MRETURN_ON_ERROR(GetOrCreateMessageField(fieldName, B_MESSAGE_TYPE, mf));
+   return mf->PrependDataItem(&ref, sizeof(ref));
 }
 
 status_t Message :: PrependFlat(const String & fieldName, const FlatCountableRef & fcRef)
@@ -2029,8 +2062,8 @@ status_t Message :: PrependFlat(const String & fieldName, const FlatCountableRef
       switch(tc)
       {
          case B_STRING_TYPE:  return B_TYPE_MISMATCH;  // sorry, can't do that (Strings aren't FlatCountables)
-         case B_POINT_TYPE:   return B_TYPE_MISMATCH;  // sorry, can't do that (Strings aren't FlatCountables)
-         case B_RECT_TYPE:    return B_TYPE_MISMATCH;  // sorry, can't do that (Strings aren't FlatCountables)
+         case B_POINT_TYPE:   return B_TYPE_MISMATCH;  // sorry, can't do that (Points aren't FlatCountables)
+         case B_RECT_TYPE:    return B_TYPE_MISMATCH;  // sorry, can't do that (Rects aren't FlatCountables)
          case B_MESSAGE_TYPE: return PrependMessage(fieldName, fcRef.DowncastTo<MessageRef>());
          default:             return AddFlatAux(fieldName, fcRef, tc, true);
       }
@@ -2140,18 +2173,20 @@ uint32 Message :: TemplatedFlattenedSize(const Message & templateMsg) const
 void Message :: TemplatedFlatten(const Message & templateMsg, DataFlattener flat) const
 {
    flat.WriteInt32(what);
-   uint8 * origBuffer = flat.GetCurrentWritePointer();
-   uint8 * buffer     = origBuffer;
+
+   uint8 * buf    = flat.GetCurrentWritePointer();
+   uint8 * outPtr = buf;
    for (ConstHashtableIterator<String, MessageField> iter(templateMsg._entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const MessageField & mf = iter.GetValue();
       if (mf.IsFlattenable())
       {
          const MessageField * payloadField = _entries.Get(iter.GetKey());
-         mf.TemplatedFlatten(((payloadField)&&(payloadField->TypeCode() == mf.TypeCode())) ? payloadField : NULL, buffer);
+         mf.TemplatedFlatten(((payloadField)&&(payloadField->TypeCode() == mf.TypeCode())) ? payloadField : NULL, outPtr);  // mf.TemplatedFlatten() increased (outPtr) on each call
       }
    }
-   (void) flat.SeekRelative((int32)(buffer-origBuffer));  // just so we can verify that the right number of bytes were written
+
+   (void) flat.SeekRelative((int32)(outPtr-buf));  // so that (flat)'s destructor will understand that mf.TemplatedFlatten() actually did write to the end of the expected buffer
 }
 
 status_t Message :: TemplatedUnflatten(const Message & templateMsg, DataUnflattener & unflat)
@@ -2374,22 +2409,19 @@ status_t MessageField :: SingleAddDataItem(const void * data, uint32 size)
    {
       // Oops, we need to allocate an array now!
       AbstractDataArrayRef adaRef = CreateDataArray(_typeCode);
-      if ((adaRef())&&(adaRef()->AddDataItem(_union._data, size).IsOK()))  // add our existing single-item to the array
-      {
-         if (adaRef()->AddDataItem(data, size).IsOK())
-         {
-            _state = FIELD_STATE_ARRAY;
-            SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef());
-            return B_NO_ERROR;
-         }
-      }
-      return B_OUT_OF_MEMORY;
+      MRETURN_ON_ERROR(adaRef);
+      MRETURN_ON_ERROR(adaRef()->AddDataItem(_union._data, size));  // add our existing single-item to the array
+      MRETURN_ON_ERROR(adaRef()->AddDataItem(data,         size));
+
+      _state = FIELD_STATE_ARRAY;
+      SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef());
+      return B_NO_ERROR;
    }
 }
 
 status_t MessageField :: SingleRemoveDataItem(uint32 index)
 {
-   if ((index > 0)||(_state != FIELD_STATE_INLINE)) return B_BAD_ARGUMENT;
+   if ((index > 0)||(_state != FIELD_STATE_INLINE)) return B_DATA_NOT_FOUND;
 
    SetInlineItemToNull();
    _state = FIELD_STATE_EMPTY;
@@ -2408,22 +2440,19 @@ status_t MessageField :: SinglePrependDataItem(const void * data, uint32 size)
    {
       // Oops, we need to allocate an array now!
       AbstractDataArrayRef adaRef = CreateDataArray(_typeCode);
-      if ((adaRef())&&(adaRef()->AddDataItem(_union._data, size).IsOK()))  // add our existing single-item to the array
-      {
-         if (adaRef()->PrependDataItem(data, size).IsOK())
-         {
-            _state = FIELD_STATE_ARRAY;
-            SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef());
-            return B_NO_ERROR;
-         }
-      }
-      return B_OUT_OF_MEMORY;
+      MRETURN_ON_ERROR(adaRef);
+      MRETURN_ON_ERROR(adaRef()->AddDataItem(_union._data, size));  // add our existing single-item to the array
+      MRETURN_ON_ERROR(adaRef()->PrependDataItem(data,     size));
+
+      _state = FIELD_STATE_ARRAY;
+      SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef());
+      return B_NO_ERROR;
    }
 }
 
 status_t MessageField :: SingleFindDataItem(uint32 index, const void ** setDataLoc) const
 {
-   if ((_state != FIELD_STATE_INLINE)||(index > 0)) return B_BAD_ARGUMENT;
+   if ((_state != FIELD_STATE_INLINE)||(index > 0)) return B_DATA_NOT_FOUND;
 
    *setDataLoc = _union._data;
    return B_NO_ERROR;
@@ -2431,7 +2460,7 @@ status_t MessageField :: SingleFindDataItem(uint32 index, const void ** setDataL
 
 status_t MessageField :: SingleReplaceDataItem(uint32 index, const void * data, uint32 size)
 {
-   if ((_state != FIELD_STATE_INLINE)||(index > 0)) return B_BAD_ARGUMENT;
+   if ((_state != FIELD_STATE_INLINE)||(index > 0)) return B_DATA_NOT_FOUND;
 
    SingleSetValue(data, size);
    return B_NO_ERROR;
@@ -2497,7 +2526,14 @@ uint32 MessageField :: SingleCalculateChecksum(bool countNonFlattenableFields) c
       case B_INT32_TYPE:   ret += (uint32) GetInlineItemAsInt32();               break;
       case B_INT16_TYPE:   ret += (uint32) GetInlineItemAsInt16();               break;
       case B_INT8_TYPE:    ret += (uint32) GetInlineItemAsInt8();                break;
-      case B_MESSAGE_TYPE: ret += static_cast<const Message *>(GetInlineItemAsRefCountableRef()())->CalculateChecksum(countNonFlattenableFields); break;
+
+      case B_MESSAGE_TYPE:
+      {
+         const Message * m = static_cast<const Message *>(GetInlineItemAsRefCountableRef()());
+         if (m) ret += m->CalculateChecksum(countNonFlattenableFields);
+      }
+      break;
+
       case B_POINTER_TYPE: /* do nothing */;                                     break;
       case B_POINT_TYPE:   ret += GetInlineItemAsPoint().CalculateChecksum();    break;
       case B_RECT_TYPE:    ret += GetInlineItemAsRect().CalculateChecksum();     break;
@@ -2763,7 +2799,7 @@ status_t MessageField :: EnsurePrivate()
          if (_dataType == DATA_TYPE_REF)
          {
             const RefCountableRef & rcRef = GetInlineItemAsRefCountableRef();
-            if ((rcRef())&&(GetArrayRef().IsRefPrivate() == false))
+            if ((rcRef())&&(rcRef.IsRefPrivate() == false))
             {
                const Message * msg = dynamic_cast<const Message *>(rcRef());
                if (msg)
@@ -3040,8 +3076,8 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
 
 status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String & fieldName, DataUnflattener & unflat) const
 {
-   MessageField * mf = unflattenTo.GetOrCreateMessageField(fieldName, _typeCode);
-   MRETURN_OOM_ON_NULL(mf);
+   MessageField * mf;
+   MRETURN_ON_ERROR(unflattenTo.GetOrCreateMessageField(fieldName, _typeCode, mf));
 
    if (mf->ElementsAreFixedSize())
    {

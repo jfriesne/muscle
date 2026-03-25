@@ -1864,8 +1864,8 @@ private:
 
    MUSCLE_NODISCARD muscle_private::MessageField * GetMessageField(const String & fieldName, uint32 etc);
    MUSCLE_NODISCARD const muscle_private::MessageField * GetMessageField(const String & fieldName, uint32 etc) const;
-   MUSCLE_NODISCARD muscle_private::MessageField * GetOrCreateMessageField(const String & fieldName, uint32 tc);
    MUSCLE_NODISCARD const muscle_private::MessageField * GetMessageFieldAndTypeCode(const String & fieldName, uint32 index, uint32 * retTypeCode) const;
+   MUSCLE_NODISCARD status_t GetOrCreateMessageField(const String & fieldName, uint32 tc, muscle_private::MessageField * & retFieldPtr);
 
    status_t AddFlatAux(const String & fieldName, const FlatCountableRef & flat, uint32 etc, bool prepend);
    status_t AddDataAux(const String & fieldName, const void * data, uint32 size, uint32 etc, bool prepend);

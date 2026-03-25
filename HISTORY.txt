@@ -93,6 +93,7 @@ key:  - new feature
    * StorageReflectSession::CloneDataNodeSubtree() no longer adds
      index-entries to the clone for child nodes that weren't included
      in the clone due to being pruned by an ITraversalPruner.
+   * Improved comments and error handling in the Message class.
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

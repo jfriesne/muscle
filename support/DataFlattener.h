@@ -227,6 +227,7 @@ public:
 
    /** Seeks our "write position" to a new offset within our output buffer.
      * @param offset the new write-position within our output buffer
+     * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the post-seek location wouldn't be valid.
      */
    status_t SeekTo(uint32 offset)
    {
@@ -237,7 +238,7 @@ public:
 
    /** Moves the pointer into our buffer forwards or backwards by the specified number of bytes.
      * @param numBytes the number of bytes to move the pointer by
-     * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the new write-location would be a negative value
+     * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the post-seek location wouldn't be valid.
      */
    status_t SeekRelative(int32 numBytes)
    {

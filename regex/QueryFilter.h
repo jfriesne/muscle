@@ -255,7 +255,7 @@ template <typename DataType> MUSCLE_NODISCARD inline DataType NQFDoMaskOp(uint8 
 }
 
 // Separate implementation for bool because you can't use bitwise negate on a bool, the result is undefined
-// and causes unecessary implicit int<->bool casts (per Mika)
+// and causes unnecessary implicit int<->bool casts (per Mika)
 template<> MUSCLE_NODISCARD inline bool NQFDoMaskOp(uint8 maskOp, const bool & msgVal, const bool & mask)
 {
    switch(maskOp)

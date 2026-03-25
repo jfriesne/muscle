@@ -80,7 +80,7 @@ public:
    status_t UnflattenFromByteBuffer(const ConstRef<ByteBuffer> & bufRef);
 
    /** Convenience method.  Flattens this object into the supplied ByteBuffer object.
-     * @param outBuf the ByteBuffer to dump our flattened bytes into.
+     * @param outBuf the ByteBuffer to dump our flattened bytes into.  On successful return, this ByteBuffer will contain (this->FlattenedSize()) bytes.
      * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
    status_t FlattenToByteBuffer(ByteBuffer & outBuf) const;
@@ -88,7 +88,7 @@ public:
    /** Convenience method.  Calls through to Flatten()
      * @param writeTo The buffer to write bytes into.  Caller must guarantee that this pointer remains valid when any methods on this class are called.
      * @param flatSize How many bytes the Flatten() call should write.  This should be equal to the value returned by our FlattenedSize() method.
-     *                 Providing it as an argument here allows us to avoid an unecessary second call to FlattenedSize() if you already know its value.
+     *                 Providing it as an argument here allows us to avoid an unnecessary second call to FlattenedSize() if you already know its value.
      */
    void FlattenToBytes(uint8 * writeTo, uint32 flatSize) const {static_cast<const SubclassType *>(this)->Flatten(DataFlattener(writeTo, flatSize));}
 

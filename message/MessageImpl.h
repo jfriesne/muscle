@@ -68,7 +68,7 @@ public:
    MUSCLE_NODISCARD bool HasItems() const {return (GetNumItems()>0);}
    MUSCLE_NODISCARD bool IsEmpty() const {return (GetNumItems()==0);}
    MUSCLE_NODISCARD int32 GetLastValidIndex() const {return ((int32)GetNumItems())-1;}
-   MUSCLE_NODISCARD int32 IsIndexValid(uint32 idx) const {return (idx < GetNumItems());}
+   MUSCLE_NODISCARD bool IsIndexValid(uint32 idx) const {return (idx < GetNumItems());}
 
    // Returns a 32-bit checksum for this field
    MUSCLE_NODISCARD virtual uint32 CalculateChecksum(bool countNonFlattenableFields) const = 0;
