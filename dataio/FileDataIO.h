@@ -49,7 +49,6 @@ public:
    virtual io_status_t Write(const void * buffer, uint32 size);
 
    /** Seeks to the specified point in the file.
-    *  @note this subclass only supports 32-bit offsets.
     *  @param offset Where to seek to.
     *  @param whence IO_SEEK_SET, IO_SEEK_CUR, or IO_SEEK_END.
     *  @return B_NO_ERROR on success, an error code on failure.
@@ -91,38 +90,7 @@ public:
     */
    void SetFile(FILE * fp);
 
-   /**
-    * This method should return a ConstSocketRef object containing a file descriptor
-    * that can be passed to the readSet argument of select(), so that select() can
-    * return when there is data available to be read from this DataIO (via Read()).
-    *
-    * Note that under Windows, this method will always return a NULL socket, because
-    * under Windows it is not possible to select() on the file descriptor associated
-    * with fileno(my_FILE_pointer).
-    *
-    * Note that the only thing you are allowed to do with the returned ConstSocketRef
-    * is pass it to a SocketMultiplexer to block on (or pass the underlying file descriptor
-    * to select()/etc's readSet).  For all other operations, use the appropriate
-    * methods in the DataIO interface instead.  If you attempt to do any other I/O operations
-    * on Socket or its file descriptor directly, the results are undefined.
-    */
-   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const {return _selectSocketRef;}
-
-   /**
-    * This method should return a ConstSocketRef object containing a file descriptor
-    * that can be passed to the writeSet argument of select(), so that select() can
-    * return when there is buffer space available to Write() to this DataIO.
-    *
-    * Note that under Windows, this method will always return a NULL socket, because
-    * under Windows it is not possible to select() on the file descriptor associated
-    * with fileno(my_FILE_pointer).
-    *
-    * Note that the only thing you are allowed to do with the returned ConstSocketRef
-    * is pass it to a SocketMultiplexer to block on (or pass the underlying file descriptor
-    * to select()/etc's writeSet).  For all other operations, use the appropriate
-    * methods in the DataIO interface instead.  If you attempt to do any other I/O operations
-    * on Socket or its file descriptor directly, the results are undefined.
-    */
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return _selectSocketRef;}
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _selectSocketRef;}
 
 private:

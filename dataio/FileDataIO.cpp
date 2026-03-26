@@ -35,8 +35,8 @@ io_status_t FileDataIO :: Read(void * buffer, uint32 size)
 {
    if (_file)
    {
-      const int32 ret = (int32) fread(buffer, 1, size, _file);
-      return (ret > 0) ? io_status_t(ret) : io_status_t(B_END_OF_STREAM);  // EOF is an error, and it's returned as zero
+      const size_t ret = fread(buffer, 1, size, _file);
+      return (ret > 0) ? io_status_t((int32)ret) : (ferror(_file) ? B_IO_ERROR : B_END_OF_STREAM);
    }
    else return EnsureDeferredModeFopenCalled() ? Read(buffer, size) : io_status_t(B_BAD_OBJECT);
 }
@@ -45,8 +45,8 @@ io_status_t FileDataIO :: Write(const void * buffer, uint32 size)
 {
    if (_file)
    {
-      const int32 ret = (int32) fwrite(buffer, 1, size, _file);
-      return (ret > 0) ? io_status_t(ret) : io_status_t(B_IO_ERROR);   // zero is an error
+      const size_t ret = fwrite(buffer, 1, size, _file);
+      return (ret > 0) ? io_status_t((int32)ret) : io_status_t(B_IO_ERROR);
    }
    else return EnsureDeferredModeFopenCalled() ? Write(buffer, size) : io_status_t(B_BAD_OBJECT);
 }
@@ -62,12 +62,20 @@ status_t FileDataIO :: Seek(int64 offset, int whence)
       case IO_SEEK_END:  whence = SEEK_END;  break;
       default:           return B_BAD_ARGUMENT;
    }
-   return (fseek(_file, (long) offset, whence) == 0) ? B_NO_ERROR : B_IO_ERROR;
+#ifdef WIN32
+   return (_fseeki64(_file, offset, whence) == 0) ? B_NO_ERROR : B_IO_ERROR;
+#else
+   return (   fseeko(_file, offset, whence) == 0) ? B_NO_ERROR : B_IO_ERROR;
+#endif
 }
 
 int64 FileDataIO :: GetPosition() const
 {
-   return _file ? (int64) ftell(_file) : (_pendingFilePath?0:-1);
+#ifdef WIN32
+   return _file ? (int64) _ftelli64(_file) : (_pendingFilePath?0:-1);
+#else
+   return _file ? (int64)    ftello(_file) : (_pendingFilePath?0:-1);
+#endif
 }
 
 status_t FileDataIO :: Truncate()
@@ -77,7 +85,7 @@ status_t FileDataIO :: Truncate()
    const int64 curPos = GetPosition();
    if (curPos < 0) return B_BAD_OBJECT;
 
-   fflush(_file);  // make sure any recently-written data gets pushed to disk before we start chopping
+   if (fflush(_file) != 0) return B_ERRNO;  // make sure all recently-buffered data gets pushed to disk before we start chopping
 
 #ifdef WIN32
    const int fd = _fileno(_file);
@@ -96,7 +104,7 @@ status_t FileDataIO :: Truncate()
 
 void FileDataIO :: FlushOutput()
 {
-   if (_file) fflush(_file);
+   if (_file) (void) fflush(_file);
 }
 
 void FileDataIO :: Shutdown()
