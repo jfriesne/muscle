@@ -60,10 +60,10 @@ public:
    /** Remove the first matching instance of (banPattern) from our set of ban-patterns.
      * Note that we don't do any pattern-matching here, we will remove exactly one ban-pattern
      * that is exactly equal to the supplied argument.
-     * @param requirePattern Pattern to remove from the set of ban patterns
+     * @param banPattern Pattern to remove from the set of ban patterns
      * @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the given pattern wasn't found in the set.
      */
-   status_t RemoveBanPattern(const String & requirePattern);
+   status_t RemoveBanPattern(const String & banPattern);
 
    /** Remove the first matching instance of (requirePattern) from our set of require-patterns.
      * Note that we don't do any pattern-matching here, we will remove exactly one require-pattern

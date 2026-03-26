@@ -90,15 +90,18 @@ void FilterSessionFactory :: MessageReceivedFromSession(AbstractReflectSession &
    if (msg)
    {
       _tempLogFor = &from;
-      const String * s;
-      for (int b=0; (msg->FindString(PR_NAME_KEYS, b, &s).IsOK()); b++)
+      const String * ps;
+      for (int b=0; (msg->FindString(PR_NAME_KEYS, b, &ps).IsOK()); b++)
       {
+         const String & s = *ps;
+
+         status_t ret;
          switch(msg->what)
          {
-            case PR_COMMAND_ADDBANS:        (void) PutBanPattern(*s);                 break;
-            case PR_COMMAND_ADDREQUIRES:    (void) PutRequirePattern(*s);             break;
-            case PR_COMMAND_REMOVEBANS:            RemoveMatchingBanPatterns(*s);     break;
-            case PR_COMMAND_REMOVEREQUIRES:        RemoveMatchingRequirePatterns(*s); break;
+            case PR_COMMAND_ADDBANS:        if (PutBanPattern(s).IsError(ret))     LogTime(MUSCLE_LOG_ERROR, "PutBanPattern(%s) returned [%s]\n",     s(), ret()); break;
+            case PR_COMMAND_ADDREQUIRES:    if (PutRequirePattern(s).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "PutRequirePattern(%s) returned [%s]\n", s(), ret()); break;
+            case PR_COMMAND_REMOVEBANS:     RemoveMatchingBanPatterns(s);     break;
+            case PR_COMMAND_REMOVEREQUIRES: RemoveMatchingRequirePatterns(s); break;
             default:
                LogTime(MUSCLE_LOG_WARNING, "FilterSessionFactory " UINT32_FORMAT_SPEC ":  Unhandled message " UINT32_FORMAT_SPEC " from session [%s]\n", GetFactoryID(), msg->what, from.GetSessionDescriptionString()());
             break;
