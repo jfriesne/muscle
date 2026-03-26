@@ -1,6 +1,5 @@
 #include "dataio/FileDataIO.h"
 #include "dataio/SSLSocketDataIO.h"
-#include "dataio/SSLSocketDataIO.h"
 
 // keep these AFTER the MUSCLE includes, or Windows throws a fit
 #include <openssl/bio.h>
@@ -121,7 +120,8 @@ status_t SSLSocketDataIO :: SetPublicKeyCertificate(const uint8 * bytes, uint32 
 
 status_t SSLSocketDataIO :: SetPublicKeyCertificate(const ConstByteBufferRef & buf)
 {
-   if (buf() == NULL) return B_BAD_OBJECT;
+   if (_ssl  == NULL) return B_BAD_OBJECT;
+   if (buf() == NULL) return B_BAD_ARGUMENT;
 
    status_t ret;
 
@@ -191,7 +191,6 @@ unsigned int SSLSocketDataIO :: PSKClientCallback(const char * /*hint*/, char * 
 {
    const uint32 unFS = _pskUserName.FlattenedSize();
    if (unFS > maxIdentityLen)
-   if (_pskUserName.FlattenedSize() > maxIdentityLen)
    {
       LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO::pskClientCallback:  output buffer not long enough to hold identity!\n");
       return 0;  // failure
@@ -213,8 +212,11 @@ void SSLSocketDataIO :: SetPreSharedKeyLoginInfo(const String & userName, const 
 {
    _pskUserName = userName;
    _pskPassword = password;
-   if (_isServer) SSL_set_psk_server_callback(_ssl, pskServerCallbackFunc);
-             else SSL_set_psk_client_callback(_ssl, pskClientCallbackFunc);
+   if (_ssl)
+   {
+      if (_isServer) SSL_set_psk_server_callback(_ssl, pskServerCallbackFunc);
+                else SSL_set_psk_client_callback(_ssl, pskClientCallbackFunc);
+   }
 }
 
 io_status_t SSLSocketDataIO :: Read(void *buffer, uint32 size)
@@ -265,7 +267,10 @@ io_status_t SSLSocketDataIO :: Write(const void *buffer, uint32 size)
       _sslState &= ~(SSL_STATE_WRITE_WANTS_READABLE_SOCKET | SSL_STATE_WRITE_WANTS_WRITEABLE_SOCKET);
       return bytes;
    }
-   else if (bytes == 0) return B_IO_ERROR;  // connection was terminated
+   else if (bytes == 0)
+   {
+      return (SSL_get_error(_ssl, bytes) == SSL_ERROR_ZERO_RETURN) ? B_END_OF_STREAM : B_IO_ERROR;  // connection was terminated
+   }
    else
    {
       const int err = SSL_get_error(_ssl, bytes);
@@ -285,8 +290,8 @@ io_status_t SSLSocketDataIO :: Write(const void *buffer, uint32 size)
       }
       else
       {
-         fprintf(stderr,"SSL_write() ERROR!");
-         ERR_print_errors_fp(stderr);
+         LogTime(MUSCLE_LOG_DEBUG, "SSL_write() returned error code %i!\n", err);
+         if (GetMaxLogLevel() >= MUSCLE_LOG_DEBUG) ERR_print_errors_fp(stderr);
          return B_SSL_ERROR;
       }
    }
