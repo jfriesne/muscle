@@ -71,8 +71,8 @@ public:
      * @param signalNumber on success, the signal number should be written here.
      * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if there is no (nth) signal number.
      *
-     * Default implementation will return SIGINT, SIGTERM, and SIGHUP under Posix OS's,
-     * and CTRL_CLOSE_EVENT, CTRL_LOGOFF_EVENT, and CTRL_SHUTDOWN_EVENT under Windows.
+     * @note Default implementation will return SIGINT, SIGTERM, and SIGHUP under Posix OS's,
+     * or CTRL_C_EVENT, CTRL_BREAK_EVENT, CTRL_CLOSE_EVENT, CTRL_LOGOFF_EVENT, and CTRL_SHUTDOWN_EVENT under Windows.
      */
    virtual status_t GetNthSignalNumber(uint32 n, int & signalNumber) const;
 

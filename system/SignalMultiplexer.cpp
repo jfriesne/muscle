@@ -82,8 +82,13 @@ void SignalMultiplexer :: CallSignalHandlers(const SignalEventInfo & sei)
    (void) _totalSignalCounts.AtomicIncrement();
    if (muscleInRange(sigNum, 0, (int)(ARRAYITEMS(_signalCounts)-1))) (void) _signalCounts[sigNum].AtomicIncrement();
 
+#ifdef WIN32
+   // It's okay to lock a Mutex from within the windows handler as it's really just another thread
+   DECLARE_MUTEXGUARD(_mutex);
+#else
    // Can't lock the Mutex here because we are being called within a signal context!
    // So we just have to hope that _handlers won't change while we do this
+#endif
    for (uint32 i=0; i<_handlers.GetNumItems(); i++) _handlers[i]->SignalHandlerFunc(sei);
 }
 
@@ -147,7 +152,7 @@ void SignalMultiplexer :: UnregisterSignals()
 #if defined(WIN32)
    if (_currentSignalSet.HasItems()) (void) SetConsoleCtrlHandler((PHANDLER_ROUTINE)Win32SignalHandlerCallbackFunc, false);
 #elif defined(MUSCLE_USE_POSIX_SIGNALS)
-   struct sigaction newact;
+   struct sigaction newact; memset(&newact, 0, sizeof(newact));
    sigemptyset(&newact.sa_mask);
    newact.sa_flags   = 0;
    newact.sa_handler = NULL;

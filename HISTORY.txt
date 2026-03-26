@@ -36,6 +36,10 @@ key:  - new feature
    o CPULoadMeter now returns the previous CPU measurement again
      (rather than -1.0f) if it can't compute a new measurement.
    o StorageReflectSession::GetNewDataNode() is now a static method.
+   o SignalMultiplexer's signal-handler-callbacks are now called with
+     the SignalMultiplexer's Mutex locked under Windows, for better
+     thread-safety (not done under POSIX OS's since a POSIX signal-handler
+     isn't allowed to acquire a Mutex)
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to
