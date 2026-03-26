@@ -33,7 +33,7 @@ const char *
 ServerComponent ::
 GetTypeName() const
 {
-   if ((_fullyAttached == false)||(_rttiTypeName.IsEmpty())) _rttiTypeName = GetUnmangledSymbolName(typeid(*this).name());
+   if (_rttiTypeName.IsEmpty()) _rttiTypeName = GetUnmangledSymbolName(typeid(*this).name());
    return _rttiTypeName();
 }
 

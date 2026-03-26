@@ -104,7 +104,7 @@ public:
    MUSCLE_NODISCARD bool IsFullyAttachedToServer() const {return _fullyAttached;}
 
    /** Sets the fully-attached-to-server flag for this session.  Typically only the ReflectServer class should call this.
-     * @param fullyAttached true iff we are not fully attached; false if we are no longer fully attacked
+     * @param fullyAttached true iff we are now fully attached; false if we are no longer fully attached
      */
    void SetFullyAttachedToServer(bool fullyAttached) {_fullyAttached = fullyAttached;}
 
