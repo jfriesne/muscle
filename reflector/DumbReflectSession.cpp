@@ -36,7 +36,7 @@ void
 DumbReflectSession ::
 MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * /*userData*/)
 {
-   if ((&from == this)||(IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY))) (void) AddOutgoingMessage(msg);
+   if ((&from == this)||(IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY))) MLOG_ON_ERROR("AddOutgoingMessage", AddOutgoingMessage(msg));
 }
 
 const char * _routingFlagLabels[] = {

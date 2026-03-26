@@ -88,6 +88,8 @@ status_t MessageTransceiverThread :: StartInternalThread()
 
 status_t MessageTransceiverThread :: SendMessageToSessions(const MessageRef & userMsg, const String & optPath)
 {
+   MRETURN_ON_ERROR(userMsg);
+
    MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SEND_USER_MESSAGE));
    MRETURN_ON_ERROR(msgRef);
 
@@ -217,48 +219,49 @@ status_t MessageTransceiverThread :: RemoveAcceptFactory(uint16 port, const IPAd
 
 status_t MessageTransceiverThread :: SetSSLPrivateKey(const ConstByteBufferRef & privateKey)
 {
-   _privateKey = privateKey;
-
    if (IsInternalThreadRunning())
    {
       MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_SSL_PRIVATE_KEY));
       MRETURN_ON_ERROR(msgRef);
 
-      status_t ret;
-      return (((_privateKey())&&(msgRef()->AddFlat(MTT_NAME_DATA, CastAwayConstFromRef(privateKey)).IsError(ret)))||(SendMessageToInternalThread(msgRef).IsError(ret))) ? ret : B_NO_ERROR;
+      if (privateKey()) MRETURN_ON_ERROR(msgRef()->AddFlat(MTT_NAME_DATA, CastAwayConstFromRef(privateKey)));
+      MRETURN_ON_ERROR(SendMessageToInternalThread(msgRef));
    }
-   else return B_BAD_OBJECT;
+
+   _privateKey = privateKey;
+   return B_NO_ERROR;
 }
 
 status_t MessageTransceiverThread :: SetSSLPublicKeyCertificate(const ConstByteBufferRef & publicKey)
 {
-   _publicKey = publicKey;
-
    if (IsInternalThreadRunning())
    {
       MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_SSL_PUBLIC_KEY));
       MRETURN_ON_ERROR(msgRef);
 
-      status_t ret;
-      return (((_publicKey())&&(msgRef()->AddFlat(MTT_NAME_DATA, CastAwayConstFromRef(_publicKey)).IsError(ret)))||(SendMessageToInternalThread(msgRef).IsError(ret))) ? ret : B_NO_ERROR;
+      if (publicKey()) MRETURN_ON_ERROR(msgRef()->AddFlat(MTT_NAME_DATA, CastAwayConstFromRef(publicKey)));
+      MRETURN_ON_ERROR(SendMessageToInternalThread(msgRef));
    }
-   else return B_BAD_OBJECT;
+
+   _publicKey = publicKey;
+   return B_NO_ERROR;
 }
 
 status_t MessageTransceiverThread :: SetSSLPreSharedKeyLoginInfo(const String & userName, const String & password)
 {
-   _pskUserName = userName;
-   _pskPassword = password;
-
    if (IsInternalThreadRunning())
    {
       MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_SET_SSL_PSK_INFO));
       MRETURN_ON_ERROR(msgRef);
 
-      status_t ret;
-      return ((msgRef()->AddString(MTT_NAME_DATA, _pskUserName).IsError(ret))||(msgRef()->AddString(MTT_NAME_DATA, _pskPassword).IsError(ret))||(SendMessageToInternalThread(msgRef).IsError(ret))) ? ret : B_NO_ERROR;
+      MRETURN_ON_ERROR(msgRef()->AddString(MTT_NAME_DATA, userName));
+      MRETURN_ON_ERROR(msgRef()->AddString(MTT_NAME_DATA, password));
+      MRETURN_ON_ERROR(SendMessageToInternalThread(msgRef));
    }
-   else return B_BAD_OBJECT;
+
+   _pskUserName = userName;
+   _pskPassword = password;
+   return B_NO_ERROR;
 }
 
 #endif
@@ -272,8 +275,8 @@ status_t MessageTransceiverThread :: SetDefaultDistributionPath(const String & p
       MRETURN_ON_ERROR(msgRef()->AddString(MTT_NAME_PATH, path));
       MRETURN_ON_ERROR(SendMessageToInternalThread(msgRef));
    }
-   else _defaultDistributionPath = path;
 
+   _defaultDistributionPath = path;
    return B_NO_ERROR;
 }
 
@@ -398,18 +401,26 @@ ThreadWorkerSessionFactory :: ThreadWorkerSessionFactory()
 
 status_t ThreadWorkerSessionFactory :: AttachedToServer()
 {
-   status_t ret;
-   return (StorageReflectSessionFactory::AttachedToServer().IsOK(ret)) ? SendMessageToSupervisorSession(GetMessageFromPool(MTT_EVENT_FACTORY_ATTACHED)) : ret;
+   MRETURN_ON_ERROR(StorageReflectSessionFactory::AttachedToServer());
+
+   MessageRef msg = GetMessageFromPool(MTT_EVENT_FACTORY_ATTACHED);
+   MRETURN_ON_ERROR(msg);
+
+   return SendMessageToSupervisorSession(msg);
 }
 
 void ThreadWorkerSessionFactory :: AboutToDetachFromServer()
 {
-   (void) SendMessageToSupervisorSession(GetMessageFromPool(MTT_EVENT_FACTORY_DETACHED));
+   MessageRef msg = GetMessageFromPool(MTT_EVENT_FACTORY_DETACHED);
+   if (msg()) (void) SendMessageToSupervisorSession(msg);
+
    StorageReflectSessionFactory::AboutToDetachFromServer();
 }
 
 status_t ThreadWorkerSessionFactory :: SendMessageToSupervisorSession(const MessageRef & msg, void * userData)
 {
+   MRETURN_ON_ERROR(msg);
+
    // I'm not bothering to cache the supervisor pointer for this class, because this method is called
    // so rarely and I can't be bothered to add anti-dangling-pointer logic for so little gain --jaf
    ThreadSupervisorSession * supervisorSession = FindFirstSessionOfType<ThreadSupervisorSession>();
@@ -483,7 +494,11 @@ status_t ThreadWorkerSession :: AttachedToServer()
       MRETURN_ON_ERROR(msg()->AddFlat(MTT_NAME_IPADDRESSANDPORT, _acceptedIAP));
       MRETURN_ON_ERROR(SendMessageToSupervisorSession(msg));
    }
-   return SendMessageToSupervisorSession(GetMessageFromPool(MTT_EVENT_SESSION_ATTACHED));
+
+   MessageRef msg = GetMessageFromPool(MTT_EVENT_SESSION_ATTACHED);
+   MRETURN_ON_ERROR(msg);
+
+   return SendMessageToSupervisorSession(msg);
 }
 
 status_t ThreadWorkerSession :: SendMessageToSupervisorSession(const MessageRef & msg, void * userData)
@@ -499,14 +514,18 @@ status_t ThreadWorkerSession :: SendMessageToSupervisorSession(const MessageRef 
 
 bool ThreadWorkerSession :: ClientConnectionClosed()
 {
-   (void) SendMessageToSupervisorSession(GetMessageFromPool(MTT_EVENT_SESSION_DISCONNECTED));
+   MessageRef msg = GetMessageFromPool(MTT_EVENT_SESSION_DISCONNECTED);
+   if (msg()) (void) SendMessageToSupervisorSession(msg);
+
    _drainedNotifiers.Clear();
    return StorageReflectSession::ClientConnectionClosed();
 }
 
 void ThreadWorkerSession :: AboutToDetachFromServer()
 {
-   (void) SendMessageToSupervisorSession(GetMessageFromPool(MTT_EVENT_SESSION_DETACHED));
+   MessageRef msg = GetMessageFromPool(MTT_EVENT_SESSION_DETACHED);
+   if (msg()) (void) SendMessageToSupervisorSession(msg);
+
    _drainedNotifiers.Clear();
    _supervisorSession = NULL;  // paranoia
    StorageReflectSession::AboutToDetachFromServer();
@@ -539,7 +558,7 @@ void ThreadWorkerSession :: MessageReceivedFromSession(AbstractReflectSession & 
    const Message * msg = msgRef();
    if (msg)
    {
-      if ((msg->what >= MTT_COMMAND_SEND_USER_MESSAGE)&&(msg->what <= MTT_LAST_COMMAND))
+      if (muscleInRange(msg->what, (uint32) MTT_COMMAND_SEND_USER_MESSAGE, (uint32) (MTT_LAST_COMMAND-1)))
       {
          switch(msg->what)
          {
@@ -698,8 +717,11 @@ status_t ThreadSupervisorSession :: AddNewWorkerConnectSession(const AbstractRef
 
 void ThreadSupervisorSession :: SendMessageToWorkers(const MessageRef & distMsg)
 {
-   String distPath;
-   (void) SendMessageToMatchingSessions(distMsg, (distMsg()->FindString(MTT_NAME_PATH, distPath).IsOK()) ? distPath : _defaultDistributionPath, ConstQueryFilterRef(), false);
+   if (distMsg())
+   {
+      String distPath;
+      (void) SendMessageToMatchingSessions(distMsg, (distMsg()->FindString(MTT_NAME_PATH, distPath).IsOK()) ? distPath : _defaultDistributionPath, ConstQueryFilterRef(), false);
+   }
 }
 
 status_t ThreadSupervisorSession :: MessageReceivedFromOwner(const MessageRef & msgRef, uint32)
