@@ -120,17 +120,16 @@ public:
     *  set of children will have its Pulse()-ing needs taken care of by us, but it is
     *  not considered "owned" by this PulseNode--that is, it will not be deleted when we are.
     *  @param child The child to place into our set of child PulseNodes.
-    *  @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     *  @note if (child) is already a child of a different PulseNode, it will be removed from
     *        that PulseNode's children-list (via RemovePulseChild()) before it is added to this one's.
     */
-   status_t PutPulseChild(PulseNode * child);
+   void PutPulseChild(PulseNode * child);
 
    /** Attempts to remove the given child from our set of child PulseNodes, and disassociate it from us.
     *  @param child The child to remove
-    *  @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (ie child wasn't in our current-set of pulse-children)
+    *  @note if (child) is not currently a child of this PulseNode, then this call will be a no-op.
     */
-   status_t RemovePulseChild(PulseNode * child);
+   void RemovePulseChild(PulseNode * child);
 
    /** Removes all children from our set of child PulseNodes and disassociates us from them. */
    void ClearPulseChildren();
@@ -169,7 +168,7 @@ public:
     *  clock (GetRunTime64()) indicates that our suggested time slice has expired.
     *  This method is cheap to call often.
     */
-   MUSCLE_NODISCARD bool IsSuggestedTimeSliceExpired() const {return ((_timeSlicingSuggested)&&(GetRunTime64() >= (_cycleStartedAt+_maxTimeSlice)));}
+   MUSCLE_NODISCARD bool IsSuggestedTimeSliceExpired() const {return ((_timeSlicingSuggested)&&(GetRunTime64() >= (GetCycleStartTime()+_maxTimeSlice)));}
 
    /**
     * Sets a flag to indicate that GetPulseTime() should be called again on this object,

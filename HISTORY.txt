@@ -42,6 +42,9 @@ key:  - new feature
      the SignalMultiplexer's Mutex locked under Windows, for better
      thread-safety (not done under POSIX OS's since a POSIX signal-handler
      isn't allowed to acquire a Mutex)
+   o Changed PulseNode::PutPulseChild() and PulseNode::RemovePulseChild()
+     to return void instead of status_t, since there's no way for those
+     methods to actually fail anyway.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to

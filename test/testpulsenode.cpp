@@ -63,11 +63,8 @@ public:
       {
          TestPulseChild * tpc = new TestPulseChild(baseTime, i);
          status_t ret;
-         if (_tpcs.AddTail(tpc).IsOK(ret))
-         {
-            if (PutPulseChild(tpc).IsError(ret)) LogTime(MUSCLE_LOG_CRITICALERROR, "PutPulseChild() returned [%s] for TestPulseChild #%i!\n", ret(), i);
-         }
-         else delete tpc;  // roll back
+         if (_tpcs.AddTail(tpc).IsOK(ret)) PutPulseChild(tpc);
+                                      else delete tpc;  // roll back
       }
       return B_NO_ERROR;
    }

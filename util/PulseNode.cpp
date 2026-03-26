@@ -22,7 +22,7 @@ PulseNode :: PulseNode()
 PulseNode :: ~PulseNode()
 {
    // unlink everybody, but don't delete anyone; no ownership is implied here!
-   if (_parent) (void) _parent->RemovePulseChild(this);
+   if (_parent) _parent->RemovePulseChild(this);
    ClearPulseChildren();
 }
 
@@ -87,15 +87,15 @@ void PulseNode :: PulseAux(uint64 now)
    if (_parent) _parent->ReschedulePulseChild(this, LINKED_LIST_NEEDSRECALC);
 }
 
-status_t PulseNode :: PutPulseChild(PulseNode * child)
+void PulseNode :: PutPulseChild(PulseNode * child)
 {
-   if (child->_parent) (void) child->_parent->RemovePulseChild(child);
+   if (child->_parent) child->_parent->RemovePulseChild(child);
+
    child->_parent = this;
    ReschedulePulseChild(child, LINKED_LIST_NEEDSRECALC);
-   return B_NO_ERROR;
 }
 
-status_t PulseNode :: RemovePulseChild(PulseNode * child)
+void PulseNode :: RemovePulseChild(PulseNode * child)
 {
    if (child->_parent == this)
    {
@@ -104,14 +104,12 @@ status_t PulseNode :: RemovePulseChild(PulseNode * child)
       child->_parent = NULL;
       child->_myScheduledTimeValid = false;
       if ((doResched)&&(_parent)) _parent->ReschedulePulseChild(this, LINKED_LIST_NEEDSRECALC);
-      return B_NO_ERROR;
    }
-   else return B_BAD_ARGUMENT;
 }
 
 void PulseNode :: ClearPulseChildren()
 {
-   for (uint32 i=0; i<NUM_LINKED_LISTS; i++) while(_firstChild[i]) (void) RemovePulseChild(_firstChild[i]);
+   for (uint32 i=0; i<NUM_LINKED_LISTS; i++) while(_firstChild[i]) RemovePulseChild(_firstChild[i]);
 }
 
 void PulseNode :: ReschedulePulseChild(PulseNode * child, int whichList)
