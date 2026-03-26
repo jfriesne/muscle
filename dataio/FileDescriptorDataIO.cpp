@@ -49,10 +49,10 @@ io_status_t FileDescriptorDataIO :: Read(void * buffer, uint32 size)
    const int fd = _fd.GetFileDescriptor();
    if (fd < 0) return B_BAD_OBJECT;
 
-   const int32 r = read_ignore_eintr(fd, buffer, size);
+   const ssize_t r = read_ignore_eintr(fd, buffer, size);
    if (r == 0) return B_END_OF_STREAM;
 
-   const int32 er = _blocking ? r : ConvertReturnValueToMuscleSemantics(r, size, _blocking);
+   const int32 er = _blocking ? (int32)r : ConvertReturnValueToMuscleSemantics(r, size, _blocking);
    return (er >= 0) ? io_status_t(er) : io_status_t(B_ERRNO);
 }
 
@@ -61,8 +61,8 @@ io_status_t FileDescriptorDataIO :: Write(const void * buffer, uint32 size)
    const int fd = _fd.GetFileDescriptor();
    if (fd < 0) return B_BAD_OBJECT;
 
-   const int32  w = (int32) write_ignore_eintr(fd, buffer, size);
-   const int32 ew = _blocking ? w : ConvertReturnValueToMuscleSemantics(w, size, _blocking);
+   const ssize_t w = write_ignore_eintr(fd, buffer, size);
+   const int32  ew = _blocking ? (int32)w : ConvertReturnValueToMuscleSemantics(w, size, _blocking);
    return (ew >= 0) ? io_status_t(ew) : io_status_t(B_ERRNO);
 }
 
@@ -76,7 +76,11 @@ status_t FileDescriptorDataIO :: SetBlockingIOEnabled(bool blocking)
    const int fd = _fd.GetFileDescriptor();
    if (fd >= 0)
    {
-      if (fcntl(fd, F_SETFL, blocking ? 0 : O_NONBLOCK) == 0)
+      const int oldFlags = fcntl(fd, F_GETFL, 0);
+      if (oldFlags < 0) return B_ERRNO;
+
+      const int newFlags = blocking ? (oldFlags & ~O_NONBLOCK) : (oldFlags | O_NONBLOCK);
+      if ((newFlags == oldFlags)||(fcntl(fd, F_SETFL, newFlags) == 0))
       {
          _blocking = blocking;
          return B_NO_ERROR;
@@ -138,9 +142,11 @@ int64 FileDescriptorDataIO :: GetLength() const
 
 status_t FileDescriptorDataIO :: Truncate()
 {
-   const int fd       = _fd.GetFileDescriptor();
+   const int fd = _fd.GetFileDescriptor();
+   if (fd < 0) return B_BAD_OBJECT;
+
    const int64 curPos = GetPosition();
-   if ((fd < 0)||(curPos < 0)) return B_BAD_OBJECT;
+   if (curPos < 0) return B_ERRNO;  // errno will come from the call to lseek()
 
    const int r = ftruncate(fd, curPos);
    return (r == 0) ? B_NO_ERROR : B_ERRNO;

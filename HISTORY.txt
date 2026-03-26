@@ -100,6 +100,8 @@ key:  - new feature
      in the clone due to being pruned by an ITraversalPruner. (c)
    * Improved comments and error handling in the Message class. (c)
    * Fixed a potential deadlock in ThreadPool::Shutdown().  (c)
+   * FileDescriptorDataIO::SetBlockingIOEnabled() now preserves other
+     file descriptor flags that might be present on the file descriptor.  (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
