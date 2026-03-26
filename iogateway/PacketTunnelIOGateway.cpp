@@ -69,33 +69,37 @@ io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessag
 
             if ((magic == _magic)&&((_sexID == 0)||(_sexID != sexID))&&((unflat.GetNumBytesAvailable() >= chunkSize)&&(totalSize <= _maxIncomingMessageSize)))
             {
-               ReceiveState * rs = _receiveStates.Get(fromIAP);
+               ReceiveState * rs = _receiveStates.GetAndMoveToBack(fromIAP);  // keep the "hot" ReceiveStates at the end of the iteration-list
                if (rs == NULL)
                {
+                  // Keep _receiveStates from growing too large
+                  const uint32 MAX_NUM_RECEIVE_STATES = 256;  // pretty arbitrary
+                  while(_receiveStates.GetNumItems() > MAX_NUM_RECEIVE_STATES) (void) _receiveStates.RemoveFirst();  // limit memory by getting rid of extras we haven't heard from in a while
+
                   if (offset == 0) rs = _receiveStates.PutAndGet(fromIAP, ReceiveState(messageID));
                   if (rs)
                   {
                      rs->_buf = GetByteBufferFromPool(totalSize);
                      if (rs->_buf() == NULL)
                      {
-                        (void) _receiveStates.Remove(fromIAP);
+                        (void) _receiveStates.Remove(fromIAP);  // roll back!
                         rs = NULL;
                      }
                   }
                }
                if (rs)
                {
-                  if ((offset == 0)||(messageID != rs->_messageID))
+                  if ((offset == 0)&&(messageID != rs->_messageID))
                   {
                      // A new message... start receiving it (but only if we are starting at the beginning)
                      rs->_messageID = messageID;
                      rs->_offset    = 0;
-                     (void) rs->_buf()->SetNumBytes(totalSize, false);
+                     MRETURN_ON_ERROR(rs->_buf()->SetNumBytes(totalSize, false));
                   }
 
                   const uint32 rsSize = rs->_buf()->GetNumBytes();
 //printf("  CHECK:  offset=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " %s\n", offset, rs->_offset, (offset==rs->_offset)?"":"DISCONTINUITY!!!");
-                  if ((messageID == rs->_messageID)&&(totalSize == rsSize)&&(offset == rs->_offset)&&(offset+chunkSize <= rsSize))
+                  if ((messageID == rs->_messageID)&&(totalSize == rsSize)&&(offset == rs->_offset)&&(WillUnsignedAddOverflow(offset, chunkSize)==false)&&(offset+chunkSize <= rsSize))
                   {
                      memcpy(rs->_buf()->GetBuffer()+offset, unflat.GetCurrentReadPointer(), chunkSize);
                      rs->_offset += chunkSize;
