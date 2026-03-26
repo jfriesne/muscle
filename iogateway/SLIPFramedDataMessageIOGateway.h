@@ -32,7 +32,6 @@ public:
 protected:
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void * userData);
 
-protected:
    virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT);
 
    /** Overridden to SLIP-encode the popped Message before returning it.
@@ -42,7 +41,8 @@ protected:
    virtual status_t PopNextOutgoingMessage(MessageRef & retMsg);
 
 private:
-   void AddPendingByte(uint8 b);
+   status_t AddPendingByte(uint8 b);
+   void ResetAux();
 
    // State used to decode incoming SLIP data
    ByteBufferRef _pendingBuffer;

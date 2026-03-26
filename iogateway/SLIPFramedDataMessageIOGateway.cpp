@@ -30,6 +30,11 @@ io_status_t SLIPFramedDataMessageIOGateway :: DoInputImplementation(AbstractGate
 void SLIPFramedDataMessageIOGateway :: Reset()
 {
    RawDataMessageIOGateway::Reset();
+   ResetAux();
+}
+
+void SLIPFramedDataMessageIOGateway :: ResetAux()
+{
    _lastReceivedCharWasEscape = false;
    _pendingBuffer.Reset();
    _pendingMessage.Reset();
@@ -42,6 +47,8 @@ static const uint8 SLIP_ESCAPE_ESC = 0335;
 
 static ByteBufferRef SLIPEncodeBytes(const uint8 * bytes, uint32 numBytes)
 {
+   if (numBytes >= (((uint32)-1)/2)) return B_RESOURCE_LIMIT;  // c'mon, don't be piggy
+
    // First, calculate how many bytes the SLIP'd buffer will need to hold
    uint32 numSLIPBytes = 2;  // 1 for the SLIP_END byte at the beginning, and one for the SLIP_END at the end.
    for (uint32 i=0; i<numBytes; i++)
@@ -106,20 +113,22 @@ status_t SLIPFramedDataMessageIOGateway :: PopNextOutgoingMessage(MessageRef & r
    return B_NO_ERROR;
 }
 
-void SLIPFramedDataMessageIOGateway :: AddPendingByte(uint8 b)
+status_t SLIPFramedDataMessageIOGateway :: AddPendingByte(uint8 b)
 {
    if (_pendingBuffer() == NULL)
    {
       _pendingBuffer = GetByteBufferFromPool(256);  // An arbitrary initial size, since I can't think of any good heuristic
-      if (_pendingBuffer()) _pendingBuffer()->Clear(false);  // but make it look empty
-                       else return;  // out of memory?
+      MRETURN_ON_ERROR(_pendingBuffer);
+      _pendingBuffer()->Clear(false);  // but make it look empty
    }
-   (void) _pendingBuffer()->AppendByte(b);
+   return _pendingBuffer()->AppendByte(b);
 }
 
 // This proxy implementation receives raw data from the superclass and SLIP-decodes it, building up a Message full of decoded data to send to our own caller later.
 void SLIPFramedDataMessageIOGateway :: MessageReceivedFromGateway(const MessageRef & msg, void * /*userData*/)
 {
+   status_t ret;
+
    const uint8 * buf;
    uint32 numBytes;
    for (int32 x=0; msg()->FindData(PR_NAME_DATA_CHUNKS, B_ANY_TYPE, x, (const void **) &buf, &numBytes).IsOK(); x++)
@@ -131,9 +140,9 @@ void SLIPFramedDataMessageIOGateway :: MessageReceivedFromGateway(const MessageR
          {
             switch(b)
             {
-               case SLIP_ESCAPE_END:  AddPendingByte(SLIP_END); break;
-               case SLIP_ESCAPE_ESC:  AddPendingByte(SLIP_ESC); break;
-               default:               AddPendingByte(b);        break;  // protocol violation, but we'll just let the byte through since that is what the reference implementation does
+               case SLIP_ESCAPE_END:  ret |= AddPendingByte(SLIP_END); break;
+               case SLIP_ESCAPE_ESC:  ret |= AddPendingByte(SLIP_ESC); break;
+               default:               ret |= AddPendingByte(b);        break;  // protocol violation, but we'll just let the byte through since that is what the reference implementation does
             }
             _lastReceivedCharWasEscape = false;
          }
@@ -145,7 +154,8 @@ void SLIPFramedDataMessageIOGateway :: MessageReceivedFromGateway(const MessageR
                   if ((_pendingBuffer())&&(_pendingBuffer()->GetNumBytes() > 0))
                   {
                      if (_pendingMessage() == NULL) _pendingMessage = GetMessageFromPool(msg()->what);
-                     if (_pendingMessage()) (void) _pendingMessage()->AddFlat(PR_NAME_DATA_CHUNKS, _pendingBuffer);
+                     if (_pendingMessage()) ret |= _pendingMessage()->AddFlat(PR_NAME_DATA_CHUNKS, _pendingBuffer);
+                                       else ret |= _pendingMessage.GetStatus();
                      _pendingBuffer.Reset();
                   }
                break;
@@ -155,10 +165,17 @@ void SLIPFramedDataMessageIOGateway :: MessageReceivedFromGateway(const MessageR
                break;
 
                default:
-                  AddPendingByte(b);
+                  ret |= AddPendingByte(b);
                break;
             }
             _lastReceivedCharWasEscape = (b==SLIP_ESC);
+         }
+
+         if (ret.IsError())
+         {
+            LogTime(MUSCLE_LOG_ERROR, "SLIPFramedDataMessageIOGateway:  AddPendingByte() returned [%s]\n", ret());
+            ResetAux();
+            return;
          }
       }
    }
