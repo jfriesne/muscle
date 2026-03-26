@@ -7,7 +7,7 @@ namespace muscle {
 RateLimitSessionIOPolicy ::
 RateLimitSessionIOPolicy(uint32 maxRate, uint32 primeBytes)
    : _maxRate(maxRate)
-   , _byteLimit(primeBytes)
+   , _byteLimit(muscleMax(primeBytes, (uint32)128))
    , _lastTransferAt(0)
    , _transferTally(0)
    , _numParticipants(0)
@@ -64,6 +64,7 @@ Pulse(const PulseArgs & args)
 {
    TCHECKPOINT;
    UpdateTransferTally(args.GetCallbackTime());
+   _lastTransferAt = args.GetCallbackTime();  // avoid double-counting the already-elapsed time, if Pulse() should somehow get called more than once between calls to BeginIO()
 }
 
 void
@@ -72,7 +73,7 @@ UpdateTransferTally(uint64 now)
 {
    if (_maxRate > 0)
    {
-      const uint32 newBytesAvailable = (_lastTransferAt > 0) ? ((uint32)(((now-_lastTransferAt)*_maxRate)/MICROS_PER_SECOND)) : MUSCLE_NO_LIMIT;
+      const uint32 newBytesAvailable = (uint32) muscleMin((_lastTransferAt > 0) ? (((now-_lastTransferAt)*_maxRate)/MICROS_PER_SECOND) : ((uint64)-1), (uint64) MUSCLE_NO_LIMIT);
       if (_transferTally > newBytesAvailable) _transferTally -= newBytesAvailable;
                                          else _transferTally = 0;
    }
@@ -96,14 +97,15 @@ RateLimitSessionIOPolicy ::
 GetMaxTransferChunkSize(const PolicyHolder &)
 {
    MASSERT(_numParticipants>0, "RateLimitSessionIOPolicy::GetMax: no participants!?!?");
-   return (_transferTally<_byteLimit)?((_byteLimit-_transferTally)/_numParticipants):0;
+   return (_transferTally<_byteLimit)?(((_numParticipants-1)+(_byteLimit-_transferTally))/_numParticipants):0;
 }
 
 void
 RateLimitSessionIOPolicy ::
 BytesTransferred(const PolicyHolder &, uint32 numBytes)
 {
-   _transferTally += numBytes;
+   if (WillUnsignedAddOverflow(_transferTally, numBytes)) _transferTally = MUSCLE_NO_LIMIT;  // paranoia
+                                                     else _transferTally += numBytes;
 }
 
 void

@@ -111,6 +111,7 @@ key:  - new feature
      than 2GB.  (c)
    * TCPSocketDataIO::FlushOutput() now only unsets/sets TCP_CORK if
      Nagle's algorithm is enabled.  (c)
+   * UDPSocketDataIO::ReadFrom() now properly handles zero-byte UDP packets.  (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

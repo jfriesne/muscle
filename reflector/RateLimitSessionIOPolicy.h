@@ -23,7 +23,7 @@ public:
      *                   bytes to be sent out immediately, before clamping down on the flow rate.
      *                   This helps keep the policy from having to wake up the server too often,
      *                   and saves CPU time.  This parameter lets you adjust that startup-size.
-     *                   Defaults to 2048 bytes.
+     *                   Defaults to 2048 bytes; minimum size is 128 bytes.
      */
    RateLimitSessionIOPolicy(uint32 maxRate, uint32 primeBytes = 2048);
 
