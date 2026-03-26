@@ -109,6 +109,8 @@ key:  - new feature
    * FileDataIO::Seek() now correctly handles seek offsets greater than 2GB (c)
    * FileDataIO::GetPosition() now correctly returns seek offsets greater
      than 2GB.  (c)
+   * TCPSocketDataIO::FlushOutput() now only unsets/sets TCP_CORK if
+     Nagle's algorithm is enabled.  (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

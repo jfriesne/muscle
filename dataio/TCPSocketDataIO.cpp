@@ -6,7 +6,12 @@ namespace muscle {
 
 TCPSocketDataIO :: TCPSocketDataIO(const ConstSocketRef & sock, bool blocking) : _sock(sock), _blocking(true), _naglesEnabled(true), _stallLimit(MUSCLE_DEFAULT_TCP_STALL_TIMEOUT)
 {
-   (void) SetBlockingIOEnabled(blocking);
+   if (SetBlockingIOEnabled(blocking).IsError())
+   {
+#ifndef WIN32  // GetSocketBlockingEnabled() doesn't work under Windows, alas
+      _blocking = GetSocketBlockingEnabled(sock);  // on error, we can at least make sure our state matches the socket's state
+#endif
+   }
 }
 
 TCPSocketDataIO :: ~TCPSocketDataIO()
@@ -16,21 +21,18 @@ TCPSocketDataIO :: ~TCPSocketDataIO()
 
 void TCPSocketDataIO :: FlushOutput()
 {
-   if (_sock())
+   if ((_naglesEnabled)&&(_sock()))
    {
       // cork doesn't always transmit the data right away if I don't also toggle Nagle.  --jaf
 #if !defined(__APPLE__)  // Apple's implementation of TCP_NOPUSH doesn't flush pending data, and it occasionally causes 5-second delays :(
       (void) SetSocketCorkAlgorithmEnabled(_sock, false);
 #endif
 
-      if (_naglesEnabled)
-      {
-         (void) SetSocketNaglesAlgorithmEnabled(_sock, false);
+      (void) SetSocketNaglesAlgorithmEnabled(_sock, false);
 #if !defined(__linux__)
-         (void) SendData(_sock, NULL, 0, _blocking);  // Force immediate buffer flush (not necessary under Linux)
+      (void) SendData(_sock, NULL, 0, _blocking);  // Force immediate buffer flush (not necessary under Linux)
 #endif
-         (void) SetSocketNaglesAlgorithmEnabled(_sock, true);
-      }
+      (void) SetSocketNaglesAlgorithmEnabled(_sock, true);
 
 #if !defined(__APPLE__)  // Apple's implementation of TCP_NOPUSH doesn't flush pending data, and it occasionally causes 5-second delays :(
       (void) SetSocketCorkAlgorithmEnabled(_sock, true);
