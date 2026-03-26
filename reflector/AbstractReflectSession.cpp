@@ -449,7 +449,7 @@ Pulse(const PulseArgs & args)
          status_t ret;
          if (Reconnect().IsError(ret))
          {
-            LogTime(MUSCLE_LOG_DEBUG, "%s: Could not auto-reconnect [%s], will try again later...\n", ret(), GetSessionDescriptionString()());
+            LogTime(MUSCLE_LOG_DEBUG, "%s: Could not auto-reconnect [%s], will try again later...\n", GetSessionDescriptionString()(), ret());
             PlanForReconnect();  // okay, we'll try again later!
          }
       }
@@ -502,12 +502,15 @@ PrintFactoriesInfo(const OutputPrinter & p) const
    const uint64 now = GetRunTime64();
    for (ConstHashtableIterator<IPAddressAndPort, ReflectSessionFactoryRef> iter(GetFactories()); iter.HasData(); iter++)
    {
-      const ReflectSessionFactory & f = *iter.GetValue()();
-      p.printf("   %s #" UINT32_FORMAT_SPEC " is listening at %s (%sAcceptCount=" UINT32_FORMAT_SPEC, f.GetTypeName(), f.GetFactoryID(), iter.GetKey().ToString()(), f.IsReadyToAcceptSessions()?"ReadyToAcceptSessions, ":"", f.GetAcceptCount());
+      const ReflectSessionFactory * f = iter.GetValue()();
+      if (f)  // abject paranoia
+      {
+         p.printf("   %s #" UINT32_FORMAT_SPEC " is listening at %s (%sAcceptCount=" UINT32_FORMAT_SPEC, f->GetTypeName(), f->GetFactoryID(), iter.GetKey().ToString()(), f->IsReadyToAcceptSessions()?"ReadyToAcceptSessions, ":"", f->GetAcceptCount());
 
-      const uint64 ts = f.GetMostRecentAcceptTimeStamp();
-      if (ts != MUSCLE_TIME_NEVER) p.printf(" LastAccept: %s ago)\n", GetHumanReadableUnsignedTimeIntervalString(now-ts, 1)());
-                              else p.printf(")\n");
+         const uint64 ts = f->GetMostRecentAcceptTimeStamp();
+         if (ts != MUSCLE_TIME_NEVER) p.printf(" LastAccept: %s ago)\n", GetHumanReadableUnsignedTimeIntervalString(now-ts, 1)());
+                                 else p.printf(")\n");
+      }
    }
 }
 
@@ -543,7 +546,7 @@ PrintSessionsInfo(const OutputPrinter & p) const
       {
          const Queue<MessageRef> & q = gw->GetOutgoingMessageQueue();
          numOutMessages = q.GetNumItems();
-         for (uint32 i=0; i<numOutMessages; i++) numOutBytes += q[i]()->FlattenedSize();
+         for (uint32 i=0; i<numOutMessages; i++) if (q[i]()) numOutBytes += q[i]()->FlattenedSize();
       }
 
       String stateStr;
