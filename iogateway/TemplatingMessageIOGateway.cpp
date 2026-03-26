@@ -97,10 +97,10 @@ ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const Messag
    }
 
 #ifdef DEBUG_TEMPLATING_MESSAGE_IO_GATEWAY
-   const uint32 mySize  = retBuf()->GetNumBytes();
+   const uint32 mySize  = retBuf() ? retBuf()->GetNumBytes() : 0;
    const uint32 oldSize = msgRef()->FlattenedSize()+(3*sizeof(uint32));
    printf("SENT (down %.0f%%): outgoingTableSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " templateID=" UINT64_FORMAT_SPEC " createTemplate=%i templateMsgRef=%p bufSize=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC "\n", 100.0f*(1.0f-(((float)mySize)/oldSize)), _outgoingTemplates.GetNumItems(), _outgoingTemplatesTotalSizeBytes, templateID, createTemplate, templateMsgRef, mySize, oldSize);
-   //retBuf()->Print(stdout);
+   //if (retBuf()) retBuf()->Print(stdout);
 #endif
 
    return retBuf;
@@ -209,6 +209,14 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
          }
 
          templateID = tMsg()->TemplateHashCode64();
+
+         {
+            // Decrement the bytes-counter for any old template that we might be replacing
+            // I'm not sure if this ever actually happens in practice, but it doesn't hurt to check
+            MessageRef oldMsg;
+            if (_incomingTemplates.Remove(templateID, oldMsg).IsOK()) _incomingTemplatesTotalSizeBytes -= oldMsg()->FlattenedSize();
+         }
+
          MRETURN_ON_ERROR(_incomingTemplates.PutAtFront(templateID, tMsg));
 
          _incomingTemplatesTotalSizeBytes += tMsg()->FlattenedSize();
