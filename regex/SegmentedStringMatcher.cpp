@@ -36,7 +36,18 @@ void SegmentedStringMatcher :: Clear()
    _segments.Clear();
 }
 
-status_t SegmentedStringMatcher::SetPattern(const String & s, bool isSimple, const char * sc, uint32 maxSegments)
+status_t SegmentedStringMatcher :: SetPattern(const String & s, bool isSimple, const char * sc, uint32 maxSegments)
+{
+   if ((isSimple)&&(s.StartsWith("~")))
+   {
+      MRETURN_ON_ERROR(SetPatternAux(s.Substring(1), isSimple, sc, maxSegments));
+      SetNegate(true);
+      return B_NO_ERROR;
+   }
+   else return SetPatternAux(s, isSimple, sc, maxSegments);
+}
+
+status_t SegmentedStringMatcher :: SetPatternAux(const String & s, bool isSimple, const char * sc, uint32 maxSegments)
 {
    Clear();
 
@@ -58,7 +69,7 @@ status_t SegmentedStringMatcher::SetPattern(const String & s, bool isSimple, con
       }
    }
    _pattern  = s;
-   _sepChars = sc;
+   _sepChars = sc ? sc : "/";
    return B_NO_ERROR;
 }
 
@@ -81,11 +92,23 @@ String SegmentedStringMatcher :: ToString() const
    String ret;
    for (uint32 i=0; i<_segments.GetNumItems(); i++)
    {
-      if (ret.HasChars()) ret += '/';
+      if (ret.HasChars()) ret += (_sepChars.HasChars() ? _sepChars[0] : '/');
       const StringMatcher * sm = _segments[i]();
       ret += sm ? sm->ToString() : "*";
    }
    return ret;
+}
+
+bool SegmentedStringMatcher :: IsPatternUnique() const
+{
+   if (_negate) return false;  // not-some-pattern can match a number of strings!
+
+   for (uint32 i=0; i<_segments.GetNumItems(); i++)
+   {
+      const StringMatcher * sm = _segments[i]();
+      if ((sm == NULL)||(sm->IsPatternUnique() == false)) return false;
+   }
+   return true;
 }
 
 } // end namespace muscle

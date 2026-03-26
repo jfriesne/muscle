@@ -88,6 +88,7 @@ public:
 
 private:
    MUSCLE_NODISCARD bool MatchAux(const char * const matchString) const;
+   status_t SetPatternAux(const String & s, bool isSimple, const char * sc, uint32 maxSegments);
 
    String _pattern;
    String _sepChars;
@@ -106,7 +107,7 @@ SegmentedStringMatcherRef GetSegmentedStringMatcherFromPool();
 /** Convenience method.  Obtains a StringMatcher object from the default StringMatcher pool, calls SetPattern() on it
   * with the given arguments, and returns it, or a NULL reference on failure (out of memory, or a parse error?)
   */
-SegmentedStringMatcherRef GetSegmentedStringMatcherFromPool(const String & matchString, bool isSimpleFormat = true, const char * segmentSeparatorChars = "/", uint32 maxSegements = MUSCLE_NO_LIMIT);
+SegmentedStringMatcherRef GetSegmentedStringMatcherFromPool(const String & matchString, bool isSimpleFormat = true, const char * segmentSeparatorChars = "/", uint32 maxSegments = MUSCLE_NO_LIMIT);
 
 } // end namespace muscle
 
