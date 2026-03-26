@@ -23,10 +23,10 @@ public:
    /** Returns a human-readable string representing this StringMatcherQueue, for easier debugging */
    String ToString() const;
 
-   /** Returns a read/write reference to our list of StringMatcher references. */
+   /** Returns a read-only reference to our list of StringMatcher references. */
    MUSCLE_NODISCARD const Queue<StringMatcherRef> & GetStringMatchers() const {return _queue;}
 
-   /** Returns a read-only reference to our list of StringMatcher references. */
+   /** Returns a read/write reference to our list of StringMatcher references. */
    MUSCLE_NODISCARD Queue<StringMatcherRef> & GetStringMatchers() {return _queue;}
 
 private:
@@ -195,7 +195,7 @@ private:
    Hashtable<uint32, Hashtable<String, PathMatcherEntry> > _entries;
    uint32 _numFilters;  // count how many filters are installed; so we can optimize when there are none
 
-   DECLARE_COUNTED_OBJECT(PathMatcherEntry);
+   DECLARE_COUNTED_OBJECT(PathMatcher);
 };
 DECLARE_REFTYPES(PathMatcher);
 

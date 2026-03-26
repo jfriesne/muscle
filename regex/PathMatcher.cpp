@@ -125,15 +125,16 @@ status_t PathMatcher :: PutPathFromString(const String & str, const ConstQueryFi
 
 status_t PathMatcher :: PutPathsFromMatcher(const PathMatcher & matcher)
 {
-   status_t ret;
    for (ConstHashtableIterator<uint32, Hashtable<String, PathMatcherEntry> > iter(matcher.GetEntries(), HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       for (ConstHashtableIterator<String, PathMatcherEntry> subIter(iter.GetValue(), HTIT_FLAG_NOREGISTER); subIter.HasData(); subIter++)
       {
          const String & pathStr = subIter.GetKey();
          Hashtable<String, PathMatcherEntry> * subTable = _entries.GetOrPut(iter.GetKey());
-         const PathMatcherEntry * prevVal = subTable ? subTable->Get(pathStr) : NULL;
-         const bool alreadyHadFilter = ((prevVal)&&(prevVal->GetFilter()() != NULL));
+         const PathMatcherEntry              *  prevVal = subTable ? subTable->Get(pathStr) : NULL;
+         const bool alreadyHadFilter                    = ((prevVal)&&(prevVal->GetFilter()() != NULL));
+
+         status_t ret;
          if ((subTable)&&(subTable->Put(pathStr, subIter.GetValue()).IsOK(ret)))
          {
             if ((alreadyHadFilter == false)&&(subIter.GetValue().GetFilter()())) _numFilters++;
@@ -141,11 +142,11 @@ status_t PathMatcher :: PutPathsFromMatcher(const PathMatcher & matcher)
          else
          {
             if ((subTable)&&(subTable->IsEmpty())) (void) _entries.Remove(iter.GetKey()); // roll back!
-            break;
+            return ret | B_OUT_OF_MEMORY;
          }
       }
    }
-   return ret;
+   return B_NO_ERROR;
 }
 
 bool PathMatcher :: MatchesPath(const char * path, const Message * optMessage, const DataNode * optNode) const
