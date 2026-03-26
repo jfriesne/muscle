@@ -30,7 +30,7 @@ void SSLSocketAdapterGateway :: SetSlaveGateway(const AbstractMessageIOGatewayRe
 
 status_t SSLSocketAdapterGateway :: AddOutgoingMessage(const MessageRef & messageRef)
 {
-   return _slaveGateway()->AddOutgoingMessage(messageRef);
+   return _slaveGateway() ? _slaveGateway()->AddOutgoingMessage(messageRef) : B_BAD_OBJECT;
 }
 
 bool SSLSocketAdapterGateway :: IsReadyForInput() const
