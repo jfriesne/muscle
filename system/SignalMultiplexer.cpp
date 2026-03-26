@@ -155,7 +155,7 @@ void SignalMultiplexer :: UnregisterSignals()
    struct sigaction newact; memset(&newact, 0, sizeof(newact));
    sigemptyset(&newact.sa_mask);
    newact.sa_flags   = 0;
-   newact.sa_handler = NULL;
+   newact.sa_handler = SIG_DFL;
    for (uint32 i=0; i<_currentSignalSet.GetNumItems(); i++) (void) sigaction(_currentSignalSet[i], &newact, NULL);
 #endif
 }

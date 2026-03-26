@@ -52,6 +52,7 @@ void SignalHandlerSession :: AboutToDetachFromServer()
 {
    SignalMultiplexer::GetSignalMultiplexer().RemoveHandler(this);
    AbstractReflectSession::AboutToDetachFromServer();
+   _numValidRecvBytes = 0;  // so any currently-received partial-SignalEventInfo bytes won't confuse us later on (should we ever re-attach)
 }
 
 void SignalHandlerSession :: SignalReceived(const SignalEventInfo & sei)
