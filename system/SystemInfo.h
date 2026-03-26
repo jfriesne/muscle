@@ -40,8 +40,9 @@ enum {
   * @param outStr on success, this string will contain the appopriate
   *               path name,  The path is guaranteed to end with a file
   *               separator character (ie "/" or "\\", as appropriate).
-  * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the requested path could
-  *          not be determined.
+  * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if (whichPath) is
+  *          not a recognized SYSTEM_PATH_* value, or B_DATA_NOT_FOUND if
+  *          the requested information could not be retrieved.
   */
 status_t GetSystemPath(uint32 whichPath, String & outStr);
 

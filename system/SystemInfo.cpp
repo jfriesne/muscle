@@ -130,22 +130,26 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
          }
 #else
 # ifdef __APPLE__
-         const CFURLRef bundleURL = CFBundleCopyExecutableURL(CFBundleGetMainBundle());
-         if (bundleURL)
+         const CFBundleRef mainBundleRef = CFBundleGetMainBundle();
+         if (mainBundleRef)
          {
-            const CFStringRef cfPath = CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle);
-            if (cfPath)
+            const CFURLRef bundleURL = CFBundleCopyExecutableURL(mainBundleRef);
+            if (bundleURL)
             {
-               if (outStr.SetFromCFStringRef(cfPath).IsOK())
+               const CFStringRef cfPath = CFURLCopyFileSystemPath(bundleURL, kCFURLPOSIXPathStyle);
+               if (cfPath)
                {
-                  found = true;
+                  if (outStr.SetFromCFStringRef(cfPath).IsOK())
+                  {
+                     found = true;
 
-                  int32 lastSlash = outStr.LastIndexOf(GetFilePathSeparator());
-                  if (lastSlash >= 0) outStr = outStr.Substring(0, lastSlash+1);
+                     const int32 lastSlash = outStr.LastIndexOf(GetFilePathSeparator());
+                     if (lastSlash >= 0) outStr = outStr.Substring(0, lastSlash+1);
+                  }
+                  CFRelease(cfPath);
                }
-               CFRelease(cfPath);
+               CFRelease(bundleURL);
             }
-            CFRelease(bundleURL);
          }
 # else
          // For Linux, anyway, we can try to find out our pid's executable via the /proc filesystem
@@ -194,7 +198,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
       break;
 
       case SYSTEM_PATH_DESKTOP:  // user's desktop directory
-         if (GetSystemPath(SYSTEM_PATH_USERHOME, outStr).IsOK())
+         if (GetSystemPath(SYSTEM_PATH_USERHOME, outStr).IsOK())  // outStr is guaranteed to end in a slash
          {
             found = true;
             outStr += "Desktop";  // it's the same under WinXP, Linux, and OS/X, yay!
@@ -202,7 +206,7 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
       break;
 
       case SYSTEM_PATH_DOCUMENTS:  // user's documents directory
-         if (GetSystemPath(SYSTEM_PATH_USERHOME, outStr).IsOK())
+         if (GetSystemPath(SYSTEM_PATH_USERHOME, outStr).IsOK())  // outStr is guaranteed to end in a slash
          {
             found = true;
 #ifndef WIN32
@@ -265,7 +269,8 @@ status_t GetNumberOfProcessors(uint32 & retNumProcessors)
       char line[256];
       while(fgets(line, sizeof(line), f)) if (strncmp("processor", line, 9) == 0) retNumProcessors++;
       fclose(f);
-      return B_NO_ERROR;
+
+      return (retNumProcessors > 0) ? B_NO_ERROR : B_DATA_NOT_FOUND;
    }
    else return B_ERRNO;
 #else
