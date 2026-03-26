@@ -55,7 +55,7 @@ io_status_t MultiDataIO :: Write(const void * buffer, uint32 size)
    {
       // Oh dear, some children wrote more bytes than others.  To make their seek-positions equal again,
       // we are going to seek everybody to the seek-position of the child that wrote the fewest bytes.
-      MRETURN_ON_ERROR(SeekAll(0, newSeekPos, IO_SEEK_CUR));
+      MRETURN_ON_ERROR(SeekAll(0, newSeekPos, IO_SEEK_SET));
    }
 
    return io_status_t((maxWrittenBytes > 0) ? minWrittenBytes : 0);  // the conditional is there in case minWrittenBytes is still MUSCLE_NO_LIMIT
