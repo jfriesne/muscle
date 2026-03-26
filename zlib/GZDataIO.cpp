@@ -31,9 +31,10 @@ io_status_t GZDataIO :: Read(void * buffer, uint32 size)
 io_status_t GZDataIO :: Write(const void * buffer, uint32 size)
 {
    if (_file == NULL) return B_BAD_OBJECT;
+   if (size == 0) return B_NO_ERROR;  // sigh
 
    const int ret = gzwrite(GetGZFile(_file), buffer, size);
-   return (ret >= 0) ? io_status_t(ret) : io_status_t(B_ZLIB_ERROR);
+   return (ret > 0) ? io_status_t(ret) : io_status_t(B_ZLIB_ERROR);  // yes, >0 is intentional (for gzwrite(), returning 0 means error)
 }
 
 void GZDataIO :: FlushOutput()
@@ -50,7 +51,9 @@ void GZDataIO :: ShutdownAux()
 {
    if (_file)
    {
-      gzclose(GetGZFile(_file));
+      const int r = gzclose(GetGZFile(_file));
+      if (r != Z_OK) LogTime(MUSCLE_LOG_ERROR, "GZDataIO:  gzclose() returned error %i\n", r);
+
       _file = NULL;
    }
 }

@@ -52,7 +52,7 @@ io_status_t FileDescriptorDataIO :: Read(void * buffer, uint32 size)
    const ssize_t r = read_ignore_eintr(fd, buffer, size);
    if (r == 0) return B_END_OF_STREAM;
 
-   const int32 er = _blocking ? (int32)r : ConvertReturnValueToMuscleSemantics(r, size, _blocking);
+   const int32 er = _blocking ? (int32)r : ConvertReturnValueToMuscleSemantics((int32)r, size, _blocking);
    return (er >= 0) ? io_status_t(er) : io_status_t(B_ERRNO);
 }
 
@@ -62,7 +62,7 @@ io_status_t FileDescriptorDataIO :: Write(const void * buffer, uint32 size)
    if (fd < 0) return B_BAD_OBJECT;
 
    const ssize_t w = write_ignore_eintr(fd, buffer, size);
-   const int32  ew = _blocking ? (int32)w : ConvertReturnValueToMuscleSemantics(w, size, _blocking);
+   const int32  ew = _blocking ? (int32)w : ConvertReturnValueToMuscleSemantics((int32)w, size, _blocking);
    return (ew >= 0) ? io_status_t(ew) : io_status_t(B_ERRNO);
 }
 
