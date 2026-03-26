@@ -61,7 +61,7 @@ public:
      * revert us to our default behavior of just calling() send on our UDP socket.
      * @param dest the new destination address (and port) that Write() should send UDP packets to
      */
-   virtual status_t SetPacketSendDestination(const IPAddressAndPort & dest) {(void) _sendTo.EnsureSize(1, true); _sendTo.Head() = dest; return B_NO_ERROR;}
+   virtual status_t SetPacketSendDestination(const IPAddressAndPort & dest) {MRETURN_ON_ERROR(_sendTo.EnsureSize(1, true)); _sendTo.Head() = dest; return B_NO_ERROR;}
 
    /** Returns the IP address and port that Write() will send to, eg as was
      * previously specified in SetPacketSendDestination().
