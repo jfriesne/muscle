@@ -111,22 +111,24 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
                   createSize = GetFileSize(_file, NULL);
                   if (createSize == INVALID_FILE_SIZE) ret = B_ERROR("GetFileSize() failed");
                }
-
-               _areaSize = createSize;  // assume the file will be resized automagically for us
-               if (_areaSize > 0)
+               if (ret.IsOK())
                {
-                  _map = CreateFileMappingA(_file, NULL, PAGE_READWRITE, 0, createSize, (_areaName+"__map")());
-                  if (_map)
+                  _areaSize = createSize;  // assume the file will be resized automagically for us
+                  if (_areaSize > 0)
                   {
-                     _area = MapViewOfFile(_map, FILE_MAP_ALL_ACCESS, 0, 0, 0);
-                     if (_area)
+                     _map = CreateFileMappingA(_file, NULL, PAGE_READWRITE, 0, createSize, (_areaName+"__map")());
+                     if (_map)
                      {
-                        if (returnLocked == false) UnlockArea();
-                        return B_NO_ERROR;
+                        _area = MapViewOfFile(_map, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+                        if (_area)
+                        {
+                           if (returnLocked == false) UnlockArea();
+                           return B_NO_ERROR;
+                        }
+                        else ret = B_ERROR("MapViewOfFile() failed");
                      }
-                     else ret = B_ERROR("MapViewOfFile() failed");
+                     else ret = B_ERROR("CreateFileMappingA() failed");
                   }
-                  else ret = B_ERROR("CreateFileMappingA() failed");
                }
             }
             else ret = B_ERROR("CreateFileA() failed");
@@ -225,7 +227,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
          if ((_areaID < 0)&&(createSize > 0))
          {
             _areaID = shmget(_key, createSize, IPC_CREAT|IPC_EXCL|permissionBits);
-            _isCreatedLocally = true;
+            if (_areaID >= 0) _isCreatedLocally = true;
          }
          if (_areaID >= 0)
          {
@@ -359,8 +361,9 @@ status_t SharedMemory :: LockArea(bool readOnly)
       _isLocked = true;  // Set these first just so they are correct while we're waiting
       _isLockedReadOnly = readOnly;
 # ifdef WIN32
-      if (WaitForSingleObject(_mutex, INFINITE) == WAIT_OBJECT_0) return B_NO_ERROR;
-                                                             else ret = B_ERRNO;
+      const DWORD wRet = WaitForSingleObject(_mutex, INFINITE);
+      if ((wRet == WAIT_OBJECT_0)||(wRet == WAIT_ABANDONED)) return B_NO_ERROR;
+                                                        else ret = B_ERRNO;
 # else
       if (AdjustSemaphore(_isLockedReadOnly ? -1: -LARGEST_SEMAPHORE_DELTA, true).IsOK(ret)) return B_NO_ERROR;
 # endif
