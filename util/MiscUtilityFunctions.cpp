@@ -18,11 +18,11 @@
 # include <sched.h>
 #endif
 
-#ifndef _WIN32
-# include <sys/stat.h>  // for umask()
+#ifdef _WIN32
 # include <csignal>
-# include <cstdlib>
 # include <crtdbg.h>
+#else
+# include <sys/stat.h>  // for umask()
 #endif
 
 #include "reflector/StorageReflectConstants.h"  // for PR_COMMAND_BATCH, PR_NAME_KEYS
