@@ -2,26 +2,30 @@
 
 namespace muscle {
 
-ByteBufferPacketDataIO :: ByteBufferPacketDataIO(uint32 maxPacketSize)
+ByteBufferPacketDataIO :: ByteBufferPacketDataIO(uint32 maxPacketSize, bool okayToReturnEndOfStream)
    : _maxPacketSize(maxPacketSize)
+   , _okayToReturnEndOfStream(okayToReturnEndOfStream)
 {
    // empty
 }
 
-ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const ByteBufferRef & buf, const IPAddressAndPort & fromIAP, uint32 maxPacketSize)
+ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const ByteBufferRef & buf, const IPAddressAndPort & fromIAP, uint32 maxPacketSize, bool okayToReturnEndOfStream)
    : _maxPacketSize(maxPacketSize)
+   , _okayToReturnEndOfStream(okayToReturnEndOfStream)
 {
    SetBuffersToRead(buf, fromIAP);
 }
 
-ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const Queue<ByteBufferRef> & bufs, const IPAddressAndPort & fromIAP, uint32 maxPacketSize)
+ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const Queue<ByteBufferRef> & bufs, const IPAddressAndPort & fromIAP, uint32 maxPacketSize, bool okayToReturnEndOfStream)
    : _maxPacketSize(maxPacketSize)
+   , _okayToReturnEndOfStream(okayToReturnEndOfStream)
 {
    SetBuffersToRead(bufs, fromIAP);
 }
 
-ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const Hashtable<ByteBufferRef, IPAddressAndPort> & bufs, uint32 maxPacketSize)
+ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const Hashtable<ByteBufferRef, IPAddressAndPort> & bufs, uint32 maxPacketSize, bool okayToReturnEndOfStream)
    : _maxPacketSize(maxPacketSize)
+   , _okayToReturnEndOfStream(okayToReturnEndOfStream)
 {
    SetBuffersToRead(bufs);
 }
@@ -40,16 +44,23 @@ void ByteBufferPacketDataIO :: SetBuffersToRead(const Queue<ByteBufferRef> & buf
 
 io_status_t ByteBufferPacketDataIO :: ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource)
 {
-   if (_bufsToRead.IsEmpty()) return B_BAD_OBJECT;
+   if (_bufsToRead.IsEmpty()) return _okayToReturnEndOfStream ? B_END_OF_STREAM : io_status_t();
 
    retPacketSource = *_bufsToRead.GetFirstValue();
 
    const ByteBufferRef & bb = *_bufsToRead.GetFirstKey();
-   if (bb() == NULL) return io_status_t();
-
-   const int32 ret = muscleMin(bb()->GetNumBytes(), size);
-   memcpy(buffer, bb()->GetBuffer(), ret);
-   return io_status_t(ret);
+   if (bb())
+   {
+      const uint32 ret = muscleMin(bb()->GetNumBytes(), size);
+      memcpy(buffer, bb()->GetBuffer(), ret);
+      (void) _bufsToRead.RemoveFirst();
+      return io_status_t(ret);
+   }
+   else
+   {
+      (void) _bufsToRead.RemoveFirst();
+      return io_status_t();
+   }
 }
 
 io_status_t ByteBufferPacketDataIO :: WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest)

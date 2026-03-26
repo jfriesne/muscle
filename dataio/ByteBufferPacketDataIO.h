@@ -20,31 +20,39 @@ public:
    /** Default constructor.  Creates a ByteBufferPacketDataIO with no packets ready to read.
     *  @param maxPacketSize the maximum supported packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
+    *  @param okayToReturnEndOfStream if true, our Read() method will return B_END_OF_STREAM when we have no more bytes of data
+    *                       left for Read() to supply.  If false, Read() will just return io_status_t(0) in that case.  Defaults to false.
     */
-   ByteBufferPacketDataIO(uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
+   ByteBufferPacketDataIO(uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, bool okayToReturnEndOfStream = false);
 
    /** Convenience constructor.
     *  @param buf A ByteBuffer to that will be read by the next call to ReadFrom().
     *  @param fromIAP the IP address and port the "packet" is purporting to be from.  Defaults to an invalid IPAddressAndPort.
     *  @param maxPacketSize the maximum supported packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
+    *  @param okayToReturnEndOfStream if true, our Read() method will return B_END_OF_STREAM when we have no more bytes of data
+    *                       left for Read() to supply.  If false, Read() will just return io_status_t(0) in that case.  Defaults to false.
     */
-   ByteBufferPacketDataIO(const ByteBufferRef & buf, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
+   ByteBufferPacketDataIO(const ByteBufferRef & buf, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, bool okayToReturnEndOfStream = false);
 
    /** Convenience constructor.
     *  @param bufs A list of ByteBuffers to be read by subsequent calls to ReadFrom().
     *  @param fromIAP the IP address and port the "packets" in (bufs) are purporting to be from.  Defaults to an invalid IPAddressAndPort.
     *  @param maxPacketSize the maximum supported packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
+    *  @param okayToReturnEndOfStream if true, our Read() method will return B_END_OF_STREAM when we have no more bytes of data
+    *                       left for Read() to supply.  If false, Read() will just return io_status_t(0) in that case.  Defaults to false.
     */
-   ByteBufferPacketDataIO(const Queue<ByteBufferRef> & bufs, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
+   ByteBufferPacketDataIO(const Queue<ByteBufferRef> & bufs, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, bool okayToReturnEndOfStream = false);
 
    /** Convenience constructor.
     *  @param bufs A sequence of ByteBuffers to be read by subsequent calls to ReadFrom(), and their associated IPAddressAndPort values.
     *  @param maxPacketSize the maximum supported packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
+    *  @param okayToReturnEndOfStream if true, our Read() method will return B_END_OF_STREAM when we have no more bytes of data
+    *                       left for Read() to supply.  If false, Read() will just return io_status_t(0) in that case.  Defaults to false.
     */
-   ByteBufferPacketDataIO(const Hashtable<ByteBufferRef, IPAddressAndPort> & bufs, uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET);
+   ByteBufferPacketDataIO(const Hashtable<ByteBufferRef, IPAddressAndPort> & bufs, uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, bool okayToReturnEndOfStream = false);
 
    /** Virtual Destructor, to keep C++ honest */
    virtual ~ByteBufferPacketDataIO();
@@ -114,6 +122,7 @@ private:
    Hashtable<ByteBufferRef, IPAddressAndPort> _bufsToRead;
    Hashtable<ByteBufferRef, IPAddressAndPort> _writtenBufs;
    const uint32 _maxPacketSize;
+   const bool _okayToReturnEndOfStream;
 
    IPAddressAndPort _packetSendDestination;
 
