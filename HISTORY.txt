@@ -22,6 +22,9 @@ key:  - new feature
    - Improved the accuracy of FilePathInfo timestamps under Linux. (c)
    - ByteBufferPacketDataIO constructors now take an optional
      okayToReturnEndOfStream boolean argument.
+   - On Windows, the "debugcrashes" crash-handler now also prints out
+     a stack trace in response to either a SIGABRT, a CRT debug-mode
+     assertion failure, or a std::terminate() call.
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
      DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
      variadic macros.

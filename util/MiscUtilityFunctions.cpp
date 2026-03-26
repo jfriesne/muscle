@@ -20,6 +20,9 @@
 
 #ifndef _WIN32
 # include <sys/stat.h>  // for umask()
+# include <csignal>
+# include <cstdlib>
+# include <crtdbg.h>
 #endif
 
 #include "reflector/StorageReflectConstants.h"  // for PR_COMMAND_BATCH, PR_NAME_KEYS
@@ -517,6 +520,29 @@ static status_t SetRealTimePriority(const char * priStr, bool useFifo)
 }
 #endif
 
+#ifdef WIN32
+static void RaiseStructuredException() { RaiseException(EXCEPTION_ACCESS_VIOLATION, 0, 0, nullptr);}
+static int CrtReportHookFunc(int reportType, char * message, int * returnValue)
+{
+   char descBuf[32];
+   switch(reportType)
+   {
+      case _CRT_ASSERT: muscleStrncpy(descBuf, "_CRT_ASSERT", sizeof(descBuf)); break;
+      case _CRT_WARN:   muscleStrncpy(descBuf, "_CRT_WARN",   sizeof(descBuf)); break;
+      case _CRT_ERROR:  muscleStrncpy(descBuf, "_CRT_ERROR",  sizeof(descBuf)); break;
+      default:          muscleSprintf(descBuf, "type=%i",     reportType);      break;
+   }
+
+   printf("CrtReportHookFunc():  %s message=[%s] returnValue=%i\n", descBuf, message, returnValue?*returnValue:666);
+   if (reportType == _CRT_ASSERT)
+   {
+      (void) muscle::PrintStackTrace();  // NOLINT(bugprone-signal-handler)
+      fflush(stdout);
+   }
+   return FALSE;
+}
+#endif
+
 void HandleStandardDaemonArgs(const Message & args)
 {
    TCHECKPOINT;
@@ -649,7 +675,10 @@ void HandleStandardDaemonArgs(const Message & args)
 #elif defined(MUSCLE_USE_MSVC_STACKWALKER)
 # ifndef MUSCLE_INLINE_LOGGING
       LogTime(MUSCLE_LOG_INFO, "Enabling stack-trace printing when a crash occurs.\n");
-      SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER) Win32FaultHandler);
+      SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER) Win32FaultHandler);  // catch hardware faults (e.g. NULL-pointer dereferences)
+      signal(SIGABRT, [](int) {RaiseStructuredException();}); // catch abort() calls (some STL/CRT paths go here)
+      std::set_terminate([]() {RaiseStructuredException();}); // catch unhandled C++ exceptions (std::vector::at(), etc.)
+      _CrtSetReportHook2(_CRT_RPTHOOK_INSTALL, CrtReportHookFunc);  // catch debug-mode assertion-failure triggers
 # endif
 #else
       LogTime(MUSCLE_LOG_ERROR, "Can't enable stack-trace printing when a crash occurs, that feature isn't supported on this platform!\n");
