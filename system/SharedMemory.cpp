@@ -285,7 +285,8 @@ status_t SharedMemory :: DeleteArea()
 # ifdef WIN32
          const String fileName = _fileName;  // hold as temp since UnsetArea() will clear it
          UnsetArea();
-         return DeleteFileA(fileName()) ? B_NO_ERROR : B_ERRNO;  // now that everything is detached, try to delete the file
+
+         return muscle::DeleteFile(fileName()); // now that everything is detached, try to delete the file
 # else
          if (_areaID >= 0) (void) shmctl(_areaID, IPC_RMID, NULL);  // bye bye shared memory!
          _areaID = -1;
