@@ -173,10 +173,10 @@ public:
 
 private:
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
-   static MUSCLE_CONSTEXPR_OR_CONST uintptr _allDataBitsMask = ((NumBits > 0) ? ((1<<NumBits)-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
+   static MUSCLE_CONSTEXPR_OR_CONST uintptr _allDataBitsMask = ((NumBits > 0) ? ((((uintptr)1)<<NumBits)-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
 #else
    static MUSCLE_CONSTEXPR_OR_CONST uintptr _highBitMask     = ((uintptr)1) << ((sizeof(uintptr)*8)-(MUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS+1)); // we use the high-bit of the pointer to store the user's first data-bit
-   static MUSCLE_CONSTEXPR_OR_CONST uintptr _allDataBitsMask = ((NumBits>0)?_highBitMask:0) | ((NumBits > 1) ? ((1<<(NumBits-1))-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
+   static MUSCLE_CONSTEXPR_OR_CONST uintptr _allDataBitsMask = ((NumBits>0)?_highBitMask:0) | ((NumBits > 1) ? ((((uintptr)1)<<(NumBits-1))-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
 
 # ifndef MUSCLE_AVOID_CPLUSPLUS11
    static inline MUSCLE_CONSTEXPR unsigned int CalcMaxNumBits(int al) {return (al == 1) ? 2 : (CalcMaxNumBits(al/2)+1);}
