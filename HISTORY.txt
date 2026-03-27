@@ -50,6 +50,7 @@ key:  - new feature
      methods to actually fail anyway.
    o ProxyIOGateway::GenerateOutgoingByteBuffers() now returns a status_t
      instead of void so it can propagate errors.  (c)
+   o Removed SharedFilterSessionFactory::SetSharedMemoryAreaName().
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to

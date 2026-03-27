@@ -45,12 +45,12 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const IPAddress & ip) co
          bool gotIFs = false;  // we'll demand-allocate them
 
          // FogBugz #17090 special case:  If the memory-area is all-zeroes, then that means we will stick with our _defaultPass logic
-         if (!IsMemoryAllZeros(_sharedMemory(), _sharedMemory.GetAreaSize()))
+         const uint32 numIPs = _sharedMemory.GetAreaSize()/sizeof(IPAddress);
+         if (IsMemoryAllZeros(_sharedMemory(), (numIPs*sizeof(IPAddress))) == false)
          {
             allowAccess = !_isGrantList;  // if there is a list, you're off it unless you're on it!
 
             const IPAddress * ips = reinterpret_cast<const IPAddress *>(_sharedMemory());
-            const uint32 numIPs = _sharedMemory.GetAreaSize()/sizeof(IPAddress);
             for (uint32 i=0; i<numIPs; i++)
             {
                IPAddress nextIP = ips[i];
@@ -67,7 +67,8 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const IPAddress & ip) co
                {
                   if (gotIFs == false)
                   {
-                     (void) GetNetworkInterfaceInfos(ifs);
+                     const status_t r = GetNetworkInterfaceInfos(ifs);
+                     if (r.IsError()) LogTime(MUSCLE_LOG_ERROR, "IsAccessAllowedForIP(%s):  GetNetworkInterfaceInfos() returned [%s]\n", ip.ToString()(), r());
                      gotIFs = true;
                   }
 

@@ -3,10 +3,9 @@
 #ifndef MuscleSharedFilterSessionFactory_h
 #define MuscleSharedFilterSessionFactory_h
 
-#include "reflector/AbstractReflectSession.h"
-#include "reflector/AbstractSessionIOPolicy.h"
-#include "regex/PathMatcher.h"
+#include "reflector/AbstractReflectSession.h"  // for ProxySessionFactory
 #include "system/SharedMemory.h"
+#include "util/String.h"
 
 namespace muscle {
 
@@ -45,11 +44,6 @@ public:
 
    /** Returns the name of the shared memory area to consult for a list of IP addresses. */
    MUSCLE_NODISCARD const String & GetSharedMemoryAreaName() const {return _sharedMemName;}
-
-   /** Sets the name of the shared memory area to consult for a list of IP addresses.
-     * @param name the new Shared Memory area name to use
-     */
-   void SetSharedMemoryAreaName(const String & name) {_sharedMemName = name;}
 
    /** Returns true iff IP addresses in the shared memory area are to be granted access. */
    MUSCLE_NODISCARD bool IsGrantList() const {return _isGrantList;}
