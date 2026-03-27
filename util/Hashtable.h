@@ -3637,7 +3637,10 @@ HashtableIteratorImp<KeyType, ValueType, HashFunctorType>::HashtableIteratorImp(
 
 template <class KeyType, class ValueType, class HashFunctorType>
 HashtableIteratorImp<KeyType, ValueType, HashFunctorType>::HashtableIteratorImp(const HashtableIteratorImp & rhs)
-   : _flags(0)
+   : _iterCookie(NULL)  // not really necessary, but we'll be tidy
+   , _currentKey(NULL)  // ditto
+   , _currentVal(NULL)  // ditto
+   , _flags(0)
    , _prevIter(NULL)  // just to keep clang-tidy happy
    , _nextIter(NULL)  // just to keep clang-tidy happy
    , _owner(NULL)

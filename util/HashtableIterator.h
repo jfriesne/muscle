@@ -128,8 +128,8 @@ public:
    MUSCLE_NODISCARD uint32 GetFlags() const {return _flags;}
    void SetBackwards(bool backwards) {if (backwards) _flags |= HTIT_FLAG_BACKWARDS; else _flags &= ~HTIT_FLAG_BACKWARDS;}
    MUSCLE_NODISCARD bool IsBackwards() const {return ((_flags & HTIT_FLAG_BACKWARDS) != 0);}
-   MUSCLE_NODISCARD bool IsAtStart() const {return ((HasData())&&(_currentKey == (IsBackwards() ? _owner->GetLastKey() : _owner->GetFirstKey())));}
-   MUSCLE_NODISCARD bool IsAtEnd() const {return ((HasData())&&(_currentKey == (IsBackwards() ? _owner->GetFirstKey() : _owner->GetLastKey())));}
+   MUSCLE_NODISCARD bool IsAtStart() const {return ((HasData())&&(_owner)&&(_currentKey == (IsBackwards() ? _owner->GetLastKey()  : _owner->GetFirstKey())));}
+   MUSCLE_NODISCARD bool IsAtEnd()   const {return ((HasData())&&(_owner)&&(_currentKey == (IsBackwards() ? _owner->GetFirstKey() : _owner->GetLastKey())));}
    void SwapContents(HashtableIteratorImp & swapMe) MUSCLE_NOEXCEPT {SwapContentsAux(swapMe, false);}
    void SwapContentsAux(HashtableIteratorImp & swapMe, bool swapMeIsGoingAway) MUSCLE_NOEXCEPT;
 
