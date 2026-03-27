@@ -130,7 +130,11 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
       while(HasBytesToOutput())
       {
          // Demand-create the next Message-buffer
-         if (_currentOutputBuffers.IsEmpty()) GenerateOutgoingByteBuffers(_currentOutputBuffers);
+         if (_currentOutputBuffers.IsEmpty())
+         {
+            const status_t r = GenerateOutgoingByteBuffers(_currentOutputBuffers);
+            if (r.IsError()) return (totalBytesWritten.GetByteCount() > 0) ? totalBytesWritten : r;
+         }
          if (_currentOutputBuffers.IsEmpty()) break;
 
          const uint32 sbSize = _currentOutputBuffers.Head()()->GetNumBytes();

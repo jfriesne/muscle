@@ -48,6 +48,8 @@ key:  - new feature
    o Changed PulseNode::PutPulseChild() and PulseNode::RemovePulseChild()
      to return void instead of status_t, since there's no way for those
      methods to actually fail anyway.
+   o ProxyIOGateway::GenerateOutgoingByteBuffers() now returns a status_t
+     instead of void so it can propagate errors.  (c)
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to

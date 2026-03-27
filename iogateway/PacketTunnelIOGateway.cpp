@@ -142,7 +142,8 @@ io_status_t PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          // Demand-create the next set of send-buffers
          if (_currentOutputBuffers.IsEmpty())
          {
-            GenerateOutgoingByteBuffers(_currentOutputBuffers);
+            const status_t r = GenerateOutgoingByteBuffers(_currentOutputBuffers);
+            if (r.IsError()) return (totalBytesWritten.GetByteCount() > 0) ? totalBytesWritten : r;
             if (_currentOutputBuffers.HasItems()) _currentOutputBufferOffset = 0;
          }
          if (_currentOutputBuffers.IsEmpty()) break;   // nothing more to send?

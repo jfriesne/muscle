@@ -48,8 +48,12 @@ protected:
    /** Pops the next MessageRef out of our outgoing-Messages-Queue and tries to convert it into one or more ByteBufferRefs
      * full of bytes to be sent out.  If we have a slave-gateway, it will do the conversion by calling DoOutput()
      * on the slave-gateway as necessary; otherwise it will just call Flatten() on the Message-object.
+     * @param outQ the Queue to add outgoing ByteBuffer objects to, if possible.
+     * @returns B_NO_ERROR on success or an error code on failure.  (Note that a successful return value does not guarantee
+     *          that (outQ) will contain any ByteBuffers -- if there was no data available to populate (outQ), that is a normal
+     *          state of affairs and not an error.
      */
-   void GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ);
+   status_t GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ);
 
    /** Calls Clear() on our fakeStreamSendBuffer object to free up memory.
      * @param maxBytesToRetain if the fakeStreamSendBuffer's size is greater than this, we'll free the buffer; otherwise we'll just mark it
@@ -58,6 +62,9 @@ protected:
    void ClearFakeSendBuffer(uint32 maxBytesToRetain) {_fakeStreamSendBuffer.Clear(_fakeStreamSendBuffer.GetNumBytes() > maxBytesToRetain);}
 
 private:
+   status_t CallDoOutputOnSlaveGateway();
+   status_t GenerateOutgoingByteBuffersAux(Queue<ByteBufferRef> & outQ);
+
    AbstractMessageIOGatewayRef _slaveGateway;
 
    ByteBufferPacketDataIO _fakePacketSendIO;
