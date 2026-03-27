@@ -38,7 +38,7 @@ public:
 
    virtual io_status_t Read(void * buffer, uint32 size);
    virtual io_status_t Write(const void * buffer, uint32 size);
-   virtual void Shutdown() {ProxyDataIO::Shutdown(); _outputBuffer.Clear(true); _inputBuffer.Clear(true); _inputBufferSizeBytesRead = 0;}
+   virtual void Shutdown();
 
    MUSCLE_NODISCARD virtual bool HasBufferedOutput() const {return (_outputBufferBytesSent < _outputBuffer.GetNumBytes());}
    virtual void WriteBufferedOutput() {(void) WriteBufferedOutputAux();}

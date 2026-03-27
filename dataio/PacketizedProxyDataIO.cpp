@@ -79,7 +79,9 @@ io_status_t PacketizedProxyDataIO :: Write(const void * buffer, uint32 size)
       // No data buffered?
       _outputBufferBytesSent = 0;
 
+      if (WillUnsignedAddOverflow((uint32) sizeof(uint32), size)) return B_RESOURCE_LIMIT;   // paranoia
       MRETURN_ON_ERROR(_outputBuffer.SetNumBytes(sizeof(uint32)+size, false));
+
       DefaultEndianConverter::Export(size, _outputBuffer.GetBuffer());
       memcpy(_outputBuffer.GetBuffer()+sizeof(uint32), buffer, size);
       ret = size;
@@ -107,6 +109,18 @@ status_t PacketizedProxyDataIO :: WriteBufferedOutputAux()
       }
    }
    return B_NO_ERROR;
+}
+
+void PacketizedProxyDataIO :: Shutdown()
+{
+   ProxyDataIO::Shutdown();
+   _outputBuffer.Clear(true);
+   _inputBuffer.Clear(true);
+
+   _inputBufferSize          = 0;
+   _inputBufferSizeBytesRead = 0;
+   _inputBufferBytesRead     = 0;
+   _outputBufferBytesSent    = 0;
 }
 
 } // end namespace muscle
