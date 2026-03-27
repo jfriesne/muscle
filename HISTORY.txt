@@ -134,6 +134,7 @@ key:  - new feature
    * Private-shared-memory-area mode was broken in SharedMemory.cpp.  Fixed.
    * Fixed several bugs in the Hashtable class where the HashFunctor from
      the wrong Hashtable could be used to look up a table entry.  (c)
+   * Fixed a handle leak in the Win32 implementation of ChildProcessDataIO.  (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
