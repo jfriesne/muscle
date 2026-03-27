@@ -391,7 +391,7 @@ private:
   *       via -DWITH_DEADLOCK_FINDER=ON in CMake, or via -DMUSCLE_ENABLE_DEADLOCK_FINDER as compiler argument)
   *       to give you more useful debugging information about deadlocks that could happen (even if they didn't happen this time)
   */
-class MUSCLE_NODISCARD MutexGuard MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD MutexGuard MUSCLE_FINAL_CLASS : public NotCopyable
 {
 public:
    /** Constructor.  Locks the specified Mutex.
@@ -420,8 +420,6 @@ public:
    void UnlockEarly() {UnlockAux();}
 
 private:
-   MutexGuard(const MutexGuard &);  // copy ctor, deliberately inaccessible
-
    void UnlockAux()
    {
       if (_mutex)

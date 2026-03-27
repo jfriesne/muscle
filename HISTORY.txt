@@ -58,6 +58,8 @@ key:  - new feature
      random number generator, if one is available.
    o Updated CalculateHashCode() and CalculateHashCode64() to take a size_t
      numBytes argument and an appropriately-sized seed argument.
+   o The NestCountGuard, MutexGuard, SwapGuard, and NestCountGuard classes
+     all of now inherit from NotCopyable, to catch unintended copies at compile-time.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to
@@ -135,6 +137,7 @@ key:  - new feature
    * Fixed several bugs in the Hashtable class where the HashFunctor from
      the wrong Hashtable could be used to look up a table entry.  (c)
    * Fixed a handle-leak in the Win32 implementation of ChildProcessDataIO.  (c)
+   * Fixed some typos in the SpinLockGuard class.  (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

@@ -3,7 +3,7 @@
 #ifndef MuscleNestCount_h
 #define MuscleNestCount_h
 
-#include "support/MuscleSupport.h"
+#include "support/NotCopyable.h"
 
 namespace muscle {
 
@@ -49,7 +49,7 @@ private:
  *  and decrements the NestCount in its destructor.  It's useful for reliably
  *  tracking call-nest-counts in functions with multiple return() points.
  */
-class MUSCLE_NODISCARD NestCountGuard MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD NestCountGuard MUSCLE_FINAL_CLASS : public NotCopyable
 {
 public:
    /** Constructor.  Increments the specified counter value.

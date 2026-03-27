@@ -323,7 +323,7 @@ private:
   *       via -DWITH_DEADLOCK_FINDER=ON in CMake, or via -DMUSCLE_ENABLE_DEADLOCK_FINDER as compiler argument)
   *       to give you more useful debugging information about deadlocks that could happen (even if they didn't happen this time)
   */
-class MUSCLE_NODISCARD ReadOnlyMutexGuard MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD ReadOnlyMutexGuard MUSCLE_FINAL_CLASS : public NotCopyable
 {
 public:
    /** Constructor.  Locks the specified ReaderWriterMutex for read-only/shared access.
@@ -352,8 +352,6 @@ public:
    void UnlockEarly() {UnlockAux();}
 
 private:
-   ReadOnlyMutexGuard(const ReadOnlyMutexGuard &);  // copy ctor, deliberately inaccessible
-
    void UnlockAux()
    {
       if (_mutex)
@@ -385,7 +383,7 @@ private:
   *       via -DWITH_DEADLOCK_FINDER=ON in CMake, or via -DMUSCLE_ENABLE_DEADLOCK_FINDER as compiler argument)
   *       to give you more useful debugging information about deadlocks that could happen (even if they didn't happen this time)
   */
-class MUSCLE_NODISCARD ReadWriteMutexGuard MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD ReadWriteMutexGuard MUSCLE_FINAL_CLASS : public NotCopyable
 {
 public:
    /** Constructor.  Locks the specified ReaderWriterMutex for read-write/exclusive access.
@@ -414,8 +412,6 @@ public:
    void UnlockEarly() {UnlockAux();}
 
 private:
-   ReadWriteMutexGuard(const ReadWriteMutexGuard &);  // copy ctor, deliberately inaccessible
-
    void UnlockAux()
    {
       if (_mutex)

@@ -71,7 +71,7 @@ private:
 };
 
 /** This convenience class can be used to automatically lock/unlock a SpinLock based on the SpinLockGuard's ctor/dtor */
-class MUSCLE_NODISCARD SpinLockGuard MUSCLE_FINAL_CLASS
+class MUSCLE_NODISCARD SpinLockGuard MUSCLE_FINAL_CLASS : public NotCopyable
 {
 public:
    /** Constructor.  Locks the specified SpinLock.
@@ -83,7 +83,7 @@ public:
       if (ret.IsError())
       {
          printf("SpinLockGuard %p:  could not lock spinlock %p! [%s]\n", this, _spinlock, ret());
-         _spinLock = NULL;
+         _spinlock = NULL;
       }
    }
 
@@ -91,7 +91,7 @@ public:
    ~SpinLockGuard() {UnlockAux();}
 
    /** Returns true iff we successfully locked our SpinLock. */
-   MUSCLE_NODISCARD bool IsSpinLockLocked() const {return _isSpinLockLocked;}
+   MUSCLE_NODISCARD bool IsSpinLockLocked() const {return (_spinlock != NULL);}
 
    /** Call this to unlock our guarded SpinLock "early" (right now, instead of when our destructor executes)
      * If called more than once, the second and further calls will have no effect.
@@ -99,14 +99,12 @@ public:
    void UnlockEarly() {UnlockAux();}
 
 private:
-   SpinLockGuard(const SpinLockGuard &);  // copy ctor, deliberately inaccessible
-
    void UnlockAux()
    {
       if (_spinlock)
       {
          const status_t ret = _spinlock->Unlock();
-         if (ret.IsError())) printf("SpinLockGuard %p:  could not unlock spinlock %p! [%s]\n", this, _spinlock, ret());
+         if (ret.IsError()) printf("SpinLockGuard %p:  could not unlock spinlock %p! [%s]\n", this, _spinlock, ret());
          _spinlock = NULL;
       }
    }
