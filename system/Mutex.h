@@ -114,9 +114,10 @@ public:
 	 // empty
 # elif defined(MUSCLE_USE_PTHREADS)
          pthread_mutexattr_t mutexattr;
-         pthread_mutexattr_init(&mutexattr);                              // Note:  If this code doesn't compile, then
-         pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_RECURSIVE);  // you may need to add -D_GNU_SOURCE to your
-         pthread_mutex_init(&_locker, &mutexattr);                        // Linux Makefile to enable it properly.
+         if ((pthread_mutexattr_init(&mutexattr)                             != 0)  // Note:  If this code doesn't compile
+          || (pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_RECURSIVE) != 0)  // then you may need to add -D_GNU_SOURCE
+          || (pthread_mutex_init(&_locker, &mutexattr)                       != 0)  // to your Linux build-flags to fix it.
+          || (pthread_mutexattr_destroy(&mutexattr)                          != 0)) MCRASH("Mutex:  pthread recursive-mutex setup failed!");
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
          InitializeCriticalSection(&_locker);
 # endif

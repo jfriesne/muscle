@@ -167,7 +167,11 @@ static status_t UnitTestQueue(bool isFromScript)
 
    printf("RemoveHeadMulti TEST\n");
    {
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+      Queue<int> qq; for (int i=0; i<=8; i++) (void) qq.AddTail(i);
+#else
       Queue<int> qq = {1,2,3,4,5,6,7,8};
+#endif
       TEST(qq.AddHead(0));  // just so we can test the wraparound-head case
 
       const uint32 origNumItems = qq.GetNumItems();
@@ -189,7 +193,11 @@ static status_t UnitTestQueue(bool isFromScript)
 
    printf("RemoveTailMulti TEST\n");
    {
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+      Queue<int> qq; for (int i=1; i<=3; i++) (void) qq.AddTail(i);
+#else
       Queue<int> qq = {1,2,3};
+#endif
       TEST(qq.AddHead(0));   // just so we can test the wraparound-head case
       TEST(qq.AddHead(-1));  // just so we can test the wraparound-head case
       TEST(qq.AddHead(-2));  // just so we can test the wraparound-head case
