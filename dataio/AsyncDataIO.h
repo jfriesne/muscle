@@ -24,7 +24,7 @@ public:
     *                 and therefore should generally not be accessed further from the main thread,
     *                 to avoid race conditions.
     */
-   AsyncDataIO(const DataIORef & childIO) : ProxyDataIO(childIO), _mainThreadBytesWritten(0) {/* empty */}
+   AsyncDataIO(const DataIORef & childIO) : ProxyDataIO(childIO), _mainThreadBytesWritten(0) {ResetFromChildState();}
 
    virtual ~AsyncDataIO();
 
@@ -87,6 +87,7 @@ protected:
 
 private:
    void NotifyInternalThread();
+   void ResetFromChildState();
 
    enum {
       ASYNC_COMMAND_SEEK = 0,

@@ -154,7 +154,7 @@ void AsyncDataIO :: InternalThreadEntry()
 
       // Determine how many bytes until the next command in the output stream (we want them to be executed at the same point
       // in the I/O thread's output stream as they were called at in the main thread's output stream)
-      uint32 bytesUntilNextCommand = MUSCLE_NO_LIMIT;
+      uint64 bytesUntilNextCommand = (uint64)-1;
       {
          DECLARE_MUTEXGUARD(_asyncCommandsMutex);
          if (_asyncCommands.HasItems())
@@ -165,7 +165,7 @@ void AsyncDataIO :: InternalThreadEntry()
                bytesUntilNextCommand = 0;
                (void) _asyncCommands.RemoveHead(curCmd);
             }
-            else bytesUntilNextCommand = (uint32) (nextCmd.GetStreamLocation()-ioThreadBytesWritten);
+            else bytesUntilNextCommand = (uint64) (nextCmd.GetStreamLocation()-ioThreadBytesWritten);
          }
          else if ((exitWhenDoneWriting)&&(fromMainThreadBufReadIdx == fromMainThreadBufNumValid)) keepGoing = false;
       }
@@ -183,7 +183,7 @@ void AsyncDataIO :: InternalThreadEntry()
          if (childWriteFD >= 0)
          {
             // Write the data from our from-main-thread buffer, to our child I/O
-            const uint32 bytesToWriteToChild = muscleMin(bytesUntilNextCommand, fromMainThreadBufNumValid-fromMainThreadBufReadIdx);
+            const uint32 bytesToWriteToChild = (uint32) muscleMin(bytesUntilNextCommand, (uint64) (fromMainThreadBufNumValid-fromMainThreadBufReadIdx));
             if ((bytesToWriteToChild > 0)&&(multiplexer.IsSocketReadyForWrite(childWriteFD)))
             {
                const int32 bytesWritten = ProxyDataIO::Write(&fromMainThreadBuf[fromMainThreadBufReadIdx], bytesToWriteToChild).GetByteCount();
@@ -247,6 +247,8 @@ void AsyncDataIO :: InternalThreadEntry()
          }
       }
    }
+
+   ResetFromChildState();  // just to be tidy
 }
 
 // Should only be called from inside InternalThreadEntry() (e.g. by InternalThreadPulse())
@@ -259,6 +261,14 @@ uint32 AsyncDataIO :: WriteToMainThread(const uint8 * bytes, uint32 numBytes, bo
    memcpy(_fromChildIOBuf+(*_fromChildIOBufNumValid), bytes, numToWrite);
    (*_fromChildIOBufNumValid) += numToWrite;
    return numToWrite;
+}
+
+void AsyncDataIO :: ResetFromChildState()
+{
+   _fromChildIOBuf         = NULL;
+   _fromChildIOBufSize     = 0;
+   _fromChildIOBufReadIdx  = NULL;
+   _fromChildIOBufNumValid = 0;
 }
 
 } // end namespace muscle
