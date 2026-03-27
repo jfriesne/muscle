@@ -375,6 +375,8 @@ private:
    static DWORD WINAPI IOThreadEntryFunc(LPVOID This) {((ChildProcessDataIO*)This)->IOThreadEntry(); return 0;}
    ::HANDLE _readFromStdout;
    ::HANDLE _writeToStdin;
+   ::HANDLE _childStdinRead;
+   ::HANDLE _childStdoutWrite;
    ::HANDLE _ioThread;
    ::HANDLE _wakeupSignal;
    ::HANDLE _childProcess;

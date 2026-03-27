@@ -57,7 +57,14 @@ ChildProcessDataIO :: ChildProcessDataIO(bool blocking)
    , _signalNumber(-1)
    , _childProcessIsIndependent(false)
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
-   , _readFromStdout(INVALID_HANDLE_VALUE), _writeToStdin(INVALID_HANDLE_VALUE), _ioThread(INVALID_HANDLE_VALUE), _wakeupSignal(INVALID_HANDLE_VALUE), _childProcess(INVALID_HANDLE_VALUE), _childThread(INVALID_HANDLE_VALUE)
+   , _readFromStdout(INVALID_HANDLE_VALUE)
+   , _writeToStdin(INVALID_HANDLE_VALUE)
+   , _childStdinRead(INVALID_HANDLE_VALUE)
+   , _childStdoutWrite(INVALID_HANDLE_VALUE)
+   , _ioThread(INVALID_HANDLE_VALUE)
+   , _wakeupSignal(INVALID_HANDLE_VALUE)
+   , _childProcess(INVALID_HANDLE_VALUE)
+   , _childThread(INVALID_HANDLE_VALUE)
 #else
    , _childPID((muscle_pid_t)-1)
 #endif
@@ -146,15 +153,15 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 
    status_t ret;
 
-   ::HANDLE childStdoutRead, childStdoutWrite;
-   if (CreatePipe(&childStdoutRead, &childStdoutWrite, &saAttr, 0))
+   ::HANDLE childStdoutRead;
+   if (CreatePipe(&childStdoutRead, &_childStdoutWrite, &saAttr, 0))
    {
       if (DuplicateHandle(GetCurrentProcess(), childStdoutRead, GetCurrentProcess(), &_readFromStdout, 0, false, DUPLICATE_SAME_ACCESS))
       {
          SafeCloseHandle(childStdoutRead);  // we'll use the dup from now on
 
-         ::HANDLE childStdinRead, childStdinWrite;
-         if (CreatePipe(&childStdinRead, &childStdinWrite, &saAttr, 0))
+         HANDLE childStdinWrite;
+         if (CreatePipe(&_childStdinRead, &childStdinWrite, &saAttr, 0))
          {
             if (DuplicateHandle(GetCurrentProcess(), childStdinWrite, GetCurrentProcess(), &_writeToStdin, 0, false, DUPLICATE_SAME_ACCESS))
             {
@@ -170,9 +177,9 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
 
                   memset(&siStartInfo, 0, sizeof(siStartInfo));
                   siStartInfo.cb          = sizeof(siStartInfo);
-                  siStartInfo.hStdError   = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR) ? GetBitBucketHandle(bbOut, true) : childStdoutWrite;
-                  siStartInfo.hStdOutput  = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT) ? GetBitBucketHandle(bbOut, true) : childStdoutWrite;
-                  siStartInfo.hStdInput   = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN)  ? GetBitBucketHandle(bbIn, false) : childStdinRead;
+                  siStartInfo.hStdError   = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDERR) ? GetBitBucketHandle(bbOut, true) : _childStdoutWrite;
+                  siStartInfo.hStdOutput  = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDOUT) ? GetBitBucketHandle(bbOut, true) : _childStdoutWrite;
+                  siStartInfo.hStdInput   = launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_EXCLUDE_STDIN)  ? GetBitBucketHandle(bbIn, false) : _childStdinRead;
                   siStartInfo.dwFlags     = STARTF_USESTDHANDLES | (hideChildGUI ? STARTF_USESHOWWINDOW : 0);
                   siStartInfo.wShowWindow = hideChildGUI ? SW_HIDE : 0;
                }
@@ -279,7 +286,6 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
             }
             else ret = B_ERRNO;
 
-            SafeCloseHandle(childStdinRead);     // cleanup
             SafeCloseHandle(childStdinWrite);    // cleanup
          }
          else ret = B_ERRNO;
@@ -287,7 +293,6 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       else ret = B_ERRNO;
 
       SafeCloseHandle(childStdoutRead);    // cleanup
-      SafeCloseHandle(childStdoutWrite);   // cleanup
    }
    else ret = B_ERRNO;
 
@@ -574,6 +579,8 @@ void ChildProcessDataIO :: Close()
    if ((_childProcess != INVALID_HANDLE_VALUE)&&(_childProcessIsIndependent == false)) DoGracefulChildShutdown();  // Windows can't double-fork, so in the independent case we just won't wait for him
    SafeCloseHandle(_childProcess);
    SafeCloseHandle(_childThread);
+   SafeCloseHandle(_childStdinRead);
+   SafeCloseHandle(_childStdoutWrite);
    _requestThreadExit.SetCount(0);  // for next time (now that the child-thread is gone, it's safe to do this)
 #else
    _handle.Reset();
