@@ -58,7 +58,7 @@ public:
    /** Explicit constructor
      * @param tok an LTOKEN_* value
      */
-   LexerToken(uint32 tok) : _tok(tok), _wasQuoted(false) {/* empty */}
+   explicit LexerToken(uint32 tok) : _tok(tok), _wasQuoted(false) {/* empty */}
 
    /** Constructor for an LTOKEN_USERSTRING
      * @param valStr a user-supplied String (not including any surrounding quotes)
@@ -97,8 +97,11 @@ public:
      */
    uint8 GetStringQueryFilterOp(bool isCaseSensitive) const;
 
-   /** Returns the NumericQueryFilter::OP_* value associated with this infix operator, or NumericQueryFilter::NUM_STRING_OPERATORS on failure */
+   /** Returns the NumericQueryFilter::OP_* value associated with this infix operator, or NumericQueryFilter::NUM_NUMERIC_OPERATORS on failure */
    uint8 GetNumericQueryFilterOp() const;
+
+   /** Returns true iff this LexerToken is tagged as having been "in quotes" when parsed */
+   bool WasQuoted() const {return _wasQuoted;}
 
 private:
    uint32 _tok;

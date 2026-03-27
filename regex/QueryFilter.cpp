@@ -799,8 +799,11 @@ status_t LexerToken :: ParseFieldNameAux(const String & valStr, String & retFiel
    const int32 colIdx = _wasQuoted ? -1 : valStr.LastIndexOf(':');
    if (colIdx > 0)
    {
+      const long idx = atol(valStr()+colIdx+1);
+      if (idx < 0) return B_BAD_ARGUMENT;
+
       retFieldName = valStr.Substring(0, colIdx);
-      retIdx       = (uint32) atol(valStr()+colIdx+1);
+      retIdx       = (uint32) idx;
    }
    else
    {
