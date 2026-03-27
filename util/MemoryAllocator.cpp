@@ -49,14 +49,19 @@ UsageLimitProxyMemoryAllocator :: ~UsageLimitProxyMemoryAllocator()
 
 status_t UsageLimitProxyMemoryAllocator :: AboutToAllocate(size_t currentlyAllocatedBytes, size_t allocRequestBytes)
 {
-   return ((allocRequestBytes <= _maxBytes)&&(currentlyAllocatedBytes + allocRequestBytes <= _maxBytes)) ? ProxyMemoryAllocator::AboutToAllocate(currentlyAllocatedBytes, allocRequestBytes) : B_OUT_OF_MEMORY;
+   return ((allocRequestBytes <= _maxBytes)&&(allocRequestBytes <= _maxBytes - currentlyAllocatedBytes)) ? ProxyMemoryAllocator::AboutToAllocate(currentlyAllocatedBytes, allocRequestBytes) : B_OUT_OF_MEMORY;
 }
 
 void AutoCleanupProxyMemoryAllocator :: AllocationFailed(size_t currentlyAllocatedBytes, size_t allocRequestBytes)
 {
    ProxyMemoryAllocator::AllocationFailed(currentlyAllocatedBytes, allocRequestBytes);
+
    const uint32 nc = _callbacks.GetNumItems();
-   for (uint32 i=0; i<nc; i++) if (_callbacks[i]()) (void) (_callbacks[i]())->Callback(NULL);
+   for (uint32 i=0; i<nc; i++)
+   {
+      GenericCallback * gc = _callbacks[i]();
+      if (gc) (void) (gc)->Callback(NULL);
+   }
 }
 
 } // end namespace muscle
