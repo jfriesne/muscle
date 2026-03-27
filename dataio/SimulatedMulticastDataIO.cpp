@@ -105,7 +105,7 @@ UDPSocketDataIORef SimulatedMulticastDataIO :: CreateMulticastUDPDataIO(const IP
 
    // Send a test packet just to verify that packets can be sent on this socket (otherwise there's little use in continuing)
    const uint8 dummyBuf = 0;  // doesn't matter what this is, I just want to make sure I can actually send on this socket
-   if (SendDataUDP(udpSock, &dummyBuf, 0, true, iap.GetIPAddress(), iap.GetPort()).IsError(errRet))
+   if (SendDataUDP(udpSock, &dummyBuf, sizeof(dummyBuf), true, iap.GetIPAddress(), iap.GetPort()).IsError(errRet))
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "SimulatedMulticastDataIO %p:  Unable to send test UDP packet to multicast destination [%s] [%s]\n", this, iap.ToString()(), errRet());
       return errRet;

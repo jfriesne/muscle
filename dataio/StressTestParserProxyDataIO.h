@@ -32,6 +32,7 @@ public:
     *  @param maxChildWriteSize the maximum number of bytes we should pass to our child DataIO's
     *                           Write() method in a single call.  If we have more bytes to send
     *                           than this, we will break them up into multiple successive calls.
+    *                           If passed as zero, a value of 1 will be used instead.
     *  @param optMinimumDelayBetweenWritesMicros the minimum amount of time that should pass between
     *                           successive calls to our child DataIO's Write() method.  This class
     *                           will call Snooze64() if needed to enforce the minimum delay (so

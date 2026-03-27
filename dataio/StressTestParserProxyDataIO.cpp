@@ -6,7 +6,7 @@ StressTestParserProxyDataIO :: StressTestParserProxyDataIO(const DataIORef & chi
    : ProxyDataIO(childIO)
    , _outputBufferBytesSent(0)
    , _minChildWriteSize(minChildWriteSize)
-   , _maxChildWriteSize(maxChildWriteSize)
+   , _maxChildWriteSize(muscleMax(maxChildWriteSize, (uint32)1))
    , _optMinimumDelayBetweenWritesMicros(optMinimumDelayBetweenWritesMicros)
    , _mostRecentChildWriteTime(0)
 {
@@ -16,17 +16,13 @@ StressTestParserProxyDataIO :: StressTestParserProxyDataIO(const DataIORef & chi
 io_status_t StressTestParserProxyDataIO :: Write(const void * buffer, uint32 size)
 {
    MRETURN_ON_ERROR(_outputBuffer.AppendBytes((const uint8 *) buffer, size));
-
-   const io_status_t ret = DrainOutputBuffer(false);
-   if (ret.GetByteCount() > 0) return size;  // we absorbed all of the user's bytes, even if we didn't actually send them all out yet
-                          else return ret;
+   MRETURN_ON_ERROR(DrainOutputBuffer(false));
+   return size;  // we absorbed all of the user's bytes, even if we didn't actually send them all out yet
 }
 
-io_status_t StressTestParserProxyDataIO :: DrainOutputBuffer(bool forceSendAll)
+io_status_t StressTestParserProxyDataIO :: DrainOutputBuffer(bool forceSendAllPendingBytes)
 {
-   if (_maxChildWriteSize == 0) return 0;  // if we can't write, we can't write
-
-   const uint32 minBytesToPassToWrite = forceSendAll ? 0 : _minChildWriteSize;
+   const uint32 minBytesToPassToWrite = forceSendAllPendingBytes ? 0 : _minChildWriteSize;
 
    io_status_t ret;
    while((_outputBuffer.GetNumBytes() > 0)&&(_outputBufferBytesSent < _outputBuffer.GetNumBytes()))
@@ -62,6 +58,16 @@ io_status_t StressTestParserProxyDataIO :: DrainOutputBuffer(bool forceSendAll)
          MTALLY_BYTES_OR_RETURN_ON_ERROR_OR_BREAK(ret, numBytesSent);
       }
       else break;
+   }
+
+   if (_outputBufferBytesSent > (_outputBuffer.GetNumBytes()/2))
+   {
+      // Slide the remaining bytes to the top of the buffer to avoid a potential ever-growing buffer
+      const uint32 numBytesLeftToSend = _outputBuffer.GetNumBytes()-_outputBufferBytesSent;
+      uint8 * buf = _outputBuffer.GetBuffer();
+      memcpy(buf, &buf[_outputBufferBytesSent], numBytesLeftToSend);
+      _outputBuffer.TruncateToLength(numBytesLeftToSend);
+      _outputBufferBytesSent = 0;
    }
 
    return ret;
