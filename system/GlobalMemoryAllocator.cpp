@@ -73,7 +73,7 @@ status_t MemoryParanoiaCheckBuffer(void * userPtr, bool crashIfInvalid)
          {
             foundCorruption = true;
             TCHECKPOINT;
-            printf("MEMORY GUARD CORRUPTION (%i words before front): buffer (%p," UINT32_FORMAT_SPEC ") (userptr=%p," UINT32_FORMAT_SPEC ") expected %p, got %p!\n", (MUSCLE_ENABLE_MEMORY_PARANOIA-i), internalPtr, (uint32)(*internalPtr), userPtr, (uint32)userBufLen, expectedFrontVal, frontRead[i]);
+            printf("MEMORY GUARD CORRUPTION (%i words before front): buffer (%p,%zu) (userptr=%p,%zu) expected %p, got %p!\n", (MUSCLE_ENABLE_MEMORY_PARANOIA-i), internalPtr, *internalPtr, userPtr, userBufLen, expectedFrontVal, frontRead[i]);
          }
          if (rearRead[i] != expectedRearVal)
          {
@@ -195,7 +195,9 @@ void * muscleAlloc(size_t userSize, bool retryOnFailure)
 
 char * muscleStrdup(const char * s, bool retryOnFailure)
 {
-   const size_t sLen = s ? strlen(s) : 0;
+   if (s == NULL) return NULL;
+
+   const size_t sLen = strlen(s);
    char * dupStr = (char *) muscleAlloc(sLen+1, retryOnFailure);  // +1 for the NUL terminator byte
    if ((s)&&(dupStr)) memcpy(dupStr, s, sLen+1);
    return dupStr;
@@ -284,6 +286,7 @@ void * muscleRealloc(void * oldUserPtr, size_t newUserSize, bool retryOnFailure)
    {
       const size_t shrinkBy = oldInternalSize-newInternalSize;
       if (ma) ma->AboutToFree(_currentlyAllocatedBytes, shrinkBy);
+
       size_t * newInternalPtr = (size_t *) realloc(oldInternalPtr, newInternalSize);
       if (newInternalPtr)
       {
@@ -301,6 +304,8 @@ void * muscleRealloc(void * oldUserPtr, size_t newUserSize, bool retryOnFailure)
       }
       else
       {
+         if (ma) (void) ma->AboutToAllocate(_currentlyAllocatedBytes, shrinkBy);  // roll back the previous call to AboutToFree()
+
          newUserPtr = oldUserPtr;  // I guess the best thing to do is just send back the old pointer?  Not sure what to do here.
          printf("muscleRealloc:  reallocation failure (tried to shrink " UINT32_FORMAT_SPEC "->" UINT32_FORMAT_SPEC " internal bytes / " UINT32_FORMAT_SPEC "->" UINT32_FORMAT_SPEC " user bytes))\n", (uint32)oldInternalSize, (uint32)newInternalSize, (uint32)oldUserSize, (uint32)newUserSize);
          fflush(stdout);  // make sure this message gets out!
@@ -337,9 +342,9 @@ void muscleFree(void * userPtr)
 #endif
 
       size_t * internalPtr = CONVERT_USER_TO_INTERNAL_POINTER(userPtr);
-      _currentlyAllocatedBytes -= *internalPtr;
-
       if (ma) ma->AboutToFree(_currentlyAllocatedBytes, *internalPtr);
+
+      _currentlyAllocatedBytes -= *internalPtr;
 
 #ifdef DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD
       if (*internalPtr >= DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD) printf("-" UINT32_FORMAT_SPEC " = " UINT32_FORMAT_SPEC " userPtr=%p\n", (uint32)*internalPtr, (uint32)_currentlyAllocatedBytes, userPtr);
