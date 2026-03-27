@@ -15,6 +15,10 @@
 #include "util/OutputPrinter.h"
 #include "util/String.h"
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+# include <random>
+#endif
+
 #ifdef MUSCLE_ENABLE_SSL
 # include <openssl/err.h>
 # include <openssl/ssl.h>
@@ -2065,14 +2069,15 @@ bool IsCurrentThreadMainThread()
 }
 #endif
 
-uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
+// adapted from MurmurHashA by Austin Appleby
+uint32 CalculateHashCode(const void * key, size_t numBytes, uint32 seed)
 {
 #define MURMUR2_MIX(h,k,m) { (k) *= (m); (k) ^= (k) >> (r); (k) *= (m); (h) *= (m); (h) ^= (k); }
    const uint32 m = 0x5bd1e995;
    const int32  r = 24;
 
-   const unsigned char * data = (const unsigned char *)key;
-   uint32 h = seed ^ numBytes;
+   const unsigned char * data = (const unsigned char *) key;
+   uint32 h = seed ^ ((uint32)numBytes);
    const uint32 align = ((uint32)((uintptr)data)) & 3;
    if ((align!=0)&&(numBytes >= 4))
    {
@@ -2186,7 +2191,8 @@ uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed)
    }
 }
 
-uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int seed)
+// adapted from MurmurHash64A by Austin Appleby
+uint64 CalculateHashCode64(const void * key, size_t numBytes, uint64 seed)
 {
    const uint64 m = 0xc6a4a7935bd1e995;
    const int r = 47;
@@ -2832,6 +2838,35 @@ void OutputPrinter :: putsAuxAux(const char * s, uint32 numChars) const
    if (_file) (void) fwrite(s, 1, numChars, _file);  // Calling fwrite() instead of fputs() since we already know the string's length
 
    _isAtStartOfLine = ((numChars > 0)&&(s[numChars-1] == '\n'));
+}
+
+uint32 GetInsecurePseudoRandomNumber32(uint32 maxVal)
+{
+   if (maxVal == 0) return 0;
+
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   // coverity[dont_call] - don't care that rand() isn't secure, because this function isn't meant to be secure
+   const uint32 r = rand();
+#else
+   MUSCLE_THREAD_LOCAL_OR_STATIC std::mt19937 rng(std::random_device{}());
+   const uint32 r = rng();
+#endif
+   return (maxVal == MUSCLE_NO_LIMIT) ? r : (r%maxVal);
+}
+
+uint64 GetInsecurePseudoRandomNumber64(uint64 maxVal)
+{
+   if (maxVal == 0) return 0;
+
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+   const uint32 v1 = GetInsecurePseudoRandomNumber32();
+   const uint32 v2 = GetInsecurePseudoRandomNumber32();
+   const uint64 r  = (((uint64)v1)<<32) | ((uint64)v2);
+#else
+   MUSCLE_THREAD_LOCAL_OR_STATIC std::mt19937_64 rng(std::random_device{}());
+   const uint64 r  = rng();
+#endif
+   return (maxVal == (uint64)-1) ? r : (maxVal % r);
 }
 
 } // end namespace muscle

@@ -685,19 +685,19 @@ status_t GetEnvironmentVariableValue(const String & envVarName, String & retValu
   */
 String GetEnvironmentVariableValueWithDefault(const String & envVarName, const String & defaultValue = GetEmptyString());
 
-/** Returns a cheap-and-cheerful pseudo-random number between 0 and (maxVal-1)
+/** Returns a cheap-and-cheerful 32-bit pseudo-random number between 0 and (maxVal-1)
   * @param maxVal If set, the number returned will be less than this value.  Defaults to MUSCLE_NO_LIMIT.
   * @note this function is not at all cryptographically secure; it should only be used when you
   *       just need something vaguely random-looking and don't care about maintaining a uniform distribution, etc.
   */
-static inline uint32 GetInsecurePseudoRandomNumber(uint32 maxVal = MUSCLE_NO_LIMIT)
-{
-   if (maxVal == 0) return 0;
+uint32 GetInsecurePseudoRandomNumber32(uint32 maxVal = MUSCLE_NO_LIMIT);
 
-   // coverity[dont_call] - don't care that rand() isn't secure, because this function isn't meant to be secure
-   const int r = rand();
-   return (maxVal == MUSCLE_NO_LIMIT) ? (uint32)r : (((uint32)r)%maxVal);
-}
+/** Returns a cheap-and-cheerful 64-bit pseudo-random number between 0 and (maxVal-1)
+  * @param maxVal If set, the number returned will be less than this value.  Defaults to MUSCLE_NO_LIMIT.
+  * @note this function is not at all cryptographically secure; it should only be used when you
+  *       just need something vaguely random-looking and don't care about maintaining a uniform distribution, etc.
+  */
+uint64 GetInsecurePseudoRandomNumber64(uint64 maxVal = (uint64)-1);
 
 /** Given a mangled C++ symbol, tries to return a more human-readable (aka unmangled) form of it.
   * @param mangledName a mangled C++ symbol-name

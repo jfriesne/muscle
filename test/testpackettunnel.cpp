@@ -211,7 +211,7 @@ int main(int argc, char ** argv)
          if (now >= nextSpamTime)
          {
             nextSpamTime = now + spamIntervalMicros;
-            const uint32 numMessages = GetInsecurePseudoRandomNumber(10);
+            const uint32 numMessages = GetInsecurePseudoRandomNumber32(10);
 
             LogTime(MUSCLE_LOG_TRACE, "Spam! (" UINT32_FORMAT_SPEC " messages, counter=" UINT32_FORMAT_SPEC ")\n", numMessages, _sendWhatCounter);
 
@@ -221,7 +221,7 @@ int main(int argc, char ** argv)
                MessageRef m = GetMessageFromPool(_sendWhatCounter++);
                if (m())
                {
-                  uint32 spamLen = (GetInsecurePseudoRandomNumber(5)==0)?GetInsecurePseudoRandomNumber(mtu*50):GetInsecurePseudoRandomNumber(mtu/5);
+                  uint32 spamLen = (GetInsecurePseudoRandomNumber32(5)==0)?GetInsecurePseudoRandomNumber32(mtu*50):GetInsecurePseudoRandomNumber32(mtu/5);
                   if (testMini) spamLen = muscleMin(spamLen, mtu-128);  // the mini gateway will drop packets that are too large, which will mess up our test, so don't send large
 
                   char * tmp = new char[spamLen+1];

@@ -51,6 +51,11 @@ key:  - new feature
    o ProxyIOGateway::GenerateOutgoingByteBuffers() now returns a status_t
      instead of void so it can propagate errors.  (c)
    o Removed SharedFilterSessionFactory::SetSharedMemoryAreaName().
+   o Split GetInsecurePseudoRandomNumber() into GetInsecurePseudoRandomNumber32()
+     and GetInsecurePseudoRandomNumber64() and reimplemented them to use a better
+     random number generator, if one is available.
+   o Updated CalculateHashCode() and CalculateHashCode64() to take a size_t
+     numBytes argument and an appropriately-sized seed argument.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to
@@ -124,6 +129,7 @@ key:  - new feature
    * Fixed some bugs in StressTestParserProxyDataIO.  (c)
    * Fixed a bug in SharedUsageLimitProxyMemoryAllocator that could
      allow over-limit memory usage in some cases.  (c)
+   * Private-shared-memory-area mode was broken in SharedMemory.cpp.  Fixed.
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

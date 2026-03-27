@@ -3,7 +3,7 @@
 #include "iogateway/MessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"  // for PR_COMMAND_PING, PR_RESULT_PONG
 #include "dataio/TCPSocketDataIO.h"
-#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber32()
 
 namespace muscle {
 
@@ -130,11 +130,11 @@ DoOutputImplementation(uint32 maxBytes)
  const uint32 bs = _sendBuffer._buffer()->GetNumBytes() - hs;
  if (bs > 0)
  {
-    uint32 start = GetInsecurePseudoRandomNumber(bs);
+    uint32 start = GetInsecurePseudoRandomNumber32(bs);
     uint32 end   = (start+5)%bs;
     if (start > end) muscleSwap(start, end);
     printf("Bork! %u->%u\n", start, end);
-    for (uint32 i=start; i<=end; i++) _sendBuffer._buffer()->GetBuffer()[i+hs] = (uint8) GetInsecurePseudoRandomNumber(256);
+    for (uint32 i=start; i<=end; i++) _sendBuffer._buffer()->GetBuffer()[i+hs] = (uint8) GetInsecurePseudoRandomNumber32(256);
  }
 #endif
 

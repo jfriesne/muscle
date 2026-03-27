@@ -4,13 +4,13 @@
 
 #include "support/MuscleSupport.h"
 #include "system/SetupSystem.h"
-#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber32()
 
 using namespace muscle;
 
 static status_t TestFunction()
 {
-   return (GetInsecurePseudoRandomNumber(2)==0)
+   return (GetInsecurePseudoRandomNumber32(2)==0)
           ? B_NO_ERROR
           : B_ERROR("Bad luck");
 }

@@ -77,7 +77,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
    if (keyString == NULL)
    {
       char buf[128];
-      muscleSprintf(buf, UINT64_FORMAT_SPEC, GetTickCount64());  // No user-supplied name?  We'll pick an arbitrary name then
+      muscleSprintf(buf, UINT64_FORMAT_SPEC, GetInsecurePseudoRandomNumber64());  // No user-supplied name?  We'll pick an arbitrary name then
       keyString = buf;
    }
    _areaName = keyString;
@@ -146,6 +146,8 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
       _areaName = keyString;
    }
 
+printf("k1 _areaName=[%s] key=" UINT64_FORMAT_SPEC "\n", _areaName(), (uint64) requestedKey);
+
    DECLARE_SEMCTL_ARG(semopts);
    memset(&semopts, 0, sizeof(semopts));
    const int permissionBits = 0777;
@@ -154,11 +156,13 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
    _semID = semget(requestedKey, 1, IPC_CREAT|IPC_EXCL|permissionBits);
    if (_semID >= 0)
    {
+printf("k2 _areaName=[%s] key=" UINT64_FORMAT_SPEC "\n", _areaName(), (uint64) requestedKey);
       // there's a small race condition here (between when we create the semaphore and when
       // we adjust its value upwards), so we'll poll-loop on sem_otime in the other process/codepath
       // to avoid any chance of getting bit by it
       if (AdjustSemaphore(LARGEST_SEMAPHORE_DELTA, false).IsError(ret))  // AdjustSemaphore() will set sem_otime to non-zero for other processes to see
       {
+printf("k3 _areaName=[%s] key=" UINT64_FORMAT_SPEC "\n", _areaName(), (uint64) requestedKey);
          // roll back the creation of the semaphore on error
          (void) semctl(_semID, 0, IPC_RMID);  // clean up
          _semID = -1;
@@ -166,9 +170,11 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
    }
    else
    {
+printf("k4 _areaName=[%s] key=" UINT64_FORMAT_SPEC "\n", _areaName(), (uint64) requestedKey);
       _semID = semget(requestedKey, 1, permissionBits);  // Couldn't create a new semaphore?  then try to open the existing one
       if (_semID >= 0)
       {
+printf("k5 _areaName=[%s] key=" UINT64_FORMAT_SPEC "\n", _areaName(), (uint64) requestedKey);
          bool okToGo = false;
 
          // avoid a potential race condition by not continuing onwards until we see sem_otime become non-zero
@@ -197,17 +203,21 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
       else ret = B_ERRNO;
    }
 
+printf("k6 _areaName=[%s] key=" UINT64_FORMAT_SPEC "\n", _areaName(), (uint64) requestedKey);
    if (_semID >= 0)
    {
+printf("k7 _areaName=[%s] key=" UINT64_FORMAT_SPEC "\n", _areaName(), (uint64) requestedKey);
       _key = requestedKey;
 
       // If we requested a private key, we still need to know the actual key value
       if (_key == IPC_PRIVATE)
       {
+printf("k8 _areaName=[%s] key=" UINT64_FORMAT_SPEC "\n", _areaName(), (uint64) requestedKey);
          struct semid_ds semInfo = {};  // the braces zero-initialize the struct for us, to keep clang++SA happy
          semopts.buf = &semInfo;
          if (semctl(_semID, 0, IPC_STAT, semopts) == 0)
          {
+printf("k9 _areaName=[%s] key=" UINT64_FORMAT_SPEC "\n", _areaName(), (uint64) requestedKey);
 # ifdef __linux__
             _key = semInfo.sem_perm.__key;
 
@@ -217,12 +227,15 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
 # else
             _key = semInfo.sem_perm.key;
 # endif
+printf("k10 _areaName=[%s] key=" UINT64_FORMAT_SPEC " _key=" UINT64_FORMAT_SPEC "\n", _areaName(), (uint64) requestedKey, (uint64) _key);
          }
          _areaName = "private";  // sorry, it's the best I can do short of figuring out how to invert the hash function!
       }
 
-      if ((_key != IPC_PRIVATE)&&(LockAreaReadWrite().IsOK(ret)))
+printf("  k11\n");
+      if (LockAreaReadWrite().IsOK(ret))
       {
+printf("  k12\n");
          _areaID = shmget(_key, 0, permissionBits);
          if ((_areaID < 0)&&(createSize > 0))
          {
@@ -231,13 +244,16 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
          }
          if (_areaID >= 0)
          {
+printf("  k13\n");
             _area = shmat(_areaID, NULL, 0);
             if ((_area)&&(_area != ((void *)-1)))  // FogBugz #7294
             {
+printf("  k14\n");
                // Now get the stats on our area
                struct shmid_ds buf;
                if (shmctl(_areaID, IPC_STAT, &buf) == 0)
                {
+printf("  k15\n");
                   _areaSize = (uint32) buf.shm_segsz;
                   if (returnLocked == false) UnlockArea();
                   return B_NO_ERROR;
@@ -251,6 +267,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
    }
 #endif
 
+printf("  k16\n");
    UnsetArea();  // oops, roll back everything!
    return ret | B_BAD_OBJECT;
 }

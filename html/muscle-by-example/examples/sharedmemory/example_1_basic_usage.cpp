@@ -53,14 +53,14 @@ int main(int /*argc*/, char ** /*argv*/)
    sm.UnlockArea();
 
    // Let's choose a letter to represent us
-   const char myVal = 'A' + (char)GetInsecurePseudoRandomNumber(26);
+   const char myVal = 'A' + (char) GetInsecurePseudoRandomNumber32(26);
 
    while(true)
    {
       // Let's write to the shared memory area!
       if (sm.LockAreaReadWrite().IsOK(ret))
       {
-         const uint32 offset = GetInsecurePseudoRandomNumber(sm.GetAreaSize());
+         const uint32 offset = GetInsecurePseudoRandomNumber32(sm.GetAreaSize());
 
          printf("\nWRITING value %c to offset " UINT32_FORMAT_SPEC "\n", myVal, offset);
          sm()[offset] = myVal;

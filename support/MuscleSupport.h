@@ -2039,16 +2039,16 @@ MUSCLE_NODISCARD static inline uint32 EuclideanModulo(int32 value, uint32 diviso
   * @param seed An arbitrary number that affects the output values.  Defaults to zero.
   * @returns a 32-bit hash value corresponding to the hashed data.
   */
-MUSCLE_NODISCARD uint32 CalculateHashCode(const void * key, uint32 numBytes, uint32 seed = 0);
+MUSCLE_NODISCARD uint32 CalculateHashCode(const void * key, size_t numBytes, uint32 seed = 0);
 
 /** Same as HashCode(), but this version produces a 64-bit result.
   * This code is also part of MurmurHash2, written by Austin Appleby
   * @param key Pointer to the data to hash
   * @param numBytes Number of bytes to hash start at (key)
   * @param seed An arbitrary number that affects the output values.  Defaults to zero.
-  * @returns a 32-bit hash value corresponding to the hashed data.
+  * @returns a 64-bit hash value corresponding to the hashed data.
   */
-MUSCLE_NODISCARD uint64 CalculateHashCode64(const void * key, unsigned int numBytes, unsigned int seed = 0);
+MUSCLE_NODISCARD uint64 CalculateHashCode64(const void * key, size_t numBytes, uint64 seed = 0);
 
 /** This is a convenience function that will read through the passed-in byte
   * buffer and create a 32-bit checksum corresponding to its contents.

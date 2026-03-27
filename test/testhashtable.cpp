@@ -50,7 +50,7 @@ protected:
          {
             count++;
             totalCount++;
-            if (GetInsecurePseudoRandomNumber(5)==0)
+            if (GetInsecurePseudoRandomNumber32(5)==0)
             {
                // Make sure re-entrant sub-iterations work correctly
                for (MessageFieldNameIterator fnIter2(*_msg(), B_ANY_TYPE); fnIter2.HasData(); fnIter2++) totalCount++;
@@ -585,7 +585,7 @@ int main(int argc, char ** argv)
 
       const uint32 numItems = 100000;
       Hashtable<uint32, Void> table; MPRINT_ON_ERROR("EnsureSize", table.EnsureSize(100000));
-      for (uint32 i=0; i<numItems; i++) MPRINT_ON_ERROR("PutWithDefault", table.PutWithDefault(GetInsecurePseudoRandomNumber()));
+      for (uint32 i=0; i<numItems; i++) MPRINT_ON_ERROR("PutWithDefault", table.PutWithDefault(GetInsecurePseudoRandomNumber32()));
       const uint32 actualNumItems = table.GetNumItems();  // may be smaller than numItems, due to duplicate values!
       (void) table.CountAverageLookupComparisons(true);
 
@@ -630,7 +630,7 @@ int main(int argc, char ** argv)
 
       const uint32 numItems = 100000;
       Hashtable<uint32, Void> table;
-      for (uint32 i=0; i<numItems; i++) MPRINT_ON_ERROR("PutWithDefault", table.PutWithDefault(GetInsecurePseudoRandomNumber()));
+      for (uint32 i=0; i<numItems; i++) MPRINT_ON_ERROR("PutWithDefault", table.PutWithDefault(GetInsecurePseudoRandomNumber32()));
       const uint32 actualNumItems = table.GetNumItems();  // may be smaller than numItems, due to duplicate values!
 
       LogTime(MUSCLE_LOG_INFO, "Sorting...\n");
@@ -740,7 +740,7 @@ int main(int argc, char ** argv)
          printf("SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          uint64 startTime = GetRunTime64();
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) (void) iTable.Put(GetInsecurePseudoRandomNumber(), GetInsecurePseudoRandomNumber());  // we want this to be repeatable, hence srand(0)
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) (void) iTable.Put(GetInsecurePseudoRandomNumber32(), GetInsecurePseudoRandomNumber32());  // we want this to be repeatable, hence srand(0)
          AddTally(tallies, "place", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();
@@ -781,7 +781,7 @@ int main(int argc, char ** argv)
          printf("STRING SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
          uint64 startTime = GetRunTime64();
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) (void) sTable.Put(String("%1").Arg(GetInsecurePseudoRandomNumber()), String("%1").Arg(GetInsecurePseudoRandomNumber()));  // we want this to be repeatable, hence srand(0)
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) (void) sTable.Put(String("%1").Arg(GetInsecurePseudoRandomNumber64()), String("%1").Arg(GetInsecurePseudoRandomNumber64()));  // we want this to be repeatable, hence srand(0)
          AddTally(tallies, "place", startTime, NUM_ITEMS);
 
          startTime = GetRunTime64();

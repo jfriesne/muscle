@@ -13,7 +13,7 @@
 #include "util/Directory.h"
 #include "util/FilePathInfo.h"
 #include "util/Hashtable.h"
-#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber64()
 #include "util/NestCount.h"
 #include "util/String.h"
 #include "util/StringTokenizer.h"
@@ -964,23 +964,9 @@ String HumanReadableTimeValues :: ExpandTokens(const String & origString) const
 
    if (newString.Contains("%r"))
    {
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-      std::random_device device;
-      std::mt19937_64 generator(device());
-      std::uniform_int_distribution<uint64> distribution;
-#endif
-
       while(newString.Contains("%r"))
       {
-#ifdef MUSCLE_AVOID_CPLUSPLUS11
-         const uint32 r1 = GetInsecurePseudoRandomNumber(); // the old, not-very-good way to generate a sort-of-random number
-         const uint32 r2 = GetInsecurePseudoRandomNumber(); // we rely on the calling code to call srand() beforehand, if desired
-         const uint64 rn = (((uint64)r1)<<32)|((uint64)r2);
-#else
-         const uint64 rn = distribution(generator);          // the newer (since C++11) and much improved way
-#endif
-
-         char buf[64]; muscleSprintf(buf, UINT64_FORMAT_SPEC, rn);
+         char buf[64]; muscleSprintf(buf, UINT64_FORMAT_SPEC, GetInsecurePseudoRandomNumber64());
          if (newString.Replace("%r", buf, 1) <= 0) break;
       }
    }

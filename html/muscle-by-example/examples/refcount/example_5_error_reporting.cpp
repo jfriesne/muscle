@@ -1,5 +1,5 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
-#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber32()
 #include "util/RefCount.h"
 
 using namespace muscle;
@@ -25,7 +25,7 @@ DECLARE_REFTYPES(MyClass);  // defines MyClassRef and ConstMyClassRef
 
 static MyClassRef MyFactoryFunction()
 {
-   if (GetInsecurePseudoRandomNumber(2) == 0)
+   if (GetInsecurePseudoRandomNumber32(2) == 0)
    {
       return MyClassRef(new MyClass);
    }

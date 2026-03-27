@@ -1137,7 +1137,7 @@ status_t EnsureFileHasNoSharedHardLinks(const char * filePath)
    if (fpi.GetHardLinkCount() < 2) return B_NO_ERROR;  // nothing to do, if we aren't hardlinking anyway
 
    // Oops, gotta make a copy, so that it can be modified without affecting anyone else
-   const String tempPath = String(".%1").Arg(GetRunTime64()+GetInsecurePseudoRandomNumber()).WithPrepend(filePath);
+   const String tempPath = String(".%1").Arg(GetInsecurePseudoRandomNumber64()).WithPrepend(filePath);
    MRETURN_ON_ERROR(CopyFile(filePath, tempPath()));
 
    // Rename() will move the new copy over to the path

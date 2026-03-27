@@ -8,7 +8,7 @@
 #include "system/SetupSystem.h"  // for IsCurrentThreadMainThread()
 #endif
 #include "system/SystemInfo.h"   // for PrintBuildFlags()
-#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber64()
 #include "util/NetworkUtilityFunctions.h"
 #include "util/MemoryAllocator.h"
 
@@ -269,7 +269,7 @@ ReflectServer :: ReflectServer()
    , _keepServerGoing(true)
    , _serverStartedAt(0)
    , _doLogging(true)
-   , _serverSessionID(GetCurrentTime64()+GetRunTime64()+GetInsecurePseudoRandomNumber())
+   , _serverSessionID(GetInsecurePseudoRandomNumber64())
    , _computerIsAboutToSleep(false)
 {
    if (_serverSessionID == 0) _serverSessionID++;  // paranoia:  make sure 0 can be used as a guard value

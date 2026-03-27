@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "system/SetupSystem.h"
-#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber32()
 #include "util/Queue.h"
 #include "util/String.h"
 #include "util/StringTokenizer.h"
@@ -253,7 +253,7 @@ static status_t UnitTestQueue(bool isFromScript)
       q.Clear();
       for (int i=0; i<testSize; i++)
       {
-         const int next = (int) GetInsecurePseudoRandomNumber(255);
+         const int next = (int) GetInsecurePseudoRandomNumber32(255);
          TEST(q.AddTail(next));
          printf("Added item %i = %i\n", i, q[i]);
       }
@@ -267,7 +267,7 @@ static status_t UnitTestQueue(bool isFromScript)
       Queue<String> q2;
       for (int i=0; i<testSize; i++)
       {
-         const int next = (int) GetInsecurePseudoRandomNumber(255);
+         const int next = (int) GetInsecurePseudoRandomNumber32(255);
          char buf[64];
          muscleSprintf(buf, "%i", next);
          TEST(q2.AddTail(buf));
@@ -299,7 +299,7 @@ static status_t UnitTestQueue(bool isFromScript)
       {
          printf("SUM SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) iq[i] = GetInsecurePseudoRandomNumber();  // we want this to be repeatable, hence srand(0)
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) iq[i] = GetInsecurePseudoRandomNumber32();  // we want this to be repeatable, hence srand(0)
 
          uint64 count = 0;
          const uint64 startTime = GetRunTime64();
@@ -323,7 +323,7 @@ static status_t UnitTestQueue(bool isFromScript)
       {
          printf("SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) iq[i] = GetInsecurePseudoRandomNumber();  // we want this to be repeatable, hence srand(0)
+         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) iq[i] = GetInsecurePseudoRandomNumber32();  // we want this to be repeatable, hence srand(0)
 
          const uint64 startTime = GetRunTime64();
          iq.Sort();
@@ -347,7 +347,7 @@ static status_t UnitTestQueue(bool isFromScript)
       {
          printf("STRING SORT SPEED TEST ROUND " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC ":\n", t+1, NUM_RUNS);
 
-         srand(0); for (uint32 i=0; i<NUM_ITEMS; i++) qq[i] = String("FooBarBaz-%1").Arg(GetInsecurePseudoRandomNumber()).PaddedBy(500);  // we want this to be repeatable, hence srand(0)
+         for (uint32 i=0; i<NUM_ITEMS; i++) qq[i] = String("FooBarBaz-%1").Arg(GetInsecurePseudoRandomNumber32()).PaddedBy(500);
 
          const uint64 startTime = GetRunTime64();
          qq.Sort();
@@ -415,7 +415,7 @@ static status_t UnitTestQueue(bool isFromScript)
          int counter = 0;
          for (uint32 j=0; j<i; j++)
          {
-            switch(GetInsecurePseudoRandomNumber(6))
+            switch(GetInsecurePseudoRandomNumber32(6))
             {
                case 0:  case 1: MPRINT_ON_ERROR("AddTail",    qq.AddTail(counter++)); break;
                case 2:  case 3: MPRINT_ON_ERROR("AddHead",    qq.AddHead(counter++)); break;

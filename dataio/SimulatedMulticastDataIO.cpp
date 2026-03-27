@@ -1,5 +1,5 @@
 #include "dataio/SimulatedMulticastDataIO.h"
-#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber64()
 #include "util/NetworkInterfaceInfo.h"
 
 namespace muscle {
@@ -492,7 +492,7 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
          // were started at once and therefore they all ping at once, causing periodic traffic jams on the network
          const uint64 wanderTime = _multicastPingIntervalMicros/4;
 
-         nextMulticastPingTime = now + _multicastPingIntervalMicros + (((int64)GetInsecurePseudoRandomNumber(wanderTime))-(wanderTime/2));
+         nextMulticastPingTime = now + _multicastPingIntervalMicros + (((int64)GetInsecurePseudoRandomNumber64(wanderTime))-(wanderTime/2));
 
          // And we'll also send unicast pings to anyone who we haven't heard from in a while, just to double-check
          // If we haven't heard from someone for a very long time, we'll drop them

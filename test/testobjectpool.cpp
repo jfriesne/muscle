@@ -4,7 +4,7 @@
 
 #include "system/SharedMemory.h"
 #include "system/SetupSystem.h"
-#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber32()
 #include "util/NetworkUtilityFunctions.h"
 #include "util/ObjectPool.h"
 #include "util/RefCount.h"
@@ -53,11 +53,11 @@ int main(int argc, char ** argv)
    int count = isFromScript ? 10000 : -1;
    while(count != 0)
    {
-      const uint32 max = GetInsecurePseudoRandomNumber(10)+1;
+      const uint32 max = GetInsecurePseudoRandomNumber32(10)+1;
       for (uint32 i=0; i<MAX_NUM_REFS; i++)
       {
-         const uint32 idx = GetInsecurePseudoRandomNumber(MAX_NUM_REFS);
-         if (GetInsecurePseudoRandomNumber(max)==0) refs[idx] = GetCounterRefFromPool();
+         const uint32 idx = GetInsecurePseudoRandomNumber32(MAX_NUM_REFS);
+         if (GetInsecurePseudoRandomNumber32(max)==0) refs[idx] = GetCounterRefFromPool();
                                                else refs[idx].Reset();
       }
 

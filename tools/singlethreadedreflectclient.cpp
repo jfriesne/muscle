@@ -128,7 +128,7 @@ int main(int argc, char ** argv)
          MessageRef stateMsg = GetMessageFromPool();
          (void) stateMsg()->AddString("username", "singlethreadedreflectclient");
 
-         (void) stateMsg()->AddPoint("position", Point(GetInsecurePseudoRandomNumber(100)/100.0f, GetInsecurePseudoRandomNumber(100)/100.0f));
+         (void) stateMsg()->AddPoint("position", Point(GetInsecurePseudoRandomNumber32(100)/100.0f, GetInsecurePseudoRandomNumber32(100)/100.0f));
          (void) stateMsg()->AddInt32("color", -1);
 
          MessageRef uploadMsg = GetMessageFromPool(PR_COMMAND_SETDATA);

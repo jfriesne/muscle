@@ -84,9 +84,8 @@ WebSocketMessageIOGateway :: WebSocketMessageIOGateway(const String & getPath, c
 {
    {
       uint8 randomBytes[16];
-      const uint64 base  =  GetCurrentTime64() + GetRunTime64() + (uint64)((uintptr)this);
-      const uint64 nonce1 = base + (1*GetInsecurePseudoRandomNumber());
-      const uint64 nonce2 = base + (2*GetInsecurePseudoRandomNumber());
+      const uint64 nonce1 = GetInsecurePseudoRandomNumber64();
+      const uint64 nonce2 = GetInsecurePseudoRandomNumber64();
       memcpy(&randomBytes[0],              &nonce1, sizeof(nonce1));
       memcpy(&randomBytes[sizeof(nonce1)], &nonce2, sizeof(nonce2));
       _clientGeneratedKey = Base64Encode(randomBytes, sizeof(randomBytes));

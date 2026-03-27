@@ -1,7 +1,7 @@
 #include "system/SetupSystem.h"  // for CompleteSetupSystem
 #include "system/AtomicValue.h"
 #include "system/Thread.h"
-#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber()
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber32()
 #include "util/String.h"
 
 using namespace muscle;
@@ -80,7 +80,7 @@ public:
 
          if (now >= _nextSetTime)
          {
-            char tmpBuf[128]; muscleSprintf(tmpBuf, "Thread %p value " UINT64_FORMAT_SPEC ":" UINT32_FORMAT_SPEC, this, now, GetInsecurePseudoRandomNumber());
+            char tmpBuf[128]; muscleSprintf(tmpBuf, "Thread %p value " UINT64_FORMAT_SPEC ":" UINT32_FORMAT_SPEC, this, now, GetInsecurePseudoRandomNumber32());
             String newStr = tmpBuf;
 
             muscleSprintf(tmpBuf, " checksum=" UINT32_FORMAT_SPEC, newStr.CalculateChecksum());
@@ -94,7 +94,7 @@ public:
 #endif
 
             // Note that we can only get away with calling SetValue() every so often
-            _nextSetTime = now + MillisToMicros(GetInsecurePseudoRandomNumber()%50);
+            _nextSetTime = now + MillisToMicros(GetInsecurePseudoRandomNumber32()%50);
          }
       }
    }
