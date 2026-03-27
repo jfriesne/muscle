@@ -685,7 +685,8 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
    if (_childProcess == INVALID_HANDLE_VALUE) return B_NO_ERROR; // a non-existent child process is an exited child process, if you ask me.
    _childProcessExitCode = io_status_t();                        // reset the exit-reason only when there is an actual child process to wait for
 
-   if (WaitForSingleObject(_childProcess, (maxWaitTimeMicros==MUSCLE_TIME_NEVER)?INFINITE:((DWORD)(maxWaitTimeMicros/1000))) == WAIT_OBJECT_0)
+   const DWORD wRet = WaitForSingleObject(_childProcess, (maxWaitTimeMicros==MUSCLE_TIME_NEVER)?INFINITE:((DWORD)(maxWaitTimeMicros/1000)));
+   if ((wRet == WAIT_OBJECT_0)||(wRet == WAIT_ABANDONED))
    {
       DWORD exitCode;
       if (GetExitCodeProcess(_childProcess, &exitCode))
@@ -699,6 +700,8 @@ status_t ChildProcessDataIO :: WaitForChildProcessToExit(uint64 maxWaitTimeMicro
       }
       return B_NO_ERROR;
    }
+   else if (wRet == WAIT_TIMEOUT) return B_TIMED_OUT;
+   else                           return B_ERRNO;
 #else
 # if defined(__APPLE__) && defined(MUSCLE_ENABLE_AUTHORIZATION_EXECUTE_WITH_PRIVILEGES)
    if (_ioPipe.GetFile())

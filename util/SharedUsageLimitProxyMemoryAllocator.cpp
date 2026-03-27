@@ -48,14 +48,14 @@ void SharedUsageLimitProxyMemoryAllocator :: ResetDaemonCounter()
    _localCachedBytes = _localAllocated = 0;
 }
 
-status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounter(ssize_t byteDelta)
+status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounter(muscle_ssize_t byteDelta)
 {
    if (byteDelta > 0)
    {
       if ((size_t)byteDelta > _localCachedBytes)
       {
          // Hmm, we don't have enough bytes locally, better ask for some from the shared region
-         const ssize_t wantBytes = ((byteDelta/CACHE_BYTES)+1)*CACHE_BYTES; // round up to nearest multiple
+         const muscle_ssize_t wantBytes = ((byteDelta/CACHE_BYTES)+1)*CACHE_BYTES; // round up to nearest multiple
          if (ChangeDaemonCounterAux(wantBytes).IsOK()) _localCachedBytes += wantBytes;
          if ((size_t)byteDelta > _localCachedBytes) return B_RESOURCE_LIMIT;  // still not enough!?
       }
@@ -66,7 +66,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounter(ssize_t byt
       _localCachedBytes -= byteDelta;  // actually adds, since byteDelta is negative
       if (_localCachedBytes > 2*CACHE_BYTES)
       {
-         const ssize_t diffBytes = (_localCachedBytes-CACHE_BYTES);  // FogBugz #4569 -- reduce cache to our standard cache size
+         const muscle_ssize_t diffBytes = (_localCachedBytes-CACHE_BYTES);  // FogBugz #4569 -- reduce cache to our standard cache size
          if (ChangeDaemonCounterAux(-diffBytes).IsOK()) _localCachedBytes -= diffBytes;
       }
    }
@@ -74,7 +74,7 @@ status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounter(ssize_t byt
 }
 
 // Locks the shared memory region and adjusts our counter there.  This is a bit expensive, so we try to minimize the number of times we do it.
-status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounterAux(ssize_t byteDelta)
+status_t SharedUsageLimitProxyMemoryAllocator :: ChangeDaemonCounterAux(muscle_ssize_t byteDelta)
 {
    if (_memberID < 0) return B_BAD_OBJECT;
 
@@ -120,16 +120,16 @@ size_t SharedUsageLimitProxyMemoryAllocator :: CalculateTotalAllocationSum() con
 
 status_t SharedUsageLimitProxyMemoryAllocator :: AboutToAllocate(size_t cab, size_t arb)
 {
-   MRETURN_ON_ERROR(ChangeDaemonCounter((ssize_t)arb));
+   MRETURN_ON_ERROR(ChangeDaemonCounter((muscle_ssize_t)arb));
 
    const status_t ret = ProxyMemoryAllocator::AboutToAllocate(cab, arb);
-   if (ret.IsError()) (void) ChangeDaemonCounter(-((ssize_t)arb)); // roll back!
+   if (ret.IsError()) (void) ChangeDaemonCounter(-((muscle_ssize_t)arb)); // roll back!
    return ret;
 }
 
 void SharedUsageLimitProxyMemoryAllocator :: AboutToFree(size_t cab, size_t arb)
 {
-   (void) ChangeDaemonCounter(-((ssize_t)arb));
+   (void) ChangeDaemonCounter(-((muscle_ssize_t)arb));
    ProxyMemoryAllocator::AboutToFree(cab, arb);
 }
 

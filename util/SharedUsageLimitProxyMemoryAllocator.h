@@ -69,8 +69,8 @@ public:
 
 private:
    void ResetDaemonCounter(); // Note: this assumes the SharedMemory is already locked for read/write!
-   status_t ChangeDaemonCounter(   ssize_t byteDelta);  // Note: this assumes the SharedMemory is not locked yet
-   status_t ChangeDaemonCounterAux(ssize_t byteDelta);  // Note: this assumes the SharedMemory is not locked yet
+   status_t ChangeDaemonCounter(   muscle_ssize_t byteDelta);  // Note: this assumes the SharedMemory is not locked yet
+   status_t ChangeDaemonCounterAux(muscle_ssize_t byteDelta);  // Note: this assumes the SharedMemory is not locked yet
    MUSCLE_NODISCARD size_t CalculateTotalAllocationSum() const;
    MUSCLE_NODISCARD size_t GetNumSlots() const {return _shared.GetAreaSize()/sizeof(size_t);}
    MUSCLE_NODISCARD size_t * GetArrayPointer() {return reinterpret_cast<size_t *>(_shared());}

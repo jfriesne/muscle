@@ -1,4 +1,5 @@
-#include "system/SharedMemory.h"  // must be first!
+#include "system/SharedMemory.h"        // must be first!
+#include "util/MiscUtilityFunctions.h"  // for GetInsecurePseudoRandomNumber64()
 #include "util/TimeUtilityFunctions.h"  // for Snooze64()
 
 #if !defined(WIN32) && !defined(MUSCLE_FAKE_SHARED_MEMORY)

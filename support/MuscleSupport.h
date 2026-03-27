@@ -1744,9 +1744,11 @@ typedef ptrdiff_t ptrdiff; /**< ptrdiff is a signed integer type that is guarant
 #endif
 
 #if defined(WIN32) || defined(CYGWIN)
-typedef DWORD muscle_pid_t; /**< type to use for representing a process ID on the host OS */
+typedef DWORD muscle_pid_t;     /**< type to use for representing a process ID on the host OS */
+typedef SSIZE_T muscle_ssize_t; /**< type to use for representing a signed size_t on the host OS */
 #else
-typedef pid_t muscle_pid_t; /**< type to use for representing a process ID on the host OS */
+typedef pid_t muscle_pid_t;     /**< type to use for representing a process ID on the host OS */
+typedef ssize_t muscle_ssize_t; /**< type to use for representing a signed size_t on the host OS */
 #endif
 
 #ifdef __cplusplus

@@ -25,6 +25,8 @@ key:  - new feature
    - On Windows, the "debugcrashes" crash-handler now also prints out
      a stack trace in response to either a SIGABRT, a CRT debug-mode
      assertion failure, or a std::terminate() call.
+   - Added a muscle_ssize_t typedef to deal with the fact that Win32
+     declares SSIZE_T instead of ssize_t.
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
      DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
      variadic macros.
