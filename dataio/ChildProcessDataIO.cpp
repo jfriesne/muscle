@@ -672,10 +672,12 @@ static io_status_t GetExitCodeFromWaitPIDStatus(int status)
                         else return io_status_t(strsignal(WTERMSIG(status)));
    }
    if (WIFSTOPPED(status)) return io_status_t(strsignal(WSTOPSIG(status)));
-   if (WIFEXITED(status))  return io_status_t((int32) WEXITSTATUS(status));
-
-   const int32 es = (int32) WEXITSTATUS(status);
-   return io_status_t(muscleMax(es, (int32)0));
+   if (WIFEXITED(status))
+   {
+      const int32 es = (int32) WEXITSTATUS(status);
+      return io_status_t(muscleMax(es, (int32)0));
+   }
+   return io_status_t("Unknown process exit status");
 }
 #endif
 
@@ -992,7 +994,11 @@ void ChildProcessDataIO :: IOThreadEntry()
                }
                else break;  // no more space to write to, for now
             }
-            else IOThreadAbort();  // wtf?
+            else
+            {
+               IOThreadAbort();  // wtf?
+               break;
+            }
          }
 
          if ((totalNumBytesRead > 0)||(totalNumBytesWritten > 0))
