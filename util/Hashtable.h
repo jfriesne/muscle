@@ -2316,7 +2316,7 @@ IsEqualTo(const HashtableBase<KeyType, ValueType, HashFunctorType> & rhs, bool c
    {
       while(e)
       {
-         const HashtableEntryBase * hisE = rhs.GetEntry(e->_hash, e->_key);
+         const HashtableEntryBase * hisE = rhs.GetEntry(rhs.ComputeHash(e->_key), e->_key);
          if ((hisE == NULL)||(!(hisE->_value == e->_value))) return false;
          e = this->GetEntryIterNextChecked(e);
       }
@@ -2630,7 +2630,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::AreKeySetsEqual(const Hashtabl
    if (GetNumItems() != rhs.GetNumItems()) return false;
    if (considerOrdering)
    {
-      ConstHashtableIterator<KeyType, ValueType, HashFunctorType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
+      ConstHashtableIterator<KeyType, HisValueType, HisHashFunctorType> rhsIter(rhs, HTIT_FLAG_NOREGISTER);
       for (ConstHashtableIterator<KeyType, ValueType, HashFunctorType> iter(*this, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++, rhsIter++) if (!AreKeysEqual(iter.GetKey(),rhsIter.GetKey())) return false;
    }
    else
@@ -3107,7 +3107,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Remove(const HashtableBase<His
       const typename HashtableBase<HisKeyType,HisValueType,HisHashFunctorType>::HashtableEntryBase * e = pairs.IndexToEntryChecked(pairs._iterHeadIdx);
       while(e)
       {
-         if (RemoveAux(e->_hash, e->_key, NULL).IsOK()) removeCount++;
+         if (Remove(e->_key).IsOK()) removeCount++;  // Can't call RemoveAux() because (pairs) might have a different HashFunctor than we do
          e = pairs.GetEntryIterNextChecked(e);
       }
    }
@@ -3126,7 +3126,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Intersect(const HashtableBase<
       while(e)
       {
          const HashtableEntryBase * next = this->GetEntryIterNextChecked(e); // save this first, since we might be erasing (e)
-         if ((pairs.GetEntry(e->_hash, e->_key) == NULL)&&(this->RemoveAux(e->_hash, e->_key, NULL).IsOK())) removeCount++;
+         if ((pairs.ContainsKey(e->_key) == false)&&(this->RemoveAux(e->_hash, e->_key, NULL).IsOK())) removeCount++;   // can't call pairs.GetEntry() because (pairs) might use a different HashFunctor than we do
          e = next;
       }
    }
@@ -3143,7 +3143,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::HasKeysInCommonWith(const Hash
       const HashtableEntryBase * e = this->IndexToEntryChecked(_iterHeadIdx);
       while(e)
       {
-         if (rhs.GetEntry(e->_hash, e->_key) != NULL) return true;
+         if (rhs.ContainsKey(e->_key)) return true;  // can't call rhs.GetEntry() because (rhs) might use a different HashFunctor than we do
          e = this->GetEntryIterNextChecked(e);
       }
       return false;
