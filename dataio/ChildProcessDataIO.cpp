@@ -248,9 +248,6 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                      SafeCloseHandle(bbIn);   // don't need these after the child process is launched
                      SafeCloseHandle(bbOut);
 
-                     SafeCloseHandle(childStdinRead);
-                     SafeCloseHandle(childStdoutWrite);
-
                      delete [] newBlock;
                      newBlock = NULL;  // void possible double-delete below
 
