@@ -9,45 +9,47 @@
 
 using namespace muscle;
 
-static void Kick(MessageIOGateway & gw, const char * arg);
-void Kick(MessageIOGateway & gw, const char * arg)
+static status_t Kick(MessageIOGateway & gw, const char * arg);
+status_t Kick(MessageIOGateway & gw, const char * arg)
 {
    MessageRef msg = GetMessageFromPool(PR_COMMAND_KICK);
-   if (msg())
-   {
-      String str("/");
-      str += arg;
-      str += "/*";
-      (void) msg()->AddString(PR_NAME_KEYS, str);
-      (void) gw.AddOutgoingMessage(msg);
-      LogTime(MUSCLE_LOG_INFO, "Kicking users matching pattern [%s]\n", str.Cstr());
-   }
+   MRETURN_ON_ERROR(msg);
+
+   String str("/");
+   str += arg;
+   str += "/*";
+   MRETURN_ON_ERROR(msg()->AddString(PR_NAME_KEYS, str));
+   MRETURN_ON_ERROR(gw.AddOutgoingMessage(msg));
+   LogTime(MUSCLE_LOG_INFO, "Kicking users matching pattern [%s]\n", str.Cstr());
+
+   return B_NO_ERROR;
 }
 
-static void Ban(MessageIOGateway & gw, const char * arg, bool unBan);
-void Ban(MessageIOGateway & gw, const char * arg, bool unBan)
+static status_t Ban(MessageIOGateway & gw, const char * arg, bool unBan);
+status_t Ban(MessageIOGateway & gw, const char * arg, bool unBan)
 {
    MessageRef msg = GetMessageFromPool(unBan ? PR_COMMAND_REMOVEBANS : PR_COMMAND_ADDBANS);
-   if (msg())
-   {
-      (void) msg()->AddString(PR_NAME_KEYS, arg);
-      (void) gw.AddOutgoingMessage(msg);
-      if (unBan) LogTime(MUSCLE_LOG_INFO, "Removing ban patterns that match pattern [%s]\n", arg);
-            else LogTime(MUSCLE_LOG_INFO, "Adding ban pattern [%s]\n", arg);
-   }
+   MRETURN_ON_ERROR(msg);
+   MRETURN_ON_ERROR(msg()->AddString(PR_NAME_KEYS, arg));
+   MRETURN_ON_ERROR(gw.AddOutgoingMessage(msg));
+   if (unBan) LogTime(MUSCLE_LOG_INFO, "Removing ban patterns that match pattern [%s]\n", arg);
+         else LogTime(MUSCLE_LOG_INFO, "Adding ban pattern [%s]\n", arg);
+
+   return B_NO_ERROR;
 }
 
-static void Require(MessageIOGateway & gw, const char * arg, bool unRequire);
-void Require(MessageIOGateway & gw, const char * arg, bool unRequire)
+static status_t Require(MessageIOGateway & gw, const char * arg, bool unRequire);
+status_t Require(MessageIOGateway & gw, const char * arg, bool unRequire)
 {
    MessageRef msg = GetMessageFromPool(unRequire ? PR_COMMAND_REMOVEREQUIRES : PR_COMMAND_ADDREQUIRES);
-   if (msg())
-   {
-      (void) msg()->AddString(PR_NAME_KEYS, arg);
-      (void) gw.AddOutgoingMessage(msg);
-      if (unRequire) LogTime(MUSCLE_LOG_INFO, "Removing require patterns that match pattern [%s]\n", arg);
-            else LogTime(MUSCLE_LOG_INFO, "Adding require pattern [%s]\n", arg);
-   }
+   MRETURN_ON_ERROR(msg);
+
+   MRETURN_ON_ERROR(msg()->AddString(PR_NAME_KEYS, arg));
+   MRETURN_ON_ERROR(gw.AddOutgoingMessage(msg));
+   if (unRequire) LogTime(MUSCLE_LOG_INFO, "Removing require patterns that match pattern [%s]\n", arg);
+         else LogTime(MUSCLE_LOG_INFO, "Adding require pattern [%s]\n", arg);
+
+   return B_NO_ERROR;
 }
 
 // This is a little admin program, useful for kicking, banning, or unbanning users
@@ -81,7 +83,7 @@ int main(int argc, char ** argv)
    }
 
    const char * cln = strchr(hostName, ':');
-   const int16 port = cln ? atoi(cln+1) : 2960;
+   const uint16 port = cln ? (uint16) atoi(cln+1) : 2960;
 
    ConstSocketRef s = Connect(String(hostName).Substring(0, ":")(), port, "admin", false);
    if (s() == NULL)
@@ -103,23 +105,36 @@ int main(int argc, char ** argv)
          char * arg = colon+1;
          *colon = '\0';
 
-              if (strcmp(line, "kick")      == 0) Kick(gw, arg);
-         else if (strcmp(line, "ban")       == 0) Ban(gw, arg, false);
-         else if (strcmp(line, "unban")     == 0) Ban(gw, arg, true);
-         else if (strcmp(line, "require")   == 0) Require(gw, arg, false);
-         else if (strcmp(line, "unrequire") == 0) Require(gw, arg, true);
+         status_t r;
+
+              if (strcmp(line, "kick")      == 0) r = Kick(gw, arg);
+         else if (strcmp(line, "ban")       == 0) r = Ban(gw, arg, false);
+         else if (strcmp(line, "unban")     == 0) r = Ban(gw, arg, true);
+         else if (strcmp(line, "require")   == 0) r = Require(gw, arg, false);
+         else if (strcmp(line, "unrequire") == 0) r = Require(gw, arg, true);
          else if (strcmp(line, "kickban")   == 0)
          {
-            Kick(gw, arg);
-            Ban(gw, arg, false);
+            r  = Kick(gw, arg);
+            r |= Ban(gw, arg, false);
+         }
+
+         if (r.IsError())
+         {
+            LogTime(MUSCLE_LOG_ERROR, "[%s] command generation failed [%s]\n", line, r());
+            return 10;
          }
       }
    }
 
    // Lastly, request a PONG so we know when all has been done
-   (void) gw.AddOutgoingMessage(MessageRef(GetMessageFromPool(PR_COMMAND_PING)));
+   if (gw.AddOutgoingMessage(MessageRef(GetMessageFromPool(PR_COMMAND_PING))).IsError())
+   {
+      LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't queue ping!\n");
+      return 10;
+   }
 
    // send them, and then wait for the pong back
+   const uint64 timeoutTime = GetRunTime64() + SecondsToMicros(30);
    uint32 errorCount = 0;
    QueueGatewayMessageReceiver inQueue;
    SocketMultiplexer multiplexer;
@@ -130,7 +145,7 @@ int main(int argc, char ** argv)
       if (gw.HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(fd);
 
       status_t ret;
-      if (multiplexer.WaitForEvents().IsError(ret))
+      if (multiplexer.WaitForEvents(timeoutTime).IsError(ret))
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "WaitForEvents() failed, exiting! [%s]\n", ret());
          errorCount++;
@@ -161,13 +176,13 @@ int main(int argc, char ** argv)
                case PR_RESULT_ERRORACCESSDENIED:
                {
                   errorCount++;
-                  ConstMessageRef subMsg;
                   LogTime(MUSCLE_LOG_ERROR, "Access denied!  ");
                   const char * who;
+                  ConstMessageRef subMsg;
                   if ((msg->FindMessage(PR_NAME_REJECTED_MESSAGE, subMsg).IsOK())&&(subMsg()->FindString(PR_NAME_KEYS, &who).IsOK()))
                   {
                      const char * action = "do that to";
-                     switch(subMsg() ? subMsg()->what : 0)
+                     switch(subMsg()->what)
                      {
                         case PR_COMMAND_KICK:           action = "kick";      break;
                         case PR_COMMAND_ADDBANS:        action = "ban";       break;
@@ -185,5 +200,6 @@ int main(int argc, char ** argv)
       }
    }
    LogTime(MUSCLE_LOG_INFO, "Exiting. (" UINT32_FORMAT_SPEC " errors)\n", errorCount);
-   return 0;
+
+   return (errorCount>0) ? 10 : 0;
 }
