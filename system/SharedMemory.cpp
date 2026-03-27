@@ -48,6 +48,7 @@ SharedMemory :: ~SharedMemory()
 
 status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool returnLocked)
 {
+   bool createdSemaphore = false;
    status_t ret;
 
    UnsetArea();  // make sure everything is deallocated to start with
@@ -105,7 +106,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
             _file = CreateFileA(_fileName(), GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_FLAG_WRITE_THROUGH|FILE_FLAG_RANDOM_ACCESS, NULL);
             if (_file != INVALID_HANDLE_VALUE)
             {
-               _isCreatedLocally = (GetLastError() != ERROR_ALREADY_EXISTS);
+               createdSemaphore = _isCreatedLocally = (GetLastError() != ERROR_ALREADY_EXISTS);
                if (createSize == 0)
                {
                   createSize = GetFileSize(_file, NULL);
@@ -154,6 +155,8 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
    _semID = semget(requestedKey, 1, IPC_CREAT|IPC_EXCL|permissionBits);
    if (_semID >= 0)
    {
+      createdSemaphore = true;   // in case we need to roll back after an error later on
+
       // there's a small race condition here (between when we create the semaphore and when
       // we adjust its value upwards), so we'll poll-loop on sem_otime in the other process/codepath
       // to avoid any chance of getting bit by it
@@ -192,7 +195,11 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
             }
          }
 
-         if (okToGo == false) _semID = -1;
+         if (okToGo == false)
+         {
+            ret |= B_TIMED_OUT;
+            _semID = -1;
+         }
       }
       else ret = B_ERRNO;
    }
@@ -251,6 +258,7 @@ status_t SharedMemory :: SetArea(const char * keyString, uint32 createSize, bool
    }
 #endif
 
+   if (createdSemaphore) (void) DeleteArea();  // roll back creation of shared memory area, iff we created it just now
    UnsetArea();  // oops, roll back everything!
    return ret | B_BAD_OBJECT;
 }
