@@ -27,14 +27,18 @@ static status_t LoadCryptoKey(bool isPublic, const String * optKeyFilePath, Refl
 
 #ifdef MUSCLE_ENABLE_SSL
    FileDataIO fdio(muscleFopen(optKeyFilePath->Cstr(), "rb"));
-   ByteBufferRef fileData = GetByteBufferFromPool((uint32)fdio.GetLength());
-   if ((fdio.GetFile())&&(fileData())&&(fdio.ReadFully(fileData()->GetBuffer(), fileData()->GetNumBytes()).IsOK()))
+   if (fdio.GetFile())
    {
-      if (isPublic) server.SetSSLPublicKeyCertificate(fileData);
-               else server.SetSSLPrivateKey(fileData);
+      ByteBufferRef fileData = GetByteBufferFromPool((uint32)fdio.GetLength());
+      if ((fileData())&&(fdio.ReadFully(fileData()->GetBuffer(), fileData()->GetNumBytes()).IsOK()))
+      {
+         if (isPublic) server.SetSSLPublicKeyCertificate(fileData);
+                  else server.SetSSLPrivateKey(fileData);
 
-      LogTime(MUSCLE_LOG_INFO, "Using %s key file [%s] to authenticate with connecting clients\n", desc, optKeyFilePath->Cstr());
-      return B_NO_ERROR;
+         LogTime(MUSCLE_LOG_INFO, "Using %s key file [%s] to authenticate with connecting clients\n", desc, optKeyFilePath->Cstr());
+         return B_NO_ERROR;
+      }
+      else LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't set up %s key file [%s]\n", desc, optKeyFilePath->Cstr());
    }
    else LogTime(MUSCLE_LOG_CRITICALERROR, "Couldn't load %s key file [%s] (file not found?)\n", desc, optKeyFilePath->Cstr());
 #else
@@ -113,8 +117,8 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    {
       for (int32 i=0; (args.FindString("port", i, &value).IsOK()); i++)
       {
-         const int16 port = (int16) atoi(value);
-         if (port >= 0) (void) listenPorts.PutWithDefault(IPAddressAndPort(invalidIP, port));
+         const uint16 port = (uint16) atoi(value);
+         if (port > 0) (void) listenPorts.PutWithDefault(IPAddressAndPort(invalidIP, port));
       }
 
       for (int32 i=0; (args.FindString("listen", i, &value).IsOK()); i++)
@@ -146,8 +150,11 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    if (args.FindString("maxmem", &value).IsOK())
    {
       const int megs = muscleMax(1, atoi(value));
-      LogTime(MUSCLE_LOG_INFO, "Limiting memory usage to %i megabyte%s.\n", megs, (megs==1)?"":"s");
-      maxBytes = megs*1024L*1024L;
+      if (WillUnsignedMultiplyOverflow((uint32)megs, (uint32)(1024*1024)) == false)
+      {
+         LogTime(MUSCLE_LOG_INFO, "Limiting memory usage to %i megabyte%s.\n", megs, (megs==1)?"":"s");
+         maxBytes = megs*1024L*1024L;
+      }
    }
 #endif
 
@@ -218,6 +225,8 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
 
    {
       const char * privNames[] = {"privkick", "privban", "privunban", "privall"};
+      MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(privNames, PR_NUM_PRIVILEGES+1);
+
       for (int p=0; p<=PR_NUM_PRIVILEGES; p++)  // if (p == PR_NUM_PRIVILEGES), that means all privileges
       {
          for (int32 q=0; (args.FindString(privNames[p], q, &value).IsOK()); q++)
