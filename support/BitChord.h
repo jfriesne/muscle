@@ -212,10 +212,10 @@ public:
    bool operator !=(const BitChord & rhs) const {return !(*this == rhs);}
 
    /** @copydoc DoxyTemplate::operator<(const DoxyTemplate &) const */
-   bool operator < (const BitChord &rhs) const {if (this != &rhs) {for (int i=0; i<NUM_WORDS; i++) {if (_words[i] < rhs._words[i]) return true; if (_words[i] > rhs._words[i]) return false;}} return false;}
+   bool operator < (const BitChord &rhs) const {if (this != &rhs) {for (int i=NUM_WORDS-1; i>=0; i--) {if (_words[i] < rhs._words[i]) return true; if (_words[i] > rhs._words[i]) return false;}} return false;}
 
    /** @copydoc DoxyTemplate::operator>(const DoxyTemplate &) const */
-   bool operator > (const BitChord &rhs) const {if (this != &rhs) {for (int i=0; i<NUM_WORDS; i++) {if (_words[i] > rhs._words[i]) return true; if (_words[i] < rhs._words[i]) return false;}} return false;}
+   bool operator > (const BitChord &rhs) const {if (this != &rhs) {for (int i=NUM_WORDS-1; i>=0; i--) {if (_words[i] > rhs._words[i]) return true; if (_words[i] < rhs._words[i]) return false;}} return false;}
 
    /** @copydoc DoxyTemplate::operator<=(const DoxyTemplate &) const */
    bool operator <=(const BitChord &rhs) const {return !(*this > rhs);}
@@ -253,12 +253,16 @@ public:
    /** @copydoc DoxyTemplate::Unflatten(DataUnflattener & unflat) */
    status_t Unflatten(DataUnflattener & unflat)
    {
-      const uint32 numBitsToRead  = unflat.ReadInt32();
-      const uint32 numWordsToRead = muscleMin((uint32)NUM_WORDS, (numBitsToRead+NUM_BITS_PER_WORD-1)/NUM_BITS_PER_WORD);
+      const uint32 numBitsToRead = unflat.ReadInt32();
+      if (WillUnsignedAddOverflow(numBitsToRead, (uint32) (NUM_BITS_PER_WORD-1))) return B_BAD_DATA;
+
+      const uint32 clampedNumBitsToRead = muscleMin(numBitsToRead, GetNumBitsInBitChord());
+
+      const uint32 numWordsToRead = muscleMin((uint32)NUM_WORDS, (clampedNumBitsToRead+NUM_BITS_PER_WORD-1)/NUM_BITS_PER_WORD);
       for (uint32 i=0; i<numWordsToRead; i++) _words[i] = unflat.ReadInt32();
 
       ClearUnusedBits();   // make sure we didn't read in non-zero values for any bits that we don't use
-      for (uint32 i=numBitsToRead; i<NumBits; i++) ClearBit(i);  // any bits that we didn't read (because the data was too short) should be cleared
+      for (uint32 i=clampedNumBitsToRead; i<NumBits; i++) ClearBit(i);  // any bits that we didn't read (because the data was too short) should be cleared
       return unflat.GetStatus();
    }
 
@@ -318,7 +322,7 @@ public:
      */
    template<typename ...Bits> MUSCLE_NODISCARD bool AreAnyOfTheseBitsSet(Bits... bits) const {const int arr[] {bits...}; for (auto bit : arr) if (IsBitSet(bit)) return true; return false;}
 
-   /** Convenience method.  Returns true if at least one of the specified bits is set.
+   /** Convenience method.  Returns true if all of the specified bits is set.
      * @param bits a list of bit-indices indicating which bit(s) to test
      * @returns true iff every one of the specified bits is set
      * @note this method can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
@@ -332,7 +336,7 @@ public:
      */
    template<typename ...Bits> MUSCLE_NODISCARD bool AreAnyOfTheseBitsUnset(Bits... bits) const {const int arr[] {bits...}; for (auto bit : arr) if (IsBitSet(bit) == false) return true; return false;}
 
-   /** Convenience method.  Returns true if at least one of the specified bits is unset.
+   /** Convenience method.  Returns true if all of the specified bits are unset.
      * @param bits a list of bit-indices indicating which bit(s) to test
      * @returns true iff every one of the specified bits is unset
      * @note this method can be used (with up to 32 arguments) even when MUSCLE_AVOID_CPLUSPLUS11 is defined, via clever ifdef and macro magic
@@ -524,9 +528,9 @@ public:
             else if (Strcasecmp(t, "AllBitsSet") == 0) return WithAllBitsSet();
             else if (muscleInRange(t[0], '0', '9'))
             {
-               const uint32 startIdx = muscleClamp((uint32) atoi(t), (uint32)0, NumBits);
+               const uint32 startIdx = muscleClamp((uint32) atol(t), (uint32)0, NumBits);
                const char * dash = strrchr(t, '-');
-               const uint32 endIdx = dash ? muscleClamp((uint32) (atoi(dash+1)+1), startIdx, NumBits) : muscleMin(startIdx+1, NumBits);
+               const uint32 endIdx = dash ? muscleClamp((uint32) (atol(dash+1)+1), startIdx, NumBits) : muscleMin(startIdx+1, NumBits);
                for (uint32 i=startIdx; i<endIdx; i++) ret.SetBit(i);
             }
          }
@@ -689,7 +693,7 @@ public:
    {
       MASSERT(whichByte < NUM_BYTES, "BitChord::SetByte:  whichByte was out of range!\n");
 
-      const uint32 bitShiftOffset = (whichByte*NUM_BITS_PER_BYTE);
+      const uint32 bitShiftOffset = ((whichByte%NUM_BYTES_PER_WORD)*NUM_BITS_PER_BYTE);
       uint32 & word = _words[whichByte/NUM_BYTES_PER_WORD];
       word &= ~(((uint32)0xFF)      << bitShiftOffset);
       word |=  (((uint32)byteValue) << bitShiftOffset);
@@ -709,9 +713,9 @@ public:
 private:
    static int8 ParseHexChar(char c)
    {
-      if (muscleInRange(c, '0', '9')) return c-'0';
-      if (muscleInRange(c, 'A', 'F')) return c-'A';
-      if (muscleInRange(c, 'a', 'f')) return c-'a';
+      if (muscleInRange(c, '0', '9')) return    c-'0';
+      if (muscleInRange(c, 'A', 'F')) return 10+c-'A';
+      if (muscleInRange(c, 'a', 'f')) return 10+c-'a';
       return -1;
    }
 
@@ -735,9 +739,9 @@ private:
    }
 #endif
 
-   MUSCLE_NODISCARD bool IsBitSetUnchecked(uint32 whichBit) const {return ((_words[whichBit/NUM_BITS_PER_WORD] & (1<<(whichBit%NUM_BITS_PER_WORD))) != 0);}
-   void ClearBitUnchecked(uint32 whichBit) {_words[whichBit/NUM_BITS_PER_WORD] &= ~(1<<(whichBit%NUM_BITS_PER_WORD));}
-   void SetBitUnchecked(  uint32 whichBit) {_words[whichBit/NUM_BITS_PER_WORD] |=  (1<<(whichBit%NUM_BITS_PER_WORD));}
+   MUSCLE_NODISCARD bool IsBitSetUnchecked(uint32 whichBit) const {return ((_words[whichBit/NUM_BITS_PER_WORD] & (((uint32)1)<<(whichBit%NUM_BITS_PER_WORD))) != 0);}
+   void ClearBitUnchecked(uint32 whichBit) {_words[whichBit/NUM_BITS_PER_WORD] &= ~(((uint32)1)<<(whichBit%NUM_BITS_PER_WORD));}
+   void SetBitUnchecked(  uint32 whichBit) {_words[whichBit/NUM_BITS_PER_WORD] |=  (((uint32)1)<<(whichBit%NUM_BITS_PER_WORD));}
    void SetBitUnchecked(  uint32 whichBit, bool newValue)
    {
       if (newValue) SetBitUnchecked(whichBit);
