@@ -22,7 +22,7 @@ namespace muscle {
  */
 
 /** A value that GetPulseTime() can return to indicate that Pulse() should never be called. */
-#define MUSCLE_TIME_NEVER ((uint64)-1) // (9223372036854775807LL)
+#define MUSCLE_TIME_NEVER ((uint64)-1) // (18446744073709551615LL)
 
 /** Returns the current real-time clock time as a uint64.  The returned value is expressed
  *  as microseconds since the beginning of the year 1970.

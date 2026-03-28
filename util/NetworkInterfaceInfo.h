@@ -47,7 +47,7 @@ enum {
    // [future flags could go here...]
    NUM_GNII_FLAGS,                                            /**< Guard value */
 
-   // For convenience, GNII_FLAG_INCLUDE_MUSCLE_PREFERRED_INTERFACES will specify interfaces of the family specified by MUSCLE_AVOID_IPV6's presence/abscence.
+   // For convenience, GNII_FLAG_INCLUDE_MUSCLE_PREFERRED_INTERFACES will specify interfaces of the family specified by MUSCLE_AVOID_IPV6's presence/absence.
 #ifdef MUSCLE_AVOID_IPV6
    GNII_FLAG_INCLUDE_MUSCLE_PREFERRED_INTERFACES = GNII_FLAG_INCLUDE_IPV4_INTERFACES, /**< If set, IPv4-specific or IPv6-specific interfaces will be returned (depending on whether MUSCLE_AVOID_IPV6 was specified during compilation) */
 #else
@@ -62,7 +62,7 @@ DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(GNIIFlags, NUM_GNII_FLAGS, _gniiFlagLabels)
 
 /** Data-holding class that represents the attributes of a Network Interface.
   * The GetNetworkInterfaceInfos() function returns a Queue of NetworkInterfaceInfo objects
-  * that desccribe some or all of the network interfaces attached to the local computer.
+  * that describe some or all of the network interfaces attached to the local computer.
   */
 class MUSCLE_NODISCARD NetworkInterfaceInfo MUSCLE_FINAL_CLASS
 {
@@ -77,7 +77,7 @@ public:
      * @param netmask The netmask being used by this interface.
      * @param broadcastIP The broadcast IP address associated with this interface.
      * @param enabled True iff the interface is currently enabled; false if it is not.
-     * @param copper True iff the interface is currently operations (eg has a connected ethernet cable plugged into it)
+     * @param copper True iff the interface is currently operational (eg has a connected ethernet cable plugged into it)
      * @param macAddress 48-bit MAC address value, or 0 if MAC address is unknown.
      * @param hardwareType a NETWORK_INTERFACE_HARDWARE_TYPE_* value (NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN if the hardware type isn't known)
      * @param mtu Max Transfer unit size of this network interface, in bytes
@@ -112,7 +112,7 @@ public:
    /** Returns a NETWORK_INTERFACE_HARDWARE_TYPE_* values describing the type of networking hardware this interface corresponds to.
      * @note that this functionality is currently implemented for MacOS/X, Linux, and Windows only.
      * Under other OS's this method currently only returns NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN
-     * or NETWORK_INTERFACE_HARDWARE_LOOPBACK.
+     * or NETWORK_INTERFACE_HARDWARE_TYPE_LOOPBACK.
      */
    MUSCLE_NODISCARD uint32 GetHardwareType() const {return _hardwareType;}
 
@@ -184,8 +184,8 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 /** This is a more limited version of GetNetworkInterfaceInfos(), included for convenience.
   * Instead of returning all information about the local host's network interfaces, this
   * one returns only their IP addresses.  It is the same as calling GetNetworkInterfaceInfos()
-  * and then iterating the returned list to assemble a list only of the IP addresses returned
-  * by GetBroadcastAddress().
+  * and then iterating the returned list of NetworkInterfaceInfo objects to assemble a list
+  * of the IP addresses returned by GetLocalAddress().
   * @param retAddresses On success, zero or more IPAddresses will be added to this Queue for you to look at.
   * @param includeFlags A chord of GNII_FLAG_INCLUDE_* bits indicating which types of network interface you want to be
   *                    included in the returned list.  Defaults to GNII_FLAG_INCLUDE_ALL_ADDRESSED_INTERFACES, which
