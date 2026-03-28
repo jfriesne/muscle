@@ -77,7 +77,12 @@ public:
      * print each line with more spaces at the front.
      * @param indent how many additional spaces to indent in the returned OutputPrinter.  Defaults to 3.
      */
-   OutputPrinter WithIndent(uint32 indent = 3) const {return OutputPrinter(_logSeverity, _addToString, _file, _indent+indent);}
+   OutputPrinter WithIndent(uint32 indent = 3) const
+   {
+      OutputPrinter ret(_logSeverity, _addToString, _file, _indent+indent);
+      ret._isAtStartOfLine = _isAtStartOfLine;  // avoid injecting a new line + index on the next ret.printf() call, if we're currently in the middle of a line
+      return ret;
+   }
 
    // Some convenience methods for printing values of a specified type; useful to call from templated code
    void Print(bool         dt) const {printf("%s",               dt?"true":"false");}
