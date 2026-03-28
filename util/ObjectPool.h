@@ -343,7 +343,7 @@ public:
 
       desiredPrefilledSize = muscleMin(desiredPrefilledSize, _maxPoolSize);
 
-      const uint32 currentlyAlloced = GetNumAllocatedItemSlots();
+      const uint32 currentlyAlloced = UnsafeGetNumAllocatedItemSlotsAux();
       if (currentlyAlloced < desiredPrefilledSize)
       {
          const uint32 numToAllocate  = desiredPrefilledSize-currentlyAlloced;
@@ -425,14 +425,7 @@ public:
    MUSCLE_NODISCARD uint32 GetNumAllocatedItemSlots() const
    {
       DECLARE_MUTEXGUARD(_mutex);
-      uint32 ret = 0;
-      ObjectSlab * slab = _firstSlab;
-      while(slab)
-      {
-         ret += NUM_OBJECTS_PER_SLAB;
-         slab = slab->GetNext();
-      }
-      return ret;
+      return UnsafeGetNumAllocatedItemSlotsAux();
    }
 
    /** Turns the Mutex guarding this ObjectPool into a no-op by calling Mutex::Neuter() on it.
@@ -693,8 +686,7 @@ private:
       ObjectSlab * objSlab = reinterpret_cast<ObjectSlab *>(objNode-objNode->GetArrayIndex());
 
       objSlab->ReleaseObjectNode(objNode);  // guaranteed to work, since we know (obj) is in use in (objSlab)
-
-      if ((++_curPoolSize > (_maxPoolSize+NUM_OBJECTS_PER_SLAB))&&(objSlab->IsInUse() == false))
+      if ((++_curPoolSize > SaturatingUnsignedAdd(_maxPoolSize, (uint32) NUM_OBJECTS_PER_SLAB))&&(objSlab->IsInUse() == false))
       {
          _curPoolSize -= NUM_OBJECTS_PER_SLAB;
          objSlab->RemoveFromSlabList();
@@ -709,6 +701,19 @@ private:
    }
 
    void ForceEagerEvaluationOfTemplatedStaticVariables() const;
+
+   // Assumes _mutex is already held
+   MUSCLE_NODISCARD uint32 UnsafeGetNumAllocatedItemSlotsAux() const
+   {
+      uint32 ret = 0;
+      ObjectSlab * slab = _firstSlab;
+      while(slab)
+      {
+         ret += NUM_OBJECTS_PER_SLAB;
+         slab = slab->GetNext();
+      }
+      return ret;
+   }
 
    uint32 _curPoolSize;  // tracks the current number of "available" objects
    uint32 _maxPoolSize;  // the maximum desired number of "available" objects

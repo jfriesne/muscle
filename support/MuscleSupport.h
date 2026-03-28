@@ -2390,6 +2390,36 @@ template<typename T> bool WillUnsignedMultiplyOverflow(T v1, T v2)
    return (v1 != 0) && (v2 > (((T)-1) / v1));
 }
 
+/** Convenience method:  Adds two unsigned values together in such a way that if they would
+  * have overflowed, this function instead returns the largest expressible value.
+  * @param v1 the first value to add
+  * @param v2 the second value to add
+  * @returns The sum of the two values (or the largest expressible value of type T, if the sum is too large to express via a T)
+  */
+template<typename T> bool SaturatingUnsignedAdd(T v1, T v2)
+{
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+   static_assert(std::is_unsigned<T>::value, "SaturatingUnsignedAdd() requires that its arguments be unsigned");
+   static_assert(std::is_integral<T>::value, "SaturatingUnsignedAdd() requires that its arguments be integral");
+#endif
+   return WillUnsignedAddOverflow(v1, v2) ? ((T)(-1)) : (v1+v2);
+}
+
+/** Convenience method:  Multiplies two unsigned values together in such a way that if they would
+  * have overflowed, this function instead returns the largest expressible value.
+  * @param v1 the first value to multiply
+  * @param v2 the second value to multiply
+  * @returns The product of the two values (or the largest expressible value of type T, if the product is too large to express via a T)
+  */
+template<typename T> bool SaturatingUnsignedMultiply(T v1, T v2)
+{
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+   static_assert(std::is_unsigned<T>::value, "SaturatingUnsignedMultiply() requires that its arguments be unsigned");
+   static_assert(std::is_integral<T>::value, "SaturatingUnsignedMultiply() requires that its arguments be integral");
+#endif
+   return WillUnsignedMultiplyOverflow(v1, v2) ? ((T)(-1)) : (v1*v2);
+}
+
 #endif  // __cplusplus
 
 /** Given an ASCII decimal representation of a non-negative number, returns that number as a uint64. */

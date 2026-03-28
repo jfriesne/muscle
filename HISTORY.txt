@@ -17,6 +17,8 @@ key:  - new feature
      there just to help my other macros not cause -Wextra-semi warnings.
    - Added WillUnsignedAddOverflow() and WillUnsignedMultiplyOverflow()
      convenience functions to MuscleSupport.h.
+   - Added SaturatingUnsignedAdd() and SaturatingUnsignedMultiply()
+     convenience functions to MuscleSupport.h.
    - qt_muscle_browser now inflates deflated Message payloads, so their
      inflated contents can be examined.
    - Improved the accuracy of FilePathInfo timestamps under Linux. (c)
