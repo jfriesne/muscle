@@ -127,14 +127,14 @@
 # define MUSCLE_THREAD_LOCAL_OR_STATIC thread_local
 #endif
 
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11) && !defined(MUSCLE_USE_CPLUSPLUS17) && defined(__cplusplus) && ((__cplusplus >= 201703L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L)))
+# define MUSCLE_USE_CPLUSPLUS17
+#endif
+
 #if defined(MUSCLE_USE_CPLUSPLUS17)
 # define MUSCLE_CONSTEXPR_17 constexpr /**< Defined a constexpr in C++17 and above, and defined as empty otherwise */
 #else
 # define MUSCLE_CONSTEXPR_17
-#endif
-
-#if !defined(MUSCLE_AVOID_CPLUSPLUS11) && !defined(MUSCLE_USE_CPLUSPLUS17) && defined(__cplusplus) && ((__cplusplus >= 201703L) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201703L)))
-# define MUSCLE_USE_CPLUSPLUS17
 #endif
 
 #ifndef MUSCLE_AVOID_NODISCARD
@@ -197,7 +197,7 @@
 #endif
 
 #ifndef MUSCLE_NULLPTR_OR_ZERO
-# define MUSCLE_NULLPTR_OR_ZERO 0  /**< MUSCLE_DEFAULT_INITIALIZER expands to {} in C++11 or newer.  In C++03 it expands to 0. */
+# define MUSCLE_NULLPTR_OR_ZERO 0  /**< MUSCLE_NULLPTR_OR_ZERO expands to nullptr only in C++11 or newer.  In C++03 it expands to 0. */
 #endif
 
 #ifdef MUSCLE_CONSTEXPR_IS_SUPPORTED
@@ -856,8 +856,6 @@ static_assert(sizeof(uint32) == 4, "sizeof(uint32) != 4");
 static_assert(sizeof(int64)  == 8, "sizeof(int64) != 8");
 static_assert(sizeof(uint64) == 8, "sizeof(uint64) != 8");
 static_assert(sizeof(float)  == 4, "sizeof(float) != 4");
-static_assert(sizeof(float)  == 4, "sizeof(float) != 4");
-static_assert(sizeof(double) == 8, "sizeof(double) != 8");
 static_assert(sizeof(double) == 8, "sizeof(double) != 8");
 #endif
 
@@ -935,7 +933,7 @@ static_assert(sizeof(double) == 8, "sizeof(double) != 8");
   * @param s the four-character-string to encode as a uint32
   * @returns the corresponding uint32 value
   */
-static inline uint32 MakeWhatCode(const char * s) {return ((((uint32)(s[0])) << 24) | (((uint32)(s[1])) << 16) | (((uint32)(s[2])) <<  8) | (((uint32)(s[3])) <<  0));}
+static inline uint32 MakeWhatCode(const char * s) {return ((((uint32)((uint8)s[0])) << 24) | (((uint32)((uint8)s[1])) << 16) | (((uint32)((uint8)s[2])) <<  8) | (((uint32)((uint8)s[3])) <<  0));}
 
 /** BeOS-style message-field type codes.
   * I've calculated the integer equivalents for these codes
@@ -1268,7 +1266,7 @@ namespace muscle {
   * and that the destination buffer will be NUL-terminated in all cases.
   * @param dst The buffer to write characters into
   * @param src the buffer to read characters from
-  * @returns the number of characters written into (dst), not including the NUL terminator byte.
+  * @returns a pointer to the destination string
   * @note template magic is used to determine the size of the destination buffer, so this function won't
   *       compile if you pass a plain (non-array) pointer as its first argument.
   */
@@ -2396,7 +2394,7 @@ template<typename T> bool WillUnsignedMultiplyOverflow(T v1, T v2)
   * @param v2 the second value to add
   * @returns The sum of the two values (or the largest expressible value of type T, if the sum is too large to express via a T)
   */
-template<typename T> bool SaturatingUnsignedAdd(T v1, T v2)
+template<typename T> T SaturatingUnsignedAdd(T v1, T v2)
 {
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    static_assert(std::is_unsigned<T>::value, "SaturatingUnsignedAdd() requires that its arguments be unsigned");
@@ -2411,7 +2409,7 @@ template<typename T> bool SaturatingUnsignedAdd(T v1, T v2)
   * @param v2 the second value to multiply
   * @returns The product of the two values (or the largest expressible value of type T, if the product is too large to express via a T)
   */
-template<typename T> bool SaturatingUnsignedMultiply(T v1, T v2)
+template<typename T> T SaturatingUnsignedMultiply(T v1, T v2)
 {
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    static_assert(std::is_unsigned<T>::value, "SaturatingUnsignedMultiply() requires that its arguments be unsigned");
