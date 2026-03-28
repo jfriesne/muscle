@@ -1541,8 +1541,8 @@ InsertItemsAt(uint32 index, const Queue<ItemType> & queue, uint32 startIndex, ui
    if (numNewItems == 0) return B_NO_ERROR;
    if (numNewItems == 1)
    {
-      if (index == 0)          return AddHead(queue.Head());
-      if (index == _itemCount) return AddTail(queue.Head());
+      if (index == 0)          return AddHead(queue[startIndex]);
+      if (index == _itemCount) return AddTail(queue[startIndex]);
    }
 
    const uint32 oldSize = GetNumItems();
@@ -1552,8 +1552,8 @@ InsertItemsAt(uint32 index, const Queue<ItemType> & queue, uint32 startIndex, ui
 
    MRETURN_ON_ERROR(EnsureSize(newSize, true));
 
-   for (uint32 i=index; i<oldSize; i++)           (*this)[i+numNewItems] = (*this)[i];
-   for (uint32 i=index; i<index+numNewItems; i++) (*this)[i]             = queue[startIndex++];
+   for (int32 i=(int32)(oldSize-1); i>=(int32)index;     i--) (*this)[i+numNewItems] = (*this)[i];  // must loop backwards in case of overlap
+   for (uint32 i=index;             i<index+numNewItems; i++) (*this)[i]             = queue[startIndex++];
    return B_NO_ERROR;
 }
 
@@ -1580,8 +1580,9 @@ InsertItemsAt(uint32 index, const ItemType * items, uint32 numNewItems)
    MRETURN_ON_ERROR(EnsureSizeAux(newSize, true, 0, &oldItems, false));
 
    int32 si = 0;
-   for (uint32 i=index; i<oldSize; i++)           (*this)[i+numNewItems] = (*this)[i];
-   for (uint32 i=index; i<index+numNewItems; i++) (*this)[i]             = items[si++];
+   for (int32 i=(int32)(oldSize-1); i>=(int32)index;     i--) (*this)[i+numNewItems] = (*this)[i];  // must loop backwards in case of overlap
+   for (uint32 i=index;             i<index+numNewItems; i++) (*this)[i]             = items[si++];
+
    delete [] oldItems;
    return B_NO_ERROR;
 }
@@ -2183,7 +2184,7 @@ Queue<ItemType>::AdoptRawDataArray(uint32 numItemsInArray, ItemType * array, uin
       _queueSize = numItemsInArray;
       _itemCount = muscleMin(numItemsInArray, validItemCount);
       _headIndex = 0;
-      _tailIndex = ((_headIndex+_itemCount)-1)%_queueSize;
+      _tailIndex = (_queueSize > 0) ? (((_headIndex+_itemCount)-1)%_queueSize) : 0;
    }
 }
 
