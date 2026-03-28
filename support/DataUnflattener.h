@@ -232,6 +232,7 @@ public:
       if (retVals[0].IsFixedSize())
       {
          const uint32 flatSize = retVals[0].FlattenedSize();
+         if (WillUnsignedMultiplyOverflow(flatSize, numVals)) return B_BAD_ARGUMENT;
          MRETURN_ON_ERROR(SizeCheck(flatSize*numVals));
          for (uint32 i=0; i<numVals; i++)
          {
@@ -261,8 +262,8 @@ public:
       {
          MRETURN_ON_ERROR(SizeCheck(sizeof(uint32)));
          uint32 payloadSize; _endianConverter.Import(_readFrom, payloadSize);
+         MRETURN_ON_ERROR(Advance(sizeof(uint32)));
          MRETURN_ON_ERROR(SizeCheck(payloadSize));
-         MRETURN_ON_ERROR(Advance(sizeof(payloadSize)));
 
          DataUnflattenerHelper unflat(_readFrom, payloadSize);
          const status_t ret = retVals[i].Unflatten(unflat);
@@ -282,6 +283,7 @@ public:
      */
    template <typename T> status_t ReadPrimitives(T * retVals, uint32 numVals)
    {
+      if (WillUnsignedMultiplyOverflow(numVals, (uint32) sizeof(T))) return B_BAD_ARGUMENT;
       MRETURN_ON_ERROR(SizeCheck(numVals*sizeof(T)));
       for (uint32 i=0; i<numVals; i++)
       {
@@ -301,7 +303,7 @@ public:
      */
    status_t SeekTo(uint32 offset)
    {
-      if (offset > _maxBytes) return B_BAD_ARGUMENT;
+      if (offset > _maxBytes) return FlagError(B_BAD_ARGUMENT);
       _readFrom = _origReadFrom+offset;
       return B_NO_ERROR;
    }
@@ -314,7 +316,7 @@ public:
    status_t SeekRelative(int32 numBytes)
    {
       const uint32 nbw = GetNumBytesRead();
-      return ((numBytes > 0)||(((uint32)(-numBytes)) <= nbw)) ? SeekTo(GetNumBytesRead()+numBytes) : B_BAD_ARGUMENT;
+      return ((numBytes > 0)||(((uint32)(-numBytes)) <= nbw)) ? SeekTo(GetNumBytesRead()+numBytes) : FlagError(B_BAD_ARGUMENT);
    }
 
    /** Moves the read-pointer to the end of our buffer
@@ -331,7 +333,7 @@ public:
      */
    status_t SeekPastPaddingBytesToAlignTo(uint32 alignmentSize)
    {
-      const uint32 modBytes = GetNumBytesRead() % alignmentSize;
+      const uint32 modBytes = (alignmentSize != 0) ? (GetNumBytesRead() % alignmentSize) : 0;
       return (modBytes > 0) ? SeekRelative(alignmentSize - modBytes) : B_NO_ERROR;
    }
 
