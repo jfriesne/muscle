@@ -76,7 +76,7 @@ public:
    ~DataFlattenerHelper() {Finalize();}
 
    /** Resets us to our just-default-constructed state, with a NULL array-pointer and a zero maximum-byte-count */
-   void Reset() {SetBuffer(NULL, 0, false);}
+   void Reset() {SetBuffer(NULL, 0);}
 
    /** Set a new raw array to write to (same as what we do in the constructor, except this updates an existing DataFlattenerHelper object)
      * @param writeTo the new buffer to point to and write to in future Write*() method-calls.
@@ -213,7 +213,7 @@ public:
      */
    void WritePaddingBytesToAlignTo(uint32 alignmentSize)
    {
-      const uint32 modBytes = (GetNumBytesWritten() % alignmentSize);
+      const uint32 modBytes = (alignmentSize > 0) ? (GetNumBytesWritten() % alignmentSize) : 0;
       if (modBytes > 0)
       {
          const uint32 padBytes = alignmentSize-modBytes;
@@ -237,13 +237,18 @@ public:
    }
 
    /** Moves the pointer into our buffer forwards or backwards by the specified number of bytes.
-     * @param numBytes the number of bytes to move the pointer by
+     * @param seekDeltaBytes the number of bytes to move the pointer by
      * @returns B_NO_ERROR on success, or B_BAD_ARGUMENT if the post-seek location wouldn't be valid.
      */
-   status_t SeekRelative(int32 numBytes)
+   status_t SeekRelative(int32 seekDeltaBytes)
    {
       const uint32 nbw = GetNumBytesWritten();
-      return ((numBytes > 0)||(((uint32)(-numBytes)) <= nbw)) ? SeekTo(GetNumBytesWritten()+numBytes) : B_BAD_ARGUMENT;
+      if (seekDeltaBytes > 0)
+      {
+         if (WillUnsignedAddOverflow(nbw, (uint32)seekDeltaBytes)) return B_BAD_ARGUMENT;
+         return SeekTo(nbw+seekDeltaBytes);
+      }
+      else return (((uint32)(-seekDeltaBytes)) <= nbw) ? SeekTo(nbw+seekDeltaBytes) : B_BAD_ARGUMENT;
    }
 
    /** Sets whether or not an assertion failure should be triggered by this object's destructor
