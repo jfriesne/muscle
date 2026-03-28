@@ -65,7 +65,13 @@ public:
      * @param pointerVal the pointer value to hold
      * @param dataBits a bit-chord of bits to store along inside along with the pointer.  Only the low (NumBits) bits may be set in this value!
      */
-   MUSCLE_CONSTEXPR_17 PointerAndBits(T * pointerVal, uintptr dataBits) {SetPointerAndBits(pointerVal, dataBits);}
+   MUSCLE_CONSTEXPR_17 PointerAndBits(T * pointerVal, uintptr dataBits)
+   {
+#if !defined(MUSCLE_AVOID_TAGGED_POINTERS) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
+      (void) PointerAndBits::AlignmentCheck((T*)NULL);  // just to invoke a compile-time error if the caller tries to set (NumBits) larger it's allowed to be
+#endif
+      SetPointerAndBits(pointerVal, dataBits);
+   }
 
    /** Sets our held pointer value to the specified new value.  The current bit-chord values are retained.
      * @param pointerVal the new pointer value to store.  Must be a sufficiently well-aligned value, unless MUSCLE_AVOID_TAGGED_POINTERS is defined.
@@ -172,6 +178,10 @@ public:
    }
 
 private:
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   static_assert(NumBits < sizeof(uintptr)*8, "PointerAndBits: NumBits must be less than the bit-width of uintptr");
+#endif
+
 #ifdef MUSCLE_AVOID_TAGGED_POINTERS
    static MUSCLE_CONSTEXPR_OR_CONST uintptr _allDataBitsMask = ((NumBits > 0) ? ((((uintptr)1)<<NumBits)-1) : 0); // bit-chord with all allowed data-bits in it set; used for masking
 #else
