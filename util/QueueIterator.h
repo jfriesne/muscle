@@ -39,7 +39,7 @@ public:
     * constructor are "empty", so they won't be very useful until you set them equal
     * to a valid/non-empty QueueIterator.
     */
-   QueueIterator() : _queue(const_cast< Queue<ItemType *> * >(&GetDefaultObjectForType< Queue<ItemType> >())), _currentIndex(0), _stride(1) {/* empty */}
+   QueueIterator() : _queue(const_cast< Queue<ItemType> * >(&GetDefaultObjectForType< Queue<ItemType> >())), _currentIndex(0), _stride(1) {/* empty */}
 
    /** Convenience Constructor -- makes an iterator equivalent to the value returned by queue.GetIteratorAt().
      * @param queue the Queue to iterate over.
