@@ -49,6 +49,9 @@ public:
    /** Returns a read/write reference to the current state of our held value.
      * @note that this reference may not remain valid for long, so if you call this
      *       method, be sure to read any data you need from the reference quickly.
+     * @note using this method is likely to result in a race condition, so you should only use this method in scenarios
+     *       where you can in some way guarantee that no other thread will be interacting with this AtomicValue during
+     *       the time period you're using the reference.
      */
    MUSCLE_NODISCARD T & GetValueRefNonConst() {return _buffer[_readIndex];}  // & ATOMIC_BUFFER_MASK isn't necessary here!
 
@@ -78,6 +81,9 @@ public:
 #        error "AtomicValue:  Unsupported platform, no compare-and-swap function known"
 #endif
          if (casSucceeded) break;
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)  // no need to restore under the C++11 API
+                      else oldReadIndex = _readIndex;  // so we can try again even if _readIndex got clobbered as part of the failed CAS attempt
+#endif
       }
       return B_NO_ERROR;
    }
@@ -107,7 +113,10 @@ private:
 #  error "AtomicValue:  Unsupported platform"
 #endif
 
-#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+#if defined(MUSCLE_AVOID_CPLUSPLUS11)
+   // old school C++03 fallback check, as suggested by Claude
+  typedef char AssertAtomicBufferSizeIsPowerOfTwo[(ATOMIC_BUFFER_SIZE && !(ATOMIC_BUFFER_SIZE & (ATOMIC_BUFFER_SIZE-1))) ? 1 : -1];
+#else
    enum {TestPowerOfTwoValue = ATOMIC_BUFFER_SIZE && !(ATOMIC_BUFFER_SIZE&(ATOMIC_BUFFER_SIZE-1))};
    static_assert(TestPowerOfTwoValue, "AtomicValue template's ATOMIC_BUFFER_SIZE template-parameter must be a power of two");
 #endif

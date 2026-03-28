@@ -27,6 +27,8 @@ key:  - new feature
      assertion failure, or a std::terminate() call.
    - Added a muscle_ssize_t typedef to deal with the fact that Win32
      declares SSIZE_T instead of ssize_t.
+   - AtomicValue's pre-C++11 implementation now also detects an
+     illegally-sized ATOMIC_BUFFER_SIZE at compile time.  (c)
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
      DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
      variadic macros.
@@ -138,6 +140,8 @@ key:  - new feature
      the wrong Hashtable could be used to look up a table entry.  (c)
    * Fixed a handle-leak in the Win32 implementation of ChildProcessDataIO.  (c)
    * Fixed some typos in the SpinLockGuard class.  (c)
+   * AtomicValue's legacy implementations now correctly restore the original
+     value of oldReadIndex after a failed CAS operations.  (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
