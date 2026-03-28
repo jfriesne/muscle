@@ -139,12 +139,18 @@ key:  - new feature
    * Private-shared-memory-area mode was broken in SharedMemory.cpp.  Fixed.
    * Fixed several bugs in the Hashtable class where the HashFunctor from
      the wrong Hashtable could be used to look up a table entry.  (c)
-   * Fixed a handle-leak in the Win32 implementation of ChildProcessDataIO.  (c)
+   * Fixed a handle-leak in the Win32 implementation of ChildProcessDataIO. (c)
    * Fixed some typos in the SpinLockGuard class.  (c)
    * AtomicValue's legacy implementations now correctly restore the original
      value of oldReadIndex after a failed CAS operations.  (c)
    * In the BitChord class, ParseHexChar(), SetByte(), and the &lt; and &gt;
      operators were broken.  Fixed.  (c)
+   * RefCount::SetRef() now does the right thing when transitioning from
+     (ptr+refcounting) to (ptr-without-refcounting); it decrements the item's
+     reference-count but doesn't delete the item, and becomes a non-owning
+     Ref.  (c)
+   * RefCount::SetFromRefCountableRefUnchecked() now retains the status of
+     any NULL (refCountableRef) argument that it receives.  (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

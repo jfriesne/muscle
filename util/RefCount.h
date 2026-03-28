@@ -203,14 +203,14 @@ public:
          {
             if (doRefCount)
             {
-               // We weren't ref-counting before, but the user wants us to start
+               // We weren't ref-counting before; but the user wants us to start
                SetRefCounting(true);
-               RefItem();
+               if (item) RefItem();
             }
             else
             {
-               // We were ref-counting before, but the user wants us to drop it
-               UnrefItem();
+               // We were ref-counting before; now the user wants us to stop ref-counting but keep the pointer as unowned
+               if (item) UnrefItemAux(item, false);  // decrements the item's refcount, but doesn't delete/recycle it, and doesn't clear our pointer to it
                SetRefCounting(false);
             }
          }
@@ -364,7 +364,7 @@ public:
          if (typedItem == NULL) return B_TYPE_MISMATCH;
          SetRef(typedItem, refCountableRef.IsRefCounting());
       }
-      else Reset();
+      else SetStatus(refCountableRef.GetStatus());
 
       return B_NO_ERROR;
    }
@@ -499,10 +499,20 @@ private:
       const Item * item = this->GetItemPointer();
       if (item)
       {
-         const bool isRefCounting = this->IsRefCounting();
-         if (isRefCounting)
+         UnrefItemAux(item, true);  // unref and clear our pointer
+         _item.SetPointerAndBits(NULL, 0);
+      }
+   }
+
+   // Note that (item) must not be NULL here
+   void UnrefItemAux(const Item * item, bool allowDelete)
+   {
+      const bool isRefCounting = this->IsRefCounting();
+      if (isRefCounting)                 // don't combine if's
+      {
+         if (item->DecrementRefCount())  // don't combine if's
          {
-            if (item->DecrementRefCount())
+            if (allowDelete)             // don't combine if's
             {
                // special annotation to help helgrind understand what we're doing here
                // see:  https://valgrind.org/docs/manual/hg-manual.html
@@ -515,11 +525,10 @@ private:
                if (m) m->RecycleObject(const_cast<Item *>(item));
                  else delete item;
             }
-#ifdef MUSCLE_ENABLE_HELGRIND_ANNOTATIONS
-            else ANNOTATE_HAPPENS_BEFORE(&item->GetAtomicCounter());
-#endif
          }
-         _item.SetPointerAndBits(NULL, 0);
+#ifdef MUSCLE_ENABLE_HELGRIND_ANNOTATIONS
+         else ANNOTATE_HAPPENS_BEFORE(&item->GetAtomicCounter());
+#endif
       }
    }
 
