@@ -48,7 +48,7 @@ MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int64 MicrosToMillis(int64 us)    {retu
   */
 MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int64 MillisToMicros(int64 ms)    {return ms*1000;}
 
-/** Given a value in milliseconds, returns the equivalent number of nanoseconds.
+/** Given a value in milliseconds, returns the equivalent number of seconds.
   * @param ms A time value, in milliseconds.
   */
 MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int64 MillisToSeconds(int64 ms)   {return ms/MILLIS_PER_SECOND;}
@@ -58,12 +58,12 @@ MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int64 MillisToSeconds(int64 ms)   {retu
   */
 MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int64 SecondsToMillis(int64 s)    {return s*MILLIS_PER_SECOND;}
 
-/** Given a value in seconds, returns the equivalent number of milliseconds.
+/** Given a value in seconds, returns the equivalent number of minutes.
   * @param s A time value, in seconds.
   */
 MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int64 SecondsToMinutes(int64 s)   {return s/60;}
 
-/** Given a value in minutes, returns the equivalent number of minutes.
+/** Given a value in minutes, returns the equivalent number of seconds.
   * @param m A time value, in minutes.
   */
 MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int64 MinutesToSeconds(int64 m)   {return m*60;}
@@ -320,8 +320,8 @@ MUSCLE_NODISCARD inline uint64 ConvertTimeValTo64(const struct timeval & tv) {re
  */
 inline void Convert64ToTimeVal(uint64 val, struct timeval & retStruct)
 {
-   retStruct.tv_sec  = (int32)(val / MICROS_PER_SECOND);
-   retStruct.tv_usec = (int32)(val % MICROS_PER_SECOND);
+   retStruct.tv_sec  = (time_t)     (val / MICROS_PER_SECOND);
+   retStruct.tv_usec = (suseconds_t)(val % MICROS_PER_SECOND);
 }
 
 #define MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(smallUnits, bigUnits)                                     \
