@@ -34,8 +34,8 @@ protected:
       {
          // Play with the atomic counter
          const int max = 100000;
-         for (int i=0; i<max; i++) g_theAtomicCounter.AtomicIncrement();
-         for (int i=0; i<max; i++) g_theAtomicCounter.AtomicDecrement();
+         for (int i=0; i<max; i++) (void) g_theAtomicCounter.AtomicIncrement();
+         for (int i=0; i<max; i++) (void) g_theAtomicCounter.AtomicDecrement();
 
          // See if it is time for us to go away yet
          MessageRef msg;

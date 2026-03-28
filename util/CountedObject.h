@@ -39,7 +39,7 @@ public:
    MUSCLE_NODISCARD const ObjectCounterBase * GetNextCounter() const {return _nextCounter;}
 
    /** Increments our internal count */
-   void IncrementCounter() {_counter.AtomicIncrement();}
+   void IncrementCounter() {(void) _counter.AtomicIncrement();}
 
    /** Decrements our internal count.  Returns true iff our internal count has reached zero. */
    bool DecrementCounter() {return _counter.AtomicDecrement();}

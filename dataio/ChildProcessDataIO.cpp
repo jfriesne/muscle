@@ -565,7 +565,7 @@ void ChildProcessDataIO :: Close()
 #ifdef USE_WINDOWS_CHILDPROCESSDATAIO_IMPLEMENTATION
    if (_ioThread != INVALID_HANDLE_VALUE)  // if this is valid, _wakeupSignal is guaranteed valid too
    {
-      _requestThreadExit.AtomicIncrement();     // set the "Please go away" flag
+      (void) _requestThreadExit.AtomicIncrement(); // set the "Please go away" flag
       SetEvent(_wakeupSignal);                  // wake the thread up so he'll check the flag
       WaitForSingleObject(_ioThread, INFINITE); // then wait for him to go away
       ::CloseHandle(_ioThread);                 // fix handle leak
@@ -894,7 +894,7 @@ void ChildProcessDataIO :: IOThreadAbort()
 {
    // If we read zero bytes, that means EOF!  Child process has gone away!
    _slaveNotifySocket.Reset();
-   _requestThreadExit.AtomicIncrement();  // this will cause the I/O thread's while-loop to stop whiling
+   (void) _requestThreadExit.AtomicIncrement();  // this will cause the I/O thread's while-loop to stop whiling
 }
 
 void ChildProcessDataIO :: IOThreadEntry()

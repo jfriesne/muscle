@@ -406,7 +406,7 @@ protected:
                {
                   // Anything else is an error and we should pack it in
                   (void) CancelIPChangeNotify(&olap);
-                  _threadKeepGoingIfZero.AtomicIncrement();
+                  (void) _threadKeepGoingIfZero.AtomicIncrement();
                }
             }
             else
@@ -442,7 +442,7 @@ private:
       _threadKeepGoingIfZero.SetCount(0);
       if (Thread::StartInternalThread().IsError(ret))
       {
-         _threadKeepGoingIfZero.AtomicIncrement();
+         (void) _threadKeepGoingIfZero.AtomicIncrement();
          CleanupSignalling();
       }
       return ret;
@@ -450,7 +450,7 @@ private:
 
    virtual void ShutdownInternalThread(bool waitForThread = true)
    {
-      _threadKeepGoingIfZero.AtomicIncrement();
+      (void) _threadKeepGoingIfZero.AtomicIncrement();
 #ifdef __APPLE__
       {
          DECLARE_MUTEXGUARD(_threadRunLoopMutex);

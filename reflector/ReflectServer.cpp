@@ -479,9 +479,9 @@ uint64 ReflectServer :: PrepareToWaitForEvents()
 
 status_t ReflectServer :: WaitForEvents(uint64 waitUntil)
 {
-   _inWaitForEvents.AtomicIncrement();   // so a watchdog thread can know we're meant to be waiting at this point
+   (void) _inWaitForEvents.AtomicIncrement();   // so a watchdog thread can know we're meant to be waiting at this point
    const io_status_t r = _multiplexer.WaitForEvents(waitUntil);
-   _inWaitForEvents.AtomicDecrement();   // so a watchdog thread can know we're done waiting at this point
+   (void) _inWaitForEvents.AtomicDecrement();   // so a watchdog thread can know we're done waiting at this point
    return r.GetStatus();
 }
 

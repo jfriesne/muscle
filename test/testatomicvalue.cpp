@@ -126,7 +126,7 @@ int main(int argc, char ** argv)
    }
    else LogTime(MUSCLE_LOG_CRITICALERROR, "Error starting Atomic thread! [%s]\n", ret());
 
-   _pleaseExit.AtomicIncrement();
+   (void) _pleaseExit.AtomicIncrement();
 
    readerThread.ShutdownInternalThread();
    writerThread.ShutdownInternalThread();

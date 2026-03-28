@@ -66,7 +66,7 @@ public:
      * Returns true iff the count's new value is 1; returns false
      *              if the count's new value is any other value.
      */
-   inline bool AtomicIncrement()
+   MUSCLE_NODISCARD inline bool AtomicIncrement()
    {
 #if defined(MUSCLE_SINGLE_THREAD_ONLY) || !defined(MUSCLE_AVOID_CPLUSPLUS11)
       return (++_count == 1);
@@ -105,7 +105,7 @@ public:
      * @returns true iff the new value of our count is 0;
      *               returns false if it is any other value
      */
-   inline bool AtomicDecrement()
+   MUSCLE_NODISCARD inline bool AtomicDecrement()
    {
 #if defined(MUSCLE_SINGLE_THREAD_ONLY) || !defined(MUSCLE_AVOID_CPLUSPLUS11)
       return (--_count == 0);
@@ -178,7 +178,7 @@ private:
 #elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
    std::atomic<int32> _count;
 #elif defined(WIN32)
-   long _count;
+   volatile long _count;
 #elif defined(__APPLE__)
    volatile int32_t _count;
 #elif defined(MUSCLE_USE_POWERPC_INLINE_ASSEMBLY) || defined(MUSCLE_USE_X86_INLINE_ASSEMBLY)

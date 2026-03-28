@@ -64,7 +64,7 @@ public:
    inline RefCountable &operator=(const RefCountable &) {return *this;}
 
    /** Increments the reference-count.  Thread safe. */
-   inline void IncrementRefCount() const {_refCount.AtomicIncrement();}
+   inline void IncrementRefCount() const {(void) _refCount.AtomicIncrement();}
 
    /** Decrements the reference-count and returns true iff the new value is zero.  Thread safe. */
    inline bool DecrementRefCount() const {return _refCount.AtomicDecrement();}

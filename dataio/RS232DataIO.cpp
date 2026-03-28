@@ -169,7 +169,7 @@ void RS232DataIO :: Close()
 #ifdef USE_WINDOWS_IMPLEMENTATION
    if (_ioThread != INVALID_HANDLE_VALUE)  // if this is valid, _wakeupSignal is guaranteed valid too
    {
-      _requestThreadExit.AtomicIncrement();     // set the "Please go away" flag
+      (void) _requestThreadExit.AtomicIncrement(); // set the "Please go away" flag
       SetEvent(_wakeupSignal);                  // wake the thread up so he'll check the bool
       WaitForSingleObject(_ioThread, INFINITE); // then wait for him to go away
       ::CloseHandle(_ioThread);                 // fix handle leak
