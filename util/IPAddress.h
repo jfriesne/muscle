@@ -231,7 +231,7 @@ public:
    /** Convenience method:  Returns a SOCKET_FAMILY_* value describing this IP address's associated socket family.
      * @returns SOCKET_FAMILY_IPV4 is we are an IPv4 address, or SOCKET_FAMILY_IPV6 is we are an IPv6 address ,or SOCKET_FAMILY_INVALID if we are an invalid address.
      */
-   MUSCLE_NODISCARD int GetSocketFamily() const
+   MUSCLE_NODISCARD int GetFamily() const
    {
 #ifdef MUSCLE_AVOID_IPV6
       return IsValid() ? SOCKET_FAMILY_IPV4 : SOCKET_FAMILY_INVALID;

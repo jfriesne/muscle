@@ -41,13 +41,15 @@ public:
    /** Destructor.  Closes our held file-descriptor, if we have one. */
    virtual ~Socket();
 
-   /** Returns a SOCKET_FAMILY_* value indicating what sort of socket this is */
+   /** Returns a SOCKET_FAMILY_* value describing the type of socket we are holding.
+     * Returns SOCKET_FAMILY_INVALID if we are not holding any file descriptor at all.
+     */
    MUSCLE_NODISCARD int GetFamily() const {return _family;}
 
    /** Returns and releases our held file-descriptor.
      * When this method returns, ownership of the socket is transferred to the calling code.
      */
-   int ReleaseFileDescriptor() {int ret = _fd; _family = SOCKET_FAMILY_INVALID; _fd = -1; return ret;}
+   int ReleaseFileDescriptor() {int ret = _fd; _family = SOCKET_FAMILY_INVALID; _fd = -1; _okayToClose = false; return ret;}
 
    /** Returns the held socket fd, but does not release ownership of it. */
    MUSCLE_NODISCARD int GetFileDescriptor() const {return _fd;}
@@ -58,6 +60,9 @@ public:
      *                    Note that this argument affects only what we'll do with (fd), and NOT what
      *                    we'll do with any file-descriptor we may already be holding!.  This argument
      *                    is not meaningful when (fd) is passed in as -1.
+     * @note if a value for (fd) is passed in that is the same as the file descriptor this Socket is already
+     *       holding, then (fd) socket will not be closed by this call, but the state of the okayToClose flag
+     *       may be modified that way (i.e. to set or clear this Socket's ownership of (fd))
      */
    void SetFileDescriptor(int fd, bool okayToCloseFD = true);
 
@@ -65,11 +70,6 @@ public:
      * This call is equivalent to calling SetFileDescriptor(-1, false).
      */
    void Clear() {SetFileDescriptor(-1, false);}
-
-   /** Returns a SOCKET_FAMILY_* value describing the type of socket we are holding.
-     * Returns SOCKET_FAMILY_INVALID if we are not holding any file descriptor at all.
-     */
-   MUSCLE_NODISCARD int GetSocketFamily() const {return _family;}
 
 private:
    friend class ObjectPool<Socket>;
@@ -136,7 +136,7 @@ public:
    MUSCLE_NODISCARD uint32 HashCode() const {return CalculateHashCode(GetFileDescriptor());}
 
    /** Convenience method.  Returns the SOCKET_FAMILY_* value of the Socket we are holding, or SOCKET_FAMILY_INVALID if we are a NULL reference. */
-   MUSCLE_NODISCARD int GetSocketFamily() const {const Socket * s = GetItemPointer(); return s?s->GetSocketFamily():SOCKET_FAMILY_INVALID;}
+   MUSCLE_NODISCARD int GetFamily() const {const Socket * s = GetItemPointer(); return s?s->GetFamily():SOCKET_FAMILY_INVALID;}
 
 private:
    ConstSocketRef(const Socket * sock, bool doRefCount) {SetRef(sock, doRefCount);}

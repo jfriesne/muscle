@@ -62,6 +62,7 @@ key:  - new feature
      numBytes argument and an appropriately-sized seed argument.
    o The NestCountGuard, MutexGuard, SwapGuard, and NestCountGuard classes
      all of now inherit from NotCopyable, to catch unintended copies at compile-time.
+   o Removed Socket::GetSocketFamily() (it was redundant with Socket::GetFamily())
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to

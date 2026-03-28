@@ -291,7 +291,7 @@ status_t BindUDPSocket(const ConstSocketRef & sock, uint16 port, uint16 * optRet
 #endif
    }
 
-   switch(sock.GetSocketFamily())
+   switch(sock.GetFamily())
    {
       case SOCKET_FAMILY_IPV4:
       {
@@ -346,7 +346,7 @@ status_t SetUDPSocketTarget(const ConstSocketRef & sock, const IPAddress & remot
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   switch(sock.GetSocketFamily())
+   switch(sock.GetFamily())
    {
       case SOCKET_FAMILY_IPV4:
       {
@@ -395,7 +395,7 @@ ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog, uint16 * optRe
 #endif
 
    // coverity[returned_null : FALSE] - if ret() was going to return NULL, then fd would be negative above and execution wouldn't get here
-   switch(ret()->GetSocketFamily())
+   switch(ret()->GetFamily())
    {
       case SOCKET_FAMILY_IPV4:
       {
@@ -466,7 +466,7 @@ io_status_t ReceiveDataUDP(const ConstSocketRef & sock, void * buffer, uint32 si
    int32 r = -1;
    if ((optFromIP)||(optFromPort))
    {
-      switch(sock.GetSocketFamily())
+      switch(sock.GetFamily())
       {
          case SOCKET_FAMILY_IPV4:
          {
@@ -633,7 +633,7 @@ static io_status_t SendDataUDPIPv6(const ConstSocketRef & sock, const void * buf
 
 io_status_t SendDataUDP(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm, const IPAddress & optToIP, uint16 optToPort)
 {
-   switch(sock.GetSocketFamily())
+   switch(sock.GetFamily())
    {
       case SOCKET_FAMILY_INVALID: return B_BAD_ARGUMENT;
       case SOCKET_FAMILY_IPV4:    return SendDataUDPIPv4(sock, buffer, size, bm, optToIP, optToPort);
@@ -668,7 +668,7 @@ ConstSocketRef Accept(const ConstSocketRef & sock, IPAddress * optRetInterfaceIP
    if (sfd < 0) return B_BAD_ARGUMENT;
 
    // coverity[returned_null : FALSE] - if ret() was going to return NULL, then sfd would be negative above and execution wouldn't get here
-   switch(sock()->GetSocketFamily())
+   switch(sock()->GetFamily())
    {
       case SOCKET_FAMILY_IPV4:
       {
@@ -751,7 +751,7 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
       if (maxConnectTime == MUSCLE_TIME_NEVER)
       {
          // Not that in this case, s is a blocking socket already
-         switch(s()->GetSocketFamily())
+         switch(s()->GetFamily())
          {
             case SOCKET_FAMILY_IPV4:
             {
@@ -1175,7 +1175,7 @@ ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
    if (fd < 0) return ConstSocketRef();  // just to keep Coverity happy
 
    int result = -1;
-   switch(s() ? s()->GetSocketFamily() : NUM_SOCKET_FAMILIES)  // s() will never return NULL, but Coverity needs reassurance
+   switch(s() ? s()->GetFamily() : NUM_SOCKET_FAMILIES)  // s() will never return NULL, but Coverity needs reassurance
    {
       case SOCKET_FAMILY_IPV4:
       {
@@ -1216,7 +1216,7 @@ IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock)
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return IPAddressAndPort();
 
-   switch(sock.GetSocketFamily())
+   switch(sock.GetFamily())
    {
       case SOCKET_FAMILY_IPV4:
       {
@@ -1252,7 +1252,7 @@ IPAddressAndPort GetPeerAddress(const ConstSocketRef & sock, bool expandLocalhos
    const int fd = sock.GetFileDescriptor();
    if (fd >= 0)
    {
-      switch(sock.GetSocketFamily())
+      switch(sock.GetFamily())
       {
          case SOCKET_FAMILY_IPV4:
          {
@@ -2741,7 +2741,7 @@ static status_t RemoveSocketFromMulticastGroupIPv4(int fd, const IPAddress & gro
 
 status_t SetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock, const IPAddress & address)
 {
-   const int fd = (sock.GetSocketFamily() == SOCKET_FAMILY_IPV4) ? sock.GetFileDescriptor() : -1;
+   const int fd = (sock.GetFamily() == SOCKET_FAMILY_IPV4) ? sock.GetFileDescriptor() : -1;
    if (fd < 0) return B_BAD_ARGUMENT;
 
    struct in_addr localInterface; memset(&localInterface, 0, sizeof(localInterface));
@@ -2751,7 +2751,7 @@ status_t SetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock,
 
 IPAddress GetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock)
 {
-   const int fd = (sock.GetSocketFamily() == SOCKET_FAMILY_IPV4) ? sock.GetFileDescriptor() : -1;
+   const int fd = (sock.GetFamily() == SOCKET_FAMILY_IPV4) ? sock.GetFileDescriptor() : -1;
    if (fd < 0) return invalidIP;
 
    struct in_addr localInterface; memset(&localInterface, 0, sizeof(localInterface));
@@ -2807,7 +2807,7 @@ status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress 
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   if (sock.GetSocketFamily() == SOCKET_FAMILY_IPV4) return AddSocketToMulticastGroupIPv4(fd, groupAddress, localInterfaceAddress);
+   if (sock.GetFamily() == SOCKET_FAMILY_IPV4) return AddSocketToMulticastGroupIPv4(fd, groupAddress, localInterfaceAddress);
    else
    {
       struct ipv6_mreq req; memset(&req, 0, sizeof(req));
@@ -2823,7 +2823,7 @@ status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAdd
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   if (sock.GetSocketFamily() == SOCKET_FAMILY_IPV4) return RemoveSocketFromMulticastGroupIPv4(fd, groupAddress, localInterfaceAddress);
+   if (sock.GetFamily() == SOCKET_FAMILY_IPV4) return RemoveSocketFromMulticastGroupIPv4(fd, groupAddress, localInterfaceAddress);
    else
    {
       struct ipv6_mreq req; memset(&req, 0, sizeof(req));
