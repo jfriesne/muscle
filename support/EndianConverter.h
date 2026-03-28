@@ -59,7 +59,7 @@ public:
 
 #if defined(MUSCLE_USE_BIG_ENDIAN_DATA_FOR_EVERYTHING)
 typedef    BigEndianConverter DefaultEndianConverter;  /**< MUSCLE uses little-endian encoding as its preferred endian-ness, but this can be changed by defining MUSCLE_USE_*_ENDIAN_DATA_FOR_EVERYTHING. */
-#elif defined(DMUSCLE_USE_NATIVE_ENDIAN_DATA_FOR_EVERYTHING)
+#elif defined(MUSCLE_USE_NATIVE_ENDIAN_DATA_FOR_EVERYTHING)
 typedef NativeEndianConverter DefaultEndianConverter;  /**< MUSCLE uses little-endian encoding as its preferred endian-ness, but this can be changed by defining MUSCLE_USE_*_ENDIAN_DATA_FOR_EVERYTHING. */
 #else
 typedef LittleEndianConverter DefaultEndianConverter;  /**< MUSCLE uses little-endian encoding as its preferred endian-ness, but this can be changed by defining MUSCLE_USE_*_ENDIAN_DATA_FOR_EVERYTHING. */
@@ -109,7 +109,7 @@ public:
 
    /** Convenience method for reading a POD value from a serialized byte-buffer and returning it
      * @tparam T the type of object to return.
-     * @param readFrom the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
+     * @param readFrom the memory location to read the big-endian data from.  sizeof(T) bytes will be read from there.
      *        Note that (readFrom) is NOT required to be an aligned address; this method will handle unaligned reads correctly.
      */
    template<typename T> static T Import(const void * readFrom) {T ret; Import(readFrom, ret); return ret;}
@@ -122,9 +122,9 @@ class NativeEndianConverter MUSCLE_FINAL_CLASS
 {
 public:
 ///@{
-   /** Method for taking a CPU-native POD value and writing it out to a serialized buffer in big-endian format
+   /** Method for taking a CPU-native POD value and writing it out to a serialized buffer in native-endian format
      * @param readFrom the value to write to the buffer
-     * @param writeTo the memory location to write the big-endian data to.  sizeof(readFrom) bytes will be written there.
+     * @param writeTo the memory location to write the native-endian data to.  sizeof(readFrom) bytes will be written there.
      *                Note that (writeTo) is NOT required to be an aligned address; these methods will handle unaligned writes correctly.
      */
    static void Export(const   bool & readFrom, void * writeTo) {muscleCopyOut(writeTo, readFrom);}
@@ -141,8 +141,8 @@ public:
 ///@}
 
 ///@{
-   /** Method for a serialized buffer in big-endian format and using it to set a CPU-native POD value
-     * @param readFrom the memory location to read the big-endian data from.  sizeof(readFrom) bytes will be read from there.
+   /** Method for a serialized buffer in native-endian format and using it to set a CPU-native POD value
+     * @param readFrom the memory location to read the native-endian data from.  sizeof(readFrom) bytes will be read from there.
      *                 Note that (readFrom) is NOT required to be an aligned address; these methods will handle unaligned reads correctly.
      * @param writeTo the POD-type variable whose value should be set based on the bytes we read.
      */
@@ -161,7 +161,7 @@ public:
 
    /** Convenience method for reading a POD value from a serialized byte-buffer and returning it
      * @tparam T the type of object to return.
-     * @param readFrom the memory location to read the little-endian data from.  sizeof(T) bytes will be read from there.
+     * @param readFrom the memory location to read the native-endian data from.  sizeof(T) bytes will be read from there.
      *        Note that (readFrom) is NOT required to be an aligned address; this method will handle unaligned reads correctly.
      */
    template<typename T> static T Import(const void * readFrom) {T ret; Import(readFrom, ret); return ret;}
