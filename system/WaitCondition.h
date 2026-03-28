@@ -128,8 +128,8 @@ private:
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
       // empty
 #elif defined(MUSCLE_USE_PTHREADS)
-      pthread_mutex_init(&_conditionMutex,    NULL);
-      pthread_cond_init( &_conditionVariable, NULL);
+      if ((pthread_mutex_init(&_conditionMutex,    NULL) != 0)
+       || (pthread_cond_init( &_conditionVariable, NULL) != 0)) MCRASH("WaitCondition::Setup():  Condition variable setup failed");
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       InitializeCriticalSection(  &_conditionMutex);
       InitializeConditionVariable(&_conditionVariable);
@@ -233,7 +233,7 @@ private:
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
       {
          std::unique_lock<std::mutex> lockGuard(_conditionMutex);
-         auto timeoutTime = std::chrono::system_clock::now() + std::chrono::microseconds(timeDeltaMicros);
+         auto timeoutTime = std::chrono::steady_clock::now() + std::chrono::microseconds(timeDeltaMicros);
          if (_conditionVariable.wait_until(lockGuard, timeoutTime, [this](){return (_pendingNotificationsCount>0);}) == false) ret = B_TIMED_OUT;
          if (ret.IsOK()) FlushNotificationsCount(retNotificationsCount);
       }
@@ -265,7 +265,7 @@ private:
          timeDeltaMicros = wakeupTime-GetRunTime64();  // how far in the future the wakeup-time is, in microseconds
          if ((timeDeltaMicros <= 0)||(SleepConditionVariableCS(&_conditionVariable, &_conditionMutex, (DWORD) MicrosToMillisRoundUp(timeDeltaMicros)) == false))
          {
-            ret = (GetLastError() == ERROR_TIMEOUT) ? B_TIMED_OUT : B_ERRNO;  // timeout shouldn't ever happen, but just for form's sake
+            ret = ((timeDeltaMicros <= 0)||(GetLastError() == ERROR_TIMEOUT)) ? B_TIMED_OUT : B_ERRNO;  // timeout shouldn't ever happen, but just for form's sake
             break;
          }
       }
