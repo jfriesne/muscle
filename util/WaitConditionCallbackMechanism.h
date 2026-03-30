@@ -4,6 +4,7 @@
 #define WaitConditionCallbackMechanism_h
 
 #include "system/WaitCondition.h"
+#include "util/DemandConstructedObject.h"
 #include "util/ICallbackMechanism.h"
 
 namespace muscle {
@@ -15,7 +16,7 @@ class WaitConditionCallbackMechanism : public ICallbackMechanism
 {
 public:
    /** Default Constructor */
-   WaitConditionCallbackMechanism() : _wcRef(_defaultWaitCondition) {/* empty */}
+   WaitConditionCallbackMechanism() : _wcRef(_defaultWaitCondition.GetObject()) {/* empty */}
 
    /** Explicit constructor
      * @param wc WaitCondition that we should use for waiting and signalling, instead of our internal one
@@ -43,10 +44,14 @@ public:
 
 protected:
    /** Overridden to call Notify() on our WaitCondition */
-   virtual void SignalDispatchThread() {(void) _wcRef.Notify();}
+   virtual void SignalDispatchThread()
+   {
+      const status_t r = _wcRef.Notify();
+      if (r.IsError()) LogTime(MUSCLE_LOG_ERROR, "WaitConditionCallbackMechanism:  Notify() returned [%s]\n", r());
+   }
 
 private:
-   WaitCondition _defaultWaitCondition;
+   DemandConstructedObject<WaitCondition> _defaultWaitCondition;
    WaitCondition & _wcRef;
 };
 
