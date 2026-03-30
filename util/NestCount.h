@@ -27,6 +27,12 @@ public:
      */ 
    MUSCLE_CONSTEXPR NestCount(const NestCount & rhs) : _count(0) {(void) rhs;}
 
+   /** Assignemnt operator.  Deliberately implemented as a no-op since the nest-count value
+     * pertains to a specific NestCount instance only and should not be copied over from one NestCount to another.
+     * @param rhs the NestCount object that we'd usually copy state from, but in this case we do not.
+     */
+   NestCount & operator=(const NestCount & /*rhs*/) {return *this;}
+
    /** Increments our value, and returns true iff the new value is one. */
    bool Increment() {return (++_count == 1);}
 
@@ -49,12 +55,6 @@ public:
    void SetCount(uint32 c) {_count = c;}
 
 private:
-   NestCount & operator=(const NestCount & rhs);      // deliberately not implemented
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-   NestCount(NestCount && rhs) = delete;              // deliberately not implemented
-   NestCount & operator=(NestCount && rhs) = delete;  // deliberately not implemented
-#endif
-   
    uint32 _count;
 };
 

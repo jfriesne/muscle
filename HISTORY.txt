@@ -35,9 +35,6 @@ key:  - new feature
      DemandConstructedObject class.  (cc)
    - Added a move-constructor and move-assignment-operator to the
      Tuple class.
-   - Added a no-op copy-constructor to the NestCount class, and
-     made its move-constructor and assignment/move operators
-     inaccessible.  (cc)
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
      DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
      variadic macros.
@@ -166,6 +163,10 @@ key:  - new feature
    * DataIOUnflattener::ReadFlat() was broken.  Fixed.  (cc)
    * Improved the assignment operators of the DemandConstructedObject class
      to avoid unnecessary object copies.  (cc)
+   * Added no-op copy-constructor and assignment-operators to the
+     NestCount class, as copying the source NestCount's value
+     would only put its counter's state at odds with the current set
+     of NestCountGuards referencing it from the stack.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
