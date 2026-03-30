@@ -18,7 +18,7 @@ class LogCallbackArgs MUSCLE_FINAL_CLASS
 {
 public:
    /** Default Constructor */
-   LogCallbackArgs() : _when(0), _logLevel(MUSCLE_LOG_INFO), _sourceFile(""), _sourceFunction(""), _sourceLine(0), _text("") {/* empty */}
+   LogCallbackArgs() : _when(0), _logLevel(MUSCLE_LOG_INFO), _sourceFile(""), _sourceFunction(""), _sourceLine(-1), _text("") {/* empty */}
 
    /** Constructor
      * @param when Timestamp for this log message, in (seconds past 1970) format.
@@ -250,7 +250,7 @@ public:
    MUSCLE_NODISCARD uint32 GetMaxNumLogFiles() const {return _maxNumLogFiles;}
 
    /** Returns whether or not we should compress old log files to save disk space.  Defaults to false. */
-   MUSCLE_NODISCARD bool GetFileCompressionEnabled() {return _compressionEnabled;}
+   MUSCLE_NODISCARD bool GetFileCompressionEnabled() const {return _compressionEnabled;}
 
    /** Sets the name of the file to log to.
      * @param logName File name/path (including %-tokens as necessary)

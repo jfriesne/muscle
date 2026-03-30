@@ -1915,7 +1915,7 @@ String HexBytesToString(const Queue<uint8> & bytes, bool withSpaces)
 
 DebugTimer :: DebugTimer(const String & title, uint64 mlt, uint8 startMode, const OutputPrinter & outputPrinter)
    : _numValidModes(0)
-   , _currentMode(startMode+1)  // just to force a state-change inside SetMode()
+   , _currentMode((uint8) (startMode+1))  // just to force a state-change inside SetMode()
    , _curModeStartTime(0)
    , _title(title)
    , _minLogTime(mlt)

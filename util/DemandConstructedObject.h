@@ -38,12 +38,12 @@ public:
 
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
    /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
-   DemandConstructedObject(DemandConstructedObject<T> && rhs) : _objPointer(NULL) {if (rhs.IsObjectConstructed()) (void) EnsureObjectConstructed(std::move(rhs.GetObjectUnchecked()));}
+   DemandConstructedObject(DemandConstructedObject<T> && rhs) : _objPointer(NULL) {if (rhs.IsObjectConstructed()) (void) EnsureObjectConstructed(std_move_if_available(rhs.GetObjectUnchecked()));}
 
    /** Pseudo-Move constructor.
      * @param rhs the object to steal
      */
-   DemandConstructedObject(T && rhs) : _objPointer(NULL) {(void) EnsureObjectConstructed(std::move(rhs));}
+   DemandConstructedObject(T && rhs) : _objPointer(NULL) {(void) EnsureObjectConstructed(std_move_if_available(rhs));}
 #endif
 
    /** Destructor.  Calls the destructor on our held object as well, if necessary. */
@@ -54,8 +54,12 @@ public:
    {
       if (&rhs != this)
       {
-         if (rhs.IsObjectConstructed()) GetObject() = rhs.GetObjectUnchecked();
-                                   else (void) EnsureObjectDestructed();
+         if (rhs.IsObjectConstructed())
+         {
+             if (IsObjectConstructed()) GetObjectUnchecked() = rhs.GetObjectUnchecked();
+                                   else (void) EnsureObjectConstructed(rhs.GetObjectUnchecked());
+         }
+         else (void) EnsureObjectDestructed();
       }
       return *this;
    }
@@ -66,9 +70,23 @@ public:
    {
       if (&rhs != this)
       {
-         if (rhs.IsObjectConstructed()) GetObject() = std::move(rhs.GetObjectUnchecked());
-                                   else (void) EnsureObjectDestructed();
+         if (rhs.IsObjectConstructed())
+         {
+            if (IsObjectConstructed()) GetObjectUnchecked() = std_move_if_available(rhs.GetObjectUnchecked());
+                                  else (void) EnsureObjectConstructed(std_move_if_available(rhs.GetObjectUnchecked()));
+         }
+         else (void) EnsureObjectDestructed();
       }
+      return *this;
+   }
+
+   /** Templated move-Assignment operator, for convenience
+     * @param rhs the data object to transfer the contents of (rhs) into.
+     */
+   DemandConstructedObject & operator=(T && rhs)
+   {
+      if (IsObjectConstructed()) GetObjectUnchecked() = std_move_if_available(rhs);
+                            else (void) EnsureObjectConstructed(std_move_if_available(rhs));
       return *this;
    }
 #endif
@@ -78,7 +96,8 @@ public:
      */
    DemandConstructedObject & operator=(const T & rhs)
    {
-      (void) GetObject() = rhs;
+      if (IsObjectConstructed()) GetObjectUnchecked() = rhs;
+                            else (void) EnsureObjectConstructed(rhs);
       return *this;
    }
 
@@ -89,7 +108,7 @@ public:
      */
    bool operator == (const DemandConstructedObject & rhs) const
    {
-      bool amConstructed = IsObjectConstructed();
+      const bool amConstructed = IsObjectConstructed();
       if (amConstructed != rhs.IsObjectConstructed()) return false;
       return ((amConstructed == false)||(GetObjectUnchecked() == rhs.GetObjectUnchecked()));
    }
@@ -136,6 +155,15 @@ public:
      */
    bool EnsureObjectConstructed(const T & val) const {if (_objPointer) return false; else {_objPointer = new (_objUnion._buf) T(val); return true;}}
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** Same as above, except if this call needs to construct the object, it does so by moving the specified
+     * object into this object's possession.
+     * @param val The object to move from, if we need to move-construct our object.
+     * @returns true if this call constructed the object, or false if the object was already constructed.
+     */
+   bool EnsureObjectConstructed(T && val) const {if (_objPointer) return false; else {_objPointer = new (_objUnion._buf) T(std_move_if_available(val)); return true;}}
+#endif
+
    /** Calls our held object's destructor, if necessary.
      * If the object isn't currently valid, then this method is a no-op.
      * @returns true if this call destructed the object, or false if the object was already destructed.
@@ -150,8 +178,12 @@ private:
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS  // this is here so doxygen-coverage won't complain that I haven't documented this union -- but it's a private union so I don't need to
    mutable union {
+# ifdef MUSCLE_AVOID_CPLUSPLUS11
       T * _junk;   // only here ensure object-friendly alignment
       uint8 _buf[sizeof(T)];
+# else
+      alignas(T) uint8 _buf[sizeof(T)];
+# endif
    } _objUnion;
 #endif
 };

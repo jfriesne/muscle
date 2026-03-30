@@ -22,7 +22,7 @@ enum
    PR_COMMAND_REMOVEPARAMETERS,   /**< deletes the parameters specified in PR_NAME_KEYS */
    PR_COMMAND_SETDATA,            /**< Adds/replaces the given message in the data table */
    PR_COMMAND_GETDATA,            /**< Retrieves the given message(s) in the data table */
-   PR_COMMAND_REMOVEDATA,         /**< Removes the gives message(s) from the data table */
+   PR_COMMAND_REMOVEDATA,         /**< Removes the given message(s) from the data table */
    PR_COMMAND_JETTISONRESULTS,    /**< Removes data from outgoing result messages */
    PR_COMMAND_INSERTORDEREDDATA,  /**< Insert nodes underneath a node, as an ordered list */
    PR_COMMAND_PING,               /**< Echo this message back to the sending client */
@@ -104,7 +104,7 @@ enum
    INDEX_OP_CLEARED       = 'c'  /**< Index was cleared */
 };
 
-/// Flags that can be passed as a bit-chord to the StorageReflectSessoin::SetDataNode() method, or passed in the PR_NAME_FLAGS field of the PR_COMMAND_SETDATA Message
+/// Flags that can be passed as a bit-chord to the StorageReflectSession::SetDataNode() method, or passed in the PR_NAME_FLAGS field of the PR_COMMAND_SETDATA Message
 enum {
    SETDATANODE_FLAG_DONTCREATENODE = 0,  ///< Specify this bit if the SetDataNode() call should error out rather than creating a new DataNode.
    SETDATANODE_FLAG_DONTOVERWRITEDATA,   ///< Specify this bit if the SetDataNode() call should error out rather than overwriting the Message payload of an existing node.
@@ -216,7 +216,7 @@ DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS, _s
 //                                           This parameter is set by default.
 //
 //      PR_NAME_ROUTE_NEIGHBORS_TO_GATEWAY : If set, then any unrecognized Message received from a neighboring
-//                                           session will be sent out to the current session's gateay (and thus
+//                                           session will be sent out to the current session's gateway (and thus
 //                                           to the client).  This parameter is set by default.
 //
 //      PR_NAME_REPLY_ENCODING : If set, this int32 specifies the MUSCLE_MESSAGE_ENCODING_*
@@ -324,7 +324,7 @@ DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS, _s
 //    PR_COMMAND_REMOVEBANS field has PR_PRIVILEGE_REMOVEBANS access.
 //
 // if 'what' is PR_COMMAND_RESERVED_*:
-//    The server will change the 'what' code of your message to PR_RESULT_UNIMPLEMENTED,
+//    The server will change the 'what' code of your message to PR_RESULT_ERRORUNIMPLEMENTED,
 //    and send it back to your client.
 //
 // if 'what' is PR_RESULT_*:
@@ -355,11 +355,11 @@ DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS, _s
 //    of the node it represents (eg "/my.computer.com/5/MyNodeName") and the value being
 //    the stored data itself.  Occasionally it is necessary to inform the client that a data
 //    node has been deleted; this is done by adding the deceased node's path name as a string
-//    to the PR_NAME_REMOVED_DATAITEM field.  If multiple nodes were removed, there may be
-//    more than one string present in the PR_NAME_REMOVED_DATAITEM field.
+//    to the PR_NAME_REMOVED_DATAITEMS field.  If multiple nodes were removed, there may be
+//    more than one string present in the PR_NAME_REMOVED_DATAITEMS field.
 //
 // if 'what' is PR_RESULT_INDEXUPDATED:
-//    The message contains information about index entries that were added (via PR_COMMAND_INSERTORDERREDDATA)
+//    The message contains information about index entries that were added (via PR_COMMAND_INSERTORDEREDDATA)
 //    to a node that the client is subscribed to.  Each entry's field name is the fully qualified
 //    path of a subscribed node, and the value(s) are strings of this format:  "%c%lu:%s", %c is
 //    a single character that is one of the INDEX_OP_* values, the %lu is an index the item was added to

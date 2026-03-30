@@ -31,6 +31,8 @@ key:  - new feature
      declares SSIZE_T instead of ssize_t.
    - AtomicValue's pre-C++11 implementation now also detects an
      illegally-sized ATOMIC_BUFFER_SIZE at compile time.  (c)
+   - Added a EnsureObjectConstructed(T && val) method to the
+     DemandConstructedObject class.  (c)
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
      DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
      variadic macros.
@@ -155,6 +157,8 @@ key:  - new feature
      any NULL (refCountableRef) argument that it receives.  (c)
    * Fixed Queue::InsertItemsAt() to handle overlapping item-copies correctly.
    * DataIOUnflattener::ReadFlat() was broken.  Fixed.  (c)
+   * Improved the assignment operators of the DemandConstructedObject class
+     to avoid unnecessary object copies.  (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

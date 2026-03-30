@@ -37,7 +37,7 @@ public:
    MUSCLE_NODISCARD uint32 HashCode() const {return ((uint32)((uintptr)_session))+(_asInput?1:0);}  // double-cast for AMD64
 
    /** @copydoc DoxyTemplate::operator==(const DoxyTemplate &) const */
-   bool operator == (const PolicyHolder & rhs) {return ((rhs._session == _session)&&(rhs._asInput == _asInput));}
+   bool operator == (const PolicyHolder & rhs) const {return ((rhs._session == _session)&&(rhs._asInput == _asInput));}
 
 private:
    AbstractReflectSession * _session;
@@ -134,7 +134,7 @@ public:
      *               PolicyHolders, and attached to the server.
      * @param numBytes How many bytes it transferred.  This value will be less than or equal
      *                 to the max value you return previously for this session from
-     *                 GetMaxReadChunkSize().
+     *                 GetMaxTransferChunkSize().
      */
    virtual void BytesTransferred(const PolicyHolder & holder, uint32 numBytes) = 0;
 
