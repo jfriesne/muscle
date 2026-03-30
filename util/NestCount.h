@@ -25,9 +25,9 @@ public:
      * @note this copy-constructor deliberately sets our nest-count to zero instead of to the nest-count
      *       value of (rhs) since no NestCountGuards have been declared referencing this new NestCount object.
      */ 
-   MUSCLE_CONSTEXPR NestCount(const NestCount & rhs) : _count(0) {(void) rhs;}
+   MUSCLE_CONSTEXPR NestCount(const NestCount & rhs) : _count(0) {/* this method body must be kept completely empty */}
 
-   /** Assignemnt operator.  Deliberately implemented as a no-op since the nest-count value
+   /** Assignment operator.  Deliberately implemented as a no-op since the nest-count value
      * pertains to a specific NestCount instance only and should not be copied over from one NestCount to another.
      * @param rhs the NestCount object that we'd usually copy state from, but in this case we do not.
      */
