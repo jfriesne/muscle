@@ -154,6 +154,7 @@ key:  - new feature
    * RefCount::SetFromRefCountableRefUnchecked() now retains the status of
      any NULL (refCountableRef) argument that it receives.  (c)
    * Fixed Queue::InsertItemsAt() to handle overlapping item-copies correctly.
+   * DataIOUnflattener::ReadFlat() was broken.  Fixed.  (c)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

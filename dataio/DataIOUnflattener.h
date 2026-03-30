@@ -12,7 +12,7 @@ namespace muscle {
 
 class ByteBuffer;
 
-/** This is a lightweight helper class designed to safely and efficiently flatten POD data-values to a raw byte-buffer.
+/** This is a lightweight helper class designed to safely and efficiently unflatten POD data-values from a DataIO.
   * @tparam EndianConverter the type of EndianConverter object use when converting raw serialized bytes to native data-types
   */
 template<class EndianConverter> class MUSCLE_NODISCARD DataIOUnflattenerHelper MUSCLE_FINAL_CLASS
@@ -115,10 +115,15 @@ public:
          if (bigBuf == NULL) return FlagError(B_OUT_OF_MEMORY);
       }
 
-      DataUnflattenerHelper<EndianConverter> unflat(bigBuf?bigBuf:smallBuf, numBytesToRead);
-      const status_t ret = retVal.Unflatten(unflat);
-      delete [] bigBuf;
+      uint8 * b = bigBuf ? bigBuf : smallBuf;
+      status_t ret = ReadBytes(b, numBytesToRead);
+      if (ret.IsOK())
+      {
+         DataUnflattenerHelper<EndianConverter> unflat(b, numBytesToRead);
+         ret = retVal.Unflatten(unflat);
+      }
 
+      delete [] bigBuf;
       return FlagError(ret);
    }
 
@@ -213,7 +218,7 @@ public:
    {
       if (_optSeekableIO)
       {
-         const uint32 modBytes = _optSeekableIO->GetPosition() % alignmentSize;
+         const uint32 modBytes = (alignmentSize > 0) ? ((uint32) (_optSeekableIO->GetPosition() % alignmentSize)) : 0;
          if (modBytes == 0) return B_NO_ERROR;  // we're already aligned
 
          return FlagError(_optSeekableIO->Seek(alignmentSize - modBytes, SeekableDataIO::IO_SEEK_CUR));

@@ -173,7 +173,7 @@ status_t PseudoFlattenable<SubclassType>::FlattenToDataIO(DataIO & outputStream,
       DefaultEndianConverter::Export(fs, b);
       sc->FlattenToBytes(b+sizeof(uint32), fs);
    }
-   else FlattenToBytes(b, fs);
+   else sc->FlattenToBytes(b, fs);
 
    // And finally, write out the buffer
    const status_t ret = outputStream.WriteFully(b, bufSize);

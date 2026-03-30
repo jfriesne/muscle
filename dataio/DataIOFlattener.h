@@ -124,7 +124,7 @@ public:
    {
       if (_optSeekableIO == NULL) return FlagError(B_BAD_OBJECT);
 
-      const uint32 modBytes = (uint32) (_optSeekableIO->GetPosition() % alignmentSize);
+      const uint32 modBytes = (alignmentSize > 0) ? ((uint32) (_optSeekableIO->GetPosition() % alignmentSize)) : 0;
       if (modBytes > 0)
       {
          uint8 tempBuf[64]; memset(tempBuf, 0, sizeof(tempBuf));
@@ -132,7 +132,7 @@ public:
          while(padBytes > 0)
          {
             const uint32 numBytesToWrite = muscleMin(padBytes, (uint32) sizeof(tempBuf));
-            MRETURN_ON_ERROR(WriteBytes(padBytes, numBytesToWrite));
+            MRETURN_ON_ERROR(WriteBytes(tempBuf, numBytesToWrite));
             padBytes -= numBytesToWrite;
          }
       }
@@ -168,10 +168,12 @@ private:
             if (flatSize > bigBufSize)
             {
                // demand-allocate more space if necessary
-               if (flatSize > bigBufSize) delete [] bigBuf;
+               delete [] bigBuf;
 
                bigBuf = newnothrow_array(uint8, flatSize);
                if (bigBuf == NULL) return FlagError(B_OUT_OF_MEMORY);
+
+               bigBufSize = flatSize;
             }
 
             bufPtr = bigBuf;
