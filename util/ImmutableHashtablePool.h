@@ -185,7 +185,7 @@ private:
       }
 
       // Calculate how many key/value pairs will be in the new table so we can EnsureSize() the exact amount of slots needed for it
-      const uint32 newSize   = startWithTable.GetNumItems() + (optNewVal ? (optOldVal?0U:1U) : (optOldVal?((uint32)-1):0U));
+      const uint32 newSize   = startWithTable.GetNumItems() + (optNewVal ? (optOldVal?0U:1U) : ((uint32)-1));  // Note that at this point if (optNewVal==NULL), then we know that (optOldVal!=NULL)
       const uint32 refStatus = GetRefStatus(startWith);
       if (refStatus != REF_STATUS_PUBLIC)
       {

@@ -247,9 +247,8 @@ private:
          MRETURN_ON_ERROR(postWrittenToChildBytes);
 
          // Try to avoid returning 0 just because zlib needed buffers to be flushed; blocking callers don't like it when WriteFully() returns a short write
-         if (zRet < 0) return (zRet == Z_BUF_ERROR) ? io_status_t(bytesAbsorbed) : B_ZLIB_ERROR;  // avoid infinite recursion if zlib is bonking out (Z_BUF_ERROR isn't considered fatal though)
-
-         return bytesAbsorbed ? io_status_t(bytesAbsorbed) : (((zRet == Z_STREAM_END)&&(preWrittenToChildBytes.GetByteCount()==0)&&(postWrittenToChildBytes.GetByteCount()==0)) ? io_status_t() : WriteAux(buffer, size, flushAtEnd, optFinishingUp));
+         // Note that at this point we know that (zRet) is either Z_OK or Z_STREAM_END (nonfatal) or Z_BUF_ERROR (nonfatal), because otherwise we would have returned B_ZLIB_ERROR already.
+         return bytesAbsorbed ? io_status_t(bytesAbsorbed) : (((zRet != Z_OK)&&(preWrittenToChildBytes.GetByteCount()==0)&&(postWrittenToChildBytes.GetByteCount()==0)) ? io_status_t() : WriteAux(buffer, size, flushAtEnd, optFinishingUp));
       }
       return B_BAD_OBJECT;
    }

@@ -2037,8 +2037,12 @@ template <class ItemType>
 void
 Queue<ItemType>::SwapContentsAux(Queue<ItemType> & largeThat)  // note:  can't be MUSCLE_NOEXCEPT because we may copy items
 {
+   MASSERT((_queue == _smallQueue),                     "Queue::SwapContentsAux():  this Queue isn't a small queue!");
+   MASSERT((largeThat._queue != largeThat._smallQueue), "Queue::SwapContentsAux():  largeThat isn't a big queue!");
+
    // First, copy over our (small) contents to his small-buffer
    const uint32 ni = GetNumItems();
+   MASSERT((ni <= ARRAYITEMS(largeThat._smallQueue)), "Queue::SwapContentsAux():  ni is too large");  // only here to reassure Coverity and myself
    for (uint32 i=0; i<ni; i++) largeThat._smallQueue[i] = QQ_PlunderItem((*this)[i]);
 
    // Now adopt his dynamic buffer
