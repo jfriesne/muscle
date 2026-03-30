@@ -1486,6 +1486,8 @@ status_t Flattenable :: FlattenToDataIO(DataIO & outputStream, bool addSizeHeade
    uint8 * bigBuf = NULL;
 
    const uint32 fs = FlattenedSize();
+   if ((addSizeHeader)&&(WillUnsignedAddOverflow(fs, (uint32)sizeof(uint32)))) return B_RESOURCE_LIMIT;  // semi-paranoia
+
    const uint32 bufSize = fs+(addSizeHeader?sizeof(uint32):0);
 
    uint8 * b;

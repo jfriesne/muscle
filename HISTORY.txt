@@ -71,6 +71,7 @@ key:  - new feature
    o Removed Socket::GetSocketFamily() (it was redundant with Socket::GetFamily())
    o Added a move-constructor and move-assignment-operator to the
      TamperEvidentValue class.  (cc)
+   o Changed CloneObject() to use dynamic_cast instead of static_cast.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to
@@ -170,6 +171,8 @@ key:  - new feature
    * Rewrote SignalMessageIOGateway::HasBytesToOutput() to return true
      when the outgoing Message queue contains items, so that the Queue
      can be drained as expected.  (cc)
+   * CheckedDataFlattener::SetBuffer() wasn't setting the seek-position
+     to the end of the current ByteBuffer.  Fixed.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

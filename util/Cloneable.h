@@ -35,6 +35,7 @@ public:
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
       if ((ret)&&(std::type_index(typeid(*ret)) != std::type_index(typeid(*this))))
       {
+         delete ret;  // avoid a potential memory-leak report
          LogTime(MUSCLE_LOG_CRITICALERROR, "Class [%s]'s CloneImp() method erroneously returned an object of type [%s], check to see if it forgot to include a DECLARE_STANDARD_CLONE_METHOD() invocation!\n", typeid(*this).name(), typeid(*ret).name());
          MCRASH("Clone() detected a malformed Cloneable subclass-implementation");
       }
@@ -77,7 +78,7 @@ protected:
 template<typename T> MUSCLE_NODISCARD T * CloneObject(const T & item)
 {
    const Cloneable * c = dynamic_cast<const Cloneable *>(&item);
-   if (c) return static_cast<T *>(c->Clone());
+   if (c) return dynamic_cast<T *>(c->Clone());  // using dynamic_cast rather than static_cast so virtual inheritance can be supported
    else
    {
       printf("muscle::CloneObject:  Can't clone an object of type [%s] without C++11 support, since it doesn't derive from muscle::Cloneable!\n", typeid(item).name());
@@ -99,7 +100,7 @@ MUSCLE_NODISCARD
 typename std::enable_if<std::is_base_of<Cloneable, T>::value, T*>::type
 CloneObject(const T& item)
 {
-   return static_cast<T *>(item.Clone());
+   return dynamic_cast<T *>(item.Clone());  // using dynamic_cast rather than static_cast so virtual inheritance can be supported
 }
 
 /**

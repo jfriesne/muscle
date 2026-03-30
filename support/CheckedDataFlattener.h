@@ -71,7 +71,7 @@ public:
    {
       const uint32 curBufSize = writeTo.GetNumBytes();
 
-      _writeTo     = writeTo.GetBuffer();
+      _writeTo     = writeTo.GetBuffer()+curBufSize;
       _origWriteTo = writeTo.GetBuffer();
       _bytesLeft   = (maxBytes>curBufSize) ? (maxBytes-curBufSize) : 0;
       _maxBytes    = maxBytes;
@@ -219,7 +219,7 @@ public:
      */
    status_t WritePaddingBytesToAlignTo(uint32 alignmentSize)
    {
-      const uint32 modBytes = (GetNumBytesWritten() % alignmentSize);
+      const uint32 modBytes = (alignmentSize > 0) ? (GetNumBytesWritten() % alignmentSize) : 0;
       if (modBytes > 0)
       {
          const uint32 padBytes = alignmentSize-modBytes;
@@ -262,13 +262,13 @@ public:
    status_t SeekRelative(int32 numBytes)
    {
       const uint32 nbw = GetNumBytesWritten();
-      return ((numBytes > 0)||(((uint32)(-numBytes)) <= nbw)) ? SeekTo(GetNumBytesWritten()+numBytes) : B_BAD_ARGUMENT;
+      return ((numBytes > 0)||(((uint32)(-((int64)numBytes))) <= nbw)) ? SeekTo(GetNumBytesWritten()+numBytes) : B_BAD_ARGUMENT;
    }
 
    /** Moves the pointer to the end of our buffer
      * @returns B_NO_ERROR on success, or B_BAD_OBJECT on failure because we don't know how big our buffer is
      */
-   status_t SeekToEnd() {return SeekTo(_maxBytes);}
+   status_t SeekToEnd() {return (_maxBytes == MUSCLE_NO_LIMIT) ? B_BAD_OBJECT : SeekTo(_maxBytes);}
 
 private:
    const EndianConverter _endianConverter;

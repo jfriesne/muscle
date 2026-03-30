@@ -333,7 +333,7 @@ public:
      */
    status_t SeekPastPaddingBytesToAlignTo(uint32 alignmentSize)
    {
-      const uint32 modBytes = (alignmentSize != 0) ? (GetNumBytesRead() % alignmentSize) : 0;
+      const uint32 modBytes = (alignmentSize > 0) ? (GetNumBytesRead() % alignmentSize) : 0;
       return (modBytes > 0) ? SeekRelative(alignmentSize - modBytes) : B_NO_ERROR;
    }
 
