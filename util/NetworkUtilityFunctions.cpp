@@ -2543,6 +2543,7 @@ SocketCallbackMechanism :: SocketCallbackMechanism()
    if (CreateConnectedSocketPair(_dispatchThreadSock, _otherThreadsSock, false).IsError(ret))
    {
       LogTime(MUSCLE_LOG_ERROR, "SocketCallbackMechanism:  Unable to create notify-socket-pair! [%s]\n", ret());
+      MCRASH("SocketCallbackMechanism setup failed");
    }
 }
 
@@ -2555,7 +2556,7 @@ void SocketCallbackMechanism :: DispatchCallbacks()
 {
    // read and discard any signalling-bytes sent by the other threads
    char junkBuf[128];
-   (void) ReceiveData(_dispatchThreadSock, junkBuf, sizeof(junkBuf), false);
+   while(ReceiveData(_dispatchThreadSock, junkBuf, sizeof(junkBuf), false).GetByteCount() > 0) {/* empty */}
 
    // Call superclass to perform the actual callbacks
    ICallbackMechanism::DispatchCallbacks();
