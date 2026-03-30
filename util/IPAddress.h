@@ -111,10 +111,10 @@ public:
    IPAddress operator ~ () const {return IPAddress(~_lowBits, ~_highBits, _interfaceIndex);}
 
    /** @copydoc DoxyTemplate::operator&=(const DoxyTemplate &) */
-   IPAddress operator &= (const IPAddress & rhs) {*this = *this & rhs; return *this;}
+   IPAddress & operator &= (const IPAddress & rhs) {*this = *this & rhs; return *this;}
 
    /** @copydoc DoxyTemplate::operator|=(const DoxyTemplate &) */
-   IPAddress operator |= (const IPAddress & rhs) {*this = *this | rhs; return *this;}
+   IPAddress & operator |= (const IPAddress & rhs) {*this = *this | rhs; return *this;}
 
    /** Sets all 128 bits of this IP address
      * @param lowBits the lower 64 bits of the IP address
@@ -336,7 +336,7 @@ private:
 /** Numeric representation of a all-zeroes invalid/guard address (same for both IPv4 and IPv6) */
 const IPAddress invalidIP(0x00);
 
-/** IPv4 Numeric representation of broadcast (255.255.255.255) */
+/** IPv4 Numeric representation of localhost (127.0.0.1) for convenience */
 const IPAddress localhostIP_IPv4 = IPAddress((((uint32)127)<<24)|((uint32)1));
 
 /** IPv6 Numeric representation of localhost (::1) for convenience */
@@ -360,7 +360,7 @@ const IPAddress localhostIP = localhostIP_IPv4;
 const IPAddress broadcastIP = broadcastIP_IPv4;
 #else
 
-/** Representation of the canonical localhost IP address (127.0.0.1 if MUSCLE_AVOID_IPV6 is defined, otherwise ::11) */
+/** Representation of the canonical localhost IP address (127.0.0.1 if MUSCLE_AVOID_IPV6 is defined, otherwise ::1) */
 const IPAddress localhostIP = localhostIP_IPv6;
 
 /** Representation of the canonical broadcast IP address (255.255.255.255 if MUSCLE_AVOID_IPV6 is defined, otherwise ff02::1) */
