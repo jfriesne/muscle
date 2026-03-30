@@ -26,6 +26,11 @@ public:
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    MUSCLE_CONSTEXPR_17 Tuple(const Tuple & rhs) {*this = rhs;}
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
+   MUSCLE_CONSTEXPR_17 Tuple(Tuple && rhs) {*this = std_move_if_available(rhs);}
+#endif
+
    /** Silly constructor -- This constructor does no initialization at all.  The arguments are here merely to differentiate it
     *  from the other constructors, and are ignored.  When this constructor is used, the items in this Tuple will be in an
     *  undefined state and their state should be set to something definite before use.  (Exception:  if the items are
@@ -35,6 +40,11 @@ public:
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    Tuple & operator =(const Tuple & rhs) {if (this != &rhs) {for (int i=0; i<NumItems; i++) _items[i] = rhs._items[i];} return *this;}
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
+   Tuple & operator =(Tuple && rhs) {if (this != &rhs) {for (int i=0; i<NumItems; i++) _items[i] = std_move_if_available(rhs._items[i]);} return *this;}
+#endif
 
    /** Assignment operator for copying data in from an appropriately-sized array.
      * @param values an array of (NumItems) values tha we should set our own values to equal
@@ -149,10 +159,10 @@ public:
      */
    MUSCLE_NODISCARD int Compare(const Tuple & rhs) const {for (int i=0; i<NumItems; i++) {if (_items[i] < rhs[i]) return -1; if (_items[i] > rhs[i]) return 1;} return 0;}
 
-   /** Returns the minimum value from amongst all the items in the tuple */
+   /** Returns the maximum value from amongst all the items in the tuple */
    MUSCLE_NODISCARD ItemType GetMaximumValue() const {ItemType maxv = _items[0]; for (int i=1; i<NumItems; i++) if (_items[i] > maxv) maxv = _items[i]; return maxv;}
 
-   /** Returns the maximum value from amongst all the items in the tuple */
+   /** Returns the minimum value from amongst all the items in the tuple */
    MUSCLE_NODISCARD ItemType GetMinimumValue() const {ItemType minv = _items[0]; for (int i=1; i<NumItems; i++) if (_items[i] < minv) minv = _items[i]; return minv;}
 
    /** Multiplies each value by itself, and returns the sum */

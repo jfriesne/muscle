@@ -33,6 +33,11 @@ key:  - new feature
      illegally-sized ATOMIC_BUFFER_SIZE at compile time.  (cc)
    - Added a EnsureObjectConstructed(T && val) method to the
      DemandConstructedObject class.  (cc)
+   - Added a move-constructor and move-assignment-operator to the
+     Tuple class.
+   - Added a no-op copy-constructor to the NestCount class, and
+     made its move-constructor and assignment/move operators
+     inaccessible.  (cc)
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
      DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
      variadic macros.

@@ -20,6 +20,13 @@ public:
    /** Default constructor.  Sets the nest count to zero. */
    MUSCLE_CONSTEXPR NestCount() : _count(0) {/* empty */}
 
+   /** Copy constructor.
+     * @param rhs the NestCount object that we are supposed to be copying our state from (but won't).
+     * @note this copy-constructor deliberately sets our nest-count to zero instead of to the nest-count
+     *       value of (rhs) since no NestCountGuards have been declared referencing this new NestCount object.
+     */ 
+   MUSCLE_CONSTEXPR NestCount(const NestCount & rhs) : _count(0) {(void) rhs;}
+
    /** Increments our value, and returns true iff the new value is one. */
    bool Increment() {return (++_count == 1);}
 
@@ -42,6 +49,12 @@ public:
    void SetCount(uint32 c) {_count = c;}
 
 private:
+   NestCount & operator=(const NestCount & rhs);      // deliberately not implemented
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   NestCount(NestCount && rhs) = delete;              // deliberately not implemented
+   NestCount & operator=(NestCount && rhs) = delete;  // deliberately not implemented
+#endif
+   
    uint32 _count;
 };
 
