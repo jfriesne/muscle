@@ -156,11 +156,11 @@ public:
    }
 
 private:
-   MUSCLE_NODISCARD uint64 HashCodeAfterModification(const ConstImmutableHashtableTypeRef & startWith, const KeyType & key, const ValueType * optNewVal) const
+   MUSCLE_NODISCARD uint64 HashCodeAfterModification(const ImmutableHashtableType & startWith, const KeyType & key, const ValueType * optNewVal) const
    {
-      uint64 newSum = startWith()->_hashCodeSum;
-      const ValueType * oldVal = startWith()->GetTable().Get(key);
-      if (oldVal)    newSum -= ImmutableHashtableType::GetHashCodeForKeyValuePair(key, *oldVal);
+      uint64 newSum = startWith._hashCodeSum;
+      const ValueType * optOldVal = startWith.GetTable().Get(key);
+      if (optOldVal) newSum -= ImmutableHashtableType::GetHashCodeForKeyValuePair(key, *optOldVal);
       if (optNewVal) newSum += ImmutableHashtableType::GetHashCodeForKeyValuePair(key, *optNewVal);
       return newSum;
    }
@@ -169,18 +169,23 @@ private:
    {
       if (startWith() == NULL) return GetWithAux(GetEmptyTable(), key, optNewVal, maxLRUCacheSize);  // handle the NULL-ref case gracefully, as an empty-set case
 
-      const uint64 newSum = HashCodeAfterModification(startWith, key, optNewVal);
+      const Hashtable<KeyType, ValueType, KeyHashFunctorType> & startWithTable = startWith()->GetTable();
+      const ValueType * optOldVal = startWithTable.Get(key); // Early return for no-op cases
+      if (optOldVal)
+      {
+         if ((optNewVal)&&(*optOldVal == *optNewVal)) return startWith;
+      }
+      else if (optNewVal == NULL) return startWith;
+
       // See if we can find the new Hash table already in our cache and re-use it
-      const Hashtable<KeyType, ValueType, KeyHashFunctorType> & oldTable = startWith()->GetTable();
+      const uint64 newSum = HashCodeAfterModification(*startWith(), key, optNewVal);
       {
          const ConstImmutableHashtableTypeRef * ret = _lruCache.GetAndMoveToFront(newSum);
-         if ((ret)&&(oldTable.WouldBeEqualToAfterPutOrRemove(ret->GetItemPointer()->GetTable(), key, optNewVal))) return *ret;
+         if ((ret)&&(startWithTable.WouldBeEqualToAfterPutOrRemove(ret->GetItemPointer()->GetTable(), key, optNewVal))) return *ret;
       }
 
       // Calculate how many key/value pairs will be in the new table so we can EnsureSize() the exact amount of slots needed for it
-      const bool alreadyHadKey = oldTable.ContainsKey(key);
-      const uint32 newSize = oldTable.GetNumItems() + (optNewVal ? (alreadyHadKey?0:1) : (alreadyHadKey?-1:0));
-
+      const uint32 newSize   = startWithTable.GetNumItems() + (optNewVal ? (optOldVal?0U:1U) : (optOldVal?((uint32)-1):0U));
       const uint32 refStatus = GetRefStatus(startWith);
       if (refStatus != REF_STATUS_PUBLIC)
       {
@@ -205,16 +210,16 @@ private:
       if ((newTab)&&(newTab->EnsureSize(newSize,true).IsOK()))
       {
          // Copy over all of the old table's contents, but with our one update applied to the new table
-         for (ConstHashtableIterator<KeyType, ValueType> oldIter(oldTable); oldIter.HasData(); oldIter++)
+         for (ConstHashtableIterator<KeyType, ValueType> startWithIter(startWithTable); startWithIter.HasData(); startWithIter++)
          {
-            const KeyType & nextKey = oldIter.GetKey();
+            const KeyType & nextKey = startWithIter.GetKey();
             if (nextKey == key)
             {
                if (optNewVal) (void) newTab->Put(nextKey, *optNewVal);  // guaranteed not to fail!
             }
-            else (void) newTab->Put(nextKey, oldIter.GetValue());  // guaranteed not to fail!
+            else (void) newTab->Put(nextKey, startWithIter.GetValue());  // guaranteed not to fail!
          }
-         if ((alreadyHadKey == false)&&(optNewVal)) (void) newTab->Put(key, *optNewVal);  // guaranteed not to fail!
+         if ((optOldVal == NULL)&&(optNewVal)) (void) newTab->Put(key, *optNewVal);  // guaranteed not to fail!
 
          newObj->_hashCodeSum = newSum;
          if (newTab->GetNumItems() <= MaxCacheableTableSize)
