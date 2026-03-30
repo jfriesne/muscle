@@ -37,6 +37,13 @@ public:
    /** Destructor.  Calls SetCallbackMechanism(NULL). */
    virtual ~ICallbackSubscriber() {SetCallbackMechanism(NULL);}
 
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
+   ICallbackSubscriber & operator= (const ICallbackSubscriber & rhs)
+   {
+      if (this != &rhs) SetCallbackMechanism(rhs.GetCallbackMechanism());
+      return *this;
+   }
+
    /** Sets our callback mechanism.  To be called from the main/dispatch thread only (typically from our constructor)
      * @param mechanism pointer to the new CallbackMechanism to register with, or NULL to deregister from any existing CallbackMechanism.
      */

@@ -74,6 +74,7 @@ key:  - new feature
    o Removed the (void *) argument from the GenericCallback::Callback()
      virtual method signature, as it wasn't being used for anything.
    o Changed CloneObject() to use dynamic_cast instead of static_cast.
+   o Changed ICallbackMechanism to subclass from NotCopyable.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to
@@ -177,6 +178,7 @@ key:  - new feature
      to the end of the current ByteBuffer.  Fixed.  (cc)
    * Fixed a potential re-entrancy problem in
      ICallbackMechanism::DispatchCallbacks() (cc).
+   * Added an assignment operator to the ICallbackSubscriber class.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

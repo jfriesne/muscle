@@ -3,6 +3,7 @@
 #ifndef ICallbackMechanism_h
 #define ICallbackMechanism_h
 
+#include "support/NotCopyable.h"
 #include "system/Mutex.h"
 #include "util/Hashtable.h"
 #include "util/NestCount.h"
@@ -24,7 +25,7 @@ class ICallbackSubscriber;
   * ICallbackMechanism::DispatchCallbacks() will then call the DispatchCallbacks() method
   * on each registered ICallbackSubscriber.
   */
-class ICallbackMechanism
+class ICallbackMechanism : public NotCopyable
 {
 public:
    /** Default Constructor */
