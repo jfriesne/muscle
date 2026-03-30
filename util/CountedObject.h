@@ -27,7 +27,7 @@ public:
    MUSCLE_NODISCARD const char * GetCounterTypeName() const {return _objectCounterTypeName;}
 
    /** Returns the number of objects of our type that are currently allocated. */
-   MUSCLE_NODISCARD uint32 GetCount() const {return _counter.GetCount();}
+   MUSCLE_NODISCARD uint32 GetCount() const {return (uint32) _counter.GetCount();}
 
    /** Returns sizeof(Object) for the object-type we are counting */
    MUSCLE_NODISCARD uint32 GetSizeofObject() const {return _sizeofObject;}
@@ -93,13 +93,23 @@ public:
 #endif
    }
 
-   /** Copy Constructor.  */
+   /** Copy Constructor. */
    CountedObject(const CountedObject<ObjectType> & /*rhs*/)
    {
 #ifdef MUSCLE_ENABLE_OBJECT_COUNTING
       GetGlobalObjectForType< ObjectCounter<ObjectType> >().IncrementCounter();
 #endif
    }
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** Move Constructor. */
+   CountedObject(CountedObject<ObjectType> && /*rhs*/)
+   {
+# ifdef MUSCLE_ENABLE_OBJECT_COUNTING
+      GetGlobalObjectForType<ObjectCounter<ObjectType>>().IncrementCounter();
+# endif
+   }
+#endif
 
    /** Destructor (deliberately not virtual, to avoid a vtable-pointer size-penalty) */
    ~CountedObject()
@@ -118,7 +128,7 @@ public:
   * @param results a Hashtable to populate.  Keys in this table are human-readable(ish) strings identifying the class,
   *                and values are bit-chords with the lower 32 bits being the number of objects of that class that are currently in existence,
   *                and the upper 32 bits being sizeof() an object of that class.
-  * @returns B_NO_ERROR on success, or B_LOCK_FAILED, or B_OUT_OF_MEMORY, or B_UNIMPLEMENTED (if -DMUSCLE_TRACK_OBJECT_COUNTS wasn't defined).
+  * @returns B_NO_ERROR on success, or B_LOCK_FAILED, or B_OUT_OF_MEMORY, or B_UNIMPLEMENTED (if -MUSCLE_ENABLE_OBJECT_COUNTING wasn't defined).
   */
 status_t GetCountedObjectInfo(Hashtable<const char *, uint64> & results);
 

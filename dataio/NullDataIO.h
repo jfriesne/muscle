@@ -35,9 +35,9 @@ public:
     *  No-op method, always returns (size) (except if Shutdown() was called).
     *  @param buffer Points to a buffer to write bytes from (ignored).
     *  @param size Number of bytes in the buffer (ignored).
-    *  @return An io_status_t with (size)-bytes-read, or B_BAD_OBJECT if Shutdown() has been called.
+    *  @return An io_status_t with (size)-bytes-written, or B_BAD_OBJECT if Shutdown() has been called.
     */
-   virtual io_status_t Write(const void * buffer, uint32 size) {(void) buffer; return _shutdown ? io_status_t(B_BAD_OBJECT) : io_status_t((int32)size);}
+   virtual io_status_t Write(const void * buffer, uint32 size) {(void) buffer; return _shutdown ? io_status_t(B_BAD_OBJECT) : io_status_t(muscleMin((int32)INT32_MAX, (int32)size));}
 
    /**
     *  No-op method.

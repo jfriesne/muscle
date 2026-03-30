@@ -23,7 +23,6 @@ public:
 
    /** Constructor.
      * @param childIO Reference to the DataIO to pass calls on through to
-     *                after the data has been XOR'd.
      */
    ProxyDataIO(const DataIORef & childIO) {SetChildDataIO(childIO);}
 
@@ -35,7 +34,7 @@ public:
    MUSCLE_NODISCARD virtual uint64 GetOutputStallLimit() const {return _childIO() ? _childIO()->GetOutputStallLimit() : MUSCLE_TIME_NEVER;}
 
    virtual void FlushOutput() {if (_childIO()) _childIO()->FlushOutput();}
-   virtual void Shutdown() {if (_childIO()) _childIO()->Shutdown(); _childIO.Reset();}
+   virtual void Shutdown() {if (_childIO()) _childIO()->Shutdown(); _childIO.Reset(); _seekableChildIO = NULL; _packetChildIO = NULL;}
 
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return _childIO() ? _childIO()->GetReadSelectSocket()  : GetNullSocket();}
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _childIO() ? _childIO()->GetWriteSelectSocket() : GetNullSocket();}

@@ -1475,7 +1475,9 @@ int64 SeekableDataIO :: GetLength() const
    if ((origPos >= 0)&&(nonConstThis.Seek(0, IO_SEEK_END).IsOK()))
    {
       const int64 ret = GetPosition();
-      if (nonConstThis.Seek(origPos, IO_SEEK_SET).IsOK()) return ret;
+      const status_t rRet = nonConstThis.Seek(origPos, IO_SEEK_SET);
+      if (rRet.IsOK()) return ret;
+                  else LogTime(MUSCLE_LOG_ERROR, "SeekableDataIO::GetLength():   Unable to restore seek position to " INT64_FORMAT_SPEC " [%s]\n", origPos, rRet());
    }
    return -1;  // error!
 }
@@ -2325,7 +2327,7 @@ void PrintCountedObjectInfo(const OutputPrinter & p)
    Hashtable<const char *, uint64> table;
    if (GetCountedObjectInfo(table).IsOK())
    {
-      table.SortByValue(CompareSizesFunctor());  // so they'll be printed in alphabetical order
+      table.SortByValue(CompareSizesFunctor());  // so they'll be printed in order of decreasing size (biggest memory users first)
       for (ConstHashtableIterator<const char *, uint64> iter(table, HTIT_FLAG_BACKWARDS); iter.HasData(); iter++)
       {
          const uint64 v        = iter.GetValue();

@@ -55,7 +55,7 @@ public:
    }
 
 private:
-   void XorMemCpy(const void * to, const void * from, uint32 numBytes) const
+   void XorMemCpy(void * to, const void * from, uint32 numBytes) const
    {
       uint8 * cto = (uint8 *) to;
       const uint8 * cfrom = (const uint8 *) from;
