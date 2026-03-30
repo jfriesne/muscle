@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-   - Note: (c) in the text below means the issue was detected by Claude Code.
+   - Note: (cc) in the text below means the issue was detected by Claude Code.
    - Added various compiler-warning flags to CMakeLists.txt.
    - Updated Queue::RmoveHeadMulti() and Queue::RemoveTailMulti()
      to be O(1) in the case where IsPerItemClearNecessary() return false.
@@ -21,7 +21,7 @@ key:  - new feature
      convenience functions to MuscleSupport.h.
    - qt_muscle_browser now inflates deflated Message payloads, so their
      inflated contents can be examined.
-   - Improved the accuracy of FilePathInfo timestamps under Linux. (c)
+   - Improved the accuracy of FilePathInfo timestamps under Linux. (cc)
    - ByteBufferPacketDataIO constructors now take an optional
      okayToReturnEndOfStream boolean argument.
    - On Windows, the "debugcrashes" crash-handler now also prints out
@@ -30,9 +30,9 @@ key:  - new feature
    - Added a muscle_ssize_t typedef to deal with the fact that Win32
      declares SSIZE_T instead of ssize_t.
    - AtomicValue's pre-C++11 implementation now also detects an
-     illegally-sized ATOMIC_BUFFER_SIZE at compile time.  (c)
+     illegally-sized ATOMIC_BUFFER_SIZE at compile time.  (cc)
    - Added a EnsureObjectConstructed(T && val) method to the
-     DemandConstructedObject class.  (c)
+     DemandConstructedObject class.  (cc)
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
      DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
      variadic macros.
@@ -41,11 +41,11 @@ key:  - new feature
    o Replaced WasSignalCaught() with GetNumSignalsCaught().
    o Thread::Register*() and Thread::Unregister*() methods now return
      B_BAD_OBJECT if the Thread was constructed with the
-     (useMessagingSockets) construct argument passed in as false.  (c)
+     (useMessagingSockets) construct argument passed in as false.  (cc)
    o Removed Thread::LockAndReturn*Queue() and Thread::Unlock*Queue()
      methods as they were error-prone and also not being used anywhere.
    o PR_COMMAND_SETDATA handler now logs an error message when
-     SetDataNode() returns an error. (c)
+     SetDataNode() returns an error. (cc)
    o CPULoadMeter now returns the previous CPU measurement again
      (rather than -1.0f) if it can't compute a new measurement.
    o StorageReflectSession::GetNewDataNode() is now a static method.
@@ -57,7 +57,7 @@ key:  - new feature
      to return void instead of status_t, since there's no way for those
      methods to actually fail anyway.
    o ProxyIOGateway::GenerateOutgoingByteBuffers() now returns a status_t
-     instead of void so it can propagate errors.  (c)
+     instead of void so it can propagate errors.  (cc)
    o Removed SharedFilterSessionFactory::SetSharedMemoryAreaName().
    o Split GetInsecurePseudoRandomNumber() into GetInsecurePseudoRandomNumber32()
      and GetInsecurePseudoRandomNumber64() and reimplemented them to use a better
@@ -67,98 +67,100 @@ key:  - new feature
    o The NestCountGuard, MutexGuard, SwapGuard, and NestCountGuard classes
      all of now inherit from NotCopyable, to catch unintended copies at compile-time.
    o Removed Socket::GetSocketFamily() (it was redundant with Socket::GetFamily())
+   o Added a move-constructor and move-assignment-operator to the
+     TamperEvidentValue class.  (cc)
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to
      return B_END_OF_STREAM when it has no more bytes to provide, rather than 0.
-   * Fixed an indexing bug in Message::ReplaceData() (c)
-   * Fixed a bug in StringTokenizer's copy-constructor (c)
-   * Fixed a potential memory leak in Thread::StartInternalThreadAuxAux() (c)
+   * Fixed an indexing bug in Message::ReplaceData() (cc)
+   * Fixed a bug in StringTokenizer's copy-constructor (cc)
+   * Fixed a potential memory leak in Thread::StartInternalThreadAuxAux() (cc)
    * Fixed a potential one-byte-past-end-of-struct overwrite in
-     String::EnsureBufferSize() (c)
+     String::EnsureBufferSize() (cc)
    * CPULoadMeter's Linux implementation now includes all reported CPU
-     states in its calculations (c)
+     states in its calculations (cc)
    * StringMatcher's assignment-operator wouldn't copy of the state of
-     the "negate" flag.  Fixed.  (c)
+     the "negate" flag.  Fixed.  (cc)
    * When a ReaderWriterMutex downgraded a thread's lock from read/write
      to read-only, other threads waiting for read-only access are now
-     notified.  (c)
+     notified.  (cc)
    * Improved the rollback handling of a failed LockReadWrite() call
-     in the ReaderWriterMutex class (c)
+     in the ReaderWriterMutex class (cc)
    * StackTrace::StaticPrintStackTrace() now calls fflush() when
      appropriate to avoid incorrect output ordering when also calling
-     backtrace_symbols_fd() (c)
-   * Queue::EndsWith() was broken.  Fixed.  (c)
-   * Queue::AddHeadAndGet() was calling AddTailAndGet() by mistake (c)
+     backtrace_symbols_fd() (cc)
+   * Queue::EndsWith() was broken.  Fixed.  (cc)
+   * Queue::AddHeadAndGet() was calling AddTailAndGet() by mistake (cc)
    * Queue::AdoptRawDataArray() wasn't setting the _tailIndex value
-     correctly.  Fixed. (c)
+     correctly.  Fixed. (cc)
    * Queue::RemoveSortedDuplicateItems() wasn't handling an empty
-     Queue correctly.  Fixed. (c)
+     Queue correctly.  Fixed. (cc)
    * Queue::ReverseItemOrdering() now correctly handles calls where the
-     (to) argument isn't greater than the (from) argument.  (c)
-   * Fixed the dash-stripping behavior of ParseArgs().  (c)
+     (to) argument isn't greater than the (from) argument.  (cc)
+   * Fixed the dash-stripping behavior of ParseArgs().  (cc)
    * ParseArgs() now correctly lower-cases arguments when adding them
      to a Queue.
-   * Fixed a couple of memory leaks in PythonUtilityFunctions.cpp (c)
+   * Fixed a couple of memory leaks in PythonUtilityFunctions.cpp (cc)
    * CalculateHashCode64() wasn't handling unaligned pointer arguments
-     correctly.  Fixed (c)
-   * Fixed a buffer-overrun bug in ZLibCodec::Deflate() (c)
-   * Fixed a data-handling bug in ZLibDataIO::Read() (c)
+     correctly.  Fixed (cc)
+   * Fixed a buffer-overrun bug in ZLibCodec::Deflate() (cc)
+   * Fixed a data-handling bug in ZLibDataIO::Read() (cc)
    * Fixed a bug in TarFileWriter's handling of block-padding when
-     writing using a non-seekable DataIO. (c)
-   * Improved error handling in the ChildProcessDataIO class. (c)
+     writing using a non-seekable DataIO. (cc)
+   * Improved error handling in the ChildProcessDataIO class. (cc)
    * SimulatedMulticastDataIO::GetWriteSelectSocket() now returns a
-     socket which is always ready-for-write. (c)
+     socket which is always ready-for-write. (cc)
    * Thread::MessageReceivedFromOwner() was being called with the
-     numLeft argument always set to zero.  Fixed.  (c)
+     numLeft argument always set to zero.  Fixed.  (cc)
    * Thread::GetCurrentStackUsage() was returning a value that was
-     four times smaller than it ought to.  Fixed.  (c)
+     four times smaller than it ought to.  Fixed.  (cc)
    * The HostNameResolver-management functions in NetworkUtilityFunctions.{cpp,h}
-     are now thread-safe (serialized with a Mutex where necessary) (c)
+     are now thread-safe (serialized with a Mutex where necessary) (cc)
    * The SetSocketMulticast*() and GetSocketMulticast*() functions in
      NetworkUtilityFunctions.{cpp,h} now work correctly for both IPv4
-     and IPv6 Sockets. (c)
-   * FilePathInfo::IsSymLink() is now implemented properly for Win32.  (c)
+     and IPv6 Sockets. (cc)
+   * FilePathInfo::IsSymLink() is now implemented properly for Win32.  (cc)
    * Fixed a reference-counting error in StorageReflectSession's
      GetDataNodeSubscribersTableFromPool() method that could cause
      subscriptions to remain active after they should have been removed.
    * StorageReflectSession::CloneDataNodeSubtree() no longer adds
      index-entries to the clone for child nodes that weren't included
-     in the clone due to being pruned by an ITraversalPruner. (c)
-   * Improved comments and error handling in the Message class. (c)
-   * Fixed a potential deadlock in ThreadPool::Shutdown().  (c)
+     in the clone due to being pruned by an ITraversalPruner. (cc)
+   * Improved comments and error handling in the Message class. (cc)
+   * Fixed a potential deadlock in ThreadPool::Shutdown().  (cc)
    * FileDescriptorDataIO::SetBlockingIOEnabled() now preserves other
-     file descriptor flags that might be present on the file descriptor.  (c)
+     file descriptor flags that might be present on the file descriptor.  (cc)
    * ByteBufferPacketDataIO::ReadFrom() was broken and would repeatedly
-     return data from the first ByteBuffer.  Fixed.  (c)
-   * FileDataIO::Seek() now correctly handles seek offsets greater than 2GB (c)
+     return data from the first ByteBuffer.  Fixed.  (cc)
+   * FileDataIO::Seek() now correctly handles seek offsets greater than 2GB (cc)
    * FileDataIO::GetPosition() now correctly returns seek offsets greater
-     than 2GB.  (c)
+     than 2GB.  (cc)
    * TCPSocketDataIO::FlushOutput() now only unsets/sets TCP_CORK if
-     Nagle's algorithm is enabled.  (c)
-   * UDPSocketDataIO::ReadFrom() now properly handles zero-byte UDP packets.  (c)
-   * Fixed some bugs in StressTestParserProxyDataIO.  (c)
+     Nagle's algorithm is enabled.  (cc)
+   * UDPSocketDataIO::ReadFrom() now properly handles zero-byte UDP packets.  (cc)
+   * Fixed some bugs in StressTestParserProxyDataIO.  (cc)
    * Fixed a bug in SharedUsageLimitProxyMemoryAllocator that could
-     allow over-limit memory usage in some cases.  (c)
+     allow over-limit memory usage in some cases.  (cc)
    * Private-shared-memory-area mode was broken in SharedMemory.cpp.  Fixed.
    * Fixed several bugs in the Hashtable class where the HashFunctor from
-     the wrong Hashtable could be used to look up a table entry.  (c)
-   * Fixed a handle-leak in the Win32 implementation of ChildProcessDataIO. (c)
-   * Fixed some typos in the SpinLockGuard class.  (c)
+     the wrong Hashtable could be used to look up a table entry.  (cc)
+   * Fixed a handle-leak in the Win32 implementation of ChildProcessDataIO. (cc)
+   * Fixed some typos in the SpinLockGuard class.  (cc)
    * AtomicValue's legacy implementations now correctly restore the original
-     value of oldReadIndex after a failed CAS operations.  (c)
+     value of oldReadIndex after a failed CAS operations.  (cc)
    * In the BitChord class, ParseHexChar(), SetByte(), and the &lt; and &gt;
-     operators were broken.  Fixed.  (c)
+     operators were broken.  Fixed.  (cc)
    * RefCount::SetRef() now does the right thing when transitioning from
      (ptr+refcounting) to (ptr-without-refcounting); it decrements the item's
      reference-count but doesn't delete the item, and becomes a non-owning
-     Ref.  (c)
+     Ref.  (cc)
    * RefCount::SetFromRefCountableRefUnchecked() now retains the status of
-     any NULL (refCountableRef) argument that it receives.  (c)
+     any NULL (refCountableRef) argument that it receives.  (cc)
    * Fixed Queue::InsertItemsAt() to handle overlapping item-copies correctly.
-   * DataIOUnflattener::ReadFlat() was broken.  Fixed.  (c)
+   * DataIOUnflattener::ReadFlat() was broken.  Fixed.  (cc)
    * Improved the assignment operators of the DemandConstructedObject class
-     to avoid unnecessary object copies.  (c)
+     to avoid unnecessary object copies.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

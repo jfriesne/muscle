@@ -30,8 +30,15 @@ public:
      */
    MUSCLE_CONSTEXPR TamperEvidentValue(const TamperEvidentValue & rhs) : _value(rhs._value), _wasExplicitlySet(rhs._wasExplicitlySet) {/* empty */}
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** Move constructor.  Moves the value and the copies the flag-state from the passed-in TamperEvidentValue object.
+     * @param rhs the object whose state should be moved into this object
+     */
+   MUSCLE_CONSTEXPR TamperEvidentValue(TamperEvidentValue && rhs) : _value(std_move_if_available(rhs._value)), _wasExplicitlySet(rhs._wasExplicitlySet) {/*empty*/}
+#endif
+
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &)
-     * @note our HasValueBeenSet() flag will be set to true by this operation
+     * @note our HasValueBeenSet() flag will always be set to true by this operation
      */
    TamperEvidentValue & operator =(const TamperEvidentValue & rhs) {SetValue(rhs.GetValue()); return *this;}
 
@@ -40,6 +47,14 @@ public:
      * @note our HasValueBeenSet() flag will be set to true by this operation
      */
    TamperEvidentValue & operator =(const T & rhs) {SetValue(rhs); return *this;}
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** Move-assignment operator.
+     * @param rhs the value to move into this object.
+     * @note our HasValueBeenSet() flag will always be set to true by this operation
+     */
+   TamperEvidentValue & operator =(TamperEvidentValue && rhs) {_value = std_move_if_available(rhs._value); _wasExplicitlySet = true; return *this;}
+#endif
 
    /** Sets a new value, and also sets our HasValueBeenSet() flag to true.
      * @param newVal the value to explicitely-set this object to
