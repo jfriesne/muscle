@@ -3,7 +3,7 @@
 #ifndef MusclePoint_h
 #define MusclePoint_h
 
-#include <math.h>  // for sqrt()
+#include <math.h>  // for sqrtf()
 #include "support/PseudoFlattenable.h"
 #include "support/Tuple.h"
 #include "util/OutputPrinter.h"
@@ -25,6 +25,11 @@ public:
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    MUSCLE_CONSTEXPR_17 Point(const Point & rhs) : Tuple<2,float>(rhs) {/* empty */}
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
+   MUSCLE_CONSTEXPR_17 Point(Point && rhs) : Tuple<2,float>(std_move_if_available(rhs)) {/* empty */}
+#endif
 
    /** Convenience method to get the x value of this Point */
    MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float GetX() const {return (*this)[0];}
@@ -70,6 +75,11 @@ public:
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    inline Point & operator = (const Point & rhs) {Set(rhs.x(), rhs.y()); return *this;}
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
+   inline Point & operator=(Point && rhs) {Tuple<2,float>::operator=(std_move_if_available(rhs)); return *this;}
+#endif
+
    /** @copydoc DoxyTemplate::Print(const OutputPrinter &) const */
    void Print(const OutputPrinter & p) const {p.printf("Point: %f %f\n", x(), y());}
 
@@ -101,12 +111,12 @@ public:
      * @param pt The point we want to calculate the distance to.
      * @returns a non-negative distance value.
      */
-   MUSCLE_NODISCARD float GetDistanceTo(const Point & pt) const {return (float)sqrt(GetDistanceToSquared(pt));}
+   MUSCLE_NODISCARD float GetDistanceTo(const Point & pt) const {return sqrtf(GetDistanceToSquared(pt));}
 
    /** Returns the square of the distance between this point and (pt).
      * @param pt The point we want to calculate the distance to.
      * @returns a non-negative distance-squared value.
-     * @note this method is more efficient that calling GetDistanceTo(), since it doesn't have to call sqrt().
+     * @note this method is more efficient that calling GetDistanceTo(), since it doesn't have to call sqrtf().
      */
    MUSCLE_NODISCARD float GetDistanceToSquared(const Point & pt) const
    {

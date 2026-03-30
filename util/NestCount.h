@@ -31,7 +31,7 @@ public:
      * pertains to a specific NestCount instance only and should not be copied over from one NestCount to another.
      * @param rhs the NestCount object that we'd usually copy state from, but in this case we do not.
      */
-   NestCount & operator=(const NestCount & /*rhs*/) {return *this;}
+   NestCount & operator=(const NestCount & rhs) {(void) rhs; return *this;}
 
    /** Increments our value, and returns true iff the new value is one. */
    bool Increment() {return (++_count == 1);}

@@ -36,6 +36,11 @@ public:
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    MUSCLE_CONSTEXPR_17 Rect(const Rect & rhs) : Tuple<4,float>(rhs) {/* empty */}
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** @copydoc DoxyTemplate::DoxyTemplate(DoxyTemplate &&) */
+   MUSCLE_CONSTEXPR_17 Rect(Rect && rhs) : Tuple<4,float>(std_move_if_available(rhs)) {/* empty */}
+#endif
+
    /** Returns the X coordinate of the left edge of this Rect */
    MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 inline float GetLeft() const {return (*this)[0];}
 
@@ -234,6 +239,11 @@ public:
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
    inline Rect & operator = (const Rect & rhs) {Set(rhs.left(), rhs.top(), rhs.right(), rhs.bottom()); return *this;}
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** @copydoc DoxyTemplate::operator=(DoxyTemplate &&) */
+   inline Rect & operator=(Rect && rhs) {Tuple<4,float>::operator=(std_move_if_available(rhs)); return *this;}
+#endif
 
    /** Causes this rectangle to be come the union of itself and (rhs).
      * @param rhs the rectangle to unify with this one
