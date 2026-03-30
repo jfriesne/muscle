@@ -179,6 +179,8 @@ key:  - new feature
    * Fixed a potential re-entrancy problem in
      ICallbackMechanism::DispatchCallbacks() (cc).
    * Added an assignment operator to the ICallbackSubscriber class.  (cc)
+   * Updated the Win32 implementation of RS232DataIO.cpp to avoid
+     spurious read-attempts when no serial data is ready-for-read.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

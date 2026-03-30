@@ -403,8 +403,9 @@ void RS232DataIO :: IOThreadEntry()
    SerialBuffer outBuf;              // bytes from the user socket, waiting to go to the serial port
    Queue<SerialBuffer *> inQueue;    // bytes from inBuf, waiting to go to the user socket
 
-   uint32 pendingReadBytes  = 0;
-   uint32 pendingWriteBytes = 0;
+   DWORD eventMask = 0;
+   uint32 pendingBytesToRead  = 0;
+   uint32 pendingBytesToWrite = 0;
    bool isWaiting = false;
    bool checkRead = false;
    ::HANDLE events[] = {_ovWait.hEvent, _ovRead.hEvent, _ovWrite.hEvent, _wakeupSignal};  // order is important!!!
@@ -413,7 +414,6 @@ void RS232DataIO :: IOThreadEntry()
       if (isWaiting == false)
       {
          // Tell the system to start any I/O...
-         DWORD eventMask;
          if (WaitCommEvent(_handle, &eventMask, &_ovWait))
          {
             if (eventMask & EV_RXCHAR) checkRead = true;
@@ -422,42 +422,47 @@ void RS232DataIO :: IOThreadEntry()
          {
             const DWORD err = GetLastError();
             if (err == ERROR_IO_PENDING) isWaiting = true;
-                                    else LogTime(MUSCLE_LOG_ERROR, "WaitCommEvent() failed! errorCode=" INT32_FORMAT_SPEC "\n", err);
+                                    else LogTime(MUSCLE_LOG_ERROR, "WaitCommEvent() failed! ret=[%s]\n", B_ERRNO);
          }
       }
 
       bool doResetEvent = false;
       switch(WaitForMultipleObjects(ARRAYITEMS(events), events, false, INFINITE)-WAIT_OBJECT_0)
       {
-         case 0:  // ovWait
+         case 0:  // _ovWait
          {
             isWaiting    = false;
             doResetEvent = true;
-            DWORD eventMask;
-            if ((GetCommMask(_handle,&eventMask))&&(eventMask & EV_RXCHAR)) checkRead = true;
+
+            DWORD dummy = 0;
+            if ((GetOverlappedResult(_handle, &_ovWait, &dummy, FALSE))&&(eventMask & EV_RXCHAR)) checkRead = true;
          }
          break;
 
-         case 1:  // ovRead
-         {
-            if (pendingReadBytes > 0)
+         case 1:  // _ovRead
+            if (pendingBytesToRead > 0)
             {
-               ProcessReadBytes(inQueue, inBuf._buf, pendingReadBytes);
-               pendingReadBytes = 0;
+               DWORD actualBytesRead = 0;
+               if (GetOverlappedResult(_handle, &_ovRead, &actualBytesRead, FALSE))
+               {
+                  ProcessReadBytes(inQueue, inBuf._buf, actualBytesRead);
+                  pendingBytesToRead = 0;
+               }
             }
             ResetEvent(_ovRead.hEvent);
-         }
          break;
 
-         case 2:  // ovWrite
-         {
-            if (pendingWriteBytes >= 0)
+         case 2:  // _ovWrite
+            if (pendingBytesToWrite > 0)
             {
-               ProcessWriteBytes(outBuf, pendingWriteBytes);
-               pendingWriteBytes = 0;
+               DWORD actualBytesWritten = 0;
+               if (GetOverlappedResult(_handle, &_ovWrite, &actualBytesWritten, FALSE))
+               {
+                  ProcessWriteBytes(outBuf, actualBytesWritten);
+                  pendingBytesToWrite = 0;
+               }
             }
             ResetEvent(_ovWrite.hEvent);
-         }
          break;
 
          case 3:  // wakeupSignal
@@ -467,7 +472,7 @@ void RS232DataIO :: IOThreadEntry()
 
 
       // Dump serial data into inQueue as much as possible...
-      if ((pendingReadBytes == 0)&&(checkRead))
+      if ((pendingBytesToRead == 0)&&(checkRead))
       {
          while(true)
          {
@@ -480,7 +485,7 @@ void RS232DataIO :: IOThreadEntry()
             }
             else
             {
-               if (GetLastError() == ERROR_IO_PENDING) pendingReadBytes = numBytesToRead;
+               if (GetLastError() == ERROR_IO_PENDING) pendingBytesToRead = numBytesToRead;  // maximum number of bytes we expect to get back later (when the overlapped-read completes)
                break;
             }
          }
@@ -506,7 +511,7 @@ void RS232DataIO :: IOThreadEntry()
       }
 
       // Dump outgoing data to serial buffer as much as possible
-      if (pendingWriteBytes == 0)
+      if (pendingBytesToWrite == 0)
       {
          while(1)
          {
@@ -532,8 +537,8 @@ void RS232DataIO :: IOThreadEntry()
                }
                else
                {
-                  if (GetLastError() == ERROR_IO_PENDING) pendingWriteBytes = numBytesToWrite;
-                                                     else LogTime(MUSCLE_LOG_ERROR, "RS232SerialDataIO: WriteFile() failed!  err=" INT32_FORMAT_SPEC "\n", GetLastError());
+                  if (GetLastError() == ERROR_IO_PENDING) pendingBytesToWrite = numBytesToWrite;
+                                                     else LogTime(MUSCLE_LOG_ERROR, "RS232SerialDataIO: WriteFile() failed!  ret=[%s]\n", B_ERRNO);
                }
             }
             if (keepGoing == false) break;
