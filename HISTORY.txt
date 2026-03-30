@@ -71,6 +71,8 @@ key:  - new feature
    o Removed Socket::GetSocketFamily() (it was redundant with Socket::GetFamily())
    o Added a move-constructor and move-assignment-operator to the
      TamperEvidentValue class.  (cc)
+   o Removed the (void *) argument from the GenericCallback::Callback()
+     virtual method signature, as it wasn't being used for anything.
    o Changed CloneObject() to use dynamic_cast instead of static_cast.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
@@ -173,6 +175,8 @@ key:  - new feature
      can be drained as expected.  (cc)
    * CheckedDataFlattener::SetBuffer() wasn't setting the seek-position
      to the end of the current ByteBuffer.  Fixed.  (cc)
+   * Fixed a potential re-entrancy problem in
+     ICallbackMechanism::DispatchCallbacks() (cc).
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

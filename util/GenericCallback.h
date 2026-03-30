@@ -21,10 +21,9 @@ public:
    virtual ~GenericCallback() {/* empty */}
 
    /** This method will be called by the caller.
-     * @param arg An argument, the semantics of which are defined by the use case.
      * @return B_NO_ERROR on success, or an error code on failure.  The semantics of what these mean are defined by the use case.
      */
-   virtual status_t Callback(void * arg) = 0;
+   virtual status_t Callback() = 0;
 };
 DECLARE_REFTYPES(GenericCallback);
 
@@ -50,7 +49,7 @@ public:
    FunctionCallback(FunctionCallbackTypeB f, void * arg) : _funcA(NULL), _funcB(f), _arg(arg) {/* empty */}
 
    /** Calls through to the function specified in the constructor. */
-   virtual status_t Callback(void *)
+   virtual status_t Callback()
    {
       if (_funcA) {_funcA(); return B_NO_ERROR;}
       return _funcB ? _funcB(_arg) : B_BAD_OBJECT;

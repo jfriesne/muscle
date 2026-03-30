@@ -105,24 +105,24 @@ public:
      * @param rhs the object to compute the union of this object with
      * @returns an object that is the union of this object and the passed-in object.
      */
-   DoxyTemplate & operator |(const DoxyTemplate & rhs) const;
+   DoxyTemplate operator |(const DoxyTemplate & rhs) const;
 
    /** Intersection operator.
      * @param rhs the object to compute the intersection of this object with
      * @returns an object that is the intersection of this object and the passed-in object.
      */
-   DoxyTemplate & operator &(const DoxyTemplate & rhs) const;
+   DoxyTemplate operator &(const DoxyTemplate & rhs) const;
 
    /** Exclusive-or operator.
      * @param rhs the object to compute the exclusive-or of this object with
      * @returns an object that is the exclusive-or of this object and the passed-in object.
      */
-   DoxyTemplate & operator ^(const DoxyTemplate & rhs) const;
+   DoxyTemplate operator ^(const DoxyTemplate & rhs) const;
 
    /** Bitwise negation operator.
      * @returns an object that is the bitwise negation of this object.
      */
-   DoxyTemplate & operator ~() const;
+   DoxyTemplate operator ~() const;
 
    /** Returns true iff the FlattenedSize() method of this class will always return the same value for all possible objects of this class. */
    MUSCLE_NODISCARD bool IsFixedSize() const;

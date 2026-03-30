@@ -2482,22 +2482,36 @@ ICallbackMechanism :: ~ICallbackMechanism()
 
 void ICallbackMechanism :: DispatchCallbacks()
 {
+   NestCountGuard ncg(_dispatchCallbacksNestCount);
+   if (_dispatchCallbacksNestCount.IsOutermost())
    {
-      // Critical section:  grab the set of dirty-subscribers into _scratchSubscribers
+      DispatchCallbacksAux(_scratchSubscribers);  // fast path -- no re-entrancy so just re-use our usual _scratchSubscribers object
+      _scratchSubscribers.Clear();
+   }
+   else
+   {
+      Hashtable<ICallbackSubscriber *, uint32> tempScratchSubscribers;  // avoid re-entrancy problems by using a genuine temporary object on re-entancy
+      DispatchCallbacksAux(tempScratchSubscribers);
+   }
+}
+
+void ICallbackMechanism :: DispatchCallbacksAux(Hashtable<ICallbackSubscriber *, uint32> & scratchSubsTable)
+{
+   scratchSubsTable.Clear();  // shouldn't be necessary, but just to be paranoid
+
+   {
+      // Critical section:  grab the set of dirty-subscribers into scratchSubsTable
       DECLARE_MUTEXGUARD(_dirtySubscribersMutex);
-      _scratchSubscribers.SwapContents(_dirtySubscribers);
+      scratchSubsTable.SwapContents(_dirtySubscribers);
    }
 
    // Perform requested callbacks
+   DECLARE_MUTEXGUARD(_registeredSubscribersMutex);
+   for (ConstHashtableIterator<ICallbackSubscriber *, uint32> iter(scratchSubsTable); iter.HasData(); iter++)
    {
-      DECLARE_MUTEXGUARD(_registeredSubscribersMutex);
-      for (ConstHashtableIterator<ICallbackSubscriber *, uint32> iter(_scratchSubscribers); iter.HasData(); iter++)
-      {
-         ICallbackSubscriber * sub = iter.GetKey();
-         if (_registeredSubscribers.ContainsKey(sub)) sub->DispatchCallbacks(iter.GetValue());  // yes, the if-test is necessary!
-      }
+      ICallbackSubscriber * sub = iter.GetKey();
+      if (_registeredSubscribers.ContainsKey(sub)) sub->DispatchCallbacks(iter.GetValue());  // yes, the if-test is necessary!
    }
-   _scratchSubscribers.Clear();
 }
 
 void ICallbackMechanism :: RequestCallbackInDispatchThread(ICallbackSubscriber * sub, uint32 eventTypeBits, uint32 clearBits)

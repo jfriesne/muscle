@@ -5,6 +5,7 @@
 
 #include "system/Mutex.h"
 #include "util/Hashtable.h"
+#include "util/NestCount.h"
 
 namespace muscle {
 
@@ -49,6 +50,8 @@ protected:
 private:
    friend class ICallbackSubscriber;
 
+   void DispatchCallbacksAux(Hashtable<ICallbackSubscriber *, uint32> & scratchSubsTable);
+
    // these methods are here to be called by the ICallbackSubscriber class only
    void RegisterCallbackSubscriber(  ICallbackSubscriber * sub) {DECLARE_MUTEXGUARD(_registeredSubscribersMutex); (void) _registeredSubscribers.PutWithDefault(sub);}
    void UnregisterCallbackSubscriber(ICallbackSubscriber * sub) {DECLARE_MUTEXGUARD(_registeredSubscribersMutex); (void) _registeredSubscribers.Remove(sub);}
@@ -61,7 +64,8 @@ private:
 
    // This table may be accessed from any thread, hence the Mutex
    Mutex _dirtySubscribersMutex;                               // serialize access to the _dirtySubscribers table
-   Hashtable<ICallbackSubscriber *, uint32> _dirtySubscribers; // who has requested a DispatchCallback() call
+   Hashtable<ICallbackSubscriber *, uint32> _dirtySubscribers; // who has requested a DispatchCallbacks() call
+   NestCount _dispatchCallbacksNestCount;                      // so we can handle re-entrant calls to DispatchCallbacks() gracefully
 };
 
 }  // end muscle namespace

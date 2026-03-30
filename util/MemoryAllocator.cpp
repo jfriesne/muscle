@@ -60,7 +60,11 @@ void AutoCleanupProxyMemoryAllocator :: AllocationFailed(size_t currentlyAllocat
    for (uint32 i=0; i<nc; i++)
    {
       GenericCallback * gc = _callbacks[i]();
-      if (gc) (void) (gc)->Callback(NULL);
+      if (gc)
+      {
+         const status_t r = gc->Callback();
+         if (r.IsError()) LogTime(MUSCLE_LOG_ERROR, "AutoCleanupProxyMemoryAllocator::AllocationFailed(%zu, %zu):  GenericCallback returned [%s]\n", currentlyAllocatedBytes, allocRequestBytes, r());
+      }
    }
 }
 

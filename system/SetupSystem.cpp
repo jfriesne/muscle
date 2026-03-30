@@ -1404,7 +1404,11 @@ CompleteSetupSystem :: ~CompleteSetupSystem()
 #endif
 
    GenericCallbackRef r;
-   while(_cleanupCallbacks.RemoveTail(r).IsOK()) (void) r()->Callback(NULL);
+   while(_cleanupCallbacks.RemoveTail(r).IsOK())
+   {
+      const status_t ret = r()->Callback();
+      if (ret.IsError()) printf("~CompleteSetupSystem:  Cleanup callback %p returned [%s]\n", r(), ret());  // deliberately not calling LogTime() here because I'm not confident we're in a usable state for that at this point
+   }
 
    AbstractObjectRecycler::GlobalFlushAllCachedObjects();
 
