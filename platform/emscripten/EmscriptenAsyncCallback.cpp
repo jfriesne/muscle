@@ -81,7 +81,11 @@ bool EmscriptenAsyncCallback :: AsyncCallbackStub :: AsyncCallback()
          _callbackTime = MUSCLE_TIME_NEVER;
          _master->AsyncCallback(schedTime);
       }
-      else if (HasCallbackAtOrBefore(_callbackTime) == false) (void) ScheduleCallback(_callbackTime);
+      else if (HasCallbackAtOrBefore(_callbackTime) == false)
+      {
+         const status_t r = ScheduleCallback(_callbackTime);
+         if (r.IsError()) LogTime(MUSCLE_LOG_ERROR, "EmscriptenAsyncCallback::AsyncCallback():  ScheduleCallback(" UINT64_FORMAT_SPEC ") returned [%s]\n", _callbackTime, r());
+      }
    }
 
    return justEmptiedQueue ? DecrementRefCount() : false;
@@ -116,7 +120,7 @@ status_t EmscriptenAsyncCallback :: AsyncCallbackStub :: ScheduleCallback(uint64
    if (_scheduledTimes.InsertItemAtSortedPosition(callbackTime) < 0) return B_OUT_OF_MEMORY;
 
    const uint64 now = GetRunTime64();
-   const int millisUntil = (int) muscleClamp((int64)0, MicrosToMillisRoundUp(callbackTime-now), (int64)(INT_MAX));
+   const int millisUntil = (int) muscleClamp(MicrosToMillisRoundUp(callbackTime-now), (int64)0, (int64)(INT_MAX));
 #ifdef DEBUG_CALLBACK_TIMES
 if (callbackTime > 0)
 {
