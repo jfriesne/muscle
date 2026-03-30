@@ -28,8 +28,7 @@ public:
    /** Destructor */
    virtual ~SignalMessageIOGateway() {/* empty */}
 
-   /** Always returns false. */
-   MUSCLE_NODISCARD virtual bool HasBytesToOutput() const {return false;}
+   MUSCLE_NODISCARD virtual bool HasBytesToOutput() const {return GetOutgoingMessageQueue().HasItems();}
 
    /** Returns a reference to our current signal message */
    const MessageRef & GetSignalMessage() const {return _signalMessage;}

@@ -51,8 +51,8 @@ public:
    /** Default implementation of PacketDataIO::Read()
     *  which just calls ReadFrom(buffer, size, GetSourceOfLastReadPacket()).
     *  @param buffer Buffer to write the bytes into
-    *  @return Number of bytes read, or an error code on error.
     *  @param size Number of bytes in the buffer.
+    *  @return Number of bytes read, or an error code on error.
     */
    virtual io_status_t Read(void * buffer, uint32 size)
    {

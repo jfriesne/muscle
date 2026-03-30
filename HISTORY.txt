@@ -167,6 +167,9 @@ key:  - new feature
      NestCount class, as copying the source NestCount's value
      would only put its counter's state at odds with the current set
      of NestCountGuards referencing it from the stack.  (cc)
+   * Rewrote SignalMessageIOGateway::HasBytesToOutput() to return true
+     when the outgoing Message queue contains items, so that the Queue
+     can be drained as expected.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

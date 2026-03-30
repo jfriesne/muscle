@@ -210,7 +210,7 @@ public:
       ret.SetTop(   muscleMax(top(),    r.top()));
       ret.SetRight( muscleMin(right(),  r.right()));
       ret.SetBottom(muscleMin(bottom(), r.bottom()));
-      return ret.IsRational() ? ret : Rect();
+      return ret.IsRational() ? ret : GetIrrationalRect();
    }
 
    /** Returns a rectangle whose area is a superset of the union of this rectangle's and (r)'s
@@ -275,13 +275,13 @@ public:
    MUSCLE_NODISCARD inline float GetWidth() const {return right() - left();}
 
    /** Returns the width of this rectangle, rounded up to the nearest integer. */
-   MUSCLE_NODISCARD inline int32 GetWidthAsInteger() const {return (int32)ceil(GetWidth());}
+   MUSCLE_NODISCARD inline int32 GetWidthAsInteger() const {const float w = GetWidth(); return (w >= 0.0f) ? ((int32)ceilf(w)) : -((int32)ceilf(-w));}
 
    /** Returns the height of this rectangle. */
    MUSCLE_NODISCARD inline float GetHeight() const {return bottom()-top();}
 
    /** Returns the height of this rectangle, rounded up to the nearest integer. */
-   MUSCLE_NODISCARD inline int32 GetHeightAsInteger() const {return (int32)ceil(GetHeight());}
+   MUSCLE_NODISCARD inline int32 GetHeightAsInteger() const {const float h = GetHeight(); return (h >= 0.0f) ? ((int32)ceilf(h)) : -((int32)ceilf(-h));}
 
    /** Returns true iff this rectangle contains the specified point.
      * @param x x coordinate of the point
@@ -297,7 +297,7 @@ public:
    /** Returns true iff this rectangle fully encompasses the specified rectangle.
      * @param p the Rect to check to see if it's entirely inside this Rect.
      */
-   MUSCLE_NODISCARD inline bool Contains(Rect p) const {return ((Contains(p.LeftTop()))&&(Contains(p.RightTop()))&&(Contains(p.LeftBottom()))&&(Contains(p.RightBottom())));}
+   MUSCLE_NODISCARD inline bool Contains(const Rect & p) const {return ((Contains(p.LeftTop()))&&(Contains(p.RightTop()))&&(Contains(p.LeftBottom()))&&(Contains(p.RightBottom())));}
 
    /** Convenience method:  Returns the smallest Rectangle that contains all the Points in the passed-in array
      * @param points Pointer to an array of Points to calculate the bounding box of
