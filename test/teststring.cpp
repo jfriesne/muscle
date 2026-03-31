@@ -184,6 +184,10 @@ static status_t UnitTestString()
    String s4("there again");
    printf("[%s]\n", s4.WithInsertedWord(5, "and back", " ")());
 
+   String foobar = "foobar";
+   printf("foobar without foo = [%s]\n", foobar.WithoutPrefix("foo")());
+   printf("foobar without bar = [%s]\n", foobar.WithoutSuffix("bar")());
+
    String q;
    MPRINT_ON_ERROR("AppendChars",  q.AppendChars("this is a test",        8));
    MPRINT_ON_ERROR("AppendChars",  q.AppendChars("not going to end well", 4));

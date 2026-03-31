@@ -863,10 +863,10 @@ String String :: IndentedBy(uint32 numIndentChars, char indentChar) const
 String String :: WithoutSuffix(char c, uint32 maxToRemove) const
 {
    String ret = *this;
-   while(ret.EndsWith(c))
+   while((maxToRemove > 0)&&(ret.EndsWith(c)))
    {
       ret--;
-      if (--maxToRemove == 0) break;
+      --maxToRemove;
    }
    return ret;
 }
@@ -876,10 +876,10 @@ String String :: WithoutSuffix(const String & str, uint32 maxToRemove) const
    if (str.IsEmpty()) return *this;
 
    String ret = *this;
-   while(ret.EndsWith(str))
+   while((maxToRemove > 0)&&(ret.EndsWith(str)))
    {
       ret.TruncateChars(str.Length());
-      if (--maxToRemove == 0) break;
+      --maxToRemove;
    }
    return ret;
 }
@@ -888,12 +888,12 @@ String String :: WithoutPrefix(char c, uint32 maxToRemove) const
 {
    uint32 numInitialChars = 0;
    const uint32 len = Length();
-   for (uint32 i=0; i<len; i++)
+   for (uint32 i=0; ((maxToRemove > 0)&&(i<len)); i++)
    {
       if ((*this)[i] == c)
       {
          numInitialChars++;
-         if (--maxToRemove == 0) break;
+         --maxToRemove;
       }
       else break;
    }
@@ -906,10 +906,10 @@ String String :: WithoutPrefix(const String & str, uint32 maxToRemove) const
    if ((str.IsEmpty())||(StartsWith(str) == false)) return *this;
 
    String ret = *this;
-   while(ret.StartsWith(str))
+   while((maxToRemove > 0)&&(ret.StartsWith(str)))
    {
       ret = ret.Substring(str.Length());
-      if (--maxToRemove == 0) break;
+      --maxToRemove;
    }
    return ret;
 }
@@ -919,10 +919,10 @@ String String :: WithoutSuffixIgnoreCase(char c, uint32 maxToRemove) const
    if (EndsWithIgnoreCase(c) == false) return *this;
 
    String ret = *this;
-   while(ret.EndsWithIgnoreCase(c))
+   while((maxToRemove > 0)&&(ret.EndsWithIgnoreCase(c)))
    {
       ret--;
-      if (--maxToRemove == 0) break;
+      --maxToRemove;
    }
    return ret;
 }
@@ -932,10 +932,10 @@ String String :: WithoutSuffixIgnoreCase(const String & str, uint32 maxToRemove)
    if ((str.IsEmpty())||(EndsWithIgnoreCase(str) == false)) return *this;
 
    String ret = *this;
-   while(ret.EndsWithIgnoreCase(str))
+   while((maxToRemove > 0)&&(ret.EndsWithIgnoreCase(str)))
    {
       ret.TruncateChars(str.Length());
-      if (--maxToRemove == 0) break;
+      --maxToRemove;
    }
    return ret;
 }
@@ -947,13 +947,13 @@ String String :: WithoutPrefixIgnoreCase(char c, uint32 maxToRemove) const
 
    String ret = *this;
    uint32 numInitialChars = 0;
-   for (uint32 i=0; i<ret.Length(); i++)
+   for (uint32 i=0; ((maxToRemove > 0)&&(i<ret.Length())); i++)
    {
       const char n = (*this)[i];
       if ((n==cU)||(n==cL))
       {
          numInitialChars++;
-         if (--maxToRemove == 0) break;
+         --maxToRemove;
       }
       else break;
    }
@@ -965,10 +965,10 @@ String String :: WithoutPrefixIgnoreCase(const String & str, uint32 maxToRemove)
    if ((str.IsEmpty())||(StartsWithIgnoreCase(str) == false)) return *this;
 
    String ret = *this;
-   while(ret.StartsWithIgnoreCase(str))
+   while((maxToRemove > 0)&&(ret.StartsWithIgnoreCase(str)))
    {
       ret = ret.Substring(str.Length());
-      if (--maxToRemove == 0) break;
+      --maxToRemove;
    }
    return ret;
 }
@@ -1064,7 +1064,7 @@ String String :: ArgAux(const char * buf) const
          s++;
          if (muscleInRange(*s, '0', '9'))
          {
-            const int32 val = (int32) atol(s);
+            const int32 val = (int32) Atoull(s);
             lowestArg = (lowestArg < 0) ? val : muscleMin(val, lowestArg);
             while(muscleInRange(*s, '0', '9')) s++;
          }
@@ -1088,7 +1088,7 @@ uint32 String :: ParseNumericSuffix(uint32 defaultValue) const
    const char * s = Cstr();
    const char * n = s+Length();  // initially points to the NUL terminator
    while((n>s)&&(muscleInRange(*(n-1), '0', '9'))) n--;  // move back to first char of numeric suffix
-   return muscleInRange(*n, '0', '9') ? (uint32) atol(n) : defaultValue;
+   return muscleInRange(*n, '0', '9') ? (uint32) Atoull(n) : defaultValue;
 }
 
 String String :: WithoutNumericSuffix(uint32 * optRemovedSuffixValue) const
@@ -1108,7 +1108,7 @@ String String :: WithoutNumericSuffix(uint32 * optRemovedSuffixValue) const
    if (optRemovedSuffixValue)
    {
       suffix.Reverse();
-      *optRemovedSuffixValue = (uint32) atol(suffix());
+      *optRemovedSuffixValue = (uint32) Atoull(suffix());
    }
    return ret;
 }
