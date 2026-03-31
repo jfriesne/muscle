@@ -68,7 +68,7 @@ public:
    MUSCLE_NODISCARD UINT GetSignalValue() const {return _signalValue;}
 
    /** Used to set the signal value when value that was set in the constructor call isn't appropriate.  
-     * This value is only used if the signal handle is set to a valid value (ie not INVALID_HANDLE_VALUE)
+     * This value is only used if the signal handle is set to INVALID_HANDLE_VALUE.
      * @param signalValue Signal value to deliver to the reply thread when notifying it of an event.
      */
    void SetSignalValue(UINT signalValue) {_signalValue = signalValue;}
@@ -77,8 +77,9 @@ protected:
    /** May be called from any thread; triggers an asynchronous call to DispatchCallbacks() within the main thread */
    virtual void SignalDispatchThread()
    {
-      if (_signalHandle != INVALID_HANDLE_VALUE) SetEvent(_signalHandle); 
-                                            else PostThreadMessage(_replyThreadID, _signalValue, 0, 0);
+      const bool ret = (_signalHandle == INVALID_HANDLE_VALUE) ? PostThreadMessage(_replyThreadID, _signalValue, 0, 0)
+                                                               : SetEvent(_signalHandle); 
+      if (ret == false) LogTime(MUSCLE_LOG_ERROR, "Win32CallbackMechanism::SignalDispatchThread:  %s failed!\n", ((_signalHandle == INVALID_HANDLE_VALUE) ? "PostThreadMessage" : "SetEvent"));
    }
 
 private:

@@ -76,6 +76,8 @@ key:  - new feature
      virtual method signature, as it wasn't being used for anything.
    o Changed CloneObject() to use dynamic_cast instead of static_cast.
    o Changed ICallbackMechanism to subclass from NotCopyable.
+   o Removed QSocketDataIO as it appeared to be well out-of-date and
+     wasn't being used anywhere.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to
@@ -189,6 +191,7 @@ key:  - new feature
    * Added a destructor to the JUCECallbackMechanism that calls
      cancelPendingUpdate() to avoid a potential order-of-operations
      fault when shutting down the mechanism.  (cc)
+   * Fixed a double-delete bug in QSocketCallbackMechanism.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

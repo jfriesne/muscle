@@ -29,7 +29,7 @@ io_status_t Win32FileHandleDataIO :: Write(const void * buffer, uint32 size)
 {
    if (_handle == INVALID_HANDLE_VALUE) return B_BAD_OBJECT;
 
-   DWORD writeCount;
+   DWORD writeCount = 0;
    return WriteFile(_handle, buffer, size, &writeCount, 0) ? io_status_t(writeCount) : io_status_t(B_IO_ERROR);
 }
 
@@ -67,7 +67,7 @@ status_t Win32FileHandleDataIO :: Seek(int64 offset, int whence)
 
    LARGE_INTEGER newPosition;    newPosition.QuadPart    = 0;
    LARGE_INTEGER distanceToMove; distanceToMove.QuadPart = offset;
-   return SetFilePointerEx(_handle, distanceToMove, &newPosition, whence) ? B_NO_ERROR : B_ERRNO;
+   return SetFilePointerEx(_handle, distanceToMove, &newPosition, whence) ? B_NO_ERROR : B_IO_ERROR;
 }
 
 int64 Win32FileHandleDataIO :: GetPosition() const

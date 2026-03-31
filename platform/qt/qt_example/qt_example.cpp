@@ -80,7 +80,7 @@ void ExampleWidget :: DrawUser(QPainter & p, const ConstMessageRef & theData)
 void ExampleWidget :: DrawText(QPainter & p, const QPoint & pt, const QString & text, const QColor & c, bool inBox)
 {
    QFontMetrics fm = p.fontMetrics();
-#if QT_VERSION >= 0x050B00
+#if QT_VERSION >= QT_VERSION_CHECK(5,11,0)
    const int tw = fm.horizontalAdvance(text);
 #else
    const int tw = fm.width(text);

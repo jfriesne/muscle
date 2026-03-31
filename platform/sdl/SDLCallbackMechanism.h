@@ -27,7 +27,7 @@ protected:
       event.user.code  = SDL_CALLBACK_MECHANISM_EVENT;
       event.user.data1 = NULL;
       event.user.data2 = NULL;
-      SDL_PeepEvents(&event, 1, SDL_ADDEVENT, 0);
+      if (SDL_PeepEvents(&event, 1, SDL_ADDEVENT, 0) == -1) LogTime(MUSCLE_LOG_ERROR, "SDLCallbackMechanism::SignalDispatchThread():  SDL_PeepEvents() returned an error!\n");
    }
 };
 

@@ -21,7 +21,7 @@ public:
      */
    QSocketCallbackMechanism(QObject * optParent = NULL)
       : QObject(optParent)
-      , _notifier(GetDispatchThreadNotifierSocket().GetFileDescriptor(), QSocketNotifier::Read, optParent)
+      , _notifier(GetDispatchThreadNotifierSocket().GetFileDescriptor(), QSocketNotifier::Read)
    {
       QObject::connect(&_notifier, SIGNAL(activated(int)), SLOT(NotifierActivated()));
    }

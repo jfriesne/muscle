@@ -279,7 +279,7 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
          }
          return B_NO_ERROR;
       }
-      return B_ERRNO;
+      return B_IO_ERROR;
    }
 #else
 # if defined(__APPLE__)
@@ -422,7 +422,7 @@ void RS232DataIO :: IOThreadEntry()
          {
             const DWORD err = GetLastError();
             if (err == ERROR_IO_PENDING) isWaiting = true;
-                                    else LogTime(MUSCLE_LOG_ERROR, "WaitCommEvent() failed! ret=[%s]\n", B_ERRNO);
+                                    else LogTime(MUSCLE_LOG_ERROR, "WaitCommEvent() failed! errorCode=" INT32_FORMAT_SPEC "\n", err);
          }
       }
 
@@ -535,11 +535,8 @@ void RS232DataIO :: IOThreadEntry()
                      keepGoing = true;  // see if we can write some more....
                   }
                }
-               else
-               {
-                  if (GetLastError() == ERROR_IO_PENDING) pendingBytesToWrite = numBytesToWrite;
-                                                     else LogTime(MUSCLE_LOG_ERROR, "RS232SerialDataIO: WriteFile() failed!  ret=[%s]\n", B_ERRNO);
-               }
+               else if (GetLastError() == ERROR_IO_PENDING) pendingBytesToWrite = numBytesToWrite;
+                                                       else LogTime(MUSCLE_LOG_ERROR, "RS232SerialDataIO: WriteFile() failed!  err=" INT32_FORMAT_SPEC "\n", GetLastError());
             }
             if (keepGoing == false) break;
          }

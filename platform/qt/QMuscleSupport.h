@@ -28,7 +28,8 @@ public:
    MUSCLE_NODISCARD uint32 operator () (const QString & str) const
    {
 #if QT_VERSION >= 0x040000
-      return (uint32) qHash(str);
+      const size_t hash = qHash(str);
+      return (uint32) ((hash & 0xFFFFFFFF) ^ (hash >>32));
 #else
       QByteArray ba = str.utf8();  // Yes, in Qt 3.x it's called utf8(), not toUtf8()
       return muscle::CalculateHashCode(ba.data(), ba.size());
@@ -97,7 +98,7 @@ public:
       const uint32 ht = CalculateHashCode(r.top());
       const uint32 hw = CalculateHashCode(r.width());
       const uint32 hh = CalculateHashCode(r.height());
-      return (hl + (ht*13) + (hw*39) + (hh*103));
+      return (hl + (ht*17) + (hw*37) + (hh*103));
    }
 
    /** Returns true iff the two QRect are equal.

@@ -22,7 +22,7 @@ public:
    }
 
 protected:
-   virtual void SignalDispatchThread() {qApp->postEvent(this, new QEvent((QEvent::Type)CALLBACKMECHANISM_EVENT_CODE));}
+   virtual void SignalDispatchThread() {if (qApp) qApp->postEvent(this, new QEvent((QEvent::Type)CALLBACKMECHANISM_EVENT_CODE));}
 
    virtual bool event(QEvent * e)
    {
