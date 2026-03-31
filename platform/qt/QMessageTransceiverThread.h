@@ -97,7 +97,7 @@ public:
    virtual bool event(QEvent * event);
 
    /** Returns a read-only reference to our table of registered QMessageTransceiverHandler objects. */
-   MUSCLE_NODISCARD const Hashtable<uint32, QMessageTransceiverHandler *> GetHandlers() const {return _handlers;}
+   MUSCLE_NODISCARD const Hashtable<uint32, QMessageTransceiverHandler *> & GetHandlers() const {return _handlers;}
 
 signals:
    /** Emitted when MessageReceived() is about to be emitted one or more times. */

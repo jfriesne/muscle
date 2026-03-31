@@ -98,7 +98,7 @@ void QMessageTransceiverThread :: HandleQueuedIncomingEvents()
       emit InternalThreadEvent(code, next, sessionID, factoryID);  // these get emitted for any event
 
       const char * id = _handlers.HasItems() ? strchr(sessionID()+1, '/') : NULL;
-      QMessageTransceiverHandler * handler = id ? _handlers[atoi(id+1)] : NULL;
+      QMessageTransceiverHandler * handler = id ? _handlers[(uint32) Atoull(id+1)] : NULL;
       if (handler)
       {
          // If it's not already in the list, prepend it to the list and tell it to emit its BeginMessageBatch() signal
@@ -353,11 +353,7 @@ status_t QMessageTransceiverHandler :: SendMessageToSession(const MessageRef & m
 
 void QMessageTransceiverHandler :: Reset(bool emitEndBatchIfNecessary)
 {
-   if (_mtt)
-   {
-      (void) _mtt->RemoveSessions(_sessionTargetString());
-      _master->UnregisterHandler(*_mtt, this, emitEndBatchIfNecessary);
-   }
+   if (_mtt) _master->UnregisterHandler(*_mtt, this, emitEndBatchIfNecessary);
 }
 
 void QMessageTransceiverHandler :: HandleIncomingEvent(uint32 code, const MessageRef & next, const IPAddressAndPort & iap)
