@@ -10,33 +10,39 @@
 
 namespace muscle {
 
-/** This adapter class allows you to use a MUSCLE DataIO object as a Qt QIODevice. */
+/** This adapter class allows you to use a MUSCLE DataIO object via the Qt QIODevice API. */
 class QDataIODevice : public QIODevice
 {
 public:
    /** Class constructor.
-    *  @param dataIO a QSocket object that was allocated off the heap.  This object becomes owner of newSocket.
+    *  @param dataIO Reference to the DataIO object we should use as our internal implementation.
     *  @param parent Passed to the QIODevice constructor
     */
-   QDataIODevice(const DataIORef & dataIO, QObject * parent) : QIODevice(parent), _dataIO(dataIO), _dataSize(dynamic_cast<SeekableDataIO*>(dataIO())?(dynamic_cast<SeekableDataIO*>(dataIO())->GetLength()):-1), _readReady(dataIO()->GetReadSelectSocket().GetFileDescriptor(), QSocketNotifier::Read), _isHosed(false)
+   QDataIODevice(const DataIORef & dataIO, QObject * parent)
+      : QIODevice(parent)
+      , _dataIO(dataIO)
+      , _optSeekableDataIO(dynamic_cast<SeekableDataIO*>(dataIO()))
+      , _readReady(GetReadFD(), QSocketNotifier::Read)
+      , _isHosed(false)
    {
-      connect(&_readReady, SIGNAL(activated(int)), this, SIGNAL(readyRead()));
+      if (GetReadFD() >= 0) connect(&_readReady, SIGNAL(activated(int)), this, SIGNAL(readyRead()));
+                       else _readReady.setEnabled(false);  // no pointing getting notifications about fd -1
    }
 
    /** Destructor */
    virtual ~QDataIODevice() {_readReady.setEnabled(false);}
 
    /** Returns true iff this device is in sequential-access-only mode. */
-   virtual bool isSequential() const {return (_dataSize < 0);}
+   virtual bool isSequential() const {return (_optSeekableDataIO == NULL);}
 
    /** Returns the current read-position of this device. */
-   virtual qint64 pos()        const {const SeekableDataIO * sdio = dynamic_cast<const SeekableDataIO *>(_dataIO()); return sdio ? muscleMax((qint64)sdio->GetPosition(), (qint64)0) : 0;}
+   virtual qint64 pos() const {return _optSeekableDataIO ? muscleMax((qint64) _optSeekableDataIO->GetPosition(), (qint64)0) : 0;}
 
    /** Returns the total number of bytes available in this device. */
-   virtual qint64 size()       const {return isSequential() ? bytesAvailable() : _dataSize;}
+   virtual qint64 size() const {return isSequential() ? bytesAvailable() : (_optSeekableDataIO ? _optSeekableDataIO->GetLength() : 0);}
 
    /** Returns true iff this device has reached its End-of-File state. */
-   virtual bool atEnd()        const {return isSequential() ? _isHosed : ((_isHosed)||(QIODevice::atEnd()));}
+   virtual bool atEnd() const {return isSequential() ? _isHosed : ((_isHosed)||(QIODevice::atEnd()));}
 
    /** Attempts to read the specified number of bytes from the device.
      * @param data A buffer to place the read data into.  Must be at least (maxSize) bytes long.
@@ -45,9 +51,13 @@ public:
      */
    virtual qint64 readData(char * data, qint64 maxSize)
    {
-      const int32 ret = _dataIO()->Read(data, (uint32) muscleMin(maxSize, (qint64)MUSCLE_NO_LIMIT)).GetByteCount();
-      if (ret < 0) _isHosed = true;
-      return muscleMax(ret, (int32)0);
+      if (_isHosed) return -1;
+      else
+      {
+         const int32 ret = _dataIO()->Read(data, (uint32) muscleMin(maxSize, (qint64)MUSCLE_NO_LIMIT)).GetByteCount();
+         if (ret < 0) _isHosed = true;
+         return ret;
+      }
    }
 
    /** Attempts to write the specified number of bytes to the device.
@@ -57,14 +67,20 @@ public:
      */
    virtual qint64 writeData(const char * data, qint64 maxSize)
    {
-      const int32 ret = _dataIO()->Write(data, (uint32) muscleMin(maxSize, (qint64)MUSCLE_NO_LIMIT)).GetByteCount();
-      if (ret < 0) _isHosed = true;
-      return muscleMax(ret, (int32)0);
+      if (_isHosed) return -1;
+      else
+      {
+         const int32 ret = _dataIO()->Write(data, (uint32) muscleMin(maxSize, (qint64)MUSCLE_NO_LIMIT)).GetByteCount();
+         if (ret < 0) _isHosed = true;
+         return ret;
+      }
    }
 
 private:
+   int GetReadFD() const {return _dataIO() ? _dataIO()->GetReadSelectSocket().GetFileDescriptor() : -1;}
+
    DataIORef _dataIO;
-   qint64 _dataSize;  // will be -1 if the I/O is sequential
+   SeekableDataIO * _optSeekableDataIO;
 
    QSocketNotifier _readReady;
    bool _isHosed;

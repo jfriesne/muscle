@@ -18,6 +18,9 @@ public:
    /** Constructor */
    JUCECallbackMechanism() {/* empty */}
 
+   /** Destructor */
+   virtual ~JUCECallbackMechanism() {cancelPendingUpdate();}
+
 protected:
    /** May be called from any thread; triggers an asynchronous call to DispatchCallbacks() within the main thread */
    virtual void SignalDispatchThread() {triggerAsyncUpdate();}

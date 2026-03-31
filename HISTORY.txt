@@ -35,6 +35,7 @@ key:  - new feature
      DemandConstructedObject class.  (cc)
    - Added a move-constructor and move-assignment-operator to the
      Tuple class.
+   - Updated QDataIODevice to be more generally useful.  (cc)
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
      DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
      variadic macros.
@@ -183,6 +184,11 @@ key:  - new feature
      spurious read-attempts when no serial data is ready-for-read.  (cc)
    * EmscriptenAsyncCallback::ScheduleCallback() was clamping the callback
      time-delta value incorrectly.  Fixed.  (cc)
+   * EmscriptendWebSocketDataIO::Shutdown() wasn't releasing the
+     ConstSocketRef as expected.  Fixed.  (cc)
+   * Added a destructor to the JUCECallbackMechanism that calls
+     cancelPendingUpdate() to avoid a potential order-of-operations
+     fault when shutting down the mechanism.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
