@@ -123,10 +123,14 @@ EmscriptenWebSocketRef EmscriptenWebSocketWatcher :: CreateClientWebSocket(const
    }
 
    EmscriptenWebSocketRef ret(new EmscriptenWebSocket(this, s));
-   (void) emscripten_websocket_set_onopen_callback(   s, ret(), em_websocket_onopen_callback);
-   (void) emscripten_websocket_set_onmessage_callback(s, ret(), em_websocket_onmessage_callback);
-   (void) emscripten_websocket_set_onerror_callback(  s, ret(), em_websocket_onerror_callback);
-   (void) emscripten_websocket_set_onclose_callback(  s, ret(), em_websocket_onclose_callback);
+   if ((emscripten_websocket_set_onopen_callback(   s, ret(), em_websocket_onopen_callback)    < 0)
+    || (emscripten_websocket_set_onmessage_callback(s, ret(), em_websocket_onmessage_callback) < 0)
+    || (emscripten_websocket_set_onerror_callback(  s, ret(), em_websocket_onerror_callback)   < 0)
+    || (emscripten_websocket_set_onclose_callback(  s, ret(), em_websocket_onclose_callback)   < 0))
+   {
+      LogTime(MUSCLE_LOG_ERROR, "EmscriptenWebSocketWatcher::CreateClientWebSocket(%s):  EmscriptWebSocket callbacks setup failed!\n", destURL());
+      return B_BAD_OBJECT;
+   }
 
    return ret;
 #else

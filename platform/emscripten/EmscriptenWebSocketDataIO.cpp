@@ -83,6 +83,7 @@ io_status_t EmscriptenWebSocketDataIO :: Write(const void * buffer, uint32 size)
 
 void EmscriptenWebSocketDataIO :: Shutdown()
 {
+   _sockRef.Reset();
    _emSockRef.Reset();
 }
 

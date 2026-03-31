@@ -66,6 +66,9 @@ public:
    /** Default constructor */
    EmscriptenWebSocketWatcher() {/* empty */}
 
+   /** Virtual destructor to keep C++ honest */
+   virtual ~EmscriptenWebSocketWatcher() {/* empty */}
+
    /** Utility method: Sets up and returns an outgoing WebSocket to the given hostname and port
      * @param destURL the URL to pass to the WebSocket API (e.g. "ws://localhost:8080").  You may want
      *        to call IPAddress::ToURL("ws") or IPAddressAndPort::ToURL("ws") to generate this String.

@@ -30,8 +30,7 @@ public:
       else
       {
          _isRunning = true;
-         AsyncCallback(0);  // just to get the ball rolling
-         return B_NO_ERROR;
+         return AsyncCallbackAux();  // just to get the ball rolling (AsyncCallbackAux() will call Stop() on error so we don't have to roll back _isRunning here)
       }
 #else
       return B_UNIMPLEMENTED;
@@ -45,17 +44,34 @@ public:
    bool IsRunning() const {return _isRunning;}
 
 protected:
-   virtual void AsyncCallback(uint64 /*scheduledTime*/)
-   {
-      if (_isRunning)
-      {
-         uint64 nextPulseTime = MUSCLE_TIME_NEVER;
-         (void) ServerProcessLoop(0, &nextPulseTime); // just run the event-loop for one iteration and return ASAP
-         (void) SetAsyncCallbackTime(nextPulseTime);  // schedule the next callback to handle any upcoming Pulse() calls
-      }
-   }
+   virtual void AsyncCallback(uint64 /*scheduledTime*/) {(void) AsyncCallbackAux();}
 
 private:
+   status_t AsyncCallbackAux()
+   {
+      if (_isRunning == false) return B_BAD_OBJECT;
+
+      uint64 nextPulseTime = MUSCLE_TIME_NEVER;
+
+      status_t ret = ServerProcessLoop(0, &nextPulseTime); // just run the event-loop for one iteration and return ASAP
+      if (ret.IsError())
+      {
+         LogTime(MUSCLE_LOG_ERROR, "EmscriptenReflectServer::AsyncCallback():  ServerProcessLoop() returned [%s], ending run-loop\n", ret());
+         Stop();
+      }
+      else
+      {
+         ret = SetAsyncCallbackTime(nextPulseTime);  // schedule the next callback to handle any upcoming Pulse() calls
+         if (ret.IsError())
+         {
+            LogTime(MUSCLE_LOG_ERROR, "EmscriptenReflectServer::AsyncCallback():  SetAsyncCallbackTime(" UINT64_FORMAT_SPEC ") returned [%s], ending run-loop\n", nextPulseTime, ret());
+            Stop();
+         }
+      }
+
+      return ret;
+   }
+
    bool _isRunning;
 };
 
