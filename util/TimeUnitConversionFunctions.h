@@ -321,7 +321,11 @@ MUSCLE_NODISCARD inline uint64 ConvertTimeValTo64(const struct timeval & tv) {re
 inline void Convert64ToTimeVal(uint64 val, struct timeval & retStruct)
 {
    retStruct.tv_sec  = (time_t)     (val / MICROS_PER_SECOND);
+#ifdef WIN32
+   retStruct.tv_usec = (long)       (val % MICROS_PER_SECOND);
+#else
    retStruct.tv_usec = (suseconds_t)(val % MICROS_PER_SECOND);
+#endif
 }
 
 #define MUSCLE_DEFINE_ROUNDUP_CONVERSION_FUNCTION(smallUnits, bigUnits)                                     \
