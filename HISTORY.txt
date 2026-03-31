@@ -192,6 +192,8 @@ key:  - new feature
      cancelPendingUpdate() to avoid a potential order-of-operations
      fault when shutting down the mechanism.  (cc)
    * Fixed a double-delete bug in QSocketCallbackMechanism.  (cc)
+   * Fixed a bug where Hashtable::Clear() could leave the Hashtable's
+     _iteratorCount non-zero on return.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

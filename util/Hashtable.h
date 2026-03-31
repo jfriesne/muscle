@@ -805,7 +805,7 @@ public:
      *       with a key equivalent to the argument is present in the table.
      *       (ie this method is NOT a synonym for the ContainsKey() method!)
      */
-   MUSCLE_NODISCARD bool IsKeyLocatedInThisContainer(const KeyType & key) {return IsPointerPointingIntoDataTable(&key);}
+   MUSCLE_NODISCARD bool IsKeyLocatedInThisContainer(const KeyType & key) const {return IsPointerPointingIntoDataTable(&key);}
 
    /** Returns true iff the given value-object has an address that is located within this
      * Hashtable's internal data-array.
@@ -815,7 +815,7 @@ public:
      *       with a value equivalent to the argument is present in the table.
      *       (ie this method is NOT a synonym for the ContainsValue() method!)
      */
-   MUSCLE_NODISCARD bool IsValueLocatedInThisContainer(const ValueType & value) {return IsPointerPointingIntoDataTable(&value);}
+   MUSCLE_NODISCARD bool IsValueLocatedInThisContainer(const ValueType & value) const {return IsPointerPointingIntoDataTable(&value);}
 
    /** Returns a reference to a default-constructed Key item.  The reference will remain valid for as long as this Hashtable is valid. */
    MUSCLE_NODISCARD const KeyType & GetDefaultKey() const {return GetDefaultObjectForType<KeyType>();}
@@ -3000,6 +3000,10 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Clear(bool releaseCachedBuffer
       _iterList->_iterCookie = _iterList->_prevIter = _iterList->_nextIter = NULL;
       _iterList->UpdateKeyAndValuePointers();
       _iterList = next;
+
+#ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
+      (void) _iteratorCount.AtomicDecrement();
+#endif
    }
 
    // It's important to set each in-use HashtableEntryBase to its default state so
