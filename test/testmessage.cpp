@@ -120,6 +120,12 @@ int main(int, char **)
    CompleteSetupSystem css;  // required!
    (void) SetConsoleLogLevel(MUSCLE_LOG_DEBUG);  // so if unflatten() fails we can see why
 
+Message m;
+MessageRef nullRef;
+m.AddData("foo", B_MESSAGE_TYPE, &nullRef, sizeof(nullRef));
+m.Print(stdout);
+return 0;
+
    // Test muscleSwap()
    {
       Message m1(1), m2(2);

@@ -268,9 +268,11 @@ private:
 
    template<typename T> void WriteFlatsAux(const T * vals, uint32 numVals, bool includeLengthPrefix)
    {
+printf("WFA numVals=%u includeLengthPrefix=%i\n", numVals, includeLengthPrefix);
       for (uint32 i=0; i<numVals; i++)
       {
          const uint32 flatSize = vals[i].FlattenedSize();
+printf("     i=%u flatSize=%u\n", i, flatSize);
          if (includeLengthPrefix) WriteInt32(flatSize);
          vals[i].Flatten(DataFlattenerHelper(*this, flatSize));
       }

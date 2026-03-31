@@ -605,11 +605,18 @@ protected:
 };
 DECLAREFIELDTYPE(PointerDataArray);
 
+template<typename RefType> bool IsVoidPointerToNonNullRef(const void * item) {return ((item)&&(static_cast<const RefType *>(item)->GetItemPointer() != NULL));}
+
 // An abstract field of FlatCountableRefs.
 template <class RefType, uint32 ItemTypeCode> class FlatCountableRefDataArray : public FixedSizeDataArray<RefType>
 {
 public:
    FlatCountableRefDataArray() {/* empty */}
+
+   // these methods are overridden to make sure the user doesn't try to sneak in a NULL reference via a call to e.g. msg.AddData(fn, B_MESSAGE_TYPE, &nullMsgRef)
+   virtual status_t AddDataItem(                  const void * item, uint32 size) {return IsVoidPointerToNonNullRef<RefType>(item) ? FixedSizeDataArray<RefType>::AddDataItem    (item, size) : B_BAD_ARGUMENT;}
+   virtual status_t PrependDataItem(              const void * item, uint32 size) {return IsVoidPointerToNonNullRef<RefType>(item) ? FixedSizeDataArray<RefType>::PrependDataItem(item, size) : B_BAD_ARGUMENT;}
+   virtual status_t ReplaceDataItem(uint32 index, const void * item, uint32 size) {return IsVoidPointerToNonNullRef<RefType>(item) ? FixedSizeDataArray<RefType>::ReplaceDataItem(index, item, size) : B_BAD_ARGUMENT;}
 
    virtual uint32 GetItemSize(uint32 index) const
    {
@@ -1450,7 +1457,10 @@ status_t Message :: AddDataAux(const String & fieldName, const void * data, uint
          dataToAdd = &fcRef;
          addSize = sizeof(fcRef);
       }
-      MRETURN_ON_ERROR(prepend ? mf->PrependDataItem(dataToAdd, addSize) : mf->AddDataItem(dataToAdd, addSize));
+
+      const status_t ret = prepend ? mf->PrependDataItem(dataToAdd, addSize) : mf->AddDataItem(dataToAdd, addSize);
+      if ((ret.IsError())&&(mf->GetNumItems() == 0)) (void) RemoveName(fieldName);  // don't leave a zero-length MessageField hanging around
+      MRETURN_ON_ERROR(ret);
    }
    return B_NO_ERROR;
 }
@@ -2337,8 +2347,7 @@ status_t MessageField :: SingleUnflatten(DataUnflattener & unflat)
 
          MessageRef msgRef = GetMessageFromPool(unflat.GetCurrentReadPointer(), msgSize);
          MRETURN_ON_ERROR(unflat.SeekToEnd());
-         if (msgRef() == NULL) return B_BAD_DATA;
-         SetInlineItemAsRefCountableRef(msgRef.GetRefCountableRef());
+         MRETURN_ON_ERROR(SetInlineItemAsRefCountableRef(msgRef.GetRefCountableRef()));
       }
       break;
 
@@ -2363,9 +2372,7 @@ status_t MessageField :: SingleUnflatten(DataUnflattener & unflat)
 
          ByteBufferRef bbRef = GetByteBufferFromPool(unflat.GetNumBytesAvailable(), unflat.GetCurrentReadPointer());
          MRETURN_ON_ERROR(unflat.SeekToEnd());
-         if (bbRef() == NULL) return B_OUT_OF_MEMORY;
-
-         SetInlineItemAsRefCountableRef(bbRef.GetRefCountableRef());
+         MRETURN_ON_ERROR(SetInlineItemAsRefCountableRef(bbRef.GetRefCountableRef()));
       }
       break;
    }
@@ -2374,9 +2381,8 @@ status_t MessageField :: SingleUnflatten(DataUnflattener & unflat)
    return unflat.GetStatus();
 }
 
-void MessageField :: SingleSetValue(const void * data, uint32 /*size*/)
+status_t MessageField :: SingleSetValue(const void * data, uint32 /*size*/)
 {
-   _state = FIELD_STATE_INLINE;
    switch(_typeCode)
    {
       case B_BOOL_TYPE:    SetInlineItemAsBool(   data ? *static_cast<const bool          *>(data) : false);    break;
@@ -2390,20 +2396,23 @@ void MessageField :: SingleSetValue(const void * data, uint32 /*size*/)
       case B_POINT_TYPE:   SetInlineItemAsPoint(  data ? *static_cast<const Point         *>(data) : Point());  break;
       case B_RECT_TYPE:    SetInlineItemAsRect(   data ? *static_cast<const Rect          *>(data) : Rect());   break;
       case B_STRING_TYPE:  SetInlineItemAsString( data ? *static_cast<const String        *>(data) : String()); break;
-      case B_MESSAGE_TYPE: SetInlineItemAsRefCountableRef(data ? *static_cast<const RefCountableRef *>(data) : GetMessageFromPool().GetRefCountableRef()); break;
-      default:
-         if (data) SetInlineItemAsRefCountableRef(*static_cast<const RefCountableRef *>(data));
-      break;
+      case B_MESSAGE_TYPE: // fall through!
+      default:  // we don't allow setting NULL Refs as values
+         if (IsVoidPointerToNonNullRef<RefCountableRef>(data)) {MRETURN_ON_ERROR(SetInlineItemAsRefCountableRef(*static_cast<const RefCountableRef *>(data)));}
+                                                          else return B_BAD_ARGUMENT;
    }
+
+   _state = FIELD_STATE_INLINE;
+   return B_NO_ERROR;
 }
 
 status_t MessageField :: SingleAddDataItem(const void * data, uint32 size)
 {
    if (_state == FIELD_STATE_EMPTY)
    {
+      MRETURN_ON_ERROR(SingleSetValue(data, size));
+
       _state = FIELD_STATE_INLINE;
-      SingleSetValue(data, size);
-      return B_NO_ERROR;
    }
    else
    {
@@ -2411,12 +2420,12 @@ status_t MessageField :: SingleAddDataItem(const void * data, uint32 size)
       AbstractDataArrayRef adaRef = CreateDataArray(_typeCode);
       MRETURN_ON_ERROR(adaRef);
       MRETURN_ON_ERROR(adaRef()->AddDataItem(_union._data, size));  // add our existing single-item to the array
-      MRETURN_ON_ERROR(adaRef()->AddDataItem(data,         size));
+      MRETURN_ON_ERROR(adaRef()->AddDataItem(data,         size));  // then add the user's new item to the array also
+      MRETURN_ON_ERROR(SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef()));
 
       _state = FIELD_STATE_ARRAY;
-      SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef());
-      return B_NO_ERROR;
    }
+   return B_NO_ERROR;
 }
 
 status_t MessageField :: SingleRemoveDataItem(uint32 index)
@@ -2432,9 +2441,9 @@ status_t MessageField :: SinglePrependDataItem(const void * data, uint32 size)
 {
    if (_state == FIELD_STATE_EMPTY)
    {
+      MRETURN_ON_ERROR(SingleSetValue(data, size));
+
       _state = FIELD_STATE_INLINE;
-      SingleSetValue(data, size);
-      return B_NO_ERROR;
    }
    else
    {
@@ -2443,11 +2452,11 @@ status_t MessageField :: SinglePrependDataItem(const void * data, uint32 size)
       MRETURN_ON_ERROR(adaRef);
       MRETURN_ON_ERROR(adaRef()->AddDataItem(_union._data, size));  // add our existing single-item to the array
       MRETURN_ON_ERROR(adaRef()->PrependDataItem(data,     size));
+      MRETURN_ON_ERROR(SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef()));
 
       _state = FIELD_STATE_ARRAY;
-      SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef());
-      return B_NO_ERROR;
    }
+   return B_NO_ERROR;
 }
 
 status_t MessageField :: SingleFindDataItem(uint32 index, const void ** setDataLoc) const
@@ -2461,9 +2470,7 @@ status_t MessageField :: SingleFindDataItem(uint32 index, const void ** setDataL
 status_t MessageField :: SingleReplaceDataItem(uint32 index, const void * data, uint32 size)
 {
    if ((_state != FIELD_STATE_INLINE)||(index > 0)) return B_DATA_NOT_FOUND;
-
-   SingleSetValue(data, size);
-   return B_NO_ERROR;
+   return SingleSetValue(data, size);
 }
 
 // For a given absolutely-fixed-size-type, returns the number of bytes that this type will flatten to.
@@ -2742,16 +2749,10 @@ MessageField & MessageField :: operator = (const MessageField & rhs)
    _typeCode = rhs._typeCode;
    switch(rhs._state)
    {
-      case FIELD_STATE_EMPTY:  /* do nothing */                                                      break;
-      case FIELD_STATE_INLINE: SingleSetValue(rhs._union._data, Message::GetElementSize(_typeCode)); break;
-      case FIELD_STATE_ARRAY:
-         _state = FIELD_STATE_ARRAY;
-         SetInlineItemAsRefCountableRef(rhs.GetInlineItemAsRefCountableRef());   // note array is ref-shared at this point!
-      break;
-
-      default:
-         MCRASH("MessageField: Unknown field state!");
-      break;
+      case FIELD_STATE_EMPTY:  /* do nothing */                                                             break;
+      case FIELD_STATE_INLINE: (void) SingleSetValue(rhs._union._data, Message::GetElementSize(_typeCode)); break;
+      case FIELD_STATE_ARRAY:  if (SetInlineItemAsRefCountableRef(rhs.GetInlineItemAsRefCountableRef()).IsOK()) _state = FIELD_STATE_ARRAY; break; // note that the array is owned by two MessageFields at this point!
+      default:                 MCRASH("MessageField: Unknown field state!");                                break;
    }
    return *this;
 }
@@ -2787,12 +2788,7 @@ status_t MessageField :: EnsurePrivate()
    switch(_state)
    {
       case FIELD_STATE_ARRAY:
-         if (GetArrayRef().IsRefPrivate() == false)
-         {
-            AbstractDataArrayRef newArrayCopy = GetArray()->Clone();
-            if (newArrayCopy() == NULL) return B_OUT_OF_MEMORY;
-            SetInlineItemAsRefCountableRef(newArrayCopy.GetRefCountableRef());
-         }
+         if (GetArrayRef().IsRefPrivate() == false) MRETURN_ON_ERROR(SetInlineItemAsRefCountableRef(GetArray()->Clone().GetRefCountableRef()));
       break;
 
       case FIELD_STATE_INLINE:
@@ -2802,21 +2798,11 @@ status_t MessageField :: EnsurePrivate()
             if ((rcRef())&&(rcRef.IsRefPrivate() == false))
             {
                const Message * msg = dynamic_cast<const Message *>(rcRef());
-               if (msg)
-               {
-                  MessageRef newMsg = GetMessageFromPool(*msg);
-                  if (newMsg() == NULL) return B_OUT_OF_MEMORY;
-                  SetInlineItemAsRefCountableRef(newMsg.GetRefCountableRef());
-               }
+               if (msg) {MRETURN_ON_ERROR(SetInlineItemAsRefCountableRef(GetMessageFromPool(*msg).GetRefCountableRef()));}
                else
                {
                   const FlatCountable * fc = dynamic_cast<const FlatCountable *>(rcRef());
-                  if (fc)
-                  {
-                     ByteBufferRef newBuf = fc->FlattenToByteBuffer();
-                     if (newBuf() == NULL) return B_BAD_OBJECT;
-                     SetInlineItemAsRefCountableRef(newBuf.GetRefCountableRef());
-                  }
+                  if (fc) MRETURN_ON_ERROR(SetInlineItemAsRefCountableRef(fc->FlattenToByteBuffer().GetRefCountableRef()));
                }
             }
          }
@@ -2835,8 +2821,7 @@ status_t MessageField :: ReplaceFlatCountableDataItem(uint32 index, muscle::Ref<
    switch(_state)
    {
       case FIELD_STATE_INLINE:
-         SetInlineItemAsRefCountableRef(fcRef.GetRefCountableRef());
-      return B_NO_ERROR;
+         return SetInlineItemAsRefCountableRef(fcRef.GetRefCountableRef());
 
       case FIELD_STATE_ARRAY:
       {
@@ -2900,9 +2885,9 @@ status_t MessageField :: Unflatten(DataUnflattener & unflat)
       if (adaRef() == NULL) return B_OUT_OF_MEMORY;
 
       MRETURN_ON_ERROR(unflat.ReadFlat(*adaRef()));
+      MRETURN_ON_ERROR(SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef()));
       _state = FIELD_STATE_ARRAY;
-      SetInlineItemAsRefCountableRef(adaRef.GetRefCountableRef());
-      return unflat.GetStatus();
+      return B_NO_ERROR;
    }
 }
 

@@ -36,6 +36,9 @@ key:  - new feature
    - Added a move-constructor and move-assignment-operator to the
      Tuple class.
    - Updated QDataIODevice to be more generally useful.  (cc)
+   - Added logic to the Message class to ensure that attempting to add
+     NULL Ref as a value in a Message field always safely returns
+     B_BAD_ARGUMENT, even if you try to do it via AddData().
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
      DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
      variadic macros.

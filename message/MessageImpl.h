@@ -208,7 +208,7 @@ private:
    MUSCLE_NODISCARD bool SingleElementsAreFixedSize() const;
    MUSCLE_NODISCARD bool SingleIsFlattenable() const;
    void SinglePrint(const OutputPrinter & p, uint32 maxRecurseLevel) const;
-   void SingleSetValue(const void * data, uint32 numBytes);
+   status_t SingleSetValue(const void * data, uint32 numBytes);
    AbstractDataArrayRef CreateDataArray(uint32 typeCode) const;
    void ChangeType(uint8 newType);
 
@@ -320,11 +320,14 @@ private:
       *p = b;
    }
 
-   void SetInlineItemAsRefCountableRef(const RefCountableRef & b)
+   status_t SetInlineItemAsRefCountableRef(const RefCountableRef & b)
    {
+      if (b() == NULL) return B_BAD_ARGUMENT;  // homey don't play that
+
       ChangeType(DATA_TYPE_REF);
       RefCountableRef * p MUSCLE_MAY_ALIAS = reinterpret_cast<RefCountableRef *>(_union._data);
       *p = b;
+      return B_NO_ERROR;
    }
 
    MUSCLE_NODISCARD bool GetInlineItemAsBool() const
