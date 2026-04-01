@@ -194,7 +194,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
                if (g_spamSize >= sizeof(uint32)) DefaultEndianConverter::Export(g_spamSize, b);  // so we can verify that packets aren't getting truncated on reception
                spamBytesSent = io()->WriteFully(b, g_spamSize).IsOK() ? g_spamSize : 0;
             }
-            if ((!g_quietSend)&&(g_decorateOutput)) LogTime(MUSCLE_LOG_ERROR, "Sent " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of spam!\n", spamBytesSent, g_spamSize);
+            if ((!g_quietSend)&&(g_decorateOutput)) LogTime(MUSCLE_LOG_INFO, "Sent " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes of spam!\n", spamBytesSent, g_spamSize);
             if (g_spamsPerSecond > 0) spamTime += (1000000/g_spamsPerSecond);
          }
 
@@ -263,7 +263,7 @@ static void DoSession(DataIORef io, bool allowRead = true)
                      if (g_useHex) nextBuf = HexBytesFromString(b());
                      else
                      {
-                        nextBuf = GetByteBufferFromPool(b.FlattenedSize(), (const uint8 *) b());
+                        nextBuf = GetByteBufferFromPool(b.Length(), (const uint8 *) b());
                         if (nextBuf()) (void) nextBuf()->AppendByte('\n'); // add a newline byte
                      }
 
@@ -301,8 +301,8 @@ static void DoSession(const Message & args, DataIORef io, bool allowRead = true)
    const char * stressMaxBytesStr = args.GetCstr("stressmaxbytes");
    const char * stressDelayStr    = args.GetCstr("stressdelay");
 
-   const uint32 minBytes = stressMinBytesStr ? (uint32)atol(stressMinBytesStr) : 0;
-   const uint32 maxBytes = stressMaxBytesStr ? (uint32)atol(stressMaxBytesStr) : MUSCLE_NO_LIMIT;
+   const uint32 minBytes = stressMinBytesStr ? (uint32) Atoull(stressMinBytesStr) : 0;
+   const uint32 maxBytes = stressMaxBytesStr ? (uint32) Atoull(stressMaxBytesStr) : MUSCLE_NO_LIMIT;
    const uint64 delayMicros    = stressDelayStr    ? ParseHumanReadableUnsignedTimeIntervalString(stressDelayStr)  : 0;
    if ((minBytes != 0)||(maxBytes != MUSCLE_NO_LIMIT))
    {
@@ -515,9 +515,9 @@ int hextermmain(const char * argv0, const Message & args)
    if (args.HasName("spamspersecond"))
    {
       const char * sizeStr = args.GetCstr("spamsize");
-      if (sizeStr) g_spamSize = (uint32) atol(sizeStr);
+      if (sizeStr) g_spamSize = (uint32) Atoull(sizeStr);
 
-      g_spamsPerSecond = (uint32) atoi(args.GetCstr("spamspersecond"));
+      g_spamsPerSecond = (uint32) Atoull(args.GetCstr("spamspersecond"));
       LogTime(MUSCLE_LOG_INFO, "Will generate and send " UINT32_FORMAT_SPEC " " UINT32_FORMAT_SPEC "-byte spam-transmissions per second.\n", g_spamsPerSecond, g_spamSize);
    }
 
@@ -557,7 +557,7 @@ int hextermmain(const char * argv0, const Message & args)
    else if (args.FindString("serial", arg).IsOK())
    {
       const char * colon = strchr(arg(), ':');
-      uint32 baudRate = colon ? atoi(colon+1) : 0; if (baudRate == 0) baudRate = 38400;
+      uint32 baudRate = colon ? Atoull(colon+1) : 0; if (baudRate == 0) baudRate = 38400;
       const String devName = arg.Substring(0, ":");
       Queue<String> devs;
       if (RS232DataIO::GetAvailableSerialPortNames(devs).IsOK(ret))
@@ -612,7 +612,7 @@ int hextermmain(const char * argv0, const Message & args)
          DoSession(args, DummyDataIORef(fdio), false);
          LogTime(MUSCLE_LOG_INFO, "Writing of output file complete.\n");
       }
-      else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open input file [%s]\n", arg());
+      else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open output file [%s]\n", arg());
    }
 #endif
    else if (ParseConnectArg(args, "tcp", host, port, true).IsOK())
