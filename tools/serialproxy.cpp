@@ -13,7 +13,7 @@ using namespace muscle;
 
 static const int DEFAULT_PORT = 5274;  // What CueStation 2.5 connects to by default
 
-static status_t ReadIncomingData(const char * desc, DataIO & readIO, const SocketMultiplexer & multiplexer, Queue<ByteBufferRef> & outQ)
+static status_t ReadIncomingData(bool wantToExitOnFailure, const char * desc, DataIO & readIO, const SocketMultiplexer & multiplexer, Queue<ByteBufferRef> & outQ)
 {
    if (multiplexer.IsSocketReadyForRead(readIO.GetReadSelectSocket().GetFileDescriptor()))
    {
@@ -25,14 +25,19 @@ static status_t ReadIncomingData(const char * desc, DataIO & readIO, const Socke
          PrintHexBytes(MUSCLE_LOG_TRACE, buf, ret.GetByteCount());
 
          ByteBufferRef toNetworkBuf = GetByteBufferFromPool(ret.GetByteCount(), buf);
-         if (toNetworkBuf()) (void) outQ.AddTail(toNetworkBuf);
+         MRETURN_ON_ERROR(toNetworkBuf);
+         MRETURN_ON_ERROR(outQ.AddTail(toNetworkBuf));
       }
-      else if (ret.IsError()) {LogTime(MUSCLE_LOG_ERROR, "Error, readIO.Read() returned [%s]\n", ret.GetStatus()()); return ret.GetStatus();}
+      else if (ret.IsError())
+      {
+         LogTime(MUSCLE_LOG_ERROR, "Error, readIO.Read() returned [%s]\n", ret.GetStatus()());
+         return wantToExitOnFailure ? B_SHUTTING_DOWN : ret.GetStatus();
+      }
    }
    return B_NO_ERROR;
 }
 
-static status_t WriteOutgoingData(const char * desc, DataIO & writeIO, const SocketMultiplexer & multiplexer, Queue<ByteBufferRef> & outQ, uint32 & writeIdx)
+static status_t WriteOutgoingData(bool wantExitOnFailure, const char * desc, DataIO & writeIO, const SocketMultiplexer & multiplexer, Queue<ByteBufferRef> & outQ, uint32 & writeIdx)
 {
    if (multiplexer.IsSocketReadyForWrite(writeIO.GetWriteSelectSocket().GetFileDescriptor()))
    {
@@ -55,7 +60,16 @@ static status_t WriteOutgoingData(const char * desc, DataIO & writeIO, const Soc
                PrintHexBytes(MUSCLE_LOG_TRACE, firstBuf()->GetBuffer()+writeIdx, ret.GetByteCount());
                writeIdx += ret.GetByteCount();
             }
-            else if (ret.IsError()) {LogTime(MUSCLE_LOG_ERROR, "Error, writeIO.Write() returned [%s]\n", ret.GetStatus()()); return ret.GetStatus();}
+            else if (ret.GetByteCount() == 0)
+            {
+               LogTime(MUSCLE_LOG_WARNING, "Write() returned 0, will retry send after 100mS\n");
+               (void) Snooze64(MillisToMicros(100));  // a cheap hack but the alternative is to set up an outgoing-data-queue to drain and that seems like overkill for this program
+            }
+            else if (ret.IsError())
+            {
+               LogTime(MUSCLE_LOG_ERROR, "Error, writeIO.Write() returned [%s]\n", ret.GetStatus()());
+               return wantExitOnFailure ? B_SHUTTING_DOWN : ret.GetStatus();
+            }
          }
       }
    }
@@ -84,10 +98,10 @@ static status_t DoSession(DataIO & networkIO, DataIO & serialIO)
       status_t ret;
       if (multiplexer.WaitForEvents().IsOK(ret))
       {
-         MRETURN_ON_ERROR(ReadIncomingData("network",  networkIO, multiplexer, outgoingSerialData));                 // tells main() to wait for the next TCP connection
-         MRETURN_ON_ERROR(ReadIncomingData("serial",   serialIO,  multiplexer, outgoingNetworkData));                // tells main() to exit
-         MRETURN_ON_ERROR(WriteOutgoingData("network", networkIO, multiplexer, outgoingNetworkData, networkIndex));  // tells main() to wait for the next TCP connection
-         MRETURN_ON_ERROR(WriteOutgoingData("serial",  serialIO,  multiplexer, outgoingSerialData,  serialIndex));   // tells main() to exit
+         MRETURN_ON_ERROR(ReadIncomingData(false,  "network", networkIO, multiplexer, outgoingSerialData));                 // tells main() to wait for the next TCP connection
+         MRETURN_ON_ERROR(ReadIncomingData(true,   "serial",  serialIO,  multiplexer, outgoingNetworkData));                // tells main() to exit on failure
+         MRETURN_ON_ERROR(WriteOutgoingData(false, "network", networkIO, multiplexer, outgoingNetworkData, networkIndex));  // tells main() to wait for the next TCP connection
+         MRETURN_ON_ERROR(WriteOutgoingData(true,  "serial",  serialIO,  multiplexer, outgoingSerialData,  serialIndex));   // tells main() to exit on failure
       }
       else
       {
@@ -100,6 +114,15 @@ static status_t DoSession(DataIO & networkIO, DataIO & serialIO)
 static void LogUsage()
 {
    LogPlain(MUSCLE_LOG_INFO, "Usage:  serialproxy serial=<devname>:<baud> [port=5274] (send/receive via a serial device, e.g. /dev/ttyS0)\n");
+
+   Queue<String> devNames;
+   const status_t r = RS232DataIO::GetAvailableSerialPortNames(devNames);
+   if (r.IsOK())
+   {
+      LogTime(MUSCLE_LOG_INFO, UINT32_FORMAT_SPEC " available serial devices detected:\n", devNames.GetNumItems());
+      for (uint32 i=0; i<devNames.GetNumItems(); i++) LogTime(MUSCLE_LOG_INFO, "  %s\n", devNames[i]());
+   }
+   else LogTime(MUSCLE_LOG_ERROR, "GetAvailableSerialPortNames() returned [%s]\n", r());
 }
 
 // This program acts as a proxy to forward serial data to a TCP stream (and back)
@@ -127,7 +150,7 @@ int main(int argc, char ** argv)
    if (args.FindString("serial", arg).IsOK())
    {
       const char * colon = strchr(arg(), ':');
-      uint32 baudRate = colon ? atoi(colon+1) : 0; if (baudRate == 0) baudRate = 38400;
+      uint32 baudRate = colon ? (uint32)Atoull(colon+1) : 0; if (baudRate == 0) baudRate = 38400;
       String devName = arg.Substring(0, ":");
       Queue<String> devs;
       if (RS232DataIO::GetAvailableSerialPortNames(devs).IsOK())
@@ -152,8 +175,7 @@ int main(int argc, char ** argv)
                if (serverSock())
                {
                   // Now we just wait here until a TCP connection comes along on our port...
-                  bool keepGoing = true;
-                  while(keepGoing)
+                  while(1)
                   {
                      LogTime(MUSCLE_LOG_INFO, "Awaiting incoming TCP connection on port %u...\n", port);
                      ConstSocketRef tcpSock = Accept(serverSock);
@@ -161,8 +183,11 @@ int main(int argc, char ** argv)
                      {
                         LogTime(MUSCLE_LOG_INFO, "Beginning serial proxy session!\n");
                         TCPSocketDataIO networkIO(tcpSock, false);
-                        keepGoing = (DoSession(networkIO, serialIO).IsOK());
-                        LogTime(MUSCLE_LOG_INFO, "Serial proxy session ended%s!\n", keepGoing?", awaiting new connection":", aborting!");
+
+                        const status_t r = DoSession(networkIO, serialIO);
+                        const bool timeToExit = (r == B_SHUTTING_DOWN);
+                        LogTime(MUSCLE_LOG_INFO, "Serial proxy session ended [%s], %s.\n", r(), timeToExit ? "aborting" : "awaiting next TCP connection");
+                        if (timeToExit) break;
                      }
                   }
                }
