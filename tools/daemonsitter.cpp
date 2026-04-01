@@ -48,7 +48,7 @@ public:
       status_t ret;
       if (cpioRef()->LaunchChildProcess(_childArgv).IsOK(ret))
       {
-         LogTime(MUSCLE_LOG_ERROR, "Spawned child process [%s]\n", _processLabel());
+         LogTime(MUSCLE_LOG_INFO, "Spawned child process [%s]\n", _processLabel());
          return cpioRef;
       }
       else
@@ -87,10 +87,12 @@ public:
          String verb;
          const io_status_t r = cpio->GetChildProcessExitCode();
          if (r.IsError()) verb = String("exited abnormally (%1)").Arg(r());
-
-         const int32 exitCode = r.GetByteCount();
-         if (exitCode == 0) verb = "exited normally";
-                       else verb = String("exited (code %1)").Arg(exitCode);
+         else
+         {
+            const int32 exitCode = r.GetByteCount();
+            if (exitCode == 0) verb = "exited normally";
+                          else verb = String("exited (code %1)").Arg(exitCode);
+         }
 
          LogTime(MUSCLE_LOG_WARNING, "Child Process [%s] just %s.  Will re-spawn in one second...\n", _processLabel(), verb());
       }
@@ -145,7 +147,7 @@ public:
                LogTime(MUSCLE_LOG_INFO, "Ending process [%s]\n", _processLabel());
                EndServer();
             }
-            if (nc == "crash")
+            else if (nc == "crash")
             {
                LogTime(MUSCLE_LOG_INFO, "Crashing process [%s]\n", _processLabel());
                MCRASH("Deliberate crash");
@@ -219,8 +221,8 @@ static int DoChildProcess(const String & label, int /*argc*/, char ** /*argv*/)
    if (server.AddNewSession(DummyAbstractReflectSessionRef(stdinSession)).IsOK(ret))
    {
       LogTime(MUSCLE_LOG_INFO, "Child Process [%s] is running and listening to stdin.\n", label());
-      if (server.ServerProcessLoop().IsOK()) LogTime(MUSCLE_LOG_INFO,  "Child Process [%s] event-loop finished.\n", label());
-                                        else LogTime(MUSCLE_LOG_ERROR, "Child Process [%s] event-loop exited with an error [%s].\n", label(), ret());
+      if (server.ServerProcessLoop().IsOK(ret)) LogTime(MUSCLE_LOG_INFO,  "Child Process [%s] event-loop finished.\n", label());
+                                           else LogTime(MUSCLE_LOG_ERROR, "Child Process [%s] event-loop exited with an error [%s].\n", label(), ret());
    }
    else LogTime(MUSCLE_LOG_ERROR, "DoChildProcess:  Couldn't add stdin session to ReflectServer! [%s]\n", ret());
 

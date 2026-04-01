@@ -25,15 +25,17 @@ public:
 
          const bool reverseOrder = (GetInsecurePseudoRandomNumber32(2) == 0);
          Mutex * m1 = reverseOrder ? &g_mutexB : &g_mutexA;
-         Mutex * m2 = reverseOrder ? &g_mutexA : &g_mutexB;
          DECLARE_MUTEXGUARD(*m1);  // using the macro allows the deadlock-finder to find this line-location, rather than the line in Mutex.h
          DECLARE_MUTEXGUARD(*m1);  // doing it a second time just to make sure that recursive-locking is handled as expected
 
+         Mutex * m2 = reverseOrder ? &g_mutexA : &g_mutexB;
          const status_t r1 = m2->Lock();
-         if (r1.IsError()) printf("Error, couldn't lock second Mutex!  (this should never happen!) [%s]\n", r1());
-
-         const status_t r2 = m2->Unlock();
-         if (r2.IsError()) printf("Error, couldn't unlock second Mutex!  (this should never happen!) [%s]\n", r2());
+         if (r1.IsOK())
+         {
+            const status_t r2 = m2->Unlock();
+            if (r2.IsError()) printf("Error, couldn't unlock second Mutex!  (this should never happen!) [%s]\n", r2());
+         }
+         else printf("Error, couldn't lock second Mutex!  (this should never happen!) [%s]\n", r1());
       }
    }
 };

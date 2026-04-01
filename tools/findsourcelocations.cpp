@@ -24,7 +24,9 @@ static void CheckFile(const String & path, uint32 code)
 
       // Read in the file
       QueueGatewayMessageReceiver q;
-      while(gw.DoInput(q).GetByteCount() > 0) {/* empty */}
+      io_status_t ret;
+      while((ret = gw.DoInput(q)).GetByteCount() > 0) {/* empty */}
+      if ((ret.IsError())&&(ret != B_END_OF_STREAM)) LogTime(MUSCLE_LOG_ERROR, "Error reading [%s]: %s\n", path(), ret());
 
       // Now parse the lines, and see if any match
       uint32 lineNumber = 1;
