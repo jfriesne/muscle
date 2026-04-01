@@ -39,6 +39,10 @@ key:  - new feature
    - Added logic to the Message class to ensure that attempting to add
      NULL Ref as a value in a Message field always safely returns
      B_BAD_ARGUMENT, even if you try to do it via AddData().
+   - Added a new function SnoozeUntil() to MiscUtilityFunctions.{cpp,h}
+     as a convenience for sleeping until a known future time.
+   o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that
+     it can handle EINTR-type interruptions more gracefully.
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
      DECLARE_BATCHGUARD_WITH_ARGUMENT to avoid having to deal with
      variadic macros.

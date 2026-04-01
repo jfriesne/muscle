@@ -12,7 +12,6 @@ using namespace muscle;
 int snoopsharedmemmain(const Message & args);  // just to keep -Wmissing-prototypes happy
 int snoopsharedmemmain(const Message & args)
 {
-   CompleteSetupSystem css;
    uint32 maxBytesToPrint = MUSCLE_NO_LIMIT;
 
    const char * shmemName = args.GetCstr("region");
@@ -24,7 +23,7 @@ int snoopsharedmemmain(const Message & args)
 
 
    const char * maxBytesStr = args.GetCstr("head");
-   const uint32 maxBytesArg = maxBytesStr ? (uint32) atol(maxBytesStr) : MUSCLE_NO_LIMIT;
+   const uint32 maxBytesArg = maxBytesStr ? (uint32) Atoull(maxBytesStr) : MUSCLE_NO_LIMIT;
    if (maxBytesArg != MUSCLE_NO_LIMIT)
    {
       maxBytesToPrint = muscleMin(maxBytesToPrint, maxBytesArg);
@@ -48,9 +47,17 @@ int snoopsharedmemmain(const Message & args)
 
       while(1)
       {
-         (void) Snooze64(delayMicros);
-         PrintHexBytes(MUSCLE_LOG_INFO, a, muscleMin(memSize, maxBytesToPrint));
-         if (isClear) memset(a, 0, memSize);
+         const status_t r = Snooze64(delayMicros);
+         if (r.IsOK())
+         {
+            PrintHexBytes(MUSCLE_LOG_INFO, a, muscleMin(memSize, maxBytesToPrint));
+            if (isClear) memset(a, 0, memSize);
+         }
+         else
+         {
+            LogTime(MUSCLE_LOG_ERROR, "Snooze64() returned [%s]\n", r());
+            break;
+         }
       }
    }
    else LogTime(MUSCLE_LOG_ERROR, "SetArea(%s) failed, exiting! [%s]\n", shmemName, ret());

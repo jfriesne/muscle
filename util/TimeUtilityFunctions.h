@@ -78,10 +78,16 @@ MUSCLE_NODISCARD inline uint64 GetCurrentTime64ForRunTime64(uint64 runTime64, ui
 MUSCLE_NODISCARD inline uint64 GetRunTime64ForCurrentTime64(uint64 currentTime64, uint32 timeType=MUSCLE_TIMEZONE_UTC) {return GetRunTime64()+(currentTime64-GetCurrentTime64(timeType));}
 
 /** Convenience function:  Won't return for a given number of microsends.
- *  @param micros The number of microseconds to wait for.
+ *  @param micros The number of microseconds to wait for (or MUSCLE_TIME_NEVER to sleep forever)
  *  @return B_NO_ERROR on success, or an error code on failure.
  */
 status_t Snooze64(uint64 micros);
+
+/** Convenience function:  Sleeps until the specified wakeup time has arrived.
+ *  @param wakeupTime the wakeup time to return at (using the same time-values as returned by GetRunTime64()), or MUSCLE_TIME_NEVER to sleep forever.
+ *  @return B_NO_ERROR on success, or an error code on failure.
+ */
+status_t SnoozeUntil(uint64 wakeupTime);
 
 /** Convenience function:  Returns true no more than once every (interval).
  *  Useful if you are in a tight loop, but don't want eg more than one debug output line per second, or something like that.

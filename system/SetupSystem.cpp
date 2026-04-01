@@ -1218,33 +1218,37 @@ uint64 GetRunTime64() {return GetRunTime64Aux()+_perProcessRunTimeOffset;}
 void SetPerProcessRunTime64Offset(int64 offset) {_perProcessRunTimeOffset = offset;}
 int64 GetPerProcessRunTime64Offset() {return _perProcessRunTimeOffset;}
 
+status_t SnoozeUntil(uint64 wakeupTime)
+{
+   while(1)
+   {
+      const uint64 now             = GetRunTime64();
+      const uint64 totalMicrosToGo = (wakeupTime > now) ? (wakeupTime - now) : 0;
+      if (totalMicrosToGo == 0) return B_NO_ERROR;  // done!
+
+      const uint64 sleepForMicros = muscleMin(totalMicrosToGo, (uint64) DaysToMicros(1));  // just to avoid weird edge cases in OS APIs
+#if defined(WIN32)
+      Sleep((DWORD)((MicrosToMillis(sleepForMicros))+(((sleepForMicros%1000)!=0)?1:0)));
+#elif defined(__linux__)
+      const struct timespec ts = {(time_t) MicrosToSeconds(sleepForMicros), (long) MicrosToNanos(sleepForMicros%MICROS_PER_SECOND)};
+      const int r = clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);  // DO NOT specify CLOCK_MONOTONIC_RAW here, it won't work!
+      if ((r != 0)&&(r != EINTR)) return B_ERRNUM(r);  // yes, B_ERRNUM and not B_ERRNO
+#elif defined(MUSCLE_USE_LIBRT)
+      const struct timespec ts = {(time_t) MicrosToSeconds(sleepForMicros), (long) MicrosToNanos(sleepForMicros%MICROS_PER_SECOND)};
+      const int r = nanosleep(&ts, NULL);
+      if ((r < 0)&&(PreviousOperationHadTransientFailure() == false)) return B_ERRNO;  // yes, B_ERRNO and no B_ERRNUM
+#else
+      /** Since this section doesn't need to work under Win32, we can fall back to using select() as a microsecond-granularity-sleep mechanism */
+      struct timeval waitTime; Convert64ToTimeVal(sleepForMicros, waitTime);
+      const int r = select(0, NULL, NULL, NULL, &waitTime);
+      if ((r < 0)&&(PreviousOperationHadTransientFailure() == false)) return B_ERRNO;
+#endif
+   }
+}
+
 status_t Snooze64(uint64 micros)
 {
-   // Hopefully this long-delay-chunk duration is long enough that waking up this often
-   // won't be significant, but also short enough that we're unlikely to come across
-   // any OS-specific sleep-API that can't handle it
-   const uint64 longTimeMicros = DaysToMicros(1);
-   while(micros > longTimeMicros)  // test must be strictly greater-than, or else we get infinite recursion
-   {
-      MRETURN_ON_ERROR(Snooze64(longTimeMicros));
-      if (micros != MUSCLE_TIME_NEVER) micros -= longTimeMicros;
-   }
-
-#if defined(WIN32)
-   Sleep((DWORD)((micros/1000)+(((micros%1000)!=0)?1:0)));
-   return B_NO_ERROR;
-#elif defined(__linux__)
-   const struct timespec ts = {(time_t) MicrosToSeconds(micros), (time_t) MicrosToNanos(micros%MICROS_PER_SECOND)};
-   return (clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL) == 0) ? B_NO_ERROR : B_ERRNO;  // DO NOT specify CLOCK_MONOTONIC_RAW here, it won't work!
-#elif defined(MUSCLE_USE_LIBRT)
-   const struct timespec ts = {(time_t) MicrosToSeconds(micros), (long) MicrosToNanos(micros%MICROS_PER_SECOND)};
-   return (nanosleep(&ts, NULL) == 0) ? B_NO_ERROR : B_ERRNO;
-#else
-   /** We can use select(), if nothing else */
-   struct timeval waitTime;
-   Convert64ToTimeVal(micros, waitTime);
-   return (select(0, NULL, NULL, NULL, &waitTime) >= 0) ? B_NO_ERROR : B_ERRNO;
-#endif
+   return SnoozeUntil(SaturatingUnsignedAdd(GetRunTime64(), micros));
 }
 
 #ifdef WIN32
