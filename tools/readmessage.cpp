@@ -64,9 +64,15 @@ int main(int argc, char ** argv)
       FileDataIO fdio(fpIn);
 
       const int64 fileSize = fdio.GetLength();
+      if (fileSize < 0)
+      {
+         LogTime(MUSCLE_LOG_ERROR, "Unable to determine file size of [%s]\n", fileName);
+         return 10;
+      }
+
       printf("fileSize=" INT64_FORMAT_SPEC "\n", fileSize);
 
-      ByteBufferRef buf = (fileSize >= 0) ? GetByteBufferFromPool((uint32)fileSize) : ByteBufferRef();
+      ByteBufferRef buf = GetByteBufferFromPool((uint32)fileSize);
       if (buf() == NULL)
       {
          MWARN_OUT_OF_MEMORY;
@@ -85,7 +91,7 @@ int main(int argc, char ** argv)
       ByteBufferRef infBuf = InflateByteBuffer(buf);
       if (infBuf())
       {
-         LogTime(MUSCLE_LOG_INFO, "Zlib-inflated file data from " INT32_FORMAT_SPEC " to " UINT32_FORMAT_SPEC " bytes.\n", buf()->GetNumBytes(), infBuf()->GetNumBytes());
+         LogTime(MUSCLE_LOG_INFO, "Zlib-inflated file data from " UINT32_FORMAT_SPEC " to " UINT32_FORMAT_SPEC " bytes.\n", buf()->GetNumBytes(), infBuf()->GetNumBytes());
          buf = std_move_if_available(infBuf);
       }
 #endif
@@ -101,7 +107,6 @@ int main(int argc, char ** argv)
             LogTime(MUSCLE_LOG_INFO, "Zlib-inflated Message from " UINT32_FORMAT_SPEC " bytes to " UINT32_FORMAT_SPEC " bytes\n", msg.FlattenedSize(), infMsg()->FlattenedSize());
             LogTime(MUSCLE_LOG_INFO, "Message is:\n");
             PrintMessageReport(*infMsg(), isSizeReport);
-            infMsg()->Print(stdout);
          }
          else
 #endif
@@ -112,7 +117,7 @@ int main(int argc, char ** argv)
       }
       else
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "Error [%s] unflattening message! (" INT32_FORMAT_SPEC " bytes read)\n", ret(), buf()->GetNumBytes());
+         LogTime(MUSCLE_LOG_CRITICALERROR, "Error [%s] unflattening message! (" UINT32_FORMAT_SPEC " bytes read)\n", ret(), buf()->GetNumBytes());
          retVal = 10;
       }
    }

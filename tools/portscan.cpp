@@ -5,6 +5,7 @@
 
 using namespace muscle;
 
+// Tries to connect to the specified range of ports via TCP to see if the ports are active or not
 int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
@@ -17,11 +18,11 @@ int main(int argc, char ** argv)
 
    const char * hostName = argv[1];
 
-   int base = 0;
-   if (argc > 2) base = atoi(argv[2]);
+   int firstPort = 1;
+   if (argc > 2) firstPort = muscleClamp(atoi(argv[2]), 1, 65535);
 
-   int count = 65536;
-   if (argc > 3) count = atoi(argv[3]);
+   int count = 65534;
+   if (argc > 3) count = muscleClamp(atoi(argv[3]), 0, count);
 
    Queue<int> foundPorts;
 
@@ -33,13 +34,13 @@ int main(int argc, char ** argv)
    }
 
    char buf[64]; Inet_NtoA(ip, buf);
-   const int final = muscleMin(base+count, 65536);
-   LogTime(MUSCLE_LOG_INFO, "Beginning scan of ports %i-%i at %s...\n", base, final-1, buf);
+   const int afterLastPort = muscleMin(firstPort+count, 65536);
+   LogTime(MUSCLE_LOG_INFO, "Beginning scan of ports %i-%i at %s...\n", firstPort, afterLastPort-1, buf);
    uint64 lastTime = 0;
-   for (int i=base; i<final; i++)
+   for (int i=firstPort; i<afterLastPort; i++)
    {
       ConstSocketRef s = Connect(IPAddressAndPort(ip, (uint16)i), NULL, NULL, true, 10000);
-      if (s()) {(void) foundPorts.AddTail(i); LogTime(MUSCLE_LOG_INFO, "Found open port %i!\n", i);}
+      if (s()) {MLOG_ON_ERROR("AddTail", foundPorts.AddTail(i)); LogTime(MUSCLE_LOG_INFO, "Found open port %i!\n", i);}
       if (OnceEvery(MICROS_PER_SECOND, lastTime)) LogTime(MUSCLE_LOG_INFO, "Scanning %s (now at port %i...)\n", buf, i);
    }
 

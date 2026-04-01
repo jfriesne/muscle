@@ -37,11 +37,19 @@ int main(int argc, char ** argv)
       while(true)
       {
          const int fd = s.GetFileDescriptor();
-         (void) multiplexer.RegisterSocketForReadReady(fd);
-         (void) multiplexer.RegisterSocketForWriteReady(fd);
 
          status_t ret;
-         if (multiplexer.WaitForEvents().IsError(ret)) printf("uploadstress: WaitForEvents() failed! [%s]\n", ret());
+         if ((multiplexer.RegisterSocketForReadReady(fd).IsError(ret))||(multiplexer.RegisterSocketForWriteReady(fd).IsError(ret)))
+         {
+            LogTime(MUSCLE_LOG_ERROR, "Socket registration failed! [%s]\n", ret());
+            break;
+         }
+
+         if (multiplexer.WaitForEvents().IsError(ret))
+         {
+            LogTime(MUSCLE_LOG_ERROR, "WaitForEvents() failed! [%s]\n", ret());
+            break;
+         }
 
          const bool reading = multiplexer.IsSocketReadyForRead(fd);
          const bool writing = multiplexer.IsSocketReadyForWrite(fd);
@@ -54,9 +62,9 @@ int main(int argc, char ** argv)
 
             MessageRef smsg = GetMessageFromPool(PR_COMMAND_SETDATA);
             Message data(1234);
-            (void) data.AddString("nerf", "boy!");
-            (void) smsg()->AddMessage(buf, data);
-            (void) gw.AddOutgoingMessage(smsg);
+            MLOG_ON_ERROR("AddString", data.AddString("nerf", "boy!"));
+            MLOG_ON_ERROR("AddMessage", smsg()->AddMessage(buf, data));
+            MLOG_ON_ERROR("AddOutgoingMessage", gw.AddOutgoingMessage(smsg));
          }
 
          const bool writeError = ((writing)&&(gw.DoOutput().IsError()));

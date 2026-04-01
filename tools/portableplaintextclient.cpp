@@ -42,15 +42,21 @@ int main(int argc, char ** argv)
    while(s())
    {
       const int fd = s.GetFileDescriptor();
-      (void) multiplexer.RegisterSocketForReadReady(fd);
-      if (gw.HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(fd);
-      (void) multiplexer.RegisterSocketForReadReady(stdinFD);
+      MLOG_ON_ERROR("RegisterSocket", multiplexer.RegisterSocketForReadReady(fd));
+      if (gw.HasBytesToOutput()) MLOG_ON_ERROR("RegisterSocket", multiplexer.RegisterSocketForWriteReady(fd));
+      MLOG_ON_ERROR("RegisterSocket", multiplexer.RegisterSocketForReadReady(stdinFD));
 
       QueueGatewayMessageReceiver inQueue;
       while(s())
       {
          status_t ret;
-         if (multiplexer.WaitForEvents().IsError(ret)) printf("portableplaintextclient: WaitForEvents() failed! [%s]\n", ret());
+         if (multiplexer.WaitForEvents().IsError(ret))
+         {
+            LogTime(MUSCLE_LOG_ERROR, "portableplaintextclient: WaitForEvents() failed! [%s]\n", ret());
+            s.Reset();  // break us out of the outer loop
+            break;
+         }
+
          if (multiplexer.IsSocketReadyForRead(stdinFD))
          {
             while(1)
@@ -102,16 +108,17 @@ int main(int argc, char ** argv)
 
          if ((reading == false)&&(writing == false)) break;
 
-         (void) multiplexer.RegisterSocketForReadReady(fd);
-         if (gw.HasBytesToOutput()) (void) multiplexer.RegisterSocketForWriteReady(fd);
-         (void) multiplexer.RegisterSocketForReadReady(stdinFD);
+         MLOG_ON_ERROR("RegisterSocket", multiplexer.RegisterSocketForReadReady(fd));
+         if (gw.HasBytesToOutput()) MLOG_ON_ERROR("RegisterSocket", multiplexer.RegisterSocketForWriteReady(fd));
+         MLOG_ON_ERROR("RegisterSocket", multiplexer.RegisterSocketForReadReady(stdinFD));
       }
    }
 
    if (gw.HasBytesToOutput())
    {
       printf("Waiting for all pending messages to be sent...\n");
-      while((gw.HasBytesToOutput())&&(gw.DoOutput().IsOK())) {printf ("."); fflush(stdout);}
+      (void) SetSocketBlockingEnabled(gw.GetDataIO()() ? gw.GetDataIO()()->GetWriteSelectSocket() : ConstSocketRef(), true); // avoid spinning
+      while((gw.HasBytesToOutput())&&(gw.DoOutput().GetByteCount() > 0)) {printf ("."); fflush(stdout);}
    }
    printf("\n\nBye!\n");
    return 0;

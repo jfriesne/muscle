@@ -34,7 +34,7 @@ public:
    {
       if (&from == _downstreamSession)
       {
-         (void) AddOutgoingMessage(msg);
+         MLOG_ON_ERROR("AddOutgoingMessage", AddOutgoingMessage(msg));
 #ifdef PLAIN_TEXT_CLIENT_DEMO_MODE
          printf("Forwarding client's text to the upstream-server as this Message:\n");
          msg()->Print(stdout);
@@ -82,7 +82,7 @@ public:
    virtual void MessageReceivedFromGateway(const MessageRef & msg, void *) {if (_upstreamSession()) _upstreamSession()->MessageReceivedFromSession(*this, msg, NULL);}
 
    // When we get handed an incoming-from-the-upstream-server Message by our UpstreamSession, pass it back to our downstream client via TCP
-   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void *) {if (&from == _upstreamSession()) (void) AddOutgoingMessage(msg);}
+   virtual void MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void *) {if (&from == _upstreamSession()) MLOG_ON_ERROR("AddOutgoingMessage", AddOutgoingMessage(msg));}
 
 private:
    const IPAddressAndPort _upstreamLocation;
@@ -131,11 +131,15 @@ int main(int argc, char ** argv)
    }
 
    uint16 acceptPort = 2961;
-   if (args.HasName("acceptport")) acceptPort = (uint16) atoi(args.GetString("acceptport")());
-   if (acceptPort == 0)
+   if (args.HasName("acceptport"))
    {
-      LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to parse acceptport value [%s]\n", args.GetString("acceptport")());
-      return 10;
+      int p = atoi(args.GetString("acceptport")());
+      if (muscleInRange(p, 1, 65535)) acceptPort = (uint16) p;
+      else
+      {
+         LogTime(MUSCLE_LOG_ERROR, "Invalid port number %i\n", p);
+         return 10;
+      }
    }
 
    DownstreamSessionFactory downstreamSessionFactory(upstreamLocation);

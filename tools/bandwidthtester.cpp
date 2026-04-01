@@ -16,9 +16,10 @@ int main(int argc, char ** argv)
 {
    CompleteSetupSystem css;
 
-   IPAddressAndPort iap((argc>1)?argv[1]:"localhost", 2960, true);
+   const char * hostName = (argc>1) ? argv[1] : "localhost";
+   IPAddressAndPort iap(hostName, 2960, true);
 
-   ConstSocketRef s = Connect(iap, argv[1], "bandwidthtester", false);
+   ConstSocketRef s = Connect(iap, hostName, "bandwidthtester", false);
    if (s() == NULL) return 10;
 
    MessageIOGateway gw;

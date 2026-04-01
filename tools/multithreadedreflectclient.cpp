@@ -44,7 +44,7 @@ protected:
          const String * nextLine;
          for (int32 i=0; msg()->FindString(PR_NAME_TEXT_LINE, i, &nextLine).IsOK(); i++) HandleTextLineFromStdin(*nextLine);
       }
-      else if (msg()) msg()->Print(stdout);  // Any other Messages presumably came from the server, we'll just print them out
+      else msg()->Print(stdout);  // Any other Messages presumably came from the server, we'll just print them out
    }
 
    virtual void EndMessageBatch()
@@ -120,7 +120,13 @@ int main(int argc, char ** argv)
 
 #ifdef TEST_WIN32CALLBACKMECHANISM
    // Just to test the Win32-specific callback mechanism (SocketCallbackMechanism would also work under Windows)
-   Win32CallbackMechanism callbackMechanism(CreateEvent(0, false, false, 0), true);
+   ::HANDLE eventHandle = CreateEvent(0, false, false, 0);
+   if (eventHandle == INVALID_HANDLE_VALUE)
+   {
+      LogTime(MUSCLE_LOG_CRITICALERROR, "CreateEvent() failed!\n");
+      return 10;
+   }
+   Win32CallbackMechanism callbackMechanism(eventHandle, true);
 #else
    SocketCallbackMechanism callbackMechanism;  // the mechanism our I/O thread will use to notify the main thread about new events
 #endif
@@ -255,7 +261,7 @@ void TestCallbackMessageTransceiverThread :: HandleTextLineFromStdin(const Strin
 
       case 'K':
       {
-         const uint32 keepAliveSeconds = arg1 ? (uint32) atol(arg1) : 0;
+         const uint32 keepAliveSeconds = arg1 ? (uint32) Atoull(arg1) : 0;
 
          ref = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
          if ((ref())&&(ref()->AddInt32(PR_NAME_KEEPALIVE_INTERVAL_SECONDS, keepAliveSeconds).IsOK())) LogTime(MUSCLE_LOG_INFO, "Sending PR_NAME_KEEPALIVE_INTERVAL_SECONDS=" UINT32_FORMAT_SPEC "\n", keepAliveSeconds);

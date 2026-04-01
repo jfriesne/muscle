@@ -346,7 +346,8 @@ int main(int argc, char ** argv)
    if (gw.HasBytesToOutput())
    {
       LogTime(MUSCLE_LOG_INFO, "Waiting for all pending messages to be sent...\n");
-      while((gw.HasBytesToOutput())&&(gw.DoOutput().IsOK())) {LogPlain(MUSCLE_LOG_INFO, "."); fflush(stdout);}
+      (void) SetSocketBlockingEnabled(gw.GetDataIO()() ? gw.GetDataIO()()->GetWriteSelectSocket() : ConstSocketRef(), true); // avoid spinning
+      while((gw.HasBytesToOutput())&&(gw.DoOutput().GetByteCount() > 0)) {LogPlain(MUSCLE_LOG_INFO, "."); fflush(stdout);}
    }
    LogTime(MUSCLE_LOG_INFO, "Bye!\n");
 
