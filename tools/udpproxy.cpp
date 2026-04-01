@@ -54,14 +54,19 @@ static status_t WriteOutgoingData(const String & desc, DataIO & writeIO, const S
                PrintHexBytes(MUSCLE_LOG_TRACE, firstBuf()->GetBuffer()+writeIdx, ret.GetByteCount());
                writeIdx += ret.GetByteCount();
             }
-            else if (ret.IsError()) LogTime(MUSCLE_LOG_ERROR, "Error, writeIO.Write() returned [%s]\n", ret.GetStatus()());
+            else if (ret.IsError())
+            {
+               LogTime(MUSCLE_LOG_ERROR, "Error, writeIO.Write() returned [%s]\n", ret.GetStatus()());
+               (void) outQ.RemoveHead();  // UDP means never having to say you're sorry
+               writeIdx = 0;
+            }
          }
       }
    }
    return B_NO_ERROR;
 }
 
-static status_t DoSession(const String aDesc, DataIO & aIO, const String & bDesc, DataIO & bIO)
+static status_t DoSession(const String & aDesc, DataIO & aIO, const String & bDesc, DataIO & bIO)
 {
    Queue<ByteBufferRef> outgoingBData;
    Queue<ByteBufferRef> outgoingAData;
@@ -176,7 +181,7 @@ int main(int argc, char ** argv)
 #endif
 
       UDPSocketDataIO * dio = new UDPSocketDataIO(udpSock, false);
-      (void) dio->SetPacketSendDestination(targets[i]);
+      dio->SetPacketSendDestination(targets[i]);
       udpIOs[i].SetRef(dio);
    }
 

@@ -402,7 +402,8 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
          }
 
          const IPAddressAndPort iap(ip, port);
-         if (udpIO.SetPacketSendDestination(iap).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SetPacketSendDestination(%s) failed! [%s]\n", iap.ToString()(), ret());
+         udpIO.SetPacketSendDestination(iap);
+
          if (optBindPort >= 0)
          {
             uint16 retPort;

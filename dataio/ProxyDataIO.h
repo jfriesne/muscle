@@ -49,7 +49,7 @@ public:
 
    MUSCLE_NODISCARD virtual const IPAddressAndPort & GetSourceOfLastReadPacket() const {return _packetChildIO ? _packetChildIO->GetSourceOfLastReadPacket() : GetDefaultObjectForType<IPAddressAndPort>();}
    MUSCLE_NODISCARD virtual const IPAddressAndPort & GetPacketSendDestination() const  {return _packetChildIO ? _packetChildIO->GetPacketSendDestination()  : GetDefaultObjectForType<IPAddressAndPort>();}
-   virtual status_t SetPacketSendDestination(const IPAddressAndPort & iap) {return _packetChildIO ? _packetChildIO->SetPacketSendDestination(iap) : B_BAD_OBJECT;}
+   virtual void SetPacketSendDestination(const IPAddressAndPort & iap) {if (_packetChildIO) _packetChildIO->SetPacketSendDestination(iap);}
    MUSCLE_NODISCARD virtual uint32 GetMaximumPacketSize() const {return _packetChildIO ? _packetChildIO->GetMaximumPacketSize() : 0;}
    virtual io_status_t ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource) {return _packetChildIO ? _packetChildIO->ReadFrom(buffer, size, retPacketSource) : B_BAD_OBJECT;}
    virtual io_status_t WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest) {return _packetChildIO ? _packetChildIO->WriteTo(buffer, size, packetDest) : B_BAD_OBJECT;}

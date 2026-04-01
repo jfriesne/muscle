@@ -44,9 +44,8 @@ public:
      * to set/change the IPAddressAndPort that outgoing packets will
      * be sent to (by default).
      * @param iap The new default address-and-port to send outgoing packets to.
-     * @returns B_NO_ERROR if the operation was successful, or an error code if it failed.
      */
-   virtual status_t SetPacketSendDestination(const IPAddressAndPort & iap) = 0;
+   virtual void SetPacketSendDestination(const IPAddressAndPort & iap) = 0;
 
    /** Default implementation of PacketDataIO::Read()
     *  which just calls ReadFrom(buffer, size, GetSourceOfLastReadPacket()).

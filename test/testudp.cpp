@@ -71,7 +71,7 @@ int main(int argc, char ** argv)
                                                          else printf("Error, couldn't bind to port %u\n", bindPort);
 
    UDPSocketDataIORef udpIORef(new UDPSocketDataIO(s, false));
-   (void) udpIORef()->SetPacketSendDestination(IPAddressAndPort(target, 3960, true));
+   udpIORef()->SetPacketSendDestination(IPAddressAndPort(target, 3960, true));
    printf("Set UDP send destination to [%s]\n", udpIORef()->GetPacketSendDestination().ToString()());
 
    AbstractMessageIOGatewayRef agw = CreateUDPGateway(useTextGateway, useRawGateway, udpIORef);

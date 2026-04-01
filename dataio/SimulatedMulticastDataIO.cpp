@@ -118,7 +118,7 @@ UDPSocketDataIORef SimulatedMulticastDataIO :: CreateMulticastUDPDataIO(const IP
    }
 
    UDPSocketDataIORef ret(new UDPSocketDataIO(udpSock, false));
-   (void) ret()->SetPacketSendDestination(iap);
+   ret()->SetPacketSendDestination(iap);
    return ret;
 }
 

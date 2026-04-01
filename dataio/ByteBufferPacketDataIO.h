@@ -116,7 +116,7 @@ public:
    virtual void FlushOutput() {/* empty */}
 
    MUSCLE_NODISCARD virtual const IPAddressAndPort & GetPacketSendDestination() const {return _packetSendDestination;}
-   virtual status_t SetPacketSendDestination(const IPAddressAndPort & iap) {_packetSendDestination = iap; return B_NO_ERROR;}
+   virtual void SetPacketSendDestination(const IPAddressAndPort & iap) {_packetSendDestination = iap;}
 
 private:
    Hashtable<ByteBufferRef, IPAddressAndPort> _bufsToRead;
