@@ -81,6 +81,7 @@ key:  - new feature
    o Changed ICallbackMechanism to subclass from NotCopyable.
    o Removed QSocketDataIO as it appeared to be well out-of-date and
      wasn't being used anywhere.
+   o printsourcelocations no longer ignores commented-out LogTime() calls.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to
@@ -197,6 +198,8 @@ key:  - new feature
    * Fixed a double-delete bug in QSocketCallbackMechanism.  (cc)
    * Fixed a bug where Hashtable::Clear() could leave the Hashtable's
      _iteratorCount non-zero on return.  (cc)
+   * hexterm's ascii mode was including a NUL terminator byte before
+     the newline in data that it sent out.  NUL byte removed.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

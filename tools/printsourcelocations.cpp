@@ -12,12 +12,12 @@
 
 using namespace muscle;
 
-static void CheckFile(const String & path, Queue<String> & codes)
+static status_t CheckFile(const String & path, Queue<String> & codes)
 {
    FileDataIO dio(muscleFopen(path(), "r"));
    if (dio.GetFile())
    {
-      String fileName = path.Substring(GetFilePathSeparator());
+      const String fileName = path.Substring(GetFilePathSeparator());
 
       PlainTextMessageIOGateway gw;
       gw.SetDataIO(DummyDataIORef(dio));
@@ -37,20 +37,19 @@ static void CheckFile(const String & path, Queue<String> & codes)
             const int32 ltIdx = line->IndexOf("LogTime(");
             if (ltIdx >= 0)
             {
-               const int32 commentIdx = line->IndexOf("//");   // don't include LogTime() calls that are commented out
-               if ((commentIdx < 0)||(commentIdx > ltIdx))
-               {
-                  const String loc = SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(fileName(), lineNumber));
-                  (void) codes.AddTail(line->WithPrepend(String("[%1] %2:%3: ").Arg(loc).Arg(path).Arg(lineNumber)));
-               }
+               const String loc = SourceCodeLocationKeyToString(GenerateSourceCodeLocationKey(fileName(), lineNumber));
+               MRETURN_ON_ERROR(codes.AddTail(line->WithPrepend(String("[%1] %2:%3: ").Arg(loc).Arg(path).Arg(lineNumber))));
             }
             lineNumber++;
          }
       }
+
+      return B_NO_ERROR;
    }
+   else return B_FILE_NOT_FOUND;
 }
 
-static void DoSearch(const String & path, Queue<String> & codes)
+static status_t DoSearch(const String & path, Queue<String> & codes)
 {
    Directory d(path());
    if (d.IsValid())
@@ -61,17 +60,21 @@ static void DoSearch(const String & path, Queue<String> & codes)
          if (nextName[0] != '.')
          {
             const String subPath = path + GetFilePathSeparator() + nextName;
-            FilePathInfo fpi(subPath());
-                 if (fpi.IsDirectory()) DoSearch(subPath, codes);
+            const FilePathInfo fpi(subPath());
+
+                 if (fpi.IsDirectory()) {MRETURN_ON_ERROR(DoSearch(subPath, codes));}
             else if (fpi.IsRegularFile())
             {
-               String iName = nextName; iName = iName.ToLowerCase();
-               if ((iName.EndsWith(".c"))||(iName.EndsWith(".cpp"))||(iName.EndsWith(".h"))||(iName.EndsWith(".hpp"))||(iName.EndsWith(".cc"))) CheckFile(subPath, codes);
+               const String iName = String(nextName).ToLowerCase();
+               if ((iName.EndsWith(".c"))||(iName.EndsWith(".cpp"))||(iName.EndsWith(".h"))||(iName.EndsWith(".hpp"))||(iName.EndsWith(".cc"))) MRETURN_ON_ERROR(CheckFile(subPath, codes));
             }
          }
          d++;
       }
+
+      return B_NO_ERROR;
    }
+   else return B_FILE_NOT_FOUND;
 }
 
 // This program accepts a directory name as the argument, and will find and print all LogTime()
@@ -94,9 +97,13 @@ int main(int argc, char ** argv)
    }
 
    Queue<String> codes;
-   DoSearch(argv[1], codes);
-   codes.Sort();
-   for (uint32 i=0; i<codes.GetNumItems(); i++) printf("%s\n", codes[i]());
+   const status_t r = DoSearch(argv[1], codes);
+   if (r.IsOK())
+   {
+      codes.Sort();
+      for (uint32 i=0; i<codes.GetNumItems(); i++) printf("%s\n", codes[i]());
+   }
+   else LogTime(MUSCLE_LOG_ERROR, "DoSearch(%s) returned [%s]\n", argv[1], r());
 
    return 0;
 }
