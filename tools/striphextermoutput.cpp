@@ -39,7 +39,7 @@ using namespace muscle;
 int main(int, char **)
 {
    bool printedSep = true;
-   char buf[1024];
+   char buf[8192];
    while(fgets(buf, sizeof(buf), stdin))
    {
       String s = buf; s = s.Trimmed();
@@ -81,5 +81,7 @@ int main(int, char **)
          printedSep = true;
       }
    }
+   if (printedSep == false) printf("\n\n");
+
    return 0;
 }
