@@ -42,8 +42,10 @@ enum
    FILE_INFO_DEPTH         // user's shared file list is here
 };
 
-static MessageRef GenerateChatMessage(const char * targetSessionID, const char * messageText)
+static MessageRef GenerateChatMessage(const char * optTargetSessionID, const char * messageText)
 {
+   const char * targetSessionID = optTargetSessionID ? optTargetSessionID : "*";  // avoid potential NULL-pointer dereferences below
+
    MessageRef chatMessage = GetMessageFromPool(NET_CLIENT_NEW_CHAT_TEXT);
    if (chatMessage())
    {
@@ -182,9 +184,9 @@ int main(int argc, char ** argv)
                   if (text.StartsWith("/msg "))
                   {
                      (void) tok();
-                     const char * targetSessionID = tok();
+                     const char * optTargetSessionID = tok();
                      const String sendText = String(tok.GetRemainderOfString()).Trimmed();
-                     if (sendText.HasChars()) (void)gw.AddOutgoingMessage(GenerateChatMessage(targetSessionID, sendText()));
+                     if (sendText.HasChars()) (void) gw.AddOutgoingMessage(GenerateChatMessage(optTargetSessionID, sendText()));
                   }
                   else if (text.StartsWith("/nick "))
                   {
@@ -281,7 +283,7 @@ int main(int argc, char ** argv)
                         String sessionID = GetPathClause(SESSION_ID_DEPTH, nodepath.Cstr());
                         sessionID = sessionID.Substring(0, sessionID.IndexOf('/'));
 
-                        if ((GetPathDepth(nodepath.Cstr()) == USER_NAME_DEPTH)&&(strncmp(GetPathClause(USER_NAME_DEPTH, nodepath.Cstr()), "name", 4) == 0))
+                        if ((GetPathDepth(nodepath.Cstr()) == USER_NAME_DEPTH)&&(GetPathClauseString(USER_NAME_DEPTH, nodepath()) == "name"))
                         {
                            String userNameString = GetUserName(_users, sessionID);
                            if (_users.Remove(sessionID).IsOK()) LogTime(MUSCLE_LOG_INFO, "User [%s] has disconnected.\n", userNameString());
@@ -305,8 +307,8 @@ int main(int argc, char ** argv)
                            String hostNameString = GetPathClause(HOST_NAME_DEPTH, np());
                            hostNameString = hostNameString.Substring(0, hostNameString.IndexOf('/'));
 
-                           const char * nodeName = GetPathClause(USER_NAME_DEPTH, np());
-                           if (strncmp(nodeName, "name", 4) == 0)
+                           const String nodeName = GetPathClauseString(USER_NAME_DEPTH, np());
+                           if (nodeName == "name")
                            {
                               const char * name;
                               if (pmsg->FindString("name", &name).IsOK())
@@ -316,7 +318,7 @@ int main(int argc, char ** argv)
                                  LogTime(MUSCLE_LOG_INFO, "User #%s is now known as %s\n", sessionID(), name);
                               }
                            }
-                           else if (strncmp(nodeName, "userstatus", 10) == 0)
+                           else if (nodeName == "userstatus")
                            {
                               const char * status;
                               if (pmsg->FindString("userstatus", &status).IsOK()) LogTime(MUSCLE_LOG_INFO, "%s is now [%s]\n", GetUserName(_users, sessionID)(), status);

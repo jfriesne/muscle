@@ -34,7 +34,10 @@ int main(int argc, char ** argv)
 
    String hostName = "localhost";
    uint16 port = 2960;
-   if (argc > 1) (void) ParseConnectArg(argv[1], hostName, port, false);
+
+   const status_t r = (argc > 1) ? ParseConnectArg(argv[1], hostName, port, false) : B_NO_ERROR;
+   if (r.IsError()) LogTime(MUSCLE_LOG_WARNING, "ParseConnectArg(%s) returned [%s], using default hostname and port instead.\n", argv[1], r());
+
    ConstSocketRef sock = Connect(hostName(), port, "singlethreadedreflectclient", false);
    if (sock() == NULL) return 10;
 
@@ -227,7 +230,7 @@ int main(int argc, char ** argv)
 
                case 'K':
                {
-                  const uint32 keepAliveSeconds = arg1 ? (uint32) atol(arg1) : 0;
+                  const uint32 keepAliveSeconds = arg1 ? (uint32) Atoull(arg1) : 0;
 
                   ref = GetMessageFromPool(PR_COMMAND_SETPARAMETERS);
                   if ((ref())&&(ref()->AddInt32(PR_NAME_KEEPALIVE_INTERVAL_SECONDS, keepAliveSeconds).IsOK())) LogTime(MUSCLE_LOG_INFO, "Sending PR_NAME_KEEPALIVE_INTERVAL_SECONDS=" UINT32_FORMAT_SPEC "\n", keepAliveSeconds);
@@ -365,6 +368,7 @@ int main(int argc, char ** argv)
    if (gatewayRef()->HasBytesToOutput())
    {
       printf("Waiting for all pending messages to be sent...\n");
+      (void) SetSocketBlockingEnabled(gatewayRef()->GetDataIO()() ? gatewayRef()->GetDataIO()()->GetWriteSelectSocket() : ConstSocketRef(), true); // avoid spinning
       while((gatewayRef()->HasBytesToOutput())&&(gatewayRef()->DoOutput().IsOK())) {printf ("."); fflush(stdout);}
    }
    printf("\n\nBye!\n");

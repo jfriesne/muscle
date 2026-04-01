@@ -208,7 +208,7 @@ MUSCLE_NODISCARD const char * GetPathClause(int depth, const char * path);
 
 /** As above, but returns a String object for just the given clause,
  *  instead of the entire remainder of the string.  This version is
- *  somewhat less efficient, but easier to user.
+ *  somewhat less efficient, but easier to use.
  *  @param depth the depth in the path to search for (0 == root, 1 == first level, 2 == second, etc.)
  *  @param path the path string (eg "/x/y/z/...") to search through
  *  @returns The string that is the (nth) item in the path, or "" if the depth is invalid.
