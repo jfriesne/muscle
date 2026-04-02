@@ -41,6 +41,7 @@ key:  - new feature
      B_BAD_ARGUMENT, even if you try to do it via AddData().
    - Added a new function SnoozeUntil() to MiscUtilityFunctions.{cpp,h}
      as a convenience for sleeping until a known future time.
+   - Added a B_DIRECTORY_NOT_FOUND error code for Directory::SetDir() to return.
    o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that
      it can handle EINTR-type interruptions more gracefully.
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and

@@ -14,6 +14,10 @@
 
 namespace muscle {
 
+#ifndef __clang_analyzer__
+const status_t B_DIRECTORY_NOT_FOUND("Directory not found");  // deliberately declared here rather than elsewhere to avoid a static-initialization-order fiasco in Directory::SetDir()
+#endif
+
 #ifdef WIN32
 
 /* Windows implementation of dirent.h Copyright Kevlin Henney, 1997, 2003. All rights reserved.
@@ -161,9 +165,7 @@ status_t Directory :: SetDir(const char * dirPath)
       if (_dirPtr == NULL)
       {
          Reset();  // to free and null-out _path
-
-         // deliberately NOT returning a B_* value here to avoid static-initalization-order problems under C++03 compilers
-         return status_t("Directory not found");
+         return B_DIRECTORY_NOT_FOUND;
       }
 
       (*this)++;   // make the first entry in the directory the current entry.

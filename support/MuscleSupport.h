@@ -647,6 +647,7 @@ enum {
         #define B_SHUTTING_DOWN   status_t("Planned Shutdown") ///< "Planned Shutdown" - deliberate error because our thread/process/etc has been requested to terminate
         #define B_NULL_REF        status_t(       "NULL Ref")  ///< "NULL Ref"         - returned by the GetStatus() method of a Ref or ConstRef that is currently NULL
         #define B_LOGIC_ERROR     status_t(    "Logic Error")  ///< "Logic Error"      - internal logic has gone wrong somehow (bug?)
+        #define B_DIRECTORY_NOT_FOUND status_t("Directory not Found") ///< "Diretory not Found" - we couldn't find the directory we were looking for
 #else
         // Basic/general status_t return codes
         MUSCLE_CONSTEXPR_OR_CONST status_t B_NO_ERROR;       ///< This value is returned by a function or method that succeeded
@@ -682,6 +683,9 @@ enum {
         MUSCLE_CONSTEXPR_OR_CONST status_t B_SHUTTING_DOWN(  "Planned Shutdown"); ///< "Planned Shutdown" - deliberate error because our thread/process/etc has been requested to terminate
         MUSCLE_CONSTEXPR_OR_CONST status_t B_NULL_REF(       "NULL Ref");         ///< "NULL Ref"         - returned by the GetStatus() method of a Ref or ConstRef that is currently NULL
         MUSCLE_CONSTEXPR_OR_CONST status_t B_LOGIC_ERROR(    "Logic Error");      ///< "Logic Error"      - internal logic has gone wrong somehow (bug?)
+
+        // I'm deliberately keeping the definition of B_DIRECTORY_NOT_FOUND inside Directory.cpp instead of here, to avoid a static-initialization-order problem wrt static Directory objects
+        extern const status_t B_DIRECTORY_NOT_FOUND; ///< "Directory not Found" - we couldn't find the directory we were looking for
 #  endif
 
         /** This class is similar to a status_t, but it also contains a byte-count field.

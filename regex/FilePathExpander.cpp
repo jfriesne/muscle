@@ -17,44 +17,47 @@ static status_t ExpandFilePathWildCardsAux(const String & curDir, const String &
    const String firstClause  = (sepIdx >= 0) ? path.Substring(0, sepIdx) : path;
    const String restOfString = (sepIdx >= 0) ? path.Substring(sepIdx+fsLen) : GetEmptyString();
 
-   Directory dir(curDir());
-   if (dir.IsValid())
+   Directory dir;
+   const status_t ret = dir.SetDir(curDir());
+   if (ret.IsError()) return (ret == B_DIRECTORY_NOT_FOUND) ? B_NO_ERROR : ret;  // nothing to see here, but not a real error either
+
+   if (CanWildcardStringMatchMultipleValues(firstClause))
    {
-      if (CanWildcardStringMatchMultipleValues(firstClause))
+      StringMatcher sm;
+      MRETURN_ON_ERROR(sm.SetPattern(firstClause, isSimpleFormat));
+
+      while(1)
       {
-         const StringMatcher sm(firstClause, isSimpleFormat);
-         while(1)
+         const char * fn = dir.GetCurrentFileName();
+         if (fn)
          {
-            const char * fn = dir.GetCurrentFileName();
-            if (fn)
+            if ((strcmp(fn, ".") != 0)&&(strcmp(fn, "..") != 0)&&((fn[0] != '.')||(firstClause.StartsWith(".")))&&(sm.Match(fn)))
             {
-               if ((strcmp(fn, ".") != 0)&&(strcmp(fn, "..") != 0)&&((fn[0] != '.')||(firstClause.StartsWith(".")))&&(sm.Match(fn)))
+               const String childPath = String(dir.GetPath())+fn;
+               if (restOfString.HasChars())
                {
-                  const String childPath = String(dir.GetPath())+fn;
-                  if (restOfString.HasChars())
-                  {
-                     MRETURN_ON_ERROR(ExpandFilePathWildCardsAux(childPath, restOfString, outputPaths, isSimpleFormat));
-                  }
-                  else MRETURN_ON_ERROR(outputPaths.AddTail(childPath));
+                  MRETURN_ON_ERROR(ExpandFilePathWildCardsAux(childPath, restOfString, outputPaths, isSimpleFormat));
                }
-               dir++;
+               else MRETURN_ON_ERROR(outputPaths.AddTail(childPath));
             }
-            else break;
+            dir++;
          }
-      }
-      else
-      {
-         const String childPath = String(dir.GetPath())+firstClause;
-         if (FilePathInfo(childPath()).Exists())
-         {
-            if (restOfString.HasChars())
-            {
-               MRETURN_ON_ERROR(ExpandFilePathWildCardsAux(childPath, restOfString, outputPaths, isSimpleFormat));
-            }
-            else MRETURN_ON_ERROR(outputPaths.AddTail(childPath));
-         }
+         else break;
       }
    }
+   else
+   {
+      const String childPath = String(dir.GetPath())+firstClause;
+      if (FilePathInfo(childPath()).Exists())
+      {
+         if (restOfString.HasChars())
+         {
+            MRETURN_ON_ERROR(ExpandFilePathWildCardsAux(childPath, restOfString, outputPaths, isSimpleFormat));
+         }
+         else MRETURN_ON_ERROR(outputPaths.AddTail(childPath));
+      }
+   }
+
    return B_NO_ERROR;
 }
 
