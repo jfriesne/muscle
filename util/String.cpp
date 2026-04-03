@@ -409,18 +409,19 @@ int32 String :: ReplaceAux(const Hashtable<String, String> & beforeToAfter, uint
    if ((maxReplaceCount == 0)||(beforeToAfter.IsEmpty())||(IsEmpty())) return 0;  // nothing to do!
 
    const uint32 origStrLength = Length();
-   const uint32 numPairs      = beforeToAfter.GetNumItems();
 
    Queue<const String *> beforeStrs;
    if (beforeStrs.EnsureSize(beforeToAfter.GetNumItems()).IsError()) return -1;
+
    for (ConstHashtableIterator<String, String> iter(beforeToAfter); iter.HasData(); iter++) if ((iter.GetKey().HasChars())&&(beforeStrs.AddTail(&iter.GetKey()).IsError())) return -1;  // AddTail() won't fail, but clang-tidy doesn't know that
+   const uint32 numPairs = beforeStrs.GetNumItems();
 
    // Build up a map of what substrings to replace at what offsets into the original-string
    Hashtable<uint32, uint32> sourceOffsetToPairIndex;
    {
       Queue<const char *> states;
       if (states.EnsureSize(numPairs, true).IsError()) return -1; // so we won't have to worry about reallocs below
-      for (uint32 i=0; i<numPairs; i++) states[i] = beforeStrs[i]->Cstr();  // NOLINT (I can't figure out why clang-tidy is worried about this, so I'll tape over it for now)
+      for (uint32 i=0; i<numPairs; i++) states[i] = beforeStrs[i]->Cstr();
 
       for (uint32 i=0; i<origStrLength; i++)
       {
@@ -840,7 +841,7 @@ String String :: IndentedBy(uint32 numIndentChars, char indentChar) const
 {
    if ((numIndentChars == 0)||(indentChar == '\0')) return *this;
 
-   const String pad = String().PaddedBy(numIndentChars);
+   const String pad = String().PaddedBy(numIndentChars, false, indentChar);
    String ret;
    if ((StartsWith('\r'))||(StartsWith('\n'))) ret = pad;
 
