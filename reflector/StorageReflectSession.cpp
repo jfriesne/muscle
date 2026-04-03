@@ -167,9 +167,9 @@ AttachedToServer()
 
       // Get our node-creation limit.  For now, this is the same for all sessions.
       // (someday maybe I'll work out a way to give different limits to different sessions)
-      uint32 v;
-      if (state.FindInt32(PR_NAME_MAX_NODES_PER_SESSION, v).IsOK()) _maxNodeCount                = v;
-      if (state.FindInt32(PR_NAME_MAX_CHILDREN_PER_NODE, v).IsOK()) _maxChildrenPerDataNodeCount = v;
+      int32 v;
+      if (state.FindInt32(PR_NAME_MAX_NODES_PER_SESSION, v).IsOK()) _maxNodeCount                = (uint32) v;
+      if (state.FindInt32(PR_NAME_MAX_CHILDREN_PER_NODE, v).IsOK()) _maxChildrenPerDataNodeCount = (uint32) v;
 
       return B_NO_ERROR;
    }
@@ -377,7 +377,14 @@ NodeChangedAux(DataNode & modifiedNode, const ConstMessageRef & nodeData, NodeCh
                // So in this case we have to force a flush of the current message now, and
                // then add the new notification to the next one!
                PushSubscriptionMessages();
-               NodeChangedAux(modifiedNode, nodeData, nodeChangeFlags);  // and then start again
+
+               const uint32 MAX_NODE_CHANGED_AUX_NEST_COUNT = 100;
+               if (_nodeChangedAuxNestCount.GetCount() < MAX_NODE_CHANGED_AUX_NEST_COUNT)  // semi-paranoia
+               {
+                  NestCountGuard ncg(_nodeChangedAuxNestCount);
+                  NodeChangedAux(modifiedNode, nodeData, nodeChangeFlags);  // and then start again
+               }
+               else LogTime(MUSCLE_LOG_ERROR, "NodeChangedAux:  Maximum recursive-nest-count reached, limiting recursion at depth=" UINT32_FORMAT_SPEC "\n", MAX_NODE_CHANGED_AUX_NEST_COUNT);
             }
             else (void) UpdateSubscriptionMessage(*_nextSubscriptionMessage(), np, MessageRef());
          }
@@ -393,10 +400,10 @@ NodeChangedAux(DataNode & modifiedNode, const ConstMessageRef & nodeData, NodeCh
                   Queue<MessageRef> & oq = gw->GetOutgoingMessageQueue();
                   for (int32 i=oq.GetLastValidIndex(); i>=0; i--)
                   {
-                     Message & m = *oq[i]();
-                     if ((m.what == PR_RESULT_DATAITEMS)&&(PruneSubscriptionMessage(m, np).IsOK()))
+                     Message * msg = oq[i]();
+                     if ((msg)&&(msg->what == PR_RESULT_DATAITEMS)&&(PruneSubscriptionMessage(*msg, np).IsOK()))
                      {
-                        if (m.HasNames() == false) (void) oq.RemoveItemAt(i);
+                        if (msg->HasNames() == false) (void) oq.RemoveItemAt(i);
                         break;
                      }
                   }
@@ -474,16 +481,19 @@ SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetData
             if (_currentNodeCount >= _maxNodeCount)              return B_RESOURCE_LIMIT;
             if (flags.IsBitSet(SETDATANODE_FLAG_DONTCREATENODE)) return B_ACCESS_DENIED;
 
-            allocedNode = GetNewDataNode(nextClause, ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX) == false)) ? dataMsgRef : GetEmptyMessageRef());
-            MRETURN_ON_ERROR(allocedNode);
-
-            childNodeRef = allocedNode;
             if ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)))
             {
-               MRETURN_ON_ERROR(node->InsertOrderedChild(dataMsgRef, optInsertBefore, (nextClause.HasChars())?&nextClause:NULL, this, flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this, NULL));
+               allocedNode = node->InsertOrderedChild(dataMsgRef, optInsertBefore, (nextClause.HasChars())?&nextClause:NULL, this, flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this, NULL);
+               MRETURN_ON_ERROR(allocedNode);
                _indexingPresent = true;
             }
-            else MRETURN_ON_ERROR(node->PutChild(childNodeRef, this, ((flags.IsBitSet(SETDATANODE_FLAG_QUIET))||(slashPos < 0)) ? NULL : this));
+            else
+            {
+               allocedNode = GetNewDataNode(nextClause, ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX) == false)) ? dataMsgRef : GetEmptyMessageRef());
+               MRETURN_ON_ERROR(allocedNode);
+               MRETURN_ON_ERROR(node->PutChild(allocedNode, this, ((flags.IsBitSet(SETDATANODE_FLAG_QUIET))||(slashPos < 0)) ? NULL : this));
+            }
+            childNodeRef = allocedNode;
 
             _currentNodeCount++;
          }
@@ -592,13 +602,18 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
 
          case PR_COMMAND_BATCH:
          {
-            MessageRef subRef;
-            for (int32 i=0; msg.FindMessage(PR_NAME_KEYS, i, subRef).IsOK(); i++) CallMessageReceivedFromGateway(subRef, userData);
+            const uint32 MAX_BATCH_NEST_COUNT = 100;
+            if (_batchMsgNestCount.GetCount() < MAX_BATCH_NEST_COUNT)  // semi-paranoia
+            {
+               NestCountGuard ncg(_batchMsgNestCount);
+               MessageRef subRef;
+               for (int32 i=0; msg.FindMessage(PR_NAME_KEYS, i, subRef).IsOK(); i++) CallMessageReceivedFromGateway(subRef, userData);
+            }
+            else LogTime(MUSCLE_LOG_ERROR, "PR_COMMAND_BATCH:  Maximum recursive-nest-count reached, limiting recursion at depth=" UINT32_FORMAT_SPEC "\n", MAX_BATCH_NEST_COUNT);
          }
          break;
 
          case PR_COMMAND_KICK:
-         {
             if (HasPrivilege(PR_PRIVILEGE_KICK))
             {
                if (msg.HasName(PR_NAME_KEYS, B_STRING_TYPE))
@@ -609,7 +624,6 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                }
             }
             else BounceMessage(PR_RESULT_ERRORACCESSDENIED, msgRef);
-         }
          break;
 
          case PR_COMMAND_ADDBANS: case PR_COMMAND_ADDREQUIRES:
@@ -686,7 +700,7 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                      // We have to have a filter message to match each string, to prevent "bleed-down" of earlier
                      // filters matching later strings.  So add a dummy filter Message if we don't have an actual one.
                      if (filterMsgRef() == NULL) filterMsgRef.SetRef(const_cast<Message *>(&GetEmptyMessage()), false);
-                     (void) getMsg.AddMessage(PR_NAME_FILTERS, filterMsgRef);
+                     if (getMsg.AddMessage(PR_NAME_FILTERS, filterMsgRef).IsError()) (void) getMsg.RemoveName(PR_NAME_KEYS);  // roll back on error
                   }
                }
                else if (fn == PR_NAME_REFLECT_TO_SELF)            SetRoutingFlag(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF,      true);
@@ -1191,7 +1205,7 @@ PushSubscriptionMessages()
 {
    TCHECKPOINT;
 
-   if (_sharedData->_subsDirty)
+   while(_sharedData->_subsDirty)
    {
       _sharedData->_subsDirty = false;
 
@@ -1205,7 +1219,6 @@ PushSubscriptionMessages()
             nextSession->PushSubscriptionMessage(nextSession->_nextIndexSubscriptionMessage);
          }
       }
-      PushSubscriptionMessages();  // in case these generated even more messages...
    }
 }
 
@@ -2001,7 +2014,9 @@ void StorageReflectSession :: AddApplicationSpecificParametersToParametersResult
 void StorageReflectSession :: TallyNodeBytes(const DataNode & n, uint32 & retNumNodes, uint32 & retNodeBytes) const
 {
    retNumNodes++;
-   retNodeBytes += n.GetData()()->FlattenedSize();
+   const Message * msg = n.GetData()();
+   if (msg) retNodeBytes += msg->FlattenedSize();
+
    for (DataNodeRefIterator iter = n.GetChildIterator(); iter.HasData(); iter++) TallyNodeBytes(*iter.GetValue()(), retNumNodes, retNodeBytes);
 }
 

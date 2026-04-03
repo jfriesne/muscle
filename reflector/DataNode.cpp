@@ -57,7 +57,7 @@ void DataNode :: Reset()
    _cachedDataChecksum = 0;
 }
 
-status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyChangedData, Hashtable<String, DataNodeRef> * optRetAdded)
+DataNodeRef DataNode :: InsertOrderedChild(const ConstMessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyChangedData, Hashtable<String, DataNodeRef> * optRetAdded)
 {
    TCHECKPOINT;
 
@@ -77,8 +77,8 @@ status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const Stri
       nodeName = &temp;
    }
 
-   DataNodeRef dref = StorageReflectSession::GetNewDataNode(*nodeName, data);
-   MRETURN_ON_ERROR(dref);
+   DataNodeRef newNode = StorageReflectSession::GetNewDataNode(*nodeName, data);
+   MRETURN_ON_ERROR(newNode);
 
    uint32 insertIndex = _orderedIndex->GetNumItems();  // default to end of index
    if (optInsertBefore)
@@ -93,21 +93,21 @@ status_t DataNode :: InsertOrderedChild(const ConstMessageRef & data, const Stri
       }
    }
 
-   MRETURN_ON_ERROR(PutChild(dref, optNotifyWithOnSetParent, optNotifyChangedData));
+   MRETURN_ON_ERROR(PutChild(newNode, optNotifyWithOnSetParent, optNotifyChangedData));
 
    // Update the index
    status_t ret;
-   if (_orderedIndex->InsertItemAt(insertIndex, dref).IsOK(ret))
+   if (_orderedIndex->InsertItemAt(insertIndex, newNode).IsOK(ret))
    {
       String np;
-      if ((optRetAdded)&&(dref()->GetNodePath(np).IsOK())) (void) optRetAdded->Put(np, dref);
+      if ((optRetAdded)&&(newNode()->GetNodePath(np).IsOK(ret))&&(optRetAdded->Put(np, newNode).IsError(ret))) (void) _orderedIndex->RemoveItemAt(insertIndex);  // roll back!
 
       // Notify anyone monitoring this node that the ordered-index has been updated
-      if (optNotifyWithOnSetParent) optNotifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, dref()->GetNodeName());
+      if ((ret.IsOK())&&(optNotifyWithOnSetParent)) optNotifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, newNode()->GetNodeName());
    }
-   else (void) RemoveChild(dref()->GetNodeName(), optNotifyWithOnSetParent, false, NULL);  // roll back!
 
-   return ret;
+   if (ret.IsError()) (void) RemoveChild(newNode()->GetNodeName(), optNotifyWithOnSetParent, false, NULL);  // roll back!
+   return ret.IsOK() ? newNode : DataNodeRef(ret);
 }
 
 status_t DataNode :: RemoveIndexEntryAt(uint32 removeIndex, StorageReflectSession * optNotifyWith)

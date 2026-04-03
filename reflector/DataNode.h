@@ -53,9 +53,9 @@ public:
     * @param optNotifyWithOnSetParent If non-NULL, a StorageReflectSession to use to notify subscribers that the new node has been added
     * @param optNotifyWithOnChangedData If non-NULL, a StorageReflectSession to use to notify subscribers when the node's data has been alterered
     * @param optAddNewChildren If non-NULL, any newly formed nodes will be added to this hashtable, keyed on their absolute node path.
-    * @return B_NO_ERROR on success, B_OUT_OF_MEMORY if out of memory
+    * @return a reference to the just-created-and-inserted child DataNode on success, or a NULL Ref on failure.
     */
-   status_t InsertOrderedChild(const ConstMessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyWithOnChangedData, Hashtable<String, DataNodeRef> * optAddNewChildren);
+   DataNodeRef InsertOrderedChild(const ConstMessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyWithOnChangedData, Hashtable<String, DataNodeRef> * optAddNewChildren);
 
    /**
     * Moves the given node (which must be a child of ours) to be just before the node named

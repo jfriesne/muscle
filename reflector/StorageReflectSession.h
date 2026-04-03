@@ -627,6 +627,12 @@ private:
    /** The maximum number of children we will allow any one of our DataNodes to have at once */
    uint32 _maxChildrenPerDataNodeCount;
 
+   /** Keep track of how many recursions of a PR_COMMAND_BATCH we're at */
+   NestCount _batchMsgNestCount;
+
+   /** Keep track of how many recursions of NodeChangedAux() we're at */
+   NestCount _nodeChangedAuxNestCount;
+
    /** Keepalive-noop send interval, in seconds (0==disabled) */
    uint32 _keepAliveIntervalSeconds;
 

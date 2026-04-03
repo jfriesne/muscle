@@ -89,6 +89,8 @@ key:  - new feature
    o printsourcelocations no longer ignores commented-out LogTime() calls.
    o Changed PacketDataIO::SetPacketSendDestination() to return void
      instead of status_t, since as a simple setter it can't really fail.
+   o Modified DataNode::InsertOrderedChild() to return a DataNodeRef
+     instead of a status_t.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to
