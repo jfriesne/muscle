@@ -17,7 +17,15 @@ public:
    MessageReuseTag() {/* empty */}
    virtual ~MessageReuseTag() {/* empty */}
 
-   ByteBufferRef _cachedData;   // the first MessageIOGateway's flattened data will be cached here for potential reuse by other gateways
+   ByteBufferRef * GetByteBufferForEncoding(uint32 encoding)
+   {
+      return muscleInRange(encoding, (uint32) MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32) (MUSCLE_MESSAGE_ENCODING_END_MARKER-1))
+           ? &_cachedData[encoding-MUSCLE_MESSAGE_ENCODING_DEFAULT]
+           : NULL;
+   }
+
+private:
+   ByteBufferRef _cachedData[MUSCLE_MESSAGE_ENCODING_END_MARKER-MUSCLE_MESSAGE_ENCODING_DEFAULT]; // the first MessageIOGateway's flattened data will be cached here for potential reuse by other gateways
 };
 DECLARE_REFTYPES(MessageReuseTag);
 
@@ -68,7 +76,7 @@ SendMoreData(uint32 & sentBytes, uint32 & maxBytes)
    TCHECKPOINT;
 
    const ByteBuffer * bb    = _sendBuffer._buffer();
-   const int32 attemptSize  = muscleMin(maxBytes, bb->GetNumBytes()-_sendBuffer._offset);
+   const uint32 attemptSize  = muscleMin(maxBytes, bb->GetNumBytes()-_sendBuffer._offset);
    const io_status_t numBytesSent = GetDataIO()() ? GetDataIO()()->Write(bb->GetBuffer()+_sendBuffer._offset, attemptSize) : io_status_t(B_BAD_OBJECT);
    if (numBytesSent.GetByteCount() >= 0)
    {
@@ -78,7 +86,8 @@ SendMoreData(uint32 & sentBytes, uint32 & maxBytes)
    }
    else SetUnrecoverableErrorStatus(numBytesSent.GetStatus() | B_IO_ERROR);
 
-   return (numBytesSent.GetByteCount() < attemptSize) ? B_ERROR : B_NO_ERROR;
+   const int32 nbs = numBytesSent.GetByteCount();
+   return ((nbs < 0)||((uint32)nbs < attemptSize)) ? B_ERROR : B_NO_ERROR;
 }
 
 io_status_t
@@ -323,7 +332,7 @@ MessageIOGateway :: ReceiveMoreData(uint32 & readBytes, uint32 & maxBytes, uint3
 {
    TCHECKPOINT;
 
-   const int32 attemptSize        = muscleMin(maxBytes, (uint32)((maxArraySize>_recvBuffer._offset)?(maxArraySize-_recvBuffer._offset):0));
+   const uint32 attemptSize       = muscleMin(maxBytes, (uint32)((maxArraySize>_recvBuffer._offset)?(maxArraySize-_recvBuffer._offset):0));
    const io_status_t numBytesRead = GetDataIO()() ? GetDataIO()()->Read(_recvBuffer._buffer()->GetBuffer()+_recvBuffer._offset, attemptSize) : io_status_t(B_BAD_OBJECT);
    if (numBytesRead.IsOK())
    {
@@ -333,7 +342,8 @@ MessageIOGateway :: ReceiveMoreData(uint32 & readBytes, uint32 & maxBytes, uint3
    }
    else SetUnrecoverableErrorStatus(numBytesRead.GetStatus());
 
-   return (numBytesRead.GetByteCount() < attemptSize) ? B_ERROR : B_NO_ERROR;
+   const int32 nbr = numBytesRead.GetByteCount();
+   return ((nbr < 0)||((uint32)nbr < attemptSize)) ? B_ERROR : B_NO_ERROR;
 }
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
@@ -370,11 +380,16 @@ FlattenHeaderAndMessageAux(const MessageRef & msgRef) const
       if (msgRef()->FindTag(PR_NAME_MESSAGE_REUSE_TAG, mrtRef).IsOK())
       {
          DECLARE_MUTEXGUARD(_messageReuseTagMutex);  // in case (msgRef) has been shared across threads!
-         if (mrtRef()->_cachedData()) ret = mrtRef()->_cachedData;  // re-use data from a neighboring gateway!
-         else
+
+         ByteBufferRef * bbRef = mrtRef()->GetByteBufferForEncoding(_outgoingEncoding);
+         if (bbRef)
          {
-            ret = FlattenHeaderAndMessage(msgRef);
-            if (ret()) mrtRef()->_cachedData = ret;  // also save the buffer for the next gateway to reuse
+            if (bbRef->GetItemPointer()) ret = *bbRef;  // re-use the cached bytes from a neighboring gateway!
+            else
+            {
+               ret = FlattenHeaderAndMessage(msgRef);
+               if (ret()) *bbRef = ret;
+            }
          }
       }
    }
@@ -429,18 +444,22 @@ MessageRef MessageIOGateway :: UnflattenHeaderAndMessage(const ConstByteBufferRe
 {
    if (bufRef() == NULL) return B_BAD_ARGUMENT;
 
+   uint32 offset = GetHeaderSize();
+   if (offset < (2*sizeof(uint32))) return B_LOGIC_ERROR;  // header size can't be less than what we're going to read out of it, below
+
+   const uint32 bufSize = bufRef()->GetNumBytes();
+   if (bufSize < offset) return B_BAD_ARGUMENT; // buffer size can't be less than the header size
+
    TCHECKPOINT;
 
    MessageRef ret = GetMessageFromPool();
    MRETURN_ON_ERROR(ret);
 
-   uint32 offset = GetHeaderSize();
-
    const uint8 * lhb    = bufRef()->GetBuffer();
    const uint32 lhbSize = DefaultEndianConverter::Import<uint32>(&lhb[0*sizeof(uint32)]);
-   if ((offset+lhbSize) != bufRef()->GetNumBytes())
+   if ((offset+lhbSize) != bufSize)
    {
-      LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  Unexpected lhb size " UINT32_FORMAT_SPEC ", expected " UINT32_FORMAT_SPEC "\n", this, lhbSize, bufRef()->GetNumBytes()-offset);
+      LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  Unexpected lhb size " UINT32_FORMAT_SPEC ", expected " UINT32_FORMAT_SPEC "\n", this, lhbSize, bufSize-offset);
       return B_BAD_DATA;
    }
 
@@ -453,7 +472,7 @@ MessageRef MessageIOGateway :: UnflattenHeaderAndMessage(const ConstByteBufferRe
    ZLibCodec * enc = GetCodec(encoding, _recvCodec);
    if (enc)
    {
-      expRef = enc->Inflate(bb->GetBuffer()+offset, bb->GetNumBytes()-offset);
+      expRef = enc->Inflate(bb->GetBuffer()+offset, bufSize-offset);
       if (expRef())
       {
          bb = expRef();
@@ -534,7 +553,9 @@ status_t MessageIOGateway :: ExecuteSynchronousMessaging(AbstractGatewayMessageR
 
    _pendingSyncPingCounter = _syncPingCounter;
    _syncPingCounter++;
-   return AbstractMessageIOGateway::ExecuteSynchronousMessaging(optReceiver, timeoutPeriod);
+   const status_t ret =  AbstractMessageIOGateway::ExecuteSynchronousMessaging(optReceiver, timeoutPeriod);
+   _pendingSyncPingCounter = -1;  // in case we were in _noRPCReply mode and so it never got cleared by any PR_RESULT_PONG handler
+   return ret;
 }
 
 void MessageIOGateway :: SynchronousMessageReceivedFromGateway(const MessageRef & msg, void * userData, AbstractGatewayMessageReceiver & r)
@@ -549,7 +570,7 @@ void MessageIOGateway :: SynchronousMessageReceivedFromGateway(const MessageRef 
 
 bool MessageIOGateway :: IsSynchronousPongMessage(const MessageRef & msg, uint32 pendingSyncPingCounter) const
 {
-   return ((msg()->what == PR_RESULT_PONG)&&((uint32)msg()->GetInt32("_miosp", -1) == pendingSyncPingCounter));
+   return ((msg())&&(msg()->what == PR_RESULT_PONG)&&((uint32)msg()->GetInt32("_miosp", -1) == pendingSyncPingCounter));
 }
 
 MessageRef MessageIOGateway :: ExecuteSynchronousMessageRPCCall(const Message & requestMessage, const IPAddressAndPort & targetIAP, uint64 timeoutPeriod)

@@ -121,7 +121,7 @@ status_t DataNode :: RemoveIndexEntryAt(uint32 removeIndex, StorageReflectSessio
    return B_NO_ERROR;
 }
 
-status_t DataNode :: InsertIndexEntryAt(uint32 insertIndex, StorageReflectSession * notifyWithOnSetParent, const String & key)
+status_t DataNode :: InsertIndexEntryAt(uint32 insertIndex, StorageReflectSession * optNotifyWith, const String & key)
 {
    TCHECKPOINT;
 
@@ -134,7 +134,7 @@ status_t DataNode :: InsertIndexEntryAt(uint32 insertIndex, StorageReflectSessio
    MRETURN_ON_ERROR(_orderedIndex->InsertItemAt(insertIndex, childNode));
 
    // Notify anyone monitoring this node that the ordered-index has been updated
-   notifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, childNode()->GetNodeName());
+   if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, childNode()->GetNodeName());
    return B_NO_ERROR;
 }
 

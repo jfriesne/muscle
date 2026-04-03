@@ -211,6 +211,9 @@ key:  - new feature
      the newline in data that it sent out.  NUL byte removed.  (cc)
    * WebSocketMessageIOGateway wasn't handling RFC 6455's data-masking
      requirements correctly when in use on the client side.  Fixed.  (cc)
+   * Updated the MessageReuseTag feature in MessageIOGateway.cpp to
+     properly handle sharing between gateways with different outgoing
+     Message encoding settings.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
