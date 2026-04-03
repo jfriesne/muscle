@@ -300,12 +300,14 @@ io_status_t WebSocketMessageIOGateway :: DoInputImplementation(AbstractGatewayMe
 
             if (_payloadBytesRead == _payload()->GetNumBytes())
             {
-               // Unmask the payload segment
-               uint8 * payloadBytes = _payload() ? _payload()->GetBuffer() : NULL;
-               const uint32 numPayloadBytes = _payload() ? _payload()->GetNumBytes() : 0;
-               if (payloadBytes) for (uint32 i=_firstByteToMask; i<numPayloadBytes; i++) payloadBytes[i] ^= _mask[(i-_firstByteToMask)%sizeof(_mask)];
-
-               _firstByteToMask = numPayloadBytes;
+               if (_isClient == false)   // clients should never receive masked frames anyway
+               {
+                  // Unmask the payload segment
+                  uint8 * payloadBytes = _payload() ? _payload()->GetBuffer() : NULL;
+                  const uint32 numPayloadBytes = _payload() ? _payload()->GetNumBytes() : 0;
+                  if (payloadBytes) for (uint32 i=_firstByteToMask; i<numPayloadBytes; i++) payloadBytes[i] ^= _mask[(i-_firstByteToMask)%sizeof(_mask)];
+                  _firstByteToMask = numPayloadBytes;
+               }
 
                // If FIN is set, we'll execute this frame and clear it; otherwise we'll append the next frame's data to this one's.
                if ((_inputClosed)||(_headerBytes[0] & 0x80)) ExecuteReceivedFrame(receiver);
@@ -328,9 +330,10 @@ io_status_t WebSocketMessageIOGateway :: DoInputImplementation(AbstractGatewayMe
             maxBytes             -= numBytesRead;
             if (_headerBytesReceived == _headerSize)
             {
+               const bool maskBit = ((_headerBytes[1] & 0x80) != 0);
                switch(_headerSize)
                {
-                  case 2:
+                  case 2:  // initial header-bytes read (we'll use the contents of these two bytes to determine the actual header-size)
                   {
                      const bool peerIsServer = _isClient;  // just for code clarity
                      const char * peerDesc   = peerIsServer ? "server" : "client";
@@ -342,7 +345,6 @@ io_status_t WebSocketMessageIOGateway :: DoInputImplementation(AbstractGatewayMe
                         return B_BAD_DATA;
                      }
 
-                     const bool maskBit = ((_headerBytes[1] & 0x80) != 0);
                      if (peerIsServer ? (maskBit != 0) : (maskBit == 0))  // RFC 6455:  clients MUST send us masked frames; servers MUST NOT send us masked frames.  Check incoming frames accordingly.
                      {
                         LogTime(MUSCLE_LOG_ERROR, "WebSocketMessageIOGateway::DoInputImplementation():  Frame from %s %s its mask bit set! (%x)\n", peerDesc, peerIsServer ? "had" : "didn't have", _headerBytes[1]);
@@ -352,32 +354,46 @@ io_status_t WebSocketMessageIOGateway :: DoInputImplementation(AbstractGatewayMe
 
                      switch(_headerBytes[1] & 0x7F)
                      {
-                        case 126: _headerSize += 2+4; break; /* need to read two more bytes to find out the payload length, plus mask */
-                        case 127: _headerSize += 8+4; break; /* need to read eight more bytes to find out the payload length, plus mask */
-                        default:  _headerSize += 0+4; break; /* need mask only */
+                        case 126: _headerSize += 2; break; /* need to read 2 more header-bytes to find out the payload-size */
+                        case 127: _headerSize += 8; break; /* need to read 8 more header-bytes to find out the payload-size */
+                        default:  _headerSize += 0; break; /* no more header-bytes needed; the payload-size is just the lower bits of _headerBytes[1] */
                      }
+                     if (maskBit) _headerSize += 4;
+
+                     if (_headerSize == 2) MRETURN_ON_ERROR(InitializeIncomingPayload(_headerBytes[1]&0x7F, -1, receiver));  // no further header-bytes to read, so get ready to receive payload bytes
                   }
                   break;
 
-                  case 6:
+                  // note that the no-mask variant of this case is handled at the end of "case 2" above
+                  case 6: // 2-byte header-size + 0-byte-payload-size + 4-byte-mask
                      MRETURN_ON_ERROR(InitializeIncomingPayload(_headerBytes[1]&0x7F, 2, receiver));
                   break;
 
-                  case 8:
+                  case 4: // 2-byte header-size + 2-byte-payload-size + no-mask
+                     // fall-through
+                  case 8: // 2-byte header-size + 2-byte-payload-size + 4-byte-mask
                      // MEM-142:  yes, the (uint16) cast is 100% necessary, or else any negative int16 values get sign-extended to 2^32-N !
-                     MRETURN_ON_ERROR(InitializeIncomingPayload((uint16) (B_BENDIAN_TO_HOST_INT16(muscleCopyIn<int16>(&_headerBytes[2]))), 4, receiver));
+                     MRETURN_ON_ERROR(InitializeIncomingPayload((uint16) (B_BENDIAN_TO_HOST_INT16(muscleCopyIn<int16>(&_headerBytes[2]))), maskBit?4:-1, receiver));
                   break;
 
-                  case 14:
+                  case 10:  // 2-byte header-size + 8-byte-payload-size + no-mask
+                     // fall through
+                  case 14:  // 2-byte header-size + 8-byte-payload-size + 4-byte-mask
                   {
-                     const uint64 payloadSize = B_BENDIAN_TO_HOST_INT64(muscleCopyIn<int64>(&_headerBytes[2]));
-                     if (payloadSize > (10*1024*1024))
+                     const uint64 payloadSize = B_BENDIAN_TO_HOST_INT64(muscleCopyIn<uint64>(&_headerBytes[2]));
+                     if ((payloadSize & (1ULL<<63)) != 0)
+                     {
+                        LogTime(MUSCLE_LOG_ERROR, "WebSocketMessageIOGateway:  High bit was illegally set on payload word " UINT64_FORMAT_SPEC "\n", payloadSize);
+                        SetUnrecoverableErrorStatus(B_RESOURCE_LIMIT);
+                        return B_BAD_DATA;
+                     }
+                     else if (payloadSize > (10*1024*1024ULL))
                      {
                         LogTime(MUSCLE_LOG_ERROR, "WebSocketMessageIOGateway:  Payload size " UINT64_FORMAT_SPEC " is too large!\n", payloadSize);
                         SetUnrecoverableErrorStatus(B_RESOURCE_LIMIT);
                         return B_RESOURCE_LIMIT;
                      }
-                     MRETURN_ON_ERROR(InitializeIncomingPayload((uint32) payloadSize, 10, receiver));
+                     MRETURN_ON_ERROR(InitializeIncomingPayload((uint32) payloadSize, maskBit?10:-1, receiver));
                   }
                   break;
 
@@ -440,6 +456,7 @@ io_status_t WebSocketMessageIOGateway :: DoOutputImplementation(uint32 maxBytes)
       }
       return ret;
    }
+   else if (_handshakeState != WEBSOCKET_HANDSHAKE_NONE) return io_status_t(0);  // can't write any WebSocket data until the handshake has been acknowledged!  (shouldn't cause a spin because HasBytesToOutput() should be returning false in this state anyway)
 
    int32 totalBytesWritten = 0;
    while(maxBytes > 0)
@@ -528,30 +545,48 @@ status_t WebSocketMessageIOGateway :: CreateReplyFrame(const uint8 * data, uint3
         if (numBytes > 65535) frameSize += 8;  // oops, we need the 8-byte-payload field
    else if (numBytes > 125)   frameSize += 2;  // oops, we need the 2-byte-payload field
 
+   if (_isClient) frameSize += 4;  // clients need to include 4 bytes for the mask field also
+
    MRETURN_ON_ERROR(_outputBuf.SetNumBytes(frameSize, false));
 
    _outputBytesWritten = 0;
 
    BigEndianDataFlattener flat(_outputBuf);
 
+   const uint8 maskBit = _isClient ? 0x80 : 0x00;
+
    flat.WriteInt8(0x80 | opCode);  // 0x80 == FIN bit
    if (numBytes > 65535)
    {
-      flat.WriteInt8(127); // magic number for 8-byte payload
+      flat.WriteInt8(maskBit | ((uint8)127)); // magic number for 8-byte payload
       flat.WriteInt64(numBytes);
    }
    else if (numBytes > 125)
    {
-      flat.WriteInt8(126);   // magic number for 2-byte payload
+      flat.WriteInt8(maskBit | ((uint8)126)); // magic number for 2-byte payload
       flat.WriteInt16((int16) numBytes);
    }
-   else flat.WriteInt8((uint8) numBytes);
+   else flat.WriteInt8(maskBit | ((uint8)numBytes));
 
-   flat.WriteBytes(data, numBytes);
+   if (_isClient)
+   {
+      // Clients must always mask the payloads they send to the server
+      const uint32 mask = GetInsecurePseudoRandomNumber32();
+      flat.WriteInt32(mask);
+
+      const uint8 * mask8 = reinterpret_cast<const uint8 *>(&mask);
+      MRETURN_ON_ERROR(_scratchMaskBuf.SetNumBytes(numBytes, false));
+      uint8 * payloadBytes = _scratchMaskBuf.GetBuffer();
+      for (uint32 i=0; i<numBytes; i++) payloadBytes[i] = data[i] ^ mask8[i%sizeof(mask)];
+      flat.WriteBytes(payloadBytes, numBytes);
+      _scratchMaskBuf.Clear();
+   }
+   else flat.WriteBytes(data, numBytes);  // servers always send unmasked data to the client
+
    return B_NO_ERROR;
 }
 
-status_t WebSocketMessageIOGateway :: InitializeIncomingPayload(uint32 payloadSizeBytes, uint32 maskOffset, AbstractGatewayMessageReceiver & receiver)
+status_t WebSocketMessageIOGateway :: InitializeIncomingPayload(uint32 payloadSizeBytes, int32 optMaskOffset, AbstractGatewayMessageReceiver & receiver)
 {
    if (payloadSizeBytes == 0)
    {
@@ -563,7 +598,8 @@ status_t WebSocketMessageIOGateway :: InitializeIncomingPayload(uint32 payloadSi
    }
    else
    {
-      memcpy(&_mask, &_headerBytes[maskOffset], sizeof(_mask));
+      if (optMaskOffset >= 0) memcpy(&_mask, &_headerBytes[optMaskOffset], sizeof(_mask));
+                         else memset(&_mask, 0, sizeof(_mask));  // not really necessary but just to be tidy
       if (_payload())
       {
          // don't change _opCode if we are merely extending a fragment...

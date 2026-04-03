@@ -73,7 +73,7 @@ private:
 
    status_t HandleReceivedHTTPText();
    status_t CreateReplyFrame(const uint8 * data, uint32 numBytes, uint8 opCode);
-   status_t InitializeIncomingPayload(uint32 payloadSizeBytes, uint32 maskOffset, AbstractGatewayMessageReceiver & receiver);
+   status_t InitializeIncomingPayload(uint32 payloadSizeBytes, int32 optMaskOffset, AbstractGatewayMessageReceiver & receiver);
    void ExecuteReceivedFrame(AbstractGatewayMessageReceiver & receiver);
    void FlushReceivedMessage(AbstractGatewayMessageReceiver & receiver);
    void ResetHeaderReceiveState();
@@ -108,6 +108,8 @@ private:
 
    AbstractMessageIOGatewayRef _slaveGateway;
    ByteBuffer _scratchSlaveBuf;
+
+   ByteBuffer _scratchMaskBuf;
 };
 DECLARE_REFTYPES(WebSocketMessageIOGateway);
 
