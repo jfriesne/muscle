@@ -784,9 +784,9 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
          SocketMultiplexer multiplexer;
          while(GetRunTime64() < deadline)
          {
-            (void) multiplexer.RegisterSocketForWriteReady(fd);
+            if (multiplexer.RegisterSocketForWriteReady(fd).IsError(ret)) break;
 #ifdef WIN32
-            (void) multiplexer.RegisterSocketForExceptionRaised(fd);
+            if (multiplexer.RegisterSocketForExceptionRaised(fd).IsError(ret)) break;
 #endif
 
             const io_status_t eret = multiplexer.WaitForEvents(deadline);
@@ -1046,7 +1046,11 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
    IPAddress ret = invalidIP;
 #ifdef MUSCLE_AVOID_IPV6
    struct hostent * he = gethostbyname(name);
-   if (he) ret.SetIPv4AddressFromUint32(ntohl(*((uint32*)he->h_addr)));
+   if (he)
+   {
+      const uint32 temp = muscleCopyIn<uint32>(he->h_addr);
+      ret.SetIPv4AddressFromUint32(ntohl(temp));
+   }
 #else
    struct addrinfo * result;
    struct addrinfo hints; memset(&hints, 0, sizeof(hints));
@@ -2209,6 +2213,7 @@ static void Inet4_NtoA(uint32 addr, char * buf)
 
 static const int MIN_IPBUF_LENGTH = 64;
 
+#ifndef MUSCLE_AVOID_IPV6
 static status_t AddNamedInterfaceScopeSuffix(uint32 iidx, char * ipbuf, bool forceGNII, bool & retDidGNII)
 {
    static Mutex _mutex;
@@ -2237,11 +2242,13 @@ static status_t AddNamedInterfaceScopeSuffix(uint32 iidx, char * ipbuf, bool for
 
    return B_DATA_NOT_FOUND;
 }
+#endif
 
 void Inet_NtoA(const IPAddress & addr, char * ipbuf, bool preferIPv4, bool expandScopes)
 {
 #ifdef MUSCLE_AVOID_IPV6
    (void) preferIPv4;
+   (void) expandScopes;
    Inet4_NtoA(addr.GetIPv4AddressAsUint32(), ipbuf);
 #else
    if ((preferIPv4)&&((addr.IsValid() == false)||(addr.IsIPv4()))) Inet4_NtoA((uint32)(addr.GetLowBits()&0xFFFFFFFF), ipbuf);

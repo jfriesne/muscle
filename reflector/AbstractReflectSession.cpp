@@ -536,6 +536,7 @@ PrintSessionsInfo(const OutputPrinter & p) const
    for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(t); iter.HasData(); iter++)
    {
       AbstractReflectSession * ars = iter.GetValue()();
+      if (ars == NULL) continue;  // semi-paranoia
 
       uint32 numCachedSubscribersTables = 0, numNodes = 0, numNodeBytes = 0;
       ars->TallySubscriberTablesInfo(numCachedSubscribersTables, numNodes, numNodeBytes);
