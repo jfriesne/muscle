@@ -417,7 +417,7 @@ void WebSocketMessageIOGateway :: FlushReceivedMessage(AbstractGatewayMessageRec
    if (_receivedMsg())
    {
       MessageRef temp; temp.SwapContents(_receivedMsg);  // paranoia about re-entrancy issues here
-      receiver.CallMessageReceivedFromGateway(temp, NULL);
+      CallMessageReceivedFromGateway(receiver, temp);
    }
 }
 

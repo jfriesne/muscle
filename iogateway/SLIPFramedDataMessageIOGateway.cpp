@@ -22,7 +22,7 @@ io_status_t SLIPFramedDataMessageIOGateway :: DoInputImplementation(AbstractGate
    {
       MessageRef msg;
       muscleSwap(_pendingMessage, msg);  // paranoia wrt re-entrancy
-      receiver.CallMessageReceivedFromGateway(msg);
+      CallMessageReceivedFromGateway(receiver, msg);
    }
    return ret;
 }

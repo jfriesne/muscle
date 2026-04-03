@@ -274,7 +274,7 @@ public:
 
    /** Called by the ReflectServer when it wants us to read some more bytes from our client.
      * Default implementation simply calls DoInput() on our Gateway object (if any).
-     * @param receiver Object to call CallMessageReceivedFromGateway() on when new Messages are ready to be looked at.
+     * @param receiver an object to call CallMessageReceivedFromGateway() on when new Messages are ready to be looked at.
      * @param maxBytes Maximum number of bytes to read before returning.
      * @returns The total number of bytes read, or an error code if there was a fatal error.
      */

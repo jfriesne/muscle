@@ -200,7 +200,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             if (inMsg())
             {
                if (GetPacketRemoteLocationTaggingEnabled()) (void) inMsg()->AddFlat(PR_NAME_PACKET_REMOTE_LOCATION, sourceIAP);
-               receiver.CallMessageReceivedFromGateway(inMsg);
+               CallMessageReceivedFromGateway(receiver, inMsg);
                inMsg.Reset();
             }
          }
@@ -241,7 +241,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             if (_flushPartialIncomingLines) inMsg = AddIncomingText(inMsg, &buf[beginAt]);
                                        else _incomingText += &buf[beginAt];
          }
-         if (inMsg()) receiver.CallMessageReceivedFromGateway(inMsg);
+         if (inMsg()) CallMessageReceivedFromGateway(receiver, inMsg);
       }
       else if ((_flushPartialIncomingLines)&&(HasBufferedIncomingText())) FlushInput(receiver);
 
@@ -265,7 +265,7 @@ PlainTextMessageIOGateway :: FlushInput(AbstractGatewayMessageReceiver & receive
       if ((inMsg())&&(inMsg()->AddString(PR_NAME_TEXT_LINE, _incomingText).IsOK()))
       {
          _incomingText.Clear();
-         receiver.CallMessageReceivedFromGateway(inMsg);
+         CallMessageReceivedFromGateway(receiver, inMsg);
       }
    }
 }

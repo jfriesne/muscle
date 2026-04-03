@@ -60,7 +60,7 @@ protected:
    {
       char buf[256];
       const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(buf, muscleMin(maxBytes, (uint32)sizeof(buf))) : io_status_t(B_BAD_OBJECT);
-      if (bytesRead.GetByteCount() > 0) receiver.CallMessageReceivedFromGateway(_signalMessage);
+      if (bytesRead.GetByteCount() > 0) CallMessageReceivedFromGateway(receiver, _signalMessage);
       return bytesRead;
    }
 

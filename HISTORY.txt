@@ -42,6 +42,9 @@ key:  - new feature
    - Added a new function SnoozeUntil() to MiscUtilityFunctions.{cpp,h}
      as a convenience for sleeping until a known future time.
    - Added a B_DIRECTORY_NOT_FOUND error code for Directory::SetDir() to return.
+   - Added a CallMessageReceivedFromGateway(AbstractGatewayMessageReceiver &,
+     const MessageRef & receivedMsg) virtual method to the MessageIOGateway class,
+     so that subclasses can override it with custom logic if they want to.
    o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that
      it can handle EINTR-type interruptions more gracefully.
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
@@ -91,6 +94,10 @@ key:  - new feature
      instead of status_t, since as a simple setter it can't really fail.
    o Modified DataNode::InsertOrderedChild() to return a DataNodeRef
      instead of a status_t.
+   o Removed the SetAboutToFlattenMessageCallback(), SetMessageFlattenedCallback(),
+     and SetMessageUnflattenedCallback() methods from the MessageIOGateway class,
+     as they weren't being used anywhere and there are better ways to implement
+     their functionality using virtual methods anyway.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to

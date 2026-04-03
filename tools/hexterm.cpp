@@ -558,7 +558,9 @@ int hextermmain(const char * argv0, const Message & args)
    else if (args.FindString("serial", arg).IsOK())
    {
       const char * colon = strchr(arg(), ':');
-      uint32 baudRate = colon ? Atoull(colon+1) : 0; if (baudRate == 0) baudRate = 38400;
+      uint32 baudRate = colon ? (uint32) Atoull(colon+1) : 0;
+      if (baudRate == 0) baudRate = 38400;
+
       const String devName = arg.Substring(0, ":");
       Queue<String> devs;
       if (RS232DataIO::GetAvailableSerialPortNames(devs).IsOK(ret))

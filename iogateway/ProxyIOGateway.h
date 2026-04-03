@@ -75,7 +75,7 @@ private:
    ByteBufferPacketDataIO _fakePacketReceiveIO;
 
    // Pass the call back through to our own caller, but with the appropriate argument.
-   virtual void MessageReceivedFromGateway(const MessageRef & msg, void *) {_scratchReceiver->CallMessageReceivedFromGateway(msg, _scratchReceiverArg);}
+   virtual void MessageReceivedFromGateway(const MessageRef & msg, void *) {CallMessageReceivedFromGateway(*_scratchReceiver, msg, _scratchReceiverArg);}
    AbstractGatewayMessageReceiver * _scratchReceiver;
    void * _scratchReceiverArg;
 };

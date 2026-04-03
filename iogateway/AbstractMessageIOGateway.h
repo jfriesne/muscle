@@ -217,13 +217,21 @@ protected:
     */
    virtual io_status_t DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes = MUSCLE_NO_LIMIT) = 0;
 
+   /** Called by DoInputImplementation() when it has unflattened an incoming Message and wishes to pass it on to its
+     * AbstractGatewayMessageReceiver object.  Default implementation simply calls receiver.CallMessageReceivedFromGateway(receivedMsg),
+     * but subclasses may override this method to do something else if they wish.
+     * @param receiver the AbstractGatewayMessageReceiver that was passed in to the DoInputImplementation() call.
+     * @param receivedMsg the Message that was received from the remote peer.
+     * @param userData optional arbitrary pointer to pass along to (receiver)'s CallMessageReceivedFromGateway() method.  Defaults to NULL.
+     */
+   virtual void CallMessageReceivedFromGateway(AbstractGatewayMessageReceiver & receiver, const MessageRef & receivedMsg, void * userData = NULL);
+
    /** Called by ExecuteSynchronousMessaging() to see if we are still awaiting our reply Messages.  Default implementation calls HasBytesToOutput() and returns that value. */
    MUSCLE_NODISCARD virtual bool IsStillAwaitingSynchronousMessagingReply() const {return HasBytesToOutput();}
 
-   /**
-     * Removes the next MessageRef from the head of our outgoing Message queue and returns it in (retMsg).
+   /** Removes the next MessageRef from the head of our outgoing Message queue and returns it in (retMsg).
      * @param retMsg on success, the next MessageRef to send will be written into this MessageRef.
-     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (outgoing message queue was empty)
+     * @returns B_NO_ERROR on success, or B_DATA_NOT_FOUND on failure (outgoing message queue was empty -- not a fatal error)
      */
    virtual status_t PopNextOutgoingMessage(MessageRef & retMsg) {return _outgoingMessages.RemoveHead(retMsg);}
 

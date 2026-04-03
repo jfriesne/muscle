@@ -74,7 +74,7 @@ io_status_t SSLSocketAdapterGateway :: DoInputImplementation(AbstractGatewayMess
    if (_sslMessages.HasItems())
    {
       SetSSLForceReadReady(false);
-      MessageRef msg; while(_sslMessages.RemoveHead(msg).IsOK()) receiver.CallMessageReceivedFromGateway(msg);
+      MessageRef msg; while(_sslMessages.RemoveHead(msg).IsOK()) CallMessageReceivedFromGateway(receiver, msg);
    }
 
    status_t ret;

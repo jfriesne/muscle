@@ -34,9 +34,6 @@ enum {
    MUSCLE_MESSAGE_ENCODING_END_MARKER = MUSCLE_MESSAGE_ENCODING_DEFAULT+10  /**< guard value */
 };
 
-/** Callback function type for flatten/unflatten notification callbacks */
-typedef status_t(*MessageFlattenedCallback)(const MessageRef & msgRef, void * userData);
-
 /**
  * A MessageIOGateway object knows how to send/receive Messages over a wire, via a provided DataIO object.
  * May be subclassed to change the byte-level protocol, or used as-is if the default protocol is desired.
@@ -72,31 +69,6 @@ public:
 
    MUSCLE_NODISCARD virtual bool HasBytesToOutput() const;
    virtual void Reset();
-
-   /**
-    * Lets you specify a function that will be called every time an outgoing
-    * Message is about to be flattened by this gateway.  You may alter the
-    * Message at this time, if you need to.
-    * @param cb Callback function to call.
-    * @param ud User data; set this to any value you like.
-    */
-   void SetAboutToFlattenMessageCallback(MessageFlattenedCallback cb, void * ud) {_aboutToFlattenCallback = cb; _aboutToFlattenCallbackData = ud;}
-
-   /**
-    * Lets you specify a function that will be called every time an outgoing
-    * Message has been flattened by this gateway.
-    * @param cb Callback function to call.
-    * @param ud User data; set this to any value you like.
-    */
-   void SetMessageFlattenedCallback(MessageFlattenedCallback cb, void * ud) {_flattenedCallback = cb; _flattenedCallbackData = ud;}
-
-   /**
-    * Lets you specify a function that will be called every time an incoming
-    * Message has been unflattened by this gateway.
-    * @param cb Callback function to call.
-    * @param ud User data; set this to any value you like.
-    */
-   void SetMessageUnflattenedCallback(MessageFlattenedCallback cb, void * ud) {_unflattenedCallback = cb; _unflattenedCallbackData = ud;}
 
    /**
     * Lets you specify the maximum allowable size for an incoming flattened Message.
@@ -313,15 +285,6 @@ private:
 
    uint32 _maxIncomingMessageSize;
    int32 _outgoingEncoding;
-
-   MessageFlattenedCallback _aboutToFlattenCallback;
-   void * _aboutToFlattenCallbackData;
-
-   MessageFlattenedCallback _flattenedCallback;
-   void * _flattenedCallbackData;
-
-   MessageFlattenedCallback _unflattenedCallback;
-   void * _unflattenedCallbackData;
 
    Message _scratchPacketMessage;
 

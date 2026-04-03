@@ -58,6 +58,13 @@ Reset()
 
 void
 AbstractMessageIOGateway ::
+CallMessageReceivedFromGateway(AbstractGatewayMessageReceiver & receiver, const MessageRef & receivedMsg, void * userData)
+{
+   receiver.CallMessageReceivedFromGateway(receivedMsg, userData);
+}
+
+void
+AbstractMessageIOGateway ::
 FlushOutput()
 {
    DataIO * dio = GetDataIO()();

@@ -44,12 +44,6 @@ status_t OptimizeMessageForTransmissionToMultipleGateways(const MessageRef & msg
 MessageIOGateway :: MessageIOGateway(int32 encoding)
    : _maxIncomingMessageSize(MUSCLE_NO_LIMIT)
    , _outgoingEncoding(encoding)
-   , _aboutToFlattenCallback(NULL)
-   , _aboutToFlattenCallbackData(NULL)
-   , _flattenedCallback(NULL)
-   , _flattenedCallbackData(NULL)
-   , _unflattenedCallback(NULL)
-   , _unflattenedCallbackData(NULL)
    , _sendCodec(NULL)
    , _recvCodec(NULL)
    , _syncPingCounter(0)
@@ -110,8 +104,6 @@ DoOutputImplementation(uint32 maxBytes)
             if (PopNextOutgoingMessage(nextRef).IsError()) return io_status_t(sentBytes);  // nothing more to send, so we're done!
             if (nextRef())
             {
-               if ((_aboutToFlattenCallback)&&(_aboutToFlattenCallback(nextRef, _aboutToFlattenCallbackData).IsError())) continue;
-
                bool movedPRL = false;
                if (mtuSize > 0)
                {
@@ -131,8 +123,6 @@ DoOutputImplementation(uint32 maxBytes)
                if (movedPRL) (void) _scratchPacketMessage.MoveName(PR_NAME_PACKET_REMOTE_LOCATION, *nextRef());
 
                if (_sendBuffer._buffer() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); return B_OUT_OF_MEMORY;}
-
-               if (_flattenedCallback) (void) _flattenedCallback(nextRef, _flattenedCallbackData);
 
 #ifdef DELIBERATELY_INJECT_ERRORS_INTO_OUTGOING_MESSAGE_FOR_TESTING_ONLY_DONT_ENABLE_THIS_UNLESS_YOU_LIKE_CHAOS
  const uint32 hs = GetHeaderSize();
@@ -245,7 +235,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                   if (sourceIAP.IsValid()) (void) msg()->ReplaceFlat(true, PR_NAME_PACKET_REMOTE_LOCATION, sourceIAP);
                                       else (void) msg()->RemoveName(PR_NAME_PACKET_REMOTE_LOCATION);  // paranoia
                }
-               if ((_unflattenedCallback == NULL)||(_unflattenedCallback(msg, _unflattenedCallbackData).IsOK())) receiver.CallMessageReceivedFromGateway(msg);
+               CallMessageReceivedFromGateway(receiver, msg);
             }
          }
          else break;
@@ -306,17 +296,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
                ForgetScratchReceiveBufferIfSubclassIsStillUsingIt();
 
                if (msg() == NULL) {SetUnrecoverableErrorStatus(msg.GetStatus() | B_BAD_DATA); break;}
-               if (_unflattenedCallback)
-               {
-                  const status_t r = _unflattenedCallback(msg, _unflattenedCallbackData);
-                  if (r.IsError())
-                  {
-                     SetUnrecoverableErrorStatus(r);
-                     return (readBytes > 0) ? io_status_t(readBytes) : r;
-                  }
-               }
-
-               receiver.CallMessageReceivedFromGateway(msg);
+               CallMessageReceivedFromGateway(receiver, msg);
             }
          }
       }

@@ -127,7 +127,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
            &&((GetReceiveTimestampingEnabled()         == false)||(msg()->AddInt64(PR_NAME_DATA_TIMESTAMP,      GetRunTime64()).IsOK())))
          {
             maxBytes = (maxBytes>(uint32)bytesRead.GetByteCount()) ? (maxBytes-bytesRead.GetByteCount()) : 0;
-            receiver.CallMessageReceivedFromGateway(msg);
+            CallMessageReceivedFromGateway(receiver, msg);
          }
       }
       return totalBytesRead;
@@ -164,7 +164,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             if (_recvBufByteOffset == _recvBufLength)
             {
                // This buffer is full... forward it on to the user, and start receiving the next one.
-               receiver.CallMessageReceivedFromGateway(_recvMsgRef);
+               CallMessageReceivedFromGateway(receiver, _recvMsgRef);
                _recvMsgRef.Reset();
 
                return bytesRead+(IsSuggestedTimeSliceExpired() ? io_status_t() : DoInputImplementation(receiver, maxBytes-bytesRead.GetByteCount()));
@@ -195,7 +195,7 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             if (GetReceiveTimestampingEnabled()) MRETURN_ON_ERROR(ref()->AddInt64(PR_NAME_DATA_TIMESTAMP, GetRunTime64()));
             MRETURN_ON_ERROR(ref()->AddData(PR_NAME_DATA_CHUNKS, B_RAW_TYPE, _recvScratchSpace, bytesRead.GetByteCount()));
 
-            receiver.CallMessageReceivedFromGateway(ref);
+            CallMessageReceivedFromGateway(receiver, ref);
 
             // note:  don't recurse here!  It would be bad (tm) on a fast feed since we might never return
          }
