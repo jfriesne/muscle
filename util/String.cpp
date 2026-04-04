@@ -216,9 +216,9 @@ String & String :: operator-=(const char * other)
       {
          const size_t newEndIdx = ((size_t)idx)+otherLen;  // size_t only to avoid "potential overflow" coverity warning
          char * b = GetBuffer();
-         const uint32 len = Length();
+         const size_t len = Length();
          memmove(b+idx, b+newEndIdx, (size_t)(1+len-newEndIdx));
-         SetLength(len-otherLen);
+         SetLength((uint32)(len-otherLen));
       }
    }
    return *this;

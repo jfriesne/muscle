@@ -120,7 +120,7 @@ MessageRef TemplatingMessageIOGateway :: UnflattenHeaderAndMessage(const ConstBy
    const uint32 lhbSize    = lengthWord & ~CREATE_TEMPLATE_BIT;
    if ((offset+lhbSize) != bufRef()->GetNumBytes())
    {
-      LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway %p:  Unexpected lhb size " UINT32_FORMAT_SPEC ", expected " INT32_FORMAT_SPEC "\n", this, lhbSize, bufRef()->GetNumBytes()-offset);
+      LogTime(MUSCLE_LOG_DEBUG, "TemplatingMessageIOGateway %p:  Unexpected lhb size " UINT32_FORMAT_SPEC ", expected " UINT32_FORMAT_SPEC "\n", this, lhbSize, bufRef()->GetNumBytes()-offset);
       return B_BAD_DATA;
    }
 

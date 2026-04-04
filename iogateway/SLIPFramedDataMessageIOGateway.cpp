@@ -30,14 +30,14 @@ io_status_t SLIPFramedDataMessageIOGateway :: DoInputImplementation(AbstractGate
 void SLIPFramedDataMessageIOGateway :: Reset()
 {
    RawDataMessageIOGateway::Reset();
-   ResetAux();
+   ResetAux(true);
 }
 
-void SLIPFramedDataMessageIOGateway :: ResetAux()
+void SLIPFramedDataMessageIOGateway :: ResetAux(bool includeResetPendingMessage)
 {
    _lastReceivedCharWasEscape = false;
    _pendingBuffer.Reset();
-   _pendingMessage.Reset();
+   if (includeResetPendingMessage) _pendingMessage.Reset();
 }
 
 static const uint8 SLIP_END        = 0300;  // yes, octal constants
@@ -124,6 +124,20 @@ status_t SLIPFramedDataMessageIOGateway :: AddPendingByte(uint8 b)
    return _pendingBuffer()->AppendByte(b);
 }
 
+status_t SLIPFramedDataMessageIOGateway :: FlushCurrentIncomingSLIPFrame(const MessageRef & msg)
+{
+   status_t ret;
+   if ((_pendingBuffer())&&(_pendingBuffer()->GetNumBytes() > 0))
+   {
+      if (_pendingMessage() == NULL) _pendingMessage = GetMessageFromPool(msg()->what);
+      if (_pendingMessage()) ret |= _pendingMessage()->AddFlat(PR_NAME_DATA_CHUNKS, _pendingBuffer);
+                        else ret |= _pendingMessage.GetStatus();
+      _pendingBuffer.Reset();
+   }
+
+   return ret;
+}
+
 // This proxy implementation receives raw data from the superclass and SLIP-decodes it, building up a Message full of decoded data to send to our own caller later.
 void SLIPFramedDataMessageIOGateway :: MessageReceivedFromGateway(const MessageRef & msg, void * /*userData*/)
 {
@@ -140,9 +154,10 @@ void SLIPFramedDataMessageIOGateway :: MessageReceivedFromGateway(const MessageR
          {
             switch(b)
             {
-               case SLIP_ESCAPE_END:  ret |= AddPendingByte(SLIP_END); break;
-               case SLIP_ESCAPE_ESC:  ret |= AddPendingByte(SLIP_ESC); break;
-               default:               ret |= AddPendingByte(b);        break;  // protocol violation, but we'll just let the byte through since that is what the reference implementation does
+               case SLIP_END:         ret |= FlushCurrentIncomingSLIPFrame(msg); break;
+               case SLIP_ESCAPE_END:  ret |= AddPendingByte(SLIP_END);           break;
+               case SLIP_ESCAPE_ESC:  ret |= AddPendingByte(SLIP_ESC);           break;
+               default:               ret |= AddPendingByte(b);                  break;  // protocol violation, but we'll just let the byte through since that is what the reference implementation does
             }
             _lastReceivedCharWasEscape = false;
          }
@@ -151,13 +166,7 @@ void SLIPFramedDataMessageIOGateway :: MessageReceivedFromGateway(const MessageR
             switch(b)
             {
                case SLIP_END:
-                  if ((_pendingBuffer())&&(_pendingBuffer()->GetNumBytes() > 0))
-                  {
-                     if (_pendingMessage() == NULL) _pendingMessage = GetMessageFromPool(msg()->what);
-                     if (_pendingMessage()) ret |= _pendingMessage()->AddFlat(PR_NAME_DATA_CHUNKS, _pendingBuffer);
-                                       else ret |= _pendingMessage.GetStatus();
-                     _pendingBuffer.Reset();
-                  }
+                  ret |= FlushCurrentIncomingSLIPFrame(msg);
                break;
 
                case SLIP_ESC:
@@ -174,7 +183,7 @@ void SLIPFramedDataMessageIOGateway :: MessageReceivedFromGateway(const MessageR
          if (ret.IsError())
          {
             LogTime(MUSCLE_LOG_ERROR, "SLIPFramedDataMessageIOGateway:  AddPendingByte() returned [%s]\n", ret());
-            ResetAux();
+            ResetAux(false);
             return;
          }
       }

@@ -42,7 +42,8 @@ protected:
 
 private:
    status_t AddPendingByte(uint8 b);
-   void ResetAux();
+   status_t FlushCurrentIncomingSLIPFrame(const MessageRef & msg);
+   void ResetAux(bool includeResetPendingMessage);
 
    // State used to decode incoming SLIP data
    ByteBufferRef _pendingBuffer;
