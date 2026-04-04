@@ -37,7 +37,7 @@ static unsigned __stdcall StdinThreadEntryFunc(void *)
       Hashtable<uint32, ConstSocketRef> temp;  // declared out here only to avoid reallocations on every loop iteration
       char buf[4096];
       DWORD numBytesRead;
-      while(ReadFile(_stdinHandle, buf, sizeof(buf), &numBytesRead, NULL))
+      while((ReadFile(_stdinHandle, buf, sizeof(buf), &numBytesRead, NULL))&&(numBytesRead > 0))  // if stdin was redirected from a file, ReadFile() returns 0 on EOF
       {
          // Grab a temporary copy of the listeners-set.  That we we don't risk blocking in SendData() while holding the mutex.
          {
@@ -121,7 +121,7 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
          bool threadCreated = false;
          if (_stdinThreadStatus == STDIN_THREAD_STATUS_UNINITIALIZED)
          {
-            DWORD junkThreadID;
+            unsigned junkThreadID;  // unsigned is what _beginthreadex() wants, so
 #if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
             FILE * junkFD = NULL;
 #endif
@@ -131,7 +131,7 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
 #else
                (freopen("nul", "r", stdin) != NULL)
 #endif
-               &&((_slaveThread = (::HANDLE) _beginthreadex(NULL, 0, StdinThreadEntryFunc, NULL, CREATE_SUSPENDED, (unsigned *) &junkThreadID)) != 0)) ? STDIN_THREAD_STATUS_RUNNING : STDIN_THREAD_STATUS_EXITED;
+               &&((_slaveThread = (::HANDLE) _beginthreadex(NULL, 0, StdinThreadEntryFunc, NULL, CREATE_SUSPENDED, &junkThreadID)) != 0)) ? STDIN_THREAD_STATUS_RUNNING : STDIN_THREAD_STATUS_EXITED;
             threadCreated = (_stdinThreadStatus == STDIN_THREAD_STATUS_RUNNING);
          }
 
@@ -181,15 +181,15 @@ io_status_t StdinDataIO :: Read(void * buffer, uint32 size)
 #ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
    if (_stdinBlocking)
    {
-      DWORD actual_read;
-      return ReadFile(GetStdHandle(STD_INPUT_HANDLE), buffer, size, &actual_read, 0) ? io_status_t(actual_read) : io_status_t(B_END_OF_STREAM);
+      DWORD numBytesRead;
+      return ((ReadFile(GetStdHandle(STD_INPUT_HANDLE), buffer, size, &numBytesRead, 0))&&(numBytesRead > 0)) ? io_status_t(numBytesRead) : io_status_t(B_END_OF_STREAM);
    }
    else return ReceiveData(_masterSocket, buffer, size, _stdinBlocking);
 #else
    // Turn off stdin's blocking I/O mode only during the Read() call.
-   if (_stdinBlocking == false) (void) _fdIO.SetBlockingIOEnabled(false);
+   if (_stdinBlocking == false) MLOG_ON_ERROR("SetBlockingIOEnabled(false)", _fdIO.SetBlockingIOEnabled(false));
    const io_status_t ret = _fdIO.Read(buffer, size);
-   if (_stdinBlocking == false) (void) _fdIO.SetBlockingIOEnabled(true);
+   if (_stdinBlocking == false) MLOG_ON_ERROR("SetBlockingIOEnabled(true)", _fdIO.SetBlockingIOEnabled(true));
    return ret;
 #endif
 }

@@ -13,12 +13,16 @@ SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking,
    , _isServer(accept)
    , _sslState(0)
    , _forceReadReady(false)
+   , _ctx(NULL)
+   , _ssl(NULL)
 {
    status_t ret;
    bool ok = false;
    ConstSocketRef tempSocket;  // yes, it's intentional that this socket will be closed as soon as we exit this scope
    if (CreateConnectedSocketPair(tempSocket, _alwaysReadableSocket).IsOK(ret))
    {
+      char errBuf[256];  // ERR_error_string() docs require this buffer to be at least 256 bytes long
+
       _ctx = SSL_CTX_new(TLS_method());
       if (_ctx)
       {
@@ -27,7 +31,7 @@ SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking,
          _ssl = SSL_new(_ctx);
          if (_ssl)
          {
-            if (SSL_set_ex_data(_ssl, 0, this) > 0)
+            if (SSL_set_ex_data(_ssl, 0, this) == 1)
             {
                BIO * sbio = BIO_new_socket(sockfd.GetFileDescriptor(), BIO_NOCLOSE);
                if (sbio)
@@ -44,9 +48,9 @@ SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking,
             }
             else LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO:  SSL_CTX_set_ex_data() failed!\n");
          }
-         else LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO:  SSL_new() failed!\n");
+         else LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO:  SSL_new() failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
       }
-      else LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO:  SSL_CTX_new() failed!\n");
+      else LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO:  SSL_CTX_new() failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
    }
    else LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO:  Error setting up dummy socket pair! [%s]\n", ret());
 
