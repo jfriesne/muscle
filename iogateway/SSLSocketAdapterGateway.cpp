@@ -50,12 +50,16 @@ uint64 SSLSocketAdapterGateway :: GetOutputStallLimit() const
 
 void SSLSocketAdapterGateway :: Shutdown()
 {
+   AbstractMessageIOGateway::Shutdown();
    if (_slaveGateway()) _slaveGateway()->Shutdown();
 }
 
 void SSLSocketAdapterGateway :: Reset()
 {
+   AbstractMessageIOGateway::Reset();
    if (_slaveGateway()) _slaveGateway()->Reset();
+   _sslMessages.GetMessages().Clear();
+   SetSSLForceReadReady(false);
 }
 
 io_status_t SSLSocketAdapterGateway :: DoOutputImplementation(uint32 maxBytes)

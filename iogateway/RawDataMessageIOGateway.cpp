@@ -114,10 +114,9 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
       while(maxBytes > 0)
       {
          ByteBufferRef bufRef = GetByteBufferFromPool(mtuSize);
-         MRETURN_ON_ERROR(bufRef);
 
          IPAddressAndPort packetSource;
-         const io_status_t bytesRead = GetPacketDataIO()->ReadFrom(bufRef()->GetBuffer(), mtuSize, packetSource);
+         const io_status_t bytesRead = bufRef() ? GetPacketDataIO()->ReadFrom(bufRef()->GetBuffer(), mtuSize, packetSource) : bufRef.GetStatus();
          MTALLY_BYTES_OR_RETURN_ON_ERROR_OR_BREAK(totalBytesRead, bytesRead);
 
          bufRef()->TruncateToLength(bytesRead.GetByteCount());

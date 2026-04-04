@@ -193,7 +193,7 @@ String & String :: operator-=(const String & other)
       const int idx = LastIndexOf(other);
       if (idx >= 0)
       {
-         const uint64 newEndIdx = ((uint64)idx)+other.Length();  // uint64 only to avoid "potential overflow" coverity warning
+         const size_t newEndIdx = ((size_t)idx)+other.Length();  // size_t only to avoid "potential overflow" coverity warning
          if (newEndIdx < MUSCLE_NO_LIMIT)  // paranoia
          {
             char * b = GetBuffer();
@@ -208,16 +208,16 @@ String & String :: operator-=(const String & other)
 
 String & String :: operator-=(const char * other)
 {
-   const int otherLen = ((other)&&(*other)) ? (int)strlen(other) : 0;
+   const size_t otherLen = ((other)&&(*other)) ? strlen(other) : 0;
    if (otherLen > 0)
    {
       const int idx = LastIndexOf(other);
       if (idx >= 0)
       {
-         const uint32 newEndIdx = idx+otherLen;
+         const size_t newEndIdx = ((size_t)idx)+otherLen;  // size_t only to avoid "potential overflow" coverity warning
          char * b = GetBuffer();
          const uint32 len = Length();
-         memmove(b+idx, b+newEndIdx, 1+len-newEndIdx);
+         memmove(b+idx, b+newEndIdx, (size_t)(1+len-newEndIdx));
          SetLength(len-otherLen);
       }
    }
