@@ -98,6 +98,8 @@ key:  - new feature
      and SetMessageUnflattenedCallback() methods from the MessageIOGateway class,
      as they weren't being used anywhere and there are better ways to implement
      their functionality using virtual methods anyway.
+   o Changed MessageIOGateway::GetBodySize() to return a status_t instead of
+     an int32 so that sizes >2GB can be returned (via a uint32 out-parameter)
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to

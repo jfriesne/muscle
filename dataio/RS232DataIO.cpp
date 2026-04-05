@@ -81,7 +81,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
                   _ovWait.hEvent  = CreateEvent(0, true, false, 0);
                   _ovRead.hEvent  = CreateEvent(0, true, false, 0);
                   _ovWrite.hEvent = CreateEvent(0, true, false, 0);
-                  if ((_wakeupSignal != INVALID_HANDLE_VALUE)&&(_ovWait.hEvent != INVALID_HANDLE_VALUE)&&(_ovRead.hEvent != INVALID_HANDLE_VALUE)&&(_ovWrite.hEvent != INVALID_HANDLE_VALUE)&&(CreateConnectedSocketPair(_masterNotifySocket, _slaveNotifySocket, false).IsOK()))
+                  if ((_wakeupSignal != NULL)&&(_ovWait.hEvent != NULL)&&(_ovRead.hEvent != NULL)&&(_ovWrite.hEvent != NULL)&&(CreateConnectedSocketPair(_masterNotifySocket, _slaveNotifySocket, false).IsOK()))
                   {
                      DWORD junkThreadID;
                      typedef unsigned (__stdcall *PTHREAD_START) (void *);

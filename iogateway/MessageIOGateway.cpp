@@ -47,7 +47,7 @@ MessageIOGateway :: MessageIOGateway(int32 encoding)
    , _sendCodec(NULL)
    , _recvCodec(NULL)
    , _syncPingCounter(0)
-   , _pendingSyncPingCounter(-1)
+   , _pendingSyncPingCounter((uint32)-1)
 {
    (void) _sendCodec;  // these are just here to avoid a "private field is not used"
    (void) _recvCodec;  // compiler-warning when -DMUSCLE_ENABLE_ZLIB_ENCODING isn't defined
@@ -120,9 +120,13 @@ DoOutputImplementation(uint32 maxBytes)
                _sendBuffer._buffer = FlattenHeaderAndMessageAux(nextRef);
 
                // Restore the PR_NAME_PACKET_REMOTE_LOCATION field, since we're not supposed to be modifying any Messages
-               if (movedPRL) (void) _scratchPacketMessage.MoveName(PR_NAME_PACKET_REMOTE_LOCATION, *nextRef());
+               if (movedPRL) MRETURN_ON_ERROR(_scratchPacketMessage.MoveName(PR_NAME_PACKET_REMOTE_LOCATION, *nextRef()));
 
-               if (_sendBuffer._buffer() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); return B_OUT_OF_MEMORY;}
+               if (_sendBuffer._buffer() == NULL)
+               {
+                  SetUnrecoverableErrorStatus(_sendBuffer._buffer.GetStatus());
+                  return _sendBuffer._buffer.GetStatus();
+               }
 
 #ifdef DELIBERATELY_INJECT_ERRORS_INTO_OUTGOING_MESSAGE_FOR_TESTING_ONLY_DONT_ENABLE_THIS_UNLESS_YOU_LIKE_CHAOS
  const uint32 hs = GetHeaderSize();
@@ -195,9 +199,9 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
    TCHECKPOINT;
 
    const uint32 mtuSize = GetMaximumPacketSize();
-   const uint32 hs = GetHeaderSize();
-   bool firstTime = true;  // always go at least once, to avoid live-lock
-   uint32 readBytes = 0;
+   const uint32 hs      = GetHeaderSize();
+   bool firstTime       = true;  // always go at least once, to avoid live-lock
+   uint32 readBytes     = 0;
    while((maxBytes > 0)&&(GetUnrecoverableErrorStatus().IsOK())&&((firstTime)||(IsSuggestedTimeSliceExpired() == false)))
    {
       firstTime = false;
@@ -261,25 +265,35 @@ DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes
             if (_recvBuffer._offset >= hs)  // how about now?
             {
                // Now that we have the full header, parse it and allocate space for the message-body-bytes per its instructions
-               const int32 bodySize = GetBodySize(bb->GetBuffer());
-               if ((bodySize >= 0)&&(((uint32)bodySize) <= _maxIncomingMessageSize))
+               uint32 bodySize = 0;
+               const status_t bsRet = GetBodySize(bb->GetBuffer(), bodySize);
+               if (bsRet.IsOK())
                {
-                  const int32 availableBodyBytes = bb->GetNumBytes()-hs;
-                  if (bodySize <= availableBodyBytes) bb->TruncateToLength(hs+bodySize);  // trim off any extra space we don't need
+                  if (bodySize <= _maxIncomingMessageSize)
+                  {
+                     const uint32 availableBodyBytes = (bb->GetNumBytes() > hs) ? (bb->GetNumBytes()-hs) : 0;
+                     if (bodySize <= availableBodyBytes) bb->TruncateToLength(hs+bodySize);  // trim off any extra space we don't need
+                     else
+                     {
+                        // Oops, the Message body is greater than our buffer has bytes to store!  We're going to need a bigger buffer!
+                        ByteBufferRef bigBuf = GetByteBufferFromPool(hs+bodySize);
+                        if (bigBuf() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); break;}
+                        memcpy(bigBuf()->GetBuffer(), bb->GetBuffer(), hs);  // copy over the received header bytes to the big buffer now
+                        _recvBuffer._buffer = bigBuf;
+                        bb = bigBuf();
+                     }
+                  }
                   else
                   {
-                     // Oops, the Message body is greater than our buffer has bytes to store!  We're going to need a bigger buffer!
-                     ByteBufferRef bigBuf = GetByteBufferFromPool(hs+bodySize);
-                     if (bigBuf() == NULL) {SetUnrecoverableErrorStatus(B_OUT_OF_MEMORY); break;}
-                     memcpy(bigBuf()->GetBuffer(), bb->GetBuffer(), hs);  // copy over the received header bytes to the big buffer now
-                     _recvBuffer._buffer = bigBuf;
-                     bb = bigBuf();
+                     LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  bodySize " UINT32_FORMAT_SPEC " is out of range, limit is " UINT32_FORMAT_SPEC "\n", this, bodySize, _maxIncomingMessageSize);
+                     SetUnrecoverableErrorStatus(B_BAD_DATA);
+                     break;
                   }
                }
                else
                {
-                  LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  bodySize " INT32_FORMAT_SPEC " is out of range, limit is " UINT32_FORMAT_SPEC "\n", this, bodySize, _maxIncomingMessageSize);
-                  SetUnrecoverableErrorStatus(B_BAD_DATA);
+                  LogTime(MUSCLE_LOG_DEBUG, "MessageIOGateway %p:  GetBodySize() returned [%s]\n", this, bsRet());
+                  SetUnrecoverableErrorStatus(bsRet);
                   break;
                }
             }
@@ -404,7 +418,7 @@ FlattenHeaderAndMessage(const MessageRef & msgRef) const
                   encoding = MUSCLE_MESSAGE_ENCODING_ZLIB_1+enc->GetCompressionLevel()-1;
                   ret = std_move_if_available(compressedRef);
                }
-               else ret.Reset();  // uh oh, the compressor failed
+               else ret = B_ZLIB_ERROR;  // uh oh, the compressor failed
             }
          }
 #endif
@@ -474,7 +488,7 @@ MessageRef MessageIOGateway :: UnflattenHeaderAndMessage(const ConstByteBufferRe
 }
 
 // Returns the size of the pre-flattened-message header section, in bytes.
-// The default format has an 8-byte header (4 bytes for encoding ID, 4 bytes for message length)
+// The default format has an 8-byte header (4 bytes for message length, 4 bytes for encoding-type)
 uint32
 MessageIOGateway ::
 GetHeaderSize() const
@@ -482,11 +496,16 @@ GetHeaderSize() const
    return 2 * sizeof(uint32);  // one long for the encoding ID, and one long for the body length
 }
 
-int32
+status_t
 MessageIOGateway ::
-GetBodySize(const uint8 * headerBuf) const
+GetBodySize(const uint8 * headerBuf, uint32 & retNumBytes) const
 {
-   return muscleInRange(DefaultEndianConverter::Import<uint32>(&headerBuf[1*sizeof(uint32)]), (uint32)MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32)MUSCLE_MESSAGE_ENCODING_END_MARKER-1) ? DefaultEndianConverter::Import<uint32>(&headerBuf[0*sizeof(uint32)]) : -1;
+   if (muscleInRange(DefaultEndianConverter::Import<uint32>(&headerBuf[1*sizeof(uint32)]), (uint32)MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32)MUSCLE_MESSAGE_ENCODING_END_MARKER-1))
+   {
+      retNumBytes = DefaultEndianConverter::Import<uint32>(&headerBuf[0*sizeof(uint32)]);
+      return B_NO_ERROR;
+   }
+   else return B_BAD_DATA;
 }
 
 bool
@@ -532,25 +551,25 @@ status_t MessageIOGateway :: ExecuteSynchronousMessaging(AbstractGatewayMessageR
    MRETURN_ON_ERROR(AddOutgoingMessage(pingMsg));
 
    _pendingSyncPingCounter = _syncPingCounter;
-   _syncPingCounter++;
+   if (++_syncPingCounter == (uint32)-1) _syncPingCounter = 0;
    const status_t ret =  AbstractMessageIOGateway::ExecuteSynchronousMessaging(optReceiver, timeoutPeriod);
-   _pendingSyncPingCounter = -1;  // in case we were in _noRPCReply mode and so it never got cleared by any PR_RESULT_PONG handler
+   _pendingSyncPingCounter = (uint32)-1;  // in case we were in _noRPCReply mode and so it never got cleared by any PR_RESULT_PONG handler
    return ret;
 }
 
 void MessageIOGateway :: SynchronousMessageReceivedFromGateway(const MessageRef & msg, void * userData, AbstractGatewayMessageReceiver & r)
 {
-   if ((_pendingSyncPingCounter >= 0)&&(IsSynchronousPongMessage(msg, _pendingSyncPingCounter)))
+   if ((_pendingSyncPingCounter != (uint32)-1)&&(IsSynchronousPongMessage(msg, _pendingSyncPingCounter)))
    {
       // Yay, we found our pong Message, so we are no longer waiting for one.
-      _pendingSyncPingCounter = -1;
+      _pendingSyncPingCounter = (uint32)-1;
    }
    else AbstractMessageIOGateway::SynchronousMessageReceivedFromGateway(msg, userData, r);
 }
 
 bool MessageIOGateway :: IsSynchronousPongMessage(const MessageRef & msg, uint32 pendingSyncPingCounter) const
 {
-   return ((msg())&&(msg()->what == PR_RESULT_PONG)&&((uint32)msg()->GetInt32("_miosp", -1) == pendingSyncPingCounter));
+   return ((msg())&&(msg()->what == PR_RESULT_PONG)&&((uint32) msg()->GetInt32("_miosp", -1) == pendingSyncPingCounter));
 }
 
 MessageRef MessageIOGateway :: ExecuteSynchronousMessageRPCCall(const Message & requestMessage, const IPAddressAndPort & targetIAP, uint64 timeoutPeriod)
@@ -604,7 +623,7 @@ status_t MessageIOGateway :: ExecuteSynchronousMessageSend(const Message & reque
       TCPSocketDataIO tsdio(s, false);
       SetDataIO(DummyDataIORef(tsdio));
       QueueGatewayMessageReceiver receiver;
-      if (AddOutgoingMessage(DummyMessageRef(const_cast<Message &>(requestMessage))).IsOK())
+      if (AddOutgoingMessage(DummyMessageRef(const_cast<Message &>(requestMessage))).IsOK(ret))
       {
          NestCountGuard ncg(_noRPCReply);  // so that we'll return as soon as we've sent the request Message, and not wait for a reply Message.
          ret = ExecuteSynchronousMessaging(&receiver, timeoutPeriod);

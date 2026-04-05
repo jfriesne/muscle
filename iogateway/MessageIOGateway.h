@@ -188,13 +188,13 @@ protected:
     * Must Extract and returns the buffer body size from the given header.
     * Note that the returned size should NOT count the header bytes themselves!
     * @param header Points to the header of the message.  The header is GetHeaderSize() bytes long.
-    * @return The number of bytes in the body of the message associated with (header), on success,
-    *         or a negative value to indicate an error (invalid header, etc).
+    * @param retNumBytes On success, the extracted size of the Message-body (in bytes) must be returned here.
+    * @return B_NO_ERROR on success, or an error (like B_BAD_DATA) to indicate an error (invalid header, etc).
     */
-   MUSCLE_NODISCARD virtual int32 GetBodySize(const uint8 * header) const;
+   virtual status_t GetBodySize(const uint8 * header, uint32 & retNumBytes) const;
 
    /** Overridden to return true until our PONG Message is received back */
-   MUSCLE_NODISCARD virtual bool IsStillAwaitingSynchronousMessagingReply() const {return _noRPCReply.IsInBatch() ? HasBytesToOutput() : (_pendingSyncPingCounter >= 0);}
+   MUSCLE_NODISCARD virtual bool IsStillAwaitingSynchronousMessagingReply() const {return _noRPCReply.IsInBatch() ? HasBytesToOutput() : (_pendingSyncPingCounter != ((uint32)-1));}
 
    /** Overridden to filter out our PONG Message and pass everything else on to (r).
      * @param msg the Message that was received
@@ -294,8 +294,8 @@ private:
    mutable ZLibCodec * _recvCodec;
 
    NestCount _noRPCReply;
-   int32 _syncPingCounter;
-   int32 _pendingSyncPingCounter;
+   uint32 _syncPingCounter;
+   uint32 _pendingSyncPingCounter;
 
    DECLARE_COUNTED_OBJECT(MessageIOGateway);
 };

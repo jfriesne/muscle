@@ -17,11 +17,17 @@ TemplatingMessageIOGateway :: TemplatingMessageIOGateway(uint32 maxLRUCacheSizeB
 static const uint32 CREATE_TEMPLATE_BIT  = (((uint32)1)<<31);  // if the high-bit is set in the length-word, that means the receiver should use the buffer's Message to create a template
 static const uint32 PAYLOAD_ENCODING_BIT = (((uint32)1)<<31);  // if the high-bit is set in the encoding-word, that means the receiver should interpret the buffer as payload-only and not as a flattened Message
 
-int32 TemplatingMessageIOGateway :: GetBodySize(const uint8 * headerBuf) const
+status_t TemplatingMessageIOGateway :: GetBodySize(const uint8 * headerBuf, uint32 & retNumBytes) const
 {
    const uint32 bodySize = DefaultEndianConverter::Import<uint32>(&headerBuf[0*sizeof(uint32)]) & ~CREATE_TEMPLATE_BIT;
    const uint32 encoding = DefaultEndianConverter::Import<uint32>(&headerBuf[1*sizeof(uint32)]) & ~PAYLOAD_ENCODING_BIT;
-   return muscleInRange(encoding, (uint32)MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32)(MUSCLE_MESSAGE_ENCODING_END_MARKER-1)) ? (int32)bodySize : (int32)-1;
+
+   if (muscleInRange(encoding, (uint32)MUSCLE_MESSAGE_ENCODING_DEFAULT, (uint32)(MUSCLE_MESSAGE_ENCODING_END_MARKER-1)))
+   {
+      retNumBytes = bodySize;
+      return B_NO_ERROR;
+   }
+   else return B_BAD_DATA;
 }
 
 ByteBufferRef TemplatingMessageIOGateway :: FlattenHeaderAndMessage(const MessageRef & msgRef) const

@@ -266,7 +266,7 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                      {
                         // For non-blocking, we must have a separate proxy thread do the I/O for us :^P
                         _wakeupSignal = CreateEvent(0, false, false, 0);
-                             if (_wakeupSignal == INVALID_HANDLE_VALUE) ret = B_ERRNO;
+                             if (_wakeupSignal == NULL) ret = B_ERRNO;
                         else if (CreateConnectedSocketPair(_masterNotifySocket, _slaveNotifySocket, false).IsOK(ret))
                         {
                            DWORD junkThreadID;
@@ -373,7 +373,8 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
       // Close any file descriptors leftover from the parent process
       if (launchFlags.IsBitSet(CHILD_PROCESS_LAUNCH_FLAG_INHERIT_FDS) == false)
       {
-         const int fdlimit = (int)sysconf(_SC_OPEN_MAX);
+         int fdlimit = (int)sysconf(_SC_OPEN_MAX);
+         if (fdlimit < 0) fdlimit = 4096;  // fallback to a reasonable constant
          for (int i=STDERR_FILENO+1; i<fdlimit; i++) close(i);
       }
 

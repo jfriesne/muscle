@@ -47,7 +47,7 @@ public:
 protected:
    virtual ByteBufferRef FlattenHeaderAndMessage(const MessageRef & msgRef) const;
    virtual MessageRef UnflattenHeaderAndMessage(const ConstByteBufferRef & bufRef) const;
-   MUSCLE_NODISCARD virtual int32 GetBodySize(const uint8 * header) const;
+   virtual status_t GetBodySize(const uint8 * header, uint32 & retNumBytes) const;
 
    /** Should return true iff the given outgoing Message is something we should attempt
      * to send using our templatization mechanism.  Default implementation always returns true.

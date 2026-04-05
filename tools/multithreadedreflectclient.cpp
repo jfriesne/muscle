@@ -121,7 +121,7 @@ int main(int argc, char ** argv)
 #ifdef TEST_WIN32CALLBACKMECHANISM
    // Just to test the Win32-specific callback mechanism (SocketCallbackMechanism would also work under Windows)
    ::HANDLE eventHandle = CreateEvent(0, false, false, 0);
-   if (eventHandle == INVALID_HANDLE_VALUE)
+   if (eventHandle == NULL)
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "CreateEvent() failed!\n");
       return 10;
