@@ -2011,7 +2011,7 @@ void StorageReflectSession :: AddApplicationSpecificParametersToParametersResult
    (void) msg;
 }
 
-void StorageReflectSession :: TallyNodeBytes(const DataNode & n, uint32 & retNumNodes, uint32 & retNodeBytes) const
+void StorageReflectSession :: TallyNodeBytes(const DataNode & n, uint64 & retNumNodes, uint64 & retNodeBytes) const
 {
    retNumNodes++;
    const Message * msg = n.GetData()();
@@ -2020,7 +2020,7 @@ void StorageReflectSession :: TallyNodeBytes(const DataNode & n, uint32 & retNum
    for (DataNodeRefIterator iter = n.GetChildIterator(); iter.HasData(); iter++) TallyNodeBytes(*iter.GetValue()(), retNumNodes, retNodeBytes);
 }
 
-void StorageReflectSession :: TallySubscriberTablesInfo(uint32 & retNumCachedSubscriberTables, uint32 & tallyNumNodes, uint32 & tallyNumNodeBytes) const
+void StorageReflectSession :: TallySubscriberTablesInfo(uint32 & retNumCachedSubscriberTables, uint64 & tallyNumNodes, uint64 & tallyNumNodeBytes) const
 {
    retNumCachedSubscriberTables = muscleMax(retNumCachedSubscriberTables, _sharedData->_cachedSubscribersTables.GetNumCachedItems());
 

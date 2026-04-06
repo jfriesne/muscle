@@ -56,15 +56,19 @@ status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message
         if (JAF_PyInt_Check(pyValue)) ret = msg.AddInt32( fname(optKey, "_argInt32"),  PyInt_AS_LONG(pyValue));
    else
 #endif
-        if (PyLong_Check   (pyValue)) ret = msg.AddInt64( fname(optKey, "_argInt64"),  PyLong_AsLongLong(pyValue));
-   else if (PyFloat_Check  (pyValue)) ret = msg.AddFloat( fname(optKey, "_argFloat"),  (float)PyFloat_AsDouble(pyValue));
+   if (PyLong_Check(pyValue))
+   {
+      const long long r = PyLong_AsLongLong(pyValue);
+      ret = ((r == -1)&&(PyErr_Occurred())) ? B_BAD_ARGUMENT : msg.AddInt64(fname(optKey, "_argInt64"), r);
+   }
+   else if (PyFloat_Check    (pyValue)) ret = msg.AddFloat( fname(optKey, "_argFloat"),  (float)PyFloat_AsDouble(pyValue));
 #if PY_MAJOR_VERSION < 3
-   else if (PyString_Check (pyValue)) ret = msg.AddString(fname(optKey, "_argString"), PyString_AsString(pyValue));
+   else if (PyString_Check   (pyValue)) ret = msg.AddString(fname(optKey, "_argString"), PyString_AsString(pyValue));
 #else
-   else if (PyByteArray_Check(pyValue)) ret = msg.AddData(fname(optKey, "_argBlob"),   B_RAW_TYPE, PyByteArray_AS_STRING(pyValue), (uint32) PyByteArray_GET_SIZE(pyValue));
+   else if (PyByteArray_Check(pyValue)) ret = msg.AddData(  fname(optKey, "_argBlob"),   B_RAW_TYPE, PyByteArray_AS_STRING(pyValue), (uint32) PyByteArray_GET_SIZE(pyValue));
 #endif
-   else if (PyComplex_Check(pyValue)) ret = msg.AddPoint( fname(optKey, "_argPoint"),  Point((float)PyComplex_RealAsDouble(pyValue), (float)PyComplex_ImagAsDouble(pyValue)));
-   else if (PyUnicode_Check(pyValue))
+   else if (PyComplex_Check  (pyValue)) ret = msg.AddPoint( fname(optKey, "_argPoint"),  Point((float)PyComplex_RealAsDouble(pyValue), (float)PyComplex_ImagAsDouble(pyValue)));
+   else if (PyUnicode_Check  (pyValue))
    {
       PyObject * utf8 = PyUnicode_AsUTF8String(pyValue);
       if (utf8)
@@ -84,7 +88,8 @@ status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message
       MessageRef subMsg = GetMessageFromPool();
       if (subMsg())
       {
-         if (msg.AddMessage(fname(optKey, "_argMessage"), subMsg).IsOK()) ret = ParsePythonDictionary(pyValue, *subMsg());
+         ret = ParsePythonDictionary(pyValue, *subMsg());
+         if (ret.IsOK()) ret = msg.AddMessage(fname(optKey, "_argMessage"), subMsg);
       }
       else ret = subMsg.GetStatus();
    }
@@ -93,7 +98,8 @@ status_t AddPyObjectToMessage(const String & optKey, PyObject * pyValue, Message
       MessageRef subMsg = GetMessageFromPool();
       if (subMsg())
       {
-         if (msg.AddMessage(fname(optKey, "_argMessage"), subMsg).IsOK()) ret = ParsePythonSequence(pyValue, *subMsg());
+         ret = ParsePythonSequence(pyValue, *subMsg());
+         if (ret.IsOK()) ret = msg.AddMessage(fname(optKey, "_argMessage"), subMsg);
       }
       else ret = subMsg.GetStatus();
    }
@@ -104,6 +110,7 @@ static status_t ParsePythonSequence(PyObject * args, Message & msg)
 {
    msg.what = MESSAGE_PYTHON_LIST;
    const int seqLen = (int) PySequence_Length(args);
+   if (seqLen < 0) return B_BAD_ARGUMENT;
 
    status_t ret;
    for (int i=0; i<seqLen; i++)
@@ -144,8 +151,9 @@ static status_t ParsePythonDictionary(PyObject * keywords, Message & msg)
                   PyObject * utf8 = PyUnicode_AsUTF8String(key);
                   if (utf8)
                   {
-                     if (AddPyObjectToMessage(PyBytes_AS_STRING(utf8), value, msg).IsError(ret)) break;
-                     Py_DECREF(utf8);
+                     const status_t r = AddPyObjectToMessage(PyBytes_AS_STRING(utf8), value, msg);
+                     Py_DECREF(utf8); // do this in all cases
+                     if (r.IsError(ret)) break;
                   }
                   else
                   {
@@ -162,8 +170,12 @@ static status_t ParsePythonDictionary(PyObject * keywords, Message & msg)
 
          Py_DECREF(values);
       }
+      else ret = B_BAD_ARGUMENT;
+
       Py_DECREF(keys);
    }
+   else ret = B_BAD_ARGUMENT;
+
    return ret;
 }
 
@@ -172,7 +184,6 @@ status_t ParsePythonArgs(PyObject * args, PyObject * keywords, Message & msg)
    status_t ret = B_NO_ERROR;
    if ((ret.IsOK())&&(args)    &&(PySequence_Check(args))) ret = ParsePythonSequence(args, msg);
    if ((ret.IsOK())&&(keywords)&&(PyDict_Check(keywords))) ret = ParsePythonDictionary(keywords, msg);
-   if (ret.IsError()) PyErr_SetString(PyExc_RuntimeError, "Error parsing args into Message format");
    return ret;
 }
 
@@ -277,12 +288,12 @@ PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fiel
                PyObject * ret = (subMsg()->what == MESSAGE_PYTHON_LIST) ? PyList_New(0) : PyDict_New();
                if (ret)
                {
-                  for (MessageFieldNameIterator iter(*subMsg(), B_ANY_TYPE, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
+                  for (MessageFieldNameIterator iter(*subMsg(), B_ANY_TYPE, HTIT_FLAG_NOREGISTER); ((iter.HasData())&&(didSetError == false)); iter++)
                   {
-                     uint32 j = 0;
-                     while(didSetError == false)
+                     const uint32 numValues = subMsg()->GetNumValuesInName(iter.GetFieldName());
+                     for (uint32 j=0; (j<numValues)&&(didSetError == false); j++)
                      {
-                        PyObject * sub = ConvertMessageItemToPyObject(*subMsg(), iter.GetFieldName(), j++);
+                        PyObject * sub = ConvertMessageItemToPyObject(*subMsg(), iter.GetFieldName(), j);
                         if (sub)
                         {
                            if (subMsg()->what == MESSAGE_PYTHON_LIST)
@@ -296,7 +307,11 @@ PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fiel
 
                            Py_DECREF(sub);  // since we created (sub), we have to decrement our reference to it when we're done with it
                         }
-                        else break;
+                        else
+                        {
+                           didSetError = true;
+                           break;
+                        }
                      }
                   }
 
@@ -305,6 +320,7 @@ PyObject * ConvertMessageItemToPyObject(const Message & msg, const String & fiel
                      Py_DECREF(ret);
                      ret = NULL;
                   }
+
                   return ret;
                }
                else didSetError = true;  // PyList_New() and PyDict_New() will set an error if they fail

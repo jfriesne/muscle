@@ -516,7 +516,7 @@ PrintFactoriesInfo(const OutputPrinter & p) const
 
 void
 AbstractReflectSession ::
-TallySubscriberTablesInfo(uint32 & retNumCachedSubscriberTables, uint32 & tallyNumNodes, uint32 & tallyNumNodeBytes) const
+TallySubscriberTablesInfo(uint32 & retNumCachedSubscriberTables, uint64 & tallyNumNodes, uint64 & tallyNumNodeBytes) const
 {
    (void) retNumCachedSubscriberTables;
    (void) tallyNumNodes;
@@ -532,16 +532,17 @@ PrintSessionsInfo(const OutputPrinter & p) const
    p.printf("There are " UINT32_FORMAT_SPEC " sessions attached:\n", t.GetNumItems());
 
    const uint64 now = GetRunTime64();
-   uint32 totalNumCachedSubscribersTables = 0, totalNumOutMessages = 0, totalNumOutBytes = 0, totalNumNodes = 0, totalNumNodeBytes = 0;
+   uint64 totalNumCachedSubscribersTables = 0, totalNumOutMessages = 0, totalNumOutBytes = 0, totalNumNodes = 0, totalNumNodeBytes = 0;
    for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(t); iter.HasData(); iter++)
    {
       AbstractReflectSession * ars = iter.GetValue()();
       if (ars == NULL) continue;  // semi-paranoia
 
-      uint32 numCachedSubscribersTables = 0, numNodes = 0, numNodeBytes = 0;
+      uint32 numCachedSubscribersTables = 0;
+      uint64 numNodes = 0, numNodeBytes = 0;
       ars->TallySubscriberTablesInfo(numCachedSubscribersTables, numNodes, numNodeBytes);
 
-      uint32 numOutMessages = 0, numOutBytes = 0;
+      uint64 numOutMessages = 0, numOutBytes = 0;
       const AbstractMessageIOGateway * gw = ars->GetGateway()();
       if (gw)
       {
@@ -561,7 +562,7 @@ PrintSessionsInfo(const OutputPrinter & p) const
       if (ars->GetMostRecentOutputTimeStamp() != MUSCLE_TIME_NEVER) stateStr = stateStr.WithAppendedWord(String("LastOutput: %1 ago").Arg(GetHumanReadableSignedTimeIntervalString(now-ars->GetMostRecentOutputTimeStamp(), 1)), ", ");
       if (stateStr.HasChars()) stateStr = stateStr.WithPrepend(", ");
 
-      p.printf("  Session [%s] (rfd=%i,wfd=%i) is [%s]:  (" UINT32_FORMAT_SPEC " outgoing Messages, " UINT32_FORMAT_SPEC " Message-bytes, " UINT32_FORMAT_SPEC " tables, " UINT32_FORMAT_SPEC " nodes, " UINT32_FORMAT_SPEC " node-bytes%s)\n", iter.GetKey()->Cstr(), ars->GetSessionReadSelectSocket().GetFileDescriptor(), ars->GetSessionWriteSelectSocket().GetFileDescriptor(), ars->GetSessionDescriptionString()(), numOutMessages, numOutBytes, numCachedSubscribersTables, numNodes, numNodeBytes, stateStr());
+      p.printf("  Session [%s] (rfd=%i,wfd=%i) is [%s]:  (" UINT64_FORMAT_SPEC " outgoing Messages, " UINT64_FORMAT_SPEC " Message-bytes, " UINT32_FORMAT_SPEC " tables, " UINT64_FORMAT_SPEC " nodes, " UINT64_FORMAT_SPEC " node-bytes%s)\n", iter.GetKey()->Cstr(), ars->GetSessionReadSelectSocket().GetFileDescriptor(), ars->GetSessionWriteSelectSocket().GetFileDescriptor(), ars->GetSessionDescriptionString()(), numOutMessages, numOutBytes, numCachedSubscribersTables, numNodes, numNodeBytes, stateStr());
       totalNumCachedSubscribersTables += numCachedSubscribersTables;
       totalNumOutMessages             += numOutMessages;
       totalNumOutBytes                += numOutBytes;
@@ -569,7 +570,7 @@ PrintSessionsInfo(const OutputPrinter & p) const
       totalNumNodeBytes               += numNodeBytes;
    }
    p.printf("------------------------------------------------------------\n");
-   p.printf("Totals: " UINT32_FORMAT_SPEC " outgoing Messages, " UINT32_FORMAT_SPEC " Message-bytes, " UINT32_FORMAT_SPEC " tables, " UINT32_FORMAT_SPEC " nodes, " UINT32_FORMAT_SPEC " node-bytes.\n", totalNumOutMessages, totalNumOutBytes, totalNumCachedSubscribersTables, totalNumNodes, totalNumNodeBytes);
+   p.printf("Totals: " UINT64_FORMAT_SPEC " outgoing Messages, " UINT64_FORMAT_SPEC " Message-bytes, " UINT64_FORMAT_SPEC " tables, " UINT64_FORMAT_SPEC " nodes, " UINT64_FORMAT_SPEC " node-bytes.\n", totalNumOutMessages, totalNumOutBytes, totalNumCachedSubscribersTables, totalNumNodes, totalNumNodeBytes);
 }
 
 } // end namespace muscle

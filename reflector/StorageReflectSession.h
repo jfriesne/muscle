@@ -531,7 +531,7 @@ protected:
    DECLARE_MUSCLE_TRAVERSAL_CALLBACK(StorageReflectSession, PassMessageCallback);    /** Matching nodes are sent the given message.  */
 
 private:
-   virtual void TallySubscriberTablesInfo(uint32 & retNumCachedSubscriberTables, uint32 & tallyNumNodes, uint32 & tallyNumNodeBytes) const;  // yes, this virtual method is intentionally private!
+   virtual void TallySubscriberTablesInfo(uint32 & retNumCachedSubscriberTables, uint64 & tallyNumNodes, uint64 & tallyNumNodeBytes) const;  // yes, this virtual method is intentionally private!
 
    void PushSubscriptionMessage(MessageRef & msgRef);
    void SendGetDataResults(MessageRef & msg);
@@ -539,7 +539,7 @@ private:
    void UpdateDefaultMessageRoute();
    status_t RemoveParameter(const String & paramName, bool & retUpdateDefaultMessageRoute);
    int PassMessageCallbackAux(DataNode & node, const MessageRef & msgRef, bool matchSelfOkay);
-   void TallyNodeBytes(const DataNode & n, uint32 & retNumNodes, uint32 & retNodeBytes) const;
+   void TallyNodeBytes(const DataNode & n, uint64 & retNumNodes, uint64 & retNodeBytes) const;
    ConstDataNodeSubscribersTableRef GetDataNodeSubscribersTableFromPool(const ConstDataNodeSubscribersTableRef & curTableRef, uint32 sessionID, int32 delta);
    void ScheduleNextKeepAliveSend(uint64 now);
 
