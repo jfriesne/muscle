@@ -111,7 +111,8 @@ DoOutputImplementation(uint32 maxBytes)
                   {
                      // Temporarily move this field out before flattening the Message,
                      // since we don't want to send the destination IAP as part of the packet
-                     movedPRL = nextRef()->MoveName(PR_NAME_PACKET_REMOTE_LOCATION, _scratchPacketMessage).IsOK();
+                     MRETURN_ON_ERROR(nextRef()->MoveName(PR_NAME_PACKET_REMOTE_LOCATION, _scratchPacketMessage));
+                     movedPRL = true;
                   }
                   else _nextPacketDest.Reset();
                }
@@ -120,7 +121,7 @@ DoOutputImplementation(uint32 maxBytes)
                _sendBuffer._buffer = FlattenHeaderAndMessageAux(nextRef);
 
                // Restore the PR_NAME_PACKET_REMOTE_LOCATION field, since we're not supposed to be modifying any Messages
-               if (movedPRL) MRETURN_ON_ERROR(_scratchPacketMessage.MoveName(PR_NAME_PACKET_REMOTE_LOCATION, *nextRef()));
+               if (movedPRL) (void) _scratchPacketMessage.MoveName(PR_NAME_PACKET_REMOTE_LOCATION, *nextRef());  // can't fail because we're only moving it back to where it originally was
 
                if (_sendBuffer._buffer() == NULL)
                {
@@ -493,7 +494,7 @@ uint32
 MessageIOGateway ::
 GetHeaderSize() const
 {
-   return 2 * sizeof(uint32);  // one long for the encoding ID, and one long for the body length
+   return 2 * sizeof(uint32);  // one long for the body length, and one long encoding ID
 }
 
 status_t

@@ -38,33 +38,31 @@ DoOutputImplementation(uint32 maxBytes)
          for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr).IsOK(); i++) outBufLen += (nextStr->Length() + _eolString.Length());
 
          ByteBufferRef outBuf = GetByteBufferFromPool(outBufLen);
-         if (outBuf())
+         MRETURN_ON_ERROR(outBuf);
+
+         DataFlattener flat(*outBuf());
+         for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr).IsOK(); i++)
          {
-            DataFlattener flat(*outBuf());
-            for (uint32 i=0; nextMsg()->FindString(PR_NAME_TEXT_LINE, i, &nextStr).IsOK(); i++)
-            {
-               flat.WriteBytes(reinterpret_cast<const uint8 *>(nextStr->Cstr()), nextStr->Length());   // Note that we write Length() bytes, NOT FlattenedSize()
-               flat.WriteBytes(reinterpret_cast<const uint8 *>(_eolString()),    _eolString.Length()); // bytes (i.e. we don't write NUL terminator byte)
-            }
-
-            const uint8 * outBytes      = outBuf()->GetBuffer();
-            const uint32 numBytesToSend = outBuf()->GetNumBytes()-1;  // don't send the NUL terminator byte; receivers shouldn't rely on it anyway
-
-            PacketDataIO * pdio = GetPacketDataIO();  // guaranteed non-NULL
-            IPAddressAndPort packetDest;
-            const io_status_t subRet = nextMsg()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDest).IsOK()
-                                     ? pdio->WriteTo(outBytes, numBytesToSend, packetDest)
-                                     : pdio->Write(  outBytes, numBytesToSend);
-            MTALLY_BYTES_OR_RETURN_ON_ERROR(totalNumBytesSent, subRet);
-
-            if (subRet.GetByteCount() == 0)
-            {
-               const status_t r = GetOutgoingMessageQueue().AddHead(nextMsg);  // roll back -- no more buffer space to output to.  We'll try again later to send it, maybe
-               if ((r.IsError())&&(totalNumBytesSent.GetByteCount() == 0)) totalNumBytesSent = r;
-               break;
-            }
+            flat.WriteBytes(reinterpret_cast<const uint8 *>(nextStr->Cstr()), nextStr->Length());   // Note that we write Length() bytes, NOT FlattenedSize()
+            flat.WriteBytes(reinterpret_cast<const uint8 *>(_eolString()),    _eolString.Length()); // bytes (i.e. we don't write NUL terminator byte)
          }
-         else break;
+
+         const uint8 * outBytes      = outBuf()->GetBuffer();
+         const uint32 numBytesToSend = outBuf()->GetNumBytes()-1;  // don't send the NUL terminator byte; receivers shouldn't rely on it anyway
+
+         PacketDataIO * pdio = GetPacketDataIO();  // guaranteed non-NULL
+         IPAddressAndPort packetDest;
+         const io_status_t subRet = nextMsg()->FindFlat(PR_NAME_PACKET_REMOTE_LOCATION, packetDest).IsOK()
+                                  ? pdio->WriteTo(outBytes, numBytesToSend, packetDest)
+                                  : pdio->Write(  outBytes, numBytesToSend);
+         MTALLY_BYTES_OR_RETURN_ON_ERROR(totalNumBytesSent, subRet);
+
+         if (subRet.GetByteCount() == 0)
+         {
+            const status_t r = GetOutgoingMessageQueue().AddHead(nextMsg);  // roll back -- no more buffer space to output to.  We'll try again later to send it, maybe
+            if ((r.IsError())&&(totalNumBytesSent.GetByteCount() == 0)) totalNumBytesSent = r;
+            break;
+         }
       }
       return totalNumBytesSent;
    }

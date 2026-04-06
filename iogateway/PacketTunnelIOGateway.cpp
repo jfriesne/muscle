@@ -57,7 +57,7 @@ io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessag
       }
       else
       {
-         while(unflat.GetNumBytesAvailable() >= (int32)FRAGMENT_HEADER_SIZE)
+         while(unflat.GetNumBytesAvailable() >= (uint32)FRAGMENT_HEADER_SIZE)
          {
             const uint32 magic     = unflat.ReadInt32();
             const uint32 sexID     = unflat.ReadInt32();
@@ -92,9 +92,9 @@ io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessag
                   if ((offset == 0)&&(messageID != rs->_messageID))
                   {
                      // A new message... start receiving it (but only if we are starting at the beginning)
+                     MRETURN_ON_ERROR(rs->_buf()->SetNumBytes(totalSize, false));
                      rs->_messageID = messageID;
                      rs->_offset    = 0;
-                     MRETURN_ON_ERROR(rs->_buf()->SetNumBytes(totalSize, false));
                   }
 
                   const uint32 rsSize = rs->_buf()->GetNumBytes();

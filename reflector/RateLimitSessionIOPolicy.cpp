@@ -54,8 +54,8 @@ uint64
 RateLimitSessionIOPolicy ::
 GetPulseTime(const PulseArgs & args)
 {
-   // Schedule a pulse for when we estimate _transferTally will sink back down to zero.
-   return ((_maxRate > 0)&&(_transferTally>=GetCutoff()))?(args.GetCallbackTime()+((_transferTally*MICROS_PER_SECOND)/_maxRate)):MUSCLE_TIME_NEVER;
+   // Schedule a pulse for when we estimate _transferTally will sink back down to the cutoff time.
+   return ((_maxRate > 0)&&(_transferTally>=GetCutoff()))?(args.GetCallbackTime()+(((_transferTally-GetCutoff())*MICROS_PER_SECOND)/_maxRate)):MUSCLE_TIME_NEVER;
 }
 
 void
@@ -73,7 +73,8 @@ UpdateTransferTally(uint64 now)
 {
    if (_maxRate > 0)
    {
-      const uint32 newBytesAvailable = (uint32) muscleMin((_lastTransferAt > 0) ? (((now-_lastTransferAt)*_maxRate)/MICROS_PER_SECOND) : ((uint64)-1), (uint64) MUSCLE_NO_LIMIT);
+      const uint64 microsSinceLastTransfer = now-_lastTransferAt;
+      const uint32 newBytesAvailable = WillUnsignedMultiplyOverflow(microsSinceLastTransfer, (uint64)_maxRate) ? MUSCLE_NO_LIMIT : (uint32) muscleMin((_lastTransferAt > 0) ? ((microsSinceLastTransfer*_maxRate)/MICROS_PER_SECOND) : ((uint64)-1), (uint64) MUSCLE_NO_LIMIT);
       if (_transferTally > newBytesAvailable) _transferTally -= newBytesAvailable;
                                          else _transferTally = 0;
    }
