@@ -73,8 +73,7 @@ UpdateTransferTally(uint64 now)
 {
    if (_maxRate > 0)
    {
-      const uint64 microsSinceLastTransfer = now-_lastTransferAt;
-      const uint32 newBytesAvailable = WillUnsignedMultiplyOverflow(microsSinceLastTransfer, (uint64)_maxRate) ? MUSCLE_NO_LIMIT : (uint32) muscleMin((_lastTransferAt > 0) ? ((microsSinceLastTransfer*_maxRate)/MICROS_PER_SECOND) : ((uint64)-1), (uint64) MUSCLE_NO_LIMIT);
+      const uint32 newBytesAvailable = (uint32) muscleMin((_lastTransferAt > 0) ? (SaturatingUnsignedMultiply(now-_lastTransferAt,(uint64)_maxRate)/MICROS_PER_SECOND) : ((uint64)-1), (uint64) MUSCLE_NO_LIMIT);
       if (_transferTally > newBytesAvailable) _transferTally -= newBytesAvailable;
                                          else _transferTally = 0;
    }

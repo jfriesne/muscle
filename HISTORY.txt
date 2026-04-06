@@ -45,6 +45,8 @@ key:  - new feature
    - Added a CallMessageReceivedFromGateway(AbstractGatewayMessageReceiver &,
      const MessageRef & receivedMsg) virtual method to the MessageIOGateway class,
      so that subclasses can override it with custom logic if they want to.
+   - Added a (prefixMatchOkay) argument to SegmentedStringMatcher::Match()
+     to force the caller to decide whether a partial match should return true or not.
    o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that
      it can handle EINTR-type interruptions more gracefully.
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and

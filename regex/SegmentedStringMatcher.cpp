@@ -17,7 +17,7 @@ SegmentedStringMatcherRef GetSegmentedStringMatcherFromPool(const String & match
    return ret;
 }
 
-SegmentedStringMatcher::SegmentedStringMatcher() : _negate(false)
+SegmentedStringMatcher :: SegmentedStringMatcher() : _negate(false)
 {
    // empty
 }
@@ -47,12 +47,13 @@ status_t SegmentedStringMatcher :: SetPattern(const String & s, bool isSimple, c
    else return SetPatternAux(s, isSimple, sc, maxSegments);
 }
 
-status_t SegmentedStringMatcher :: SetPatternAux(const String & s, bool isSimple, const char * sc, uint32 maxSegments)
+status_t SegmentedStringMatcher :: SetPatternAux(const String & s, bool isSimple, const char * optSepChars, uint32 maxSegments)
 {
    Clear();
 
    status_t ret;
-   StringTokenizer tok(s(), sc);
+   const char * sepChars = optSepChars ? optSepChars : "/";
+   StringTokenizer tok(s(), sepChars);
    const char * t;
    while((t = tok()) != NULL)
    {
@@ -69,11 +70,11 @@ status_t SegmentedStringMatcher :: SetPatternAux(const String & s, bool isSimple
       }
    }
    _pattern  = s;
-   _sepChars = sc ? sc : "/";
+   _sepChars = sepChars;
    return B_NO_ERROR;
 }
 
-bool SegmentedStringMatcher::MatchAux(const char * const str) const
+bool SegmentedStringMatcher::MatchAux(const char * const str, bool prefixMatchOkay) const
 {
    StringTokenizer tok(str, _sepChars());
    for (uint32 i=0; i<_segments.GetNumItems(); i++)
@@ -84,12 +85,14 @@ bool SegmentedStringMatcher::MatchAux(const char * const str) const
       const StringMatcher * sm = _segments[i]();
       if ((sm)&&(sm->Match(t) == false)) return false;
    }
-   return true;
+   return prefixMatchOkay ? true : (tok()==NULL);
 }
 
 String SegmentedStringMatcher :: ToString() const
 {
    String ret;
+   if (_negate) ret += '~';
+
    for (uint32 i=0; i<_segments.GetNumItems(); i++)
    {
       if (ret.HasChars()) ret += (_sepChars.HasChars() ? _sepChars[0] : '/');
@@ -101,7 +104,7 @@ String SegmentedStringMatcher :: ToString() const
 
 bool SegmentedStringMatcher :: IsPatternUnique() const
 {
-   if (_negate) return false;  // not-some-pattern can match a number of strings!
+   if ((_negate)||(_segments.IsEmpty())) return false; // not-some-pattern can match a number of strings; empty pattern matches all strings
 
    for (uint32 i=0; i<_segments.GetNumItems(); i++)
    {
