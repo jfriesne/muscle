@@ -698,8 +698,23 @@ static const char * _tokStrs[] =
 };
 MUSCLE_STATIC_ASSERT_ARRAY_LENGTH(_tokStrs, NUM_LTOKENS);
 
-static bool _tokStrlensNeedsInit = true;
 static uint32 _tokStrlens[NUM_LTOKENS];
+
+static void InitializeStrlenArray() {for (uint32 i=0; i<ARRAYITEMS(_tokStrlens); i++) _tokStrlens[i] = (uint32) (_tokStrs[i] ? strlen(_tokStrs[i]) : 0);}
+static void EnsureStrlenArrayInitialized()
+{
+#if defined(MUSCLE_AVOID_CPLUSPLUS11) || defined(MUSCLE_AVOID_CPLUSPLUS11_THREADS) || defined(MUSCLE_SINGLE_THREAD_ONLY)
+   static bool _tokStrlensNeedsInit = true;
+   if (_tokStrlensNeedsInit)
+   {
+      InitializeStrlenArray();
+      _tokStrlensNeedsInit = false;
+   }
+#else
+   static std::once_flag _onceFlag;
+   std::call_once(_onceFlag, InitializeStrlenArray);
+#endif
+}
 
 template<typename T> T GetValueAs(const String & v);
 template<> bool   GetValueAs(const String & v) {return    ParseBool(v());}
@@ -886,11 +901,7 @@ class Lexer
 public:
    Lexer(const String & expression) : _expression(expression), _curPos(0)
    {
-      if (_tokStrlensNeedsInit)
-      {
-         for (uint32 i=0; i<ARRAYITEMS(_tokStrlens); i++) _tokStrlens[i] = (uint32) (_tokStrs[i] ? strlen(_tokStrs[i]) : 0);
-         _tokStrlensNeedsInit = false;
-      }
+      EnsureStrlenArrayInitialized();
    }
 
    status_t GetNextToken(LexerToken & retTok)
@@ -971,7 +982,7 @@ static ConstQueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer, con
       switch(nextTok.GetToken())
       {
          case LTOKEN_NOT:
-            if (localToks.HasItems()) return B_ERROR("'!' must be the first token in a subexpression");
+            if ((subRef())||(localToks.HasItems())) return B_ERROR("'!' must be the first token in a subexpression");
             isNegated = !isNegated;
          break;
 
@@ -1001,7 +1012,8 @@ static ConstQueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer, con
                }
                conjunctionTok = nextTok;
             }
-            MRETURN_ON_ERROR(conjunctionRef()->GetChildren().AddTail(subRef));
+            MRETURN_ON_ERROR(conjunctionRef()->GetChildren().AddTail(MaybeNegate(isNegated, subRef)));
+            isNegated = false;
             subRef.Reset();
          }
          break;
@@ -1018,7 +1030,8 @@ static ConstQueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer, con
    {
       if (subRef())
       {
-         MRETURN_ON_ERROR(conjunctionRef()->GetChildren().AddTail(subRef));
+         MRETURN_ON_ERROR(conjunctionRef()->GetChildren().AddTail(MaybeNegate(isNegated, subRef)));
+         isNegated = false;
          return conjunctionRef;
       }
       else return B_ERROR("No subexpression after conjunction-operator");

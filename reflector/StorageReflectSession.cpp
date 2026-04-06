@@ -1785,7 +1785,7 @@ JettisonOutgoingResults(const NodePathMatcher * matcher)
                      ConstMessageRef nextSubMsgRef;
                      for (uint32 j=0; msg->FindMessage(nextFieldName, j, nextSubMsgRef).IsOK(); /* empty */)
                      {
-                        if (matcher->MatchesPath(nextFieldName(), nextSubMsgRef(), NULL)) (void) msg->RemoveData(nextFieldName, 0);
+                        if (matcher->MatchesPath(nextFieldName(), nextSubMsgRef(), NULL)) (void) msg->RemoveData(nextFieldName, i);
                                                                                      else j++;
                      }
                   }
