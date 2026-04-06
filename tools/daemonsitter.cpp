@@ -262,7 +262,7 @@ int main(int argc, char ** argv)
 
    status_t ret;
    ReflectServer server;
-   if (server.AddNewSession(DummyAbstractReflectSessionRef(stdinSession)).IsOK())
+   if (server.AddNewSession(DummyAbstractReflectSessionRef(stdinSession)).IsOK(ret))
    {
       // Also add some dummy child processes that we will manage and restart
       for (uint32 i=0; i<5; i++)

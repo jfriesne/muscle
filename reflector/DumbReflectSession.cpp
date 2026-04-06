@@ -36,7 +36,11 @@ void
 DumbReflectSession ::
 MessageReceivedFromSession(AbstractReflectSession & from, const MessageRef & msg, void * /*userData*/)
 {
-   if ((&from == this)||(IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY))) MLOG_ON_ERROR("AddOutgoingMessage", AddOutgoingMessage(msg));
+   if ((&from == this)||(IsRoutingFlagSet(MUSCLE_ROUTING_FLAG_NEIGHBORS_TO_GATEWAY)))
+   {
+      const status_t ret = AddOutgoingMessage(msg);
+      if ((ret.IsError())&&(ret != B_BAD_OBJECT)) MLOG_ON_ERROR("AddOutgoingMessage", ret);  // B_BAD_OBJECT just means we're a lame duck, so don't log about that
+   }
 }
 
 const char * _routingFlagLabels[] = {

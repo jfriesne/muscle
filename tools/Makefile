@@ -147,7 +147,7 @@ portscan : $(STDOBJS) portscan.o StackTrace.o SysLog.o SetupSystem.o String.o By
 chatclient : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o chatclient.o MiscUtilityFunctions.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o PathMatcher.o QueryFilter.o StdinDataIO.o FileDescriptorDataIO.o PlainTextMessageIOGateway.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-bandwidthtester : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o bandwidthtester.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o
+bandwidthtester : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o bandwidthtester.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o MiscUtilityFunctions.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 uploadstress : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o uploadstress.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o

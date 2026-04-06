@@ -421,6 +421,9 @@ private:
    Hashtable<const String *, AbstractReflectSessionRef> _lameDuckSessions;   // sessions that are due to be removed
    Hashtable<AbstractSessionIOPolicyRef, Void> _preparedPolicies;
 
+   uint32 _maxInputChunkSize;
+   uint32 _maxOutputChunkSize;
+
    bool _keepServerGoing;
    uint64 _serverStartedAt;
    bool _doLogging;

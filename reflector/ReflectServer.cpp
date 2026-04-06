@@ -263,9 +263,13 @@ AttachNewSession(const AbstractReflectSessionRef & ref)
    return ret;
 }
 
+static uint32 DEFAULT_MAX_CHUNK_SIZE = (256*1024);
+
 ReflectServer :: ReflectServer()
    : _lameDuckFactories(PreallocatedItemSlotsCount(16))
    , _lameDuckSessions(PreallocatedItemSlotsCount(256)) // make sure _lameDuckSessions has plenty of memory available in advance (we need might need it in a tight spot later!)
+   , _maxInputChunkSize(DEFAULT_MAX_CHUNK_SIZE)
+   , _maxOutputChunkSize(DEFAULT_MAX_CHUNK_SIZE)
    , _keepServerGoing(true)
    , _serverStartedAt(0)
    , _doLogging(true)
@@ -531,7 +535,7 @@ void ReflectServer :: HandleEvents()
                io_status_t readBytes;
                if (_multiplexer.IsSocketReadyForRead(readSock))
                {
-                  readBytes = session->DoInput(*session, session->_maxInputChunk);  // session->MessageReceivedFromGateway() gets called here
+                  readBytes = session->DoInput(*session, muscleMin(_maxInputChunkSize, session->_maxInputChunk));  // session->MessageReceivedFromGateway() gets called here
                   if (readBytes.IsOK())
                   {
                      session->_mostRecentInputTimeStamp = GetCycleStartTime();
@@ -573,7 +577,7 @@ void ReflectServer :: HandleEvents()
                         if (io) io->WriteBufferedOutput();
                      }
 
-                     wroteBytes = session->DoOutput(session->_maxOutputChunk);
+                     wroteBytes = session->DoOutput(muscleMin(_maxOutputChunkSize, session->_maxOutputChunk));
                      if (wroteBytes.IsOK())
                      {
                         session->_mostRecentOutputTimeStamp = GetCycleStartTime();

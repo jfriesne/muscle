@@ -5,6 +5,7 @@
 #include "dataio/TCPSocketDataIO.h"
 #include "iogateway/MessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"
+#include "util/MiscUtilityFunctions.h"  // for GetBytesSizeString()
 #include "util/NetworkUtilityFunctions.h"
 #include "util/SocketMultiplexer.h"
 #include "system/SetupSystem.h"
@@ -58,33 +59,38 @@ int main(int argc, char ** argv)
          const uint64 now = GetRunTime64();
          if (tallyBytesSent > 0)
          {
-            if (send) LogTime(MUSCLE_LOG_INFO, "Sending at " UINT32_FORMAT_SPEC " bytes/second\n", tallyBytesSent/((uint32)(((now-startTime))/MICROS_PER_SECOND)));
+            if (send) LogTime(MUSCLE_LOG_INFO, "Sending at %s/second\n", GetBytesSizeString(tallyBytesSent/((uint32)(((now-startTime))/MICROS_PER_SECOND)))());
                  else LogTime(MUSCLE_LOG_INFO, "Sent " UINT32_FORMAT_SPEC " bytes\n", tallyBytesSent);
             tallyBytesSent = 0;
          }
          if (tallyBytesReceived > 0)
          {
             if (send) LogTime(MUSCLE_LOG_INFO, "Received " UINT32_FORMAT_SPEC " bytes\n", tallyBytesReceived);
-                 else LogTime(MUSCLE_LOG_INFO, "Receiving at " UINT32_FORMAT_SPEC " bytes/second\n", tallyBytesReceived/((uint32)((now-startTime)/MICROS_PER_SECOND)));
+                 else LogTime(MUSCLE_LOG_INFO, "Receiving at %s/second\n", GetBytesSizeString(tallyBytesReceived/((uint32)((now-startTime)/MICROS_PER_SECOND)))());
             tallyBytesReceived = 0;
          }
          startTime = now;
       }
 
       status_t ret;
-      if (multiplexer.WaitForEvents().IsError(ret)) LogTime(MUSCLE_LOG_CRITICALERROR, "bandwidthtester: WaitForEvents() failed! [%s]\n", ret());
+      if (multiplexer.WaitForEvents().IsError(ret))
+      {
+         LogTime(MUSCLE_LOG_CRITICALERROR, "bandwidthtester: WaitForEvents() failed! [%s]\n", ret());
+         break;
+      }
+
       if ((send)&&(gw.HasBytesToOutput() == false)) for (int i=0; i<10; i++) (void) gw.AddOutgoingMessage(sendMsgRef);
       const bool  reading    = multiplexer.IsSocketReadyForRead(fd);
       const bool  writing    = multiplexer.IsSocketReadyForWrite(fd);
-      const int32 wroteBytes = writing ? gw.DoOutput().GetByteCount()       : 0;
-      const int32 readBytes  = reading ? gw.DoInput(inQueue).GetByteCount() : 0;
-      if ((readBytes < 0)||(wroteBytes < 0))
+      const io_status_t wroteBytes = writing ? gw.DoOutput()       : io_status_t();
+      const io_status_t readBytes  = reading ? gw.DoInput(inQueue) : io_status_t();
+      if ((readBytes.IsError())||(wroteBytes.IsError()))
       {
-         LogTime(MUSCLE_LOG_ERROR, "Connection closed, exiting.\n");
+         LogTime(MUSCLE_LOG_ERROR, "Connection closed, exiting (%s).\n", (readBytes.GetStatus()|wroteBytes.GetStatus())());
          break;
       }
-      tallyBytesSent     += wroteBytes;
-      tallyBytesReceived += readBytes;
+      tallyBytesSent     += wroteBytes.GetByteCount();
+      tallyBytesReceived += readBytes.GetByteCount();
 
       MessageRef incoming;
       while(inQueue.RemoveHead(incoming).IsOK()) {/* ignore it, we just want to measure bandwidth */}

@@ -435,6 +435,17 @@ io_status_t ReceiveData(const ConstSocketRef & sock, void * buffer, uint32 size,
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
+   if (size == 0)
+   {
+      // special case:  just PEEK to see if the socket is already in its EOF state or not
+      char junk;
+      const int32 r = recv_ignore_eintr(fd, &junk, 1, MSG_PEEK);
+           if (r==0) return B_END_OF_STREAM; // recv() returning 0 always means EOF
+      else if (r>0)  return io_status_t(0);  // we have at least one byte of data ready to return, but (size) is 0 so we can't return it now
+      else if (PreviousOperationWouldBlock()) return io_status_t(0);
+      else                                    return B_ERRNO;
+   }
+
    const int32 r = recv_ignore_eintr(fd, (char *)buffer, size, 0L);
    if (r == 0) return B_END_OF_STREAM;
 
