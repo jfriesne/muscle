@@ -105,22 +105,22 @@ status_t PathMatcher :: PutPathsFromMessage(const char * pathFieldName, const ch
    return ret;
 }
 
-status_t PathMatcher :: SetFilterForEntry(const String & path, const ConstQueryFilterRef & newFilter)
+status_t PathMatcher :: SetFilterForEntry(const String & path, const ConstQueryFilterRef & optNewFilter)
 {
    Hashtable<String, PathMatcherEntry> * subTable = _entries.Get(GetPathDepth(path()));
    PathMatcherEntry * pme = subTable ? subTable->Get(path) : NULL;
    if (pme == NULL) return B_DATA_NOT_FOUND;
 
-   if ((newFilter() != NULL) != (pme->GetFilter()() != NULL)) _numFilters += (newFilter() ? 1 : -1);  // FogBugz #5803
-   pme->SetFilter(newFilter);
+   if ((optNewFilter() != NULL) != (pme->GetFilter()() != NULL)) _numFilters += (optNewFilter() ? 1 : -1);  // FogBugz #5803
+   pme->SetFilter(optNewFilter);
    return B_NO_ERROR;
 }
 
-status_t PathMatcher :: PutPathFromString(const String & str, const ConstQueryFilterRef & filter, const char * prependIfNoLeadingSlash)
+status_t PathMatcher :: PutPathFromString(const String & str, const ConstQueryFilterRef & optFilter, const char * prependIfNoLeadingSlash)
 {
    String s = str;
    AdjustStringPrefix(s, prependIfNoLeadingSlash);
-   return PutPathString(s, filter);
+   return PutPathString(s, optFilter);
 }
 
 status_t PathMatcher :: PutPathsFromMatcher(const PathMatcher & matcher)

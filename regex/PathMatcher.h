@@ -116,7 +116,7 @@ public:
     *  a leading slash, then it will be interpeted as a relative query with the first level of the query looking
     *  for nodes with name "".
     *  @param path a string of form "x/y/z/...", representing a pattern-matching function.
-    *  @param filter Reference to a QueryFilter object to use to filter Messages that match our path.  If the
+    *  @param optFilter Reference to a QueryFilter object to use to filter Messages that match our path.  If the
     *                reference is a NULL reference, then no filtering will be done.
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY.
     */
@@ -142,11 +142,10 @@ public:
     *  PutPathsFromMessage(), except that it adds a single string instead of a list of Strings.
     *  @param path Matching-string to add to this matcher.
     *  @param optPrependIfNoLeadingSlash If non-NULL, a '/' and this string will be prepended to any found path string that doesn't start with a '/' character.
-    *  @param filter Reference to a QueryFilter object to use for content-based Message filter, or a NULL reference if
-    *                no additional filtering is necessary.
+    *  @param optFilter Reference to a QueryFilter object to use for content-based Message filter, or a NULL reference if no additional filtering is necessary.
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY.
     */
-   status_t PutPathFromString(const String & path, const ConstQueryFilterRef & filter, const char * optPrependIfNoLeadingSlash);
+   status_t PutPathFromString(const String & path, const ConstQueryFilterRef & optFilter, const char * optPrependIfNoLeadingSlash);
 
    /** Removes the given path string and its associated StringMatchers from this matcher.
     *  @param wildpath the path string to remove
