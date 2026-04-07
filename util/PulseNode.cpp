@@ -38,10 +38,10 @@ void PulseNode :: Pulse(const PulseArgs &)
 
 void PulseNode :: InvalidatePulseTime(bool clearPrevResult)
 {
+   if (clearPrevResult) _myScheduledTime = MUSCLE_TIME_NEVER;
    if (_myScheduledTimeValid)
    {
       _myScheduledTimeValid = false;
-      if (clearPrevResult) _myScheduledTime = MUSCLE_TIME_NEVER;
       if (_parent) _parent->ReschedulePulseChild(this, LINKED_LIST_NEEDSRECALC);
    }
 }
@@ -89,6 +89,7 @@ void PulseNode :: PulseAux(uint64 now)
 
 void PulseNode :: PutPulseChild(PulseNode * child)
 {
+   MASSERT(child != this, "PutPulseChild:  Can't add a PulseNode to itself as a child");
    if (child->_parent) child->_parent->RemovePulseChild(child);
 
    child->_parent = this;
