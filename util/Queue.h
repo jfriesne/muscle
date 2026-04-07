@@ -1503,7 +1503,7 @@ status_t
 Queue<ItemType>::
 InsertItemAt(uint32 index, QQ_SinkItemParam item)
 {
-   if ((GetNumUnusedItemSlots() < 1)&&(IsItemLocatedInThisContainer(item)))
+   if (IsItemLocatedInThisContainer(item))
    {
       const ItemType temp = QQ_ForwardItem(item); // avoid dangling pointer issue by copying the item to a temporary location
       return InsertItemAt(index, temp);
@@ -1538,23 +1538,30 @@ InsertItemsAt(uint32 index, const Queue<ItemType> & queue, uint32 startIndex, ui
 
    const uint32 hisSize = queue.GetNumItems();
    numNewItems = muscleMin(numNewItems, (startIndex < hisSize) ? (hisSize-startIndex) : 0);
-   if (numNewItems == 0) return B_NO_ERROR;
-   if (numNewItems == 1)
-   {
-      if (index == 0)          return AddHead(queue[startIndex]);
-      if (index == _itemCount) return AddTail(queue[startIndex]);
-   }
+   if (numNewItems == 0)    return B_NO_ERROR;
+   if (index == 0)          return AddHeadMulti(queue, startIndex, numNewItems);
+   if (index == _itemCount) return AddTailMulti(queue, startIndex, numNewItems);
 
    const uint32 oldSize = GetNumItems();
    if (WillUnsignedAddOverflow(oldSize, numNewItems)) return B_RESOURCE_LIMIT;
 
-   const uint32 newSize = oldSize+numNewItems;
+   if (&queue == this)
+   {
+      // Guard against overwriting the source material as we insert
+      Queue<ItemType> tempQ;
+      MRETURN_ON_ERROR(tempQ.EnsureSize(numNewItems));
+      for (uint32 i=0; i<numNewItems; i++) (void) tempQ.AddTail(queue[i+startIndex]);  // guaranteed not to fail because we called EnsureSize() above
+      return InsertItemsAt(index, tempQ);
+   }
+   else
+   {
+      const uint32 newSize = oldSize+numNewItems;
+      MRETURN_ON_ERROR(EnsureSize(newSize, true));
 
-   MRETURN_ON_ERROR(EnsureSize(newSize, true));
-
-   for (int32 i=(int32)(oldSize-1); i>=(int32)index;     i--) (*this)[i+numNewItems] = (*this)[i];  // must loop backwards in case of overlap
-   for (uint32 i=index;             i<index+numNewItems; i++) (*this)[i]             = queue[startIndex++];
-   return B_NO_ERROR;
+      for (int32 i=(int32)(oldSize-1); i>=(int32)index;     i--) (*this)[i+numNewItems] = (*this)[i];  // must loop backwards in case of overlap
+      for (uint32 i=index;             i<index+numNewItems; i++) (*this)[i]             = queue[startIndex++];
+      return B_NO_ERROR;
+   }
 }
 
 template <class ItemType>
@@ -1839,11 +1846,15 @@ RemoveSortedDuplicateItems()
 
    uint32 numWrittenItems  = 1;  // we'll always keep the first item
    const uint32 totalItems = GetNumItems();
-   for (uint32 i=0; i<totalItems; i++)
+   for (uint32 i=1; i<totalItems; i++)
    {
-      ItemType & nextItem    = (*this)[i];
-      const ItemType & wItem = (*this)[numWrittenItems-1];
-      if (!(nextItem == wItem)) (*this)[numWrittenItems++] = QQ_PlunderItem(nextItem);
+      ItemType & nextReadItem   = (*this)[i];
+      const ItemType & prevItem = (*this)[numWrittenItems-1];
+      if (!(nextReadItem == prevItem))
+      {
+         ItemType & nextWriteItem = (*this)[numWrittenItems++];
+         if (&nextWriteItem != &nextReadItem) nextWriteItem = QQ_PlunderItem(nextReadItem);
+      }
    }
 
    const uint32 ret = GetNumItems()-numWrittenItems;

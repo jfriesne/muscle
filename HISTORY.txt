@@ -243,6 +243,10 @@ key:  - new feature
      the same thread with non-nesting lifetimes.  (cc)
    * Fixed a bug in Hashtable::SwapContents() that would leave registered
      HashtableIterators registered with the wrong Hashtable afterwards.  (cc)
+   * Queue::InsertItemsAt() now correctly handles an insertion of items
+     from within the Queue's own contents.  (cc)
+   * Queue::RemoveSortedDuplicateItems() would sometimes move items onto
+     themselves, which was pointless and also potentially UB.  Fixed.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
