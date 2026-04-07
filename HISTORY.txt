@@ -236,6 +236,8 @@ key:  - new feature
    * QueryFilter.cpp's initialization of _tokStrlens[] is now thread-safe.  (cc)
    * StringTokenizer::Join() only escaped the first char in the (joinChars)
      argument.  Fixed to now escape all of them.  (cc)
+   * Fixed TarFileWriter's handling of long (&gt;100 chars) and very long
+     (&gt;256 chars) file names.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

@@ -60,7 +60,12 @@ status_t TarFileWriter :: SetFile(const char * outputFileName, bool append)
       {
          FileDataIORef ioRef(new FileDataIO(fpOut));
          SetFile(ioRef);
-         if (append) _currentSeekPosition = ioRef()->GetLength();
+         if (append)
+         {
+            const int64 seekPos = ioRef()->GetLength();
+            if (seekPos >= 0) _currentSeekPosition = seekPos;
+                         else return B_IO_ERROR;
+         }
          return B_NO_ERROR;
       }
       return B_ERRNO;
@@ -191,14 +196,11 @@ static size_t ComputeCommonPathPrefixLength(const char * fileName, const char * 
 
 status_t TarFileWriter :: WriteFileHeaderAux(const char * fileName, uint32 fileMode, uint32 ownerID, uint32 groupID, uint64 modificationTime, int linkIndicator, const char * linkName, uint64 prestatedFileSize, bool isPax)
 {
+   const size_t fileNameLen = strlen(fileName);
+   const size_t linkNameLen = linkName ? strlen(linkName) : 0;
+
    const size_t basicFormatMaxLen = 100;  // the original tar format supports only file paths up to this length
    const size_t ustarFormatMaxLen = 256;  // the ustar extension allows file paths up to this length
-
-   const size_t fileNameLen = strlen(fileName);
-   if (fileNameLen > ustarFormatMaxLen) return B_ERROR("File Entry name too long for .tar format");
-
-   const size_t linkNameLen = linkName ? strlen(linkName) : 0;
-   if (linkNameLen > ustarFormatMaxLen) return B_ERROR("Linked File name too long for .tar format");
 
    size_t ustarPathPrefixLen = 0;
    if ((fileNameLen > basicFormatMaxLen)||(linkNameLen > basicFormatMaxLen))
@@ -228,8 +230,12 @@ status_t TarFileWriter :: WriteFileHeaderAux(const char * fileName, uint32 fileM
          const status_t r1 = (paxFileNameLen > 0) ? AppendToPaxExtendedHeader(tempBuf, tempBufLen, "path",     fileName, paxFileNameLen) : B_NO_ERROR;
          const status_t r2 = (paxLinkNameLen > 0) ? AppendToPaxExtendedHeader(tempBuf, tempBufLen, "linkpath", linkName, paxLinkNameLen) : B_NO_ERROR;
 
+         char truncatedFileName[basicFormatMaxLen], truncatedLinkName[basicFormatMaxLen];
+         muscleStrncpy(truncatedFileName, fileName, sizeof(truncatedFileName));
+         if (linkName) muscleStrncpy(truncatedLinkName, linkName, sizeof(truncatedLinkName));
+
          const uint32 tempBufStrlen = (uint32) strlen(tempBuf);
-         const status_t r3 = ((r1.IsOK())&&(r2.IsOK())) ? WriteFileHeaderAux(fileName, fileMode, ownerID, groupID, modificationTime, -1, linkName, tempBufStrlen, isPax) : (r1|r2);
+         const status_t r3 = ((r1.IsOK())&&(r2.IsOK())) ? WriteFileHeaderAux(truncatedFileName, fileMode, ownerID, groupID, modificationTime, -1, linkName?truncatedLinkName:NULL, tempBufStrlen, false) : (r1|r2);
          const status_t r4 = r3.IsOK() ? WriteFileData(reinterpret_cast<const uint8 *>(tempBuf), tempBufStrlen) : r3;
          const status_t r5 = r4.IsOK() ? FinishCurrentFileDataBlock() : r4;
 
@@ -238,6 +244,8 @@ status_t TarFileWriter :: WriteFileHeaderAux(const char * fileName, uint32 fileM
       }
       else MRETURN_OUT_OF_MEMORY;
    }
+   else if (fileNameLen > ustarFormatMaxLen) return B_ERROR("File Entry name too long for .tar format");
+   else if (linkNameLen > ustarFormatMaxLen) return B_ERROR("Linked File name too long for .tar format");
 
    _currentHeaderOffset = _currentSeekPosition;
    memset(_currentHeaderBytes, 0, sizeof(_currentHeaderBytes));
@@ -312,10 +320,10 @@ status_t TarFileWriter :: WriteFileData(const uint8 * fileData, uint32 numBytes)
    {
       // Don't write more bytes than we promised in the header that we would write, since we can't seek back to modify the header now
       const uint64 currentFileLength = _currentSeekPosition-(_currentHeaderOffset+TAR_BLOCK_SIZE);
-      const int64 spaceLeftWithoutModifyingHeader = _prestatedFileSize-currentFileLength;
-      if (((int64)numBytes) > spaceLeftWithoutModifyingHeader)
+      const int64 spaceLeftWithoutModifyingHeader = (_prestatedFileSize > currentFileLength) ? (_prestatedFileSize-currentFileLength) : 0;
+      if (spaceLeftWithoutModifyingHeader < ((int64)numBytes))
       {
-         effectiveNumBytes = muscleMin(numBytes, (uint32) spaceLeftWithoutModifyingHeader);
+         effectiveNumBytes = (uint32) spaceLeftWithoutModifyingHeader;
          LogTime(MUSCLE_LOG_WARNING, "TarFileWriter::WriteFileData:   Dropping " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " file-bytes from write to respect the fixed header-size value (" UINT64_FORMAT_SPEC ") for [%s]\n", (numBytes-effectiveNumBytes), numBytes, _prestatedFileSize, (const char *)_currentHeaderBytes);
       }
    }
