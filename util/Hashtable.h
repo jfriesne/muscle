@@ -2788,7 +2788,7 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableBase<
    muscleSwap(_freeHeadIdx,    swapMe._freeHeadIdx);
    if (swapIterators)
    {
-      muscleSwap(_iterList,         swapMe._iterList);
+      muscleSwap(_iterList,                  swapMe._iterList);
 #ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
       muscleSwap(_iteratorCount,             swapMe._iteratorCount);
       muscleSwap(_owningThreadIteratorCount, swapMe._owningThreadIteratorCount);
@@ -2802,20 +2802,20 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableBase<
 # endif
 #endif
 
-      // Lastly, swap the owners of all iterators, so that they will unregister from the correct table when they die
+      // Lastly, update the owners of all iterators, so that they will unregister from the correct table when they die
       {
-         IteratorImpType * next = _iterList;
+         IteratorImpType * next = _iterList;  // swapMe's old _iterList which is now my list
          while(next)
          {
-            next->_owner = &swapMe;
+            next->_owner = this;   // correct because we swapped (_iterList and swapMe._iterList) already, above
             next = next->_nextIter;
          }
       }
       {
-         IteratorImpType * next = swapMe._iterList;
+         IteratorImpType * next = swapMe._iterList;  // my old _iterList which is now swapMe's _iterList
          while(next)
          {
-            next->_owner = this;
+            next->_owner = &swapMe;  // correct because we swapped (_iterList and swapMe._iterList) already, above
             next = next->_nextIter;
          }
       }
