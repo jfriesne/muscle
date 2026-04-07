@@ -238,6 +238,9 @@ key:  - new feature
      argument.  Fixed to now escape all of them.  (cc)
    * Fixed TarFileWriter's handling of long (&gt;100 chars) and very long
      (&gt;256 chars) file names.  (cc)
+   * The HashtableIterator registration thread-safety logic now uses a separate
+     counter so that it can correctly handle the case of multiple iterators from
+     the same thread with non-nesting lifetimes.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

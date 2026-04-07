@@ -888,6 +888,9 @@ private:
 #if !defined(MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS) && !defined(MUSCLE_AVOID_CPLUSPLUS11) && defined(_MSC_VER) && (_MSC_VER < 1920)
       , _iteratorThreadID(muscle_thread_id())  // workaround for spurious compile-time error in MSVC2017
 #endif
+#ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
+      , _owningThreadIteratorCount(0)
+#endif
    {
       // empty
    }
@@ -1257,13 +1260,21 @@ private:
          if (_iteratorCount.AtomicIncrement())
          {
             _iteratorThreadID = muscle_thread_id::GetCurrentThreadID();  // we're the first iterator on this Hashtable!
-            iter->_okayToUnsetThreadID = true;  // remember that (iter) is the iterator who has to unset _iteratorThreadID
+            iter->_okayToUnsetThreadID = true;  // remember that (iter) is an iterator who can unset _iteratorThreadID when we're done
+            _owningThreadIteratorCount++;       // non-atomic is safe because only iterators in this (registrations-owning) thread will access this
          }
 # ifdef MUSCLE_AVOID_CPLUSPLUS11
-         else if (_iteratorThreadID != muscle_thread_id::GetCurrentThreadID())  // there's a race condition here but it's harmless
+         else if (_iteratorThreadID == muscle_thread_id::GetCurrentThreadID())  // there's a race condition here but it's harmless
 # else
-         else if (_iteratorThreadID.load() != muscle_thread_id::GetCurrentThreadID())
+         else if (_iteratorThreadID.load() == muscle_thread_id::GetCurrentThreadID())
 # endif
+         {
+            // We're the second (or later) iterator from the registration-owning thread, so just increment our non-atomic counter
+            // and note that this iterator can also clear the thread ID if need be (e.g. if its lifetime outlasts the first iterator from the owning-thread)
+            iter->_okayToUnsetThreadID = true;  // remember that (iter) is an iterator who can unset _iteratorThreadID when we're done
+            _owningThreadIteratorCount++;       // non-atomic is safe because only iterators in the owning thread will access this
+         }
+         else
          {
             // If we got here, then we're in a different thread from the one that has permission
             // to register iterators.  So for thread-safety, we're going to refrain from registering (iter).
@@ -1291,12 +1302,23 @@ private:
          if (iter->_nextIter) iter->_nextIter->_prevIter = iter->_prevIter;
          if (iter == _iterList) _iterList = iter->_nextIter;
          iter->_prevIter = iter->_nextIter = NULL;
-
-#ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
-         if (iter->_okayToUnsetThreadID) {iter->_okayToUnsetThreadID = false; _iteratorThreadID = muscle_thread_id();}
-         (void) _iteratorCount.AtomicDecrement();
-#endif
+         UnregisterIteratorAux(iter);
       }
+   }
+
+   void UnregisterIteratorAux(IteratorImpType * iter) const
+   {
+#ifdef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
+      (void) iter;
+#else
+      if (iter->_okayToUnsetThreadID)
+      {
+         iter->_okayToUnsetThreadID = false;
+         MASSERT(_owningThreadIteratorCount > 0, "UnregisterIteratorAux:  _owningThreadIteratorCount underflow");
+         if (--_owningThreadIteratorCount == 0) _iteratorThreadID = muscle_thread_id();
+      }
+      (void) _iteratorCount.AtomicDecrement();
+#endif
    }
 
    MUSCLE_NODISCARD const KeyType & GetKeyFromCookie(void * c) const {return ((static_cast<const HashtableEntryBase *>(c))->_key);}
@@ -1426,6 +1448,7 @@ private:
    mutable std::atomic<muscle_thread_id> _iteratorThreadID; // this is the ID of the thread that is allowed to register iterators (or 0 if none are registered)
 # endif
    mutable AtomicCounter _iteratorCount;       // this represents the number of HashtableIteratorImps currently registered with this Hashtable
+   mutable uint32 _owningThreadIteratorCount;  // this is the number of HashtableIteratorImps specifically from thread (_iteratorThreadID) that are registered with the Hashtable.
 #endif
 };
 
@@ -2767,7 +2790,8 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::SwapContentsAux(HashtableBase<
    {
       muscleSwap(_iterList,         swapMe._iterList);
 #ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
-      muscleSwap(_iteratorCount,    swapMe._iteratorCount);
+      muscleSwap(_iteratorCount,             swapMe._iteratorCount);
+      muscleSwap(_owningThreadIteratorCount, swapMe._owningThreadIteratorCount);
 # ifdef MUSCLE_AVOID_CPLUSPLUS11
       muscleSwap(_iteratorThreadID, swapMe._iteratorThreadID);
 # else
@@ -2995,15 +3019,14 @@ HashtableBase<KeyType,ValueType,HashFunctorType>::Clear(bool releaseCachedBuffer
    {
       if (_iterList->_iterCookie) _iterList->SetScratchValues(GetKeyFromCookie(_iterList->_iterCookie), GetValueFromCookie(_iterList->_iterCookie));
 
+      IteratorImpType * cur  = _iterList;
       IteratorImpType * next = _iterList->_nextIter;
       _iterList->_owner = NULL;
       _iterList->_iterCookie = _iterList->_prevIter = _iterList->_nextIter = NULL;
       _iterList->UpdateKeyAndValuePointers();
       _iterList = next;
 
-#ifndef MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS
-      (void) _iteratorCount.AtomicDecrement();
-#endif
+      UnregisterIteratorAux(cur);
    }
 
    // It's important to set each in-use HashtableEntryBase to its default state so
