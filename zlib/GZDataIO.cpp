@@ -39,7 +39,7 @@ io_status_t GZDataIO :: Write(const void * buffer, uint32 size)
 
 void GZDataIO :: FlushOutput()
 {
-   if (_file) (void) gzflush(GetGZFile(_file), Z_BLOCK);
+   if (_file) (void) gzflush(GetGZFile(_file), Z_SYNC_FLUSH);
 }
 
 void GZDataIO :: Shutdown()

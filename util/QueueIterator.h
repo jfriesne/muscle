@@ -176,6 +176,15 @@ public:
 
    /** This constructor is declared deleted to keep ConstQueueIterators from being accidentally associated with temporary Queue objects */
    ConstQueueIterator(Queue<ItemType> &&, uint32, int32) = delete;
+
+   /** This constructor is declared deleted to keep ConstQueueIterators from being accidentally associated with temporary Queue objects */
+   ConstQueueIterator(const Queue<ItemType> &&) = delete;
+
+   /** This constructor is declared deleted to keep ConstQueueIterators from being accidentally associated with temporary Queue objects */
+   ConstQueueIterator(const Queue<ItemType> &&, uint32) = delete;
+
+   /** This constructor is declared deleted to keep ConstQueueIterators from being accidentally associated with temporary Queue objects */
+   ConstQueueIterator(const Queue<ItemType> &&, uint32, int32) = delete;
 #endif
 
    /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
