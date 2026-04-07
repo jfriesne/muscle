@@ -315,7 +315,7 @@ status_t SocketMultiplexer :: FDState :: ComputeStateBitsChangeRequests()
 #else
          struct epoll_event evt; memset(&evt, 0, sizeof(evt));  // paranoia
          evt.data.fd = iter.GetKey();
-         if (userBits & (1<<FDSTATE_SET_READ))   evt.events |= EPOLLIN;
+         if (userBits & (1<<FDSTATE_SET_READ))   evt.events |= EPOLLIN|EPOLLRDHUP;
          if (userBits & (1<<FDSTATE_SET_WRITE))  evt.events |= EPOLLOUT;
          if (userBits & (1<<FDSTATE_SET_EXCEPT)) evt.events |= EPOLLERR;
          int op = ((userBits==0)&&(kernBits != 0)) ? EPOLL_CTL_DEL : (((userBits!=0)&&(kernBits==0)) ? EPOLL_CTL_ADD : EPOLL_CTL_MOD);
@@ -324,7 +324,8 @@ status_t SocketMultiplexer :: FDState :: ComputeStateBitsChangeRequests()
       }
 
 #if defined(MUSCLE_USE_EPOLL)
-      bits = (((uint16)userBits)<<4);   // for epoll() we update the bits now, since epoll_ctrl() succeeded already
+      if (userBits != 0) bits = (((uint16)userBits)<<4);   // for epoll() we update the bits now, since epoll_ctrl() succeeded already
+                    else (void) _bits.Remove(iter.GetKey());
 #endif
    }
 
