@@ -37,7 +37,7 @@ status_t PathMatcher :: RemovePathString(const String & wildpath)
    return B_DATA_NOT_FOUND;
 }
 
-status_t PathMatcher :: PutPathString(const String & path, const ConstQueryFilterRef & filter)
+status_t PathMatcher :: PutPathString(const String & path, const ConstQueryFilterRef & optFilter)
 {
    TCHECKPOINT;
 
@@ -74,9 +74,9 @@ status_t PathMatcher :: PutPathString(const String & path, const ConstQueryFilte
 
          const PathMatcherEntry * oldPME = subTable->Get(path);
          const bool alreadyHadFilter = ((oldPME)&&(oldPME->GetFilter()() != NULL));
-         if (subTable->Put(path, PathMatcherEntry(qRef, filter)).IsOK(ret))
+         if (subTable->Put(path, PathMatcherEntry(qRef, optFilter)).IsOK(ret))
          {
-            if ((alreadyHadFilter == false)&&(filter())) _numFilters++;
+            if (alreadyHadFilter != (optFilter() != NULL)) _numFilters += (optFilter() ? 1 : -1);
             return B_NO_ERROR;
          }
          else if (subTable->IsEmpty()) (void) _entries.Remove(depth);
@@ -111,7 +111,7 @@ status_t PathMatcher :: SetFilterForEntry(const String & path, const ConstQueryF
    PathMatcherEntry * pme = subTable ? subTable->Get(path) : NULL;
    if (pme == NULL) return B_DATA_NOT_FOUND;
 
-   if ((newFilter() != NULL) != (pme->GetFilter()() != NULL)) _numFilters += ((newFilter() != NULL) ? 1 : -1);  // FogBugz #5803
+   if ((newFilter() != NULL) != (pme->GetFilter()() != NULL)) _numFilters += (newFilter() ? 1 : -1);  // FogBugz #5803
    pme->SetFilter(newFilter);
    return B_NO_ERROR;
 }

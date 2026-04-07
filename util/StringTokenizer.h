@@ -134,8 +134,8 @@ private:
 
    enum {BITS_PER_WORD = (sizeof(uint32)*8)};
 
-   MUSCLE_NODISCARD bool IsBitSet(const uint32 * bits, uint8 whichBit) const {return ((bits[(whichBit)/BITS_PER_WORD] &  (1<<((whichBit)%BITS_PER_WORD))) != 0);}
-   void SetBit(                         uint32 * bits, uint8 whichBit)       {         bits[(whichBit)/BITS_PER_WORD] |= (1<<((whichBit)%BITS_PER_WORD));       }
+   MUSCLE_NODISCARD bool IsBitSet(const uint32 * bits, uint8 whichBit) const {return ((bits[(whichBit)/BITS_PER_WORD] &  (1U<<((whichBit)%BITS_PER_WORD))) != 0);}
+   void SetBit(                         uint32 * bits, uint8 whichBit)       {         bits[(whichBit)/BITS_PER_WORD] |= (1U<<((whichBit)%BITS_PER_WORD));       }
 
    void SetBitChords(const char * optSepChars);
 };

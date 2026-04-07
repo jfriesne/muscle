@@ -93,7 +93,7 @@ status_t ByteBuffer :: AppendBytes(const uint8 * bytes, uint32 numBytes, bool al
 
    const uint32 oldValidBytes = _numValidBytes;  // save this value since SetNumBytes() will change it
    MRETURN_ON_ERROR(SetNumBytesWithExtraSpace(numBytesSum, allocExtra));
-   if (bytes != NULL) memcpy(_buffer+oldValidBytes, bytes, numBytes);
+   if (bytes != NULL) memmove(_buffer+oldValidBytes, bytes, numBytes);  // yes, memmove() could be necessary if (bytes) points to near the end of our _buffer
    return B_NO_ERROR;
 }
 

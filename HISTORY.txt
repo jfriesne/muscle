@@ -234,6 +234,8 @@ key:  - new feature
    * Not prefix (!) operators in conjunctions weren't being handled
      correctly in all cases by CreateQueryFilterFromExpressionAux().  (cc)
    * QueryFilter.cpp's initialization of _tokStrlens[] is now thread-safe.  (cc)
+   * StringTokenizer::Join() only escaped the first char in the (joinChars)
+     argument.  Fixed to now escape all of them.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

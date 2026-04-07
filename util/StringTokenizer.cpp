@@ -202,7 +202,7 @@ String StringTokenizer :: Join(const Queue<String> & tokenizedStrings, bool incl
       if ((includeEmptyStrings)||(subStr.HasChars()))
       {
          if (includeEmptyStrings?(i>0):ret.HasChars()) ret += joinChars;
-         ret += doEscapes ? subStr.WithCharsEscaped(joinChars[0], escapeChar) : subStr;
+         ret += doEscapes ? subStr.WithCharsEscaped(joinChars(), escapeChar) : subStr;
       }
    }
    return ret;

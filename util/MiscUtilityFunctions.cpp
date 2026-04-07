@@ -114,7 +114,7 @@ static String QuoteAndEscapeStringIfNecessary(const String & s)
 {
    String tmp = s;
    tmp.Replace("\"", "\\\"");
-   return ((tmp.IndexOf(' ') >= 0)||(tmp.IndexOf('\t') >= 0)||(tmp.IndexOf('\r') >= 0)||(tmp.IndexOf('\n') >= 0)) ? tmp.WithPrepend('\"').WithAppend('\"') : std_move_if_available(tmp);
+   return ((tmp.Contains(' '))||(tmp.Contains('\t'))||(tmp.Contains('\r'))||(tmp.Contains('\n'))) ? tmp.WithPrepend('\"').WithAppend('\"') : std_move_if_available(tmp);
 }
 
 String UnparseArgs(const Message & argsMsg)
@@ -152,9 +152,7 @@ String UnparseArgs(const Queue<String> & args, uint32 startIdx, uint32 afterEndI
    afterEndIdx = muscleMin(afterEndIdx, args.GetNumItems());
    for (uint32 i=startIdx; i<afterEndIdx; i++)
    {
-      String subRet = args[i];
-      subRet.Replace("\"", "\\\"");
-      if (subRet.IndexOf(' ') >= 0) subRet = subRet.WithAppend("\"").WithPrepend("\"");
+      String subRet = QuoteAndEscapeStringIfNecessary(args[i]);
       if (ret.HasChars()) ret += ' ';
       ret += subRet;
    }
@@ -817,7 +815,7 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir, co
    int outfd = -1;
    if (optOutputTo)
    {
-      outfd = open(optOutputTo, O_WRONLY | (createIfNecessary ? O_CREAT : 0), mode);
+      outfd = open(optOutputTo, O_WRONLY | (createIfNecessary ? (O_CREAT|O_TRUNC) : 0), mode);
       if (outfd < 0) LogTime(MUSCLE_LOG_ERROR, "BecomeDaemonProcess():  Could not open %s to redirect stdout, stderr [%s]\n", optOutputTo, B_ERRNO());
    }
    if (outfd >= 0)
@@ -1308,12 +1306,13 @@ static ByteBufferRef Base64DecodeAux(const char * base64String, uint32 numBytes)
    uint8 * out = ret()->GetBuffer();
    uint32 outIdx = 0;
 
-   const uint8 * start = (const uint8 *) base64String;
-   const uint8 * in    = start;
-   while((uint32)(in-start)<numBytes)
+   const uint8 * start    = (const uint8 *) base64String;
+   const uint8 * afterEnd = start + numBytes;
+   const uint8 * in       = start;
+   while(in<afterEnd)
    {
       uint8 a[4] = {0,0,0,0}, b[4] = {0,0,0,0};
-      for (uint32 i=0; i<4; i++)
+      for (uint32 i=0; ((in<afterEnd)&&(i<4)); i++)
       {
          const uint8 c = *in++;
          if (c == '\0') break;

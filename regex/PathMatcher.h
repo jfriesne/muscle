@@ -120,7 +120,7 @@ public:
     *                reference is a NULL reference, then no filtering will be done.
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY.
     */
-   status_t PutPathString(const String & path, const ConstQueryFilterRef & filter);
+   status_t PutPathString(const String & path, const ConstQueryFilterRef & optFilter);
 
    /** Adds all of (matcher)'s StringMatchers to this matcher
      * @param matcher the matcher whose list of StringMatchers we should append to our own

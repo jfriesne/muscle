@@ -36,7 +36,9 @@ static long ZCALLBACK ftell_dataio_func (voidpf /*opaque*/, voidpf stream)
 {
    DataIO * dio = (DataIO *)stream;
    SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(dio);
-   return (long) (sdio ? sdio->GetPosition() : -1);
+
+   const int64 ret = sdio ? sdio->GetPosition() : -1;
+   return ((ret < 0)||(ret > (int64)LONG_MAX)) ? (long)-1 : (long)ret;  // error out cleanly on overflow
 }
 
 static long ZCALLBACK fseek_dataio_func (voidpf /*opaque*/, voidpf stream, uLong offset, int origin)
@@ -108,8 +110,10 @@ static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Messa
                                         (compressionLevel>0)?Z_DEFLATED:0,  // int method,
                                         compressionLevel,  // int compressionLevel
                                         0) != ZIP_OK) return B_ZLIB_ERROR;
-               if (zipWriteInFileInZip(zf, data, numBytes) != ZIP_OK) return B_ZLIB_ERROR;
-               if (zipCloseFileInZip(zf) != ZIP_OK) return B_ZLIB_ERROR;
+
+               status_t r = (zipWriteInFileInZip(zf, data, numBytes) == ZIP_OK) ? B_NO_ERROR : B_ZLIB_ERROR;
+               if (zipCloseFileInZip(zf) != ZIP_OK) r |= B_ZLIB_ERROR;  // do this even if zipWriteInFileInZip() failed
+               MRETURN_ON_ERROR(r);
             }
          }
          break;
@@ -179,7 +183,7 @@ static status_t ReadZipFileAuxAux(zipFile zf, Message & msg, char * nameBuf, uin
    const char * nulByte = strchr(nameBuf, '\0');
    const bool isFolder = ((nulByte > nameBuf)&&(*(nulByte-1) == '/'));
    Message * m = &msg;
-   StringTokenizer tok(true, nameBuf, "//");
+   StringTokenizer tok(true, nameBuf, "/");
    const char * nextTok;
    while((nextTok = tok()) != NULL)
    {
