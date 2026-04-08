@@ -550,7 +550,11 @@ void ReflectServer :: HandleEvents()
                if (readBytes.IsError())
                {
                   const bool wasConnecting = session->IsConnectingAsync();
-                  if ((DisconnectSession(session) == false)&&(_doLogging)) LogTime(MUSCLE_LOG_DEBUG, "Connection for %s %s (read error: %s).\n", session->GetSessionDescriptionString()(), wasConnecting?"failed":"was severed", readBytes());
+                  if (DisconnectSession(session) == false)
+                  {
+                     if (_doLogging) LogTime(MUSCLE_LOG_DEBUG, "Connection for %s %s (read error: %s).\n", session->GetSessionDescriptionString()(), wasConnecting?"failed":"was severed", readBytes());
+                     continue;  // avoid any chance of a seecond call to DisconnectSession() in our DoOutput-section below
+                  }
                }
             }
 
@@ -1028,9 +1032,9 @@ PutAcceptFactory(uint16 port, const ReflectSessionFactoryRef & factoryRef, const
             if (_factorySockets.Put(iap, acceptSocket).IsOK(ret))
             {
                f->SetOwner(this);
-               if (optRetPort) *optRetPort = port;
                if (f->AttachedToServer().IsOK(ret))
                {
+                  if (optRetPort) *optRetPort = port;
                   f->SetFullyAttachedToServer(true);
                   return B_NO_ERROR;
                }
