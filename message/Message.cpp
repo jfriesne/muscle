@@ -2196,7 +2196,7 @@ void Message :: TemplatedFlatten(const Message & templateMsg, DataFlattener flat
       }
    }
 
-   (void) flat.SeekRelative((int32)(outPtr-buf));  // so that (flat)'s destructor will understand that mf.TemplatedFlatten() actually did write to the end of the expected buffer
+   (void) flat.SeekRelative((uint32)(outPtr-buf));  // so that (flat)'s destructor will understand that mf.TemplatedFlatten() actually did write to the end of the expected buffer
 }
 
 status_t Message :: TemplatedUnflatten(const Message & templateMsg, DataUnflattener & unflat)
@@ -2749,10 +2749,36 @@ MessageField & MessageField :: operator = (const MessageField & rhs)
    _typeCode = rhs._typeCode;
    switch(rhs._state)
    {
-      case FIELD_STATE_EMPTY:  /* do nothing */                                                             break;
-      case FIELD_STATE_INLINE: (void) SingleSetValue(rhs._union._data, Message::GetElementSize(_typeCode)); break;
-      case FIELD_STATE_ARRAY:  if (SetInlineItemAsRefCountableRef(rhs.GetInlineItemAsRefCountableRef()).IsOK()) _state = FIELD_STATE_ARRAY; break; // note that the array is owned by two MessageFields at this point!
-      default:                 MCRASH("MessageField: Unknown field state!");                                break;
+      case FIELD_STATE_EMPTY:
+        // do nothing
+      break;
+
+      case FIELD_STATE_INLINE:
+      {
+         const status_t ret = SingleSetValue(rhs._union._data, Message::GetElementSize(_typeCode));
+         if (ret.IsError())
+         {
+            LogTime(MUSCLE_LOG_ERROR, "MessageField::operator=():  SingleSetValue() failed [%s]\n", ret());
+            MCRASH("SingleSetValue() failed");
+         }
+      }
+      break;
+
+      case FIELD_STATE_ARRAY:
+      {
+         status_t ret;
+         if (SetInlineItemAsRefCountableRef(rhs.GetInlineItemAsRefCountableRef()).IsOK(ret)) _state = FIELD_STATE_ARRAY; // note that the array is owned by two MessageFields at this point!
+         else
+         {
+            LogTime(MUSCLE_LOG_ERROR, "MessageField::operator=():  SetInlineItemAsRefCountableRef() failed [%s]\n", ret());
+            MCRASH("SingleSetValue() failed");
+         }
+      }
+      break;
+
+      default:
+         MCRASH("MessageField: Unknown field state!");
+      break;
    }
    return *this;
 }
