@@ -79,7 +79,7 @@
 #endif
 
 #ifdef __cplusplus
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11) && (__cplusplus < 201100L) && !defined(_MSVC_LANG)
+# if !defined(MUSCLE_AVOID_CPLUSPLUS11) && defined(__cplusplus) && (__cplusplus < 201100L) && !defined(_MSVC_LANG)
 #  define MUSCLE_AVOID_CPLUSPLUS11
 # endif
 # ifndef MUSCLE_AVOID_CPLUSPLUS11
@@ -138,7 +138,7 @@
 #endif
 
 #ifndef MUSCLE_AVOID_NODISCARD
-# if defined(__cplusplus) && (__cplusplus >= 201703L)
+# if defined(__cplusplus) && defined(MUSCLE_USE_CPLUSPLUS17)
 #  define MUSCLE_NODISCARD [[nodiscard]]
 # elif defined(__GNUC__) && (__GNUC__ >= 4) // clang also defines these
 #  define MUSCLE_NODISCARD __attribute__((warn_unused_result))
@@ -150,7 +150,7 @@
 # define MUSCLE_NODISCARD
 #endif
 
-#if !defined(MUSCLE_AVOID_NORETURN) && defined(__cplusplus) && (__cplusplus >= 201100L)
+#if !defined(MUSCLE_AVOID_NORETURN) && defined(__cplusplus) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
 # define MUSCLE_NORETURN [[noreturn]]
 #endif
 #ifndef MUSCLE_NORETURN
