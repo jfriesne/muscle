@@ -282,9 +282,9 @@ LogTime(MUSCLE_LOG_TRACE, " LCPA Q ret=[%s]\n", ret());
                      if (_blocking) return B_NO_ERROR;  // done!
                      else
                      {
-LogTime(MUSCLE_LOG_TRACE, " LCPA R ret=[%s]\n", ret());
                         // For non-blocking, we must have a separate proxy thread do the I/O for us :^P
                         _wakeupSignal = CreateEvent(0, false, false, 0);
+LogTime(MUSCLE_LOG_TRACE, " LCPA R ret=[%s] _wakeupSignal=%i\n", ret(), (_wakeupSignal!=NULL));
                              if (_wakeupSignal == NULL) ret = B_ERRNO;
                         else if (CreateConnectedSocketPair(_masterNotifySocket, _slaveNotifySocket, false).IsOK(ret))
                         {
@@ -293,8 +293,9 @@ LogTime(MUSCLE_LOG_TRACE, " LCPA S ret=[%s]\n", ret());
                            typedef unsigned (__stdcall *PTHREAD_START) (void *);
                            if ((_ioThread = (::HANDLE) _beginthreadex(NULL, 0, (PTHREAD_START)IOThreadEntryFunc, this, 0, (unsigned *) &junkThreadID)) != INVALID_HANDLE_VALUE) return B_NO_ERROR;
                                                                                                                                                                            else ret = B_ERRNO;
-LogTime(MUSCLE_LOG_TRACE, " LCPA T ret=[%s]\n", ret());
+LogTime(MUSCLE_LOG_TRACE, " LCPA T.1 ret=[%s]\n", ret());
                         }
+LogTime(MUSCLE_LOG_TRACE, " LCPA T.2 ret=[%s]\n", ret());
                      }
                   }
                   else ret = B_ERRNO;
