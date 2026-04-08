@@ -297,6 +297,8 @@ private:
 
    status_t NotifyAux(uint32 increaseBy) const
    {
+      if (increaseBy == 0) return B_NO_ERROR;  // no point waking everyone up for a no-op
+
       status_t ret;
 
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
