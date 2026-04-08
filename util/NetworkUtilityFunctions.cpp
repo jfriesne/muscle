@@ -571,6 +571,9 @@ static io_status_t SendDataUDPIPv4(const ConstSocketRef & sock, const void * buf
 }
 
 #ifndef MUSCLE_AVOID_IPV6
+#if !defined(MUSCLE_AVOID_IPV6) && !defined(MUSCLE_AVOID_MULTICAST_API)
+# define MUSCLE_USE_IFIDX_WORKAROUND 1
+#endif
 static io_status_t SendDataUDPIPv6(const ConstSocketRef & sock, const void * buffer, uint32 size, bool bm, const IPAddress & optToIP, uint16 optToPort)
 {
 #ifdef DEBUG_SENDING_UDP_PACKETS_ON_INTERFACE_ZERO
@@ -579,10 +582,6 @@ static io_status_t SendDataUDPIPv6(const ConstSocketRef & sock, const void * buf
       LogTime(MUSCLE_LOG_CRITICALERROR, "SendDataUDP:  Sending to IP address with invalid interface-index!  [%s]:%u\n", Inet_NtoA(optToIP)(), optToPort);
       PrintStackTrace();
    }
-#endif
-
-#if !defined(MUSCLE_AVOID_IPV6) && !defined(MUSCLE_AVOID_MULTICAST_API)
-# define MUSCLE_USE_IFIDX_WORKAROUND 1
 #endif
 
    const int fd = sock.GetFileDescriptor();
@@ -872,7 +871,7 @@ static bool IsIP4Address(const char * s)
       }
       s++;
    }
-   return (numDots == 3);
+   return ((prevWasDot == false)&&(numDots == 3));
 }
 
 #ifndef MUSCLE_AVOID_IPV6
@@ -1055,19 +1054,15 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
    }
 
    IPAddress ret = invalidIP;
-#ifdef MUSCLE_AVOID_IPV6
-   struct hostent * he = gethostbyname(name);
-   if (he)
-   {
-      const uint32 temp = muscleCopyIn<uint32>(he->h_addr);
-      ret.SetIPv4AddressFromUint32(ntohl(temp));
-   }
-#else
    struct addrinfo * result;
    struct addrinfo hints; memset(&hints, 0, sizeof(hints));
-   hints.ai_family   = AF_UNSPEC;     // We're not too particular, for now
    hints.ai_socktype = SOCK_STREAM;   // so we don't get every address twice (once for UDP and once for TCP)
-   IPAddress ret6 = invalidIP;
+#ifdef MUSCLE_AVOID_IPV6
+   hints.ai_family = AF_INET;
+#else
+   hints.ai_family = AF_UNSPEC;
+   IPAddress ret6  = invalidIP;
+#endif
    if (getaddrinfo(name, NULL, &hints, &result) == 0)
    {
       struct addrinfo * next = result;
@@ -1079,10 +1074,13 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
                if (ret.IsValid() == false)
                {
                   ret.SetIPv4AddressFromUint32(ntohl(DowncastFromSockAddr<const struct sockaddr_in>(next->ai_addr)->sin_addr.s_addr)); // read IPv4 address into low bits of IPv6 address structure
+#ifndef MUSCLE_AVOID_IPV6
                   ret.SetLowBits(ret.GetLowBits() | ((uint64)0xFFFF)<<32);                                                             // and make it IPv6-mapped (why doesn't AI_V4MAPPED do this?)
+#endif
                }
             break;
 
+#ifndef MUSCLE_AVOID_IPV6
             case AF_INET6:
                if (ret6.IsValid() == false)
                {
@@ -1091,6 +1089,7 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
                   ret6.ReadFromNetworkArray(sin6->sin6_addr.s6_addr, tmp ? &tmp : NULL);
                }
             break;
+#endif
 
             default:
                // empty
@@ -1100,13 +1099,14 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
       }
       freeaddrinfo(result);
 
+#ifndef MUSCLE_AVOID_IPV6
       if (ret.IsValid())
       {
          if ((preferIPv6)&&(ret6.IsValid())) ret = ret6;
       }
       else ret = ret6;
-   }
 #endif
+   }
 
    if (expandLocalhost) ExpandLocalhostAddress(ret);
 
@@ -1487,6 +1487,8 @@ status_t FinalizeAsyncConnect(const ConstSocketRef & sock)
 
 static status_t SetSocketBufferSizeAux(const ConstSocketRef & sock, uint32 numBytes, int optionName)
 {
+   if (numBytes > (uint32)INT32_MAX) return B_BAD_ARGUMENT;  // paranoia
+
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
@@ -2246,7 +2248,7 @@ static status_t AddNamedInterfaceScopeSuffix(uint32 iidx, char * ipbuf, bool for
       if ((nextIP.IsInterfaceIndexValid())&&(nextIP.GetInterfaceIndex() == iidx)&&(nii.GetName().HasChars()))
       {
          const size_t ipbuflen = strlen(ipbuf);
-         muscleSnprintf(ipbuf+ipbuflen, MIN_IPBUF_LENGTH-ipbuflen, "%%%s", nii.GetName()());
+         muscleSnprintf(ipbuf+ipbuflen, (MIN_IPBUF_LENGTH>ipbuflen) ? (MIN_IPBUF_LENGTH-ipbuflen) : 0, "%%%s", nii.GetName()());
          return B_NO_ERROR;
       }
    }
@@ -2280,7 +2282,7 @@ void Inet_NtoA(const IPAddress & addr, char * ipbuf, bool preferIPv4, bool expan
 
             // If all else fails, just add the numeric-index-suffix (e.g. @5 for multicast scope 5)
             const size_t ipbuflen = strlen(ipbuf);
-            muscleSnprintf(ipbuf+ipbuflen, MIN_IPBUF_LENGTH-ipbuflen, "@" UINT32_FORMAT_SPEC, addr.GetInterfaceIndex());
+            muscleSnprintf(ipbuf+ipbuflen, (MIN_IPBUF_LENGTH > ipbuflen) ? (MIN_IPBUF_LENGTH-ipbuflen) : 0, "@" UINT32_FORMAT_SPEC, addr.GetInterfaceIndex());
          }
       }
       else ipbuf[0] = '\0';
