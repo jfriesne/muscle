@@ -6,6 +6,7 @@
 #include <atomic>
 
 #include "support/NotCopyable.h"
+#include "util/TimeUtilityFunctions.h"  // for MUSCLE_TIME_NEVER
 
 namespace muscle {
 
@@ -22,39 +23,50 @@ public:
 
    ~SpinLock() {/* empty */}
 
-   /** Tries to lock the spinlock; won't return until the spinlock has been locked.
+   /** Tries indefinitely to lock the spinlock; won't return until the spinlock has been locked.
      * @note this method will spin the CPU until the lock is acquired, so it's important to make
      *       sure no thread holds the spinlock for an extended period of time!
-     * @returns B_NO_ERROR on success, or some other error code on failure.
+     * @returns B_NO_ERROR on success, or an error value on failure.
      */
-   status_t Lock() const
+   status_t Lock() const {return TryLockUntil(MUSCLE_TIME_NEVER);}
+
+   /** Tries just once to lock the spinlock.  Returns B_NO_ERROR on success, or B_TIMED_OUT if some other thread currently has ownership of the spinlock. */
+   status_t TryLock() const
+   {
+      // First do a relaxed load to check if lock is free, in order to prevent unnecessary cache misses if someone does while(TryLock().IsError())
+      return ((!_locked.load(std::memory_order_relaxed)) && (!_locked.exchange(true, std::memory_order_acquire))) ? B_NO_ERROR : B_TIMED_OUT;
+   }
+
+   /** Tries to lock the spinlock; won't return until the spinlock has been locked or the specified time has been reached.
+     * @param tryUntil a timestamp (in GetRunTime64()-style microseconds) at which to stop trying to lock the SpinLock.
+     *                 Pass MUSCLE_TIME_NEVER if you want to keep trying indefinitely.
+     * @note this method will spin the CPU until the lock is acquired or the timeout time arrives, so it's important to make
+     *       sure no thread holds the spinlock for an extended period of time!
+     * @returns B_NO_ERROR on success, or B_TIMED_OUT if this call timed out without acquiring the SpinLock.
+     */
+   status_t TryLockUntil(uint64 tryUntilTime) const
    {
       while(1)
       {
          // Optimistically assume the lock is free on the first try
          if (!_locked.exchange(true, std::memory_order_acquire)) return B_NO_ERROR;
+         if ((tryUntilTime != MUSCLE_TIME_NEVER)&&(GetRunTime64() >= tryUntilTime)) return B_TIMED_OUT;
 
          // Wait for lock to be released without generating cache misses
          while(_locked.load(std::memory_order_relaxed))
          {
+            if ((tryUntilTime != MUSCLE_TIME_NEVER)&&(GetRunTime64() >= tryUntilTime)) return B_TIMED_OUT;
+
             // Issue X86 PAUSE or ARM YIELD instruction to reduce contention between hyper-threads
 #if defined(_M_ARM) || defined(_M_ARM64)
             __yield();
+#elif defined(__ARM_ARCH) || defined(__aarch64__)
+            __asm__ volatile("yield" ::: "memory");
 #elif defined(MUSCLE_USE_X86_INLINE_ASSEMBLY)
             __builtin_ia32_pause();
 #endif
          }
       }
-   }
-
-   /** Tries once to lock the spinlock.  Returns B_NO_ERROR on success, or B_TIMED_OUT if some other thread
-     * currently has ownership of the spinlock.
-     */
-   status_t TryLock() const
-   {
-      // First do a relaxed load to check if lock is free in order to prevent
-      // unnecessary cache misses if someone does while(TryLock().IsError())
-      return ((!_locked.load(std::memory_order_relaxed)) && (!_locked.exchange(true, std::memory_order_acquire))) ? B_NO_ERROR : B_TIMED_OUT;
    }
 
    /** Unlocks the spinlock.  This method should only be called by the thread that currently has the spinlock locked!
@@ -82,16 +94,13 @@ public:
       const status_t ret = _spinlock->Lock();
       if (ret.IsError())
       {
-         printf("SpinLockGuard %p:  could not lock spinlock %p! [%s]\n", this, _spinlock, ret());
-         _spinlock = NULL;
+         printf("SpinLockGuard %p:  could not lock SpinLock %p! [%s]\n", this, _spinlock, ret());
+         MCRASH("SpinLockGuard:  SpinLock Lock() failed!");
       }
    }
 
    /** Destructor.  Unlocks the SpinLock previously specified in the constructor. */
    ~SpinLockGuard() {UnlockAux();}
-
-   /** Returns true iff we successfully locked our SpinLock. */
-   MUSCLE_NODISCARD bool IsSpinLockLocked() const {return (_spinlock != NULL);}
 
    /** Call this to unlock our guarded SpinLock "early" (right now, instead of when our destructor executes)
      * If called more than once, the second and further calls will have no effect.
@@ -101,12 +110,16 @@ public:
 private:
    void UnlockAux()
    {
-      if (_spinlock)
+      if (_spinlock == NULL) return;  // may be NULL if UnlockEarly() got called before now
+
+      const status_t ret = _spinlock->Unlock();
+      if (ret.IsError())
       {
-         const status_t ret = _spinlock->Unlock();
-         if (ret.IsError()) printf("SpinLockGuard %p:  could not unlock spinlock %p! [%s]\n", this, _spinlock, ret());
-         _spinlock = NULL;
+         printf("SpinLockGuard %p:  could not unlock SpinLock %p! [%s]\n", this, _spinlock, ret());
+         MCRASH("SpinLockGuard:  SpinLock Unlock() failed!");
       }
+
+      _spinlock = NULL;
    }
 
    const SpinLock * _spinlock;

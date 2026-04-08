@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "system/SpinLock.h"            // solely here so that at least something #includes it, so that any introduced typos will get caught
 #include "system/Thread.h"
 #include "system/ReaderWriterMutex.h"
 #include "system/SetupSystem.h"

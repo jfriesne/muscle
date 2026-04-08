@@ -947,7 +947,7 @@ static void PrintSequenceReport(const OutputPrinter & p, const char * desc, cons
 
    for (ConstHashtableIterator<Queue<MutexLockRecord>, Queue<muscle_thread_id> > iter(detailsToThreads); iter.HasData(); iter++)
    {
-      Queue<muscle_thread_id> & threadsList = iter.GetValue();
+      Queue<muscle_thread_id> threadsList = iter.GetValue();
       threadsList.Sort();
 
       p.printf("    Thread%s [%s] locked mutexes in this order:\n", (threadsList.GetNumItems()==1)?"s":"", ThreadsListToString(threadsList)());

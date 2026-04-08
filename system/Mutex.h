@@ -404,10 +404,20 @@ public:
 #endif
    {
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-      if (_mutex->LockAux().IsError()) MCRASH("MutexGuard:  Mutex Lock() failed!\n");
+      const status_t ret = _mutex->LockAux();
+      if (ret.IsError())
+      {
+         printf("MutexGuard %p:  could not LockAux() Mutex %p! [%s]\n", this, _mutex, ret());
+         MCRASH("MutexGuard:  Mutex LockAux() failed!");
+      }
       _mutex->LogDeadlockFinderEvent(LOCK_ACTION_LOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__);  // must be called while the Mutex is locked
 #else
-      if (_mutex->Lock().IsError())    MCRASH("MutexGuard:  Mutex Lock() failed!\n");
+      const status_t ret = _mutex->Lock();
+      if (ret.IsError())
+      {
+         printf("MutexGuard %p:  could not Lock() Mutex %p! [%s]\n", this, _mutex, ret());
+         MCRASH("MutexGuard:  Mutex Lock() failed!");
+      }
 #endif
    }
 
@@ -422,16 +432,26 @@ public:
 private:
    void UnlockAux()
    {
-      if (_mutex)
-      {
+      if (_mutex == NULL) return;  // may be NULL if UnlockEarly() got called before now
+
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
-         _mutex->LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the Mutex is locked
-         if (_mutex->UnlockAux().IsError()) MCRASH("MutexGuard:  Mutex Unlock() failed!\n");
-#else
-         if (_mutex->Unlock().IsError())    MCRASH("MutexGuard:  Mutex Unlock() failed!\n");
-#endif
-         _mutex = NULL;
+      _mutex->LogDeadlockFinderEvent(LOCK_ACTION_UNLOCK_EXCLUSIVE, _optFileName?_optFileName:__FILE__, _optFileName?_fileLine:__LINE__); // must be called while the Mutex is locked
+      const status_t ret = _mutex->UnlockAux();
+      if (ret.IsError())
+      {
+         printf("MutexGuard %p:  could not UnlockAux() Mutex %p! [%s]\n", this, _mutex, ret());
+         MCRASH("MutexGuard:  Mutex UnlockAux() failed!");
       }
+#else
+      const status_t ret = _mutex->Unlock();
+      if (ret.IsError())
+      {
+         printf("MutexGuard %p:  could not Unlock() Mutex %p! [%s]\n", this, _mutex, ret());
+         MCRASH("MutexGuard:  Mutex Unlock() failed!");
+      }
+#endif
+
+      _mutex = NULL;
    }
 
    const Mutex * _mutex;
