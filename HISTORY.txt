@@ -256,6 +256,8 @@ key:  - new feature
      ObjectPool already had some nodes in use at the time.  Fixed.  (cc)
    * Added a "memory yield" case to SpinLock::TryLockUntil() for the GCC/Clang
      ARM environment.  (cc)
+   * DataNode::CalculateChecksum() now includes the ordering of children
+     within the ordered-children-index as part of the checksum.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
