@@ -2728,17 +2728,15 @@ void OutputPrinter :: printf(const char * fmt, ...) const
    // So if (buf) is too small, it's possible that (numChars1 >= sizeof(buf))
    va_list va1; va_start(va1, fmt);
 #if defined(WIN32)
-   va_list vaCount; va_copy(vaCount, va1);
-   const int numChars1 = _vscprintf(fmt, vaCount);  // returns needed buffer size, never -1
-   va_end(vaCount);
-   if (((size_t)(numChars1+1)) < sizeof(buf))  // otherwise we'll do a heap-allocation below
-   {
+   va_list vaCount; va_copy(vaCount, va1);  // Gotta copy the args up-front, before _vsnprintf() consumes them
 # if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
-      (void) _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va1);
+   const int vret = _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va1);
 # else
-      (void) _vsnprintf  (buf, sizeof(buf),            fmt, va1);
+   const int vret = _vsnprintf  (buf, sizeof(buf),            fmt, va1);
 # endif
-   }
+   int numChars1 = vret;
+   if (numChars1 < 0) numChars1 = _vscprintf(fmt, vaCount);  // returns needed buffer size, never -1
+   va_end(vaCount);  // Gotta do this even if we didn't use it
 #else
    const int numChars1 = vsnprintf(buf, sizeof(buf), fmt, va1);
 #endif
