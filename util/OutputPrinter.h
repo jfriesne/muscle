@@ -96,7 +96,7 @@ public:
    void Print(uint16       dt) const {printf("%u",               dt);}
    void Print(int8         dt) const {printf("%i",               dt);}
    void Print(uint8        dt) const {printf("%u",               dt);}
-   void Print(const char * dt) const {printf("%s",               dt);}
+   void Print(const char * dt) const {puts(dt);}
    template<typename T> void Print(const T & dt) const {dt.Print(*this);}
 
 private:

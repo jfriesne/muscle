@@ -247,6 +247,8 @@ key:  - new feature
      from within the Queue's own contents.  (cc)
    * Queue::RemoveSortedDuplicateItems() would sometimes move items onto
      themselves, which was pointless and also potentially UB.  Fixed.  (cc)
+   * OutputPrinter::printf() would omit the printing of lines larger than
+     1023 characters under Windows.  Fixed.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

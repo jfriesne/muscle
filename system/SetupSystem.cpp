@@ -2727,12 +2727,20 @@ void OutputPrinter :: printf(const char * fmt, ...) const
    // been printed, not including the NUL terminator byte.
    // So if (buf) is too small, it's possible that (numChars1 >= sizeof(buf))
    va_list va1; va_start(va1, fmt);
-#if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
-   const int numChars1 = _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va1);
-#elif defined(WIN32)
-   const int numChars1 = _vsnprintf(  buf, sizeof(buf),            fmt, va1);
+#if defined(WIN32)
+   va_list vaCount; va_copy(vaCount, va1);
+   const int numChars1 = _vscprintf(fmt, vaCount);  // returns needed buffer size, never -1
+   va_end(vaCount);
+   if (((size_t)(numChars1+1)) < sizeof(buf))  // otherwise we'll do a heap-allocation below
+   {
+# if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
+      (void) _vsnprintf_s(buf, sizeof(buf), _TRUNCATE, fmt, va1);
+# else
+      (void) _vsnprintf  (buf, sizeof(buf),            fmt, va1);
+# endif
+   }
 #else
-   const int numChars1 =  vsnprintf(  buf, sizeof(buf),            fmt, va1);
+   const int numChars1 = vsnprintf(buf, sizeof(buf), fmt, va1);
 #endif
    va_end(va1);
 
@@ -2746,6 +2754,7 @@ void OutputPrinter :: printf(const char * fmt, ...) const
          char * heapBuf = (char *) muscleAlloc(heapBufSize);
          if (heapBuf)
          {
+            // Note that this call to vsnprintf()/etc should never fail since (heapBufSize) was calculated to be big-enough
             va_list va2; va_start(va2, fmt);
 #if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
             const int numChars2 = _vsnprintf_s(heapBuf, heapBufSize, _TRUNCATE, fmt, va2);
