@@ -346,7 +346,7 @@ public:
       const uint32 currentlyAlloced = UnsafeGetNumAllocatedItemSlotsAux();
       if (currentlyAlloced < desiredPrefilledSize)
       {
-         const uint32 numToAllocate  = desiredPrefilledSize-currentlyAlloced;
+         const uint32 numToAllocate  = _curPoolSize+desiredPrefilledSize-currentlyAlloced;
          const uint32 stackArraySize = 1000;
 
          Object * stackArray[stackArraySize];  // try to use this if possible
@@ -601,6 +601,32 @@ private:
                LogTime(MUSCLE_LOG_CRITICALERROR, "ObjectSlab %p in ObjectPool %p (%s):  ObjectNode # " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " at %p has unexpected array-index %u -- memory corruption detected!\n", this, pool, pool->GetObjectClassName(), i, NUM_OBJECTS_PER_SLAB, &n, arrayIdx);
                MCRASH("ObjectSlab::PerformSanityCheck() detected memory corruption on arrayIdx!");
             }
+
+            const uint16 nextIdx = n.GetNextIndex();
+            if ((nextIdx != INVALID_NODE_INDEX)&&(nextIdx >= NUM_OBJECTS_PER_SLAB))
+            {
+               LogTime(MUSCLE_LOG_CRITICALERROR, "ObjectSlab %p in ObjectPool %p (%s):  ObjectNode # " UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " at %p has unexpected next-node-index %u -- memory corruption detected!\n", this, pool, pool->GetObjectClassName(), i, NUM_OBJECTS_PER_SLAB, &n, nextIdx);
+               MCRASH("ObjectSlab::PerformSanityCheck() detected memory corruption on nextIdx!");
+            }
+         }
+
+         uint32 freeListLength = 0;
+         uint16 nextFreeNodeIndex = _data.GetFirstFreeNodeIndex();
+         while(nextFreeNodeIndex != INVALID_NODE_INDEX)
+         {
+            if (++freeListLength > NUM_OBJECTS_PER_SLAB)
+            {
+               LogTime(MUSCLE_LOG_CRITICALERROR, "ObjectSlab %p in ObjectPool %p (%s):  Slab has more than %u items in the free list, cycle detected!\n", this, pool, pool->GetObjectClassName(), NUM_OBJECTS_PER_SLAB);
+               MCRASH("ObjectSlab::PerformSanityCheck() detected a cycle in an ObjectSlab free list");
+            }
+            nextFreeNodeIndex = _nodes[nextFreeNodeIndex].GetNextIndex();
+         }
+
+         const uint32 expectedFreeListLength = NUM_OBJECTS_PER_SLAB - numNodesInUse;
+         if (freeListLength != expectedFreeListLength)
+         {
+            LogTime(MUSCLE_LOG_CRITICALERROR, "ObjectSlab %p in ObjectPool %p (%s):  Slab has %u items in the free list, expected %u\n", this, pool, pool->GetObjectClassName(), freeListLength, expectedFreeListLength);
+            MCRASH("ObjectSlab::PerformSanityCheck() detected a length mismatch in an ObjectSlab free list");
          }
       }
 

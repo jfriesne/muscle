@@ -249,6 +249,8 @@ key:  - new feature
      themselves, which was pointless and also potentially UB.  Fixed.  (cc)
    * OutputPrinter::printf() would omit the printing of lines larger than
      1023 characters under Windows.  Fixed.  (cc)
+   * ObjectPool::Prefill() wouldn't prefill to the expected size if the
+     ObjectPool already had some nodes in use at the time.  Fixed.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

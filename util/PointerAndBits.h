@@ -65,7 +65,7 @@ public:
      * @param pointerVal the pointer value to hold
      * @param dataBits a bit-chord of bits to store along inside along with the pointer.  Only the low (NumBits) bits may be set in this value!
      */
-   MUSCLE_CONSTEXPR_17 PointerAndBits(T * pointerVal, uintptr dataBits)
+   PointerAndBits(T * pointerVal, uintptr dataBits)
    {
 #if !defined(MUSCLE_AVOID_TAGGED_POINTERS) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
       (void) PointerAndBits::AlignmentCheck((T*)NULL);  // just to invoke a compile-time error if the caller tries to set (NumBits) larger it's allowed to be
