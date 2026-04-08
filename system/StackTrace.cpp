@@ -29,7 +29,7 @@ void PrintStackTrace()
    FILE * optFile = stdout;
    void *array[256];
    size_t size = backtrace(array, 256);
-   char ** strings = backtrace_symbols(array, 256);
+   char ** strings = backtrace_symbols(array, size);
    if (strings)
    {
       fprintf(optFile, "--Stack trace follows (%i frames):\n", (int) size);
@@ -1026,7 +1026,7 @@ status_t StackWalker :: CaptureCallstack(uint32 maxDepth, HANDLE hThread, const 
       // CONTEXT need not to be supplied if imageType is IMAGE_FILE_MACHINE_I386!
       if (!m_sw->pSW(imageType, m_hProcess, hThread, &s, &sws._context, ReadProcMemCallback, m_sw->pSFTA, m_sw->pSGMB, NULL))
       {
-         ret = B_ERROR("StackWalk64() failed");
+         // note that this isn't a real error; it typically just indicates that the top of the stack has been reached
          break;
       }
 
