@@ -372,14 +372,14 @@ void LogLineCallback :: LogAux(const LogCallbackArgs & a, va_list & argList)
    // Generate the new text
    const size_t sizeOfBuffer = (sizeof(_buf)-1)-(_writeTo-_buf);  // the -1 is for the guaranteed NUL terminator
 #if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
-   const int bytesAttempted = _vsnprintf_s(_writeTo, sizeOfBuffer, _TRUNCATE, a.GetText(), argList);
+   const int vsnRet = _vsnprintf_s(_writeTo, sizeOfBuffer, _TRUNCATE, a.GetText(), argList);   // note:  returns -1 on truncation failure
 #elif defined(WIN32)
-   const int bytesAttempted =   _vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            argList);
+   const int vsnRet = _vsnprintf(  _writeTo, sizeOfBuffer, a.GetText(),            argList);   // note:  returns -1 on truncation failure
 #else
-   const int bytesAttempted =    vsnprintf(_writeTo, sizeOfBuffer, a.GetText(),            argList);
+   const int vsnRet = vsnprintf(   _writeTo, sizeOfBuffer, a.GetText(),            argList);   // note:  returns (number of bytes we wanted to write) on truncation failure
 #endif
 
-   const bool wasTruncated = (bytesAttempted != (int)strlen(_writeTo));  // do not combine with above line!
+   const bool wasTruncated = (vsnRet != (int)strlen(_writeTo));  // do not combine with above line!
 
    // Log any newly completed lines
    char * logFrom  = _buf;

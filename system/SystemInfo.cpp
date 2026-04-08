@@ -7,9 +7,8 @@
 # include <mach/mach_host.h>
 # include <CoreFoundation/CoreFoundation.h>
 #endif
-#ifdef WIN32
-# include "Shlwapi.h"
-#else
+
+#ifndef WIN32
 # include <pwd.h>
 #endif
 
@@ -189,8 +188,10 @@ status_t GetSystemPath(uint32 whichPath, String & outStr)
 #ifndef WIN32
          if (homeDir.IsEmpty())
          {
-            const struct passwd * p = getpwuid(geteuid());
-            if (p) homeDir = p->pw_dir;
+            struct passwd pwbuf;
+            char strbuf[2048];
+            struct passwd * p = NULL;
+            if ((getpwuid_r(geteuid(), &pwbuf, strbuf, sizeof(strbuf), &p) == 0) && (p != NULL)) homeDir = p->pw_dir;
          }
 #endif
          if (homeDir.HasChars()) {found = true; outStr = std_move_if_available(homeDir);}

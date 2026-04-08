@@ -25,11 +25,15 @@ int main(int, char **)
    uint32 numCores;
    if (GetNumberOfProcessors(numCores).IsOK()) printf("TestSystemInfo:  There are " UINT32_FORMAT_SPEC " CPU cores in the system.\n", numCores);
                                           else printf("TestSystemInfo:  Unable to determine the number of CPU cores in the system.\n");
-   printf("                 OS name  = [%s]\n", GetOSName());
-   printf("                 file sep = [%s]\n", GetFilePathSeparator());
-   printf("                 cur path = [%s]\n", GetSystemPathAux(SYSTEM_PATH_CURRENT)());
-   printf("                 exe path = [%s]\n", GetSystemPathAux(SYSTEM_PATH_EXECUTABLE)());
-   printf("                 tmp path = [%s]\n", GetSystemPathAux(SYSTEM_PATH_TEMPFILES)());
-   printf("                 proc mem = " UINT64_FORMAT_SPEC " bytes\n", GetProcessMemoryUsage());
+   printf("                 OS name   = [%s]\n", GetOSName());
+   printf("                 file sep  = [%s]\n", GetFilePathSeparator());
+   printf("                 cur path  = [%s]\n", GetSystemPathAux(SYSTEM_PATH_CURRENT)());
+   printf("                 exe path  = [%s]\n", GetSystemPathAux(SYSTEM_PATH_EXECUTABLE)());
+   printf("                 tmp path  = [%s]\n", GetSystemPathAux(SYSTEM_PATH_TEMPFILES)());
+   printf("                 home path = [%s]\n", GetSystemPathAux(SYSTEM_PATH_USERHOME)());
+   printf("                 desktop   = [%s]\n", GetSystemPathAux(SYSTEM_PATH_DESKTOP)());
+   printf("                 docs path = [%s]\n", GetSystemPathAux(SYSTEM_PATH_DOCUMENTS)());
+   printf("                 root path = [%s]\n", GetSystemPathAux(SYSTEM_PATH_ROOT)());
+   printf("                 proc mem  = " UINT64_FORMAT_SPEC " bytes\n", GetProcessMemoryUsage());
    return 0;
 }
