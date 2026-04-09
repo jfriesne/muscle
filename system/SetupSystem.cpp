@@ -15,6 +15,10 @@
 #include "util/OutputPrinter.h"
 #include "util/String.h"
 
+#if defined(__GNUC__)
+# include <cxxabi.h>  // for abi::__cxa_demangle()
+#endif
+
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
 # include <random>
 #endif
@@ -943,14 +947,18 @@ static void PrintSequenceReport(const OutputPrinter & p, const char * desc, cons
    p.printf("  %s: [%s] was executed by " UINT32_FORMAT_SPEC " threads:\n", desc, LockSequenceToString(seq)(), detailsTable.GetNumItems());
 
    Hashtable<Queue<MutexLockRecord>, Queue<muscle_thread_id> > detailsToThreads;
-   for (ConstHashtableIterator<muscle_thread_id, Queue<MutexLockRecord> > iter(detailsTable); iter.HasData(); iter++) (void) detailsToThreads.GetOrPut(iter.GetValue())->AddTailIfNotAlreadyPresent(iter.GetKey());
+   for (ConstHashtableIterator<muscle_thread_id, Queue<MutexLockRecord> > iter(detailsTable); iter.HasData(); iter++)
+   {
+      Queue<muscle_thread_id> * q = detailsToThreads.GetOrPut(iter.GetValue());
+      if (q) (void) q->AddTailIfNotAlreadyPresent(iter.GetKey());
+   }
 
    for (ConstHashtableIterator<Queue<MutexLockRecord>, Queue<muscle_thread_id> > iter(detailsToThreads); iter.HasData(); iter++)
    {
       Queue<muscle_thread_id> threadsList = iter.GetValue();
       threadsList.Sort();
 
-      p.printf("    Thread%s [%s] locked mutexes in this order:\n", (threadsList.GetNumItems()==1)?"s":"", ThreadsListToString(threadsList)());
+      p.printf("    Thread%s [%s] locked mutexes in this order:\n", (threadsList.GetNumItems()==1)?"":"s", ThreadsListToString(threadsList)());
       const Queue<MutexLockRecord> & details = iter.GetKey();
 
 #ifdef MUSCLE_USE_BACKTRACE
@@ -985,7 +993,7 @@ status_t PrintMutexLockingReport(const OutputPrinter & p)
 
    // Now we check for inconsistent locking order.  Two sequences are inconsistent with each other if they lock the same two mutexes
    // but lock them in a different order, and at least one lock-action in the sequence is exclusive.
-   Hashtable<uint32, uint32> inconsistentSequencePairs;  // smaller key-position -> larger key-position
+   Hashtable<uint64, Void> inconsistentSequencePairs;  // ((smallerIdx<<32)|(largerIdx)) -> Void
    {
       uint32 idxA = 0;
       for (ConstHashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iterA(capturedResults); iterA.HasData(); iterA++,idxA++)
@@ -994,8 +1002,15 @@ status_t PrintMutexLockingReport(const OutputPrinter & p)
 
          uint32 idxB = 0;
          for (ConstHashtableIterator<Queue<const void *>, Hashtable<muscle_thread_id, Queue<MutexLockRecord> > > iterB(capturedResults); ((idxB < idxA)&&(iterB.HasData())); iterB++,idxB++)
+         {
             if (((iterAHasExclusiveLock)||(SequenceHasExclusiveLock(iterB.GetValue())))&&(SequencesAreInconsistent(iterA.GetKey(), iterB.GetKey())))
-              MRETURN_ON_ERROR(inconsistentSequencePairs.Put(idxB, idxA));
+            {
+               const uint32 smallerIdx = muscleMin(idxA, idxB);
+               const uint32 largerIdx  = muscleMax(idxA, idxB);
+               const uint64 key        = (((uint64)smallerIdx)<<32) | ((uint64)largerIdx);
+               MRETURN_ON_ERROR(inconsistentSequencePairs.PutWithDefault(key));
+            }
+         }
       }
    }
 
@@ -1005,12 +1020,16 @@ status_t PrintMutexLockingReport(const OutputPrinter & p)
       p.printf("\n");
       p.printf("--------- WARNING: " UINT32_FORMAT_SPEC " INCONSISTENT LOCK SEQUENCE%s DETECTED --------------\n", inconsistentSequencePairs.GetNumItems(), (inconsistentSequencePairs.GetNumItems()==1)?"":"S");
       uint32 idx = 0;
-      for (ConstHashtableIterator<uint32, uint32> iter(inconsistentSequencePairs); iter.HasData(); iter++,idx++)
+      for (ConstHashtableIterator<uint64, Void> iter(inconsistentSequencePairs); iter.HasData(); iter++,idx++)
       {
+         const uint64 key        = iter.GetKey();
+         const uint32 smallerIdx = (uint32) ((key>>32) & 0xFFFFFFFF);
+         const uint32 largerIdx  = (uint32) ((key>>00) & 0xFFFFFFFF);
+
          p.printf("\n");
          p.printf("INCONSISTENT LOCKING ORDER REPORT #" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " --------\n", idx+1, inconsistentSequencePairs.GetNumItems());
-         const Queue<const void *> & seqA = *capturedResults.GetKeyAt(iter.GetKey());
-         const Queue<const void *> & seqB = *capturedResults.GetKeyAt(iter.GetValue());
+         const Queue<const void *> & seqA = *capturedResults.GetKeyAt(smallerIdx);
+         const Queue<const void *> & seqB = *capturedResults.GetKeyAt(largerIdx);
          PrintSequenceReport(p, "SequenceA", seqA, capturedResults[seqA]);
          PrintSequenceReport(p, "SequenceB", seqB, capturedResults[seqB]);
          foundProblems = true;
@@ -2522,7 +2541,7 @@ Queue<String> GetBuildFlags()
 #endif
 
 #ifdef MUSCLE_MUTEX_POOL_SIZE
-   (void) q.AddTail(String("MUSCLE_MUTEX_POOL_SIZE").Arg(MUSCLE_MUTEX_POOL_SIZE));
+   (void) q.AddTail(String("MUSCLE_MUTEX_POOL_SIZE=%1").Arg(MUSCLE_MUTEX_POOL_SIZE));
 #endif
 
 #ifdef MUSCLE_POWERPC_TIMEBASE_HZ
@@ -2533,12 +2552,12 @@ Queue<String> GetBuildFlags()
    (void) q.AddTail("MUSCLE_USE_PTHREADS");
 #endif
 
-#ifdef MUSCLE_USE_PTHREADS
+#ifdef MUSCLE_USE_CPLUSPLUS11_THREADS
    (void) q.AddTail("MUSCLE_USE_CPLUSPLUS11_THREADS");
 #endif
 
 #ifdef MUSCLE_DEFAULT_TCP_STALL_TIMEOUT
-   (void) q.AddTail("MUSCLE_DEFAULT_TCP_STALL_TIMEOUT=%1").Arg(MUSCLE_DEFAULT_TCP_STALL_TIMEOUT);
+   (void) q.AddTail(String("MUSCLE_DEFAULT_TCP_STALL_TIMEOUT=%1").Arg(MUSCLE_DEFAULT_TCP_STALL_TIMEOUT));
 #endif
 
 #ifdef MUSCLE_FD_SETSIZE
@@ -2893,7 +2912,7 @@ uint32 GetInsecurePseudoRandomNumber32(uint32 maxVal)
    MUSCLE_THREAD_LOCAL_OR_STATIC std::mt19937 rng(std::random_device{}());
    const uint32 r = rng();
 #endif
-   return (maxVal == MUSCLE_NO_LIMIT) ? r : (r%maxVal);
+   return (maxVal == MUSCLE_NO_LIMIT) ? r : (r % maxVal);
 }
 
 uint64 GetInsecurePseudoRandomNumber64(uint64 maxVal)
@@ -2908,7 +2927,23 @@ uint64 GetInsecurePseudoRandomNumber64(uint64 maxVal)
    MUSCLE_THREAD_LOCAL_OR_STATIC std::mt19937_64 rng(std::random_device{}());
    const uint64 r  = rng();
 #endif
-   return (maxVal == (uint64)-1) ? r : (maxVal % r);
+   return (maxVal == (uint64)-1) ? r : (r % maxVal);
+}
+
+String GetUnmangledSymbolName(const char * mangled_name)
+{
+#if defined(__GNUC__)
+   // Stolen from Wikipedia:  https://en.wikipedia.org/wiki/Name_mangling#Standardised_name_mangling_in_C++
+   int status = -1;
+   char * demangled_name = abi::__cxa_demangle(mangled_name, NULL, NULL, &status);
+   const String ret = demangled_name ? demangled_name : mangled_name;
+   if (demangled_name) free(demangled_name);
+#else
+   const String ret = mangled_name;
+#endif
+
+   const int32 doubleColonIdx = ret.IndexOf("::");
+   return (doubleColonIdx >= 0) ? ret.Substring(doubleColonIdx+2) : std_move_if_available(ret);   // remove namespace prefix
 }
 
 } // end namespace muscle

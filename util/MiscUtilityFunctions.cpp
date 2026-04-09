@@ -10,10 +10,6 @@
 # include <signal.h>
 #endif
 
-#if defined(__GNUC__)
-# include <cxxabi.h>  // for abi::__cxa_demangle()
-#endif
-
 #ifdef __linux__
 # include <sched.h>
 #endif
@@ -1349,22 +1345,6 @@ ByteBufferRef Base64Decode(const char * base64String, uint32 maxBytes)
 ByteBufferRef Base64Decode(const String & base64String)
 {
    return Base64DecodeAux(base64String(), base64String.Length());
-}
-
-String GetUnmangledSymbolName(const char * mangled_name)
-{
-#if defined(__GNUC__)
-   // Stolen from Wikipedia:  https://en.wikipedia.org/wiki/Name_mangling#Standardised_name_mangling_in_C++
-   int status = -1;
-   char * demangled_name = abi::__cxa_demangle(mangled_name, NULL, NULL, &status);
-   const String ret = demangled_name ? demangled_name : mangled_name;
-   if (demangled_name) free(demangled_name);
-#else
-   const String ret = mangled_name;
-#endif
-
-   const int32 doubleColonIdx = ret.IndexOf("::");
-   return (doubleColonIdx >= 0) ? ret.Substring(doubleColonIdx+2) : std_move_if_available(ret);   // remove namespace prefix
 }
 
 String GetBytesSizeString(uint64 val)
