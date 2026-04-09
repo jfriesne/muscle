@@ -19,7 +19,7 @@ SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking,
    status_t ret;
    bool ok = false;
    ConstSocketRef tempSocket;  // yes, it's intentional that this socket will be closed as soon as we exit this scope
-   if (CreateConnectedSocketPair(tempSocket, _alwaysReadableSocket).IsOK(ret))
+   if (CreateConnectedSocketPair(tempSocket, _alwaysReadableSocket).IsOK(ret))  // always readable because the TCP connection will be closed and that causes select-ready-for-read
    {
       char errBuf[256];  // ERR_error_string() docs require this buffer to be at least 256 bytes long
 

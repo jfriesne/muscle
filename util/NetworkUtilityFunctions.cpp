@@ -840,6 +840,15 @@ ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHo
    return s.GetStatus();
 }
 
+ConstSocketRef CreateDataSinkSocket(bool blocking)
+{
+   ConstSocketRef ret = CreateUDPSocket();
+   MRETURN_ON_ERROR(ret);
+   MRETURN_ON_ERROR(SetSocketBlockingEnabled(ret, blocking));
+   MRETURN_ON_ERROR(SetUDPSocketTarget(ret, localhostIP, 9)); // discard-service port
+   return ret;
+}
+
 String GetLocalHostName()
 {
    char buf[512];

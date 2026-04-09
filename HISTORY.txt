@@ -53,6 +53,9 @@ key:  - new feature
      and GetPeerAddress() functions in NetworkUtilityFunctions.cpp.
    - StdinDataIO::GetWriteSelectSocket() is now implemented to return stdout
      under POSIX OS's and an always-ready-for-write socket under Windows.
+   - Added a CreateDataSinkSocket() convenience-function to NetworkUtilityFunctions.
+   - Updated StdinDataIO, NullDataIO, and SimulatedMulticastDataIO to call
+     CreateDataSinkSocket() when appropriate.
    o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that
      it can handle EINTR-type interruptions more gracefully.
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and

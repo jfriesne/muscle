@@ -148,15 +148,15 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
 
       if (okay == false) Close();
    }
-
-   if (_writeToStdout)
-   {
-      ConstSocketRef s1, s2;
-      if (CreateConnectedSocketPair(s1, s2).IsOK()) _optStdoutWriteSocket = s1;  // disconnected and therefore always signals ready-for-write
-   }
 #else
-   if (_writeToStdout) _optStdoutWriteSocket = GetConstSocketRefFromPool(STDOUT_FILENO, false);
+   if (_writeToStdout) _writeSelectSocket = GetConstSocketRefFromPool(STDOUT_FILENO, false);  // might as well use the real stdout socket if we can
 #endif
+
+   if (_writeSelectSocket() == NULL)
+   {
+      _writeSelectSocket = CreateDataSinkSocket(_stdinBlocking);  // but we'll fake it if we have to
+      if (_writeSelectSocket() == NULL) LogTime(MUSCLE_LOG_ERROR, "StdinDataIO:  CreateDataSinkSocket(%i) failed [%s]\n", _stdinBlocking, _writeSelectSocket.GetStatus()());
+   }
 }
 
 StdinDataIO ::

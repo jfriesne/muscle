@@ -644,6 +644,16 @@ IPAddress GetLocalHostIPOverride();
  */
 ConstSocketRef CreateUDPSocket(int socketFamily = SOCKET_FAMILY_PREFERRED);
 
+/** Creates and returns a "bit bucket" socket that always select()'s as ready-for-write.  Useful
+  * for cases where you are dumping data into the void and just need something to reliably wake up your
+  * ReflectServer-event-loop whenever your IO Gateway's HasBytesToOutput() method returns true.
+  * @param blocking whether the returned socket should be in blocking-I/O mode or not.  Defaults to false.
+  * @returns a valid ConstSocketRef on success, or a NULL ConstSocketRef on failure.
+  * @note it's possible to write to this socket but not really recommended; its primary purpose
+  *       is just to be passed to SocketMultiplexer::RegisterForWriteReady().
+  */
+ConstSocketRef CreateDataSinkSocket(bool blocking = false);
+
 /** Attempts to given UDP socket to the given port.
  *  @param sock The UDP socket (as previously returned by CreateUDPSocket())
  *  @param port UDP port to bind the socket to.  If zero, the system will choose an available UDP port for you.

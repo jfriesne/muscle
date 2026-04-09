@@ -20,15 +20,14 @@ static const uint64 SIMULATED_MULTICAST_CONTROL_MAGIC = ((uint64) 0x72F967C8345A
 SimulatedMulticastDataIO :: SimulatedMulticastDataIO(const IPAddressAndPort & multicastAddress)
    : _multicastAddress(multicastAddress)
    , _maxPacketSize(MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET)
+   , _alwaysWritableSocket(CreateDataSinkSocket())
    , _isUnicastSocketRegisteredForWrite(false)
 {
    SetEnobufsErrorMode(false);  // initialize _enobufsCount and _nextErrorModeSendTime to their default settings
 
+   if (_alwaysWritableSocket() == NULL) LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  CreateDataSinkSocket() failed [%s]\n", this, _alwaysWritableSocket.GetStatus()());
+
    status_t ret;
-
-   ConstSocketRef junk;
-   if (CreateConnectedSocketPair(junk, _alwaysWritableSocket).IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  CreateConnectedSocketPair() failed [%s]\n", this, ret());
-
    if (StartInternalThread().IsError(ret)) LogTime(MUSCLE_LOG_ERROR, "SimulatedMulticastDataIO %p:  Unable to start internal thread for group [%s] [%s]\n", this, multicastAddress.ToString()(), ret());
 }
 

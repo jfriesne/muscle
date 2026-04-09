@@ -562,7 +562,7 @@ status_t ChildProcessDataIO :: KillChildProcess()
    if (_childPID < 0) return B_BAD_OBJECT;
    if (kill(_childPID, SIGKILL) == 0)
    {
-      _handle.Reset();
+      // deliberately not calling _handle.Reset() here as our event-loop still needs to select() on the handle to detect the disconnect
       (void) waitpid(_childPID, NULL, 0);  // avoid creating a zombie process
       _childPID = -1;
       return B_NO_ERROR;

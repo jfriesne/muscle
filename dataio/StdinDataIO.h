@@ -17,7 +17,7 @@ namespace muscle {
  *  This DataIO handles I/O input from the process's stdin stream.
  *  Writing to stdin is not supported, of course, but if you pass in
  *  'true' as the second argument to the constructor, than any data passed
- *  to this class's Write() method will be forwarded along to stdout.
+ *  to this class's Write() method will be printed to stdout via fwrite().
  *  @note this class performs heroic measures under Windows to ensure that
  *        StdinDataIO's read-behavior there is the same as under any POSIX OS,
  *        even though Windows does its best to make that difficult.
@@ -31,8 +31,8 @@ public:
     *                  If you will be using this object with a AbstractMessageIOGateway,
     *                  and/or select(), then it's usually better to set blocking to false.
     *  @param writeToStdout If set true, then any data passed to our Write() method
-    *                       will be written to stdout.  If set false, data passed to our
-    *                       Write() method will be silently dropped.  Defaults to false.
+    *                       will be written to stdout via fwrite().  If set false, any data
+    *                       passed to our Write() method will be silently discarded.  Defaults to false.
     */
    StdinDataIO(bool blocking, bool writeToStdout=false);
 
@@ -52,8 +52,7 @@ public:
      * Otherwise we will just return (size) verbatim, without writing the bytes anywhere.
      * @param buffer Pointer to a buffer of data to output
      * @param size The number of bytes pointed to by (buffer)
-     * @returns the number of bytes actually written, or (size), if writeToStdout is false,
-     *          or an error code on error.
+     * @returns the number of bytes actually written to stdout (if writing to stdout is enabled) or (size) otherwise.
      * @note writes to stdout are expected to be blocking, even if this StdinDataIO is in non-blocking mode.
      */
    virtual io_status_t Write(const void * buffer, uint32 size);
@@ -71,22 +70,23 @@ public:
      */
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const;
 
-   /** If (writeToStdout) was specified true in the constructor, then this
-     * method will return a socket that can be select()'d on to find out when
-     * stdout has space to receive data.  Otherwise, this returns a NULL socket reference.
-     * @note under Windows the socket returned by this method is always ready-for-write.
-     */
-   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _optStdoutWriteSocket;}
+   /** Returns a socket to select() on to be notified when there is space available to write outgoing data to. */
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _writeSelectSocket;}
 
    /** Returns the blocking flag that was passed into our constructor */
    MUSCLE_NODISCARD bool IsBlockingIOEnabled() const {return _stdinBlocking;}
 
-   /** Returns the writeToStdout flag that was passed into our constructor */
+   /** Sets whether outgoing data should be written to stdout.
+     * @param writeEnabled true to enable writing to stdout; false to disable it
+     */
+   void SetWriteToStdoutEnabled(bool writeEnabled) {_writeToStdout = writeEnabled;}
+
+   /** Returns true iff we are set to write outgoing data to stdout, or false if we are set to simply discard outgoing data */
    MUSCLE_NODISCARD bool IsWriteToStdoutEnabled() const {return _writeToStdout;}
 
 private:
    const bool _stdinBlocking;
-   const bool _writeToStdout;
+   bool _writeToStdout;
 
    void Close();
 
@@ -97,7 +97,7 @@ private:
    FileDescriptorDataIO _fdIO;
 #endif
 
-   ConstSocketRef _optStdoutWriteSocket;
+   ConstSocketRef _writeSelectSocket;
 
    DECLARE_COUNTED_OBJECT(StdinDataIO);
 };
