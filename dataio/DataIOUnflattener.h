@@ -209,21 +209,20 @@ public:
 
    /** Convenience method:  seeks past between 0 and (alignmentSize-1) 0-initialized bytes,
      * so that upon successful return our total-bytes-read-count (as returned by our DataIO's
-     * GetPosition( method)) will be an even multiple of (alignmentSize).
+     * GetPosition() method) will be an even multiple of (alignmentSize).
      * @param alignmentSize the alignment-size we want the data for the next Read*() call to be aligned to.
      * @note (alignmentSize) would typically be something like sizeof(uint32) or sizeof(uint64).
      * @returns B_NO_ERROR on success, or an error code on failure (bad seek position, or DataIO doesn't support seeking?)
      */
    status_t SeekPastPaddingBytesToAlignTo(uint32 alignmentSize)
    {
-      if (_optSeekableIO)
-      {
-         const uint32 modBytes = (alignmentSize > 0) ? ((uint32) (_optSeekableIO->GetPosition() % alignmentSize)) : 0;
-         if (modBytes == 0) return B_NO_ERROR;  // we're already aligned
+      const int64 seekPos = _optSeekableIO ? _optSeekableIO->GetPosition() : -1;
+      if (seekPos < 0) return FlagError(B_BAD_OBJECT);
 
-         return FlagError(_optSeekableIO->Seek(alignmentSize - modBytes, SeekableDataIO::IO_SEEK_CUR));
-      }
-      else return FlagError(B_BAD_OBJECT);  // can't seek if we aren't seekable
+      const uint32 modBytes = (alignmentSize > 0) ? ((uint32) (seekPos % alignmentSize)) : 0;
+      if (modBytes == 0) return B_NO_ERROR;  // we're already aligned
+
+      return FlagError(_optSeekableIO->Seek(alignmentSize - modBytes, SeekableDataIO::IO_SEEK_CUR));
    }
 
    /** Returns true iff we have detected any problems reading in data so far */

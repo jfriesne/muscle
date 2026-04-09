@@ -116,6 +116,16 @@ public:
      */
    status_t WriteFully(const void * buffer, uint32 size);
 
+   /** Convenience method:  Calls Write() in a loop until the entire buffer is written, or
+     * until an error occurs, or until Write() returns zero (i.e. indicating that no more bytes
+     * can be written right now).
+     * @param buffer Pointer to the first byte of the buffer to write data from.
+     * @param size Number of bytes to write
+     * @return the number of bytes that were actually written, or an error if Write() returned
+     *         an error before any bytes were written.
+     */
+   io_status_t WriteAsMuchAsPossible(const void * buffer, uint32 size);
+
    /** Convenience method:  Calls Read() in a loop until (size) bytes have been
      * read into (buffer).
      * This method should only be used in conjunction with

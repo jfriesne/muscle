@@ -122,9 +122,10 @@ public:
      */
    status_t WritePaddingBytesToAlignTo(uint32 alignmentSize)
    {
-      if (_optSeekableIO == NULL) return FlagError(B_BAD_OBJECT);
+      const int64 seekPos = _optSeekableIO ? _optSeekableIO->GetPosition() : -1;
+      if (seekPos < 0) return FlagError(B_BAD_OBJECT);
 
-      const uint32 modBytes = (alignmentSize > 0) ? ((uint32) (_optSeekableIO->GetPosition() % alignmentSize)) : 0;
+      const uint32 modBytes = (alignmentSize > 0) ? ((uint32) (seekPos % alignmentSize)) : 0;
       if (modBytes > 0)
       {
          uint8 tempBuf[64]; memset(tempBuf, 0, sizeof(tempBuf));

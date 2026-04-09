@@ -48,6 +48,7 @@ key:  - new feature
    - Added a (prefixMatchOkay) argument to SegmentedStringMatcher::Match()
      to force the caller to decide whether a partial match should return true or not.
    - Added a TryLockUntil() method to the SpinLock class.
+   - Added a WriteAsMuchAsPossible() convenience method to the DataIO class.
    o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that
      it can handle EINTR-type interruptions more gracefully.
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and

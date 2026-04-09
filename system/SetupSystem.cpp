@@ -1420,6 +1420,29 @@ CompleteSetupSystem :: ~CompleteSetupSystem()
    _activeCSS = _prevInstance;  // pop us off the stack
 }
 
+// Write out as much of the buffer as we can without blocking
+io_status_t DataIO :: WriteAsMuchAsPossible(const void * buffer, uint32 size)
+{
+   const uint8 * buf8 = static_cast<const uint8 *>(buffer);
+
+   io_status_t ret;
+   while(size > 0)
+   {
+      const io_status_t subRet = Write(buf8, size);
+      const int32 bytesWritten = subRet.GetByteCount();
+
+      if (bytesWritten > 0)
+      {
+         ret  += subRet;
+         buf8 += bytesWritten;
+         size -= bytesWritten;
+      }
+      else return (ret.GetByteCount() > 0) ? ret : subRet;
+   }
+
+   return ret;
+}
+
 status_t DataIO :: WriteFully(const void * buffer, uint32 size)
 {
    status_t ret;

@@ -25,29 +25,6 @@ io_status_t MultiDataIO :: Read(void * buffer, uint32 size)
    return io_status_t();
 }
 
-// Write out as much of the buffer as we can without blocking
-io_status_t MultiDataIO :: WriteSemiFully(DataIO & io, const void * buffer, uint32 size)
-{
-   const uint8 * buf8 = static_cast<const uint8 *>(buffer);
-
-   io_status_t ret;
-   while(size > 0)
-   {
-      const io_status_t subRet = io.Write(buf8, size);
-      const int32 bytesWritten = subRet.GetByteCount();
-
-      if (bytesWritten > 0)
-      {
-         ret  += subRet;
-         buf8 += bytesWritten;
-         size -= bytesWritten;
-      }
-      else return (ret.GetByteCount() > 0) ? ret : subRet;
-   }
-
-   return ret;
-}
-
 io_status_t MultiDataIO :: Write(const void * buffer, uint32 size)
 {
    int64 commonSeekPos    = -1;  // just to shut the compiler up
@@ -55,7 +32,7 @@ io_status_t MultiDataIO :: Write(const void * buffer, uint32 size)
    uint32 minWrittenBytes = MUSCLE_NO_LIMIT;
    for (int32 i=_childIOs.GetLastValidIndex(); i>=0; i--)
    {
-      const io_status_t childRet = WriteSemiFully(*_childIOs[i](), buffer, muscleMin(size, minWrittenBytes));
+      const io_status_t childRet = _childIOs[i]()->WriteAsMuchAsPossible(buffer, muscleMin(size, minWrittenBytes));
       if (childRet.IsError())
       {
          if ((_absorbPartialErrors)&&(_childIOs.GetNumItems() > 1)) (void) _childIOs.RemoveItemAt(i);
