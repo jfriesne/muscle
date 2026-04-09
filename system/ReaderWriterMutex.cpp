@@ -42,6 +42,7 @@ status_t ReaderWriterMutex :: LockReadOnlyAux(uint64 optTimeoutTimestamp) const
          if (ret.IsError())
          {
             (void) _waitingReaderThreads.Remove(tid);  // clean up!
+            MaybeNotifySomeWaitingThreads();  // avoid a potential stall after a B_TIMED_OUT
             return ret;
          }
          else if (IsOkayForReaderThreadsToExecuteNow())  // check if we got scooped by another thread
@@ -59,6 +60,8 @@ status_t ReaderWriterMutex :: LockReadOnlyAux(uint64 optTimeoutTimestamp) const
             else ret = B_OUT_OF_MEMORY;
 
             (void) _waitingReaderThreads.Remove(tid);
+            if (ret.IsError()) MaybeNotifySomeWaitingThreads();  // avoid a potential stall on OOM
+
             return ret;
          }
       }
@@ -106,9 +109,19 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
          mg.UnlockEarly();
 
          for (uint32 i=0; i<readOnlyRecurseCount; i++) MRETURN_ON_ERROR(UnlockReadOnly());
-         const status_t ret = LockReadWriteAux(optTimeoutTimestamp);
-         for (uint32 i=0; i<readOnlyRecurseCount; i++) MRETURN_ON_ERROR(LockReadOnly());  // safe because at this point we either failed and are just restoring our original state, or we know we're the sole writer
-         return ret;
+         const status_t lrwRet = LockReadWriteAux(optTimeoutTimestamp);
+         for (uint32 i=0; i<readOnlyRecurseCount; i++)
+         {
+            const status_t lroRet = LockReadOnly();  // safe because at this point we either failed and are just restoring our original state, or we know we're the sole writer
+            if (lroRet.IsError())
+            {
+               // Okay, as a last resort we'll just unlock everything and error out
+               for (uint32 j=0; j<i; j++) (void) UnlockReadOnly();
+               if (lrwRet.IsOK()) (void) UnlockReadWriteAux();
+               return lroRet;
+            }
+         }
+         return lrwRet;
       }
    }
    else if (IsOkayForWriterThreadToExecuteNow(tid))
@@ -142,6 +155,7 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
          if (ret.IsError())
          {
             (void) _waitingWriterThreads.Remove(tid);  // clean up!
+            MaybeNotifySomeWaitingThreads();  // avoid a potential stall after a B_TIMED_OUT
             return ret;
          }
          else if (IsOkayForWriterThreadToExecuteNow(tid))
@@ -164,11 +178,17 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
             else ret = B_LOGIC_ERROR;  // should never happen, but we're paranoid
 
             (void) _waitingWriterThreads.Remove(tid);   // RemoveFirst() would also work here but it makes Claude nervous
+            if (ret.IsError()) MaybeNotifySomeWaitingThreads();  // avoid a potential stall on OOM
             return ret;
          }
       }
    }
 #endif
+}
+
+void ReaderWriterMutex :: MaybeNotifySomeWaitingThreads() const
+{
+   if ((_totalReadWriteRecurseCount == 0)&&(_executingThreads.IsEmpty())) (void) NotifySomeWaitingThreads();  // avoid a stall if we errored out above
 }
 
 status_t ReaderWriterMutex :: UnlockReadOnlyAux() const
@@ -190,7 +210,7 @@ status_t ReaderWriterMutex :: UnlockReadOnlyAux() const
    if ((--ts->_readOnlyRecurseCount == 0)&&(ts->_readWriteRecurseCount == 0))
    {
       (void) _executingThreads.Remove(tid);  // invalidates (ts)
-      if ((_totalReadWriteRecurseCount == 0)&&(_executingThreads.IsEmpty())) (void) NotifySomeWaitingThreads();
+      MaybeNotifySomeWaitingThreads();
    }
    return B_NO_ERROR;
 #endif

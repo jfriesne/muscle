@@ -228,8 +228,6 @@ private:
    friend class ReadOnlyMutexGuard;
    friend class ReadWriteMutexGuard;
 
-   void Cleanup();
-
 #ifdef MUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
    void CheckForLockingViolation(const char * methodName) const
    {
@@ -242,6 +240,7 @@ private:
    status_t UnlockReadOnlyAux() const;
    status_t UnlockReadWriteAux() const;
 
+   void MaybeNotifySomeWaitingThreads() const;
    status_t NotifySomeWaitingThreads() const;
    status_t NotifyNextWriterThread() const;
    status_t NotifyAllReaderThreads() const;
@@ -375,11 +374,11 @@ private:
 };
 
 /** This convenience class can be used to automatically lock/unlock a ReaderWriterMutex based on the ReadWriteMutexGuard's ctor/dtor.
-  * @note it's safer to use the DECLARE_READONLY_MUTEXGUARD(theReaderWriterMutex) macro rather than manually placing a ReadWriteMutexGuard object
+  * @note it's safer to use the DECLARE_READWRITE_MUTEXGUARD(theReaderWriterMutex) macro rather than manually placing a ReadWriteMutexGuard object
   *       onto the stack, since that avoids any possibility of forgetting to give the ReadWriteMutexGuard stack-object a name
   *       (eg typing "ReadWriteMutexGuard(myReaderWriterMutex);" rather than "ReadWriteMutexGuard mg(myReaderWriterMutex);", would introduce a perniciously
   *       non-obvious run-time error where your ReaderWriterMutex only gets locked momentarily rather than until the end-of-scope)
-  *       Using the DECLARE_READONLY_MUTEXGUARD(theReaderWriterMutex) macro will also allow MUSCLE's deadlock-finder functionality (enabled
+  *       Using the DECLARE_READWRITE_MUTEXGUARD(theReaderWriterMutex) macro will also allow MUSCLE's deadlock-finder functionality (enabled
   *       via -DWITH_DEADLOCK_FINDER=ON in CMake, or via -DMUSCLE_ENABLE_DEADLOCK_FINDER as compiler argument)
   *       to give you more useful debugging information about deadlocks that could happen (even if they didn't happen this time)
   */

@@ -489,7 +489,7 @@ status_t PrintMutexLockingReport(const OutputPrinter & p);
   */
 #ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
 # define DECLARE_NAMED_MUTEXGUARD(guardName, mutex) muscle::MutexGuard guardName(mutex, __FILE__, __LINE__)
-# else
+#else
 # define DECLARE_NAMED_MUTEXGUARD(guardName, mutex) muscle::MutexGuard guardName(mutex)
 #endif
 
