@@ -102,6 +102,7 @@ public:
 private:
    MUSCLE_NODISCARD bool HasChildren() const {return (_childIOs.HasItems());}
    MUSCLE_NODISCARD DataIO * GetFirstChild() const {return (_childIOs.Head()());}
+   io_status_t WriteSemiFully(DataIO & io, const void * buffer, uint32 size);
    status_t SeekAll(uint32 first, int64 offset, int whence);
 
    Queue<DataIORef> _childIOs;

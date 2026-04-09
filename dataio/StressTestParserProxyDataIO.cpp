@@ -16,7 +16,7 @@ StressTestParserProxyDataIO :: StressTestParserProxyDataIO(const DataIORef & chi
 io_status_t StressTestParserProxyDataIO :: Write(const void * buffer, uint32 size)
 {
    MRETURN_ON_ERROR(_outputBuffer.AppendBytes((const uint8 *) buffer, size));
-   MRETURN_ON_ERROR(DrainOutputBuffer(false));
+   (void) DrainOutputBuffer(false);  // ignore any error here since we already buffered up the bytes
    return size;  // we absorbed all of the user's bytes, even if we didn't actually send them all out yet
 }
 
