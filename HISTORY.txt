@@ -51,6 +51,8 @@ key:  - new feature
    - Added a WriteAsMuchAsPossible() convenience method to the DataIO class.
    - Added an optional (optRetStatus) argument to the GetSocketBindAddress()
      and GetPeerAddress() functions in NetworkUtilityFunctions.cpp.
+   - StdinDataIO::GetWriteSelectSocket() is now implemented to return stdout
+     under POSIX OS's and an always-ready-for-write socket under Windows.
    o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that
      it can handle EINTR-type interruptions more gracefully.
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and

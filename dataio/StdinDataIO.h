@@ -74,9 +74,9 @@ public:
    /** If (writeToStdout) was specified true in the constructor, then this
      * method will return a socket that can be select()'d on to find out when
      * stdout has space to receive data.  Otherwise, this returns a NULL socket reference.
-     * @note under Windows this method currently always returns a NULL socket reference in all cases.
+     * @note under Windows the socket returned by this method is always ready-for-write.
      */
-   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const;
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _optStdoutWriteSocket;}
 
    /** Returns the blocking flag that was passed into our constructor */
    MUSCLE_NODISCARD bool IsBlockingIOEnabled() const {return _stdinBlocking;}
@@ -96,6 +96,8 @@ private:
 #else
    FileDescriptorDataIO _fdIO;
 #endif
+
+   ConstSocketRef _optStdoutWriteSocket;
 
    DECLARE_COUNTED_OBJECT(StdinDataIO);
 };

@@ -148,6 +148,14 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
 
       if (okay == false) Close();
    }
+
+   if (_writeToStdout)
+   {
+      ConstSocketRef s1, s2;
+      if (CreateConnectedSocketPair(s1, s2).IsOK()) _optStdoutWriteSocket = s1;  // disconnected and therefore always signals ready-for-write
+   }
+#else
+   if (_writeToStdout) _optStdoutWriteSocket = GetConstSocketRefFromPool(STDOUT_FILENO, false);
 #endif
 }
 
@@ -215,19 +223,6 @@ const ConstSocketRef & StdinDataIO :: GetReadSelectSocket() const
    return _stdinBlocking ? GetNullSocket() : _masterSocket;
 #else
    return _fdIO.GetReadSelectSocket();
-#endif
-}
-
-const ConstSocketRef & StdinDataIO :: GetWriteSelectSocket() const
-{
-   if (_writeToStdout == false) return GetNullSocket();
-
-#ifdef USE_WIN32_STDINDATAIO_IMPLEMENTATION
-   // I'm not sure how I want to handle this under Windows yet
-   // so for now I'll just return a NULL socket under windows.
-   return GetNullSocket();
-#else
-   return _fdIO.GetWriteSelectSocket();
 #endif
 }
 
