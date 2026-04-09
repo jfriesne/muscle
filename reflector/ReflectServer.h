@@ -399,7 +399,7 @@ private:
    status_t RemoveAcceptFactoryAux(const IPAddressAndPort & iap);
    status_t FinalizeAsyncConnect(const AbstractReflectSessionRef & ref);
    status_t DoAccept(const IPAddressAndPort & iap, const ConstSocketRef & acceptSocket, ReflectSessionFactory * optFactory);
-   void LogAcceptFailed(int lvl, const char * desc, const char * ipbuf, const IPAddressAndPort & iap);
+   void LogAcceptFailed(int lvl, const char * desc, const char * ipbuf, const IPAddressAndPort & iap, status_t failStatus);
    uint32 CheckPolicy(Hashtable<AbstractSessionIOPolicyRef, Void> & policies, const AbstractSessionIOPolicyRef & policyRef, const PolicyHolder & ph, uint64 now) const;
    void CheckForOutOfMemory(const AbstractReflectSessionRef & optSessionRef);
    void SetComputerIsAboutToSleep(bool isAboutToSleep);

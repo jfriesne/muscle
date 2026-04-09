@@ -6,6 +6,7 @@
 #include "support/PseudoFlattenable.h"
 #include "system/Mutex.h"
 #include "system/AtomicCounter.h"
+#include "system/AtomicValue.h"
 #include "util/Queue.h"
 
 namespace muscle {
@@ -132,7 +133,7 @@ private:
    void UnregisterSignals();
 
    Mutex _mutex;
-   Queue<ISignalHandler *> _handlers;
+   AtomicValue<Queue<ISignalHandler *> > _handlers;
    Queue<int> _currentSignalSet;
 
    AtomicCounter _totalSignalCounts;  // incremented inside the interrupt code

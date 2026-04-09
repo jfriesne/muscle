@@ -835,12 +835,12 @@ void ReflectServer :: ClearLameDucks()
    }
 }
 
-void ReflectServer :: LogAcceptFailed(int lvl, const char * desc, const char * ipbuf, const IPAddressAndPort & iap)
+void ReflectServer :: LogAcceptFailed(int lvl, const char * desc, const char * ipbuf, const IPAddressAndPort & iap, status_t failStatus)
 {
    if (_doLogging)
    {
-      if (iap.GetIPAddress() == invalidIP) LogTime(lvl, "%s for [%s] on port %u.\n", desc, ipbuf?ipbuf:"???", iap.GetPort());
-                                      else LogTime(lvl, "%s for [%s] on port %u on interface [%s].\n", desc, ipbuf?ipbuf:"???", iap.GetPort(), Inet_NtoA(iap.GetIPAddress())());
+      if (iap.GetIPAddress() == invalidIP) LogTime(lvl, "%s for [%s] on port %u. [%s]\n", desc, ipbuf?ipbuf:"???", iap.GetPort(), failStatus());
+                                      else LogTime(lvl, "%s for [%s] on port %u on interface [%s]. [%s]\n", desc, ipbuf?ipbuf:"???", iap.GetPort(), Inet_NtoA(iap.GetIPAddress())(), failStatus());
    }
 }
 
@@ -858,12 +858,13 @@ status_t ReflectServer :: DoAccept(const IPAddressAndPort & iap, const ConstSock
       }
 
       NestCountGuard ncg(_inDoAccept);
+      status_t gpaStatus;
       const IPAddressAndPort nip(acceptedFromIP, iap.GetPort());
-      const IPAddress remoteIP = GetPeerAddress(newSocket, true).GetIPAddress();
+      const IPAddress remoteIP = GetPeerAddress(newSocket, true, &gpaStatus).GetIPAddress();
       if (remoteIP == invalidIP)
       {
-         LogAcceptFailed(MUSCLE_LOG_DEBUG, "GetPeerAddress() failed", NULL, nip);
-         return B_ERROR("GetPeerAddress() failed");
+         LogAcceptFailed(MUSCLE_LOG_DEBUG, "GetPeerAddress() failed", NULL, nip, gpaStatus);
+         return gpaStatus;
       }
       else
       {
@@ -892,7 +893,7 @@ status_t ReflectServer :: DoAccept(const IPAddressAndPort & iap, const ConstSock
          }
          else if (optFactory)
          {
-            LogAcceptFailed(MUSCLE_LOG_DEBUG, "Session creation denied", ipbuf, nip);
+            LogAcceptFailed(MUSCLE_LOG_DEBUG, "Session creation denied", ipbuf, nip, newSessionRef.GetStatus());
             ret = B_ACCESS_DENIED;
          }
 
@@ -901,7 +902,7 @@ status_t ReflectServer :: DoAccept(const IPAddressAndPort & iap, const ConstSock
    }
    else
    {
-      LogAcceptFailed(MUSCLE_LOG_DEBUG, "Accept() failed", NULL, iap);
+      LogAcceptFailed(MUSCLE_LOG_DEBUG, "Accept() failed", NULL, iap, newSocket.GetStatus());
       return B_ERROR("Accept() failed");
    }
 }

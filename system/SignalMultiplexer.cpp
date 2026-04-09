@@ -58,13 +58,18 @@ static void POSIXSignalHandlerCallbackFunc(int sigNum, siginfo_t * info, void *)
 status_t SignalMultiplexer :: AddHandler(ISignalHandler * s)
 {
    DECLARE_MUTEXGUARD(_mutex);
-   MRETURN_ON_ERROR(_handlers.AddTail(s));
+
+   Queue<ISignalHandler *> tempQ = _handlers.GetValue();
+   MRETURN_ON_ERROR(tempQ.AddTail(s));
+   MRETURN_ON_ERROR(_handlers.SetValue(tempQ));
 
    status_t ret;
    if (UpdateSignalSets().IsOK(ret)) return B_NO_ERROR;
    else
    {
-      (void) _handlers.RemoveTail();  // roll back!
+      (void) tempQ.RemoveTail();      // roll back!
+      (void) _handlers.SetValue(tempQ);
+      (void) UpdateSignalSets();      // reinstall the old signal sets, hopefully
       return ret;
    }
 }
@@ -72,7 +77,9 @@ status_t SignalMultiplexer :: AddHandler(ISignalHandler * s)
 void SignalMultiplexer :: RemoveHandler(ISignalHandler * s)
 {
    DECLARE_MUTEXGUARD(_mutex);
-   if (_handlers.RemoveFirstInstanceOf(s).IsOK()) (void) UpdateSignalSets();
+
+   Queue<ISignalHandler *> tempQ = _handlers.GetValue();
+   if ((tempQ.RemoveFirstInstanceOf(s).IsOK())&&(_handlers.SetValue(tempQ).IsOK())) (void) UpdateSignalSets();
 }
 
 void SignalMultiplexer :: CallSignalHandlers(const SignalEventInfo & sei)
@@ -87,17 +94,19 @@ void SignalMultiplexer :: CallSignalHandlers(const SignalEventInfo & sei)
    DECLARE_MUTEXGUARD(_mutex);
 #else
    // Can't lock the Mutex here because we are being called within a signal context!
-   // So we just have to hope that _handlers won't change while we do this
+   // So we just have to hope that _handlers.SetValue() won't be called more than 7 times during our iteration over (handlers)
 #endif
-   for (uint32 i=0; i<_handlers.GetNumItems(); i++) _handlers[i]->SignalHandlerFunc(sei);
+   const Queue<ISignalHandler *> & handlers = _handlers.GetValueRef();  // deliberately avoiding making a copy here to avoid potential heap-accesses
+   for (uint32 i=0; i<handlers.GetNumItems(); i++) handlers[i]->SignalHandlerFunc(sei);
 }
 
 status_t SignalMultiplexer :: UpdateSignalSets()
 {
    Queue<int> newSignalSet;
-   for (uint32 i=0; i<_handlers.GetNumItems(); i++)
+   const Queue<ISignalHandler *> & curHandlers = _handlers.GetValueRef();  // safe because we know the signal-handler won't modify the Queue
+   for (uint32 i=0; i<curHandlers.GetNumItems(); i++)
    {
-      const ISignalHandler * s = _handlers[i];
+      const ISignalHandler * s = curHandlers[i];
       int sigNum;
       for (uint32 j=0; s->GetNthSignalNumber(j, sigNum).IsOK(); j++) if (newSignalSet.IndexOf(sigNum) < 0) MRETURN_ON_ERROR(newSignalSet.AddTail(sigNum));
    }

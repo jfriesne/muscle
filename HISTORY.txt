@@ -49,6 +49,8 @@ key:  - new feature
      to force the caller to decide whether a partial match should return true or not.
    - Added a TryLockUntil() method to the SpinLock class.
    - Added a WriteAsMuchAsPossible() convenience method to the DataIO class.
+   - Added an optional (optRetStatus) argument to the GetSocketBindAddress()
+     and GetPeerAddress() functions in NetworkUtilityFunctions.cpp.
    o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that
      it can handle EINTR-type interruptions more gracefully.
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
@@ -259,6 +261,8 @@ key:  - new feature
      ARM environment.  (cc)
    * DataNode::CalculateChecksum() now includes the ordering of children
      within the ordered-children-index as part of the checksum.  (cc)
+   * SocketMultiplexer could spuriously indicate sockets as ready-for-read
+     after handling an interrupt.  Fixed.
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

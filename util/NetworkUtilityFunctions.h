@@ -417,17 +417,23 @@ String GetLocalHostName();
  *                         function will attempt to determine the host machine's actual primary IP
  *                         address and return that instead.  Otherwise, 127.0.0.1 will be
  *                         returned in this case.
+ *  @param optRetStatus if non-NULL, then on error (invalid IPAddressAndPort return), the status_t pointed
+ *                      to by this object will be set to an error value describing what went wrong.
+ *                      Defaults to NULL.
  *  @return The IPAddressAndPort on success, or an invalid IPAddressAndPort on failure (such as if the socket isn't valid and connected).
  */
-IPAddressAndPort GetPeerAddress(const ConstSocketRef & sock, bool expandLocalhost);
+IPAddressAndPort GetPeerAddress(const ConstSocketRef & sock, bool expandLocalhost, status_t * optRetStatus = NULL);
 
 /** Returns the IP address and port that the given socket is bound to on this local machine.
   * @param sock The socket to find out info about.
+  * @param optRetStatus if non-NULL, then on error (invalid IPAddressAndPort return), the status_t pointed
+  *                     to by this object will be set to an error value describing what went wrong.
+  *                     Defaults to NULL.
   * @returns The IPAddressAndPort representing where the socket is bound to locally.  The IP address
   *          portion may be all-zeroes if the socket isn't bound to any particular network interface.
   * @note on failure this function will return an invalid IPAddressAndPort object.
   */
-IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock);
+IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock, status_t * optRetStatus = NULL);
 
 /** Creates and returns a pair of stream-oriented sockets that are connected to each other, so that any bytes
  *  you write into one socket come out as bytes to read from the other socket.

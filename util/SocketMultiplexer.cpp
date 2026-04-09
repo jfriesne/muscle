@@ -178,7 +178,11 @@ io_status_t SocketMultiplexer :: FDState :: WaitForEvents(uint64 optTimeoutAtTim
       }
       const int r = select(maxFD+1, sets[FDSTATE_SET_READ], sets[FDSTATE_SET_WRITE], sets[FDSTATE_SET_EXCEPT], pWaitTime);
 # endif
-      if ((r < 0)&&(PreviousOperationWasInterrupted())) return B_NO_ERROR;  // on interruption we'll just go round gain
+      if ((r < 0)&&(PreviousOperationWasInterrupted()))
+      {
+         Reset();  // otherwise our caller can see phantom ready-for-X values because select() never updated the fd_sets
+         return B_NO_ERROR;  // on interruption we'll just go round gain
+      }
       return (r < 0) ? io_status_t(B_ERRNO) : io_status_t(r);
    }
    else

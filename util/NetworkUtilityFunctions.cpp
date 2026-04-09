@@ -1226,10 +1226,14 @@ ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
    else return B_ERRNO;
 }
 
-IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock)
+IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock, status_t * optRetStatus)
 {
    const int fd = sock.GetFileDescriptor();
-   if (fd < 0) return IPAddressAndPort();
+   if (fd < 0)
+   {
+      if (optRetStatus) *optRetStatus = B_BAD_ARGUMENT;
+      return IPAddressAndPort();
+   }
 
    switch(sock.GetFamily())
    {
@@ -1252,14 +1256,15 @@ IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock)
 #endif
 
       default:
-         // empty
+         if (optRetStatus) *optRetStatus = B_BAD_OBJECT;
       break;
    }
 
+   if (optRetStatus) *optRetStatus = B_ERRNO;
    return IPAddressAndPort(); // failure
 }
 
-IPAddressAndPort GetPeerAddress(const ConstSocketRef & sock, bool expandLocalhost)
+IPAddressAndPort GetPeerAddress(const ConstSocketRef & sock, bool expandLocalhost, status_t * optRetStatus)
 {
    IPAddress ipAddress;
    uint16 port = 0;
@@ -1273,12 +1278,17 @@ IPAddressAndPort GetPeerAddress(const ConstSocketRef & sock, bool expandLocalhos
          {
             DECLARE_SOCKADDR_IPV4(saTempAdd, NULL, 0);
             muscle_socklen_t length = sizeof(saTempAdd);
-            if ((getpeername(fd, UpcastToSockAddr(&saTempAdd), &length) == 0)&&(GET_SOCKADDR_FAMILY_IPV4(saTempAdd) == AF_INET))
+            if (getpeername(fd, UpcastToSockAddr(&saTempAdd), &length) == 0)
             {
-               GET_SOCKADDR_IP_IPV4(saTempAdd, ipAddress);
-               port = GET_SOCKADDR_PORT_IPV4(saTempAdd);
-               if (expandLocalhost) ExpandLocalhostAddress(ipAddress);
+               if (GET_SOCKADDR_FAMILY_IPV4(saTempAdd) == AF_INET)
+               {
+                  GET_SOCKADDR_IP_IPV4(saTempAdd, ipAddress);
+                  port = GET_SOCKADDR_PORT_IPV4(saTempAdd);
+                  if (expandLocalhost) ExpandLocalhostAddress(ipAddress);
+               }
+               else if (optRetStatus) *optRetStatus = B_LOGIC_ERROR;  // wtf?
             }
+            else if (optRetStatus) *optRetStatus = B_ERRNO;
          }
          break;
 
@@ -1287,21 +1297,27 @@ IPAddressAndPort GetPeerAddress(const ConstSocketRef & sock, bool expandLocalhos
          {
             DECLARE_SOCKADDR_IPV6(saTempAdd, NULL, 0);
             muscle_socklen_t length = sizeof(saTempAdd);
-            if ((getpeername(fd, UpcastToSockAddr(&saTempAdd), &length) == 0)&&(GET_SOCKADDR_FAMILY_IPV6(saTempAdd) == AF_INET6))
+            if (getpeername(fd, UpcastToSockAddr(&saTempAdd), &length) == 0)
             {
-               GET_SOCKADDR_IP_IPV6(saTempAdd, ipAddress);
-               port = GET_SOCKADDR_PORT_IPV6(saTempAdd);
-               if (expandLocalhost) ExpandLocalhostAddress(ipAddress);
+               if (GET_SOCKADDR_FAMILY_IPV6(saTempAdd) == AF_INET6)
+               {
+                  GET_SOCKADDR_IP_IPV6(saTempAdd, ipAddress);
+                  port = GET_SOCKADDR_PORT_IPV6(saTempAdd);
+                  if (expandLocalhost) ExpandLocalhostAddress(ipAddress);
+               }
+               else if (optRetStatus) *optRetStatus = B_LOGIC_ERROR;  // wtf?
             }
+            else if (optRetStatus) *optRetStatus = B_ERRNO;
          }
          break;
 #endif
 
          default:
-            // empty
+            if (optRetStatus) *optRetStatus = B_BAD_OBJECT;
          break;
       }
    }
+   else if (optRetStatus) *optRetStatus = B_BAD_ARGUMENT;
 
    return IPAddressAndPort(ipAddress, port);
 }
@@ -2338,7 +2354,7 @@ static status_t Inet6_AtoN(const char * buf, uint32 iIdx, IPAddress & retIP)
 IPAddress Inet_AtoN(const char * buf)
 {
    IPAddress ret;
-   return (ret.SetFromString(buf).IsOK()) ? ret : IPAddress();
+   return ret.SetFromString(buf).IsOK() ? ret : IPAddress();
 }
 
 String IPAddress :: ToString(bool preferIPv4Style, bool expandScopes) const
