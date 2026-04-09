@@ -746,7 +746,7 @@ void WarnOutOfMemory(const char * file, int line)
    // But it will work in the one-error-only case, which is good enough
    // for now.
    NestCountGuard ncg(_inWarnOutOfMemory);  // avoid potential infinite recursion if LogCallbacks called by LogTime() try to allocate more memory and also fail
-   LogTime(MUSCLE_LOG_CRITICALERROR, "ERROR--MEMORY ALLOCATION FAILURE!  (" INT32_FORMAT_SPEC " bytes at %s:%i)\n", GetAndClearFailedMemoryRequestSize(), file, line);
+   LogTime(MUSCLE_LOG_CRITICALERROR, "ERROR--MEMORY ALLOCATION FAILURE!  (" UINT32_FORMAT_SPEC " bytes at %s:%i)\n", GetAndClearFailedMemoryRequestSize(), file, line);
 
    if (_inWarnOutOfMemory.IsOutermost())
    {
@@ -940,8 +940,10 @@ String HumanReadableTimeValues :: ExpandTokens(const String & origString) const
 {
    if (origString.IndexOf('%') < 0) return origString;
 
+   const char GUNK_STR[] = {0x01, '\0'};
+
    String newString = origString;
-   (void) newString.Replace("%%", "%");  // do this first!
+   (void) newString.Replace("%%", GUNK_STR);  // do this first!
    (void) newString.Replace("%T", "%Q %D %Y %h:%m:%s");
    (void) newString.Replace("%t", "%Y/%M/%D %h:%m:%s");
    (void) newString.Replace("%f", "%Y-%M-%D_%hh%mm%s");
@@ -981,6 +983,7 @@ String HumanReadableTimeValues :: ExpandTokens(const String & origString) const
       (void) newString.Replace("%p", String("%1").Arg(processID));
    }
 
+   (void) newString.Replace(GUNK_STR, "%");  // do this last!
    return newString;
 }
 
