@@ -642,14 +642,10 @@ void ThreadSupervisorSession :: AboutToDetachFromServer()
    for (ConstHashtableIterator<DrainTag *, Void> tagIter(_drainTags); tagIter.HasData(); tagIter++) tagIter.GetKey()->SetNotify(NULL);
 
    // Nerf any ThreadWorkerSessions' cached pointers to us so they won't dangle
-   Queue<AbstractReflectSessionRef> workers;
-   if (FindSessionsOfType<ThreadWorkerSession>(workers).IsOK())
+   for (ConstHashtableIterator<const String *, AbstractReflectSessionRef> iter(GetSessions()); iter.HasData(); iter++)
    {
-      for (uint32 i=0; i<workers.GetNumItems(); i++)
-      {
-         ThreadWorkerSession * ws = static_cast<ThreadWorkerSession *>(workers[i]());  // static_cast is okay because FindSessionsOfType() guarantees it for us
-         if (ws->_supervisorSession == this) ws->_supervisorSession = NULL;
-      }
+      ThreadWorkerSession * tws = dynamic_cast<ThreadWorkerSession *>(iter.GetValue()());
+      if ((tws)&&(tws->_supervisorSession == this)) tws->_supervisorSession = NULL;
    }
 
    StorageReflectSession :: AboutToDetachFromServer();
