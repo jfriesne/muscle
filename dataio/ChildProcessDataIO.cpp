@@ -120,8 +120,6 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
    Close();  // paranoia
    _childProcessExitCode = io_status_t();  // we don't care about the exit-status of a previous process anymore!
 
-LogTime(MUSCLE_LOG_TRACE, " LCPA A argc=%i launchFlags=[%s] optDirectory=[%s] optEnvs=%u optRunAsUser=[%s]\n", argc, launchFlags.ToString()(), optDirectory, optEnvironmentVariables?optEnvironmentVariables->GetNumItems():666, optRunAsUser);
-
 #ifdef MUSCLE_AVOID_FORKPTY
    launchFlags.ClearBit(CHILD_PROCESS_LAUNCH_FLAG_USE_FORKPTY);   // no sense trying to use pseudo-terminals if they were forbidden at compile time
 #endif
@@ -132,11 +130,9 @@ LogTime(MUSCLE_LOG_TRACE, " LCPA A argc=%i launchFlags=[%s] optDirectory=[%s] op
 
    if (optRunAsUser)
    {
-LogTime(MUSCLE_LOG_TRACE, " LCPA B argc=%i launchFlags=[%s] optDirectory=[%s] optEnvs=%u optRunAsUser=[%s]\n", argc, launchFlags.ToString()(), optDirectory, optEnvironmentVariables?optEnvironmentVariables->GetNumItems():666, optRunAsUser);
 #if defined(WIN32)
       return B_UNIMPLEMENTED;  // run-as-account isn't implemented on Windows, sorry
 #else
-LogTime(MUSCLE_LOG_TRACE, " LCPA C argc=%i launchFlags=[%s] optDirectory=[%s] optEnvs=%u optRunAsUser=[%s]\n", argc, launchFlags.ToString()(), optDirectory, optEnvironmentVariables?optEnvironmentVariables->GetNumItems():666, optRunAsUser);
       if (getuid() != 0) return B_ACCESS_DENIED;  // we gotta be root in order for our child to change his user-identity!
 
       const struct passwd * accountInfo = getpwnam(optRunAsUser);
@@ -158,22 +154,17 @@ LogTime(MUSCLE_LOG_TRACE, " LCPA C argc=%i launchFlags=[%s] optDirectory=[%s] op
    status_t ret;
 
    ::HANDLE childStdoutRead;
-LogTime(MUSCLE_LOG_TRACE, " LCPA D argc=%i launchFlags=[%s] optDirectory=[%s] optEnvs=%u optRunAsUser=[%s]\n", argc, launchFlags.ToString()(), optDirectory, optEnvironmentVariables?optEnvironmentVariables->GetNumItems():666, optRunAsUser);
    if (CreatePipe(&childStdoutRead, &_childStdoutWrite, &saAttr, 0))
    {
-LogTime(MUSCLE_LOG_TRACE, " LCPA E argc=%i launchFlags=[%s] optDirectory=[%s] optEnvs=%u optRunAsUser=[%s]\n", argc, launchFlags.ToString()(), optDirectory, optEnvironmentVariables?optEnvironmentVariables->GetNumItems():666, optRunAsUser);
       if (DuplicateHandle(GetCurrentProcess(), childStdoutRead, GetCurrentProcess(), &_readFromStdout, 0, false, DUPLICATE_SAME_ACCESS))
       {
-LogTime(MUSCLE_LOG_TRACE, " LCPA F argc=%i launchFlags=[%s] optDirectory=[%s] optEnvs=%u optRunAsUser=[%s]\n", argc, launchFlags.ToString()(), optDirectory, optEnvironmentVariables?optEnvironmentVariables->GetNumItems():666, optRunAsUser);
          SafeCloseHandle(childStdoutRead);  // we'll use the dup from now on
 
          HANDLE childStdinWrite;
          if (CreatePipe(&_childStdinRead, &childStdinWrite, &saAttr, 0))
          {
-LogTime(MUSCLE_LOG_TRACE, " LCPA G argc=%i launchFlags=[%s] optDirectory=[%s] optEnvs=%u optRunAsUser=[%s]\n", argc, launchFlags.ToString()(), optDirectory, optEnvironmentVariables?optEnvironmentVariables->GetNumItems():666, optRunAsUser);
             if (DuplicateHandle(GetCurrentProcess(), childStdinWrite, GetCurrentProcess(), &_writeToStdin, 0, false, DUPLICATE_SAME_ACCESS))
             {
-LogTime(MUSCLE_LOG_TRACE, " LCPA H argc=%i launchFlags=[%s] optDirectory=[%s] optEnvs=%u optRunAsUser=[%s]\n", argc, launchFlags.ToString()(), optDirectory, optEnvironmentVariables?optEnvironmentVariables->GetNumItems():666, optRunAsUser);
                SafeCloseHandle(childStdinWrite);  // we'll use the dup from now on
 
                PROCESS_INFORMATION piProcInfo;
@@ -202,7 +193,6 @@ LogTime(MUSCLE_LOG_TRACE, " LCPA H argc=%i launchFlags=[%s] optDirectory=[%s] op
                   for (int i=0; i<argc; i++) ret |= tmpQ.AddTail(argv[i]);
                   cmd = UnparseArgs(tmpQ);
                }
-LogTime(MUSCLE_LOG_TRACE, " LCPA I cmd=[%s]\n", cmd());
 
                // If environment-vars are specified, we need to create a new environment-variable-block
                // for the child process to use.  It will be the same as our own, but with the specified
@@ -211,7 +201,6 @@ LogTime(MUSCLE_LOG_TRACE, " LCPA I cmd=[%s]\n", cmd());
                uint8 * newBlock = NULL;
                if ((optEnvironmentVariables)&&(optEnvironmentVariables->HasItems()))
                {
-LogTime(MUSCLE_LOG_TRACE, " LCPA J cmd=[%s]\n", cmd());
                   Hashtable<String, String> curEnvVars;
 
                   char * oldEnvs = GetEnvironmentStrings();
@@ -232,9 +221,7 @@ LogTime(MUSCLE_LOG_TRACE, " LCPA J cmd=[%s]\n", cmd());
                      FreeEnvironmentStringsA(oldEnvs);
                   }
 
-LogTime(MUSCLE_LOG_TRACE, " LCPA K ret=[%s]\n", ret());
                   ret |= curEnvVars.Put(*optEnvironmentVariables);  // update our existing vars with the specified ones
-LogTime(MUSCLE_LOG_TRACE, " LCPA L ret=[%s]\n", ret());
 
                   // Now we can make a new environment-variables-block out of (curEnvVars)
                   uint32 newBlockSize = 1;  // this represents the final NUL terminator (after the last string)
@@ -243,7 +230,6 @@ LogTime(MUSCLE_LOG_TRACE, " LCPA L ret=[%s]\n", ret());
                   newBlock = newnothrow_array(uint8, newBlockSize);
                   if (newBlock)
                   {
-LogTime(MUSCLE_LOG_TRACE, " LCPA M ret=[%s]\n", ret());
                      DataFlattener flat(newBlock, newBlockSize);
                      for (ConstHashtableIterator<String, String> iter(curEnvVars); iter.HasData(); iter++)
                      {
@@ -257,16 +243,13 @@ LogTime(MUSCLE_LOG_TRACE, " LCPA M ret=[%s]\n", ret());
                   }
                   else
                   {
-LogTime(MUSCLE_LOG_TRACE, " LCPA N ret=[%s]\n", ret());
                      MWARN_OUT_OF_MEMORY;
                      ret = B_OUT_OF_MEMORY;
                   }
                }
 
-LogTime(MUSCLE_LOG_TRACE, " LCPA O ret=[%s]\n", ret());
                if (ret.IsOK())
                {
-LogTime(MUSCLE_LOG_TRACE, " LCPA P ret=[%s] [%s]\n", ret(), (argc>=0)?(((const char **)args)[0]):NULL);
                   if (CreateProcessA((argc>=0)?(((const char **)args)[0]):NULL, (char *)cmd(), NULL, NULL, TRUE, 0, envVars, optDirectory, &siStartInfo, &piProcInfo))
                   {
                      SafeCloseHandle(bbIn);   // don't need these after the child process is launched
@@ -278,53 +261,42 @@ LogTime(MUSCLE_LOG_TRACE, " LCPA P ret=[%s] [%s]\n", ret(), (argc>=0)?(((const c
                      _childProcess   = piProcInfo.hProcess;
                      _childThread    = piProcInfo.hThread;
 
-LogTime(MUSCLE_LOG_TRACE, " LCPA Q ret=[%s]\n", ret());
                      if (_blocking) return B_NO_ERROR;  // done!
                      else
                      {
                         // For non-blocking, we must have a separate proxy thread do the I/O for us :^P
                         _wakeupSignal = CreateEvent(0, false, false, 0);
-LogTime(MUSCLE_LOG_TRACE, " LCPA R ret=[%s] _wakeupSignal=%i\n", ret(), (_wakeupSignal!=NULL));
                              if (_wakeupSignal == NULL) ret = B_ERRNO;
                         else if (CreateConnectedSocketPair(_masterNotifySocket, _slaveNotifySocket, false).IsOK(ret))
                         {
-LogTime(MUSCLE_LOG_TRACE, " LCPA S ret=[%s]\n", ret());
                            DWORD junkThreadID;
                            typedef unsigned (__stdcall *PTHREAD_START) (void *);
                            if ((_ioThread = (::HANDLE) _beginthreadex(NULL, 0, (PTHREAD_START)IOThreadEntryFunc, this, 0, (unsigned *) &junkThreadID)) != INVALID_HANDLE_VALUE) return B_NO_ERROR;
                                                                                                                                                                            else ret = B_ERRNO;
-LogTime(MUSCLE_LOG_TRACE, " LCPA T.1 ret=[%s]\n", ret());
                         }
-LogTime(MUSCLE_LOG_TRACE, " LCPA T.2 ret=[%s]\n", ret());
                      }
                   }
                   else ret = B_ERRNO;
-LogTime(MUSCLE_LOG_TRACE, " LCPA U ret=[%s]\n", ret());
                }
 
                SafeCloseHandle(bbIn);
                SafeCloseHandle(bbOut);
 
                delete [] newBlock;
-LogTime(MUSCLE_LOG_TRACE, " LCPA V ret=[%s]\n", ret());
             }
             else ret = B_ERRNO;
 
-LogTime(MUSCLE_LOG_TRACE, " LCPA W ret=[%s]\n", ret());
             SafeCloseHandle(childStdinWrite);    // cleanup
          }
          else ret = B_ERRNO;
-LogTime(MUSCLE_LOG_TRACE, " LCPA X ret=[%s]\n", ret());
       }
       else ret = B_ERRNO;
 
       SafeCloseHandle(childStdoutRead);    // cleanup
-LogTime(MUSCLE_LOG_TRACE, " LCPA Y ret=[%s]\n", ret());
    }
    else ret = B_ERRNO;
 
    Close();  // free all allocated object state we may have
-LogTime(MUSCLE_LOG_TRACE, " LCPA Z ret=[%s]\n", ret());
    return ret | B_ERROR;
 #else
    status_t ret;
