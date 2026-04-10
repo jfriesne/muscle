@@ -548,6 +548,8 @@ private:
    int32 _maxDepth;
 };
 
+static const String _subscribePrefixWithColon = "SUBSCRIBE:";
+
 void
 StorageReflectSession ::
 MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
@@ -646,8 +648,6 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
 
          case PR_COMMAND_SETPARAMETERS:
          {
-            static const String _subscribePrefix = "SUBSCRIBE:";
-
             bool updateDefaultMessageRoute = false;
             const bool subscribeQuietly = msg.HasName(PR_NAME_SUBSCRIBE_QUIETLY);
             Message getMsg(PR_COMMAND_GETDATA);
@@ -655,13 +655,13 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
             {
                const String & fn = it.GetFieldName();
                bool copyField = true;
-               if (fn.StartsWith(_subscribePrefix))
+               if (fn.StartsWith(_subscribePrefixWithColon))
                {
                   ConstQueryFilterRef filter;
                   MessageRef filterMsgRef;
                   if (msg.FindMessage(fn, filterMsgRef).IsOK()) filter = GetGlobalQueryFilterFactory()()->CreateQueryFilter(*filterMsgRef());
 
-                  const String path = fn.Substring(_subscribePrefix.Length());
+                  const String path = fn.Substring(_subscribePrefixWithColon.Length());
                   String fixPath(path); _subscriptions.AdjustStringPrefix(fixPath, DEFAULT_PATH_PREFIX);
                   const uint32 depth = GetPathDepth(fixPath());
                   const PathMatcherEntry * e = _subscriptions.GetEntries()[depth].Get(fixPath);
@@ -1969,7 +1969,7 @@ status_t StorageReflectSession :: RemoveParameter(const String & paramName, bool
 {
    if (_parameters.HasName(paramName) == false) return B_DATA_NOT_FOUND;  // FogBugz #6348:  DO NOT remove paramName until the end of this method!
 
-   if (paramName.StartsWith("SUBSCRIBE:"))
+   if (paramName.StartsWith(_subscribePrefixWithColon))
    {
       String str = paramName.Substring(10);
       _subscriptions.AdjustStringPrefix(str, DEFAULT_PATH_PREFIX);
