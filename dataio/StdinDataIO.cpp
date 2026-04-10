@@ -182,6 +182,7 @@ void StdinDataIO :: Close()
 #else
    _fdIO.Shutdown();
 #endif
+   _writeSelectSocket.Reset();
 }
 
 io_status_t StdinDataIO :: Read(void * buffer, uint32 size)
