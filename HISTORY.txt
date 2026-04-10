@@ -117,6 +117,8 @@ key:  - new feature
      hard-coded but I may make it configurable in the future, if necessary.
    o SpinLockGuard now echoes the behavior of MutexGuard, crashing if the SpinLock
      can't be acquired.  Removed SpinLockGuard::IsSpinLockLocked() as redundant.
+   o Changed ThreadPool to use WaitConditions for its shutdown synchronization
+     instead of socket-pairs.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to

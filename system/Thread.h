@@ -194,13 +194,17 @@ public:
     *  This only needs to be done once.  After GetNextReplyFromInternalThread()
     *  returns, you can determine whether your socket is ready-to-write-to like this:
     *
-    *     bool canWrite = _thread.IsOwnerThreadSocketReady(mySocket, SOCKET_SET_WRITE);
-    *     if (canWrite) printf("Socket is ready to be written to!\n");
+    *  <pre>   bool canWrite = _thread.IsOwnerThreadSocketReady(mySocket, SOCKET_SET_WRITE);
+    *     if (canWrite) printf("Socket is ready to be written to!\n");</pre>
     *
     *  @param socketSet SOCKET_SET_* indicating which socket-set to return a reference to.
     *  @note This method should only be called from the main thread!
     */
-   MUSCLE_NODISCARD const Hashtable<ConstSocketRef, bool> & GetOwnerThreadSocketSet(uint32 socketSet) const {return _threadData[MESSAGE_THREAD_OWNER]._socketSets[socketSet];}
+   MUSCLE_NODISCARD const Hashtable<ConstSocketRef, bool> & GetOwnerThreadSocketSet(uint32 socketSet) const
+   {
+      MASSERT(socketSet < NUM_SOCKET_SETS, "Thread::GetOwnerThreadSocketSet():  Unknown socketSet argument");
+      return _threadData[MESSAGE_THREAD_OWNER]._socketSets[socketSet];
+   }
 
    /** Register the specified socket so that WaitForNextMessageFromOwner() will return
      * whenever this socket indicates that it is (ready-for-read, ready-for-write, or has-exception)
@@ -213,8 +217,8 @@ public:
      */
    virtual status_t RegisterOwnerThreadSocket(const ConstSocketRef & sock, uint32 socketSet)
    {
-      if (_useMessagingSockets == false) return B_BAD_OBJECT;
-      return sock() ? GetOwnerThreadSocketSetRW(socketSet).Put(sock, false) : B_BAD_ARGUMENT;
+      MRETURN_ON_ERROR(ValidateSocketSetArguments(sock, socketSet));
+      return GetOwnerThreadSocketSetRW(socketSet).Put(sock, false);
    }
 
    /** Unregisters the specified socket so that WaitForNextMessageFromOwner() will no longer return
@@ -228,14 +232,18 @@ public:
      */
    virtual status_t UnregisterOwnerThreadSocket(const ConstSocketRef & sock, uint32 socketSet)
    {
-      return _useMessagingSockets ? GetOwnerThreadSocketSetRW(socketSet).Remove(sock) : B_BAD_OBJECT;
+      MRETURN_ON_ERROR(ValidateSocketSetArguments(sock, socketSet));
+      return GetOwnerThreadSocketSetRW(socketSet).Remove(sock);
    }
 
    /** Unregisters all sockets from the specified socket-set.
      * @param socketSet a SOCKET_SET_* value specifying the socket-set you want to clear.
      * @note This method should only be called from the main thread!
      */
-   virtual void UnregisterAllOwnerThreadSocketsInSet(uint32 socketSet) {GetOwnerThreadSocketSetRW(socketSet).Clear();}
+   virtual void UnregisterAllOwnerThreadSocketsInSet(uint32 socketSet)
+   {
+      if (socketSet < NUM_SOCKET_SETS) GetOwnerThreadSocketSetRW(socketSet).Clear();
+   }
 
    /** Returns true iff the specified registered socket is currently flagged as ready-for-x
      * @param sock The socket whose state you are interested in.
@@ -243,7 +251,11 @@ public:
      * @returns true iff the specified socket is ready-for-x (where x is specified by the SOCKET_SET_* value)
      * @note This method should only be called from the main thread!
      */
-   MUSCLE_NODISCARD bool IsOwnerThreadSocketReady(const ConstSocketRef & sock, uint32 socketSet) const {return GetOwnerThreadSocketSet(socketSet).GetWithDefault(sock, false);}
+   MUSCLE_NODISCARD bool IsOwnerThreadSocketReady(const ConstSocketRef & sock, uint32 socketSet) const
+   {
+      if (ValidateSocketSetArguments(sock, socketSet).IsError()) return false;
+      return GetOwnerThreadSocketSet(socketSet).GetWithDefault(sock, false);
+   }
 
    /** Call this to set a suggested stack size for the new thread.  If set to non-zero, StartInternalThread()
     *  will try to set the stack size of the thread it creates to this value.  Note that calling this method
@@ -458,13 +470,17 @@ protected:
     *  returns, you can determine whether your socket is ready-to-write-to by checking
     *  its associated value in the table, like this:
     *
-    *     const bool canWrite = IsInternalThreadSocketReady(mySocket, SOCKET_SET_WRITE);
-    *     if (canWrite) printf("Socket is ready to be written to!\n");
+    *  <pre>   const bool canWrite = IsInternalThreadSocketReady(mySocket, SOCKET_SET_WRITE);
+    *     if (canWrite) printf("Socket is ready to be written to!\n");</pre>
     *
     *  @param socketSet SOCKET_SET_* indicating which socket-set to return a reference to.
     *  @note This method should only be called from the internal thread!
     */
-   MUSCLE_NODISCARD const Hashtable<ConstSocketRef, bool> & GetInternalThreadSocketSet(uint32 socketSet) const {return _threadData[MESSAGE_THREAD_INTERNAL]._socketSets[socketSet];}
+   MUSCLE_NODISCARD const Hashtable<ConstSocketRef, bool> & GetInternalThreadSocketSet(uint32 socketSet) const
+   {
+      MASSERT(socketSet < NUM_SOCKET_SETS, "Thread::GetInternalThreadSocketSet():  Unknown socketSet argument");
+      return _threadData[MESSAGE_THREAD_INTERNAL]._socketSets[socketSet];
+   }
 
    /** Register the specified socket so that WaitForNextMessageFromOwner() will return
      * whenever this socket indicates that it is (ready-for-read, ready-for-write, or has-exception)
@@ -477,8 +493,8 @@ protected:
      */
    virtual status_t RegisterInternalThreadSocket(const ConstSocketRef & sock, uint32 socketSet)
    {
-      if (_useMessagingSockets == false) return B_BAD_OBJECT;
-      return sock() ? GetInternalThreadSocketSetRW(socketSet).Put(sock, false) : B_BAD_ARGUMENT;
+      MRETURN_ON_ERROR(ValidateSocketSetArguments(sock, socketSet));
+      return GetInternalThreadSocketSetRW(socketSet).Put(sock, false);
    }
 
    /** Unregisters the specified socket so that WaitForNextMessageFromOwner() will no longer return
@@ -492,14 +508,18 @@ protected:
      */
    virtual status_t UnregisterInternalThreadSocket(const ConstSocketRef & sock, uint32 socketSet)
    {
-      return _useMessagingSockets ? GetInternalThreadSocketSetRW(socketSet).Remove(sock) : B_BAD_OBJECT;
+      MRETURN_ON_ERROR(ValidateSocketSetArguments(sock, socketSet));
+      return GetInternalThreadSocketSetRW(socketSet).Remove(sock);
    }
 
    /** Unregisters all sockets from the specified socket-set.
      * @param socketSet a SOCKET_SET_* value specifying the socket-set you want to clear.
      * @note This method should only be called from the internal thread!
      */
-   virtual void UnregisterAllInternalThreadSocketsInSet(uint32 socketSet) {GetInternalThreadSocketSetRW(socketSet).Clear();}
+   virtual void UnregisterAllInternalThreadSocketsInSet(uint32 socketSet)
+   {
+      if (socketSet < NUM_SOCKET_SETS) GetInternalThreadSocketSetRW(socketSet).Clear();
+   }
 
    /** Returns true iff the specified registered socket is currently flagged as ready-for-x
      * @param sock The socket whose state you are interested in.
@@ -507,7 +527,11 @@ protected:
      * @returns true iff the specified socket is ready-for-x (where x is specified by the SOCKET_SET_* value)
      * @note This method should only be called from the internal thread!
      */
-   MUSCLE_NODISCARD bool IsInternalThreadSocketReady(const ConstSocketRef & sock, uint32 socketSet) const {return GetInternalThreadSocketSet(socketSet).GetWithDefault(sock, false);}
+   MUSCLE_NODISCARD bool IsInternalThreadSocketReady(const ConstSocketRef & sock, uint32 socketSet) const
+   {
+      if (ValidateSocketSetArguments(sock, socketSet).IsError()) return false;
+      return GetInternalThreadSocketSet(socketSet).GetWithDefault(sock, false);
+   }
 
 private:
    Thread(ICallbackMechanism * optCallbackMechanism);  // deliberately private and unimplemented to avoid implicit-cast-to-boolean errors if you forget the first argument to the Thread ctor
@@ -599,6 +623,14 @@ private:
 #if defined(WIN32)
    HANDLE GetNativeThreadHandle(bool calledFromInternalThread);  // deliberately not tagged const
 #endif
+
+   status_t ValidateSocketSetArguments(const ConstSocketRef & sock, uint32 socketSet) const
+   {
+      if (_useMessagingSockets == false) return B_BAD_OBJECT;
+      if (socketSet >= NUM_SOCKET_SETS)  return B_BAD_ARGUMENT;
+      if (sock() == NULL)                return B_BAD_ARGUMENT;
+      return B_NO_ERROR;
+   }
 
 #if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
    typedef std::thread::id muscle_thread_key;

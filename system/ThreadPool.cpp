@@ -1,6 +1,7 @@
 /* This file is Copyright 2000-2026 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include "system/ThreadPool.h"
+#include "system/WaitCondition.h"
 
 namespace muscle {
 
@@ -24,7 +25,15 @@ void IThreadPoolClient :: SetThreadPool(ThreadPool * tp)
    {
       if (_threadPool) _threadPool->UnregisterClient(this);
       _threadPool = tp;
-      if (_threadPool) _threadPool->RegisterClient(this);
+      if (_threadPool)
+      {
+         const status_t ret = _threadPool->RegisterClient(this);
+         if (ret.IsError())
+         {
+            _threadPool = NULL;
+            LogTime(MUSCLE_LOG_ERROR, "IThreadPoolClient::SetThreadPool(%p):  RegisterClient() returned [%s]\n", tp, ret());
+         }
+      }
    }
 }
 
@@ -82,14 +91,22 @@ uint32 ThreadPool :: Shutdown()
    _registeredClients.Clear();
    _pendingMessages.Clear();
    _deferredMessages.Clear();
+
+   for (HashtableIterator<IThreadPoolClient *, WaitCondition *> iter(_waitingForCompletion); iter.HasData(); iter++) MLOG_ON_ERROR("ThreadPool::Shutdown::Notify()", iter.GetValue()->Notify());
    _waitingForCompletion.Clear();
+
    return ret;
 }
 
-void ThreadPool :: RegisterClient(IThreadPoolClient * client)
+status_t ThreadPool :: RegisterClient(IThreadPoolClient * client)
 {
    DECLARE_MUTEXGUARD(_poolLock);
-   (void) _registeredClients.Put(client, false);
+
+   MRETURN_ON_ERROR(_registeredClients.Put(client, false));
+
+   const status_t ret = _waitingForCompletion.EnsureSize(_registeredClients.GetNumItems());  // just to make sure there's room later on
+   if (ret.IsError()) (void) _registeredClients.Remove(client);  // roll back!
+   return ret;
 }
 
 static bool AreThereMessagesInQueue(const Queue<MessageRef> * mq) {return ((mq)&&(mq->HasItems()));}
@@ -102,27 +119,24 @@ bool ThreadPool :: DoesClientHaveMessagesOutstandingUnsafe(IThreadPoolClient * c
 
 void ThreadPool :: UnregisterClient(IThreadPoolClient * client)
 {
-   ConstSocketRef waitSock;
+   WaitCondition waitCondition;
 
+   bool doWait = false;
    {
       // If this client has any Messages pending, we need to block until they are gone
       DECLARE_MUTEXGUARD(_poolLock);
-      if (DoesClientHaveMessagesOutstandingUnsafe(client))
-      {
-         ConstSocketRef signalSock;
-         if (CreateConnectedSocketPair(waitSock, signalSock, true).IsOK()) (void) _waitingForCompletion.Put(client, signalSock);
-                                                                      else printf("ThreadPool::UnregisterClient:  Couldn't set up socket pair for shutdown notification!\n");
-      }
-   }
 
-   char buf;
-   if (waitSock()) (void) ReadData(waitSock, &buf, sizeof(buf), true);   // block here until ReadData() returns, indicating that we can continue
+      // The Put() call should never fail in practice because we called _waitingForCompletion.EnsureSize() earlier in RegisterClient()
+      if ((DoesClientHaveMessagesOutstandingUnsafe(client))&&(_waitingForCompletion.Put(client, &waitCondition).IsOK())) doWait = true;
+   }
+   if (doWait) MLOG_ON_ERROR("ThreadPool::Wait()", waitCondition.Wait()); // block here (outside of the _poolLock) until we are notified, indicating that we can continue
 
    // final cleanup
    DECLARE_MUTEXGUARD(_poolLock);
    (void) _registeredClients.Remove(client);
    (void) _pendingMessages.Remove(client);
    (void) _deferredMessages.Remove(client);
+   (void) _waitingForCompletion.Remove(client);  // shouldn't be necessary but just in case
 }
 
 status_t ThreadPool :: ThreadPoolThread :: SendMessagesToInternalThread(IThreadPoolClient * client, Queue<MessageRef> & mq)
@@ -257,7 +271,15 @@ void ThreadPool :: ThreadFinishedProcessingClientMessages(uint32 threadID, IThre
    (void) _activeThreads.MoveToTable(threadID, _availableThreads);  // this thread is now available again for further tasks
    DispatchPendingMessagesUnsafe();
 
-   if (DoesClientHaveMessagesOutstandingUnsafe(client) == false) (void) _waitingForCompletion.Remove(client);  // wake up user thread if he's waiting in UnregisterClient()
+   if (DoesClientHaveMessagesOutstandingUnsafe(client) == false)
+   {
+      WaitCondition * wc = _waitingForCompletion[client];  // wake up user thread if he's waiting in UnregisterClient()
+      if (wc)
+      {
+         MLOG_ON_ERROR("ThreadPool::Notify()", wc->Notify());
+         (void) _waitingForCompletion.Remove(client);
+      }
+   }
 }
 
 status_t ThreadPool :: StartInternalThread(Thread & thread)

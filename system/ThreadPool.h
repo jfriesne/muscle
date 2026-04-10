@@ -7,13 +7,13 @@
 #include "system/Mutex.h"
 #include "util/Queue.h"
 #include "util/RefCount.h"
-#include "util/NetworkUtilityFunctions.h"
 #include "util/OutputPrinter.h"
 #include "util/ObjectPool.h"  // for AbstractObjectRecycler
 
 namespace muscle {
 
 class ThreadPool;
+class WaitCondition;
 
 /** This is an interface class that should be implemented by objects that want to make use of a ThreadPool. */
 class IThreadPoolClient
@@ -143,7 +143,7 @@ private:
    friend class IThreadPoolClient;
    friend class ThreadPoolThread;
 
-   void RegisterClient(IThreadPoolClient * client);
+   status_t RegisterClient(IThreadPoolClient * client);
    void UnregisterClient(IThreadPoolClient * client);
    status_t SendMessageToThreadPool(IThreadPoolClient * client, const MessageRef & msg);
    void DispatchPendingMessagesUnsafe();  // _poolLock must be locked when this is called!
@@ -163,7 +163,7 @@ private:
    Hashtable<IThreadPoolClient *, bool> _registeredClients;  // registered clients -> (true iff a Thread is currently handling them)
    Hashtable<IThreadPoolClient *, Queue<MessageRef> > _pendingMessages;  // Messages ready to be sent to a pool Thread
    Hashtable<IThreadPoolClient *, Queue<MessageRef> > _deferredMessages; // Messages to be be sent to a pool Thread when the current Thread's Messages are done
-   Hashtable<IThreadPoolClient *, ConstSocketRef> _waitingForCompletion; // Clients who are blocked in UnregisterClient() waiting for Messages to complete processing
+   Hashtable<IThreadPoolClient *, WaitCondition *> _waitingForCompletion; // Clients who are blocked in UnregisterClient() waiting for Messages to complete processing
 
    DECLARE_COUNTED_OBJECT(ThreadPool);
 };

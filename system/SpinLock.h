@@ -38,8 +38,8 @@ public:
    }
 
    /** Tries to lock the spinlock; won't return until the spinlock has been locked or the specified time has been reached.
-     * @param tryUntil a timestamp (in GetRunTime64()-style microseconds) at which to stop trying to lock the SpinLock.
-     *                 Pass MUSCLE_TIME_NEVER if you want to keep trying indefinitely.
+     * @param tryUntilTime a timestamp (in GetRunTime64()-style microseconds) at which to stop trying to lock the SpinLock.
+     *                     Pass MUSCLE_TIME_NEVER if you want to keep trying indefinitely.
      * @note this method will spin the CPU until the lock is acquired or the timeout time arrives, so it's important to make
      *       sure no thread holds the spinlock for an extended period of time!
      * @returns B_NO_ERROR on success, or B_TIMED_OUT if this call timed out without acquiring the SpinLock.

@@ -382,7 +382,7 @@ status_t Thread :: WaitForInternalThreadToExit()
          _thread.join();
 # if !defined(MUSCLE_NO_EXCEPTIONS)
       }
-      catch(...) {return B_LOGIC_ERROR;}
+      catch(...) {ret = B_LOGIC_ERROR;}
 # endif
 #elif defined(MUSCLE_USE_PTHREADS)
       const int pret = pthread_join(_thread, NULL);
