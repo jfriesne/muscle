@@ -22,7 +22,8 @@ FileDataIO :: FileDataIO(const char * path, const char * mode)
    , _pendingFileMode(muscleStrdup(mode))
    , _file(NULL)
 {
-   // empty
+   if (_pendingFilePath == NULL) MWARN_OUT_OF_MEMORY;
+   if (_pendingFileMode == NULL) MWARN_OUT_OF_MEMORY;
 }
 
 FileDataIO :: ~FileDataIO()
@@ -35,6 +36,8 @@ io_status_t FileDataIO :: Read(void * buffer, uint32 size)
 {
    if (_file)
    {
+      if (size == 0) return io_status_t(0);
+
       const size_t ret = fread(buffer, 1, size, _file);
       return (ret > 0) ? io_status_t((int32)ret) : (ferror(_file) ? B_IO_ERROR : B_END_OF_STREAM);
    }
@@ -45,6 +48,8 @@ io_status_t FileDataIO :: Write(const void * buffer, uint32 size)
 {
    if (_file)
    {
+      if (size == 0) return io_status_t(0);
+
       const size_t ret = fwrite(buffer, 1, size, _file);
       return (ret > 0) ? io_status_t((int32)ret) : io_status_t(B_IO_ERROR);
    }
