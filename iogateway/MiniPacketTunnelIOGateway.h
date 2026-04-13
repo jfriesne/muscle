@@ -96,7 +96,7 @@ private:
    uint32 _outputPacketSize;
 
    uint32 _sendPacketIDCounter;
-   Queue<ByteBufferRef> _currentOutputBuffers;
+   Queue<ByteBufferRefAndIPAddressAndPort> _currentOutputBuffers;
 
    RefCountableRef _codec;  // deliberately NOT conditionally declared!
 

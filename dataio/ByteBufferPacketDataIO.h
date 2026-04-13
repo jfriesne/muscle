@@ -4,8 +4,9 @@
 #define MuscleByteBufferPacketDataIO_h
 
 #include "dataio/PacketDataIO.h"
-#include "util/ByteBuffer.h"
+#include "util/ByteBufferRefAndIPAddressAndPort.h"
 #include "util/NetworkUtilityFunctions.h"  // for MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET
+#include "util/Queue.h"
 
 namespace muscle {
 
@@ -52,7 +53,7 @@ public:
     *  @param okayToReturnEndOfStream if true, our Read() method will return B_END_OF_STREAM when we have no more bytes of data
     *                       left for Read() to supply.  If false, Read() will just return io_status_t(0) in that case.  Defaults to false.
     */
-   ByteBufferPacketDataIO(const Hashtable<ByteBufferRef, IPAddressAndPort> & bufs, uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, bool okayToReturnEndOfStream = false);
+   ByteBufferPacketDataIO(const Queue<ByteBufferRefAndIPAddressAndPort> & bufs, uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, bool okayToReturnEndOfStream = false);
 
    /** Virtual Destructor, to keep C++ honest */
    virtual ~ByteBufferPacketDataIO();
@@ -64,7 +65,7 @@ public:
      * @param buf a ByteBufferRef to hold, to be handed to the next future caller of one of our Read() methods, or a NULL reference to not hold anything.
      * @param fromIAP the IP address and port the "packet" is purporting to be from.  Defaults to an invalid IPAddressAndPort.
      */
-   void SetBuffersToRead(const ByteBufferRef & buf, const IPAddressAndPort & fromIAP = IPAddressAndPort()) {_bufsToRead.Clear(); (void) _bufsToRead.Put(buf, fromIAP);}
+   void SetBuffersToRead(const ByteBufferRef & buf, const IPAddressAndPort & fromIAP = IPAddressAndPort()) {_bufsToRead.Clear(); (void) _bufsToRead.AddTail(ByteBufferRefAndIPAddressAndPort(buf, fromIAP));}
 
    /** Convenience method:  Sets our set of buffers to a list, with implicit invalid IPAddressAndPort values.
      * @param bufs a new list of buffers for this object to hold.  They will be handed to future callers of our Read() methods, in order.
@@ -76,15 +77,15 @@ public:
      * IPAddressAndPort associated with each byte-buffer.
      * @param bufs a new set of buffers for this object to hold.  They will be handed to future callers of our Read() methods, in order.
      */
-   void SetBuffersToRead(const Hashtable<ByteBufferRef, IPAddressAndPort> & bufs) {_bufsToRead = bufs;}
+   void SetBuffersToRead(const Queue<ByteBufferRefAndIPAddressAndPort> & bufs) {_bufsToRead = bufs;}
 
    /** Returns the current sequence of byte-buffers we are holding, to be handed to future callers of our Read() methods, in order.
      * @note Keys are the ByteBuffers themselves; values are the IPAddressAndPort associated with each byte-buffer.
      */
-   MUSCLE_NODISCARD const Hashtable<ByteBufferRef, IPAddressAndPort> & GetBuffersToRead() const {return _bufsToRead;}
+   MUSCLE_NODISCARD const Queue<ByteBufferRefAndIPAddressAndPort> & GetBuffersToRead() const {return _bufsToRead;}
 
    /** Non-const version of GetBuffersToRead(). */
-   MUSCLE_NODISCARD Hashtable<ByteBufferRef, IPAddressAndPort> & GetBuffersToRead() {return _bufsToRead;}
+   MUSCLE_NODISCARD Queue<ByteBufferRefAndIPAddressAndPort> & GetBuffersToRead() {return _bufsToRead;}
 
    /** Clears our list of "sent" buffers */
    void ClearWrittenBuffers() {_writtenBufs.Clear();}
@@ -92,10 +93,10 @@ public:
    /** Returns the current sequence of "sent" byte-buffers we are holding.  Keys are the ByteBuffers themselves;
      * values are the IPAddressAndPort passed in to WriteTo() for each byte-buffer.
      */
-   MUSCLE_NODISCARD const Hashtable<ByteBufferRef, IPAddressAndPort> & GetWrittenBuffers() const {return _writtenBufs;}
+   MUSCLE_NODISCARD const Queue<ByteBufferRefAndIPAddressAndPort> & GetWrittenBuffers() const {return _writtenBufs;}
 
    /** Non-const version of GetWrittenBuffers(). */
-   MUSCLE_NODISCARD Hashtable<ByteBufferRef, IPAddressAndPort> & GetWrittenBuffers() {return _writtenBufs;}
+   MUSCLE_NODISCARD Queue<ByteBufferRefAndIPAddressAndPort> & GetWrittenBuffers() {return _writtenBufs;}
 
    /** Implemented to clear all of our Queues of incoming and outgoing ByteBuffers */
    virtual void Shutdown() {_bufsToRead.Clear(); _writtenBufs.Clear();}
@@ -119,8 +120,8 @@ public:
    virtual void SetPacketSendDestination(const IPAddressAndPort & iap) {_packetSendDestination = iap;}
 
 private:
-   Hashtable<ByteBufferRef, IPAddressAndPort> _bufsToRead;
-   Hashtable<ByteBufferRef, IPAddressAndPort> _writtenBufs;
+   Queue<ByteBufferRefAndIPAddressAndPort> _bufsToRead;
+   Queue<ByteBufferRefAndIPAddressAndPort> _writtenBufs;
    const uint32 _maxPacketSize;
    const bool _okayToReturnEndOfStream;
 

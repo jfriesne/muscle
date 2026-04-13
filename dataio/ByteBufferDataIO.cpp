@@ -33,6 +33,7 @@ io_status_t ByteBufferDataIO :: Read(void * buffer, uint32 size)
 io_status_t ByteBufferDataIO :: Write(const void * buffer, uint32 size)
 {
    if (_buf() == NULL) return B_BAD_OBJECT;
+   if (size == 0) return io_status_t(0);
 
    if (WillUnsignedAddOverflow(_seekPos, size)) return B_RESOURCE_LIMIT;
 

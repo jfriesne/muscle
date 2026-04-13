@@ -53,7 +53,7 @@ protected:
      *          that (outQ) will contain any ByteBuffers -- if there was no data available to populate (outQ), that is a normal
      *          state of affairs and not an error.
      */
-   status_t GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ);
+   status_t GenerateOutgoingByteBuffers(Queue<ByteBufferRefAndIPAddressAndPort> & outQ);
 
    /** Calls Clear() on our fakeStreamSendBuffer object to free up memory.
      * @param maxBytesToRetain if the fakeStreamSendBuffer's size is greater than this, we'll free the buffer; otherwise we'll just mark it
@@ -63,7 +63,7 @@ protected:
 
 private:
    status_t CallDoOutputOnSlaveGateway();
-   status_t GenerateOutgoingByteBuffersAux(Queue<ByteBufferRef> & outQ);
+   status_t GenerateOutgoingByteBuffersAux(Queue<ByteBufferRefAndIPAddressAndPort> & outQ);
 
    AbstractMessageIOGatewayRef _slaveGateway;
 

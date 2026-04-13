@@ -64,7 +64,7 @@ void ProxyIOGateway :: HandleIncomingByteBuffer(AbstractGatewayMessageReceiver &
    }
 }
 
-status_t ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & outQ)
+status_t ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRefAndIPAddressAndPort> & outQ)
 {
    MessageRef msg;
    if (PopNextOutgoingMessage(msg).IsError()) return B_NO_ERROR;  // yes, B_NO_ERROR is intentional -- having no outgoing Messages on-hand to process is not an error
@@ -86,7 +86,7 @@ status_t ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRef> & ou
       MRETURN_ON_ERROR(_fakeStreamSendBuffer.SetNumBytes(msgFlatSize, false));
 
       msg()->FlattenToBytes(_fakeStreamSendBuffer.GetBuffer(), msgFlatSize);
-      MRETURN_ON_ERROR(outQ.AddTail(DummyByteBufferRef(_fakeStreamSendBuffer)));
+      MRETURN_ON_ERROR(outQ.AddTail(ByteBufferRefAndIPAddressAndPort(DummyByteBufferRef(_fakeStreamSendBuffer), IPAddressAndPort())));
    }
 
    return ret;
@@ -101,18 +101,15 @@ status_t ProxyIOGateway :: CallDoOutputOnSlaveGateway()
    }
 }
 
-status_t ProxyIOGateway :: GenerateOutgoingByteBuffersAux(Queue<ByteBufferRef> & outQ)
+status_t ProxyIOGateway :: GenerateOutgoingByteBuffersAux(Queue<ByteBufferRefAndIPAddressAndPort> & outQ)
 {
    if (GetMaximumPacketSize() > 0)
    {
       _slaveGateway()->SetDataIO(DummyDataIORef(_fakePacketSendIO));
       MRETURN_ON_ERROR(CallDoOutputOnSlaveGateway());
-
-      status_t ret;
-      Hashtable<ByteBufferRef, IPAddressAndPort> & b = _fakePacketSendIO.GetWrittenBuffers();
-      for (ConstHashtableIterator<ByteBufferRef, IPAddressAndPort> iter(b); ((ret.IsOK())&&(iter.HasData())); iter++) ret = outQ.AddTail(iter.GetKey());
-      b.Clear();
-      return ret;
+      MRETURN_ON_ERROR(outQ.AddTailMulti(_fakePacketSendIO.GetWrittenBuffers()));
+      _fakePacketSendIO.GetWrittenBuffers().Clear();
+      return B_NO_ERROR;
    }
    else
    {
@@ -120,7 +117,7 @@ status_t ProxyIOGateway :: GenerateOutgoingByteBuffersAux(Queue<ByteBufferRef> &
       MRETURN_ON_ERROR(_fakeStreamSendBuffer.SetNumBytes(0, false));
       _slaveGateway()->SetDataIO(DummyDataIORef(_fakeStreamSendIO));
       MRETURN_ON_ERROR(CallDoOutputOnSlaveGateway());
-      MRETURN_ON_ERROR(outQ.AddTail(DummyByteBufferRef(_fakeStreamSendBuffer)));
+      MRETURN_ON_ERROR(outQ.AddTail(ByteBufferRefAndIPAddressAndPort(DummyByteBufferRef(_fakeStreamSendBuffer), IPAddressAndPort())));
       return B_NO_ERROR;
    }
 

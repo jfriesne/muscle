@@ -137,7 +137,7 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          }
          if (_currentOutputBuffers.IsEmpty()) break;
 
-         const uint32 sbSize = _currentOutputBuffers.Head()()->GetNumBytes();
+         const uint32 sbSize = _currentOutputBuffers.Head().GetByteBufferRef()()->GetNumBytes();
          if ((PACKET_HEADER_SIZE+CHUNK_HEADER_SIZE+sbSize) > _maxTransferUnit)
          {
             LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutputImplementation():  Outgoing payload is " UINT32_FORMAT_SPEC " bytes, it can't fit into a packet with MTU=" UINT32_FORMAT_SPEC "!  Dropping it\n", sbSize, _maxTransferUnit);
@@ -160,7 +160,7 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 
             // Add the chunk-header and chunk-data to the packet
             (void) flat.WriteInt32(sbSize);
-            (void) flat.WriteBytes(_currentOutputBuffers.Head()()->GetBuffer(), sbSize);
+            (void) flat.WriteBytes(_currentOutputBuffers.Head().GetByteBufferRef()()->GetBuffer(), sbSize);
             (void) _currentOutputBuffers.RemoveHead();
          }
          else break;  // can't fit the current output buffer into this packet; it'll have to wait for the next one

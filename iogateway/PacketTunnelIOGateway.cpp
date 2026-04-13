@@ -148,7 +148,7 @@ io_status_t PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          }
          if (_currentOutputBuffers.IsEmpty()) break;   // nothing more to send?
 
-         const uint32 sbSize          = _currentOutputBuffers.Head()()->GetNumBytes();
+         const uint32 sbSize          = _currentOutputBuffers.Head().GetByteBufferRef()()->GetNumBytes();
          const uint32 dataBytesToSend = muscleMin(_maxTransferUnit-(_outputPacketSize+FRAGMENT_HEADER_SIZE), sbSize-_currentOutputBufferOffset);
 
          DataFlattener flat(_outputPacketBuffer.GetBuffer()+_outputPacketSize, _outputPacketBuffer.GetNumBytes()-_outputPacketSize);
@@ -160,7 +160,7 @@ io_status_t PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          flat.WriteInt32(dataBytesToSend);             // size of this sub-chunk
          flat.WriteInt32(sbSize);                      // total size of this message
 //printf("CREATING PACKET magic=" UINT32_FORMAT_SPEC " msgID=" UINT32_FORMAT_SPEC " offset=" UINT32_FORMAT_SPEC " chunkSize=" UINT32_FORMAT_SPEC " totalSize=" UINT32_FORMAT_SPEC "\n", _magic, _sendMessageIDCounter, _currentOutputBufferOffset, dataBytesToSend, sbSize);
-         flat.WriteBytes(_currentOutputBuffers.Head()()->GetBuffer()+_currentOutputBufferOffset, dataBytesToSend);
+         flat.WriteBytes(_currentOutputBuffers.Head().GetByteBufferRef()()->GetBuffer()+_currentOutputBufferOffset, dataBytesToSend);
 
          _outputPacketSize += flat.GetNumBytesWritten();
          _currentOutputBufferOffset += dataBytesToSend;

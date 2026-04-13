@@ -104,7 +104,7 @@ private:
    uint32 _outputPacketSize;
 
    uint32 _sendMessageIDCounter;
-   Queue<ByteBufferRef> _currentOutputBuffers;
+   Queue<ByteBufferRefAndIPAddressAndPort> _currentOutputBuffers;
    uint32 _currentOutputBufferOffset;
    uint32 _maxIncomingMessageSize;
 

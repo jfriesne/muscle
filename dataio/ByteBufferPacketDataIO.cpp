@@ -23,7 +23,7 @@ ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const Queue<ByteBufferRef> & bu
    SetBuffersToRead(bufs, fromIAP);
 }
 
-ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const Hashtable<ByteBufferRef, IPAddressAndPort> & bufs, uint32 maxPacketSize, bool okayToReturnEndOfStream)
+ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const Queue<ByteBufferRefAndIPAddressAndPort> & bufs, uint32 maxPacketSize, bool okayToReturnEndOfStream)
    : _maxPacketSize(maxPacketSize)
    , _okayToReturnEndOfStream(okayToReturnEndOfStream)
 {
@@ -39,26 +39,27 @@ void ByteBufferPacketDataIO :: SetBuffersToRead(const Queue<ByteBufferRef> & buf
 {
    _bufsToRead.Clear();
    (void) _bufsToRead.EnsureSize(bufs.GetNumItems());
-   for (uint32 i=0; i<bufs.GetNumItems(); i++) (void) _bufsToRead.Put(bufs[i], fromIAP);
+   for (uint32 i=0; i<bufs.GetNumItems(); i++) (void) _bufsToRead.AddTail(ByteBufferRefAndIPAddressAndPort(bufs[i], fromIAP));
 }
 
 io_status_t ByteBufferPacketDataIO :: ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource)
 {
    if (_bufsToRead.IsEmpty()) return _okayToReturnEndOfStream ? B_END_OF_STREAM : io_status_t();
 
-   retPacketSource = *_bufsToRead.GetFirstValue();
+   const ByteBufferRefAndIPAddressAndPort & b = _bufsToRead.Head();
+   retPacketSource = b.GetIPAddressAndPort();
 
-   const ByteBufferRef & bb = *_bufsToRead.GetFirstKey();
+   const ByteBufferRef & bb = b.GetByteBufferRef();
    if (bb())
    {
       const uint32 ret = muscleMin(bb()->GetNumBytes(), size);
-      memcpy(buffer, bb()->GetBuffer(), ret);
-      (void) _bufsToRead.RemoveFirst();
+      if (ret > 0) memcpy(buffer, bb()->GetBuffer(), ret);
+      (void) _bufsToRead.RemoveHead();
       return io_status_t(ret);
    }
    else
    {
-      (void) _bufsToRead.RemoveFirst();
+      (void) _bufsToRead.RemoveHead();
       return io_status_t();
    }
 }
@@ -67,7 +68,7 @@ io_status_t ByteBufferPacketDataIO :: WriteTo(const void * buffer, uint32 size, 
 {
    ByteBufferRef buf = GetByteBufferFromPool(size, (const uint8 *) buffer);
    MRETURN_ON_ERROR(buf);
-   MRETURN_ON_ERROR(_writtenBufs.Put(buf, packetDest));
+   MRETURN_ON_ERROR(_writtenBufs.AddTail(ByteBufferRefAndIPAddressAndPort(buf, packetDest)));
    return io_status_t((int32)size);
 }
 
