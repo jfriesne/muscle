@@ -154,6 +154,7 @@ void AsyncDataIO :: InternalThreadEntry()
 
       // Determine how many bytes until the next command in the output stream (we want them to be executed at the same point
       // in the I/O thread's output stream as they were called at in the main thread's output stream)
+      uint32 numAsyncCommandsPending = 0;
       uint64 bytesUntilNextCommand = (uint64)-1;
       {
          DECLARE_MUTEXGUARD(_asyncCommandsMutex);
@@ -168,6 +169,8 @@ void AsyncDataIO :: InternalThreadEntry()
             else bytesUntilNextCommand = (uint64) (nextCmd.GetStreamLocation()-ioThreadBytesWritten);
          }
          else if ((exitWhenDoneWriting)&&(fromMainThreadBufReadIdx == fromMainThreadBufNumValid)) keepGoing = false;
+
+         numAsyncCommandsPending = _asyncCommands.GetNumItems();
       }
 
       if (bytesUntilNextCommand > 0)
@@ -195,7 +198,7 @@ void AsyncDataIO :: InternalThreadEntry()
                }
                else break;
             }
-            if ((fromMainThreadBufNumValid == fromMainThreadBufReadIdx)&&(exitWhenDoneWriting)) break;
+            if ((fromMainThreadBufNumValid == fromMainThreadBufReadIdx)&&(numAsyncCommandsPending == 0)&&(exitWhenDoneWriting)) break;
          }
 
          if (fromMainFD >= 0)
@@ -211,11 +214,24 @@ void AsyncDataIO :: InternalThreadEntry()
             // Write the data from our from-child-IO buffer, to the main thread's socket
             if ((fromChildIOBufReadIdx < fromChildIOBufNumValid)&&(multiplexer.IsSocketReadyForWrite(fromMainFD)))
             {
-               const int32 bytesWritten = SendData(GetInternalThreadWakeupSocket(), &fromChildIOBuf[fromChildIOBufReadIdx], fromChildIOBufNumValid-fromChildIOBufReadIdx, false).GetByteCount();
+               const uint32 bytesToWriteToMainThread = fromChildIOBufNumValid-fromChildIOBufReadIdx;
+               const int32 bytesWritten = SendData(GetInternalThreadWakeupSocket(), &fromChildIOBuf[fromChildIOBufReadIdx], bytesToWriteToMainThread, false).GetByteCount();
                if (bytesWritten >= 0)
                {
                   fromChildIOBufReadIdx += bytesWritten;
-                  if (fromChildIOBufReadIdx == fromChildIOBufNumValid) fromChildIOBufReadIdx = fromChildIOBufNumValid = 0;
+
+                       if (fromChildIOBufReadIdx == fromChildIOBufNumValid) fromChildIOBufReadIdx = fromChildIOBufNumValid = 0;
+                  else if (fromChildIOBufReadIdx > sizeof(fromChildIOBuf)/2)
+                  {
+                     const uint32 bytesRemaining = bytesToWriteToMainThread-bytesWritten;
+                     if (bytesRemaining > 0)
+                     {
+                        // Move any still-to-be-send-to-main-thread bytes to the start of the buffer, to avoid running out of room at the end
+                        memcpy(fromChildIOBuf, &fromChildIOBuf[fromChildIOBufReadIdx], bytesRemaining);
+                        fromChildIOBufReadIdx  = 0;
+                        fromChildIOBufNumValid = bytesRemaining;
+                     }
+                  }
                }
                else break;
             }
@@ -238,7 +254,12 @@ void AsyncDataIO :: InternalThreadEntry()
             break;
 
             case ASYNC_COMMAND_SHUTDOWN:
-               if (childIO) childIO->Shutdown();
+               if (childIO)
+               {
+                  childIO->Shutdown();
+                  childIO = NULL;
+               }
+               keepGoing = false;
             break;
 
             default:

@@ -274,6 +274,8 @@ key:  - new feature
      within the ordered-children-index as part of the checksum.  (cc)
    * SocketMultiplexer could spuriously indicate sockets as ready-for-read
      after handling an interrupt.  Fixed.
+   * AsyncDataIO's internal thread shutdown no longer drops pending
+     async-commands on exit.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
