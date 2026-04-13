@@ -15,6 +15,8 @@ PacketizedProxyDataIO :: PacketizedProxyDataIO(const DataIORef & childIO, uint32
 
 io_status_t PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
 {
+   if (_unrecoverableError.IsError()) return _unrecoverableError;
+
    uint32 ret = 0;
 
    if (_inputBufferSizeBytesRead < sizeof(uint32))
@@ -30,7 +32,8 @@ io_status_t PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
          if (_inputBufferSize > _maxTransferUnit)
          {
             LogTime(MUSCLE_LOG_ERROR, "PacketizedProxyDataIO:  Error, incoming packet with size " UINT32_FORMAT_SPEC ", max transfer unit is set to " UINT32_FORMAT_SPEC "\n", _inputBufferSize, _maxTransferUnit);
-            return B_BAD_DATA;
+            _unrecoverableError = B_BAD_DATA;
+            return _unrecoverableError;
          }
          MRETURN_ON_ERROR(_inputBuffer.SetNumBytes(_inputBufferSize, false));
          _inputBufferBytesRead = 0;
@@ -64,9 +67,11 @@ io_status_t PacketizedProxyDataIO :: Read(void * buffer, uint32 size)
 
 io_status_t PacketizedProxyDataIO :: Write(const void * buffer, uint32 size)
 {
+   if (_unrecoverableError.IsError()) return _unrecoverableError;
+
    if (size > _maxTransferUnit)
    {
-      LogTime(MUSCLE_LOG_ERROR, "PacketizedProxyDataIO:  Error, tried to send packet with size " UINT32_FORMAT_SPEC ", max transfer unit is set to " UINT32_FORMAT_SPEC "\n", size, _maxTransferUnit);
+      LogTime(MUSCLE_LOG_ERROR, "PacketizedProxyDataIO:  Error, Write() called with size " UINT32_FORMAT_SPEC ", max transfer unit is set to " UINT32_FORMAT_SPEC "\n", size, _maxTransferUnit);
       return B_BAD_ARGUMENT;
    }
 
@@ -121,6 +126,8 @@ void PacketizedProxyDataIO :: Shutdown()
    _inputBufferSizeBytesRead = 0;
    _inputBufferBytesRead     = 0;
    _outputBufferBytesSent    = 0;
+
+   _unrecoverableError = B_SHUTTING_DOWN;
 }
 
 } // end namespace muscle

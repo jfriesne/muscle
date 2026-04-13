@@ -77,7 +77,9 @@ public:
     * Also, simple patterns that begin with a tilde (~) will be logically negated, eg ~A* will match all
     * strings that do NOT begin with the character A.
     *
-    * @param expression The new globbing pattern or regular expression to match with.
+    * @param expression The new globbing pattern or regular expression to match with.  If (expression) is
+    *                   passed as an empty String, this StringMatcher will be set back to its no-pattern/invalid
+    *                   state, in which Match() will not match any strings.
     * @param isSimpleFormat If you wish to use the formal regex syntax,
     *                       instead of the simple syntax, set isSimpleFormat to false.
     * @return B_NO_ERROR on success, or B_BAD_ARGUMENT if the expression wasn't parsable, or B_OUT_OF_MEMORY.

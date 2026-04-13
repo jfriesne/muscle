@@ -134,7 +134,7 @@ key:  - new feature
      String::EnsureBufferSize() (cc)
    * CPULoadMeter's Linux implementation now includes all reported CPU
      states in its calculations (cc)
-   * StringMatcher's assignment-operator wouldn't copy of the state of
+   * StringMatcher's assignment-operator wasn't copying the state of
      the "negate" flag.  Fixed.  (cc)
    * When a ReaderWriterMutex downgraded a thread's lock from read/write
      to read-only, other threads waiting for read-only access are now

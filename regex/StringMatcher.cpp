@@ -162,14 +162,17 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
    if (_ranges.IsEmpty())
    {
       const char * regstr = regexPattern.HasChars() ? regexPattern() : str;
+      if (regstr[0])
+      {
+         status_t ret;
+         const int rc = regcomp(&_regExp, regstr, REG_EXTENDED);
+              if (rc == REG_ESPACE) {ret = B_OUT_OF_MEMORY; MWARN_OUT_OF_MEMORY;}
+         else if (rc != 0)           ret = B_BAD_ARGUMENT;  // we'll assume other return-values from regcomp() all indicate a parse-failure
 
-      status_t ret;
-      const int rc = regcomp(&_regExp, regstr[0] ? regstr : "^$", REG_EXTENDED);   // ^$ only because regcomp() errors out with REG_EMPTY if you pass in ""
-           if (rc == REG_ESPACE) {ret = B_OUT_OF_MEMORY; MWARN_OUT_OF_MEMORY;}
-      else if (rc != 0)           ret = B_BAD_ARGUMENT;  // we'll assume other return-values from regcomp() all indicate a parse-failure
-
-      _flags.SetBit(STRINGMATCHER_FLAG_REGEXVALID, ret.IsOK());
-      return ret;
+         _flags.SetBit(STRINGMATCHER_FLAG_REGEXVALID, ret.IsOK());
+         return ret;
+      }
+      else return B_NO_ERROR;  // an empty pattern means we should remain in our invalid state
    }
    else return B_NO_ERROR;  // for range queries, we don't need a valid regex
 }

@@ -56,6 +56,8 @@ private:
    ByteBuffer _outputBuffer;
    uint32 _outputBufferBytesSent;
 
+   status_t _unrecoverableError;
+
    DECLARE_COUNTED_OBJECT(PacketizedProxyDataIO);
 };
 DECLARE_REFTYPES(PacketizedProxyDataIO);
