@@ -33,9 +33,9 @@ public:
          if (r1.IsOK())
          {
             const status_t r2 = m2->Unlock();
-            if (r2.IsError()) printf("Error, couldn't unlock second Mutex!  (this should never happen!) [%s]\n", r2());
+            if (r2.IsError()) MCRASH("Error, couldn't unlock second Mutex!  (this should never happen!)");
          }
-         else printf("Error, couldn't lock second Mutex!  (this should never happen!) [%s]\n", r1());
+         else MCRASH("Error, couldn't lock second Mutex!  (this should never happen!)");
       }
    }
 };

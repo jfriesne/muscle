@@ -56,6 +56,7 @@ key:  - new feature
    - Added a CreateDataSinkSocket() convenience-function to NetworkUtilityFunctions.
    - Updated StdinDataIO, NullDataIO, and SimulatedMulticastDataIO to call
      CreateDataSinkSocket() when appropriate.
+   - Added a RemoveLastData() convenience method to the Message class.
    o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that
      it can handle EINTR-type interruptions more gracefully.
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and

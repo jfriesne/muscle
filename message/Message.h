@@ -700,6 +700,13 @@ public:
     */
    status_t RemoveData(const String & fieldName, uint32 index = 0);
 
+   /** Convenience method:  Removes the last data-item from the given field entry.  If the
+    *  field entry becomes empty, the field itself is removed also.
+    *  @param fieldName Name of the field to remove an item from.
+    *  @return B_NO_ERROR on success, or B_DATA_NOT_FOUND if the field name wasn't found.
+    */
+   status_t RemoveLastData(const String & fieldName);
+
    /** Removes the given field name and its contents from the Message.
     *  @param fieldName Name of the field to remove.
     *  @return B_NO_ERROR on success, B_DATA_NOT_FOUND if the field name wasn't found.

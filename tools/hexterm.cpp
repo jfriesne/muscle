@@ -518,7 +518,9 @@ int hextermmain(const char * argv0, const Message & args)
       const char * sizeStr = args.GetCstr("spamsize");
       if (sizeStr) g_spamSize = (uint32) Atoull(sizeStr);
 
-      g_spamsPerSecond = (uint32) Atoull(args.GetCstr("spamspersecond"));
+      const char * spsStr = args.GetCstr("spamspersecond");
+      g_spamsPerSecond = spsStr ? (uint32)Atoull(spsStr) : (uint32)1;  // paranoia
+
       LogTime(MUSCLE_LOG_INFO, "Will generate and send " UINT32_FORMAT_SPEC " " UINT32_FORMAT_SPEC "-byte spam-transmissions per second.\n", g_spamsPerSecond, g_spamSize);
    }
 

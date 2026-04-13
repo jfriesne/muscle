@@ -1505,6 +1505,12 @@ status_t Message :: RemoveData(const String & fieldName, uint32 index)
    else return B_DATA_NOT_FOUND;
 }
 
+status_t Message :: RemoveLastData(const String & fieldName)
+{
+   const uint32 numValsInName = GetNumValuesInName(fieldName);
+   return (numValsInName > 0) ? RemoveData(fieldName, numValsInName-1) : B_DATA_NOT_FOUND;
+}
+
 status_t Message :: FindString(const String & fieldName, uint32 index, const char * & setMe) const
 {
    const MessageField * mf = GetMessageField(fieldName, B_STRING_TYPE);

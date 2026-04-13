@@ -38,7 +38,11 @@ static long ZCALLBACK ftell_dataio_func (voidpf /*opaque*/, voidpf stream)
    SeekableDataIO * sdio = dynamic_cast<SeekableDataIO *>(dio);
 
    const int64 ret = sdio ? sdio->GetPosition() : -1;
-   return ((ret < 0)||(ret > (int64)LONG_MAX)) ? (long)-1 : (long)ret;  // error out cleanly on overflow
+   if (sizeof(long) < sizeof(ret))  // semi-paranoia; long might be 32-bit on some architectures
+   {
+      return ((ret < 0)||(ret > (int64)LONG_MAX)) ? (long)-1 : (long)ret;  // error out cleanly on overflow
+   }
+   else return ret;
 }
 
 static long ZCALLBACK fseek_dataio_func (voidpf /*opaque*/, voidpf stream, uLong offset, int origin)

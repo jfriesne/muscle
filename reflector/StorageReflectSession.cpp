@@ -695,12 +695,13 @@ MessageReceivedFromGateway(const MessageRef & msgRef, void * userData)
                         (void) temp.DoTraversal((PathMatchCallback)DoSubscribeRefCallbackFunc, this, GetGlobalRoot(), false, &srcArgs);
                      }
                   }
+
                   if ((subscribeQuietly == false)&&(getMsg.AddString(PR_NAME_KEYS, path).IsOK()))
                   {
                      // We have to have a filter message to match each string, to prevent "bleed-down" of earlier
                      // filters matching later strings.  So add a dummy filter Message if we don't have an actual one.
                      if (filterMsgRef() == NULL) filterMsgRef.SetRef(const_cast<Message *>(&GetEmptyMessage()), false);
-                     if (getMsg.AddMessage(PR_NAME_FILTERS, filterMsgRef).IsError()) (void) getMsg.RemoveData(PR_NAME_KEYS, getMsg.GetNumValuesInName(PR_NAME_KEYS)-1);  // roll back on error
+                     if (getMsg.AddMessage(PR_NAME_FILTERS, filterMsgRef).IsError()) (void) getMsg.RemoveLastData(PR_NAME_KEYS);  // roll back on error
                   }
                }
                else if (fn == PR_NAME_REFLECT_TO_SELF)            SetRoutingFlag(MUSCLE_ROUTING_FLAG_REFLECT_TO_SELF,      true);
