@@ -363,7 +363,12 @@ uint32 DataNode :: CalculateChecksum(uint32 maxRecursionDepth) const
    else
    {
       uint32 ret = _cachedDataChecksum;
-      if (_orderedIndex) for (int32 i=_orderedIndex->GetLastValidIndex(); i>=0; i--) ret += ((((uint32)i)+1) * (*_orderedIndex)[i]()->GetNodeName().CalculateChecksum());
+      if (_orderedIndex)
+      {
+         const Queue<DataNodeRef> & nq = *_orderedIndex;
+         const uint32 idxLen = nq.GetNumItems();
+         for (uint32 i=0; i<idxLen; i++) ret += ((i+1) * nq[i]()->GetNodeName().CalculateChecksum());
+      }
       if (_children) for (ConstHashtableIterator<const String *, DataNodeRef> iter(*_children); iter.HasData(); iter++) ret += iter.GetValue()()->CalculateChecksum(maxRecursionDepth-1);
       return ret;
    }
