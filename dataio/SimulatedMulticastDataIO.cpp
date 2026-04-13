@@ -103,8 +103,8 @@ UDPSocketDataIORef SimulatedMulticastDataIO :: CreateMulticastUDPDataIO(const IP
    }
 
    // Send a test packet just to verify that packets can be sent on this socket (otherwise there's little use in continuing)
-   const uint8 dummyBuf = 0;  // doesn't matter what this is, I just want to make sure I can actually send on this socket
-   if (SendDataUDP(udpSock, &dummyBuf, sizeof(dummyBuf), true, iap.GetIPAddress(), iap.GetPort()).IsError(errRet))
+   const uint8 dummyBuf = 0;  // doesn't matter what this is, it's not going to get sent anyway as we pass 0 as the byte-count to SendDataUDP()
+   if (SendDataUDP(udpSock, &dummyBuf, 0, true, iap.GetIPAddress(), iap.GetPort()).IsError(errRet))
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "SimulatedMulticastDataIO %p:  Unable to send test UDP packet to multicast destination [%s] [%s]\n", this, iap.ToString()(), errRet());
       return errRet;
@@ -135,7 +135,7 @@ status_t SimulatedMulticastDataIO :: ReadPacket(DataIO & dio, ByteBufferRef & re
    if ((_scratchBuf() == NULL)||(_scratchBuf()->SetNumBytes(_maxPacketSize, false).IsError())) return B_OUT_OF_MEMORY;
 
    const io_status_t bytesRead = dio.Read(_scratchBuf()->GetBuffer(), _scratchBuf()->GetNumBytes());
-   if (bytesRead.GetByteCount() > 0)
+   if (bytesRead.GetByteCount() > 0)  // deliberately not counting a 0-byte packet as real data (it's likely a test-packet that doesn't count)
    {
       _scratchBuf()->TruncateToLength(bytesRead.GetByteCount());
       retBuf = _scratchBuf;
@@ -400,7 +400,8 @@ void SimulatedMulticastDataIO :: InternalThreadEntry()
                      if ((msgRef()->FindFlat(SMDIO_NAME_RLOC, destIAP).IsOK())&&(destIAP != _multicastAddress))
                      {
                         // Special case for WriteTo():  This packet can go out as a normal UDP packet
-                        (void) _udpDataIOs[SMDIO_SOCKET_TYPE_UNICAST]()->WriteTo(data()->GetBuffer(), data()->GetNumBytes(), destIAP);
+                        const io_status_t wRet = _udpDataIOs[SMDIO_SOCKET_TYPE_UNICAST]()->WriteTo(data()->GetBuffer(), data()->GetNumBytes(), destIAP);
+                        if (wRet.GetByteCount() != (int32)data()->GetNumBytes()) LogTime(MUSCLE_LOG_WARNING, "SimulatedMulticastDataIO:  Directed Write() of " UINT32_FORMAT_SPEC " bytes to [%s] returned [%s]\n", data()->GetNumBytes(), destIAP.ToString()(), wRet());
                      }
                      else if (IsInEnobufsErrorMode() == false) (void) outgoingUserPacketsQueue.AddTail(data);  // Normal case:  the packet will go out via simulated-multicast
                   }
