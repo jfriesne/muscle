@@ -29,8 +29,8 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
    : _blocking(blocking)
 #ifdef USE_WINDOWS_IMPLEMENTATION
    , _handle(INVALID_HANDLE_VALUE)
-   , _ioThread(INVALID_HANDLE_VALUE)
-   , _wakeupSignal(INVALID_HANDLE_VALUE)
+   , _ioThread(0)         // yes, 0, because _beginthreadex() returns 0 on failure
+   , _wakeupSignal(NULL)  // yes, NULL, because CreateEvent() returns NULL on failure
 #endif
 {
    bool okay = false;
@@ -46,7 +46,7 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
 
       DCB dcb;
       dcb.DCBlength = sizeof(DCB);
-      GetCommState((void *)_handle, &dcb);
+      if (GetCommState((void *)_handle, &dcb) == FALSE) LogTime(MUSCLE_LOG_ERROR, "RS232DataIO():  GetCommState() failed (error code %i)\n", GetLastError());
 
       char modebuf[128]; muscleSprintf(modebuf, "%s baud=" UINT32_FORMAT_SPEC " parity=N data=8 stop=1", port, baudRate);
       if (BuildCommDCBA(modebuf, &dcb))
@@ -78,14 +78,14 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
                {
                   // Oops, in non-blocking mode we'll need to spawn a separate thread to manage the I/O.  Fun!
                   _wakeupSignal   = CreateEvent(0, false, false, 0);
-                  _ovWait.hEvent  = CreateEvent(0, true, false, 0);
-                  _ovRead.hEvent  = CreateEvent(0, true, false, 0);
-                  _ovWrite.hEvent = CreateEvent(0, true, false, 0);
+                  _ovWait.hEvent  = CreateEvent(0, true,  false, 0);
+                  _ovRead.hEvent  = CreateEvent(0, true,  false, 0);
+                  _ovWrite.hEvent = CreateEvent(0, true,  false, 0);
                   if ((_wakeupSignal != NULL)&&(_ovWait.hEvent != NULL)&&(_ovRead.hEvent != NULL)&&(_ovWrite.hEvent != NULL)&&(CreateConnectedSocketPair(_masterNotifySocket, _slaveNotifySocket, false).IsOK()))
                   {
                      DWORD junkThreadID;
                      typedef unsigned (__stdcall *PTHREAD_START) (void *);
-                     if ((_ioThread = (::HANDLE) _beginthreadex(NULL, 0, (PTHREAD_START)IOThreadEntryFunc, this, 0, (unsigned *) &junkThreadID)) != INVALID_HANDLE_VALUE) okay = true;
+                     if ((_ioThread = (::HANDLE) _beginthreadex(NULL, 0, (PTHREAD_START)IOThreadEntryFunc, this, 0, (unsigned *) &junkThreadID)) != 0) okay = true;
                   }
                }
                else okay = true;
@@ -101,8 +101,9 @@ RS232DataIO :: RS232DataIO(const char * port, uint32 baudRate, bool blocking)
 
       const int fd = _handle.GetFileDescriptor();
 
-      struct termios t;
-      tcgetattr(fd, &t);
+      struct termios t; memset(&t, 0, sizeof(t));
+      if (tcgetattr(fd, &t) != 0) LogTime(MUSCLE_LOG_ERROR, "RS232DataIO:  tcgetaddr() failed (%s)\n", B_ERRNO());
+
       switch(baudRate)
       {
          case 1200:
@@ -167,21 +168,21 @@ bool RS232DataIO :: IsPortAvailable() const
 void RS232DataIO :: Close()
 {
 #ifdef USE_WINDOWS_IMPLEMENTATION
-   if (_ioThread != INVALID_HANDLE_VALUE)  // if this is valid, _wakeupSignal is guaranteed valid too
+   if (_ioThread != 0)  // if this is valid, _wakeupSignal is guaranteed valid too
    {
       (void) _requestThreadExit.AtomicIncrement(); // set the "Please go away" flag
       SetEvent(_wakeupSignal);                  // wake the thread up so he'll check the bool
       WaitForSingleObject(_ioThread, INFINITE); // then wait for him to go away
       ::CloseHandle(_ioThread);                 // fix handle leak
-      _ioThread = INVALID_HANDLE_VALUE;
+      _ioThread = 0;
    }
    _masterNotifySocket.Reset();
    _slaveNotifySocket.Reset();
-   if (_wakeupSignal   != INVALID_HANDLE_VALUE) {CloseHandle(_wakeupSignal);   _wakeupSignal   = INVALID_HANDLE_VALUE;}
-   if (_handle         != INVALID_HANDLE_VALUE) {CloseHandle(_handle);         _handle         = INVALID_HANDLE_VALUE;}
-   if (_ovWait.hEvent  != INVALID_HANDLE_VALUE) {CloseHandle(_ovWait.hEvent);  _ovWait.hEvent  = INVALID_HANDLE_VALUE;}
-   if (_ovRead.hEvent  != INVALID_HANDLE_VALUE) {CloseHandle(_ovRead.hEvent);  _ovRead.hEvent  = INVALID_HANDLE_VALUE;}
-   if (_ovWrite.hEvent != INVALID_HANDLE_VALUE) {CloseHandle(_ovWrite.hEvent); _ovWrite.hEvent = INVALID_HANDLE_VALUE;}
+   if (_wakeupSignal   != NULL)                 {CloseHandle(_wakeupSignal);   _wakeupSignal   = NULL;}
+   if (_handle         != INVALID_HANDLE_VALUE) {CloseHandle(_handle);         _handle         = INVALID_HANDLE_VALUE;}  // yes, it's inconsistent, because Windows
+   if (_ovWait.hEvent  != NULL)                 {CloseHandle(_ovWait.hEvent);  _ovWait.hEvent  = NULL;}
+   if (_ovRead.hEvent  != NULL)                 {CloseHandle(_ovRead.hEvent);  _ovRead.hEvent  = NULL;}
+   if (_ovWrite.hEvent != NULL)                 {CloseHandle(_ovWrite.hEvent); _ovWrite.hEvent = NULL;}
 #else
    _handle.Reset();
 #endif

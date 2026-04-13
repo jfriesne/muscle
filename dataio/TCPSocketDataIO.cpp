@@ -9,7 +9,7 @@ TCPSocketDataIO :: TCPSocketDataIO(const ConstSocketRef & sock, bool blocking) :
    if (SetBlockingIOEnabled(blocking).IsError())
    {
 #ifndef WIN32  // GetSocketBlockingEnabled() doesn't work under Windows, alas
-      _blocking = GetSocketBlockingEnabled(sock);  // on error, we can at least make sure our state matches the socket's state
+      _blocking = GetSocketBlockingEnabled(_sock);  // on error, we can at least make sure our state matches the socket's state
 #endif
    }
 }
@@ -23,19 +23,21 @@ void TCPSocketDataIO :: FlushOutput()
 {
    if ((_naglesEnabled)&&(_sock()))
    {
-      // cork doesn't always transmit the data right away if I don't also toggle Nagle.  --jaf
 #if !defined(__APPLE__)  // Apple's implementation of TCP_NOPUSH doesn't flush pending data, and it occasionally causes 5-second delays :(
-      (void) SetSocketCorkAlgorithmEnabled(_sock, false);
+      MLOG_ON_ERROR("FlushOutput::Cork(false)", SetSocketCorkAlgorithmEnabled(_sock, false));
 #endif
 
-      (void) SetSocketNaglesAlgorithmEnabled(_sock, false);
+      // cork doesn't always transmit the data right away if I don't also toggle Nagle.  --jaf
+      MLOG_ON_ERROR("FlushOutput::Nagle(false)", SetSocketNaglesAlgorithmEnabled(_sock, false));
+
 #if !defined(__linux__)
       (void) SendData(_sock, NULL, 0, _blocking);  // Force immediate buffer flush (not necessary under Linux)
 #endif
-      (void) SetSocketNaglesAlgorithmEnabled(_sock, true);
+
+      MLOG_ON_ERROR("FlushOutput::Nagle(false)", SetSocketNaglesAlgorithmEnabled(_sock, true));
 
 #if !defined(__APPLE__)  // Apple's implementation of TCP_NOPUSH doesn't flush pending data, and it occasionally causes 5-second delays :(
-      (void) SetSocketCorkAlgorithmEnabled(_sock, true);
+      MLOG_ON_ERROR("FlushOutput::Cork(true)", SetSocketCorkAlgorithmEnabled(_sock, true));
 #endif
    }
 }

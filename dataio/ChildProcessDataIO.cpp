@@ -271,8 +271,8 @@ status_t ChildProcessDataIO :: LaunchChildProcessAux(int argc, const void * args
                         {
                            DWORD junkThreadID;
                            typedef unsigned (__stdcall *PTHREAD_START) (void *);
-                           if ((_ioThread = (::HANDLE) _beginthreadex(NULL, 0, (PTHREAD_START)IOThreadEntryFunc, this, 0, (unsigned *) &junkThreadID)) != INVALID_HANDLE_VALUE) return B_NO_ERROR;
-                                                                                                                                                                           else ret = B_ERRNO;
+                           if ((_ioThread = (::HANDLE) _beginthreadex(NULL, 0, (PTHREAD_START)IOThreadEntryFunc, this, 0, (unsigned *) &junkThreadID)) != 0) return B_NO_ERROR;  // success!
+                                                                                                                                                        else ret = B_ERRNO;
                         }
                      }
                   }

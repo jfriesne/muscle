@@ -132,6 +132,7 @@ StdinDataIO :: StdinDataIO(bool blocking, bool writeToStdout)
                (freopen("nul", "r", stdin) != NULL)
 #endif
                &&((_slaveThread = (::HANDLE) _beginthreadex(NULL, 0, StdinThreadEntryFunc, NULL, CREATE_SUSPENDED, &junkThreadID)) != 0)) ? STDIN_THREAD_STATUS_RUNNING : STDIN_THREAD_STATUS_EXITED;
+
             threadCreated = (_stdinThreadStatus == STDIN_THREAD_STATUS_RUNNING);
          }
 

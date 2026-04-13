@@ -80,7 +80,7 @@ public:
    MUSCLE_NODISCARD const Queue<IPAddressAndPort> & GetPacketSendDestinations() const {return _sendTo;}
 
    /**
-    * Enables or diables blocking I/O on this socket.
+    * Enables or disables blocking I/O on this socket.
     * If this object is to be used by an AbstractMessageIOGateway,
     * then non-blocking I/O is usually better to use.
     * @param blocking If true, socket is set to blocking I/O mode.  Otherwise, non-blocking I/O.

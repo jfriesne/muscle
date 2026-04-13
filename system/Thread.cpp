@@ -149,7 +149,7 @@ status_t Thread :: StartInternalThreadAuxAux()
    return ret;
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
    typedef unsigned (__stdcall *PTHREAD_START) (void *);
-   return ((_thread = (::HANDLE)_beginthreadex(NULL, _suggestedStackSize, (PTHREAD_START)InternalThreadEntryFunc, this, 0, (unsigned *)&_threadID)) != NULL) ? B_NO_ERROR : B_ERRNO;
+   return ((_thread = (::HANDLE)_beginthreadex(NULL, _suggestedStackSize, (PTHREAD_START)InternalThreadEntryFunc, this, 0, (unsigned *)&_threadID)) != 0) ? B_NO_ERROR : B_ERRNO;
 #elif defined(MUSCLE_USE_QT_THREADS)
    _thread.start();
    return B_NO_ERROR;
