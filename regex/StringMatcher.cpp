@@ -161,8 +161,10 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
    // And compile the new one
    if (_ranges.IsEmpty())
    {
+      const char * regstr = regexPattern.HasChars() ? regexPattern() : str;
+
       status_t ret;
-      const int rc = regcomp(&_regExp, regexPattern.HasChars() ? regexPattern() : str, REG_EXTENDED);
+      const int rc = regcomp(&_regExp, regstr[0] ? regstr : "^$", REG_EXTENDED);   // ^$ only because regcomp() errors out with REG_EMPTY if you pass in ""
            if (rc == REG_ESPACE) {ret = B_OUT_OF_MEMORY; MWARN_OUT_OF_MEMORY;}
       else if (rc != 0)           ret = B_BAD_ARGUMENT;  // we'll assume other return-values from regcomp() all indicate a parse-failure
 

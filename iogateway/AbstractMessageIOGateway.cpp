@@ -99,7 +99,7 @@ ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64
 {
    const int readFD  = GetDataIO()() ? GetDataIO()()->GetReadSelectSocket().GetFileDescriptor()  : -1;
    const int writeFD = GetDataIO()() ? GetDataIO()()->GetWriteSelectSocket().GetFileDescriptor() : -1;
-   if ((readFD < 0)||(writeFD < 0)) return B_BAD_OBJECT;  // no socket to transmit or receive on!
+   if (((optReceiver)&&(readFD < 0))||(writeFD < 0)) return B_BAD_OBJECT;  // no socket to transmit or receive on!
 
    ScratchProxyReceiver scratchReceiver(this, optReceiver);
    const uint64 endTime = (timeoutPeriod == MUSCLE_TIME_NEVER) ? MUSCLE_TIME_NEVER : (GetRunTime64()+timeoutPeriod);
@@ -112,7 +112,7 @@ ExecuteSynchronousMessaging(AbstractGatewayMessageReceiver * optReceiver, uint64
 
       MRETURN_ON_ERROR(multiplexer.WaitForEvents(endTime));
       if (multiplexer.IsSocketReadyForWrite(writeFD)) MRETURN_ON_ERROR(DoOutput().GetStatus());
-      if (multiplexer.IsSocketReadyForRead(readFD))   MRETURN_ON_ERROR(DoInput(scratchReceiver).GetStatus());
+      if ((readFD>=0)&&(multiplexer.IsSocketReadyForRead(readFD))) MRETURN_ON_ERROR(DoInput(scratchReceiver).GetStatus());
    }
    return B_NO_ERROR;
 }
@@ -142,7 +142,7 @@ status_t AbstractMessageIOGateway :: AddOutgoingMessage(const MessageRef & messa
    while(1)
    {
       const io_status_t r = DoOutput();
-      if (r.IsError()) ret |= r.GetStatus();
+      if (r.IsError()) SetUnrecoverableErrorStatus(GetUnrecoverableErrorStatus() | r.GetStatus());
       if (r.GetByteCount() <= 0) break;
    }
 #endif
