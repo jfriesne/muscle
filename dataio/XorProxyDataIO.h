@@ -59,7 +59,7 @@ private:
    {
       uint8 * cto = (uint8 *) to;
       const uint8 * cfrom = (const uint8 *) from;
-      for (uint32 i=0; i<numBytes; i++) cto[i] = ~cfrom[i];
+      for (uint32 i=0; i<numBytes; i++) cto[i] = (uint8) (~cfrom[i]);
    }
 
    ByteBuffer _tempBuf;   // holds the XOR'd bytes temporarily for us

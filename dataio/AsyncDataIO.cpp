@@ -268,7 +268,7 @@ void AsyncDataIO :: ResetFromChildState()
    _fromChildIOBuf         = NULL;
    _fromChildIOBufSize     = 0;
    _fromChildIOBufReadIdx  = NULL;
-   _fromChildIOBufNumValid = 0;
+   _fromChildIOBufNumValid = NULL;
 }
 
 } // end namespace muscle

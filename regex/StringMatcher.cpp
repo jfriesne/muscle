@@ -39,7 +39,7 @@ void StringMatcher :: Reset()
 
 StringMatcher & StringMatcher :: operator = (const StringMatcher & rhs)
 {
-   (void) SetPattern(rhs._pattern, rhs._flags.IsBitSet(STRINGMATCHER_FLAG_SIMPLE));
+   MLOG_ON_ERROR("SetPattern", SetPattern(rhs._pattern, rhs._flags.IsBitSet(STRINGMATCHER_FLAG_SIMPLE)));
    SetNegate(rhs.IsNegate());
    return *this;
 }
@@ -97,7 +97,11 @@ status_t StringMatcher :: SetPattern(const String & s, bool isSimple)
                   if (dash)
                   {
                      String beforeDash;
-                     if (dash>clause) {(void) beforeDash.SetCstr(clause, (int32)(dash-clause)); beforeDash = DigitsOnly(beforeDash);}
+                     if (dash>clause)
+                     {
+                        MRETURN_ON_ERROR(beforeDash.SetCstr(clause, (int32)(dash-clause)));
+                        beforeDash = DigitsOnly(beforeDash);
+                     }
 
                      String afterDash(dash+1); afterDash = DigitsOnly(afterDash);
 
@@ -194,7 +198,7 @@ bool StringMatcher :: Match(const char * const str) const
 String StringMatcher :: ToString() const
 {
    String s;
-   if (_flags.IsBitSet(STRINGMATCHER_FLAG_NEGATE)) s = "~";
+   if ((_flags.IsBitSet(STRINGMATCHER_FLAG_NEGATE))&&(_pattern.StartsWith('~') == false)) s = "~";
 
    if (_ranges.IsEmpty()) return s+_pattern;
    else
