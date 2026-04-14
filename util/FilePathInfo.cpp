@@ -119,10 +119,11 @@ void FilePathInfo :: SetFilePath(const char * optFilePath)
 # endif
 
          _hardLinkCount = (uint32) statInfo.st_nlink;
-
-         struct stat lstatInfo;
-         if ((lstat(optFilePath, &lstatInfo)==0)&&(S_ISLNK(lstatInfo.st_mode))) _flags.SetBit(FPI_FLAG_ISSYMLINK);
       }
+
+      // Run lstat() separately so that we can accurately report the presence of a dangling symlink
+      struct stat lstatInfo;
+      if ((lstat(optFilePath, &lstatInfo)==0)&&(S_ISLNK(lstatInfo.st_mode))) _flags.SetBit(FPI_FLAG_ISSYMLINK);
 #endif
    }
 }

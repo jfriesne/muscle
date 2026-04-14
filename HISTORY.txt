@@ -179,6 +179,7 @@ key:  - new feature
      NetworkUtilityFunctions.{cpp,h} now work correctly for both IPv4
      and IPv6 Sockets. (cc)
    * FilePathInfo::IsSymLink() is now implemented properly for Win32.  (cc)
+   * FilePathInfo now correctly detects dangling symlinks under POSIX.  (cc)
    * Fixed a reference-counting error in StorageReflectSession's
      GetDataNodeSubscribersTableFromPool() method that could cause
      subscriptions to remain active after they should have been removed.
