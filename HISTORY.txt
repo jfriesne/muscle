@@ -57,6 +57,10 @@ key:  - new feature
    - Updated StdinDataIO, NullDataIO, and SimulatedMulticastDataIO to call
      CreateDataSinkSocket() when appropriate.
    - Added a RemoveLastData() convenience method to the Message class.
+   - Added a ReadOnlyByteBufferDataIO class so that ConstByteBuffers can be
+     supplied as source material via DataIO::Read() without casting away const.
+   o ByteBufferPacketDataIO now takes ConstByteBufferRefs for its read-buffers
+     rather than ByteBufferRefs.
    o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that
      it can handle EINTR-type interruptions more gracefully.
    o Split the DECLARE_BATCHGUARD macro into DECLARE_BATCHGUARD and
@@ -120,9 +124,9 @@ key:  - new feature
      can't be acquired.  Removed SpinLockGuard::IsSpinLockLocked() as redundant.
    o Changed ThreadPool to use WaitConditions for its shutdown synchronization
      instead of socket-pairs.
-   o Added a ByteBufferRefAndIPAddressAndPort class, and changed the ByteBufferPacketDataIO
-     and PacketTunnelIOGateway classes to use it instead of using a
-     Hashtable<ByteBufferRef, IPAddressAndPort>.
+   o Added ByteBufferRefAndIPAddressAndPort and ConstByteBufferRefAndIPAddressAndPort
+     classes, and changed the ByteBufferPacketDataIO and PacketTunnelIOGateway classes
+     to use them instead of Hashtable<ByteBufferRef, IPAddressAndPort>.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to

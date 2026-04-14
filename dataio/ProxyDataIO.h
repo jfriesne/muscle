@@ -24,7 +24,7 @@ public:
    /** Constructor.
      * @param childIO Reference to the DataIO to pass calls on through to
      */
-   ProxyDataIO(const DataIORef & childIO) {SetChildDataIO(childIO);}
+   ProxyDataIO(const DataIORef & childIO) : _seekableChildIO(NULL), _packetChildIO(NULL) {SetChildDataIO(childIO);}
 
    /** Destructor. */
    virtual ~ProxyDataIO() {/* empty */}

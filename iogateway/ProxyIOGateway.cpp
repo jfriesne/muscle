@@ -15,14 +15,15 @@ ProxyIOGateway :: ProxyIOGateway(const AbstractMessageIOGatewayRef & slaveGatewa
 
 void ProxyIOGateway :: HandleIncomingByteBuffer(AbstractGatewayMessageReceiver & receiver, const uint8 * p, uint32 bytesRead, const IPAddressAndPort & fromIAP)
 {
-   ByteBuffer temp;
-   temp.AdoptBuffer(bytesRead, const_cast<uint8 *>(p));
-   HandleIncomingByteBuffer(receiver, DummyByteBufferRef(temp), fromIAP);
+   ByteBuffer temp; temp.AdoptBuffer(bytesRead, const_cast<uint8 *>(p));       // const_cast is here only to allow us to adopt the buffer into (temp) without copying the bytes
+   HandleIncomingByteBuffer(receiver, DummyConstByteBufferRef(temp), fromIAP); // (temp) and the bytes pointed to by (p) are very much read-only
    (void) temp.ReleaseBuffer();
 }
 
-void ProxyIOGateway :: HandleIncomingByteBuffer(AbstractGatewayMessageReceiver & receiver, const ByteBufferRef & buf, const IPAddressAndPort & fromIAP)
+void ProxyIOGateway :: HandleIncomingByteBuffer(AbstractGatewayMessageReceiver & receiver, const ConstByteBufferRef & buf, const IPAddressAndPort & fromIAP)
 {
+   if (buf() == NULL) return;
+
    if (_slaveGateway())
    {
       DataIORef oldIO = _slaveGateway()->GetDataIO(); // save slave gateway's old state
@@ -86,10 +87,21 @@ status_t ProxyIOGateway :: GenerateOutgoingByteBuffers(Queue<ByteBufferRefAndIPA
       MRETURN_ON_ERROR(_fakeStreamSendBuffer.SetNumBytes(msgFlatSize, false));
 
       msg()->FlattenToBytes(_fakeStreamSendBuffer.GetBuffer(), msgFlatSize);
-      MRETURN_ON_ERROR(outQ.AddTail(ByteBufferRefAndIPAddressAndPort(DummyByteBufferRef(_fakeStreamSendBuffer), IPAddressAndPort())));
+      ret = FlushGeneratedStreamOutputBufferToQueue(outQ);
    }
 
    return ret;
+}
+
+status_t ProxyIOGateway:: FlushGeneratedStreamOutputBufferToQueue(Queue<ByteBufferRefAndIPAddressAndPort> & outQ)
+{
+   if (_fakeStreamSendBuffer.GetNumBytes() == 0) return B_NO_ERROR;  // no data to flush!
+
+   ByteBufferRef outBuf = GetByteBufferFromPool(0);
+   MRETURN_ON_ERROR(outBuf);
+
+   outBuf()->SwapContents(_fakeStreamSendBuffer);
+   return outQ.AddTail(ByteBufferRefAndIPAddressAndPort(outBuf, IPAddressAndPort()));
 }
 
 status_t ProxyIOGateway :: CallDoOutputOnSlaveGateway()
@@ -117,10 +129,8 @@ status_t ProxyIOGateway :: GenerateOutgoingByteBuffersAux(Queue<ByteBufferRefAnd
       MRETURN_ON_ERROR(_fakeStreamSendBuffer.SetNumBytes(0, false));
       _slaveGateway()->SetDataIO(DummyDataIORef(_fakeStreamSendIO));
       MRETURN_ON_ERROR(CallDoOutputOnSlaveGateway());
-      MRETURN_ON_ERROR(outQ.AddTail(ByteBufferRefAndIPAddressAndPort(DummyByteBufferRef(_fakeStreamSendBuffer), IPAddressAndPort())));
-      return B_NO_ERROR;
+      return FlushGeneratedStreamOutputBufferToQueue(outQ);
    }
-
 }
 
 } // end namespace muscle

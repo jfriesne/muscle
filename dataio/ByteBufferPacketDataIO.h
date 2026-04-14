@@ -12,7 +12,7 @@ namespace muscle {
 
 /**
  *  DataIO class to allow reading from/writing to a Queue of ByteBuffer objects (as if it was a packet I/O device)
- *  The ByteBuffer will behave much like a packet-device (eg UDP socket) would, except that
+ *  The ByteBufferPacketDataIO will behave much like a packet-device (eg UDP socket) would, except that
  *  the each "packet" is actually a ByteBuffer rather than a network-buffer.
  */
 class ByteBufferPacketDataIO : public PacketDataIO
@@ -27,33 +27,33 @@ public:
    ByteBufferPacketDataIO(uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, bool okayToReturnEndOfStream = false);
 
    /** Convenience constructor.
-    *  @param buf A ByteBuffer to that will be read by the next call to ReadFrom().
+    *  @param buf A ConstByteBuffer to that will be read by the next call to ReadFrom().
     *  @param fromIAP the IP address and port the "packet" is purporting to be from.  Defaults to an invalid IPAddressAndPort.
     *  @param maxPacketSize the maximum supported packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
     *  @param okayToReturnEndOfStream if true, our Read() method will return B_END_OF_STREAM when we have no more bytes of data
     *                       left for Read() to supply.  If false, Read() will just return io_status_t(0) in that case.  Defaults to false.
     */
-   ByteBufferPacketDataIO(const ByteBufferRef & buf, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, bool okayToReturnEndOfStream = false);
+   ByteBufferPacketDataIO(const ConstByteBufferRef & buf, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, bool okayToReturnEndOfStream = false);
 
    /** Convenience constructor.
-    *  @param bufs A list of ByteBuffers to be read by subsequent calls to ReadFrom().
+    *  @param bufs A list of ConstByteBuffers to be read by subsequent calls to ReadFrom().
     *  @param fromIAP the IP address and port the "packets" in (bufs) are purporting to be from.  Defaults to an invalid IPAddressAndPort.
     *  @param maxPacketSize the maximum supported packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
     *  @param okayToReturnEndOfStream if true, our Read() method will return B_END_OF_STREAM when we have no more bytes of data
     *                       left for Read() to supply.  If false, Read() will just return io_status_t(0) in that case.  Defaults to false.
     */
-   ByteBufferPacketDataIO(const Queue<ByteBufferRef> & bufs, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, bool okayToReturnEndOfStream = false);
+   ByteBufferPacketDataIO(const Queue<ConstByteBufferRef> & bufs, const IPAddressAndPort & fromIAP = IPAddressAndPort(), uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, bool okayToReturnEndOfStream = false);
 
    /** Convenience constructor.
-    *  @param bufs A sequence of ByteBuffers to be read by subsequent calls to ReadFrom(), and their associated IPAddressAndPort values.
+    *  @param bufs A sequence of ConstByteBufferRefAndIPAddressAndPort's to be read by subsequent calls to ReadFrom(), and their associated IPAddressAndPort values.
     *  @param maxPacketSize the maximum supported packet-size, in bytes.  Should be greater than zero.  Defaults
     *                       to MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka 1388 bytes for IPv4, or 1168 bytes for IPv6)
     *  @param okayToReturnEndOfStream if true, our Read() method will return B_END_OF_STREAM when we have no more bytes of data
     *                       left for Read() to supply.  If false, Read() will just return io_status_t(0) in that case.  Defaults to false.
     */
-   ByteBufferPacketDataIO(const Queue<ByteBufferRefAndIPAddressAndPort> & bufs, uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, bool okayToReturnEndOfStream = false);
+   ByteBufferPacketDataIO(const Queue<ConstByteBufferRefAndIPAddressAndPort> & bufs, uint32 maxPacketSize = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, bool okayToReturnEndOfStream = false);
 
    /** Virtual Destructor, to keep C++ honest */
    virtual ~ByteBufferPacketDataIO();
@@ -61,44 +61,39 @@ public:
    /** Clears our list of byte-buffers that we are planning to hand to future callers of our Read() methods. */
    void ClearBuffersToRead() {_bufsToRead.Clear();}
 
-   /** Convenience method.  Sets our buffers-list to a list containing only the single ByteBufferRef.
+   /** Convenience method.  Sets our buffers-list to a list containing only the single ConstByteBufferRef.
      * @param buf a ByteBufferRef to hold, to be handed to the next future caller of one of our Read() methods, or a NULL reference to not hold anything.
      * @param fromIAP the IP address and port the "packet" is purporting to be from.  Defaults to an invalid IPAddressAndPort.
      */
-   void SetBuffersToRead(const ByteBufferRef & buf, const IPAddressAndPort & fromIAP = IPAddressAndPort()) {_bufsToRead.Clear(); (void) _bufsToRead.AddTail(ByteBufferRefAndIPAddressAndPort(buf, fromIAP));}
+   void SetBuffersToRead(const ConstByteBufferRef & buf, const IPAddressAndPort & fromIAP = IPAddressAndPort()) {_bufsToRead.Clear(); (void) _bufsToRead.AddTail(ConstByteBufferRefAndIPAddressAndPort(buf, fromIAP));}
 
    /** Convenience method:  Sets our set of buffers to a list, with implicit invalid IPAddressAndPort values.
      * @param bufs a new list of buffers for this object to hold.  They will be handed to future callers of our Read() methods, in order.
      * @param fromIAP the IP address and port the "packets" are purporting to be from.  Defaults to an invalid IPAddressAndPort.
      */
-   void SetBuffersToRead(const Queue<ByteBufferRef> & bufs, const IPAddressAndPort & fromIAP = IPAddressAndPort());
+   void SetBuffersToRead(const Queue<ConstByteBufferRef> & bufs, const IPAddressAndPort & fromIAP = IPAddressAndPort());
 
-   /** Sets the current sequence of byte-buffers we are holding.  Keys are the ByteBuffers themselves; values are the
-     * IPAddressAndPort associated with each byte-buffer.
-     * @param bufs a new set of buffers for this object to hold.  They will be handed to future callers of our Read() methods, in order.
+   /** Sets the current sequence of ConstByteBufferRefAndIPAddressAndPort's to hold.
+     * @param bufs a new set of ConstByteBufferRefAndIPAddressAndPort's for this object to hold.  They will be handed to future callers of our Read() methods, in order.
      */
-   void SetBuffersToRead(const Queue<ByteBufferRefAndIPAddressAndPort> & bufs) {_bufsToRead = bufs;}
+   void SetBuffersToRead(const Queue<ConstByteBufferRefAndIPAddressAndPort> & bufs) {_bufsToRead = bufs;}
 
-   /** Returns the current sequence of byte-buffers we are holding, to be handed to future callers of our Read() methods, in order.
-     * @note Keys are the ByteBuffers themselves; values are the IPAddressAndPort associated with each byte-buffer.
-     */
-   MUSCLE_NODISCARD const Queue<ByteBufferRefAndIPAddressAndPort> & GetBuffersToRead() const {return _bufsToRead;}
+   /** Returns the current sequence of byte-buffers we are holding, to be handed to future callers of our Read() methods, in order. */
+   MUSCLE_NODISCARD const Queue<ConstByteBufferRefAndIPAddressAndPort> & GetBuffersToRead() const {return _bufsToRead;}
 
    /** Non-const version of GetBuffersToRead(). */
-   MUSCLE_NODISCARD Queue<ByteBufferRefAndIPAddressAndPort> & GetBuffersToRead() {return _bufsToRead;}
+   MUSCLE_NODISCARD Queue<ConstByteBufferRefAndIPAddressAndPort> & GetBuffersToRead() {return _bufsToRead;}
 
    /** Clears our list of "sent" buffers */
    void ClearWrittenBuffers() {_writtenBufs.Clear();}
 
-   /** Returns the current sequence of "sent" byte-buffers we are holding.  Keys are the ByteBuffers themselves;
-     * values are the IPAddressAndPort passed in to WriteTo() for each byte-buffer.
-     */
+   /** Returns the current sequence of "sent" byte-buffers we are holding. */
    MUSCLE_NODISCARD const Queue<ByteBufferRefAndIPAddressAndPort> & GetWrittenBuffers() const {return _writtenBufs;}
 
    /** Non-const version of GetWrittenBuffers(). */
    MUSCLE_NODISCARD Queue<ByteBufferRefAndIPAddressAndPort> & GetWrittenBuffers() {return _writtenBufs;}
 
-   /** Implemented to clear all of our Queues of incoming and outgoing ByteBuffers */
+   /** Implemented to clear all of our Queues of incoming and outgoing ByteBufferRefAndIPAddressAndPort's. */
    virtual void Shutdown() {_bufsToRead.Clear(); _writtenBufs.Clear();}
 
    /** Returns GetNullSocket(), as there is no way to select() on a Queue of ByteBuffers */
@@ -120,7 +115,7 @@ public:
    virtual void SetPacketSendDestination(const IPAddressAndPort & iap) {_packetSendDestination = iap;}
 
 private:
-   Queue<ByteBufferRefAndIPAddressAndPort> _bufsToRead;
+   Queue<ConstByteBufferRefAndIPAddressAndPort> _bufsToRead;
    Queue<ByteBufferRefAndIPAddressAndPort> _writtenBufs;
    const uint32 _maxPacketSize;
    const bool _okayToReturnEndOfStream;

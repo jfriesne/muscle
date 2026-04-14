@@ -9,21 +9,21 @@ ByteBufferPacketDataIO :: ByteBufferPacketDataIO(uint32 maxPacketSize, bool okay
    // empty
 }
 
-ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const ByteBufferRef & buf, const IPAddressAndPort & fromIAP, uint32 maxPacketSize, bool okayToReturnEndOfStream)
+ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const ConstByteBufferRef & buf, const IPAddressAndPort & fromIAP, uint32 maxPacketSize, bool okayToReturnEndOfStream)
    : _maxPacketSize(maxPacketSize)
    , _okayToReturnEndOfStream(okayToReturnEndOfStream)
 {
    SetBuffersToRead(buf, fromIAP);
 }
 
-ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const Queue<ByteBufferRef> & bufs, const IPAddressAndPort & fromIAP, uint32 maxPacketSize, bool okayToReturnEndOfStream)
+ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const Queue<ConstByteBufferRef> & bufs, const IPAddressAndPort & fromIAP, uint32 maxPacketSize, bool okayToReturnEndOfStream)
    : _maxPacketSize(maxPacketSize)
    , _okayToReturnEndOfStream(okayToReturnEndOfStream)
 {
    SetBuffersToRead(bufs, fromIAP);
 }
 
-ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const Queue<ByteBufferRefAndIPAddressAndPort> & bufs, uint32 maxPacketSize, bool okayToReturnEndOfStream)
+ByteBufferPacketDataIO :: ByteBufferPacketDataIO(const Queue<ConstByteBufferRefAndIPAddressAndPort> & bufs, uint32 maxPacketSize, bool okayToReturnEndOfStream)
    : _maxPacketSize(maxPacketSize)
    , _okayToReturnEndOfStream(okayToReturnEndOfStream)
 {
@@ -35,21 +35,21 @@ ByteBufferPacketDataIO ::~ByteBufferPacketDataIO()
    // empty
 }
 
-void ByteBufferPacketDataIO :: SetBuffersToRead(const Queue<ByteBufferRef> & bufs, const IPAddressAndPort & fromIAP)
+void ByteBufferPacketDataIO :: SetBuffersToRead(const Queue<ConstByteBufferRef> & bufs, const IPAddressAndPort & fromIAP)
 {
    _bufsToRead.Clear();
    (void) _bufsToRead.EnsureSize(bufs.GetNumItems());
-   for (uint32 i=0; i<bufs.GetNumItems(); i++) (void) _bufsToRead.AddTail(ByteBufferRefAndIPAddressAndPort(bufs[i], fromIAP));
+   for (uint32 i=0; i<bufs.GetNumItems(); i++) (void) _bufsToRead.AddTail(ConstByteBufferRefAndIPAddressAndPort(bufs[i], fromIAP));
 }
 
 io_status_t ByteBufferPacketDataIO :: ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource)
 {
    if (_bufsToRead.IsEmpty()) return _okayToReturnEndOfStream ? B_END_OF_STREAM : io_status_t();
 
-   const ByteBufferRefAndIPAddressAndPort & b = _bufsToRead.Head();
+   const ConstByteBufferRefAndIPAddressAndPort & b = _bufsToRead.Head();
    retPacketSource = b.GetIPAddressAndPort();
 
-   const ByteBufferRef & bb = b.GetByteBufferRef();
+   const ConstByteBufferRef & bb = b.GetConstByteBufferRef();
    if (bb())
    {
       const uint32 ret = muscleMin(bb()->GetNumBytes(), size);

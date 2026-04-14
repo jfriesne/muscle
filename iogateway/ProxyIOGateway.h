@@ -5,6 +5,7 @@
 
 #include "dataio/ByteBufferDataIO.h"
 #include "dataio/ByteBufferPacketDataIO.h"
+#include "dataio/ReadOnlyByteBufferDataIO.h"
 #include "iogateway/AbstractMessageIOGateway.h"
 
 namespace muscle {
@@ -43,7 +44,7 @@ protected:
      * @param buf reference to a ByteBuffer containing the received bytes
      * @param fromIAP the IP-address-and-port that the bytes came from (if known)
      */
-   void HandleIncomingByteBuffer(AbstractGatewayMessageReceiver & receiver, const ByteBufferRef & buf, const IPAddressAndPort & fromIAP);
+   void HandleIncomingByteBuffer(AbstractGatewayMessageReceiver & receiver, const ConstByteBufferRef & buf, const IPAddressAndPort & fromIAP);
 
    /** Pops the next MessageRef out of our outgoing-Messages-Queue and tries to convert it into one or more ByteBufferRefs
      * full of bytes to be sent out.  If we have a slave-gateway, it will do the conversion by calling DoOutput()
@@ -64,6 +65,7 @@ protected:
 private:
    status_t CallDoOutputOnSlaveGateway();
    status_t GenerateOutgoingByteBuffersAux(Queue<ByteBufferRefAndIPAddressAndPort> & outQ);
+   status_t FlushGeneratedStreamOutputBufferToQueue(Queue<ByteBufferRefAndIPAddressAndPort> & outQ);
 
    AbstractMessageIOGatewayRef _slaveGateway;
 
@@ -71,7 +73,7 @@ private:
    ByteBufferDataIO       _fakeStreamSendIO;
    ByteBuffer             _fakeStreamSendBuffer;
 
-   ByteBufferDataIO       _fakeStreamReceiveIO;
+   ReadOnlyByteBufferDataIO _fakeStreamReceiveIO;
    ByteBufferPacketDataIO _fakePacketReceiveIO;
 
    // Pass the call back through to our own caller, but with the appropriate argument.
