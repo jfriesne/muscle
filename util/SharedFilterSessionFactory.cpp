@@ -39,60 +39,64 @@ bool SharedFilterSessionFactory :: IsAccessAllowedForIP(const IPAddress & ip) co
    if (ip != invalidIP)
    {
       // demand-setup the shared-memory object, and then lock it for read-only access
-      if (((_sharedMemory.GetAreaSize() > 0)||(_sharedMemory.SetArea(_sharedMemName(), 0, false).IsOK()))&&(_sharedMemory.LockAreaReadOnly().IsOK()))
+      if ((_sharedMemory.GetAreaSize() > 0)||(_sharedMemory.SetArea(_sharedMemName(), 0, false).IsOK()))
       {
-         Queue<NetworkInterfaceInfo> ifs;
-         bool gotIFs = false;  // we'll demand-allocate them
-
-         // FogBugz #17090 special case:  If the memory-area is all-zeroes, then that means we will stick with our _defaultPass logic
-         const uint32 numIPs = _sharedMemory.GetAreaSize()/sizeof(IPAddress);
-         if (IsMemoryAllZeros(_sharedMemory(), (numIPs*sizeof(IPAddress))) == false)
+         if (_sharedMemory.LockAreaReadOnly().IsOK())
          {
-            allowAccess = !_isGrantList;  // if there is a list, you're off it unless you're on it!
+            Queue<NetworkInterfaceInfo> ifs;
+            bool gotIFs = false;  // we'll demand-allocate them
 
-            const IPAddress * ips = reinterpret_cast<const IPAddress *>(_sharedMemory());
-            for (uint32 i=0; i<numIPs; i++)
+            // FogBugz #17090 special case:  If the memory-area is all-zeroes, then that means we will stick with our _defaultPass logic
+            const uint32 numIPs = _sharedMemory.GetAreaSize()/sizeof(IPAddress);
+            if ((_sharedMemory())&&(IsMemoryAllZeros(_sharedMemory(), (numIPs*sizeof(IPAddress))) == false))
             {
-               IPAddress nextIP = ips[i];
-#ifdef MUSCLE_AVOID_IPV6
-               if (nextIP == ip)
-#else
-               if (nextIP.EqualsIgnoreInterfaceIndex(ip))  // FogBugz #7490
-#endif
-               {
-                  allowAccess = _isGrantList;
-                  break;
-               }
-               else if (nextIP.IsStandardLoopbackDeviceAddress())
-               {
-                  if (gotIFs == false)
-                  {
-                     const status_t r = GetNetworkInterfaceInfos(ifs);
-                     if (r.IsError()) LogTime(MUSCLE_LOG_ERROR, "IsAccessAllowedForIP(%s):  GetNetworkInterfaceInfos() returned [%s]\n", ip.ToString()(), r());
-                     gotIFs = true;
-                  }
+               allowAccess = !_isGrantList;  // if there is a list, you're off it unless you're on it!
 
-                  // Special case for the localhost IP... see if it matches any of our localhost's known IP addresses
-                  bool matchedLocal = false;
-                  for (uint32 j=0; j<ifs.GetNumItems(); j++)
-                  {
+               const IPAddress * ips = reinterpret_cast<const IPAddress *>(_sharedMemory());
+               for (uint32 i=0; i<numIPs; i++)
+               {
+                  IPAddress nextIP = ips[i];
 #ifdef MUSCLE_AVOID_IPV6
-                     if (ifs[j].GetLocalAddress() == ip)
+                  if (nextIP == ip)
 #else
-                     if (ifs[j].GetLocalAddress().EqualsIgnoreInterfaceIndex(ip))  // FogBugz #7490
+                  if (nextIP.EqualsIgnoreInterfaceIndex(ip))  // FogBugz #7490
 #endif
-                     {
-                        allowAccess = _isGrantList;
-                        matchedLocal = true;
-                        break;
-                     }
+                  {
+                     allowAccess = _isGrantList;
+                     break;
                   }
-                  if (matchedLocal) break;
+                  else if (nextIP.IsStandardLoopbackDeviceAddress())
+                  {
+                     if (gotIFs == false)
+                     {
+                        const status_t r = GetNetworkInterfaceInfos(ifs);
+                        if (r.IsError()) LogTime(MUSCLE_LOG_ERROR, "IsAccessAllowedForIP(%s):  GetNetworkInterfaceInfos() returned [%s]\n", ip.ToString()(), r());
+                        gotIFs = true;
+                     }
+
+                     // Special case for the localhost IP... see if it matches any of our localhost's known IP addresses
+                     bool matchedLocal = false;
+                     for (uint32 j=0; j<ifs.GetNumItems(); j++)
+                     {
+#ifdef MUSCLE_AVOID_IPV6
+                        if (ifs[j].GetLocalAddress() == ip)
+#else
+                        if (ifs[j].GetLocalAddress().EqualsIgnoreInterfaceIndex(ip))  // FogBugz #7490
+#endif
+                        {
+                           allowAccess = _isGrantList;
+                           matchedLocal = true;
+                           break;
+                        }
+                     }
+                     if (matchedLocal) break;
+                  }
                }
             }
-         }
 
-         _sharedMemory.UnlockArea();
+            _sharedMemory.UnlockArea();
+         }
+         else _sharedMemory.UnsetArea();  // roll back
       }
    }
    return allowAccess;
