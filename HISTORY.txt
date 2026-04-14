@@ -59,6 +59,7 @@ key:  - new feature
    - Added a RemoveLastData() convenience method to the Message class.
    - Added a ReadOnlyByteBufferDataIO class so that ConstByteBuffers can be
      supplied as source material via DataIO::Read() without casting away const.
+   - Added Tuple::IsItemLocatedInThisContainer().
    o ByteBufferPacketDataIO now takes ConstByteBufferRefs for its read-buffers
      rather than ByteBufferRefs.
    o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that
@@ -283,6 +284,8 @@ key:  - new feature
      async-commands on exit.  (cc)
    * CallbackMessageTransceiverThread:DispatchCallbacks() no longer calls
      MessageReceived() in response to an unknown MTT_EVENT_* code.  (cc)
+   * AtomicValue now increments its internal _writeIndex atomically even
+     under non-C++11 build environments.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

@@ -64,9 +64,19 @@ public:
       uint32 oldReadIndex = _readIndex;  // & ATOMIC_BUFFER_MASK isn't necessary here!
       while(1)
       {
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
          const uint32 newWriteIndex = (++_writeIndex & ATOMIC_BUFFER_MASK);
-         if (newWriteIndex == oldReadIndex) return B_RESOURCE_LIMIT;  // out of buffer space!
+#elif defined(__APPLE__)
+         const uint32 newWriteIndex = (OSAtomicIncrement32(&_writeIndex) & ATOMIC_BUFFER_MASK);
+#elif defined(WIN32)
+         const uint32 newWriteIndex = (InterlockedIncrement(&_writeIndex) & ATOMIC_BUFFER_MASK);
+#elif defined(__GNUC__) && ((__GNUC__ > 4) || ((__GNUC__ >= 4) && (__GNUC_MINOR__ >= 1)))
+         const uint32 newWriteIndex = ((__sync_fetch_and_add(&_writeIndex)+1) & ATOMIC_BUFFER_MASK);  // +1 because __sync_fetch_and_add() returns the pre-increment value
+#else
+#        error "AtomicValue:  Unsupported platform, no atomic-increment function known"
+#endif
 
+         if (newWriteIndex == oldReadIndex) return B_RESOURCE_LIMIT;  // out of buffer space!
          _buffer[newWriteIndex] = newValue;
 
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
@@ -80,8 +90,9 @@ public:
 #else
 #        error "AtomicValue:  Unsupported platform, no compare-and-swap function known"
 #endif
+
          if (casSucceeded) break;
-#if !defined(MUSCLE_AVOID_CPLUSPLUS11)  // no need to restore under the C++11 API
+#if defined(MUSCLE_AVOID_CPLUSPLUS11)  // no need to restore under the C++11 API
                       else oldReadIndex = _readIndex;  // so we can try again even if _readIndex got clobbered as part of the failed CAS attempt
 #endif
       }
@@ -115,10 +126,10 @@ private:
 
 #if defined(MUSCLE_AVOID_CPLUSPLUS11)
    // old school C++03 fallback check, as suggested by Claude
-  typedef char AssertAtomicBufferSizeIsPowerOfTwo[(ATOMIC_BUFFER_SIZE && !(ATOMIC_BUFFER_SIZE & (ATOMIC_BUFFER_SIZE-1))) ? 1 : -1];
+   typedef char AssertAtomicBufferSizeIsPowerOfTwo[((ATOMIC_BUFFER_SIZE>1) && !(ATOMIC_BUFFER_SIZE & (ATOMIC_BUFFER_SIZE-1))) ? 1 : -1];
 #else
-   enum {TestPowerOfTwoValue = ATOMIC_BUFFER_SIZE && !(ATOMIC_BUFFER_SIZE&(ATOMIC_BUFFER_SIZE-1))};
-   static_assert(TestPowerOfTwoValue, "AtomicValue template's ATOMIC_BUFFER_SIZE template-parameter must be a power of two");
+   enum {TestPowerOfTwoValue = (ATOMIC_BUFFER_SIZE>1) && !(ATOMIC_BUFFER_SIZE&(ATOMIC_BUFFER_SIZE-1))};
+   static_assert(TestPowerOfTwoValue, "AtomicValue template's ATOMIC_BUFFER_SIZE template-parameter must be a power of two and greater than one");
 #endif
 
    T _buffer[ATOMIC_BUFFER_SIZE];

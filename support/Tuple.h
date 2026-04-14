@@ -125,12 +125,12 @@ public:
    bool operator >=(const Tuple &rhs) const {return !(*this < rhs);}
 
    /** Read-write array operator (not bounds-checked)
-     * @param i the index of the value to return.  Should be in the range [0, NumItems-1], inclusive.
+     * @param i the index of the value to return.  Should be in the range [0, NumItems).
      */
    MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 ItemType & operator [](uint32 i) {return _items[i];}
 
    /** Read-only array operator (not bounds-checked)
-     * @param i the index of the value to return.  Should be in the range [0, NumItems-1], inclusive.
+     * @param i the index of the value to return.  Should be in the range [0, NumItems).
      */
    MUSCLE_NODISCARD MUSCLE_CONSTEXPR_17 const ItemType & operator [](uint32 i) const {return _items[i];}
 
@@ -187,7 +187,7 @@ public:
       return true;
    }
 
-   /** Sets all items in the range [startIndex, endIndex] (inclusive) to (value).
+   /** Sets all items in the range [startIndex, endIndex) to (value).
      * @param value The value to set items to.
      * @param startIndex The first index to set.  Defaults to zero.
      * @param endIndex The last index to set, plus one.  Values that are greater than the number of items in the tuple will
@@ -209,20 +209,29 @@ public:
      */
    uint32 Replace(const ItemType & replaceMe, const ItemType & withMe, uint32 startIndex = 0, uint32 endIndex = MUSCLE_NO_LIMIT)
    {
-      uint32 count = 0;
-      if (endIndex > NumItems) endIndex = NumItems;
-      for (uint32 i=startIndex; i<endIndex; i++)
+      if ((IsItemLocatedInThisContainer(replaceMe))||(IsItemLocatedInThisContainer(withMe)))
       {
-         if (_items[i] == replaceMe)
-         {
-            _items[i] = withMe;
-            count++;
-         }
+         const ItemType copyReplaceMe = replaceMe;
+         const ItemType copyWithMe    = withMe;
+         return Replace(copyReplaceMe, copyWithMe, startIndex, endIndex);
       }
-      return count;
+      else
+      {
+         uint32 count = 0;
+         if (endIndex > NumItems) endIndex = NumItems;
+         for (uint32 i=startIndex; i<endIndex; i++)
+         {
+            if (_items[i] == replaceMe)
+            {
+               _items[i] = withMe;
+               count++;
+            }
+         }
+         return count;
+      }
    }
 
-   /** Sets all items in the range [startIndex, endIndex] (inclusive) to be equal to their counterparts in (rhs).
+   /** Sets all items in the range [startIndex, endIndex) to be equal to their counterparts in (rhs).
      * @param rhs The tuple to copy from.
      * @param startIndex The first index to set.  Defaults to zero.
      * @param endIndex The last index to set, plus one.  Values that are greater than the number of items in the tuple will
@@ -290,6 +299,11 @@ private:
       }
       else if (numPlaces < 0) ShiftValuesLeft(-numPlaces);
    }
+
+   /** Returns true iff the specified item is physically located inside this Tuple's internal array.
+     * @param val the item to check the position of
+     */
+   MUSCLE_NODISCARD bool IsItemLocatedInThisContainer(const ItemType & val) const {return ((uintptr)((&val)-_items) < (uintptr)NumItems);}
 
 private:
    ItemType _items[NumItems];

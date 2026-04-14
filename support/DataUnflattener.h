@@ -232,7 +232,7 @@ public:
       if (retVals[0].IsFixedSize())
       {
          const uint32 flatSize = retVals[0].FlattenedSize();
-         if (WillUnsignedMultiplyOverflow(flatSize, numVals)) return B_BAD_ARGUMENT;
+         if (WillUnsignedMultiplyOverflow(flatSize, numVals)) return FlagError(B_BAD_ARGUMENT);
          MRETURN_ON_ERROR(SizeCheck(flatSize*numVals));
          for (uint32 i=0; i<numVals; i++)
          {
@@ -283,7 +283,7 @@ public:
      */
    template <typename T> status_t ReadPrimitives(T * retVals, uint32 numVals)
    {
-      if (WillUnsignedMultiplyOverflow(numVals, (uint32) sizeof(T))) return B_BAD_ARGUMENT;
+      if (WillUnsignedMultiplyOverflow(numVals, (uint32) sizeof(T))) return FlagError(B_BAD_ARGUMENT);
       MRETURN_ON_ERROR(SizeCheck(numVals*sizeof(T)));
       for (uint32 i=0; i<numVals; i++)
       {
@@ -303,7 +303,7 @@ public:
      */
    status_t SeekTo(uint32 offset)
    {
-      if (offset > _maxBytes) return FlagError(B_BAD_ARGUMENT);
+      if ((offset == MUSCLE_NO_LIMIT)||(offset > _maxBytes)) return FlagError(B_BAD_ARGUMENT);
       _readFrom = _origReadFrom+offset;
       return B_NO_ERROR;
    }
@@ -316,7 +316,7 @@ public:
    status_t SeekRelative(int32 numBytes)
    {
       const uint32 nbw = GetNumBytesRead();
-      return ((numBytes > 0)||(((uint32)(-numBytes)) <= nbw)) ? SeekTo(GetNumBytesRead()+numBytes) : FlagError(B_BAD_ARGUMENT);
+      return ((numBytes > 0)||(((uint32)(-(int64)numBytes)) <= nbw)) ? SeekTo(GetNumBytesRead()+numBytes) : FlagError(B_BAD_ARGUMENT);
    }
 
    /** Moves the read-pointer to the end of our buffer

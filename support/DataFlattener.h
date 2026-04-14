@@ -160,7 +160,7 @@ public:
    /** Writes the given string (including its NUL-terminator) into our buffer
      * @param str pointer to a NUL-terminated C-string
      */
-   void WriteCString(const char * str) {WriteBytes(reinterpret_cast<const uint8 *>(str), (uint32)strlen(str)+1);}  // +1 for the NUL terminator byte
+   void WriteCString(const char * str) {WriteBytes(reinterpret_cast<const uint8 *>(str), (uint32)(strlen(str)+1));}  // +1 for the NUL terminator byte
 
    /** Writes the given Flattenable or PseudoFlattenable object into our buffer
      * @param val the Flattenable or PseudoFlattenable object to write
@@ -248,7 +248,7 @@ public:
          if (WillUnsignedAddOverflow(nbw, (uint32)seekDeltaBytes)) return B_BAD_ARGUMENT;
          return SeekTo(nbw+seekDeltaBytes);
       }
-      else return (((uint32)(-seekDeltaBytes)) <= nbw) ? SeekTo(nbw+seekDeltaBytes) : B_BAD_ARGUMENT;
+      else return (((uint32)(-(int64)seekDeltaBytes)) <= nbw) ? SeekTo(nbw+seekDeltaBytes) : B_BAD_ARGUMENT;
    }
 
    /** Sets whether or not an assertion failure should be triggered by this object's destructor
