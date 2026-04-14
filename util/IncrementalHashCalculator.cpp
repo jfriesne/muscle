@@ -488,7 +488,7 @@ static void sha1_process( sha1_context *ctx, const unsigned char data[64] )
 /*
  * SHA-1 process buffer
  */
-static void sha1_update( sha1_context *ctx, const unsigned char *input, size_t ilen )
+static void sha1_update( sha1_context *ctx, const unsigned char *input, unsigned long ilen )
 {
    if (ilen == 0) return;
 
@@ -560,7 +560,7 @@ static void sha1_finish( sha1_context *ctx, unsigned char output[20] )
 
 String IncrementalHash :: ToString() const {return HexBytesToString(_hashBytes, ARRAYITEMS(_hashBytes));}
 
-void IncrementalHashCalculator :: FreeContext(bool inDestructor)
+void IncrementalHashCalculator :: FreeContext()
 {
    (void) _context;     // this is here solely to avoid a -Wunused-private-field compiler warning
    (void) _tempContext; // ditto
@@ -568,15 +568,14 @@ void IncrementalHashCalculator :: FreeContext(bool inDestructor)
 #ifdef MUSCLE_ENABLE_SSL
    if (_context)     {EVP_MD_CTX_free(_context);         _context = NULL;}
    if (_tempContext) {EVP_MD_CTX_free(_tempContext); _tempContext = NULL;}
-   (void) inDestructor;  // avoid compiler warning
 #else
-   if (inDestructor == false) muscleClearArray(_nativeHashState._stateBytes);
+   muscleClearArray(_nativeHashState._stateBytes);  // don't leave potentially sensitive data lying around in RAM for prying eyes to see later
 #endif
 }
 
 void IncrementalHashCalculator :: Reset()
 {
-   FreeContext(false);
+   FreeContext();
 
 #ifdef MUSCLE_ENABLE_SSL
    _context     = EVP_MD_CTX_new();
@@ -592,14 +591,14 @@ void IncrementalHashCalculator :: Reset()
       }
       if (ret != 1)
       {
-         LogTime(MUSCLE_LOG_CRITICALERROR, "IncrementalHashCalculator %p:  Unable to initialize digest for algorithm " UINT32_FORMAT_SPEC "\n", this, _algorithm);
-         FreeContext(false);
+         if (_algorithm < NUM_HASH_ALGORITHMS) LogTime(MUSCLE_LOG_CRITICALERROR, "IncrementalHashCalculator %p:  Unable to initialize digest for algorithm " UINT32_FORMAT_SPEC "\n", this, _algorithm);
+         FreeContext();
       }
    }
    else
    {
       LogTime(MUSCLE_LOG_CRITICALERROR, "IncrementalHashCalculator %p:  Unable to create hash context for algorithm " UINT32_FORMAT_SPEC "\n", this, _algorithm);
-      FreeContext(false);
+      FreeContext();
    }
 
    (void) _nativeHashState;  // just to suppress a compiler warning about it being unused

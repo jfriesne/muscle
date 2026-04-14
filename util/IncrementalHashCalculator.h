@@ -105,7 +105,7 @@ public:
 
    ~IncrementalHashCalculator()
    {
-      FreeContext(true);
+      FreeContext();
    }
 
    /** Resets this object back to its just-constructed state */
@@ -153,7 +153,7 @@ public:
 private:
    const uint32 _algorithm;  // HASH_ALGORITHM_*
 
-   void FreeContext(bool inDestructor);
+   void FreeContext();
 
 #ifdef MUSCLE_ENABLE_SSL
    typedef EVP_MD_CTX INCREMENTAL_HASH_CONTEXT_TYPE; // pass-through to OpenSSL's hashing API (may be faster than our native implementation)

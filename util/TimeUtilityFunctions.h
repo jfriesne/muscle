@@ -77,7 +77,7 @@ MUSCLE_NODISCARD inline uint64 GetCurrentTime64ForRunTime64(uint64 runTime64, ui
   */
 MUSCLE_NODISCARD inline uint64 GetRunTime64ForCurrentTime64(uint64 currentTime64, uint32 timeType=MUSCLE_TIMEZONE_UTC) {return GetRunTime64()+(currentTime64-GetCurrentTime64(timeType));}
 
-/** Convenience function:  Won't return for a given number of microsends.
+/** Convenience function:  Won't return for a given number of microseconds.
  *  @param micros The number of microseconds to wait for (or MUSCLE_TIME_NEVER to sleep forever)
  *  @return B_NO_ERROR on success, or an error code on failure.
  */
@@ -98,7 +98,7 @@ status_t SnoozeUntil(uint64 wakeupTime);
 MUSCLE_NODISCARD inline bool OnceEvery(uint64 interval, uint64 & lastTime)
 {
    const uint64 now = GetRunTime64();
-   if (now >= lastTime+interval)
+   if ((now-lastTime) >= interval)
    {
       lastTime = now;
       return true;
