@@ -281,6 +281,8 @@ key:  - new feature
      after handling an interrupt.  Fixed.
    * AsyncDataIO's internal thread shutdown no longer drops pending
      async-commands on exit.  (cc)
+   * CallbackMessageTransceiverThread:DispatchCallbacks() no longer calls
+     MessageReceived() in response to an unknown MTT_EVENT_* code.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

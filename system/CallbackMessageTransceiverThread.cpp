@@ -20,7 +20,7 @@ void CallbackMessageTransceiverThread :: DispatchCallbacks(uint32)
    {
       switch(code)
       {
-         case MTT_EVENT_INCOMING_MESSAGE: default:
+         case MTT_EVENT_INCOMING_MESSAGE:
             if (seenIncomingMessage == false)
             {
                seenIncomingMessage = true;
@@ -38,8 +38,9 @@ void CallbackMessageTransceiverThread :: DispatchCallbacks(uint32)
          case MTT_EVENT_FACTORY_DETACHED:      FactoryDetached(factoryID);                 break;
          case MTT_EVENT_OUTPUT_QUEUES_DRAINED: OutputQueuesDrained(next);                  break;
          case MTT_EVENT_SERVER_EXITED:         ServerExited();                             break;
+         default:                              /* empty */                                 break;
       }
-      InternalThreadEvent(code, next, sessionID, factoryID);  // this get called for any event
+      InternalThreadEvent(code, next, sessionID, factoryID);  // this gets called for any event
    }
 
    if (seenIncomingMessage) EndMessageBatch();
