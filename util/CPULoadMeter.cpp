@@ -76,9 +76,9 @@ float CPULoadMeter :: GetCPULoad()
             const uint64 irqTicks       = next ? Atoull(next) : 0; next = tok();
             const uint64 softIrqTicks   = next ? Atoull(next) : 0; next = tok();
             const uint64 stealTicks     = next ? Atoull(next) : 0; next = tok();
-            const uint64 guestTicks     = next ? Atoull(next) : 0; next = tok();
-            const uint64 guestNiceTicks = next ? Atoull(next) : 0;
-            sysLoadPercentage = CalculateCPULoad(idleTicks, userTicks+niceTicks+systemTicks+idleTicks+ioWaitTicks+irqTicks+softIrqTicks+stealTicks+guestTicks+guestNiceTicks);
+            //const uint64 guestTicks     = next ? Atoull(next) : 0; next = tok();  // included in (userTicks), so don't count them twice
+            //const uint64 guestNiceTicks = next ? Atoull(next) : 0;                // includes in (niceTicks), so don't count them twice
+            sysLoadPercentage = CalculateCPULoad(idleTicks, userTicks+niceTicks+systemTicks+idleTicks+ioWaitTicks+irqTicks+softIrqTicks+stealTicks);
             break;
          }
       }
