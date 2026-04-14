@@ -199,7 +199,7 @@ char * muscleStrdup(const char * s, bool retryOnFailure)
 
    const size_t sLen = strlen(s);
    char * dupStr = (char *) muscleAlloc(sLen+1, retryOnFailure);  // +1 for the NUL terminator byte
-   if ((s)&&(dupStr)) memcpy(dupStr, s, sLen+1);
+   if (dupStr) memcpy(dupStr, s, sLen+1);
    return dupStr;
 }
 
@@ -293,14 +293,14 @@ void * muscleRealloc(void * oldUserPtr, size_t newUserSize, bool retryOnFailure)
          *newInternalPtr = newInternalSize;  // our little header tag so that muscleFree() will know how big the allocation is now
          _currentlyAllocatedBytes -= shrinkBy;
 
-#ifdef DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD
-         if (shrinkBy >= DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD) printf("r-" UINT32_FORMAT_SPEC "(->" UINT32_FORMAT_SPEC ") = " UINT32_FORMAT_SPEC " oldUserPtr=%p newUserPtr=%p\n", (uint32)shrinkBy, (uint32)newInternalSize, (uint32)_currentlyAllocatedBytes, oldUserPtr, newUserPtr);
-#endif
-
 #if MUSCLE_ENABLE_MEMORY_PARANOIA > 0
          MemoryParanoiaPrepareBuffer(newInternalPtr, MUSCLE_NO_LIMIT);
 #endif
          newUserPtr = CONVERT_INTERNAL_TO_USER_POINTER(newInternalPtr);
+
+#ifdef DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD
+         if (shrinkBy >= DEBUG_LARGE_MEMORY_ALLOCATIONS_THRESHOLD) printf("r-" UINT32_FORMAT_SPEC "(->" UINT32_FORMAT_SPEC ") = " UINT32_FORMAT_SPEC " oldUserPtr=%p newUserPtr=%p\n", (uint32)shrinkBy, (uint32)newInternalSize, (uint32)_currentlyAllocatedBytes, oldUserPtr, newUserPtr);
+#endif
       }
       else
       {

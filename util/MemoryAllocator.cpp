@@ -49,7 +49,7 @@ UsageLimitProxyMemoryAllocator :: ~UsageLimitProxyMemoryAllocator()
 
 status_t UsageLimitProxyMemoryAllocator :: AboutToAllocate(size_t currentlyAllocatedBytes, size_t allocRequestBytes)
 {
-   return ((allocRequestBytes <= _maxBytes)&&(allocRequestBytes <= _maxBytes - currentlyAllocatedBytes)) ? ProxyMemoryAllocator::AboutToAllocate(currentlyAllocatedBytes, allocRequestBytes) : B_OUT_OF_MEMORY;
+   return (GetNumAvailableBytes(currentlyAllocatedBytes) >= allocRequestBytes) ? ProxyMemoryAllocator::AboutToAllocate(currentlyAllocatedBytes, allocRequestBytes) : B_OUT_OF_MEMORY;
 }
 
 void AutoCleanupProxyMemoryAllocator :: AllocationFailed(size_t currentlyAllocatedBytes, size_t allocRequestBytes)

@@ -163,7 +163,7 @@ public:
      */
    AutoCleanupProxyMemoryAllocator(const MemoryAllocatorRef & slaveRef) : ProxyMemoryAllocator(slaveRef) {/* empty */}
 
-   /** Destructor.  Calls ClearCallbacks(). */
+   /** Destructor. */
    virtual ~AutoCleanupProxyMemoryAllocator() {/* empty */}
 
    /** Overridden to call our callbacks in event of a failure.
@@ -175,7 +175,7 @@ public:
    /** Read-write access to our list of out-of-memory callbacks. */
    MUSCLE_NODISCARD Queue<GenericCallbackRef> & GetCallbacksQueue() {return _callbacks;}
 
-   /** Write-only access to our list of out-of-memory callbacks. */
+   /** Read-only access to our list of out-of-memory callbacks. */
    MUSCLE_NODISCARD const Queue<GenericCallbackRef> & GetCallbacksQueue() const {return _callbacks;}
 
 private:
