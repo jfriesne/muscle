@@ -609,6 +609,16 @@ void GetStandardLogLinePreamble(char * buf, const LogCallbackArgs & a)
 
    static const size_t suffixSize = 16;
    muscleSnprintf(buf, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION-suffixSize, "[%c %02i/%02i %02i:%02i:%02i] [%s", GetLogLevelName(a.GetLogLevel())[0], temp->tm_mon+1, temp->tm_mday, temp->tm_hour, temp->tm_min, temp->tm_sec, fn);
+
+   {
+      char * s = buf;
+      while(*s)
+      {
+         if (*s == '%') *s = 'p';  // semi-paranoia:  don't allow % tokens into our format-string
+         s++;
+      }
+   }
+
    char buf2[suffixSize];
    muscleSnprintf(buf2, sizeof(buf2), ":%i] ", a.GetSourceLineNumber());
    strncat(buf, buf2, MINIMUM_PREAMBLE_BUF_SIZE_PER_DOCUMENTATION-strlen(buf)-1);  // sigh

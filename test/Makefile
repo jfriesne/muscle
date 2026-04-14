@@ -31,6 +31,8 @@ DEFINES += -DMUSCLE_AVOID_SIGNAL_HANDLING
 #DEFINES += -DMUSCLE_FAKE_SHARED_MEMORY
 #DEFINES += -DMUSCLE_SHAREDMEMORY_SEMOP_UNAVAILABLE
 #DEFINES += -DMUSCLE_NUM_RESERVED_HIGH_BITS_IN_POINTERS=16
+#DEFINES += -DMUSCLE_INCLUDE_SOURCE_LOCATION_IN_LOGTIME
+#DEFINES += -DMUSCLE_LOG_VERBOSE_SOURCE_LOCATIONS
 
 CFLAGS = -I.. -I../zlib/zlib -g
 #CFLAGS += -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.1.sdk  # useful when compiling with scan-build/ClangSA
@@ -229,7 +231,7 @@ testudp : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o Pla
 testsocketmultiplexer : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o testsocketmultiplexer.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testpackettunnel : $(STDOBJS) testpackettunnel.o Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o ProxyIOGateway.o PacketTunnelIOGateway.o MiniPacketTunnelIOGateway.o PacketizedProxyDataIO.o MiscUtilityFunctions.o ByteBufferPacketDataIO.o ByteBufferDataIO.o
+testpackettunnel : $(STDOBJS) testpackettunnel.o Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o ProxyIOGateway.o PacketTunnelIOGateway.o MiniPacketTunnelIOGateway.o PacketizedProxyDataIO.o MiscUtilityFunctions.o ByteBufferPacketDataIO.o ByteBufferDataIO.o ReadOnlyByteBufferDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testpacketio : $(STDOBJS) testpacketio.o Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o PacketizedProxyDataIO.o MiscUtilityFunctions.o ByteBufferPacketDataIO.o ByteBufferDataIO.o

@@ -255,7 +255,7 @@ public:
    /** Sets the name of the file to log to.
      * @param logName File name/path (including %-tokens as necessary)
      */
-   void SetLogFileName(const String & logName) {_prototypeLogFileName = logName;}
+   void SetLogFileName(const String & logName) {_prototypeLogFileName = logName; _logFileOpenAttemptFailed = false;}
 
    /** Sets the maximum log file size, in bytes.
      * @param maxSizeBytes New maximum log file size.

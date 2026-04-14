@@ -211,6 +211,8 @@ status_t Directory :: MakeDirectory(const char * dirPath, bool forceCreateParent
 
 status_t Directory :: MakeDirectoryForFile(const char * filePath)
 {
+   if (filePath == NULL) return B_BAD_ARGUMENT;
+
    const uint32 pathLen = (uint32) strlen(filePath);
    char * p = newnothrow_array(char, pathLen+1);
    MRETURN_OOM_ON_NULL(p);
@@ -225,10 +227,10 @@ status_t Directory :: MakeDirectoryForFile(const char * filePath)
 
 status_t Directory :: DeleteDirectory(const char * dirPath, bool forceDeleteSubItemsIfNecessary)
 {
+   if (dirPath == NULL) return B_BAD_ARGUMENT;
+
    if (forceDeleteSubItemsIfNecessary)
    {
-      if (dirPath == NULL) return B_BAD_ARGUMENT;
-
       Directory d;
       MRETURN_ON_ERROR(d.SetDir(dirPath));
 
