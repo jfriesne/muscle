@@ -120,6 +120,8 @@ size_t SharedUsageLimitProxyMemoryAllocator :: CalculateTotalAllocationSum() con
 
 status_t SharedUsageLimitProxyMemoryAllocator :: AboutToAllocate(size_t cab, size_t arb)
 {
+   if (_memberID < 0) return B_NO_ERROR;  // we're only observing
+
    MRETURN_ON_ERROR(ChangeDaemonCounter((muscle_ssize_t)arb));
 
    const status_t ret = ProxyMemoryAllocator::AboutToAllocate(cab, arb);
@@ -129,8 +131,11 @@ status_t SharedUsageLimitProxyMemoryAllocator :: AboutToAllocate(size_t cab, siz
 
 void SharedUsageLimitProxyMemoryAllocator :: AboutToFree(size_t cab, size_t arb)
 {
-   (void) ChangeDaemonCounter(-((muscle_ssize_t)arb));
-   ProxyMemoryAllocator::AboutToFree(cab, arb);
+   if (_memberID >= 0)  // we're only observing
+   {
+      (void) ChangeDaemonCounter(-((muscle_ssize_t)arb));
+      ProxyMemoryAllocator::AboutToFree(cab, arb);
+   }
 }
 
 size_t SharedUsageLimitProxyMemoryAllocator :: GetNumAvailableBytes(size_t allocated) const
