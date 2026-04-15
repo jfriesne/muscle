@@ -5,7 +5,6 @@
 
 #include "dataio/ByteBufferDataIO.h"
 #include "dataio/ByteBufferPacketDataIO.h"
-#include "dataio/ReadOnlyByteBufferDataIO.h"
 #include "iogateway/AbstractMessageIOGateway.h"
 
 namespace muscle {

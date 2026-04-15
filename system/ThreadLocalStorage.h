@@ -37,7 +37,7 @@ public:
      */
    ThreadLocalStorage(bool freeHeldObjectsOnExit = true) : _freeHeldObjects(freeHeldObjectsOnExit)
    {
-#ifdef MUSCLE_ENABLE_DEADLOCK_FINDER
+#if defined(MUSCLE_ENABLE_DEADLOCK_FINDER) && !(defined(MUSCLE_USE_QT_THREADLOCALSTORAGE) || defined(MUSCLE_USE_PTHREADS))
       // Avoid re-entrancy problems when the deadlock callbacks are using ThreadLocalStorage to initialize themselves!
       (void) _allocedObjsMutex.BeginAvoidFindDeadlockCallbacks();
 #endif
@@ -45,7 +45,7 @@ public:
 #if !defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
 # if defined(MUSCLE_USE_PTHREADS)
       _isKeyValid = (pthread_key_create(&_key, _freeHeldObjects?((PthreadDestructorFunction)DeleteObjFunc):NULL) == 0);
-# elif !defined(MUSCLE_USE_CPLUSPLUS11_THREADS) && defined(MUSCLE_PREFER_WIN32_OVER_QT)
+# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       _tlsIndex = TlsAlloc();
 # endif
 #endif
@@ -110,7 +110,6 @@ public:
 #if defined(MUSCLE_USE_QT_THREADLOCALSTORAGE) || defined(MUSCLE_USE_PTHREADS)
       return SetThreadLocalObjectAux(newObj);   // pthreads and Qt manage memory so we don't have to
 #else
-
       DECLARE_NAMED_MUTEXGUARD(mg, _allocedObjsMutex);
 
       status_t ret;
@@ -153,8 +152,10 @@ private:
 # elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
    DWORD _tlsIndex;
 # endif
+# if !(defined(MUSCLE_USE_QT_THREADLOCALSTORAGE) || defined(MUSCLE_USE_PTHREADS))
    Mutex _allocedObjsMutex;
    Queue<ObjType *> _allocedObjs;
+# endif
 #endif
 
    bool _freeHeldObjects;
