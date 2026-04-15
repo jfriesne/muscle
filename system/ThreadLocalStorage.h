@@ -4,6 +4,7 @@
 #define MuscleThreadLocalStorage_h
 
 #include "support/MuscleSupport.h"
+#include "util/Hashtable.h"
 
 #if defined(MUSCLE_USE_CPLUSPLUS11_THREADS) || defined(MUSCLE_USE_PTHREADS) || defined(MUSCLE_PREFER_WIN32_OVER_QT)
   // deliberately empty
@@ -56,15 +57,17 @@ public:
    {
       if (IsSetupOkay())
       {
-#if !defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-# if defined(MUSCLE_USE_PTHREADS)
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+         (void) GetThreadLocalObjectsTable().Remove(reinterpret_cast<const void *>(this));
+#elif defined(MUSCLE_USE_PTHREADS)
          (void) pthread_key_delete(_key);
-# elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
+#elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
          TlsFree(_tlsIndex);
-# endif
 #endif
       }
+
 #if !(defined(MUSCLE_USE_QT_THREADLOCALSTORAGE) || defined(MUSCLE_USE_PTHREADS))
+      DECLARE_NAMED_MUTEXGUARD(mg, _allocedObjsMutex);
       if (_freeHeldObjects) for (uint32 i=0; i<_allocedObjs.GetNumItems(); i++) delete _allocedObjs[i];
 #endif
    }
@@ -137,12 +140,16 @@ private:
 # if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
 #  if defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD)
 #   if defined(_MSC_VER)
-   static __declspec(thread) ObjType * _threadLocalObject;
+   static __declspec(thread) Hashtable<const void *, ObjType *> _threadLocalObjects;
 #   elif defined(__GNUC__)
-   static __thread ObjType * _threadLocalObject;
+   static __thread Hashtable<const void *, ObjType *> * _threadLocalObjects;  // declared via pointer because __thread only supports POD types, not C++ objects
+   static pthread_key_t  _tableKey;
+   static pthread_once_t _tableKeyOnce;
+   static void InitTableKey()            {(void) pthread_key_create(&_tableKey, DeleteTableFunc);}
+   static void DeleteTableFunc(void * p) {delete (Hashtable<const void *, ObjType *> *)p;}
 #   endif
 #  else
-   static thread_local ObjType * _threadLocalObject;
+   static thread_local Hashtable<const void *, ObjType *> _threadLocalObjects;
 #  endif
 # elif defined(MUSCLE_USE_PTHREADS)
    typedef void (*PthreadDestructorFunction )(void *);
@@ -165,7 +172,7 @@ private:
 #if defined(MUSCLE_USE_QT_THREADLOCALSTORAGE)
       return _storage.localData();
 #elif defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-      return _threadLocalObject;
+      return GetThreadLocalObjectsTable()[reinterpret_cast<const void *>(this)];
 #elif defined(MUSCLE_USE_PTHREADS)
       return (ObjType *) pthread_getspecific(_key);
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
@@ -178,7 +185,7 @@ private:
 #if defined(MUSCLE_USE_QT_THREADLOCALSTORAGE)
       _storage.setLocalData(o); return B_NO_ERROR;
 #elif defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-      _threadLocalObject = o;   return B_NO_ERROR;
+      return GetThreadLocalObjectsTable().PutOrRemove(reinterpret_cast<const void *>(this), o);
 #elif defined(MUSCLE_USE_PTHREADS)
       return B_ERRNUM(pthread_setspecific(_key, o));
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
@@ -196,20 +203,35 @@ private:
       return (_tlsIndex != TLS_OUT_OF_INDEXES);
 #endif
    }
+
+   Hashtable<const void *, ObjType *> & GetThreadLocalObjectsTable() const
+   {
+#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS) && !defined(_MSC_VER) && defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD) && defined(__GNUC__)
+      if (_threadLocalObjects == NULL)
+      {
+         (void) pthread_once(&_tableKeyOnce, InitTableKey);
+         _threadLocalObjects = new Hashtable<const void *, ObjType *>();  // thread-safe because _threadLocalObjects is per-thread
+         (void) pthread_setspecific(_tableKey, _threadLocalObjects);
+      }
+      return *_threadLocalObjects;
+#else
+      return _threadLocalObjects;
+#endif
+   }
 };
 
 #if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
 // declare storage space for our thread-local object
 # if defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD)
 #  if defined(_MSC_VER)
-template <typename T> __declspec(thread) T * ThreadLocalStorage<T>::_threadLocalObject;
+template <typename T> __declspec(thread) Hashtable<const void *, T *> ThreadLocalStorage<T>::_threadLocalObjects;
 #  elif defined(__GNUC__)
-template <typename T> __thread           T * ThreadLocalStorage<T>::_threadLocalObject;
-#  else
-template <typename T> T * ThreadLocalStorage<T>::_threadLocalObject;
+template <typename T> __thread           Hashtable<const void *, T *> * ThreadLocalStorage<T>::_threadLocalObjects;  // pointer because GCC doesn't support non-trivial static object types
+template <typename T> pthread_key_t  ThreadLocalStorage<T>::_tableKey;
+template <typename T> pthread_once_t ThreadLocalStorage<T>::_tableKeyOnce;
 #  endif
 # else
-template <typename T> thread_local T * ThreadLocalStorage<T>::_threadLocalObject;
+template <typename T>       thread_local Hashtable<const void *, T *> ThreadLocalStorage<T>::_threadLocalObjects;
 # endif
 #endif
 

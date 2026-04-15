@@ -18,7 +18,7 @@ DEFINES += -DMUSCLE_AVOID_SIGNAL_HANDLING
 #DEFINES += -DMUSCLE_AVOID_LINUX_DETECT_NETWORK_HARDWARE_TYPES
 #DEFINES += -DMUSCLE_AVOID_CPLUSPLUS11
 #DEFINES += -DMUSCLE_AVOID_CPLUSPLUS11_THREADS
-#DEFINES += -DMUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
+DEFINES += -DMUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
 #DEFINES += -DMUSCLE_AVOID_CPLUSPLUS11_BITCHORD
 #DEFINES += -DMUSCLE_USE_PTHREADS
 #DEFINES += -DMUSCLE_COUNT_STRING_COPY_OPERATIONS
@@ -231,7 +231,7 @@ testudp : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o Pla
 testsocketmultiplexer : $(STDOBJS) Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o testsocketmultiplexer.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
-testpackettunnel : $(STDOBJS) testpackettunnel.o Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o ProxyIOGateway.o PacketTunnelIOGateway.o MiniPacketTunnelIOGateway.o PacketizedProxyDataIO.o MiscUtilityFunctions.o ByteBufferPacketDataIO.o ByteBufferDataIO.o ReadOnlyByteBufferDataIO.o
+testpackettunnel : $(STDOBJS) testpackettunnel.o Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o ProxyIOGateway.o PacketTunnelIOGateway.o MiniPacketTunnelIOGateway.o PacketizedProxyDataIO.o MiscUtilityFunctions.o ByteBufferPacketDataIO.o ByteBufferDataIO.o
 	$(CXX) $(LFLAGS) -o $@ $^ $(LIBS)
 
 testpacketio : $(STDOBJS) testpacketio.o Message.o AbstractMessageIOGateway.o MessageIOGateway.o String.o StackTrace.o SysLog.o PulseNode.o SetupSystem.o ByteBuffer.o ZLibCodec.o SetupSystem.o PacketizedProxyDataIO.o MiscUtilityFunctions.o ByteBufferPacketDataIO.o ByteBufferDataIO.o
