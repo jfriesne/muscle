@@ -242,7 +242,11 @@ public:
    status_t SeekTo(uint32 offset)
    {
       if (offset > _maxBytes) return B_BAD_ARGUMENT;
-      if (_byteBuffer) MRETURN_ON_ERROR(_byteBuffer->SetNumBytes(offset, true));
+      if (_byteBuffer)
+      {
+         MRETURN_ON_ERROR(_byteBuffer->SetNumBytes(offset, true));
+         _origWriteTo = _byteBuffer->GetBuffer();  // in case SetNumBytes() caused a buffer reallocation
+      }
 
       _writeTo   = (_byteBuffer ? _byteBuffer->GetBuffer() : _origWriteTo)+offset;
       _bytesLeft = (_maxBytes == MUSCLE_NO_LIMIT) ? MUSCLE_NO_LIMIT : (_maxBytes-offset);
@@ -262,7 +266,13 @@ public:
    status_t SeekRelative(int32 numBytes)
    {
       const uint32 nbw = GetNumBytesWritten();
-      return ((numBytes > 0)||(((uint32)(-((int64)numBytes))) <= nbw)) ? SeekTo(GetNumBytesWritten()+numBytes) : B_BAD_ARGUMENT;
+      if (numBytes > 0)
+      {
+         if (WillUnsignedAddOverflow(nbw, (uint32)numBytes)) return B_BAD_ARGUMENT;
+      }
+      else if (((uint32)(-((int64)numBytes))) > nbw) return B_BAD_ARGUMENT;  // don't allow seeks to before position 0
+
+      return SeekTo(nbw+numBytes);
    }
 
    /** Moves the pointer to the end of our buffer
