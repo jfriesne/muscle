@@ -393,7 +393,7 @@ public:
 
 #ifndef MUSCLE_AVOID_IPV6
    /** Convenience constructor.  Initializes this IPAddressAndPort based on the contents of the given sockaddr_in6 struct.
-     * @param sockAddr6 an IPv6 address expressed as a BSD Sockets API's sockaddr_in
+     * @param sockAddr6 an IPv6 address expressed as a BSD Sockets API's sockaddr_in6
      */
    IPAddressAndPort(const struct sockaddr_in6 & sockAddr6);
 #endif
@@ -404,7 +404,7 @@ public:
      * @param defaultPort what value we should use as a default port, if (s) doesn't specify one
      * @param allowDNSLookups true iff we want to parse hostnames (could be slow!); false if we only care about parsing explicit IP addresses
      */
-   IPAddressAndPort(const String & s, uint16 defaultPort, bool allowDNSLookups) {SetFromString(s, defaultPort, allowDNSLookups);}
+   IPAddressAndPort(const String & s, uint16 defaultPort, bool allowDNSLookups) : _port(0) {SetFromString(s, defaultPort, allowDNSLookups);}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    IPAddressAndPort(const IPAddressAndPort & rhs) : _ip(rhs._ip), _port(rhs._port) {/* empty */}
@@ -471,7 +471,7 @@ public:
    void Reset() {_ip = invalidIP; _port = 0;}
 
    /** Returns true iff both our IP address and port number are valid (ie non-zero) */
-   MUSCLE_NODISCARD bool IsValid() const {return ((_ip != invalidIP)&&(_port != 0));}
+   MUSCLE_NODISCARD bool IsValid() const {return ((_ip.IsValid())&&(_port != 0));}
 
    /** Sets this object's state from the passed-in character string.
      * IPv4 address may be of the form "192.168.1.102", or of the form "192.168.1.102:2960".
