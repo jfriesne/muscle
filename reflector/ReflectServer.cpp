@@ -116,11 +116,15 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
       const ConstSocketRef & sock = newSession->GetSessionReadSelectSocket();
       if (sock.GetFileDescriptor() >= 0)
       {
-         const IPAddress ip = GetPeerAddress(sock, true).GetIPAddress();
+         status_t gpaRet;
+         const IPAddress ip = GetPeerAddress(sock, true, &gpaRet).GetIPAddress();
          const String * remapString = _remapIPs.Get(ip);
          char ipbuf[64]; Inet_NtoA(ip, ipbuf);
 
          newSession->_hostName = newSession->GenerateHostName(ip, remapString ? *remapString : String((ip != invalidIP) ? ipbuf : DEFAULT_SESSION_HOSTNAME));
+
+         // Not usually a real error (since e.g. UDP sockets aren't expected to have a peer address), but sometimes it's worth seeing
+         if (gpaRet.IsError()) LogTime(MUSCLE_LOG_TRACE, "AddNewSession:  GetPeerAddress(%i) failed [%s], using session hostname [%s] for session [%s]\n", sock.GetFileDescriptor(), gpaRet(), newSession->_hostName(), newSession->GetSessionDescriptionString()());
       }
       else newSession->_hostName = newSession->GenerateHostName(invalidIP, DEFAULT_SESSION_HOSTNAME);
    }
