@@ -38,13 +38,21 @@ public:
    AtomicValue(const T & val) : _readIndex(0), _writeIndex(0) {_buffer[_readIndex] = val;}
 
    /** Returns a copy of the current state of our held value */
-   MUSCLE_NODISCARD T GetValue() const {return _buffer[_readIndex];}  // & ATOMIC_BUFFER_MASK isn't necessary here!
+   MUSCLE_NODISCARD T GetValue() const
+   {
+      MemoryBarrierIfNecessary();
+      return _buffer[_readIndex];  // & ATOMIC_BUFFER_MASK isn't necessary here!
+   }
 
    /** Returns a read-only reference to the current state of our held value.
      * @note that this reference may not remain valid for long, so if you call this
      *       method, be sure to read any data you need from the reference quickly.
      */
-   MUSCLE_NODISCARD const T & GetValueRef() const {return _buffer[_readIndex];}  // & ATOMIC_BUFFER_MASK isn't necessary here!
+   MUSCLE_NODISCARD const T & GetValueRef() const
+   {
+      MemoryBarrierIfNecessary();
+      return _buffer[_readIndex];  // & ATOMIC_BUFFER_MASK isn't necessary here!
+   }
 
    /** Returns a read/write reference to the current state of our held value.
      * @note that this reference may not remain valid for long, so if you call this
@@ -53,7 +61,11 @@ public:
      *       where you can in some way guarantee that no other thread will be interacting with this AtomicValue during
      *       the time period you're using the reference.
      */
-   MUSCLE_NODISCARD T & GetValueRefNonConst() {return _buffer[_readIndex];}  // & ATOMIC_BUFFER_MASK isn't necessary here!
+   MUSCLE_NODISCARD T & GetValueRefNonConst()
+   {
+      MemoryBarrierIfNecessary();
+      return _buffer[_readIndex];  // & ATOMIC_BUFFER_MASK isn't necessary here!
+   }
 
    /** Attempts to set our held value to a new value in a thread-safe fashion.
      * @param newValue the new value to set
@@ -61,6 +73,7 @@ public:
      */
    status_t SetValue(const T & newValue)
    {
+      MemoryBarrierIfNecessary();
       uint32 oldReadIndex = _readIndex;  // & ATOMIC_BUFFER_MASK isn't necessary here!
       while(1)
       {
@@ -93,7 +106,11 @@ public:
 
          if (casSucceeded) break;
 #if defined(MUSCLE_AVOID_CPLUSPLUS11)  // no need to restore under the C++11 API
-                      else oldReadIndex = _readIndex;  // so we can try again even if _readIndex got clobbered as part of the failed CAS attempt
+         else
+         {
+            MemoryBarrierIfNecessary();
+            oldReadIndex = _readIndex;  // so we can try again even if _readIndex got clobbered as part of the failed CAS attempt
+         }
 #endif
       }
       return B_NO_ERROR;
@@ -110,6 +127,21 @@ public:
 
 private:
    static const uint32 ATOMIC_BUFFER_MASK = ATOMIC_BUFFER_SIZE-1;
+
+   void MemoryBarrierIfNecessary() const
+   {
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11)
+      // no explicit memory barrier required; std::atomic<uint32> will handle it for us
+#elif defined(__APPLE__)
+      OSMemoryBarrier();
+#elif defined(WIN32)
+      MemoryBarrier();
+#elif defined(__GNUC__) && ((__GNUC__ > 4) || ((__GNUC__ >= 4) && (__GNUC_MINOR__ >= 1)))
+      __sync_synchronize();
+#else
+#     error "AtomicValue:  Unsupported platform, no memory barrier function known"
+#endif
+   }
 
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    std::atomic<uint32> _readIndex;   // cycles from 0 through (ATOMIC_BUFFER_SIZE-1)
