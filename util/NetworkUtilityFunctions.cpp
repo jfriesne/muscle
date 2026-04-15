@@ -2082,16 +2082,16 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
       }
       freeifaddrs(ifap);
 
-      if (inameToMAC.HasItems()) for (uint32 i=0; i<results.GetNumItems(); i++) results[i]._macAddress = inameToMAC.GetWithDefault(results[i].GetName());
+      if (inameToMAC.HasItems()) for (uint32 i=origResultsSize; i<results.GetNumItems(); i++) results[i]._macAddress = inameToMAC.GetWithDefault(results[i].GetName());
 
       // If we have any interfaces that still have a unknown-hardware-type, see if we can figure out what they are by
       // looking at other interfaces with the same name.  This helps e.g. with lo0 on Mac.
-      for (uint32 i=0; i<results.GetNumItems(); i++)
+      for (uint32 i=origResultsSize; i<results.GetNumItems(); i++)
       {
          NetworkInterfaceInfo & nii = results[i];
          if (nii.GetHardwareType() == NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN)
          {
-            for (uint32 j=0; j<results.GetNumItems(); j++)
+            for (uint32 j=origResultsSize; j<results.GetNumItems(); j++)
             {
                const NetworkInterfaceInfo & anotherNII = results[j];
                if ((i != j)&&(anotherNII.GetHardwareType() != NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN)&&(anotherNII.GetName() == nii.GetName()))
@@ -2238,7 +2238,7 @@ status_t GetNetworkInterfaceAddresses(Queue<IPAddress> & results, GNIIFlags incl
 {
    Queue<NetworkInterfaceInfo> infos;
    MRETURN_ON_ERROR(GetNetworkInterfaceInfos(infos, includeFlags));
-   MRETURN_ON_ERROR(results.EnsureSize(infos.GetNumItems()));
+   MRETURN_ON_ERROR(results.EnsureCanAdd(infos.GetNumItems()));
    for (uint32 i=0; i<infos.GetNumItems(); i++) (void) results.AddTail(infos[i].GetLocalAddress());  // guaranteed not to fail
    return B_NO_ERROR;
 }
