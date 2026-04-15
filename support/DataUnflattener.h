@@ -316,7 +316,12 @@ public:
    status_t SeekRelative(int32 numBytes)
    {
       const uint32 nbw = GetNumBytesRead();
-      return ((numBytes > 0)||(((uint32)(-(int64)numBytes)) <= nbw)) ? SeekTo(GetNumBytesRead()+numBytes) : FlagError(B_BAD_ARGUMENT);
+      if (numBytes > 0)
+      {
+         if (WillUnsignedAddOverflow(nbw, (uint32)numBytes)) return FlagError(B_BAD_ARGUMENT);
+         return SeekTo(nbw+numBytes);
+      }
+      else return (((uint32)(-(int64)numBytes)) <= nbw) ? SeekTo(nbw+numBytes) : FlagError(B_BAD_ARGUMENT);
    }
 
    /** Moves the read-pointer to the end of our buffer

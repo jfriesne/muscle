@@ -204,9 +204,10 @@ private:
 #endif
    }
 
+#if !defined(MUSCLE_USE_PTHREADS)
    Hashtable<const void *, ObjType *> & GetThreadLocalObjectsTable() const
    {
-#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS) && !defined(_MSC_VER) && defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD) && defined(__GNUC__)
+# if defined(MUSCLE_USE_CPLUSPLUS11_THREADS) && !defined(_MSC_VER) && defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD) && defined(__GNUC__)
       if (_threadLocalObjects == NULL)
       {
          (void) pthread_once(&_tableKeyOnce, InitTableKey);
@@ -214,10 +215,11 @@ private:
          (void) pthread_setspecific(_tableKey, _threadLocalObjects);
       }
       return *_threadLocalObjects;
-#else
+# else
       return _threadLocalObjects;
-#endif
+# endif
    }
+#endif
 };
 
 #if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)

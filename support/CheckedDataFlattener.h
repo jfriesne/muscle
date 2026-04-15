@@ -198,6 +198,8 @@ public:
      */
    template<typename T> status_t WritePrimitives(const T * vals, uint32 numVals)
    {
+      if (WillUnsignedMultiplyOverflow(numVals, (uint32)sizeof(T))) return FlagError(B_BAD_ARGUMENT);
+
       const uint32 numBytes = numVals*sizeof(T);
       MRETURN_ON_ERROR(SizeCheck(numBytes, true));
 
