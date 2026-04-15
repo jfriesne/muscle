@@ -60,6 +60,9 @@ key:  - new feature
    - Added a ReadOnlyByteBufferDataIO class so that ConstByteBuffers can be
      supplied as source material via DataIO::Read() without casting away const.
    - Added Tuple::IsItemLocatedInThisContainer().
+   - Added SetMaximumInputChunkSize(), GetMaximumOutputChunkSize(),
+     SetMaximumOutputChunkSize(), and GetMaximumOutputChunkSize() methods to
+     the ReflectServer class.
    o ByteBufferPacketDataIO now takes ConstByteBufferRefs for its read-buffers
      rather than ByteBufferRefs.
    o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that

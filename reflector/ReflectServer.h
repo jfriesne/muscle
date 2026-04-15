@@ -389,6 +389,28 @@ protected:
      */
    bool DisconnectSession(AbstractReflectSession * which);
 
+   /** Set the maximum number of bytes this ReflectServer will allow any of its sessions
+     * to receive inside a single call to DoInput().  Default value is (256*1024).
+     * @param maxChunkSize the new maximum output chunk size.
+     */
+   void SetMaximumInputChunkSize(uint32 maxChunkSize) {_maxInputChunkSize = maxChunkSize;}
+
+   /** Returns the maximum number of bytes this ReflectServer will allow any of its sessions
+     * to receive inside a single call to DoInput().  Default value is (256*1024).
+     */
+   uint32 GetMaximumInputChunkSize() const {return _maxInputChunkSize;}
+
+   /** Set the maximum number of bytes this ReflectServer will allow any of its sessions
+     * to send inside a single call to DoOutput().  Default value is (256*1024).
+     * @param maxChunkSize the new maximum output chunk size.
+     */
+   void SetMaximumOutputChunkSize(uint32 maxChunkSize) {_maxOutputChunkSize = maxChunkSize;}
+
+   /** Returns the maximum number of bytes this ReflectServer will allow any of its sessions
+     * to send inside a single call to DoOutput().  Default value is (256*1024).
+     */
+   uint32 GetMaximumOutputChunkSize() const {return _maxOutputChunkSize;}
+
 private:
    friend class AbstractReflectSession;
    void AddLameDuckSession(const AbstractReflectSessionRef & whoRef);
