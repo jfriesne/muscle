@@ -106,12 +106,6 @@ of your Makefile to alter muscle's behaviour:
    reason why anyone would need to build a node-tree deeper than that,
    and we don't want to allow stack-overflow attacks.
 
--DMUSCLE_USE_LIBRT
-   If specified, GetRunTime64() and Snooze64() will use librt's
-   high-resolution timing functions instead of the low-resolution
-   ones supplied by older operating systems.  Note that if you
-   specify this flag, you should link with librt as well (-lrt).
-
 -DMUSCLE_AVOID_MULTICAST_API
    Set this to omit the multicast API calls in NetworkUtilityFunctions.h.
    This might be useful to do if compiling on a platform where multicast

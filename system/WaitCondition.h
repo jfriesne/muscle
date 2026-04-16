@@ -128,8 +128,15 @@ private:
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
       // empty
 #elif defined(MUSCLE_USE_PTHREADS)
-      if ((pthread_mutex_init(&_conditionMutex,    NULL) != 0)
-       || (pthread_cond_init( &_conditionVariable, NULL) != 0)) MCRASH("WaitCondition::Setup():  Condition variable setup failed");
+      _clockID = CLOCK_REALTIME;  // conservative default for old OS's
+      pthread_condattr_t attr;
+# if defined(__EMSCRIPTEN__) || defined(__APPLE__) || defined(_POSIX_MONOTONIC_CLOCK)
+      if ((pthread_condattr_init(&attr) == 0)&&(pthread_condattr_setclock(&attr, CLOCK_MONOTONIC) == 0)) _clockID = CLOCK_MONOTONIC;  // preferred
+# endif
+      if ((pthread_mutex_init(&_conditionMutex, NULL) != 0)||(pthread_cond_init(&_conditionVariable, (_clockID!=CLOCK_REALTIME)?&attr:NULL) != 0))
+      {
+         MCRASH("WaitCondition::Setup():  Condition variable setup failed");
+      }
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       InitializeCriticalSection(  &_conditionMutex);
       InitializeConditionVariable(&_conditionVariable);
@@ -159,6 +166,7 @@ private:
 #elif defined(MUSCLE_USE_PTHREADS)
    mutable pthread_cond_t          _conditionVariable;
    mutable pthread_mutex_t         _conditionMutex;
+   clockid_t                       _clockID;
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
    mutable CONDITION_VARIABLE      _conditionVariable;
    mutable CRITICAL_SECTION        _conditionMutex;
@@ -224,6 +232,7 @@ private:
 #endif
       return ret;
    }
+
    status_t WaitUntilAux(uint64 wakeupTime, uint32 & retNotificationsCount) const
    {
       int64 timeDeltaMicros = (int64) (wakeupTime-GetRunTime64());  // how far in the future the wakeup-time is, in microseconds
@@ -240,17 +249,17 @@ private:
 #elif defined(MUSCLE_USE_PTHREADS)
       if (pthread_mutex_lock(&_conditionMutex) == 0)
       {
-         struct timespec realTimeClockNow;
-         if (clock_gettime(CLOCK_REALTIME, &realTimeClockNow) != 0) ret = B_ERRNO;
+         struct timespec now;
+         if (clock_gettime(_clockID, &now) != 0) ret = B_ERRNO;
          else
          {
-            const int64 realTimeClockWakeupTimeNanos = SecondsToNanos(realTimeClockNow.tv_sec) + (int64)realTimeClockNow.tv_nsec + MicrosToNanos(timeDeltaMicros);
-            struct timespec realTimeClockThen;
-            realTimeClockThen.tv_sec  = realTimeClockWakeupTimeNanos / SecondsToNanos(1);
-            realTimeClockThen.tv_nsec = realTimeClockWakeupTimeNanos % SecondsToNanos(1);
+            const int64 wakeupTimeNanos = SecondsToNanos(now.tv_sec) + (int64)now.tv_nsec + MicrosToNanos(timeDeltaMicros);
+            struct timespec then;
+            then.tv_sec  = wakeupTimeNanos / SecondsToNanos(1);
+            then.tv_nsec = wakeupTimeNanos % SecondsToNanos(1);
             while(_pendingNotificationsCount == 0)
             {
-               const int pret = pthread_cond_timedwait(&_conditionVariable, &_conditionMutex, &realTimeClockThen);
+               const int pret = pthread_cond_timedwait(&_conditionVariable, &_conditionMutex, &then);
                if (pret != 0) {ret = (pret == ETIMEDOUT) ? B_TIMED_OUT : B_ERRNUM(pret); break;}
             }
          }

@@ -9,7 +9,7 @@
 #include "util/TimeUnitConversionFunctions.h" // for MillisToMicros()
 
 #ifndef MUSCLE_DEBUG_TIMER_CLOCK
-# if defined(WIN32) || defined(__APPLE__) || (defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK))
+# if defined(WIN32) || defined(__APPLE__) || defined(_POSIX_MONOTONIC_CLOCK)
 #  define MUSCLE_DEBUG_TIMER_CLOCK GetRunTime64()       /**< Function call that DebugTimer should use to get the current time.  Defaults to GetRunTime64() except under OS's where GetRunTime64() has large granularity; for these platforms GetCurrentTime64() is used instead.  May be overridden at compile-time via -DMUSCLE_DEBUG_TIMER_CLOCK=SomeOtherFunc() */
 # else
 #  define MUSCLE_DEBUG_TIMER_CLOCK GetCurrentTime64()   /**< Function call that DebugTimer should use to get the current time.  Defaults to GetRunTime64() except under OS's where GetRunTime64() has large granularity; for these platforms GetCurrentTime64() is used instead.  May be overridden at compile-time via -DMUSCLE_DEBUG_TIMER_CLOCK=SomeOtherFunc() */

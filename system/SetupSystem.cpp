@@ -458,7 +458,7 @@ static uint64 _qpcTicksPerSecond = 0;
 # endif
 #elif defined(__APPLE__)
 static mach_timebase_info_data_t _machTimebase = {0,0};
-#elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK)
+#elif defined(_POSIX_MONOTONIC_CLOCK)
    // empty
 #else
 static Mutex _rtMutex;  // used for serializing access inside GetRunTime64Aux(), if necessary
@@ -475,7 +475,7 @@ static void InitClockFrequency()
 # endif
 #elif defined(__APPLE__)
    if ((mach_timebase_info(&_machTimebase) != KERN_SUCCESS)||(_machTimebase.denom <= 0)) MCRASH("mach_timebase_info() failed!");
-#elif defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK)
+#elif defined(_POSIX_MONOTONIC_CLOCK)
    // empty
 #else
    _posixTicksPerSecond = sysconf(_SC_CLK_TCK);
@@ -1195,7 +1195,7 @@ static uint64 GetRunTime64Aux()
          return ((cycles/MUSCLE_POWERPC_TIMEBASE_HZ)*MICROS_PER_SECOND)+(((cycles%MUSCLE_POWERPC_TIMEBASE_HZ)*(MICROS_PER_SECOND))/MUSCLE_POWERPC_TIMEBASE_HZ);
       }
    }
-#elif defined(__EMSCRIPTEN__) || (defined(MUSCLE_USE_LIBRT) && defined(_POSIX_MONOTONIC_CLOCK))
+#elif defined(__EMSCRIPTEN__) || defined(_POSIX_MONOTONIC_CLOCK)
 # if defined(MUSCLE_USE_CLOCK_MONOTONIC_RAW)
    const clockid_t clkid = CLOCK_MONOTONIC_RAW;
 # else
@@ -1252,7 +1252,7 @@ status_t SnoozeUntil(uint64 wakeupTime)
       const struct timespec ts = {(time_t) MicrosToSeconds(sleepForMicros), (long) MicrosToNanos(sleepForMicros%MICROS_PER_SECOND)};
       const int r = clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);  // DO NOT specify CLOCK_MONOTONIC_RAW here, it won't work!
       if ((r != 0)&&(r != EINTR)) return B_ERRNUM(r);  // yes, B_ERRNUM and not B_ERRNO
-#elif defined(MUSCLE_USE_LIBRT)
+#elif defined(_POSIX_MONOTONIC_CLOCK)
       const struct timespec ts = {(time_t) MicrosToSeconds(sleepForMicros), (long) MicrosToNanos(sleepForMicros%MICROS_PER_SECOND)};
       const int r = nanosleep(&ts, NULL);
       if ((r < 0)&&(PreviousOperationHadTransientFailure() == false)) return B_ERRNO;  // yes, B_ERRNO and no B_ERRNUM
@@ -2466,10 +2466,6 @@ Queue<String> GetBuildFlags()
 
 #ifdef MUSCLE_CATCH_SIGNALS_BY_DEFAULT
    (void) q.AddTail("MUSCLE_CATCH_SIGNALS_BY_DEFAULT");
-#endif
-
-#ifdef MUSCLE_USE_LIBRT
-   (void) q.AddTail("MUSCLE_USE_LIBRT");
 #endif
 
 #ifdef MUSCLE_AVOID_MULTICAST_API

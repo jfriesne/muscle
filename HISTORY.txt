@@ -65,6 +65,8 @@ key:  - new feature
      the ReflectServer class.
    - Added muscleUnclampedRintf() to MuscleSupport.h, and modified muscleRintf()
      to do clamping if necessary.
+   - Updated WaitCondtion::WaitUntil() to use CLOCK_MONOTONIC when possible.
+   o Retired MUSCLE_USE_LIBRT in favor of just checking for _POSIX_MONOTONIC_CLOCK.
    o ByteBufferPacketDataIO now takes ConstByteBufferRefs for its read-buffers
      rather than ByteBufferRefs.
    o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that
