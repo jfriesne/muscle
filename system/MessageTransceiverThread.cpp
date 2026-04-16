@@ -162,8 +162,8 @@ status_t MessageTransceiverThread :: SendAddNewSessionMessage(const AbstractRefl
    MessageRef msgRef(GetMessageFromPool(MTT_COMMAND_ADD_NEW_SESSION));
    MRETURN_ON_ERROR(msgRef);
 
-   if (hostIAP.IsValid()) {MRETURN_ON_ERROR(msgRef()->CAddFlat( MTT_NAME_IPADDRESSANDPORT, hostIAP));}
-                     else {MRETURN_ON_ERROR(msgRef()->CAddInt16(MTT_NAME_PORT,             hostIAP.GetPort()));}  // sometimes we need to send the port along with MTT_NAME_HOSTNAME instead
+   if (hostIAP.IsValid()) MRETURN_ON_ERROR(msgRef()->CAddFlat( MTT_NAME_IPADDRESSANDPORT, hostIAP));
+                     else MRETURN_ON_ERROR(msgRef()->CAddInt16(MTT_NAME_PORT,             hostIAP.GetPort()));  // sometimes we need to send the port along with MTT_NAME_HOSTNAME instead
 
    MRETURN_ON_ERROR(msgRef()->AddTag(     MTT_NAME_SESSION,            sessionRef));
    MRETURN_ON_ERROR(msgRef()->CAddString( MTT_NAME_HOSTNAME,           hostName));

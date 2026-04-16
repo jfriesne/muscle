@@ -57,14 +57,6 @@ public:
    template<typename T> static T Import(const void * readFrom) {T ret; Import(readFrom, ret); return ret;}
 };
 
-#if defined(MUSCLE_USE_BIG_ENDIAN_DATA_FOR_EVERYTHING)
-typedef    BigEndianConverter DefaultEndianConverter;  /**< MUSCLE uses little-endian encoding as its preferred endian-ness, but this can be changed by defining MUSCLE_USE_*_ENDIAN_DATA_FOR_EVERYTHING. */
-#elif defined(MUSCLE_USE_NATIVE_ENDIAN_DATA_FOR_EVERYTHING)
-typedef NativeEndianConverter DefaultEndianConverter;  /**< MUSCLE uses little-endian encoding as its preferred endian-ness, but this can be changed by defining MUSCLE_USE_*_ENDIAN_DATA_FOR_EVERYTHING. */
-#else
-typedef LittleEndianConverter DefaultEndianConverter;  /**< MUSCLE uses little-endian encoding as its preferred endian-ness, but this can be changed by defining MUSCLE_USE_*_ENDIAN_DATA_FOR_EVERYTHING. */
-#endif
-
 /** This class defines a standardized API for encoding POD data values to big-endian format for serialization, and vice-versa. */
 class BigEndianConverter MUSCLE_FINAL_CLASS
 {
@@ -166,6 +158,14 @@ public:
      */
    template<typename T> static T Import(const void * readFrom) {T ret; Import(readFrom, ret); return ret;}
 };
+
+#if defined(MUSCLE_USE_BIG_ENDIAN_DATA_FOR_EVERYTHING)
+typedef    BigEndianConverter DefaultEndianConverter;  /**< MUSCLE uses little-endian encoding as its preferred endian-ness, but this can be changed by defining MUSCLE_USE_*_ENDIAN_DATA_FOR_EVERYTHING. */
+#elif defined(MUSCLE_USE_NATIVE_ENDIAN_DATA_FOR_EVERYTHING)
+typedef NativeEndianConverter DefaultEndianConverter;  /**< MUSCLE uses little-endian encoding as its preferred endian-ness, but this can be changed by defining MUSCLE_USE_*_ENDIAN_DATA_FOR_EVERYTHING. */
+#else
+typedef LittleEndianConverter DefaultEndianConverter;  /**< MUSCLE uses little-endian encoding as its preferred endian-ness, but this can be changed by defining MUSCLE_USE_*_ENDIAN_DATA_FOR_EVERYTHING. */
+#endif
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
 

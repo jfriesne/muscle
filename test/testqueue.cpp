@@ -427,8 +427,8 @@ static status_t UnitTestQueue(bool isFromScript)
             {
                case 0:  case 1: MPRINT_ON_ERROR("AddTail",    qq.AddTail(counter++)); break;
                case 2:  case 3: MPRINT_ON_ERROR("AddHead",    qq.AddHead(counter++)); break;
-               case 4:  {const status_t r = qq.RemoveHead(); if (r != B_DATA_NOT_FOUND) {MPRINT_ON_ERROR("RemoveHead", r);} break;}
-               case 5:  {const status_t r = qq.RemoveTail(); if (r != B_DATA_NOT_FOUND) {MPRINT_ON_ERROR("RemoveTail", r);} break;}
+               case 4:  {const status_t r = qq.RemoveHead(); if (r != B_DATA_NOT_FOUND) MPRINT_ON_ERROR("RemoveHead", r); break;}
+               case 5:  {const status_t r = qq.RemoveTail(); if (r != B_DATA_NOT_FOUND) MPRINT_ON_ERROR("RemoveTail", r); break;}
             }
          }
 

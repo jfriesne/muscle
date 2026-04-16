@@ -2404,7 +2404,7 @@ status_t MessageField :: SingleSetValue(const void * data, uint32 /*size*/)
       case B_STRING_TYPE:  SetInlineItemAsString( data ? *static_cast<const String        *>(data) : String()); break;
       case B_MESSAGE_TYPE: // fall through!
       default:  // we don't allow setting NULL Refs as values
-         if (IsVoidPointerToNonNullRef<RefCountableRef>(data)) {MRETURN_ON_ERROR(SetInlineItemAsRefCountableRef(*static_cast<const RefCountableRef *>(data)));}
+         if (IsVoidPointerToNonNullRef<RefCountableRef>(data)) MRETURN_ON_ERROR(SetInlineItemAsRefCountableRef(*static_cast<const RefCountableRef *>(data)));
                                                           else return B_BAD_ARGUMENT;
    }
 
@@ -2830,7 +2830,7 @@ status_t MessageField :: EnsurePrivate()
             if ((rcRef())&&(rcRef.IsRefPrivate() == false))
             {
                const Message * msg = dynamic_cast<const Message *>(rcRef());
-               if (msg) {MRETURN_ON_ERROR(SetInlineItemAsRefCountableRef(GetMessageFromPool(*msg).GetRefCountableRef()));}
+               if (msg) MRETURN_ON_ERROR(SetInlineItemAsRefCountableRef(GetMessageFromPool(*msg).GetRefCountableRef()));
                else
                {
                   const FlatCountable * fc = dynamic_cast<const FlatCountable *>(rcRef());

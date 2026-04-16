@@ -63,8 +63,8 @@ static status_t AddDirectoryToTar(TarFileWriter & tarFileWriter, const String & 
          const String newEntryPath =  entryPath.WithAppendedWord(fn, "/").WithoutPrefix("./");
          const String newFilePath  = folderPath.WithAppendedWord(fn, "/");
          const FilePathInfo fpi(newFilePath());
-         if (fpi.IsDirectory()) {MRETURN_ON_ERROR(AddDirectoryToTar(tarFileWriter, newEntryPath, newFilePath,      currentTime));}
-                           else {MRETURN_ON_ERROR(     AddFileToTar(tarFileWriter, newEntryPath, newFilePath, fpi, currentTime));}
+         if (fpi.IsDirectory()) MRETURN_ON_ERROR(AddDirectoryToTar(tarFileWriter, newEntryPath, newFilePath,      currentTime));
+                           else MRETURN_ON_ERROR(     AddFileToTar(tarFileWriter, newEntryPath, newFilePath, fpi, currentTime));
       }
 
       dir++;

@@ -63,6 +63,8 @@ key:  - new feature
    - Added SetMaximumInputChunkSize(), GetMaximumOutputChunkSize(),
      SetMaximumOutputChunkSize(), and GetMaximumOutputChunkSize() methods to
      the ReflectServer class.
+   - Added muscleUnclampedRintf() to MuscleSupport.h, and modified muscleRintf()
+     to do clamping if necessary.
    o ByteBufferPacketDataIO now takes ConstByteBufferRefs for its read-buffers
      rather than ByteBufferRefs.
    o Rewrote Snooze64() to be a wrapper around SnoozeUntil() so that
@@ -292,6 +294,8 @@ key:  - new feature
    * Fixed the C++11 implementation of ThreadLocalStorage to correctly
      handle the presence of multiple ThreadLocalStorage objects of the
      same type.  (cc)
+   * Tweaked the MRETURN_ON_ERROR macro (and similar macros) so that it now
+     works as expected in an if/else clause without extra curly-braces.  (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

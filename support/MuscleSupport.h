@@ -46,6 +46,7 @@
 
 #include <assert.h>  /* for assert() */
 #include <ctype.h>   /* for isdigit(), etc */
+#include <limits.h>  /* for INT_MIN and INT_MAX */
 #include <string.h>  /* for memcpy() */
 #include <stdarg.h>
 #include <stdio.h>
@@ -271,32 +272,32 @@ using std::set_new_handler;
 #define MDECLARE_ANONYMOUS_STACK_OBJECT(objType, ...) objType MUSCLE_UNIQUE_NAME = objType(__VA_ARGS__)
 
 #ifdef MUSCLE_AVOID_ASSERTIONS
-# define MASSERT(x,msg) /**< assertion macro.  Unless -DMUSCLE_AVOID_ASSERTIONS is specified, this macro will crash the program (with the error message in its second argument) if its first argument evaluates to false. */
+# define MASSERT(x,msg) do {} while(0) /**< assertion macro.  Unless -DMUSCLE_AVOID_ASSERTIONS is specified, this macro will crash the program (with the error message in its second argument) if its first argument evaluates to false. */
 #else
-# define MASSERT(x,msg) {if(!(x)) MCRASH(msg)} /**< assertion macro.  Unless -DMUSCLE_AVOID_ASSERTIONS is specified, this macro will crash the program (with the error message in its second argument) if its first argument evaluates to false. */
+# define MASSERT(x,msg) do {if(!(x)) MCRASH(msg);} while(0) /**< assertion macro.  Unless -DMUSCLE_AVOID_ASSERTIONS is specified, this macro will crash the program (with the error message in its second argument) if its first argument evaluates to false. */
 #endif
 
 /** This macro crashes the process with the specified error message.
   * @param msg a text string to include in the critical error printed to the log just before we call Crash()
   */
-#define MCRASH(msg) {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); (void) muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); muscle::Crash(__FILE__, __LINE__);}
+#define MCRASH(msg) do {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); (void) muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); muscle::Crash(__FILE__, __LINE__);} while(0)
 
 /** This macro immediately and rudely exits the process (by calling ExitWithoutCleanup(retVal)) after logging the specified critical error message.
   * @param retVal the integer value to pass to ExitWithoutCleanup()
   * @param msg a text string to include in the critical error printed to the log just before we call ExitWithoutCleanup()
   */
-#define MEXIT(retVal, msg) {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); (void) muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);}
+#define MEXIT(retVal, msg) do {LogTime(muscle::MUSCLE_LOG_CRITICALERROR, "ASSERTION FAILED: (%s:%i) %s\n", __FILE__,__LINE__,msg); (void) muscle::LogStackTrace(muscle::MUSCLE_LOG_CRITICALERROR); ExitWithoutCleanup(retVal);} while(0)
 
 /** This macro logs an out-of-memory warning that includes the current filename and source-code line number.  WARN_OUT_OF_MEMORY() should be called whenever newnothrow or malloc() return NULL. */
 #define MWARN_OUT_OF_MEMORY muscle::WarnOutOfMemory(__FILE__, __LINE__)
 
 /** This macro logs an out-of-memory warning that includes the current filename and source-code line number, and then returns B_OUT_OF_MEMORY.  MRETURN_OUT_OF_MEMORY() may be called whenever newnothrow or malloc() return NULL inside a function that returns a status_t. */
-#define MRETURN_OUT_OF_MEMORY {muscle::WarnOutOfMemory(__FILE__, __LINE__); return B_OUT_OF_MEMORY;}
+#define MRETURN_OUT_OF_MEMORY do {muscle::WarnOutOfMemory(__FILE__, __LINE__); return B_OUT_OF_MEMORY;} while(0)
 
 /** This macro calls the specified status_t-returning function-call, and if it returns an error-value, it returns the error value.
   * @param cmd a command to call and test the return value of
   */
-#define MRETURN_ON_ERROR(cmd) {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) return the_return_value;}
+#define MRETURN_ON_ERROR(cmd) do {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) return the_return_value;} while(0)
 
 /** This macro calls the specified status_t-returning function-call, and if (cmd) returns an error-value, it returns tallyRef.WithSubsequentError(the_return_value).
   * On the other hand, if (cmd) succeeds, the number of bytes that (cmd) processed is added to (tallyRef)
@@ -304,64 +305,64 @@ using std::set_new_handler;
   * @param cmd a command to call and test the return value of
   */
 #define MTALLY_BYTES_OR_RETURN_ON_ERROR(tallyRef, cmd)              \
-{                                                                   \
+do {                                                                \
    const io_status_t tiorv = (cmd);                                 \
    if (tiorv.IsError()) return tallyRef.WithSubsequentError(tiorv); \
    tallyRef += tiorv;                                               \
-}
+} while(0)
 
 /** This macro is the same as MTALLY_BYTES_OR_RETURN_ON_ERROR except that if (cmd)'s byte-count is zero, this macro will break out of the local I/O loop.
   * @param tallyRef an io_status_t representing an I/O loop's current number-of-bytes-already-transferred.  On success, its byte-count will be increased by the number of bytes processed.
   * @param cmd a command to call and test the return value of
   */
 #define MTALLY_BYTES_OR_RETURN_ON_ERROR_OR_BREAK(tallyRef, cmd)               \
-{                                                                             \
+do {                                                                          \
    const io_status_t tiorv = (cmd);                                           \
    if (tiorv.IsError())           return tallyRef.WithSubsequentError(tiorv); \
    if (tiorv.GetByteCount() == 0) break;                                      \
    tallyRef += tiorv;                                                         \
-}
+} while(0)
 
 /** This macro invokes the MRETURN_OUT_OF_MEMORY macro if the argument is a NULL pointer.
   * @param ptr a pointer to call and test the return value of
   */
-#define MRETURN_OOM_ON_NULL(ptr) {if (ptr==NULL) MRETURN_OUT_OF_MEMORY;}
+#define MRETURN_OOM_ON_NULL(ptr) do {if (ptr==NULL) MRETURN_OUT_OF_MEMORY;} while(0)
 
 /** This macro calls the specified status_t-returning function-call, and if it returns an error-value, writes an error message to the log
   * @param commandDesc a text string to print to the log if the provided command returns an error code
   * @param cmd a command to call and test the return value of
   */
-#define MLOG_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) LogTime(MUSCLE_LOG_ERROR, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value());}
+#define MLOG_ON_ERROR(commandDesc, cmd) do {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) LogTime(MUSCLE_LOG_ERROR, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value());} while(0)
 
 /** This macro calls the specified status_t-returning function-call, and if it returns an error-value, writes an error message to the log and then returns the error-value
   * @param commandDesc a text string to print to the log if the provided command returns an error code
   * @param cmd a command to call and test the return value of
   */
-#define MLOG_AND_RETURN_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) {LogTime(MUSCLE_LOG_ERROR, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}}
+#define MLOG_AND_RETURN_ON_ERROR(commandDesc, cmd) do {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) {LogTime(MUSCLE_LOG_ERROR, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}} while(0)
 
 /** This macro calls the specified status_t-returning function-call, and if it returns an error-value, writes an error message to the log
   * @param commandDesc a text string to print to the log if the provided command returns an error code
   * @param cmd a command to call and test the return value of
   */
-#define MDEBUG_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) LogTime(MUSCLE_LOG_DEBUG, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value());}
+#define MDEBUG_ON_ERROR(commandDesc, cmd) do {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) LogTime(MUSCLE_LOG_DEBUG, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value());} while(0)
 
 /** This macro calls the specified status_t-returning function-call, and if it returns an error-value, writes an error message to the log and then returns the error-value
   * @param commandDesc a text string to print to the log if the provided command returns an error code
   * @param cmd a command to call and test the return value of
   */
-#define MDEBUG_AND_RETURN_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) {LogTime(MUSCLE_LOG_DEBUG, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}}
+#define MDEBUG_AND_RETURN_ON_ERROR(commandDesc, cmd) do {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) {LogTime(MUSCLE_LOG_DEBUG, "%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}} while(0)
 
 /** This macro calls the specified status_t-returning function-call, and if it returns an error-value, prints an error message to stdout
   * @param commandDesc a text string to print to stdout if the provided command returns an error code
   * @param cmd a command to call and test the return value of
   */
-#define MPRINT_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) printf("%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value());}
+#define MPRINT_ON_ERROR(commandDesc, cmd) do {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) printf("%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value());} while(0)
 
 /** This macro calls the specified status_t-returning function-call, and if it returns an error-value, prints an error message to stdout
   * @param commandDesc a text string to print to stdout if the provided command returns an error code
   * @param cmd a command to call and test the return value of
   */
-#define MPRINT_AND_RETURN_ON_ERROR(commandDesc, cmd) {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) {printf("%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}}
+#define MPRINT_AND_RETURN_ON_ERROR(commandDesc, cmd) do {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) {printf("%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}} while(0)
 
 /** This macro logs a warning message including the current filename and source-code line number.  It can be useful for debugging/execution-path-tracing in environments without a debugger. */
 #define MCHECKPOINT LogTime(muscle::MUSCLE_LOG_WARNING, "Reached checkpoint at %s:%i\n", __FILE__, __LINE__)
@@ -1230,10 +1231,22 @@ template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR bool muscleInRange
 template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleCompare(const T & arg1, const T & arg2) {return (arg2<arg1) ? 1 : ((arg1<arg2) ? -1 : 0);}
 
 /** Returns the absolute value of (arg) */
-template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleAbs(T arg) {return (arg<0)?((T)(-arg)):arg;}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleAbs(T arg)
+{
+   return (arg < 0) ?
+#ifdef MUSCLE_AVOID_CPLUSPLUS11
+         (T) (-arg)  // best we can do
+#else
+         (T) (-(typename std::make_unsigned<T>::type)(arg))  // avoid undefined behavior when (arg) is the smallest possible signed value
+#endif
+      : arg;
+}
 
-/** Rounds the given float to the nearest integer value. */
-MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleRintf(float f) {return (f>=0.0f) ? ((int)(f+0.5f)) : -((int)((-f)+0.5f));}
+/** Rounds the given float to the nearest integer value.  Values outside of the range [INT_MIN, INT_MAX] will not yield a well-defined result. */
+MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleUnclampedRintf(float f) {return (f>=0.0f) ? ((int)(f+0.5f)) : -((int)((-f)+0.5f));}
+
+/** Rounds the given float to the nearest integer value.  Values outside of the range [INT_MIN, INT_MAX] will be clamped to that range. */
+MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleRintf(float f) {return muscleUnclampedRintf(muscleClamp(f, (float)INT_MIN, (float)INT_MAX));}
 
 /** Returns -1 if the value is less than zero, +1 if it is greater than zero, or 0 otherwise. */
 template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleSgn(T arg) {return (arg<0)?-1:((arg>0)?1:0);}
@@ -1908,16 +1921,16 @@ MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL static inline const volatile uint32 *
   */
 #if defined(__GNUC__)
 #define TCHECKPOINT                                   \
-{                                                     \
+do {                                                  \
    const char * d = __FUNCTION__;                     \
    StoreTraceValue((d[0]<<24)|(d[1]<<16)|(__LINE__)); \
-}
+} while(0)
 #else
 #define TCHECKPOINT                                   \
-{                                                     \
+do {                                                  \
    const char * d = __FILE__;                         \
    StoreTraceValue((d[0]<<24)|(d[1]<<16)|(__LINE__)); \
-}
+} while(0)
 #endif
 
 #else
@@ -1933,7 +1946,7 @@ static inline void StoreTraceValue(uint32 v) {(void) v;}  /* named param is nece
   *
   * @note This function will be a no-op unless MUSCLE_TRACE_CHECKPOINTS is defined to be greater than zero.
   */
-#define TCHECKPOINT {/* empty */}
+#define TCHECKPOINT do {/* empty */} while(0)
 #endif   // end !MUSCLE_TRACE_CHECKPOINTS
 
 #ifdef __cplusplus

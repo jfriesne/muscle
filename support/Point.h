@@ -101,8 +101,8 @@ public:
    /** @copydoc DoxyTemplate::Unflatten(DataUnflattener &) */
    status_t Unflatten(DataUnflattener & unflat) {return unflat.ReadFloats(GetItemPointer(0), GetNumItemsInTuple());}
 
-   /** This is implemented so that if Rect is used as the key in a Hashtable, the Tuple HashCode() method will be
-     * selected by the AutoChooseHashFunctor template logic, instead of the PODHashFunctor.  (Unfortunately
+   /** This is implemented so that if Point is used as the key-type for a Hashtable, the Tuple HashCode() method will
+     * be selected by the AutoChooseHashFunctor template logic, instead of the PODHashFunctor.  (Unfortunately
      * AutoChooseHashFunctor doesn't check the superclasses when it looks for a HashCode method)
      */
    MUSCLE_NODISCARD uint32 HashCode() const {return Tuple<2,float>::HashCode();}

@@ -62,7 +62,7 @@ static status_t DoSearch(const String & path, Queue<String> & codes)
             const String subPath = path + GetFilePathSeparator() + nextName;
             const FilePathInfo fpi(subPath());
 
-                 if (fpi.IsDirectory()) {MRETURN_ON_ERROR(DoSearch(subPath, codes));}
+                 if (fpi.IsDirectory()) MRETURN_ON_ERROR(DoSearch(subPath, codes));
             else if (fpi.IsRegularFile())
             {
                const String iName = String(nextName).ToLowerCase();
