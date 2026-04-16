@@ -321,7 +321,9 @@ status_t Thread :: WaitForNextMessageAux(ThreadSpecificData & tsd, MessageRef & 
    else
    {
       MRETURN_ON_ERROR(tsd._waitCondition.GetObject().Wait(wakeupTime));
-      return WaitForNextMessageAux(tsd, ref, 0, optRetNumMessagesLeftInQueue);
+
+      // passing (wakeupTime) rather than 0 here because it's possible for Wait() to return and there still to be no Messages in the Queue.
+      return WaitForNextMessageAux(tsd, ref, wakeupTime, optRetNumMessagesLeftInQueue);
    }
 }
 
@@ -338,7 +340,18 @@ void Thread :: InternalThreadEntry()
    {
       MessageRef msgRef;
       uint32 numLeft = 0;
-      if ((WaitForNextMessageFromOwner(msgRef, MUSCLE_TIME_NEVER, &numLeft).IsError())||(MessageReceivedFromOwner(msgRef, numLeft).IsError())) break;
+
+      const status_t waitRet = WaitForNextMessageFromOwner(msgRef, MUSCLE_TIME_NEVER, &numLeft);
+      if (waitRet.IsError())
+      {
+         const bool isRecoverable = (waitRet == B_TIMED_OUT);
+
+         LogTime(MUSCLE_LOG_DEBUG, "Thread %p::InternalThreadEntry():  WaitForNextMessageFromOwner() returned [%s], %s.\n", this, waitRet(), isRecoverable ? "ignoring it" : "exiting");
+         if (isRecoverable) continue;
+                       else break;
+      }
+
+      if (MessageReceivedFromOwner(msgRef, numLeft).IsError()) break;  // owning thread wants us gone?
    }
 #endif
 }

@@ -296,6 +296,9 @@ key:  - new feature
      same type.  (cc)
    * Tweaked the MRETURN_ON_ERROR macro (and similar macros) so that it now
      works as expected in an if/else clause without extra curly-braces.  (cc)
+   * Fixed a bug that could cause Thread::WaitForNextMessageFromOwner() or
+     Thread::GetNextReplyFromInternalThread() to occasionally return B_TIMED_OUT
+     for no good reason.
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience
