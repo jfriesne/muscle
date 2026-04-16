@@ -61,7 +61,7 @@ extern bool _mainReflectServerCatchSignals;  // from SetupSystem.cpp
 
 static status_t ParseArgAux(const String & a, Message * optAddToMsg, Queue<String> * optAddToQueue, bool cs)
 {
-   const String argName = a.Trimmed();
+   String argName = a.Trimmed();
    if (optAddToQueue)
    {
       const int equalsAt = cs ? -1 : argName.IndexOf('=');
