@@ -162,7 +162,9 @@ key:  - new feature
      Queue correctly.  Fixed. (cc)
    * Queue::ReverseItemOrdering() now correctly handles calls where the
      (to) argument isn't greater than the (from) argument.  (cc)
-   * Fixed the dash-stripping behavior of ParseArgs().  (cc)
+   * ParseArgs() was documented to strip leading dashes from arguments,
+     but didn't actually do that.  Updated the documentation to describe
+     the actual behavior.  (cc)
    * ParseArgs() now correctly lower-cases arguments when adding them
      to a Queue.
    * Fixed a couple of memory leaks in PythonUtilityFunctions.cpp (cc)
