@@ -316,12 +316,12 @@ do {                                                                \
   * @param cmd a command to call and test the return value of
   */
 #define MTALLY_BYTES_OR_RETURN_ON_ERROR_OR_BREAK(tallyRef, cmd)               \
-do {                                                                          \
+{                                                                             \
    const io_status_t tiorv = (cmd);                                           \
    if (tiorv.IsError())           return tallyRef.WithSubsequentError(tiorv); \
    if (tiorv.GetByteCount() == 0) break;                                      \
    tallyRef += tiorv;                                                         \
-} while(0)
+} // can't do the do...while(0) trick here, because it breaks the break statement above, and then our I/O loops spin forever
 
 /** This macro invokes the MRETURN_OUT_OF_MEMORY macro if the argument is a NULL pointer.
   * @param ptr a pointer to call and test the return value of

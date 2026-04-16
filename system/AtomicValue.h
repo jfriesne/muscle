@@ -84,7 +84,7 @@ public:
 #elif defined(WIN32)
          const uint32 newWriteIndex = (InterlockedIncrement(&_writeIndex) & ATOMIC_BUFFER_MASK);
 #elif defined(__GNUC__) && ((__GNUC__ > 4) || ((__GNUC__ >= 4) && (__GNUC_MINOR__ >= 1)))
-         const uint32 newWriteIndex = ((__sync_fetch_and_add(&_writeIndex)+1) & ATOMIC_BUFFER_MASK);  // +1 because __sync_fetch_and_add() returns the pre-increment value
+         const uint32 newWriteIndex = ((__sync_fetch_and_add(&_writeIndex, 1)+1) & ATOMIC_BUFFER_MASK);  // +1 because __sync_fetch_and_add() returns the pre-increment value
 #else
 #        error "AtomicValue:  Unsupported platform, no atomic-increment function known"
 #endif
