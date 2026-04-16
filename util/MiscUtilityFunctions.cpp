@@ -64,7 +64,9 @@ static status_t ParseArgAux(const String & a, Message * optAddToMsg, Queue<Strin
    // Remove any initial dashes
    String argName = a.Trimmed();
    const char * s = argName();
+#ifdef TEMP_REMOVED_FOR_NOW_AS_IT_IS_CAUSING_PROBLEMS
    while(*s == '-') s++;
+#endif
    if (s > argName()) argName = argName.Substring(s-argName);
 
    if (optAddToQueue)
