@@ -18,7 +18,6 @@ namespace muscle {
   * Arguments should be of the form argname or argname=value.
   * The latter will be added as string fields; the former will
   * be treated the same, with the string equal to "".
-  * Any prefixed dashes will be stripped/ignored.
   * All argument names will be forced to lower case.
   * @param argc As passed in to main()
   * @param argv As passed in to main
@@ -32,7 +31,6 @@ status_t ParseArgs(int argc, char ** argv, Message & addTo, bool caseSensitive =
   * Arguments should be of the form argname or argname=value.
   * The latter will be added as string fields; the former will
   * be treated the same, with the string equal to "".
-  * Any prefixed dashes will be stripped/ignored.
   * All argument names will be forced to lower case.
   * @param args a list of String arguments
   * @param addTo The message to add the arguments to
@@ -123,7 +121,6 @@ status_t ParseArgs(const String & arg, Message & addTo, bool caseSensitive = fal
 String UnparseArgs(const Message & argMsg);
 
 /** Parses the given arguments into a Queue of Strings.
-  * Any prefixed dashes will be stripped/ignored.
   * All argument names will be forced to lower case.
   * @param argc As passed in to main()
   * @param argv As passed in to main
