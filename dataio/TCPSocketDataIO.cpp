@@ -24,20 +24,20 @@ void TCPSocketDataIO :: FlushOutput()
    if ((_naglesEnabled)&&(_sock()))
    {
 #if !defined(__APPLE__)  // Apple's implementation of TCP_NOPUSH doesn't flush pending data, and it occasionally causes 5-second delays :(
-      MLOG_ON_ERROR("FlushOutput::Cork(false)", SetSocketCorkAlgorithmEnabled(_sock, false));
+      (void) SetSocketCorkAlgorithmEnabled(_sock, false);
 #endif
 
       // cork doesn't always transmit the data right away if I don't also toggle Nagle.  --jaf
-      MLOG_ON_ERROR("FlushOutput::Nagle(false)", SetSocketNaglesAlgorithmEnabled(_sock, false));
+      (void) SetSocketNaglesAlgorithmEnabled(_sock, false);
 
 #if !defined(__linux__)
       (void) SendData(_sock, NULL, 0, _blocking);  // Force immediate buffer flush (not necessary under Linux)
 #endif
 
-      MLOG_ON_ERROR("FlushOutput::Nagle(false)", SetSocketNaglesAlgorithmEnabled(_sock, true));
+      (void) SetSocketNaglesAlgorithmEnabled(_sock, true);
 
 #if !defined(__APPLE__)  // Apple's implementation of TCP_NOPUSH doesn't flush pending data, and it occasionally causes 5-second delays :(
-      MLOG_ON_ERROR("FlushOutput::Cork(true)", SetSocketCorkAlgorithmEnabled(_sock, true));
+      (void) SetSocketCorkAlgorithmEnabled(_sock, true);
 #endif
    }
 }
