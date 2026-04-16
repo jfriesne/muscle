@@ -1231,16 +1231,7 @@ template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR bool muscleInRange
 template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleCompare(const T & arg1, const T & arg2) {return (arg2<arg1) ? 1 : ((arg1<arg2) ? -1 : 0);}
 
 /** Returns the absolute value of (arg) */
-template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleAbs(T arg)
-{
-   return (arg < 0) ?
-#ifdef MUSCLE_AVOID_CPLUSPLUS11
-         (T) (-arg)  // best we can do
-#else
-         (T) (-(typename std::make_unsigned<T>::type)(arg))  // avoid undefined behavior when (arg) is the smallest possible signed value
-#endif
-      : arg;
-}
+template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleAbs(T arg) {return (arg<0)?((T)(-arg)):arg;}
 
 /** Rounds the given float to the nearest integer value.  Values outside of the range [INT_MIN, INT_MAX] will not yield a well-defined result. */
 MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleUnclampedRintf(float f) {return (f>=0.0f) ? ((int)(f+0.5f)) : -((int)((-f)+0.5f));}
