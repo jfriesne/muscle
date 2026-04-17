@@ -10,7 +10,7 @@
 #include "dataio/RS232DataIO.h"
 #include "dataio/SimulatedMulticastDataIO.h"
 #include "dataio/UDPSocketDataIO.h"
-#include "dataio/XorProxyDataIO.h"  // this is here solely so that if any errors creep into it, it will break the build
+#include "dataio/FlipBitsProxyDataIO.h"  // this is here solely so that if any errors creep into it, it will break the build
 #include "iogateway/PlainTextMessageIOGateway.h"
 #include "system/SetupSystem.h"
 #include "system/SystemInfo.h"  // for GetFilePathSeparator()

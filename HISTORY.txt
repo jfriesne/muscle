@@ -135,6 +135,8 @@ key:  - new feature
    o Added ByteBufferRefAndIPAddressAndPort and ConstByteBufferRefAndIPAddressAndPort
      classes, and changed the ByteBufferPacketDataIO and PacketTunnelIOGateway classes
      to use them instead of Hashtable<ByteBufferRef, IPAddressAndPort>.
+   o Renamed XorProxyDataIO to FlipBitsProxyDataIO, for better accuracy.
+   * Added ReadFrom() and WriteTo() methods to XorProxyDataIO, for consistency.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
    * ByteBufferDataIO constructor now offers an option for Read() to

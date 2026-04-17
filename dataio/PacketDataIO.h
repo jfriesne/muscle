@@ -48,7 +48,7 @@ public:
    virtual void SetPacketSendDestination(const IPAddressAndPort & iap) = 0;
 
    /** Default implementation of PacketDataIO::Read()
-    *  which just calls ReadFrom(buffer, size, GetSourceOfLastReadPacket()).
+    *  which just calls ReadFrom(buffer, size, GetWritableSourceOfLastReadPacket()).
     *  @param buffer Buffer to write the bytes into
     *  @param size Number of bytes in the buffer.
     *  @return Number of bytes read, or an error code on error.
@@ -71,7 +71,6 @@ public:
 
    /** Tries to read the data from an incoming packet into (buffer).  Returns the
     *  actual number of bytes placed, or an error code if there was an error.
-    *  Default implementation calls Read(), and then calls GetSourceOfLastReadPacket()
     *  to fill out the (retPacketSource argument).
     *  @param buffer Buffer to write the bytes into
     *  @param size Number of bytes in the buffer.
