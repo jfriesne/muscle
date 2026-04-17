@@ -78,12 +78,21 @@ protected:
 template<typename T> MUSCLE_NODISCARD T * CloneObject(const T & item)
 {
    const Cloneable * c = dynamic_cast<const Cloneable *>(&item);
-   if (c) return dynamic_cast<T *>(c->Clone());  // using dynamic_cast rather than static_cast so virtual inheritance can be supported
-   else
+   if (c)
    {
-      printf("muscle::CloneObject:  Can't clone an object of type [%s] without C++11 support, since it doesn't derive from muscle::Cloneable!\n", typeid(item).name());
-      return NULL;
+      Cloneable * optClone = c->Clone();
+
+      T * ret = dynamic_cast<T *>(optClone);  // using dynamic_cast rather than static_cast so virtual inheritance can be supported
+      if (ret) return ret;
+      else
+      {
+         printf("muscle::CloneObject:  Cloned object wasn't of the correct type [%s], dropping it!\n", typeid(T).name());
+         delete optClone;
+      }
    }
+   else printf("muscle::CloneObject:  Can't clone an object of type [%s] without C++11 support, since it doesn't derive from muscle::Cloneable!\n", typeid(item).name());
+
+   return NULL;
 }
 
 #else

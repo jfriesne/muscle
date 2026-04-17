@@ -2393,7 +2393,7 @@ void PrintCountedObjectInfo(const OutputPrinter & p)
          const uint64 v        = iter.GetValue();
          const uint32 objSize  = ((v>>32) & 0xFFFFFFFF);
          const uint32 objCount = ((v>>00) & 0xFFFFFFFF);
-         p.printf("   %6" UINT32_FORMAT_SPEC_NOPERCENT " %s (" UINT32_FORMAT_SPEC " bytes/object, %ikB used))\n", objCount, iter.GetKey(), objSize, (int)((512+(((uint64)objSize)*((uint64)objCount)))/1024));
+         p.printf("   %6" UINT32_FORMAT_SPEC_NOPERCENT " %s (" UINT32_FORMAT_SPEC " bytes/object, %ikB used)\n", objCount, iter.GetKey(), objSize, (int)((512+(((uint64)objSize)*((uint64)objCount)))/1024));
       }
    }
    else p.printf("PrintCountedObjectInfo:  GetCountedObjectInfo() failed!\n");
