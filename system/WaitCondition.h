@@ -129,14 +129,17 @@ private:
       // empty
 #elif defined(MUSCLE_USE_PTHREADS)
       _clockID = CLOCK_REALTIME;  // conservative default for old OS's
+      bool attrInitialized = false;
       pthread_condattr_t attr;
-# if defined(__EMSCRIPTEN__) || defined(__APPLE__) || defined(_POSIX_MONOTONIC_CLOCK)
-      if ((pthread_condattr_init(&attr) == 0)&&(pthread_condattr_setclock(&attr, CLOCK_MONOTONIC) == 0)) _clockID = CLOCK_MONOTONIC;  // preferred
-# endif
-      if ((pthread_mutex_init(&_conditionMutex, NULL) != 0)||(pthread_cond_init(&_conditionVariable, (_clockID!=CLOCK_REALTIME)?&attr:NULL) != 0))
+# if defined(__EMSCRIPTEN__) || (defined(_POSIX_MONOTONIC_CLOCK) && !defined(__APPLE__))  // MacOS doesn't have pthread_condattr_setclock() for some reason
+      if (pthread_condattr_init(&attr) == 0)
       {
-         MCRASH("WaitCondition::Setup():  Condition variable setup failed");
+         attrInitialized = true;
+         if (pthread_condattr_setclock(&attr, CLOCK_MONOTONIC) == 0) _clockID = CLOCK_MONOTONIC;  // preferred
       }
+# endif
+      if ((pthread_mutex_init(&_conditionMutex, NULL) != 0)||(pthread_cond_init(&_conditionVariable, (_clockID!=CLOCK_REALTIME)?&attr:NULL) != 0)) MCRASH("WaitCondition::Setup():  Condition variable setup failed");
+      if (attrInitialized) pthread_condattr_destroy(&attr);
 #elif defined(MUSCLE_PREFER_WIN32_OVER_QT)
       InitializeCriticalSection(  &_conditionMutex);
       InitializeConditionVariable(&_conditionVariable);
