@@ -1,7 +1,7 @@
 #include <string.h>
 #include "lang/c/micromessage/MicroMessage.h"
 
-#ifdef cplusplus
+#ifdef __cplusplus
 extern "C" {
 #else
 // Generate a compile-time error if MuscleSupport.h didn't get the typedefs right
@@ -12,10 +12,8 @@ char uint16_is_2_bytes_assertion[(sizeof(uint16) == 2) ? 1 : -1];
 char  int32_is_4_bytes_assertion[(sizeof( int32) == 4) ? 1 : -1];
 char uint32_is_4_bytes_assertion[(sizeof(uint32) == 4) ? 1 : -1];
 char  float_is_4_bytes_assertion[(sizeof(float)  == 4) ? 1 : -1];
-char  float_is_4_bytes_assertion[(sizeof(float)  == 4) ? 1 : -1];
 char  int64_is_8_bytes_assertion[(sizeof( int64) == 8) ? 1 : -1];
 char uint64_is_8_bytes_assertion[(sizeof(uint64) == 8) ? 1 : -1];
-char double_is_8_bytes_assertion[(sizeof(double) == 8) ? 1 : -1];
 char double_is_8_bytes_assertion[(sizeof(double) == 8) ? 1 : -1];
 #endif
 
@@ -158,11 +156,14 @@ c_status_t UMInitializeWithExistingData(UMessage * msg, const uint8 * buf, uint3
    msg->_parentMsg       = NULL;
    msg->_sizeField       = NULL;
    msg->_readFieldCache  = NULL;
-   if ((numBytesInBuf >= MESSAGE_HEADER_SIZE)&&(UMReadInt32AtOffset(msg, 0) == CURRENT_PROTOCOL_VERSION))
+
+   if (numBytesInBuf >= MESSAGE_HEADER_SIZE)
    {
-      return CB_NO_ERROR;
+      const uint32 what = UMReadInt32AtOffset(msg, 0);
+      if ((what >= OLDEST_SUPPORTED_PROTOCOL_VERSION)&&(what <= CURRENT_PROTOCOL_VERSION)) return CB_NO_ERROR;
    }
-   else return CB_ERROR;
+
+   return CB_ERROR;
 }
 
 void UMInitializeToInvalid(UMessage * msg)
@@ -177,8 +178,20 @@ void UMInitializeToInvalid(UMessage * msg)
    msg->_readFieldCache  = NULL;
 }
 
-uint32 UMGetWhatCode(const UMessage * msg)                  {return UMReadInt32AtOffset( msg, 1*sizeof(uint32));}
-c_status_t UMSetWhatCode(    UMessage * msg, uint32 whatCode) {return UMWriteInt32AtOffset(msg, 1*sizeof(uint32), whatCode);}
+uint32 UMGetWhatCode(const UMessage * msg)
+{
+   return UMReadInt32AtOffset( msg, 1*sizeof(uint32));
+}
+
+c_status_t UMSetWhatCode(    UMessage * msg, uint32 whatCode)
+{
+   if (msg->_isReadOnly)
+   {
+      printf("MicroMessage Error:  Can't add set what-code to [" UINT32_FORMAT_SPEC "], this MicroMessage is read-only!\n", whatCode);
+      return CB_ERROR;
+   }
+   return UMWriteInt32AtOffset(msg, 1*sizeof(uint32), whatCode);
+}
 
 /* Per-field headers are laid out like this: */
 /* 1. Field name length (4 bytes)            */
@@ -231,7 +244,7 @@ static uint8 * GetFieldByNameAux(const UMessage * msg, const char * fieldName, u
    while(IsFieldPointerValid(msg, ptr))
    {
       void * ftptr = GetFieldTypePointer(ptr);
-      if (((desiredTypeCode == B_ANY_TYPE)||(desiredTypeCode == GetFieldType(ftptr)))&&(GetFieldNameLength(ptr) == fieldNameLength)&&(strcmp(GetFieldName(ptr), fieldName) == 0)) return ptr;
+      if (((desiredTypeCode == B_ANY_TYPE)||(desiredTypeCode == GetFieldType(ftptr)))&&(GetFieldNameLength(ptr) == fieldNameLength)&&(strncmp(GetFieldName(ptr), fieldName, fieldNameLength) == 0)) return ptr;
       else
       {
          ptr = GetFieldData(ftptr)+GetFieldDataLength(ftptr);
@@ -270,7 +283,7 @@ static uint8 * GetOrAddFieldDataPointer(UMessage * msg, const char * fieldName, 
       /** If we got here, the current field name is different from the previous one.  Optionally check to make sure such a field name doesn't already exist */
       if ((_enforceFieldNameUniqueness)&&(GetFieldByNameAux(msg, fieldName, newFieldNameLength, B_ANY_TYPE) != NULL))
       {
-         printf("MicroMessage Error:  Attempt to a second field [%s] to UMessage %p, when a field with that name already exists.  This isn't supported!\n", fieldName, msg);
+         printf("MicroMessage Error:  Attempt to add a second field [%s] to UMessage %p, when a field with that name already exists.  This isn't supported!\n", fieldName, msg);
          return NULL;
       }
    }
@@ -478,7 +491,7 @@ UMessage UMInlineAddMessage(UMessage * parentMsg, const char * fieldName, uint32
    uint8 * dataPtr = GetOrAddFieldDataPointer(parentMsg, fieldName, B_MESSAGE_TYPE, numDataBytes, NULL, 0);
    if (dataPtr == NULL)
    {
-      ret._isReadOnly = true;  /* mark it as unusable for adding data to */
+      ret._isReadOnly = UTrue;  /* mark it as unusable for adding data to */
       return ret;
    }
 
@@ -503,7 +516,7 @@ void UMIteratorInitialize(UMessageFieldNameIterator * iter, const UMessage * msg
    if (msg->_numValidBytes > MESSAGE_HEADER_SIZE)
    {
       iter->_currentField = msg->_buffer+MESSAGE_HEADER_SIZE;
-      if (UMIteratorCurrentFieldMatches(iter) == false) UMIteratorAdvance(iter);
+      if (UMIteratorCurrentFieldMatches(iter) == UFalse) UMIteratorAdvance(iter);
    }
    else iter->_currentField = NULL;
 }
@@ -516,7 +529,7 @@ static uint32 GetNumItemsInField(const UMessage * msg, void * ftptr)
    {
       case B_BOOL_TYPE:    return numBytes;
       case B_DOUBLE_TYPE:  return numBytes/sizeof(uint64);  // uint64 because we're holding it in externalized format
-      case B_FLOAT_TYPE:   return numBytes/sizeof(uint32);  // uint64 because we're holding it in externalized format
+      case B_FLOAT_TYPE:   return numBytes/sizeof(uint32);  // uint32 because we're holding it in externalized format
       case B_INT64_TYPE:   return numBytes/sizeof(int64);
       case B_INT32_TYPE:   return numBytes/sizeof(int32);
       case B_INT16_TYPE:   return numBytes/sizeof(int16);
@@ -650,13 +663,13 @@ static void PrintUMessageFieldToStream(const UMessage * msg, const char * fieldN
       DoIndent(indent); fprintf(file, "  %i. ", i);
       switch(typeCode)
       {
-         case B_BOOL_TYPE:    fprintf(file, "%i\n",                UMGetBool(  msg, fieldName, i)); break;
-         case B_DOUBLE_TYPE:  fprintf(file, "%f\n",                UMGetDouble(msg, fieldName, i)); break;
-         case B_FLOAT_TYPE:   fprintf(file, "%f\n",                UMGetFloat( msg, fieldName, i)); break;
+         case B_BOOL_TYPE:    fprintf(file, "%i\n",                 UMGetBool(  msg, fieldName, i)); break;
+         case B_DOUBLE_TYPE:  fprintf(file, "%f\n",                 UMGetDouble(msg, fieldName, i)); break;
+         case B_FLOAT_TYPE:   fprintf(file, "%f\n",                 UMGetFloat( msg, fieldName, i)); break;
          case B_INT64_TYPE:   fprintf(file, INT64_FORMAT_SPEC "\n", UMGetInt64( msg, fieldName, i)); break;
          case B_INT32_TYPE:   fprintf(file, INT32_FORMAT_SPEC "\n", UMGetInt32( msg, fieldName, i)); break;
-         case B_INT16_TYPE:   fprintf(file, "%i\n",                UMGetInt16( msg, fieldName, i)); break;
-         case B_INT8_TYPE:    fprintf(file, "%i\n",                UMGetInt8(  msg, fieldName, i)); break;
+         case B_INT16_TYPE:   fprintf(file, "%i\n",                 UMGetInt16( msg, fieldName, i)); break;
+         case B_INT8_TYPE:    fprintf(file, "%i\n",                 UMGetInt8(  msg, fieldName, i)); break;
 
          case B_POINT_TYPE:
          {
@@ -902,7 +915,12 @@ const char * UMGetString(const UMessage * msg, const char * fieldName, uint32 id
       pointerToString += UMReadInt32(pointerToString-sizeof(uint32))+sizeof(uint32);  /* move past the string and the next string's string-length-field */
       idx--;
    }
-   return (const char *) pointerToString;
+
+   if (pointerToString >= afterEndOfField) return NULL;
+
+   UBool foundNULByte = UFalse;
+   for (const uint8 * p = pointerToString; p<afterEndOfField; p++) {if (*p == '\0') {foundNULByte = UTrue; break;}}
+   return (foundNULByte == UTrue) ? (const char *) pointerToString : NULL;
 }
 
 c_status_t UMFindData(const UMessage * msg, const char * fieldName, uint32 dataType, uint32 idx, const void ** retDataBytes, uint32 * retNumBytes)
@@ -917,11 +935,13 @@ c_status_t UMFindData(const UMessage * msg, const char * fieldName, uint32 dataT
    const uint8 * pointerToBlob = ((uint8 *)ftptr)+(4*sizeof(uint32));  /* skip past the field-type, field-size, num-items, and first-blob-length fields */
    while(idx > 0)
    {
-      uint32 blobSize = UMReadInt32(pointerToBlob-sizeof(uint32));  /* move past the blob and the next blob's string-length-field */
+      const uint32 blobSize = UMReadInt32(pointerToBlob-sizeof(uint32));  /* move past the blob and the next blob's string-length-field */
       if ((blobSize+sizeof(uint32)) > (uint32)(afterEndOfField-pointerToBlob)) return CB_ERROR;  // paranoia
       pointerToBlob += blobSize+sizeof(uint32);  /* move past the blob and the next blob's string-length-field */
       idx--;
    }
+   if (pointerToBlob >= afterEndOfField) return CB_ERROR;
+
    *retDataBytes = pointerToBlob;
    *retNumBytes  = UMReadInt32(pointerToBlob-sizeof(uint32));
    return CB_NO_ERROR;
@@ -1023,6 +1043,6 @@ URect UMGetRectFromArray(URectArrayHandle handle, uint32 idx)
    }
 }
 
-#ifdef cplusplus
+#ifdef __cplusplus
 };
 #endif

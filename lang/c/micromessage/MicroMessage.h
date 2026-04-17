@@ -135,7 +135,6 @@ void UMInitializeToInvalid(UMessage * msg);
   */
 UBool UMIsMessageReadOnly(const UMessage * msg);
 
-
 /**
   * @param msg The UMessage to query.
   * @returns UTrue iff (msg) is a valid UMessage, or UFalse if it is not.
@@ -469,7 +468,7 @@ c_status_t UMFindDouble(const UMessage * msg, const char * fieldName, uint32 idx
   * @param fieldName The field name to look inside.
   * @param idx The index of the double-precision floating point to look for (eg 0 is the first in the field's array, 1 is the second, and so on)
   */
-static inline double UMGetDouble(const UMessage * msg, const char * fieldName, uint32 idx) {double r; return (UMFindDouble(msg, fieldName, idx, &r)==CB_NO_ERROR)?r:0.0f;}
+static inline double UMGetDouble(const UMessage * msg, const char * fieldName, uint32 idx) {double r; return (UMFindDouble(msg, fieldName, idx, &r)==CB_NO_ERROR)?r:0.0;}
 
 /** Queries the UMessage for a particular UPoint value.
   * @param msg The UMessage to query.

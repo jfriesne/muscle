@@ -36,7 +36,7 @@ typedef struct _UMessageGateway {
 
 /** Initializes the specified UMessageGateway struct to point to the specified memory buffers.
   * @param gateway the UMessageGateway to initialize.
-  * @param inputBuffer An array of bytes to use for receiving incoming UMessage data.  This buffer should be at least 8 bytes larger than the
+  * @param inputBuffer An array of bytes to use for receiving incoming UMessage data.  This buffer should be at least as large as the
   *                    largest UMessage you expect to receive -- if a UMessage is received that is too large, the stream will be broken.
   *                    This array needs to remain valid and accessible for the lifetime of the UMessageGateway.
   * @param numInputBufferBytes The number of bytes pointed to by (inputBuffer).

@@ -137,12 +137,15 @@ int32 UGDoInput(UMessageGateway * gw, uint32 maxBytes, UGReceiveFunc recvFunc, v
       int32 bytesReceived;
       uint32 bytesToRecv = (gw->_numInputBytesToRead-gw->_numValidInputBytes);
       if (bytesToRecv > maxBytes) bytesToRecv = maxBytes;
+      if (bytesToRecv == 0) break;
 
       bytesReceived = recvFunc(gw->_inputBuffer+gw->_numValidInputBytes, bytesToRecv, arg);
       if (bytesReceived < 0) return -1;  /* error */
       else
       {
          totalRecvd += bytesReceived;
+         maxBytes   -= bytesReceived;
+
          gw->_numValidInputBytes += bytesReceived;
          if (gw->_numValidInputBytes == gw->_numInputBytesToRead)
          {
