@@ -305,6 +305,8 @@ key:  - new feature
    * Fixed a bug that could cause Thread::WaitForNextMessageFromOwner() or
      Thread::GetNextReplyFromInternalThread() to occasionally return B_TIMED_OUT
      for no good reason.
+   * Parsing for the "exists" keyword was broken in
+     CreateQueryFilterFromExpression().  Fixed.  (cc).
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

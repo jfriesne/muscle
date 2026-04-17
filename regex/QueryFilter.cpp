@@ -1122,74 +1122,74 @@ static QueryFilterRef GetStringQueryFilter(const LexerToken & infixOpTok, const 
    return sqf;
 }
 
-ConstQueryFilterRef DefaultSubexpressionFactory :: CreateSubexpression(const LexerToken & fieldNameTok, uint32 valueIndexInField, const LexerToken & infixOpTok, const LexerToken & valTok, uint32 valueType, const LexerToken & optDefaultValue, bool isCaseSensitive) const
+ConstQueryFilterRef DefaultSubexpressionFactory :: CreateSubexpression(const LexerToken & fieldNameTok, uint32 valueIndexInField, const LexerToken & opTok, const LexerToken & valTok, uint32 valueType, const LexerToken & optDefaultValue, bool isCaseSensitive) const
 {
    ConstQueryFilterRef ret;
 
-   switch(fieldNameTok.GetToken())
+   if (opTok.GetToken() == LTOKEN_EXISTS) ret.SetRef(new ValueExistsQueryFilter(fieldNameTok.GetValueString(), valueType, valueIndexInField));
+   else
    {
-      case LTOKEN_EXISTS:
-         ret.SetRef(new ValueExistsQueryFilter(fieldNameTok.GetValueString(), valueType, valueIndexInField));
-      break;
-
-      case LTOKEN_WHAT:
+      switch(fieldNameTok.GetToken())
       {
-         if (valueType != B_INT32_TYPE) return B_ERROR("'what' keyword requires a value of type int32");
-
-         const uint32 whatVal = (uint32) atol(valTok.GetValueString()());
-
-         bool impossible = false;
-         uint32 minWhat = 0, maxWhat = MUSCLE_NO_LIMIT;
-         switch(infixOpTok.GetToken())
+         case LTOKEN_WHAT:
          {
-            case LTOKEN_NEQ: // fall through
-            case LTOKEN_EQ:  minWhat = maxWhat = whatVal; break;
+            if (valueType != B_INT32_TYPE) return B_ERROR("'what' keyword requires a value of type int32");
 
-            case LTOKEN_LT:
-               if (whatVal == 0) impossible = true;   // there are no what-codes less than zero!
-                            else    maxWhat = (whatVal-1);
-            break;
+            const uint32 whatVal = (uint32) Atoull(valTok.GetValueString()());
 
-            case LTOKEN_GT:
-               if (whatVal == MUSCLE_NO_LIMIT) impossible = true;   // there are no what-codes greater than MUSCLE_NO_LIMIT!
-                                          else    minWhat = (whatVal+1);
-            break;
+            bool impossible = false;
+            uint32 minWhat = 0, maxWhat = MUSCLE_NO_LIMIT;
+            switch(opTok.GetToken())
+            {
+               case LTOKEN_NEQ: // fall through
+               case LTOKEN_EQ:  minWhat = maxWhat = whatVal; break;
 
-            case LTOKEN_LEQ: maxWhat = whatVal;           break;
-            case LTOKEN_GEQ: minWhat = whatVal;           break;
+               case LTOKEN_LT:
+                  if (whatVal == 0) impossible = true;   // there are no what-codes less than zero!
+                               else    maxWhat = (whatVal-1);
+               break;
+
+               case LTOKEN_GT:
+                  if (whatVal == MUSCLE_NO_LIMIT) impossible = true;   // there are no what-codes greater than MUSCLE_NO_LIMIT!
+                                             else    minWhat = (whatVal+1);
+               break;
+
+               case LTOKEN_LEQ: maxWhat = whatVal;           break;
+               case LTOKEN_GEQ: minWhat = whatVal;           break;
+            }
+
+            if (impossible) ret.SetRef(new WhatCodeQueryFilter(1, 0));  // will never return true, because the requested condition is impossible
+            else
+            {
+               ret.SetRef(new WhatCodeQueryFilter(minWhat, maxWhat));
+               if (opTok.GetToken() == LTOKEN_NEQ) ret.SetRef(new NorQueryFilter(ret));
+            }
          }
+         break;
 
-         if (impossible) ret.SetRef(new WhatCodeQueryFilter(1, 0));  // will never return true, because the requested condition is impossible
-         else
+         case LTOKEN_USERSTRING:
          {
-            ret.SetRef(new WhatCodeQueryFilter(minWhat, maxWhat));
-            if (infixOpTok.GetToken() == LTOKEN_NEQ) ret.SetRef(new NorQueryFilter(ret));
+            const String & fieldName = fieldNameTok.GetValueString();
+            switch(valueType)
+            {
+               case B_STRING_TYPE: ret = GetStringQueryFilter                    (opTok, fieldName, valueIndexInField, valTok, optDefaultValue, isCaseSensitive); break;
+               case B_BOOL_TYPE:   ret = GetNumericQueryFilter<BoolQueryFilter>  (opTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+               case B_DOUBLE_TYPE: ret = GetNumericQueryFilter<DoubleQueryFilter>(opTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+               case B_FLOAT_TYPE:  ret = GetNumericQueryFilter<FloatQueryFilter> (opTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+               case B_INT64_TYPE:  ret = GetNumericQueryFilter<Int64QueryFilter> (opTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+               case B_INT32_TYPE:  ret = GetNumericQueryFilter<Int32QueryFilter> (opTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+               case B_INT16_TYPE:  ret = GetNumericQueryFilter<Int16QueryFilter> (opTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+               case B_INT8_TYPE:   ret = GetNumericQueryFilter<Int8QueryFilter>  (opTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+               case B_POINT_TYPE:  ret = GetNumericQueryFilter<PointQueryFilter> (opTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+               case B_RECT_TYPE:   ret = GetNumericQueryFilter<RectQueryFilter>  (opTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
+               default:            return B_ERROR("Unsupported value-type");
+            }
          }
+         break;
+
+         default:
+            return B_ERROR("Unspported first token for three-token subexpression");
       }
-      break;
-
-      case LTOKEN_USERSTRING:
-      {
-         const String & fieldName = fieldNameTok.GetValueString();
-         switch(valueType)
-         {
-            case B_STRING_TYPE: ret = GetStringQueryFilter                    (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue, isCaseSensitive); break;
-            case B_BOOL_TYPE:   ret = GetNumericQueryFilter<BoolQueryFilter>  (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
-            case B_DOUBLE_TYPE: ret = GetNumericQueryFilter<DoubleQueryFilter>(infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
-            case B_FLOAT_TYPE:  ret = GetNumericQueryFilter<FloatQueryFilter> (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
-            case B_INT64_TYPE:  ret = GetNumericQueryFilter<Int64QueryFilter> (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
-            case B_INT32_TYPE:  ret = GetNumericQueryFilter<Int32QueryFilter> (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
-            case B_INT16_TYPE:  ret = GetNumericQueryFilter<Int16QueryFilter> (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
-            case B_INT8_TYPE:   ret = GetNumericQueryFilter<Int8QueryFilter>  (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
-            case B_POINT_TYPE:  ret = GetNumericQueryFilter<PointQueryFilter> (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
-            case B_RECT_TYPE:   ret = GetNumericQueryFilter<RectQueryFilter>  (infixOpTok, fieldName, valueIndexInField, valTok, optDefaultValue); break;
-            default:            return B_ERROR("Unsupported value-type");
-         }
-      }
-      break;
-
-      default:
-         return B_ERROR("Unspported first token for three-token subexpression");
    }
 
    return ret;
