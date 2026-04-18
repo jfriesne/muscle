@@ -37,18 +37,18 @@ enum
    PR_COMMAND_SETDATATREES,       /**< Sets an entire subtree of data from a single Message (Not implemented!) */
    PR_COMMAND_GETDATATREES,       /**< Returns an entire subtree of data as a single Message */
    PR_COMMAND_JETTISONDATATREES,  /**< Removes matching RESULT_DATATREES Messages from the outgoing queue */
-   PR_COMMAND_RESERVED14,         /**< reserved for future expansion */
-   PR_COMMAND_RESERVED15,         /**< reserved for future expansion */
-   PR_COMMAND_RESERVED16,         /**< reserved for future expansion */
-   PR_COMMAND_RESERVED17,         /**< reserved for future expansion */
-   PR_COMMAND_RESERVED18,         /**< reserved for future expansion */
-   PR_COMMAND_RESERVED19,         /**< reserved for future expansion */
-   PR_COMMAND_RESERVED20,         /**< reserved for future expansion */
    PR_COMMAND_RESERVED21,         /**< reserved for future expansion */
    PR_COMMAND_RESERVED22,         /**< reserved for future expansion */
    PR_COMMAND_RESERVED23,         /**< reserved for future expansion */
    PR_COMMAND_RESERVED24,         /**< reserved for future expansion */
    PR_COMMAND_RESERVED25,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED26,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED27,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED28,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED29,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED30,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED31,         /**< reserved for future expansion */
+   PR_COMMAND_RESERVED32,         /**< reserved for future expansion */
    END_PR_COMMANDS                /**< guard value */
 };
 
@@ -64,9 +64,6 @@ enum
    PR_RESULT_ERRORACCESSDENIED,  /**< Your client isn't allowed to do something it tried to do */
    PR_RESULT_DATATREES,          /**< Reply to a PR_COMMAND_GETDATATREES message */
    PR_RESULT_NOOP,               /**< Clients should ignore this message.  Servers can send this to check TCP connectivity. */
-   PR_RESULT_RESERVED6,          /**< reserved for future expansion */
-   PR_RESULT_RESERVED7,          /**< reserved for future expansion */
-   PR_RESULT_RESERVED8,          /**< reserved for future expansion */
    PR_RESULT_RESERVED9,          /**< reserved for future expansion */
    PR_RESULT_RESERVED10,         /**< reserved for future expansion */
    PR_RESULT_RESERVED11,         /**< reserved for future expansion */
@@ -84,6 +81,9 @@ enum
    PR_RESULT_RESERVED23,         /**< reserved for future expansion */
    PR_RESULT_RESERVED24,         /**< reserved for future expansion */
    PR_RESULT_RESERVED25,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED26,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED27,         /**< reserved for future expansion */
+   PR_RESULT_RESERVED28,         /**< reserved for future expansion */
    END_PR_RESULTS                /**< guard value */
 };
 
@@ -122,7 +122,7 @@ DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS, _s
 #define PR_NAME_KEYS                       "!SnKy"      /**< String:  One or more key-strings */
 #define PR_NAME_FILTERS                    "!SnFl"      /**< Message: One or more archived QueryFilter objects */
 #define PR_NAME_REMOVED_DATAITEMS          "!SnRd"      /**< String:  one or more key-strings of removed data items */
-#define PR_NAME_SUBSCRIBE_QUIETLY          "!SnQs"      /**< Any type:  if present in a PR_COMMAND_SETPARAMETERS message, disables inital-value-send from new subscriptions */
+#define PR_NAME_SUBSCRIBE_QUIETLY          "!SnQs"      /**< Any type:  if present in a PR_COMMAND_SETPARAMETERS message, disables initial-value-send from new subscriptions */
 #define PR_NAME_REMOVE_QUIETLY             "!SnQ3"      /**< Any type:  if present in a PR_COMMAND_REMOVEDATA message, then the message won't cause subscribers to be notified. */
 #define PR_NAME_FLAGS                      "!SnQ4"      /**< Flattened SetDataNodeFlags (for PR_COMMAND_SETDATA) */
 #define PR_NAME_REFLECT_TO_SELF            "!Self"      /**< If set as parameter, include ourself in wildcard matches */
@@ -136,7 +136,7 @@ DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS, _s
 #define PR_NAME_PRIVILEGE_BITS             "!Priv"      /**< int32 bit-chord of PR_PRIVILEGE_* bits. */
 #define PR_NAME_SERVER_MEM_AVAILABLE       "!Mav"       /**< int64 indicating how many more bytes are available for MUSCLE server to use */
 #define PR_NAME_SERVER_MEM_USED            "!Mus"       /**< int64 indicating how many bytes the MUSCLE server currently has allocated */
-#define PR_NAME_SERVER_MEM_MAX             "!Mmx"       /**< uint64 indicating how the maximum number of bytes the MUSCLE server may have allocated at once. */
+#define PR_NAME_SERVER_MEM_MAX             "!Mmx"       /**< uint64 indicating the maximum number of heap-bytes the MUSCLE server is allowed to have allocated at once. */
 #define PR_NAME_SERVER_VERSION             "!Msv"       /**< String indicating version of MUSCLE that the server was compiled from */
 #define PR_NAME_SERVER_UPTIME              "!Mup"       /**< uint64 indicating how many microseconds the server has been running for */
 #define PR_NAME_SERVER_CURRENTTIMEUTC      "!Mct"       /**< uint64 indicating the server's current wall-clock (microseconds since 1970), in UTC format */
@@ -268,15 +268,15 @@ DECLARE_LABELLED_BITCHORD_FLAGS_TYPE(SetDataNodeFlags, NUM_SETDATANODE_FLAGS, _s
 //    by the PR_NAME_KEYS field.
 //
 // if 'what' is PR_COMMAND_INSERTORDEREDDATA:
-//    The session looks for one or more messages in the PR_NAME_KEYS field.  Each
-//    string represents a wildpath, rooted at this session's node (read: no leading
-//    slash should be present) that specifies zero or more data nodes to insert ordered/
-//    indexed children under.  Each node in the union of these node sets will have new
-//    ordered/indexed child nodes created underneath it.  The names of these new child
-//    nodes will be chosen algorithmically by the server.  There will be one child node
+//    The session looks for one or more strings in the PR_NAME_KEYS field.  Each
+//    string represents a (potentially wildcarded) node-path, rooted at this session's
+//    node (read: no leading slash should be present) that specifies zero or more data-nodes
+//    to insert ordered/indexed children under.  Each node in the union of these node-sets
+//    will have new ordered/indexed child nodes created underneath it.  The names of these new
+//    child nodes will be chosen algorithmically by the server.  There will be one child node
 //    created for each sub-message in this message.  Sub-messages may be added under any
 //    field name; if the field name happens to be the name of a currently indexed child,
-//    the new message node will be be inserted *before* the specified child in the index.
+//    the new message node will be inserted *before* the specified child in the index.
 //    Otherwise, it will be appended to the end of the index.  Clients who have subscribed
 //    to the specified nodes will see the updates to the index; clients who have subscribed
 //    to the children will get updates of the actual data as well.

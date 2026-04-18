@@ -66,6 +66,7 @@ key:  - new feature
    - Added muscleUnclampedRintf() to MuscleSupport.h, and modified muscleRintf()
      to do clamping if necessary.
    - Updated WaitCondtion::WaitUntil() to use CLOCK_MONOTONIC when possible.
+   - Added an atomic flag to SDLCallbackMechanism to avoid piling up events. (cc)
    o Retired MUSCLE_USE_LIBRT in favor of just checking for _POSIX_MONOTONIC_CLOCK.
    o ByteBufferPacketDataIO now takes ConstByteBufferRefs for its read-buffers
      rather than ByteBufferRefs.

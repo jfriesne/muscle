@@ -45,9 +45,6 @@ public:
    bool DecrementCounter() {return _counter.AtomicDecrement();}
 
 protected:
-   /** Constructor.  Only our ObjectCounter subclass is allowed to construct us! */
-   ObjectCounterBase();
-
    /** Destructor. */
    ~ObjectCounterBase();
 
@@ -121,6 +118,11 @@ public:
 
    /** Assignment operator -- implemented only to avoid compiler warnings */
    CountedObject & operator =(const CountedObject<ObjectType> & /*rhs*/) {return *this;}
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   /** Move operator -- implemented only to avoid compiler warnings */
+   CountedObject & operator =(CountedObject<ObjectType> && /*rhs*/) {return *this;}
+#endif
 };
 
 /** For debugging.  On success, populates (results) with type names and their associated object counts,

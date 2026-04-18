@@ -330,6 +330,7 @@ void DefaultFileLogger :: CloseLogFile()
                      }
                   }
                }
+               else ok = false;
 
                gzclose(gzOut);
 
