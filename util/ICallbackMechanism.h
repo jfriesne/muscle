@@ -56,6 +56,13 @@ public:
       _signalPending.store(false);        // clear the dirty-bit (must be done first to avoid a race condition)
 #endif
       DispatchCallbacksImplementation();  // defined in our subclass
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+      // used to avoid a potential dead-callback-mechanism if DispatchCallbacksImplementation() ate an
+      // extra signalling-byte that was generated after the _signalPending.store(false) command above
+      // this is the atomic version of:  if (_signalPending==true) {_signalPending = false; SignalDispatchThread();}
+      bool expected = true;
+      if (_signalPending.compare_exchange_strong(expected, false)) SignalDispatchThread();
+#endif
    }
 
 protected:
@@ -66,7 +73,7 @@ protected:
    void SignalDispatchThread()
    {
 #ifndef MUSCLE_AVOID_CPLUSPLUS11
-      // logic to avoid queueing up redundant events if the main thread is slow to react
+      // this is the atomic version of:  if (_signalPending==false) _signalPending = true; else return;
       bool expected = false;
       if (_signalPending.compare_exchange_strong(expected, true) == false) return;
 #endif
