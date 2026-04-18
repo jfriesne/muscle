@@ -27,7 +27,7 @@ typedef struct _MMessageGateway MMessageGateway;
   * out to (a file, the network, a serial line, wherever).
   * @param buf The buffer to read bytes from.
   * @param numBytes The number of bytes available for reading at (buf)
-  * @param arg This is a user-specified value; it will be the same as the value passed in to MMDoOutput().
+  * @param arg This is a user-specified value; it will be the same as the value passed in to MGDoOutput().
   * @returns The number of bytes actually read from (buf), or a negative value if there was a critical error (eg disconnected socket).
   */
 typedef int32 (*MGSendFunc)(const uint8 * buf, uint32 numBytes, void * arg);
@@ -36,7 +36,7 @@ typedef int32 (*MGSendFunc)(const uint8 * buf, uint32 numBytes, void * arg);
   * (a file, the network, a serial line, wherever) and write it into a supplied buffer.
   * @param buf The buffer to write bytes to.
   * @param numBytes The number of bytes available for writing at (buf)
-  * @param arg This is a user-specified value; it will be the same as the value passed in to MMDoInput().
+  * @param arg This is a user-specified value; it will be the same as the value passed in to MGDoInput().
   * @returns The number of bytes actually written into (buf), or a negative value if there was a critical error (eg disconnected socket).
   */
 typedef int32 (*MGReceiveFunc)(uint8 * buf, uint32 numBytes, void * arg);

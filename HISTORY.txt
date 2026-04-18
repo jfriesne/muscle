@@ -307,8 +307,9 @@ key:  - new feature
    * Fixed a bug that could cause Thread::WaitForNextMessageFromOwner() or
      Thread::GetNextReplyFromInternalThread() to occasionally return B_TIMED_OUT
      for no good reason.
-   * Parsing for the "exists" keyword was broken in
-     CreateQueryFilterFromExpression().  Fixed.  (cc).
+   * Parsing of the "exists" keyword was broken in CreateQueryFilterFromExpression().
+     Fixed.  (cc).
+   * Fixed various error-handling bugs in MiniMessage.c and MicroMessage.c (cc)
 
 9.80 - Released 2/27/2026
    - Added QueueIterator and ConstQueueIterator convenience

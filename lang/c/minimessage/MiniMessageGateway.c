@@ -103,6 +103,7 @@ int32 MGDoOutput(MMessageGateway * gw, uint32 maxBytes, MGSendFunc sendFunc, voi
 
       uint32 bytesToSend = gw->_curOutput->numBytes - gw->_curOutputPos;
       if (bytesToSend > maxBytes) bytesToSend = maxBytes;
+      if (bytesToSend == 0) break;
 
       bytesSent = sendFunc((&gw->_curOutput->bytes)+(gw->_curOutputPos), bytesToSend, arg);
       if (bytesSent < 0) return -1;  /* error! */
@@ -125,6 +126,9 @@ int32 MGDoOutput(MMessageGateway * gw, uint32 maxBytes, MGSendFunc sendFunc, voi
    return totalSent;
 }
 
+static MBool WillUnsignedAddOverflow(     uint32 v1, uint32 v2) {return ((v1+v2) < v1);}
+static MBool WillUnsignedMultiplyOverflow(uint32 v1, uint32 v2) {return (v1 != 0) && (v2 > (((uint32)-1) / v1));}
+
 int32 MGDoInput(MMessageGateway * gw, uint32 maxBytes, MGReceiveFunc recvFunc, void * arg, MMessage ** optRetMsg)
 {
    int32 totalRecvd = 0;
@@ -135,6 +139,7 @@ int32 MGDoInput(MMessageGateway * gw, uint32 maxBytes, MGReceiveFunc recvFunc, v
       int32 bytesReceived;
       uint32 bytesToRecv = gw->_maxInputPos - gw->_curInputPos;
       if (bytesToRecv > maxBytes) bytesToRecv = maxBytes;
+      if (bytesToRecv == 0) break;
 
       /* coverity[illegal_address] - not really an out-of-bounds read because the MByteBuffer's allocation is greater than sizeof(MByteBuffer) */
       bytesReceived = recvFunc((&gw->_curInput->bytes)+gw->_curInputPos, bytesToRecv, arg);
@@ -162,14 +167,11 @@ int32 MGDoInput(MMessageGateway * gw, uint32 maxBytes, MGReceiveFunc recvFunc, v
                   if (gw->_curInput->numBytes > 64*1024)
                   {
                      MByteBuffer * smallBuf = MBAllocByteBuffer(64*1024, false);
-                     if (smallBuf == NULL)
+                     if (smallBuf)
                      {
-                        MMFreeMessage(msg);
-                        return -1;
+                        MBFreeByteBuffer(gw->_curInput);
+                        gw->_curInput = smallBuf;
                      }
-
-                     MBFreeByteBuffer(gw->_curInput);
-                     gw->_curInput = smallBuf;
                   }
 
                   if (optRetMsg)
@@ -191,11 +193,13 @@ int32 MGDoInput(MMessageGateway * gw, uint32 maxBytes, MGReceiveFunc recvFunc, v
                const uint32 * h = (const uint32 *)(void *)(&gw->_curInput->bytes);
                uint32 bodySize = B_LENDIAN_TO_HOST_INT32(h[0]);
                if ((bodySize == 0)||(B_LENDIAN_TO_HOST_INT32(h[1]) != _MUSCLE_MESSAGE_ENCODING_DEFAULT)) return -1;  /* unsupported encoding! */
+               if (WillUnsignedAddOverflow(bodySize, 2*sizeof(uint32))) return -1;
 
                bodySize += (2*sizeof(uint32));  /* we'll include the fixed headers in our body buffer too */
                if (bodySize > gw->_curInput->numBytes)
                {
                   /* Gotta trade up for a larger buffer, so that all our data will fit! */
+                  if (WillUnsignedMultiplyOverflow(bodySize, 2)) return -1;
                   MByteBuffer * bigBuf = MBAllocByteBuffer(2*bodySize, false);  /* might as well alloc some extra space too */
                   if (bigBuf == NULL) return -1;  /* out of memory! */
 

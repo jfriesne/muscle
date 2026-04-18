@@ -1,7 +1,7 @@
 #include <string.h>
 #include "lang/c/minimessage/MiniMessage.h"
 
-#ifdef cplusplus
+#ifdef __cplusplus
 extern "C" {
 #else
 // Generate a compile-time error if MuscleSupport.h didn't get the typedefs right
@@ -12,10 +12,8 @@ char uint16_is_2_bytes_assertion[(sizeof(uint16) == 2) ? 1 : -1];
 char  int32_is_4_bytes_assertion[(sizeof( int32) == 4) ? 1 : -1];
 char uint32_is_4_bytes_assertion[(sizeof(uint32) == 4) ? 1 : -1];
 char  float_is_4_bytes_assertion[(sizeof(float)  == 4) ? 1 : -1];
-char  float_is_4_bytes_assertion[(sizeof(float)  == 4) ? 1 : -1];
 char  int64_is_8_bytes_assertion[(sizeof( int64) == 8) ? 1 : -1];
 char uint64_is_8_bytes_assertion[(sizeof(uint64) == 8) ? 1 : -1];
-char double_is_8_bytes_assertion[(sizeof(double) == 8) ? 1 : -1];
 char double_is_8_bytes_assertion[(sizeof(double) == 8) ? 1 : -1];
 #endif
 
@@ -119,7 +117,7 @@ struct _MMessage {
 
 MByteBuffer * MBAllocByteBuffer(uint32 numBytes, MBool clearBytes)
 {
-   MByteBuffer * mbb = (MByteBuffer *) MMalloc((sizeof(MByteBuffer)+numBytes)-1);  /* -1 since at least 1 data byte is in the struct */
+   MByteBuffer * mbb = (MByteBuffer *) MMalloc((sizeof(MByteBuffer)+numBytes));
    if (mbb)
    {
       mbb->numBytes = numBytes;
@@ -162,13 +160,25 @@ void MBFreeByteBuffer(MByteBuffer * msg)
  */
 #define WITH_ALIGNMENT_PADDING(rawSize) (sizeof(uint64)*(((((rawSize)+sizeof(uint64))-1)/sizeof(uint64))))
 
+static MBool WillUnsignedAddOverflow(     uint32 v1, uint32 v2) {return ((v1+v2) < v1);}
+static MBool WillUnsignedMultiplyOverflow(uint32 v1, uint32 v2) {return (v1 != 0) && (v2 > (((uint32)-1) / v1));}
+
 /* Note that numNameBytes includes the NUL byte! */
 static MMessageField * AllocMMessageField(const char * fieldName, uint32 numNameBytes, uint32 typeCode, uint32 numItems, uint32 itemSize)
 {
    if (numItems > 0)
    {
-      const uint32 dataSize  = numItems*itemSize;
-      const uint32 allocSize = WITH_ALIGNMENT_PADDING(sizeof(MMessageField))+dataSize+numNameBytes;
+      if (WillUnsignedMultiplyOverflow(numItems, itemSize)) return NULL;
+      const uint32 dataSize = numItems*itemSize;
+
+      uint32 allocSize = sizeof(MMessageField);
+      if (WillUnsignedAddOverflow(allocSize, dataSize)) return NULL;
+      allocSize += dataSize;
+
+      if (WillUnsignedAddOverflow(allocSize, numNameBytes)) return NULL;
+      allocSize += numNameBytes;
+
+      allocSize = WITH_ALIGNMENT_PADDING(allocSize);
       MMessageField * ret = (MMessageField *) MMalloc(allocSize);
       if (ret)
       {
@@ -284,6 +294,7 @@ MMessage * MMAllocMessage(uint32 what)
       ret->what       = what;
       ret->numFields  = 0;
       ret->firstField = ret->lastField = NULL;
+      ret->scratch    = NULL;  // semi-paranoia
    }
    return ret;
 }
@@ -699,7 +710,7 @@ static uint32 FlattenMMessageField(const MMessageField * f, void * outBuf)
             const uint32 bufSize = bufs[i] ? bufs[i]->numBytes : 0;
             const uint32 networkByteOrder = B_HOST_TO_LENDIAN_INT32(bufSize);
             WriteData(buffer, &writeOffset, &networkByteOrder, sizeof(networkByteOrder));
-            memcpy(&buffer[writeOffset], &bufs[i]->bytes, bufSize); writeOffset += bufSize;
+            if (bufs[i]) memcpy(&buffer[writeOffset], &bufs[i]->bytes, bufSize); writeOffset += bufSize;
          }
       }
    }
@@ -847,10 +858,11 @@ c_status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBu
       if (ReadData(buffer, inputBufferBytes, &readOffset, &networkByteOrder, sizeof(networkByteOrder)) != CB_NO_ERROR) return CB_ERROR;
 
       nameLength = B_LENDIAN_TO_HOST_INT32(networkByteOrder);
-      if (nameLength > inputBufferBytes-readOffset) return CB_ERROR;
+      if ((nameLength == 0)||(nameLength > inputBufferBytes-readOffset)) return CB_ERROR;
 
       /* Read entry name */
       fieldName = (const char *) &buffer[readOffset];
+      if (fieldName[nameLength-1] != '\0') return CB_ERROR;
       readOffset += nameLength;
 
       /* Read entry type code */
@@ -889,7 +901,7 @@ c_status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBu
                if (ReadData(buffer, inputBufferBytes, &eOffset, &entryLen, sizeof(entryLen)) == CB_NO_ERROR)
                {
                   entryLen = B_LENDIAN_TO_HOST_INT32(entryLen);
-                  if (eOffset + entryLen <= inputBufferBytes)
+                  if ((WillUnsignedAddOverflow(eOffset, entryLen) == false)&&(eOffset + entryLen <= inputBufferBytes))
                   {
                      MMessage * newMsg = MMAllocMessage(0);
                      if (newMsg)
@@ -955,6 +967,7 @@ c_status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBu
             /* All other types get loaded as variable-sized byte buffers */
             uint32 numItems;
             uint32 eOffset = readOffset;
+            if (eLength < sizeof(uint32)) return CB_ERROR;
             if (ReadData(buffer, inputBufferBytes, &eOffset, &numItems, sizeof(numItems)) == CB_NO_ERROR)
             {
                MByteBuffer ** bufs;
@@ -962,7 +975,7 @@ c_status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBu
                bufs = PutMMVariableFieldAux(msg, MFalse, tc, fieldName, numItems);
                if (bufs)
                {
-                  uint32 eLeft = eLength;
+                  uint32 eLeft = eLength-sizeof(numItems);
 
                   doAddField = MFalse;
                   uint32 j=0;
@@ -973,12 +986,13 @@ c_status_t MMUnflattenMessage(MMessage * msg, const void * inBuf, uint32 inputBu
                      if (ReadData(buffer, inputBufferBytes, &eOffset, &itemSize, sizeof(itemSize)) == CB_NO_ERROR)
                      {
                         itemSize = B_LENDIAN_TO_HOST_INT32(itemSize);
-                        if ((itemSize+sizeof(uint32) <= eLeft)&&((bufs[j] = MBAllocByteBuffer(itemSize, MFalse)) != NULL))
+
+                        if ((WillUnsignedAddOverflow(itemSize, sizeof(uint32)) == false)&&(itemSize+sizeof(uint32) <= eLeft)&&((bufs[j] = MBAllocByteBuffer(itemSize, MFalse)) != NULL))
                         {
                            eLeft -= (itemSize + sizeof(uint32));
                            memcpy(&bufs[j]->bytes, &buffer[eOffset], itemSize);
                            eOffset += itemSize;
-                           ok = true;
+                           ok = MTrue;
                         }
                      }
                      if (ok == MFalse)
@@ -1366,6 +1380,6 @@ MBool MMAreMessagesEqual(const MMessage * msg1, const MMessage * msg2)
    return MTrue;
 }
 
-#ifdef cplusplus
+#ifdef __cplusplus
 }
 #endif
