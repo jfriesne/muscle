@@ -3,6 +3,10 @@
 #ifndef ICallbackMechanism_h
 #define ICallbackMechanism_h
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+# include <atomic>
+#endif
+
 #include "support/NotCopyable.h"
 #include "system/Mutex.h"
 #include "util/Hashtable.h"
@@ -29,27 +33,62 @@ class ICallbackMechanism : public NotCopyable
 {
 public:
    /** Default Constructor */
-   ICallbackMechanism() {/* empty */}
+   ICallbackMechanism()
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+      : _signalPending(false)
+#endif
+   {
+      // empty
+   }
 
    /** Destructor */
    virtual ~ICallbackMechanism();
 
-   /** The ICallbackMechanism implementation should call this method from the dispatch-thread
-     * (ie typically the main/GUI thread) in response to receiving the dispatch-signal that
-     * was sent earlier via SignalDispatchThread().
-     * This method will call DispatchCallbacks() on any registered ICallbackSubscriber objects.
+   /** The ICallbackMechanism implementation should call this method from the event loop of
+     * the dispatch-thread (e.g. the main/GUI thread) ASAP after receiving the dispatch-trigger-signal
+     * that was sent to it earlier by the subclass's SignalDispatchThreadImplementation() method.
+     * This method will call DispatchCallbacksImplementation(), which will in turn call
+     * DispatchCallbacks() on any registered ICallbackSubscriber objects.
      */
-   virtual void DispatchCallbacks();
+   void DispatchCallbacks()
+   {
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+      _signalPending.store(false);        // clear the dirty-bit (must be done first to avoid a race condition)
+#endif
+      DispatchCallbacksImplementation();  // defined in our subclass
+   }
 
 protected:
    /** This method may be called from any thread; its only job is to asynchronously send
      * a signal to the dispatch-thread, in order to trigger the dispatch-thread to call
      * DispatchCallbacks() ASAP.
      */
-   virtual void SignalDispatchThread() = 0;
+   void SignalDispatchThread()
+   {
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+      // logic to avoid queueing up redundant events if the main thread is slow to react
+      bool expected = false;
+      if (_signalPending.compare_exchange_strong(expected, true) == false) return;
+#endif
+      SignalDispatchThreadImplementation();  // defined in our subclass
+   }
+
+   /** Called by DispatchCallbacks() (ie typically the main/GUI thread) ASAP after receiving
+     * the dispatch-trigger-signal that was sent earlier via SignalDispatchThread().
+     * @note this method should only ever be called directly by our DispatchCallbacks() method,
+     *       or by subclass implementations of DispatchCallbacksImplementation().
+     */
+   virtual void DispatchCallbacksImplementation();
 
 private:
    friend class ICallbackSubscriber;
+
+   /** This method will be called from SignalDispatchThread(), and may be called from any thread; the subclass
+     * must implement it to asynchronously send some sort of signal/event to the dispatch-thread, in order to
+     * trigger the dispatch-thread to call DispatchCallbacks() ASAP.
+     * @note this method should not be called directly by anyone other than SignalDispatchThread().
+     */
+   virtual void SignalDispatchThreadImplementation() = 0;
 
    void DispatchCallbacksAux(Hashtable<ICallbackSubscriber *, uint32> & scratchSubsTable);
 
@@ -67,6 +106,10 @@ private:
    Mutex _dirtySubscribersMutex;                               // serialize access to the _dirtySubscribers table
    Hashtable<ICallbackSubscriber *, uint32> _dirtySubscribers; // who has requested a DispatchCallbacks() call
    NestCount _dispatchCallbacksNestCount;                      // so we can handle re-entrant calls to DispatchCallbacks() gracefully
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+   std::atomic<bool> _signalPending;
+#endif
 };
 
 }  // end muscle namespace

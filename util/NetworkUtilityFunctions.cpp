@@ -2525,7 +2525,7 @@ ICallbackMechanism :: ~ICallbackMechanism()
    for (ConstHashtableIterator<ICallbackSubscriber *, Void> iter(_registeredSubscribers); iter.HasData(); iter++) iter.GetKey()->SetCallbackMechanism(NULL);
 }
 
-void ICallbackMechanism :: DispatchCallbacks()
+void ICallbackMechanism :: DispatchCallbacksImplementation()
 {
    NestCountGuard ncg(_dispatchCallbacksNestCount);
    if (_dispatchCallbacksNestCount.IsOutermost())
@@ -2597,17 +2597,17 @@ SocketCallbackMechanism :: ~SocketCallbackMechanism()
    // empty
 }
 
-void SocketCallbackMechanism :: DispatchCallbacks()
+void SocketCallbackMechanism :: DispatchCallbacksImplementation()
 {
    // read and discard any signalling-bytes sent by the other threads
    char junkBuf[128];
    while(ReceiveData(_dispatchThreadSock, junkBuf, sizeof(junkBuf), false).GetByteCount() > 0) {/* empty */}
 
    // Call superclass to perform the actual callbacks
-   ICallbackMechanism::DispatchCallbacks();
+   ICallbackMechanism::DispatchCallbacksImplementation();
 }
 
-void SocketCallbackMechanism :: SignalDispatchThread()
+void SocketCallbackMechanism :: SignalDispatchThreadImplementation()
 {
    const char junk = 'j';
    if (SendData(_otherThreadsSock, &junk, sizeof(junk), false) != sizeof(junk))

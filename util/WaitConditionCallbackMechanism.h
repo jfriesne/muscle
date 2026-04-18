@@ -44,7 +44,7 @@ public:
 
 protected:
    /** Overridden to call Notify() on our WaitCondition */
-   virtual void SignalDispatchThread()
+   virtual void SignalDispatchThreadImplementation()
    {
       const status_t r = _wcRef.Notify();
       if (r.IsError()) LogTime(MUSCLE_LOG_ERROR, "WaitConditionCallbackMechanism:  Notify() returned [%s]\n", r());

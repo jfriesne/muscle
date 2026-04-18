@@ -75,11 +75,11 @@ public:
 
 protected:
    /** May be called from any thread; triggers an asynchronous call to DispatchCallbacks() within the main thread */
-   virtual void SignalDispatchThread()
+   virtual void SignalDispatchThreadImplementation()
    {
       const bool ret = (_signalHandle == INVALID_HANDLE_VALUE) ? PostThreadMessage(_replyThreadID, _signalValue, 0, 0)
                                                                : SetEvent(_signalHandle); 
-      if (ret == false) LogTime(MUSCLE_LOG_ERROR, "Win32CallbackMechanism::SignalDispatchThread:  %s failed!\n", ((_signalHandle == INVALID_HANDLE_VALUE) ? "PostThreadMessage" : "SetEvent"));
+      if (ret == false) LogTime(MUSCLE_LOG_ERROR, "Win32CallbackMechanism::SignalDispatchThreadImplementation:  %s failed!\n", ((_signalHandle == INVALID_HANDLE_VALUE) ? "PostThreadMessage" : "SetEvent"));
    }
 
 private:

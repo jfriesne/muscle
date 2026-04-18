@@ -21,12 +21,6 @@ public:
    /** Destructor */
    virtual ~SocketCallbackMechanism();
 
-   /** Overridden to then read and discard any bytes received on the socket, and then it will call
-     * up to ICallbackMechanism::DispatchCallbacks(), which will call DispatchCallbacks() on the
-     * appropriate registered ICallbackSubscribers.
-     */
-   virtual void DispatchCallbacks();
-
    /** Returns a reference to the main/dispatch-thread-notifier socket.
      * The only thing that you should ever do with this socket is have your event-loop
      * call select() (or some equivalent) on it.  When this socket selects-as-ready-for-read,
@@ -36,7 +30,13 @@ public:
 
 protected:
    /** Overridden to send a byte on the thread-side of the socketpair */
-   virtual void SignalDispatchThread();
+   virtual void SignalDispatchThreadImplementation();
+
+   /** Overridden to then read and discard any bytes received on the socket, and then it will call
+     * up to ICallbackMechanism::DispatchCallbacksImplementation(), which will call DispatchCallbacks()
+     * on the appropriate registered ICallbackSubscribers.
+     */
+   virtual void DispatchCallbacksImplementation();
 
 private:
    ConstSocketRef _dispatchThreadSock;  // this socket is read by the main/dispatch thread

@@ -3,10 +3,6 @@
 #ifndef SDLCallbackMechanism_h
 #define SDLCallbackMechanism_h
 
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-# include <atomic>
-#endif
-
 #include <SDL/SDL_events.h>
 
 #include "util/ICallbackMechanism.h"
@@ -20,49 +16,19 @@ static const uint32 SDL_CALLBACK_MECHANISM_EVENT = SDL_NUMEVENTS-1;
 class SDLCallbackMechanism : public ICallbackMechanism
 {
 public:
-   SDLCallbackMechanism()
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-      : _signalPending(false)
-#endif
-   {
-      // empty
-   }
-
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-   virtual void DispatchCallbacks()
-   {
-      _signalPending.store(false);
-      ICallbackMechanism::DispatchCallbacks();
-   }
-#endif
+   SDLCallbackMechanism() {/* empty */}
 
 protected:
    /** May be called from any thread; SDL event loop in the main thread should be instrumented to call DispatchCallbacks() on this object when it receives this event. */
-   virtual void SignalDispatchThread()
+   virtual void SignalDispatchThreadImplementation()
    {
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-      bool expected = false;
-      if (_signalPending.compare_exchange_strong(expected, true) == false) return;  // avoid piling up events
-#endif
-
       SDL_Event event;
       event.type       = SDL_CALLBACK_MECHANISM_EVENT;
       event.user.code  = SDL_CALLBACK_MECHANISM_EVENT;
       event.user.data1 = NULL;
       event.user.data2 = NULL;
-      if (SDL_PeepEvents(&event, 1, SDL_ADDEVENT, 0) == -1)
-      {
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-         _signalPending.store(false);  // to allow a future retry
-#endif
-         LogTime(MUSCLE_LOG_ERROR, "SDLCallbackMechanism::SignalDispatchThread():  SDL_PeepEvents() returned an error!\n");
-      }
+      if (SDL_PeepEvents(&event, 1, SDL_ADDEVENT, 0) == -1) LogTime(MUSCLE_LOG_ERROR, "SDLCallbackMechanism::SignalDispatchThreadImplementation():  SDL_PeepEvents() returned an error!\n");
    }
-
-private:
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-   std::atomic<bool> _signalPending;
-#endif
 };
 
 } // end namespace muscle

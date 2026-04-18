@@ -20,7 +20,7 @@ public:
 
 protected:
    /** Overridden to request an asynchronous callback from the Esmcripten callback engine */
-   virtual void SignalDispatchThread() {(void) SetAsyncCallbackTime(0);}
+   virtual void SignalDispatchThreadImplementation() {(void) SetAsyncCallbackTime(0);}
 
 private:
    virtual void AsyncCallback(uint64 scheduledTime) {(void) scheduledTime; DispatchCallbacks();}

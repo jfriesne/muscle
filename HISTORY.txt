@@ -5,6 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
+9.90 - Released
    - Note: (cc) in the text below means the issue was detected by Claude Code.
    - Added various compiler-warning flags to CMakeLists.txt.
    - Updated Queue::RmoveHeadMulti() and Queue::RemoveTailMulti()
@@ -67,6 +68,12 @@ key:  - new feature
      to do clamping if necessary.
    - Updated WaitCondtion::WaitUntil() to use CLOCK_MONOTONIC when possible.
    - Added an atomic flag to SDLCallbackMechanism to avoid piling up events. (cc)
+   o Renamed virtual method ICallbackMechanism::SignalDispatchThread() to
+     SignalDispatchThreadImplementation(), and added a non-virtual SignalDispatchThread()
+     method that calls it, but only if a dirty-bit isn't already set.
+   o Renamed virtual method ICallbackMechanism::DispatchCallbacks() to
+     DispatchCallbacksImplementation(), and added a non-virtual DispatchCallbacks()
+     method that clears the dirty-bit and then calls DispatchCallbacksImplementation().
    o Retired MUSCLE_USE_LIBRT in favor of just checking for _POSIX_MONOTONIC_CLOCK.
    o ByteBufferPacketDataIO now takes ConstByteBufferRefs for its read-buffers
      rather than ByteBufferRefs.

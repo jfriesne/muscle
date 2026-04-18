@@ -23,7 +23,7 @@ public:
 
 protected:
    /** May be called from any thread; triggers an asynchronous call to DispatchCallbacks() within the main thread */
-   virtual void SignalDispatchThread() {triggerAsyncUpdate();}
+   virtual void SignalDispatchThreadImplementation() {triggerAsyncUpdate();}
 
    /** Called by JUCE's AsyncUpdater, in the main thread, when it is time for muscle-callbacks to be called */
    virtual void handleAsyncUpdate()
