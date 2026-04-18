@@ -3,7 +3,7 @@
 #ifndef MuscleStringTokenizer_h
 #define MuscleStringTokenizer_h
 
-#include "support/MuscleSupport.h"
+#include "support/BitChord.h"
 #include "util/Queue.h"
 #include "util/String.h"
 
@@ -101,8 +101,8 @@ public:
    MUSCLE_NODISCARD static String Join(const Queue<String> & tokenizedStrings, bool includeEmptyStrings, const String & joinChars, char escapeChar = '\0');
 
 private:
-   MUSCLE_NODISCARD bool IsHardSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_hardSepsBitChord, (uint8)c)));}
-   MUSCLE_NODISCARD bool IsSoftSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(IsBitSet(_softSepsBitChord, (uint8)c)));}
+   MUSCLE_NODISCARD bool IsHardSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(_hardSepCharsBitChord.IsBitSet(static_cast<uint8>(c))));}
+   MUSCLE_NODISCARD bool IsSoftSeparatorChar(char prevChar, char c) const {return ((prevChar!=_escapeChar)&&(_softSepCharsBitChord.IsBitSet(static_cast<uint8>(c))));}
 
    void DefaultInitialize();
    void DeletePrivateBufferIfNecessary();
@@ -129,16 +129,39 @@ private:
 
    char _smallStringBuf[128];
 
-   uint32 _softSepsBitChord[8];  // bit N is set iff the corresponding 8-bit value is a sep
-   uint32 _hardSepsBitChord[8];  // 32x8 = 256, aka all possible 8-bit values of a sep
-
-   enum {BITS_PER_WORD = (sizeof(uint32)*8)};
-
-   MUSCLE_NODISCARD bool IsBitSet(const uint32 * bits, uint8 whichBit) const {return ((bits[(whichBit)/BITS_PER_WORD] &  (1U<<((whichBit)%BITS_PER_WORD))) != 0);}
-   void SetBit(                         uint32 * bits, uint8 whichBit)       {         bits[(whichBit)/BITS_PER_WORD] |= (1U<<((whichBit)%BITS_PER_WORD));       }
+   DECLARE_BITCHORD_FLAGS_TYPE(SepCharsBitChord, 256);
+   SepCharsBitChord _softSepCharsBitChord;
+   SepCharsBitChord _hardSepCharsBitChord;
 
    void SetBitChords(const char * optSepChars);
 };
+
+// This BitChord method is defined here rather than in BitChord.h solely to avoid a circular-include-dependency problem.
+template <uint32 NumBits, class TagClass, const char * optLabelArray[NumBits]>
+BitChord<NumBits, TagClass, optLabelArray>
+BitChord<NumBits, TagClass, optLabelArray> :: FromString(const char * s)
+{
+   BitChord ret;
+   if (s)
+   {
+      StringTokenizer tok(s, ",");
+      const char * t;
+      while((t = tok()) != NULL)
+      {
+         const int32 whichBit = ParseBitLabel(t);
+              if (whichBit >= 0)                    ret.SetBit(whichBit);
+         else if (Strcasecmp(t, "AllBitsSet") == 0) return WithAllBitsSet();
+         else if (muscleInRange(t[0], '0', '9'))
+         {
+            const uint32 startIdx = muscleClamp((uint32) atol(t), (uint32)0, NumBits);
+            const char * dash = strrchr(t, '-');
+            const uint32 endIdx = dash ? muscleClamp((uint32) (atol(dash+1)+1), startIdx, NumBits) : muscleMin(startIdx+1, NumBits);
+            for (uint32 i=startIdx; i<endIdx; i++) ret.SetBit(i);
+         }
+      }
+   }
+   return ret;
+}
 
 } // end namespace muscle
 

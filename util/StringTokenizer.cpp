@@ -88,8 +88,8 @@ void StringTokenizer :: DefaultInitialize()
 // uninitialized, so it needs to be careful not to read from any of this object's member variables!
 void StringTokenizer :: CopyDataToPrivateBuffer(const StringTokenizer & copyFrom)
 {
-   memcpy(_hardSepsBitChord, copyFrom._hardSepsBitChord, sizeof(_hardSepsBitChord));
-   memcpy(_softSepsBitChord, copyFrom._softSepsBitChord, sizeof(_softSepsBitChord));
+   _hardSepCharsBitChord = copyFrom._hardSepCharsBitChord;
+   _softSepCharsBitChord = copyFrom._softSepCharsBitChord;
 
    _prevSepWasHard = copyFrom._prevSepWasHard;
    _escapeChar     = copyFrom._escapeChar;
@@ -129,7 +129,7 @@ void StringTokenizer :: CopyDataToPrivateBuffer(const StringTokenizer & copyFrom
    }
 }
 
-// Sets our points at the same offsets relative to (myNewBuf) that (copyFrom)'s pointers are relative to its _hardSeparators pointer
+// Sets our points at the same offsets relative to (myNewBuf) that (copyFrom)'s pointers are relative to its buffer
 void StringTokenizer :: SetPointersAnalogousTo(char * myNewBuf, const StringTokenizer & copyFrom)
 {
    _tokenizeMe  = myNewBuf;
@@ -177,11 +177,19 @@ char * StringTokenizer :: GetRemainderOfString()
 
 void StringTokenizer :: SetBitChords(const char * optSepChars)
 {
-   muscleClearArray(_softSepsBitChord);
-   muscleClearArray(_hardSepsBitChord);
+   _softSepCharsBitChord.ClearAllBits();
+   _hardSepCharsBitChord.ClearAllBits();
+
    if (optSepChars == NULL) optSepChars = STRING_TOKENIZER_DEFAULT_SEPARATOR_CHARS;
-   for (const char * s = optSepChars; (*s != '\0'); s++) SetBit(IsBitSet(_softSepsBitChord, *s) ? _hardSepsBitChord : _softSepsBitChord, *s);
-   for (uint32 i=0; i<ARRAYITEMS(_hardSepsBitChord); i++) _softSepsBitChord[i] &= ~_hardSepsBitChord[i];  // if it's hard, it can't be soft!
+
+   // Specifying a separator char once means it's soft; specifying it more than once means it's hard
+   for (const char * s = optSepChars; (*s != '\0'); s++)
+   {
+      const uint8 whichBit = static_cast<uint8>(*s);
+      (_softSepCharsBitChord.IsBitSet(whichBit) ? _hardSepCharsBitChord : _softSepCharsBitChord).SetBit(whichBit);
+   }
+
+   _softSepCharsBitChord.ClearBits(_hardSepCharsBitChord); // if a separator-char is hard, then it can't be soft!
 }
 
 Queue<String> StringTokenizer :: Split(uint32 maxResults)

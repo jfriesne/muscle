@@ -7,7 +7,6 @@
 #include "support/MuscleSupport.h"
 #include "support/PseudoFlattenable.h"
 #include "util/String.h"
-#include "util/StringTokenizer.h"
 
 namespace muscle {
 
@@ -514,29 +513,7 @@ public:
      * returned by ToString(), aka comma-separated), and returns it.
      * @param s the string to parse
      */
-   MUSCLE_NODISCARD static BitChord FromString(const char * s)
-   {
-      BitChord ret;
-      if (s)
-      {
-         StringTokenizer tok(s, ",");
-         const char * t;
-         while((t = tok()) != NULL)
-         {
-            const int32 whichBit = ParseBitLabel(t);
-                 if (whichBit >= 0)                    ret.SetBit(whichBit);
-            else if (Strcasecmp(t, "AllBitsSet") == 0) return WithAllBitsSet();
-            else if (muscleInRange(t[0], '0', '9'))
-            {
-               const uint32 startIdx = muscleClamp((uint32) atol(t), (uint32)0, NumBits);
-               const char * dash = strrchr(t, '-');
-               const uint32 endIdx = dash ? muscleClamp((uint32) (atol(dash+1)+1), startIdx, NumBits) : muscleMin(startIdx+1, NumBits);
-               for (uint32 i=startIdx; i<endIdx; i++) ret.SetBit(i);
-            }
-         }
-      }
-      return ret;
-   }
+   MUSCLE_NODISCARD static BitChord FromString(const char * s);
 
    /** Returns a human-readable String listing the bit-indices that are currently set.
      * If a labels-array was specified (eg via the DECLARE_LABELLED_BITCHORD_FLAGS_TYPE macro),
@@ -1008,5 +985,7 @@ template<uint32 NumBits, class TagClass, const char * optLabelArray[]> const Bit
    MUSCLE_ABSORB_SEMICOLON
 
 } // end namespace muscle
+
+#include "util/StringTokenizer.h"  // just to avoid potential linking problems with BitChord:FromString() in programs that don't include StringTokenizer.h explicitly
 
 #endif
