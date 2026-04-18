@@ -37,8 +37,8 @@ public:
      */
    DoxyTemplate & operator =(const DoxyTemplate & rhs);
 
-   /** Move-Assignment operator (C++11 or later).  Sets this object to be a duplicate of
-     * (rhs) by stealing the state of (rhs) away so that this object can use it.
+   /** Move-Assignment operator (C++11 or later).  Sets this object to become the same as
+     * (rhs) was, by stealing the state of (rhs) away so that this object can use it.
      * @param rhs the object that this object can plunder to assume the same state that (rhs) had
      * @returns a reference to this object
      */
@@ -60,25 +60,25 @@ public:
      * @param rhs the object to compare this object against
      * @returns true iff this object is less than (rhs)
      */
-   bool operator < (const DoxyTemplate &rhs) const;
+   bool operator < (const DoxyTemplate & rhs) const;
 
    /** Greater-than operator.
      * @param rhs the object to compare this object against
      * @returns true iff this object is greater than (rhs)
      */
-   bool operator > (const DoxyTemplate &rhs) const;
+   bool operator > (const DoxyTemplate & rhs) const;
 
    /** Less-than-or-equal-to operator.
      * @param rhs the object to compare this object against
      * @returns true iff this object is not greater than (rhs)
      */
-   bool operator <=(const DoxyTemplate &rhs) const;
+   bool operator <=(const DoxyTemplate & rhs) const;
 
    /** Greater-than-or-equal-to operator.
      * @param rhs the object to compare this object against
      * @returns true iff this object is not less than (rhs)
      */
-   bool operator >=(const DoxyTemplate &rhs) const;
+   bool operator >=(const DoxyTemplate & rhs) const;
 
    /** In-place union operator.  Updates this object to be the union
      * of itself and the passed-in object.

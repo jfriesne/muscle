@@ -160,9 +160,9 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
 
    if (args.FindString("maxmessagesize", &value).IsOK())
    {
-      const int k = muscleMax(1, atoi(value));
-      LogTime(MUSCLE_LOG_INFO, "Limiting message sizes to %i kilobyte%s.\n", k, (k==1)?"":"s");
-      maxMessageSize = k*1024L;
+      const uint32 k = muscleMax((uint32)1, (uint32) Atoull(value));
+      LogTime(MUSCLE_LOG_INFO, "Limiting message sizes to " UINT32_FORMAT_SPEC " kilobyte%s.\n", k, (k==1)?"":"s");
+      maxMessageSize = SaturatingUnsignedMultiply(k, (uint32)1024);
    }
 
    if (args.FindString("maxsendrate", &value).IsOK())
@@ -246,9 +246,9 @@ static int muscledmainAux(int argc, char ** argv, void * cookie)
    status_t ret;
    server.GetAddressRemappingTable() = std_move_if_available(tempRemaps);
 
-   if (maxNodesPerSession != MUSCLE_NO_LIMIT) (void) server.GetCentralState().AddInt32(PR_NAME_MAX_NODES_PER_SESSION, maxNodesPerSession);
-   if (maxChildrenPerNode != MUSCLE_NO_LIMIT) (void) server.GetCentralState().AddInt32(PR_NAME_MAX_CHILDREN_PER_NODE, maxChildrenPerNode);
-   for (MessageFieldNameIterator iter = tempPrivs.GetFieldNameIterator(); iter.HasData(); iter++) (void) tempPrivs.CopyName(iter.GetFieldName(), server.GetCentralState());
+   if (maxNodesPerSession != MUSCLE_NO_LIMIT) ret |= server.GetCentralState().AddInt32(PR_NAME_MAX_NODES_PER_SESSION, maxNodesPerSession);
+   if (maxChildrenPerNode != MUSCLE_NO_LIMIT) ret |= server.GetCentralState().AddInt32(PR_NAME_MAX_CHILDREN_PER_NODE, maxChildrenPerNode);
+   for (MessageFieldNameIterator iter = tempPrivs.GetFieldNameIterator(); iter.HasData(); iter++) ret |= tempPrivs.CopyName(iter.GetFieldName(), server.GetCentralState());
 
    // If the user asked for bandwidth limiting, create Policy objects to handle that.
    AbstractSessionIOPolicyRef inputPolicyRef, outputPolicyRef;
