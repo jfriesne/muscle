@@ -1237,7 +1237,7 @@ template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleAbs(T arg)
 MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleUnclampedRintf(float f) {return (f>=0.0f) ? ((int)(f+0.5f)) : -((int)((-f)+0.5f));}
 
 /** Rounds the given float to the nearest integer value.  Values outside of the range [INT_MIN, INT_MAX] will be clamped to that range. */
-MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleRintf(float f) {return muscleUnclampedRintf(muscleClamp(f, (float)INT_MIN, (float)INT_MAX));}
+MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleRintf(float f) {return muscleUnclampedRintf(muscleClamp(f, (float)INT_MIN, (float)(INT_MAX-1.0f)));}  // -1.0f because (float)(INT_MAX) invokes undefined behavior
 
 /** Returns -1 if the value is less than zero, +1 if it is greater than zero, or 0 otherwise. */
 template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleSgn(T arg) {return (arg<0)?-1:((arg>0)?1:0);}
@@ -2373,7 +2373,7 @@ template<typename T> MUSCLE_NODISCARD inline uint64 CalculateHashCode64(const T 
   * @param v2 the second value to add
   * @returns true iff summing the two values causes an unsigned-overflow condition.
   */
-template<typename T> bool WillUnsignedAddOverflow(T v1, T v2)
+template<typename T> MUSCLE_NODISCARD MUSCLE_CONSTEXPR bool WillUnsignedAddOverflow(T v1, T v2)
 {
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    static_assert(std::is_unsigned<T>::value, "WillUnsignedAddOverflow() requires that its arguments be unsigned");
@@ -2382,12 +2382,25 @@ template<typename T> bool WillUnsignedAddOverflow(T v1, T v2)
    return ((v1+v2) < v1);  // can only occur if there was an overflow
 }
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+/** Convenience method:  Checks if summing two or more unsigned values will overflow.
+  * @param v1 the first value to add
+  * @param v2 the second value to add
+  * @param rest any further values to add
+  * @returns true iff summing the two values causes an unsigned-overflow condition.
+  */
+template<typename T, typename... Ts> MUSCLE_NODISCARD MUSCLE_CONSTEXPR bool WillUnsignedAddOverflow(T v1, T v2, Ts... rest)
+{
+   return ((WillUnsignedAddOverflow(v1, v2)) || ((sizeof...(rest) != 0)&&(WillUnsignedAddOverflow<T>(v1+v2, rest...))));
+}
+#endif
+
 /** Convenience method:  Checks if multiplying two unsigned values will overflow.
   * @param v1 the first value to multiply
   * @param v2 the second value to multiply
   * @returns true iff multiplying the two values causes an unsigned-overflow condition.
   */
-template<typename T> bool WillUnsignedMultiplyOverflow(T v1, T v2)
+template<typename T> MUSCLE_NODISCARD MUSCLE_CONSTEXPR bool WillUnsignedMultiplyOverflow(T v1, T v2)
 {
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    static_assert(std::is_unsigned<T>::value, "WillUnsignedMultiplyOverflow() requires that its arguments be unsigned");
@@ -2396,13 +2409,26 @@ template<typename T> bool WillUnsignedMultiplyOverflow(T v1, T v2)
    return (v1 != 0) && (v2 > (((T)-1) / v1));
 }
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+/** Convenience method:  Checks if multiplying two or more unsigned values will overflow.
+  * @param v1 the first value to multiply
+  * @param v2 the second value to multiply
+  * @param rest any further values to multiply
+  * @returns true iff multiplying the two values causes an unsigned-overflow condition.
+  */
+template<typename T, typename... Ts> MUSCLE_NODISCARD MUSCLE_CONSTEXPR bool WillUnsignedMultiplyOverflow(T v1, T v2, Ts... rest)
+{
+   return ((WillUnsignedMultiplyOverflow(v1, v2)) || ((sizeof...(rest) != 0)&&(WillUnsignedMultiplyOverflow<T>(v1*v2, rest...))));
+}
+#endif
+
 /** Convenience method:  Adds two unsigned values together in such a way that if they would
   * have overflowed, this function instead returns the largest expressible value.
   * @param v1 the first value to add
   * @param v2 the second value to add
   * @returns The sum of the two values (or the largest expressible value of type T, if the sum is too large to express via a T)
   */
-template<typename T> T SaturatingUnsignedAdd(T v1, T v2)
+template<typename T> MUSCLE_NODISCARD MUSCLE_CONSTEXPR T SaturatingUnsignedAdd(T v1, T v2)
 {
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    static_assert(std::is_unsigned<T>::value, "SaturatingUnsignedAdd() requires that its arguments be unsigned");
@@ -2411,13 +2437,33 @@ template<typename T> T SaturatingUnsignedAdd(T v1, T v2)
    return WillUnsignedAddOverflow(v1, v2) ? ((T)(-1)) : (v1+v2);
 }
 
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+# ifndef DOXYGEN_SHOULD_IGNORE_THIS
+template<typename T> MUSCLE_NODISCARD MUSCLE_CONSTEXPR T SaturatingUnsignedAdd(T v) {return v;}  // implementation detail; base case for variadic template
+# endif
+
+/** Convenience method:  Adds two or more unsigned values together in such a way that if they would
+  * have overflowed, this function instead returns the largest expressible value.
+  * @param v1 the first value to add
+  * @param v2 the second value to add
+  * @param rest any further values to add
+  * @returns The sum of the two values (or the largest expressible value of type T, if the sum is too large to express via a T)
+  */
+template<typename T, typename... Ts> MUSCLE_NODISCARD MUSCLE_CONSTEXPR T SaturatingUnsignedAdd(T v1, T v2, Ts... rest)
+{
+   return ((v1 == (T)-1) || (v2 == (T)-1))
+        ? ((T)-1)
+        : ((sizeof...(rest) == 0) ? SaturatingUnsignedAdd(v1, v2) : SaturatingUnsignedAdd<T>(SaturatingUnsignedAdd(v1, v2), rest...));
+}
+#endif
+
 /** Convenience method:  Multiplies two unsigned values together in such a way that if they would
   * have overflowed, this function instead returns the largest expressible value.
   * @param v1 the first value to multiply
   * @param v2 the second value to multiply
   * @returns The product of the two values (or the largest expressible value of type T, if the product is too large to express via a T)
   */
-template<typename T> T SaturatingUnsignedMultiply(T v1, T v2)
+template<typename T> MUSCLE_NODISCARD MUSCLE_CONSTEXPR T SaturatingUnsignedMultiply(T v1, T v2)
 {
 #if !defined(MUSCLE_AVOID_CPLUSPLUS11)
    static_assert(std::is_unsigned<T>::value, "SaturatingUnsignedMultiply() requires that its arguments be unsigned");
@@ -2425,6 +2471,26 @@ template<typename T> T SaturatingUnsignedMultiply(T v1, T v2)
 #endif
    return WillUnsignedMultiplyOverflow(v1, v2) ? ((T)(-1)) : (v1*v2);
 }
+
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
+# ifndef DOXYGEN_SHOULD_IGNORE_THIS
+template<typename T> MUSCLE_NODISCARD MUSCLE_CONSTEXPR T SaturatingUnsignedMultiply(T v) {return v;}  // implementation detail; base case for variadic template
+# endif
+
+/** Convenience method:  Multiplies two or more unsigned values together in such a way that if they would
+  * have overflowed, this function instead returns the largest expressible value.
+  * @param v1 the first value to add
+  * @param v2 the second value to add
+  * @param rest any further values to add
+  * @returns The sum of the two values (or the largest expressible value of type T, if the sum is too large to express via a T)
+  */
+template<typename T, typename... Ts> MUSCLE_NODISCARD MUSCLE_CONSTEXPR T SaturatingUnsignedMultiply(T v1, T v2, Ts... rest)
+{
+   return ((v1 == (T)-1) || (v2 == (T)-1))
+        ? ((T)-1)
+        : ((sizeof...(rest) == 0) ? SaturatingUnsignedMultiply(v1, v2) : SaturatingUnsignedMultiply<T>(SaturatingUnsignedMultiply(v1, v2), rest...));
+}
+#endif
 
 #endif  // __cplusplus
 
