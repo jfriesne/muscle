@@ -62,6 +62,12 @@ public:
       // empty
    }
 
+   /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
+   AtomicCounter(const AtomicCounter & rhs) {SetCount(rhs.GetCount());}
+
+   /** @copydoc DoxyTemplate::operator=(const DoxyTemplate &) */
+   AtomicCounter & operator=(const AtomicCounter & rhs) {SetCount(rhs.GetCount()); return *this;}
+
    /** Atomically increments our counter by one.
      * Returns true iff the count's new value is 1; returns false
      *              if the count's new value is any other value.
@@ -139,16 +145,50 @@ public:
          );
       return isZero;
 #else
-# error "No atomic decrement supplied for this OS!  Add it here in AtomicCount.h, or remove -DMUSCLE_AVOID_CPLUSPLUS11 in your compiler-defines to use std::atomic, or put -DMUSCLE_SINGLE_THREAD_ONLY in your compiler-defines if you will not be using multithreading."
+# error "No atomic decrement supplied for this OS!  Add it here in AtomicCount.h, or remove -DMUSCLE_AVOID_CPLUSPLUS11 from your compiler-defines to use std::atomic, or put -DMUSCLE_SINGLE_THREAD_ONLY in your compiler-defines if you will not be using multithreading."
 #endif
    }
 
-   /** Returns the current value of this counter.
-     * Be careful when using this function in multithreaded
-     * environments, it can easily lead to race conditions
-     * if you don't know what you are doing!
+   /** A slightly more user-friendly wrapper aound a strong-compare-and-swap operation.
+     * This method will attempt to atomically change this AtomicCounter's value
+     * from (fromOldValue) to (toNewValue).
+     * @param fromOldValue the value that the AtomicCounter must have at the start
+     *                     of the atomic operation, for the operation to succeed.
+     * @param toNewValue the value that the AtomicCounter will have at the end of the
+     *                   atomic operationon success.
+     * @returns B_NO_ERROR on success, or B_BAD_OBJECT if the AtomicCounter's current
+     *          value was something other than (fromOldValue) at the instant this method's
+     *          atomic operation began.
      */
-   MUSCLE_NODISCARD int32 GetCount() const {return (int32) _count;}
+   status_t ConditionalSetCount(int32 fromOldValue, int32 toNewValue)
+   {
+#if defined(MUSCLE_SINGLE_THREAD_ONLY)
+      return NonAtomicConditionalSetCount(fromOldValue, toNewValue);
+#elif defined(MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS)
+      if (_muscleAtomicMutexes)
+      {
+         DECLARE_MUTEXGUARD(_muscleAtomicMutexes[(((uint32)((uintptr)&_count))/sizeof(int32))%MUSCLE_MUTEX_POOL_SIZE]);  // double-cast for AMD64
+         return NonAtomicConditionalSetCount(fromOldValue, toNewValue);
+      }
+      else
+      {
+         // if _muscleAtomicMutexes isn't allocated, then we're in process-setup or process-shutdown, so there are no multiple threads at the moment, so we can just do this
+         return NonAtomicConditionalSetCount(fromOldValue, toNewValue);
+      }
+#elif !defined(MUSCLE_AVOID_CPLUSPLUS11)
+      return _count.compare_exchange_strong(fromOldValue, toNewValue) ? B_NO_ERROR : B_BAD_OBJECT;
+#elif defined(WIN32)
+      return (InterlockedCompareExchange(&_count, toNewValue, fromOldValue) == fromOldValue) ? B_NO_ERROR : B_BAD_OBJECT;
+#elif defined(__APPLE__)
+      return OSAtomicCompareAndSwap32Barrier(fromOldValue, toNewValue, &_count) ? B_NO_ERROR : B_BAD_OBJECT;
+#elif defined(MUSCLE_USE_POWERPC_INLINE_ASSEMBLY)
+      return B_UNIMPLEMENTED;  // for now; if/when I need to implement this, I will
+#elif defined(MUSCLE_USE_X86_INLINE_ASSEMBLY)
+      return B_UNIMPLEMENTED;  // for now; if/when I need to implement this, I will
+#else
+# error "No compare-and-swap routine supplied for this OS!  Add it here in AtomicCount.h, or remove -DMUSCLE_AVOID_CPLUSPLUS11 from your compiler-defines to use std::atomic, or put -DMUSCLE_SINGLE_THREAD_ONLY in your compiler-defines if you will not be using multithreading."
+#endif
+   }
 
    /** Sets the current value of this counter.
      * Be careful when using this function in multithreaded
@@ -158,19 +198,19 @@ public:
      */
    void SetCount(int32 c) {_count = c;}
 
-#if !defined(MUSCLE_AVOID_CPLUSPLUS11) && !defined(MUSCLE_SINGLE_THREAD_ONLY)
-   /** Copy constructor, defined explicitly for the C++11-based implementation,
-     * since std::atomic<int32> won't compile using the implicit copy constructor.
-     * @param rhs the AtomicCounter to make this one equivalent to
+   /** Returns the current value of this counter.
+     * Be careful when using this function in multithreaded
+     * environments, it can easily lead to race conditions
+     * if you don't know what you are doing!
      */
-   AtomicCounter(const AtomicCounter & rhs) {_count.store(rhs._count.load());}
-
-   /** Assignment operator, defined explicitly for C++11-based implementation
-     * since std::atomic<int32> won't compile using the implicit copy constructor.
-     * @param rhs the AtomicCounter to make this one equivalent to
-     */
-   AtomicCounter & operator=(const AtomicCounter & rhs) {_count.store(rhs._count.load()); return *this;}
+   MUSCLE_NODISCARD int32 GetCount() const
+   {
+#if !defined(MUSCLE_SINGLE_THREAD_ONLY) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
+      return (int32) _count.load();
+#else
+      return (int32) _count;
 #endif
+   }
 
 private:
 #if defined(MUSCLE_SINGLE_THREAD_ONLY)
@@ -185,6 +225,15 @@ private:
    volatile int _count;
 #else
    volatile int32 _count;
+#endif
+
+#if defined(MUSCLE_SINGLE_THREAD_ONLY) || defined(MUSCLE_USE_MUTEXES_FOR_ATOMIC_OPERATIONS)
+   status_t NonAtomicConditionalSetCount(int32 fromOldValue, int32 toNewValue)
+   {
+      if (GetCount() != fromOldValue) return B_BAD_OBJECT;
+      SetCount(toNewValue);
+      return B_NO_ERROR;
+   }
 #endif
 };
 

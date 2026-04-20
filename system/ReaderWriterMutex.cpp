@@ -188,7 +188,9 @@ status_t ReaderWriterMutex :: LockReadWriteAux(uint64 optTimeoutTimestamp) const
 
 void ReaderWriterMutex :: MaybeNotifySomeWaitingThreads() const
 {
+#ifndef MUSCLE_SINGLE_THREAD_ONLY
    if ((_totalReadWriteRecurseCount == 0)&&(_executingThreads.IsEmpty())) (void) NotifySomeWaitingThreads();  // avoid a stall if we errored out above
+#endif
 }
 
 status_t ReaderWriterMutex :: UnlockReadOnlyAux() const

@@ -68,6 +68,8 @@ key:  - new feature
      to do clamping if necessary.
    - Updated WaitCondtion::WaitUntil() to use CLOCK_MONOTONIC when possible.
    - Added an atomic flag to SDLCallbackMechanism to avoid piling up events. (cc)
+   - Added a ConditionalSetCount() method to the AtomicCounter class to support
+     strong-compare-and-swap functionality (e.g. to implement atomic dirty bits)
    o Renamed virtual method ICallbackMechanism::SignalDispatchThread() to
      SignalDispatchThreadImplementation(), and added a non-virtual SignalDispatchThread()
      method that calls it, but only if a dirty-bit isn't already set.

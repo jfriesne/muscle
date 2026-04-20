@@ -3,11 +3,8 @@
 #ifndef ICallbackMechanism_h
 #define ICallbackMechanism_h
 
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-# include <atomic>
-#endif
-
 #include "support/NotCopyable.h"
+#include "system/AtomicCounter.h"
 #include "system/Mutex.h"
 #include "util/Hashtable.h"
 #include "util/NestCount.h"
@@ -33,13 +30,7 @@ class ICallbackMechanism : public NotCopyable
 {
 public:
    /** Default Constructor */
-   ICallbackMechanism()
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-      : _signalPending(false)
-#endif
-   {
-      // empty
-   }
+   ICallbackMechanism() {/* empty */}
 
    /** Destructor */
    virtual ~ICallbackMechanism();
@@ -52,17 +43,9 @@ public:
      */
    void DispatchCallbacks()
    {
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-      _signalPending.store(false);        // clear the dirty-bit (must be done first to avoid a race condition)
-#endif
-      DispatchCallbacksImplementation();  // defined in our subclass
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-      // used to avoid a potential dead-callback-mechanism if DispatchCallbacksImplementation() ate an
-      // extra signalling-byte that was generated after the _signalPending.store(false) command above
-      // this is the atomic version of:  if (_signalPending==true) {_signalPending = false; SignalDispatchThread();}
-      bool expected = true;
-      if (_signalPending.compare_exchange_strong(expected, false)) SignalDispatchThread();
-#endif
+      _signalPending.SetCount(0);        // clear the dirty-bit (must be done first to avoid a race condition)
+      DispatchCallbacksImplementation(); // defined in our subclass
+      if (_signalPending.ConditionalSetCount(1, 0).IsOK()) SignalDispatchThread(); // Oops, someone retriggered the _signalPending flag while we were dispatching!
    }
 
 protected:
@@ -72,12 +55,7 @@ protected:
      */
    void SignalDispatchThread()
    {
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-      // this is the atomic version of:  if (_signalPending==false) _signalPending = true; else return;
-      bool expected = false;
-      if (_signalPending.compare_exchange_strong(expected, true) == false) return;
-#endif
-      SignalDispatchThreadImplementation();  // defined in our subclass
+      if (_signalPending.ConditionalSetCount(0, 1).IsOK()) SignalDispatchThreadImplementation();  // defined in our subclass
    }
 
    /** Called by DispatchCallbacks() (ie typically the main/GUI thread) ASAP after receiving
@@ -114,9 +92,7 @@ private:
    Hashtable<ICallbackSubscriber *, uint32> _dirtySubscribers; // who has requested a DispatchCallbacks() call
    NestCount _dispatchCallbacksNestCount;                      // so we can handle re-entrant calls to DispatchCallbacks() gracefully
 
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-   std::atomic<bool> _signalPending;
-#endif
+   AtomicCounter _signalPending;  // 1==pending, 0==not pending
 };
 
 }  // end muscle namespace
