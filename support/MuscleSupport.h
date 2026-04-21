@@ -364,8 +364,8 @@ do {                                                                \
   */
 #define MPRINT_AND_RETURN_ON_ERROR(commandDesc, cmd) do {const status_t the_return_value = (cmd).GetStatus(); if (the_return_value.IsError()) {printf("%s:%i:  %s returned [%s]\n", __FILE__, __LINE__, commandDesc, the_return_value()); return the_return_value;}} while(0)
 
-/** This macro logs a warning message including the current filename and source-code line number.  It can be useful for debugging/execution-path-tracing in environments without a debugger. */
-#define MCHECKPOINT LogTime(muscle::MUSCLE_LOG_WARNING, "Reached checkpoint at %s:%i\n", __FILE__, __LINE__)
+/** This macro printf a message to stdout that includes the current filename and source-code line number.  It can be useful for debugging/execution-path-tracing in environments without a debugger. */
+#define MCHECKPOINT printf("Reached checkpoint at %s:%i\n", __FILE__, __LINE__)
 
 #if !defined(MUSCLE_64_BIT_PLATFORM)
 # if defined(PTRDIFF_MAX)
