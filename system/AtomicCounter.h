@@ -182,8 +182,10 @@ public:
 #elif defined(__APPLE__)
       return OSAtomicCompareAndSwap32Barrier(fromOldValue, toNewValue, &_count) ? B_NO_ERROR : B_BAD_OBJECT;
 #elif defined(MUSCLE_USE_POWERPC_INLINE_ASSEMBLY)
+      LogTime(MUSCLE_LOG_ERROR, "AtomicCounter::ConditionalSetCount() isn't implemented for PPC assembly!\n");  // just to make sure the user knows why his program isn't working
       return B_UNIMPLEMENTED;  // for now; if/when I need to implement this, I will
 #elif defined(MUSCLE_USE_X86_INLINE_ASSEMBLY)
+      LogTime(MUSCLE_LOG_ERROR, "AtomicCounter::ConditionalSetCount() isn't implemented for x86 assembly!\n");  // just to make sure the user knows why his program isn't working
       return B_UNIMPLEMENTED;  // for now; if/when I need to implement this, I will
 #else
 # error "No compare-and-swap routine supplied for this OS!  Add it here in AtomicCount.h, or remove -DMUSCLE_AVOID_CPLUSPLUS11 from your compiler-defines to use std::atomic, or put -DMUSCLE_SINGLE_THREAD_ONLY in your compiler-defines if you will not be using multithreading."
