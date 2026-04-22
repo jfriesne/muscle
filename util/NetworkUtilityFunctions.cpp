@@ -612,7 +612,7 @@ static io_status_t SendDataUDPIPv6(const ConstSocketRef & sock, const void * buf
          {
             const int         oidx = GetSocketMulticastSendInterfaceIndex(sock);
             const uint32 actualIdx = optToIP.GetInterfaceIndex();
-            if (oidx != ((int)actualIdx))
+            if ((oidx >= 0)&&(oidx != ((int)actualIdx)))
             {
                // temporarily set the socket's interface index to the desired one
                MRETURN_ON_ERROR(SetSocketMulticastSendInterfaceIndex(sock, actualIdx));
@@ -1046,19 +1046,22 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
       if (expandLocalhost) ExpandLocalhostAddress(ret);
       return ret;
    }
-   else if (_maxHostCacheSize > 0)
+   else
    {
-      const String s = GetHostByNameKey(name, expandLocalhost, preferIPv6);
       DECLARE_MUTEXGUARD(_hostCacheMutex);
-      const DNSRecord * r = _hostCache.Get(s);
-      if (r)
+      if (_maxHostCacheSize > 0)
       {
-         if ((r->GetExpirationTime() == MUSCLE_TIME_NEVER)||(GetRunTime64() < r->GetExpirationTime()))
+         const String s = GetHostByNameKey(name, expandLocalhost, preferIPv6);
+         const DNSRecord * r = _hostCache.Get(s);
+         if (r)
          {
-            (void) _hostCache.MoveToFront(s);  // LRU logic
-            return r->GetIPAddress();
+            if ((r->GetExpirationTime() == MUSCLE_TIME_NEVER)||(GetRunTime64() < r->GetExpirationTime()))
+            {
+               (void) _hostCache.MoveToFront(s);  // LRU logic
+               return r->GetIPAddress();
+            }
+            else (void) _hostCache.Remove(s);  // no point keeping an expired DNSRecord around
          }
-         else (void) _hostCache.Remove(s);  // no point keeping an expired DNSRecord around
       }
    }
 
@@ -1119,11 +1122,11 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
 
    if (expandLocalhost) ExpandLocalhostAddress(ret);
 
+   DECLARE_MUTEXGUARD(_hostCacheMutex);
    if (_maxHostCacheSize > 0)
    {
       // Store our result in the cache for later
       const String s = GetHostByNameKey(name, expandLocalhost, preferIPv6);
-      DECLARE_MUTEXGUARD(_hostCacheMutex);
       DNSRecord * r = _hostCache.PutAndGet(s, DNSRecord(ret, (_hostCacheEntryLifespan==MUSCLE_TIME_NEVER)?MUSCLE_TIME_NEVER:(GetRunTime64()+_hostCacheEntryLifespan)));
       if (r)
       {
@@ -1266,7 +1269,7 @@ IPAddressAndPort GetSocketBindAddress(const ConstSocketRef & sock, status_t * op
 
       default:
          if (optRetStatus) *optRetStatus = B_BAD_OBJECT;
-      break;
+      return IPAddressAndPort();  // to avoid the overwrite of (*optRetStatus) below
    }
 
    if (optRetStatus) *optRetStatus = B_ERRNO;
@@ -2620,25 +2623,39 @@ static IPAddress _customLocalhostIP = invalidIP;  // disabled by default
 void SetLocalHostIPOverride(const IPAddress & ip) {_customLocalhostIP = ip;}
 IPAddress GetLocalHostIPOverride() {return _customLocalhostIP;}
 
-#ifndef MUSCLE_DISABLE_KEEPALIVE_API
-
 status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbeCount, uint64 idleTime, uint64 retransmitTime)
 {
-#ifdef __linux__
+#if !defined(MUSCLE_AVOID_KEEPALIVE_API) && (defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__))
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   int arg = MicrosToSecondsRoundUp(idleTime);
-   if (setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &arg, sizeof(arg)) != 0) return B_ERRNO;
+   {
+      const int keepAlive = (maxProbeCount>0);  // true iff we want keepalive enabled
+      if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &keepAlive, sizeof(keepAlive)) != 0) return B_ERRNO;
+   }
 
-   arg = (int) maxProbeCount;
-   if (setsockopt(fd, SOL_TCP, TCP_KEEPCNT, &arg, sizeof(arg)) != 0) return B_ERRNO;
+   {
+      const int idleTimeSeconds = (int) MicrosToSecondsRoundUp(idleTime);
+# if defined(__linux__)
+      if (setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &idleTimeSeconds, sizeof(idleTimeSeconds)) != 0) return B_ERRNO;
+# elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+      if ((setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, &idleTimeSeconds, sizeof(idleTimeSeconds)) != 0)&&(errno != ENOPROTOOPT)) return B_ERRNO;
+# endif
+   }
 
-   arg = MicrosToSecondsRoundUp(retransmitTime);
-   if (setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, &arg, sizeof(arg)) != 0) return B_ERRNO;
+# if defined(TCP_KEEPCNT) && !defined(__APPLE__)
+   {
+      const int maxProbes = (int) maxProbeCount;  // gotta be int, not uint32
+      if ((setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &maxProbes, sizeof(maxProbes)) != 0)&&(errno != ENOPROTOOPT)) return B_ERRNO;
+   }
+#endif
 
-   arg = (maxProbeCount>0);  // true iff we want keepalive enabled
-   if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (const sockopt_arg *) &arg, sizeof(arg)) != 0) return B_ERRNO;
+# if defined(TCP_KEEPINTVL)
+   {
+      const int keepIntvl = (int) MicrosToSecondsRoundUp(retransmitTime);
+      if ((setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &keepIntvl, sizeof(keepIntvl)) != 0)&&(errno != ENOPROTOOPT)) return B_ERRNO;
+   }
+#endif
 
    return B_NO_ERROR;
 #else
@@ -2653,11 +2670,11 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
 
 status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMaxProbeCount, uint64 * retIdleTime, uint64 * retRetransmitTime)
 {
-#ifdef __linux__
+#if !defined(MUSCLE_AVOID_KEEPALIVE_API) && (defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__))
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   int val;
+   int val = 0;
    muscle_socklen_t valLen;
    if (retMaxProbeCount)
    {
@@ -2665,21 +2682,38 @@ status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMax
       valLen = sizeof(val); if (getsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_arg *) &val, &valLen) != 0) return B_ERRNO;
       if (val != 0)  // we only set *retMaxProbeCount if SO_KEEPALIVE is enabled, otherwise we return 0 to indicate no-keepalive
       {
-         valLen = sizeof(val); if (getsockopt(fd, SOL_TCP, TCP_KEEPCNT, (sockopt_arg *) &val, &valLen) != 0) return B_ERRNO;
+# if defined(TCP_KEEPCNT) && !defined(__APPLE__)
+         valLen = sizeof(val); if ((getsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, (sockopt_arg *) &val, &valLen) != 0)&&(errno != ENOPROTOOPT)) return B_ERRNO;
          *retMaxProbeCount = val;
+# else
+         *retMaxProbeCount = 1;  // just to indicate that keepalive behavior is enabled
+#endif
       }
    }
 
    if (retIdleTime)
    {
-      valLen = sizeof(val); if (getsockopt(fd, SOL_TCP, TCP_KEEPIDLE, (sockopt_arg *) &val, &valLen) != 0) return B_ERRNO;
+      val = 0;  // paranoia
+# if defined(__linux__)
+      valLen = sizeof(val); if ((getsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, (sockopt_arg *) &val, &valLen) != 0)&&(errno != ENOPROTOOPT)) return B_ERRNO;
       *retIdleTime = SecondsToMicros(val);
+# elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+      valLen = sizeof(val); if ((getsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, (sockopt_arg *) &val, &valLen) != 0)&&(errno != ENOPROTOOPT)) return B_ERRNO;
+      *retIdleTime = SecondsToMicros(val);
+# else
+      *retIdleTime = 0;
+# endif
    }
 
    if (retRetransmitTime)
    {
-      valLen = sizeof(val); if (getsockopt(fd, SOL_TCP, TCP_KEEPINTVL, (sockopt_arg *) &val, &valLen) != 0) return B_ERRNO;
+# if defined(TCP_KEEPINTVL)
+      val = 0;
+      valLen = sizeof(val); if ((getsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, (sockopt_arg *) &val, &valLen) != 0)&&(errno != ENOPROTOOPT)) return B_ERRNO;
       *retRetransmitTime = SecondsToMicros(val);
+# else
+      *retRetransmitTime = 0;
+# endif
    }
 
    return B_NO_ERROR;
@@ -2693,16 +2727,17 @@ status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMax
 #endif
 }
 
-#endif
-
-#ifndef MUSCLE_AVOID_MULTICAST_API
-
 status_t SetSocketMulticastToSelf(const ConstSocketRef & sock, bool multicastToSelf)
 {
-   const int toSelf = multicastToSelf ? 1 : 0;
+#ifdef MUSCLE_AVOID_MULTICAST_API
+   (void) sock;
+   (void) toSelf;
+   return B_UNIMPLEMENTED;
+#else
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
+   const int toSelf = multicastToSelf ? 1 : 0;
    switch(sock()->GetFamily())
    {
 #ifndef MUSCLE_AVOID_IPV6
@@ -2716,14 +2751,20 @@ status_t SetSocketMulticastToSelf(const ConstSocketRef & sock, bool multicastToS
       default:
          return B_UNIMPLEMENTED;
    }
+#endif
 }
 
 bool GetSocketMulticastToSelf(const ConstSocketRef & sock)
 {
-   uint8 toSelf;
-   muscle_socklen_t size = sizeof(toSelf);
+#ifdef MUSCLE_AVOID_MULTICAST_API
+   (void) sock;
+   return false;
+#else
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return false;
+
+   int toSelf;
+   muscle_socklen_t size = sizeof(toSelf);
 
    switch(sock()->GetFamily())
    {
@@ -2738,14 +2779,20 @@ bool GetSocketMulticastToSelf(const ConstSocketRef & sock)
       default:
          return false;
    }
+#endif
 }
 
 status_t SetSocketMulticastTimeToLive(const ConstSocketRef & sock, uint8 ttl)
 {
+#ifdef MUSCLE_AVOID_MULTICAST_API
+   (void) sock;
+   (void) ttl;
+   return B_UNIMPLEMENTED;
+#else
    const int fd = sock.GetFileDescriptor();
-   const int ttl_arg = (int) ttl;
    if (fd < 0) return B_BAD_ARGUMENT;
 
+   const int ttl_arg = (int) ttl;
    switch(sock()->GetFamily())
    {
 #ifndef MUSCLE_AVOID_IPV6
@@ -2759,10 +2806,15 @@ status_t SetSocketMulticastTimeToLive(const ConstSocketRef & sock, uint8 ttl)
       default:
          return B_UNIMPLEMENTED;
    }
+#endif
 }
 
 uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock)
 {
+#ifdef MUSCLE_AVOID_MULTICAST_API
+   (void) sock;
+   return 0;
+#else
    int ttl = 0;
    muscle_socklen_t size = sizeof(ttl);
    const int fd = sock.GetFileDescriptor();
@@ -2781,8 +2833,10 @@ uint8 GetSocketMulticastTimeToLive(const ConstSocketRef & sock)
       default:
          return 0;
    }
+#endif
 }
 
+#ifndef MUSCLE_AVOID_MULTICAST_API
 static status_t AddSocketToMulticastGroupIPv4(int fd, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
 {
    struct ip_mreq req; memset(&req, 0, sizeof(req));
@@ -2818,6 +2872,7 @@ IPAddress GetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock
    muscle_socklen_t len = sizeof(localInterface);
    return ((getsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, (sockopt_arg *) &localInterface, &len) == 0)&&(len == sizeof(localInterface))) ? IPAddress(ntohl(localInterface.s_addr)) : invalidIP;
 }
+#endif
 
 #ifdef MUSCLE_AVOID_IPV6
 
@@ -2825,12 +2880,26 @@ IPAddress GetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock
 
 status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
 {
+# ifdef MUSCLE_AVOID_MULTICAST_API
+   (void) sock;
+   (void) groupAddress;
+   (void) localInterfaceAddress;
+   return B_UNIMPLEMENTED;
+# else
    return (sock.GetFileDescriptor() >= 0) ? AddSocketToMulticastGroupIPv4(sock.GetFileDescriptor(), groupAddress, localInterfaceAddress) : B_BAD_ARGUMENT;
+# endif
 }
 
 status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
 {
+# ifdef MUSCLE_AVOID_MULTICAST_API
+   (void) sock;
+   (void) groupAddress;
+   (void) localInterfaceAddress;
+   return B_UNIMPLEMENTED;
+# else
    return (sock.GetFileDescriptor() >= 0) ? RemoveSocketFromMulticastGroupIPv4(sock.GetFileDescriptor(), groupAddress, localInterfaceAddress) : B_BAD_ARGUMENT;
+# endif
 }
 
 #else  // end IPv4 multicast, begin IPv6 multicast
@@ -2845,25 +2914,42 @@ status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAdd
 
 status_t SetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock, uint32 interfaceIndex)
 {
+# ifdef MUSCLE_AVOID_MULTICAST_API
+   (void) sock;
+   (void) interfaceIndex;
+   return B_UNIMPLEMENTED;
+# else
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
    const int idx = (interfaceIndex == MUSCLE_NO_LIMIT) ? 0 : (int) interfaceIndex;
    return (setsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, (const sockopt_arg *) &idx, sizeof(idx)) == 0) ? B_NO_ERROR : B_ERRNO;
+# endif
 }
 
 int32 GetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock)
 {
+# ifdef MUSCLE_AVOID_MULTICAST_API
+   (void) sock;
+   return -1;
+# else
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return -1;
 
    int idx = 0;
    muscle_socklen_t len = sizeof(idx);
    return ((getsockopt(fd, IPPROTO_IPV6, IPV6_MULTICAST_IF, (sockopt_arg *) &idx, &len) == 0)&&(len == sizeof(idx))) ? idx : -1;
+# endif
 }
 
 status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
 {
+# ifdef MUSCLE_AVOID_MULTICAST_API
+   (void) sock;
+   (void) groupAddress;
+   (void) localInterfaceAddress;
+   return B_UNIMPLEMENTED;
+# else
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
@@ -2876,10 +2962,17 @@ status_t AddSocketToMulticastGroup(const ConstSocketRef & sock, const IPAddress 
       req.ipv6mr_interface = interfaceIdx;
       return (setsockopt(fd, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
    }
+# endif
 }
 
 status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAddress & groupAddress, const IPAddress & localInterfaceAddress)
 {
+# ifdef MUSCLE_AVOID_MULTICAST_API
+   (void) sock;
+   (void) groupAddress;
+   (void) localInterfaceAddress;
+   return B_UNIMPLEMENTED;
+# else
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
@@ -2892,10 +2985,9 @@ status_t RemoveSocketFromMulticastGroup(const ConstSocketRef & sock, const IPAdd
       req.ipv6mr_interface = interfaceIdx;
       return (setsockopt(fd, IPPROTO_IPV6, IPV6_DROP_MEMBERSHIP, (const sockopt_arg *) &req, sizeof(req)) == 0) ? B_NO_ERROR : B_ERRNO;
    }
+# endif
 }
 
 #endif  // IPv6 multicast
-
-#endif  // !MUSCLE_AVOID_MULTICAST_API
 
 } // end namespace muscle

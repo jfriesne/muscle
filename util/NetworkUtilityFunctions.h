@@ -581,8 +581,6 @@ void SetGlobalSocketCallback(GlobalSocketCallback * cb);
 /** Returns the currently installed GlobalSocketCallback object, or NULL if there is none installed. */
 MUSCLE_NODISCARD GlobalSocketCallback * GetGlobalSocketCallback();
 
-#ifndef MUSCLE_DISABLE_KEEPALIVE_API
-
 /**
   * This function modifies the TCP keep-alive behavior for the given TCP socket -- that is, you can use this
   * function to control how often the TCP socket checks to see if the remote peer is still accessible when the
@@ -591,7 +589,8 @@ MUSCLE_NODISCARD GlobalSocketCallback * GetGlobalSocketCallback();
   * remote peer.
   * @param sock The TCP socket to adjust the keepalive behavior of.
   * @param maxProbeCount The number of keepalive-ping probes that must go unanswered before the TCP connection is closed.
-  *                      Passing zero to this argument will disable keepalive-ping behavior.
+  *                      Passing zero to this argument will disable keepalive-ping behavior.  Note that under MacOS this
+  *                      argument is used only to decide whether or not to enable SO_KEEPALIVE (iff maxProbeCount is non-zero)
   * @param idleTime The amount of time (in microseconds) of inactivity on the TCP socket that must pass before the
   *                 first keepalive-ping probe is sent.  Note that the granularity of the timeout is determined by
   *                 the operating system, so the actual timeout period may be somewhat more or less than the specified number
@@ -601,7 +600,7 @@ MUSCLE_NODISCARD GlobalSocketCallback * GetGlobalSocketCallback();
   *                       the operating system, so the actual timeout period may be somewhat more or less than the specified number
   *                       of microseconds.  (Currently it gets rounded up to the nearest second)
   * @returns B_NO_ERROR on success, or an error code on failure.
-  * @note This function is currently implemented only on Linux; on other OS's it will always just return B_UNIMPLEMENTED.
+  * @note This function is currently implemented only on Linux, BSD, and MacOS; on other OS's it will always just return B_UNIMPLEMENTED.
   */
 status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbeCount, uint64 idleTime, uint64 retransmitTime);
 
@@ -616,8 +615,6 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
   * @see SetSocketKeepAliveBehavior()
   */
 status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMaxProbeCount, uint64 * retIdleTime, uint64 * retRetransmitTime);
-
-#endif
 
 /** Set a user-specified IP address to return from GetHostByName() and GetPeerAddress() instead of 127.0.0.1.
   * Note that this function <b>does not</b> change the computer's IP address -- it merely changes what
@@ -711,8 +708,6 @@ status_t SetUDPSocketBroadcastEnabled(const ConstSocketRef & sock, bool broadcas
  *  @note this function is specific to IPv4.  There is no such thing as "broadcast" in IPv6, only multicast!
   */
 MUSCLE_NODISCARD bool GetUDPSocketBroadcastEnabled(const ConstSocketRef & sock);
-
-#ifndef MUSCLE_AVOID_MULTICAST_API
 
 /** Sets whether multicast data sent on this socket should be received by
   * sockets on the local host machine, or not (IP_MULTICAST_LOOP).
@@ -814,8 +809,6 @@ IPAddress GetIPv4SocketMulticastSendInterfaceAddress(const ConstSocketRef & sock
 status_t SetSocketMulticastSendInterfaceIndex(const ConstSocketRef & sock, uint32 interfaceIndex);
 
 #endif  // end IPv6 multicast
-
-#endif  // !MUSCLE_AVOID_MULTICAST_API
 
 /// @cond HIDDEN_SYMBOLS
 

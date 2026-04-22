@@ -427,6 +427,20 @@ static void DoUDPSession(const String & optHost, uint16 port, bool joinMulticast
    }
 }
 
+class KeepAliveSocketCallback : public GlobalSocketCallback
+{
+public:
+   KeepAliveSocketCallback() {/* empty */}
+
+   virtual status_t SocketCallback(uint32 eventType, const ConstSocketRef & sock)
+   {
+      status_t ret;
+      if ((eventType != SOCKET_CALLBACK_CREATE_UDP)&&(SetSocketKeepAliveBehavior(sock, 5, SecondsToMicros(5), MillisToMicros(500)).IsError(ret))) LogTime(MUSCLE_LOG_DEBUG, "SocketCallback:  SetSocketKeepAliveBehavior() failed for socket %i (eventType=" UINT32_FORMAT_SPEC ")! [%s]\n", sock.GetFileDescriptor(), eventType, ret());
+      return B_NO_ERROR;
+   }
+};
+static KeepAliveSocketCallback _keepAliveSocketCallback;
+
 static void LogUsage(const char * argv0)
 {
    String progName = String(argv0).Substring(GetFilePathSeparator());
@@ -451,6 +465,7 @@ static void LogUsage(const char * argv0)
    LogPlain(MUSCLE_LOG_INFO, "                spamrate=<Hz>            (Specify number of automatic-spam-transmissions to send per second)\n");
    LogPlain(MUSCLE_LOG_INFO, "                spamsize=<bytes>         (Specify size of each automatic-spam-transmission; defaults to 1024)\n");
    LogPlain(MUSCLE_LOG_INFO, "                printchecksums           (print checksums for incoming and sent data)\n");
+   LogPlain(MUSCLE_LOG_INFO, "                keepalive                (Set a five-second keepalive-callback on TCP connections)\n");
    LogPlain(MUSCLE_LOG_INFO, "                localnicip=<ipaddress>   (for IPv4 multicast, the IP of a local NIC to bind to)\n");
    LogPlain(MUSCLE_LOG_INFO, "                help                     (print this help text)\n");
 }
@@ -471,6 +486,12 @@ int hextermmain(const char * argv0, const Message & args)
    {
       LogTime(MUSCLE_LOG_INFO, "ASCII mode activated!\n");
       g_useHex = false;
+   }
+
+   if (args.HasName("keepalive"))
+   {
+      LogTime(MUSCLE_LOG_INFO, "Enabling Keepalive socket callback for all TCP sockets\n");
+      SetGlobalSocketCallback(&_keepAliveSocketCallback);
    }
 
    if (args.HasName("gzip"))

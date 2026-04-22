@@ -2472,8 +2472,8 @@ Queue<String> GetBuildFlags()
    (void) q.AddTail("MUSCLE_AVOID_MULTICAST_API");
 #endif
 
-#ifdef MUSCLE_DISABLE_KEEPALIVE_API
-   (void) q.AddTail("MUSCLE_DISABLE_KEEPALIVE_API");
+#ifdef MUSCLE_AVOID_KEEPALIVE_API
+   (void) q.AddTail("MUSCLE_AVOID_KEEPALIVE_API");
 #endif
 
 #ifdef MUSCLE_64_BIT_PLATFORM

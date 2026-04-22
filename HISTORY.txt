@@ -71,6 +71,8 @@ key:  - new feature
    - Added a ConditionalSetCount() method to the AtomicCounter class to support
      strong-compare-and-swap functionality (e.g. to implement atomic dirty bits)
    - AtomicCounter's constructor now takes an optional initial int32-value.
+   - Implemented SetSocketKeepAliveBehavior() for MacOS and BSD OS's.
+   - Added a "keepalive" argument to hexterm.
    o Renamed virtual method ICallbackMechanism::SignalDispatchThread() to
      SignalDispatchThreadImplementation(), and added a non-virtual SignalDispatchThread()
      method that calls it, but only if a dirty-bit isn't already set.
@@ -151,6 +153,7 @@ key:  - new feature
      to use the BitChord class rather than raw arrays, for better code-safety.
    o Changed MCHECKPOINT macro to call printf() instead of LogTime().
    o GetMaxLogLevel() now uses an AtomicCounter rather than a std::atomic<int>.
+   o Renamed MUSCLE_DISABLE_MULTICAST_API to MUSCLE_AVOID_MULTICAST_API.
    * Added ReadFrom() and WriteTo() methods to XorProxyDataIO, for consistency.
    * Fixed various compiler-warnings detected by the new build flags.
    * Fixed ByteBufferDataIO to handle seeks correctly in >2GB buffers.
