@@ -2742,7 +2742,7 @@ status_t SetSocketMulticastToSelf(const ConstSocketRef & sock, bool multicastToS
 {
 #ifdef MUSCLE_AVOID_MULTICAST_API
    (void) sock;
-   (void) toSelf;
+   (void) multicastToSelf;
    return B_UNIMPLEMENTED;
 #else
    const int fd = sock.GetFileDescriptor();
