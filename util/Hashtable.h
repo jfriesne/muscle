@@ -3,6 +3,10 @@
 #ifndef MuscleHashtable_h
 #define MuscleHashtable_h
 
+#if !defined(MUSCLE_AVOID_THREAD_SAFE_HASHTABLE_ITERATORS) && !defined(MUSCLE_AVOID_CPLUSPLUS11)
+# include <atomic>
+#endif
+
 #include "support/Void.h"  // only here since various Hashtable users may need it
 #include "util/HashtableIterator.h"
 

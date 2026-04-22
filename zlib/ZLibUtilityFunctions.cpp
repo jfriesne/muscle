@@ -8,9 +8,7 @@
 #include "zlib/ZLibCodec.h"
 #include "zlib/ZLibUtilityFunctions.h"
 #ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
-# ifndef MUSCLE_AVOID_CPLUSPLUS11
-#  include <atomic>
-# endif
+# include "system/AtomicCounter.h"
 #else
 # ifdef MUSCLE_SINGLE_THREAD_ONLY
 #  define MUSCLE_AVOID_THREAD_LOCAL_STORAGE
@@ -26,11 +24,7 @@ static const String MUSCLE_ZLIB_FIELD_NAME_STRING = MUSCLE_ZLIB_FIELD_NAME;
 #ifdef MUSCLE_AVOID_THREAD_LOCAL_STORAGE
 static Mutex _zlibLock;  // a separate lock because using the global lock was causing deadlockfinder hits
 static ZLibCodec * _codecs[10] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
-# if defined(MUSCLE_AVOID_CPLUSPLUS11) || defined(MUSCLE_SINGLE_THREAD_ONLY)
-static bool _cleanupCallbackInstalled = false;
-# else
-static std::atomic<bool> _cleanupCallbackInstalled;
-# endif
+static AtomicCounter _cleanupCallbackInstalled(false);
 #else
 static ThreadLocalStorage<ZLibCodec> _codecs[10];  // using ThreadLocalStorage == no locking == no headaches :)
 #endif
@@ -46,14 +40,7 @@ static void FreeZLibCodecs()
    }
 }
 
-static bool IsCleanupCallbackInstalledFlagSet()
-{
-# if defined(MUSCLE_AVOID_CPLUSPLUS11) || defined(MUSCLE_SINGLE_THREAD_ONLY)
-   return _cleanupCallbackInstalled;
-#else
-   return _cleanupCallbackInstalled.load();
-#endif
-}
+static bool IsCleanupCallbackInstalledFlagSet() {return (_cleanupCallbackInstalled.GetCount() != 0);}
 
 static void EnsureCleanupCallbackInstalled()
 {
@@ -69,7 +56,7 @@ static void EnsureCleanupCallbackInstalled()
             if (css)
             {
                static FunctionCallback _freeCodecsCallback(FreeZLibCodecs);
-               if (css->GetCleanupCallbacks().AddTail(DummyGenericCallbackRef(_freeCodecsCallback)).IsOK()) _cleanupCallbackInstalled = true;
+               if (css->GetCleanupCallbacks().AddTail(DummyGenericCallbackRef(_freeCodecsCallback)).IsOK()) _cleanupCallbackInstalled.SetCount(true);
             }
          }
       }

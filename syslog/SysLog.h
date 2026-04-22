@@ -3,11 +3,8 @@
 #ifndef MuscleSysLog_h
 #define MuscleSysLog_h
 
-#include "support/MuscleSupport.h"
+#include "system/AtomicCounter.h"  // necessary to bring in the definition of GetMaxLogLevel() that is at the end of AtomicCounter.h; don't delete this
 
-#ifndef MUSCLE_AVOID_CPLUSPLUS11
-# include <atomic>
-#endif
 #ifdef MUSCLE_MINIMALIST_LOGGING
 # include <stdarg.h>
 #endif
@@ -159,28 +156,10 @@ MUSCLE_NODISCARD bool GetFileLogCompressionEnabled();
  */
 MUSCLE_NODISCARD int GetConsoleLogLevel();
 
-#ifndef DOXYGEN_SHOULD_IGNORE_THIS
-namespace muscle_private
-{
-#ifdef MUSCLE_AVOID_CPLUSPLUS11
-extern int _maxLogThreshold;
-#else
-extern std::atomic<int> _maxLogThreshold;
-#endif
-}
-#endif
-
 /** Returns the max of GetFileLogLevel() and GetConsoleLogLevel()
  *  @return a MUSCLE_LOG_* value
  */
-MUSCLE_NODISCARD static inline int GetMaxLogLevel()
-{
-#ifdef MUSCLE_AVOID_CPLUSPLUS11
-   return muscle_private::_maxLogThreshold;  // I guess we'll take our chances here
-#else
-   return muscle_private::_maxLogThreshold.load();
-#endif
-}
+MUSCLE_NODISCARD inline int GetMaxLogLevel();  // inline is intentional here; method implementation is at the bottom of AtomicCounter.h
 
 /** Sets the log filter level for logging to a file.
  *  Any calls to Log*() that specify a log level greater than (loglevel)

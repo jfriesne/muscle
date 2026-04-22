@@ -83,14 +83,7 @@ static const char * const _logLevelKeywords[] = {
    "trace"
 };
 
-namespace muscle_private
-{
-#ifdef MUSCLE_AVOID_CPLUSPLUS11
-int _maxLogThreshold = MUSCLE_LOG_INFO;  // I guess we'll take our chances here
-#else
-std::atomic<int> _maxLogThreshold(MUSCLE_LOG_INFO);
-#endif
-}
+namespace muscle_private {AtomicCounter _maxLogThreshold(MUSCLE_LOG_INFO);}
 
 DefaultConsoleLogger :: DefaultConsoleLogger(int defaultLogThreshold)
    : LogCallback(defaultLogThreshold)
@@ -557,7 +550,7 @@ static void UpdateMaxLogLevel()
       if (cb) maxLogThreshold = muscleMax(maxLogThreshold, cb->GetLogLevelThreshold());
    }
 
-   muscle_private::_maxLogThreshold = maxLogThreshold;
+   muscle_private::_maxLogThreshold.SetCount(maxLogThreshold);
 }
 
 void SetFileLogLevel(int logLevel)

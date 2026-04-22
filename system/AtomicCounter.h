@@ -56,11 +56,10 @@ MUSCLE_NODISCARD static inline int32 DoMutexAtomicIncrement(volatile int32 * cou
 class MUSCLE_NODISCARD AtomicCounter MUSCLE_FINAL_CLASS
 {
 public:
-   /** Default constructor.  The count value is initialized to zero. */
-   MUSCLE_CONSTEXPR AtomicCounter() : _count(0)
-   {
-      // empty
-   }
+   /** Constructor.  The count value is initialized to the specified value.
+     * @param count the value to initialize the atomic counter to.  Defaults to zero.
+     */
+   MUSCLE_CONSTEXPR AtomicCounter(int32 count = 0) : _count(count) {/* empty */}
 
    /** @copydoc DoxyTemplate::DoxyTemplate(const DoxyTemplate &) */
    AtomicCounter(const AtomicCounter & rhs) {SetCount(rhs.GetCount());}
@@ -238,6 +237,12 @@ private:
    }
 #endif
 };
+
+#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+class AtomicCounter;
+namespace muscle_private {extern AtomicCounter _maxLogThreshold;}  // implementation detail; exposed for efficiency
+MUSCLE_NODISCARD inline int GetMaxLogLevel() {return muscle_private::_maxLogThreshold.GetCount();}
+#endif
 
 } // end namespace muscle
 
