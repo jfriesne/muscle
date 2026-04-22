@@ -71,7 +71,8 @@ key:  - new feature
    - Added a ConditionalSetCount() method to the AtomicCounter class to support
      strong-compare-and-swap functionality (e.g. to implement atomic dirty bits)
    - AtomicCounter's constructor now takes an optional initial int32-value.
-   - Implemented SetSocketKeepAliveBehavior() for MacOS and BSD OS's.
+   - Implemented SetSocketKeepAliveBehavior() and GetSocketKeepaliveBehavior()
+     for Windows, MacOS, and BSD OS's.
    - Added a "keepalive" argument to hexterm.
    o Renamed virtual method ICallbackMechanism::SignalDispatchThread() to
      SignalDispatchThreadImplementation(), and added a non-virtual SignalDispatchThread()

@@ -589,7 +589,7 @@ MUSCLE_NODISCARD GlobalSocketCallback * GetGlobalSocketCallback();
   * remote peer.
   * @param sock The TCP socket to adjust the keepalive behavior of.
   * @param maxProbeCount The number of keepalive-ping probes that must go unanswered before the TCP connection is closed.
-  *                      Passing zero to this argument will disable keepalive-ping behavior.  Note that under MacOS this
+  *                      Passing zero to this argument will disable keepalive-ping behavior.  Note that under MacOS and Windows this
   *                      argument is used only to decide whether or not to enable SO_KEEPALIVE (iff maxProbeCount is non-zero)
   * @param idleTime The amount of time (in microseconds) of inactivity on the TCP socket that must pass before the
   *                 first keepalive-ping probe is sent.  Note that the granularity of the timeout is determined by
@@ -600,7 +600,7 @@ MUSCLE_NODISCARD GlobalSocketCallback * GetGlobalSocketCallback();
   *                       the operating system, so the actual timeout period may be somewhat more or less than the specified number
   *                       of microseconds.  (Currently it gets rounded up to the nearest second)
   * @returns B_NO_ERROR on success, or an error code on failure.
-  * @note This function is currently implemented only on Linux, BSD, and MacOS; on other OS's it will always just return B_UNIMPLEMENTED.
+  * @note This function is currently implemented only on Linux, BSD, Windows, and MacOS; on other OS's it will always just return B_UNIMPLEMENTED.
   */
 status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbeCount, uint64 idleTime, uint64 retransmitTime);
 
@@ -608,10 +608,14 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
   * Queries the values previously set on the socket by SetSocketKeepAliveBehavior().
   * @param sock The TCP socket to return the keepalive behavior of.
   * @param retMaxProbeCount if non-NULL, the max-probe-count value of the socket will be written into this argument.
+  *                         Note that under MacOS and Windows, this value will only be returned as either 1 (keepalive
+  *                         enabled) or 0 (keepalive disabled) due to OS limitations.
   * @param retIdleTime if non-NULL, the idle-time of the socket will be written into this argument.
+  *                    Note that under Windows this value will always be set to 0 due to OS limitations.
   * @param retRetransmitTime if non-NULL, the transmit-time of the socket will be written into this argument.
+  *                          Note that under Windows this value will always be set to 0 due to OS limitations.
   * @returns B_NO_ERROR on success, or an error code on failure.
-  * @note This function is currently implemented only on Linux; on other OS's it will always just return B_UNIMPLEMENTED.
+  * @note This function is currently implemented only on Linux, BSD, Windows, and MacOS; on other OS's it will always just return B_UNIMPLEMENTED.
   * @see SetSocketKeepAliveBehavior()
   */
 status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMaxProbeCount, uint64 * retIdleTime, uint64 * retRetransmitTime);

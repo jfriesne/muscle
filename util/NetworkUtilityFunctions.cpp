@@ -22,6 +22,7 @@
 typedef char sockopt_arg;  // Windows setsockopt()/getsockopt() use char pointers
 # include <iphlpapi.h>
 # include <mswsock.h>  // for SIO_UDP_CONNRESET, etc
+# include <mstcpip.h>  // for SIO_KEEPALIVE_VALS
 # include <ws2tcpip.h>
 # if !(defined(__MINGW32__) || defined(__MINGW64__)) && !defined(MUSCLE_AVOID_MULTICAST_API)
 #  include <ws2ipdef.h>  // for IP_MULTICAST_LOOP, etc
@@ -2625,37 +2626,47 @@ IPAddress GetLocalHostIPOverride() {return _customLocalhostIP;}
 
 status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbeCount, uint64 idleTime, uint64 retransmitTime)
 {
-#if !defined(MUSCLE_AVOID_KEEPALIVE_API) && (defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__))
+#if !defined(MUSCLE_AVOID_KEEPALIVE_API) && (defined(__linux__) || defined(__APPLE__) || defined(WIN32) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__))
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
    {
       const int keepAlive = (maxProbeCount>0);  // true iff we want keepalive enabled
-      if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &keepAlive, sizeof(keepAlive)) != 0) return B_ERRNO;
+      if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (const sockopt_arg *) &keepAlive, sizeof(keepAlive)) != 0) return B_ERRNO;
    }
 
+# if defined(WIN32)
+   struct tcp_keepalive ka; memset(&ka, 0, sizeof(ka));
+   ka.onoff             = (maxProbeCount>0);
+   ka.keepalivetime     = (u_long) MicrosToMillis(idleTime);
+   ka.keepaliveinterval = (u_long) MicrosToMillis(retransmitTime);
+
+   DWORD bytesReturned = 0;
+   if (WSAIoctl(fd, SIO_KEEPALIVE_VALS, &ka, sizeof(ka), NULL, 0, &bytesReturned, NULL, NULL) == SOCKET_ERROR) return B_ERRNO;
+#else
    {
       const int idleTimeSeconds = (int) MicrosToSecondsRoundUp(idleTime);
-# if defined(__linux__)
+#  if defined(__linux__)
       if (setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &idleTimeSeconds, sizeof(idleTimeSeconds)) != 0) return B_ERRNO;
-# elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#  elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
       if ((setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, &idleTimeSeconds, sizeof(idleTimeSeconds)) != 0)&&(errno != ENOPROTOOPT)) return B_ERRNO;
-# endif
+#  endif
    }
 
-# if defined(TCP_KEEPCNT) && !defined(__APPLE__)
+#  if defined(TCP_KEEPCNT) && !defined(__APPLE__)
    {
       const int maxProbes = (int) maxProbeCount;  // gotta be int, not uint32
       if ((setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &maxProbes, sizeof(maxProbes)) != 0)&&(errno != ENOPROTOOPT)) return B_ERRNO;
    }
-#endif
+#  endif
 
-# if defined(TCP_KEEPINTVL)
+#  if defined(TCP_KEEPINTVL)
    {
       const int keepIntvl = (int) MicrosToSecondsRoundUp(retransmitTime);
       if ((setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &keepIntvl, sizeof(keepIntvl)) != 0)&&(errno != ENOPROTOOPT)) return B_ERRNO;
    }
-#endif
+#  endif
+# endif   // !WIN32
 
    return B_NO_ERROR;
 #else
@@ -2670,7 +2681,7 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
 
 status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMaxProbeCount, uint64 * retIdleTime, uint64 * retRetransmitTime)
 {
-#if !defined(MUSCLE_AVOID_KEEPALIVE_API) && (defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__))
+#if !defined(MUSCLE_AVOID_KEEPALIVE_API) && (defined(__linux__) || defined(__APPLE__) || defined(WIN32) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__))
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
@@ -2682,7 +2693,7 @@ status_t GetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 * retMax
       valLen = sizeof(val); if (getsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (sockopt_arg *) &val, &valLen) != 0) return B_ERRNO;
       if (val != 0)  // we only set *retMaxProbeCount if SO_KEEPALIVE is enabled, otherwise we return 0 to indicate no-keepalive
       {
-# if defined(TCP_KEEPCNT) && !defined(__APPLE__)
+# if defined(TCP_KEEPCNT) && !defined(__APPLE__) && !defined(WIN32)
          valLen = sizeof(val); if ((getsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, (sockopt_arg *) &val, &valLen) != 0)&&(errno != ENOPROTOOPT)) return B_ERRNO;
          *retMaxProbeCount = val;
 # else
