@@ -2630,11 +2630,6 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
    const int fd = sock.GetFileDescriptor();
    if (fd < 0) return B_BAD_ARGUMENT;
 
-   {
-      const int keepAlive = (maxProbeCount>0);  // true iff we want keepalive enabled
-      if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (const sockopt_arg *) &keepAlive, sizeof(keepAlive)) != 0) return B_ERRNO;
-   }
-
 # if defined(WIN32)
    struct tcp_keepalive ka; memset(&ka, 0, sizeof(ka));
    ka.onoff             = (maxProbeCount>0);
@@ -2642,8 +2637,13 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
    ka.keepaliveinterval = (u_long) MicrosToMillis(retransmitTime);
 
    DWORD bytesReturned = 0;
-   if (WSAIoctl(fd, SIO_KEEPALIVE_VALS, &ka, sizeof(ka), NULL, 0, &bytesReturned, NULL, NULL) == SOCKET_ERROR) return B_ERRNO;
+   return (WSAIoctl(fd, SIO_KEEPALIVE_VALS, &ka, sizeof(ka), NULL, 0, &bytesReturned, NULL, NULL) == SOCKET_ERROR) ? B_ERRNO : B_NO_ERROR;
 #else
+   {
+      const int keepAlive = (maxProbeCount>0);  // true iff we want keepalive enabled
+      if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (const sockopt_arg *) &keepAlive, sizeof(keepAlive)) != 0) return B_ERRNO;
+   }
+
    {
       const int idleTimeSeconds = (int) MicrosToSecondsRoundUp(idleTime);
 #  if defined(__linux__)
@@ -2666,11 +2666,11 @@ status_t SetSocketKeepAliveBehavior(const ConstSocketRef & sock, uint32 maxProbe
       if ((setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &keepIntvl, sizeof(keepIntvl)) != 0)&&(errno != ENOPROTOOPT)) return B_ERRNO;
    }
 #  endif
-# endif   // !WIN32
 
    return B_NO_ERROR;
+# endif   // !WIN32
 #else
-   // Other OS's don't support these calls, AFAIK
+   // Dunno how to implement this under other OS's; if you do, feel free to add code here and send it to me :)
    (void) sock;
    (void) maxProbeCount;
    (void) idleTime;
