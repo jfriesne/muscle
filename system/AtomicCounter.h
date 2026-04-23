@@ -238,7 +238,7 @@ private:
 #endif
 };
 
-#ifndef DOXYGEN_SHOULD_IGNORE_THIS
+#if !defined(DOXYGEN_SHOULD_IGNORE_THIS) && !defined(MUSCLE_INLINE_LOGGING) && !defined(MUSCLE_MINIMALIST_LOGGING) && !defined(MUSCLE_DISABLE_LOGGING)
 class AtomicCounter;
 namespace muscle_private {extern AtomicCounter _maxLogThreshold;}  // implementation detail; exposed for efficiency
 MUSCLE_NODISCARD inline int GetMaxLogLevel() {return muscle_private::_maxLogThreshold.GetCount();}

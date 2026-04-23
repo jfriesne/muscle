@@ -93,6 +93,12 @@ MUSCLE_NODISCARD static inline const char * GetLogLevelKeyword(int /*logLevel*/)
 #endif
 
 #ifdef MUSCLE_INLINE_LOGGING
+# if !defined(MUSCLE_MINIMALIST_LOGGING) && !defined(MUSCLE_DISABLE_LOGGING)
+static inline void LogPlain(int, const char * fmt, ...)                {va_list argList; va_start(argList, fmt); vprintf(fmt, argList); va_end(argList);}
+static inline void LogTime( int logLevel, const char * fmt, ...)       {printf("%i: ", logLevel); va_list argList; va_start(argList, fmt); vprintf(fmt, argList); va_end(argList);}
+static inline void LogFlush()                                          {fflush(stdout);}
+inline void WarnOutOfMemory(const char * file, int line)               {printf("ERROR--MEMORY ALLOCATION FAILURE!  (%s:%i)\n", file, line);}
+# endif
 MUSCLE_NODISCARD inline int ParseLogLevelKeyword(const char *)         {return MUSCLE_LOG_NONE;}
 MUSCLE_NODISCARD inline int GetFileLogLevel()                          {return MUSCLE_LOG_NONE;}
 // Note:  GetFileLogName() is not defined here for the inline-logging case, because it causes chicken-and-egg header problems
@@ -111,8 +117,9 @@ inline void SetFileLogCompressionEnabled(bool)                         {/* empty
 inline void SetConsoleLogLevel(int)                                    {/* empty */}
 inline void SetConsoleLogToStderr(bool)                                {/* empty */}
 inline void CloseCurrentLogFile()                                      {/* empty */}
-inline status_t LogStackTrace(int logSeverity, uint32 maxDepth = 64) {(void) logSeverity; (void) maxDepth; printf("<stack trace omitted>\n"); return B_NO_ERROR;}
-inline status_t PrintStackTrace(uint32 maxDepth = 64) {(void) maxDepth; fprintf(stdout, "<stack trace omitted>\n"); return B_NO_ERROR;}
+inline status_t LogStackTrace(int logSeverity, uint32 maxDepth = 64)   {(void) logSeverity; (void) maxDepth; printf("<stack trace omitted>\n"); return B_NO_ERROR;}
+inline status_t PrintStackTrace(uint32 maxDepth = 64)                  {(void) maxDepth; fprintf(stdout, "<stack trace omitted>\n"); return B_NO_ERROR;}
+
 #else
 
 /** Returns the MUSCLE_LOG_* equivalent of the given keyword string

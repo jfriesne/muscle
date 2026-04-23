@@ -1237,7 +1237,7 @@ template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR T muscleAbs(T arg)
 MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleUnclampedRintf(float f) {return (f>=0.0f) ? ((int)(f+0.5f)) : -((int)((-f)+0.5f));}
 
 /** Rounds the given float to the nearest integer value.  Values outside of the range [INT_MIN, INT_MAX] will be clamped to that range. */
-MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleRintf(float f) {return muscleUnclampedRintf(muscleClamp(f, (float)INT_MIN, (float)(INT_MAX-1.0f)));}  // -1.0f because (float)(INT_MAX) invokes undefined behavior
+MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleRintf(float f) {return (f <= (float)INT_MIN) ? INT_MIN : ((f >= (float)INT_MAX) ? INT_MAX : muscleUnclampedRintf(f));}
 
 /** Returns -1 if the value is less than zero, +1 if it is greater than zero, or 0 otherwise. */
 template<typename T> MUSCLE_NODISCARD inline MUSCLE_CONSTEXPR int muscleSgn(T arg) {return (arg<0)?-1:((arg>0)?1:0);}
