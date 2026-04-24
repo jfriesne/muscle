@@ -74,6 +74,7 @@ key:  - new feature
    - Implemented SetSocketKeepAliveBehavior() and GetSocketKeepaliveBehavior()
      for Windows, MacOS, and BSD OS's.
    - Added a "keepalive" argument to hexterm.
+   - Added an EnsureFileOpen() method to FileDataIO.
    o Renamed virtual method ICallbackMechanism::SignalDispatchThread() to
      SignalDispatchThreadImplementation(), and added a non-virtual SignalDispatchThread()
      method that calls it, but only if a dirty-bit isn't already set.

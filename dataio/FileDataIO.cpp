@@ -1,11 +1,11 @@
 /* This file is Copyright 2000-2026 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#include "dataio/FileDataIO.h"
-#include "system/GlobalMemoryAllocator.h"  // for muscleStrdup()
-
 #ifdef WIN32
 # include <io.h>  // for _fileno, _chsize_s
 #endif
+
+#include "dataio/FileDataIO.h"
+#include "system/GlobalMemoryAllocator.h"  // for muscleStrdup()
 
 namespace muscle {
 
@@ -38,10 +38,14 @@ io_status_t FileDataIO :: Read(void * buffer, uint32 size)
    {
       if (size == 0) return io_status_t(0);
 
-      const size_t ret = fread(buffer, 1, size, _file);
+      const size_t ret = fread(buffer, 1, muscleMin((uint32)INT32_MAX, size), _file);
       return (ret > 0) ? io_status_t((int32)ret) : (ferror(_file) ? B_IO_ERROR : B_END_OF_STREAM);
    }
-   else return EnsureDeferredModeFopenCalled() ? Read(buffer, size) : io_status_t(B_BAD_OBJECT);
+   else
+   {
+      status_t ret;
+      return EnsureFileOpen().IsOK(ret) ? Read(buffer, size) : ret;
+   }
 }
 
 io_status_t FileDataIO :: Write(const void * buffer, uint32 size)
@@ -50,28 +54,39 @@ io_status_t FileDataIO :: Write(const void * buffer, uint32 size)
    {
       if (size == 0) return io_status_t(0);
 
-      const size_t ret = fwrite(buffer, 1, size, _file);
+      const size_t ret = fwrite(buffer, 1, muscleMin((uint32)INT32_MAX, size), _file);
       return (ret > 0) ? io_status_t((int32)ret) : io_status_t(B_IO_ERROR);
    }
-   else return EnsureDeferredModeFopenCalled() ? Write(buffer, size) : io_status_t(B_BAD_OBJECT);
+   else
+   {
+      status_t ret;
+      return EnsureFileOpen().IsOK(ret) ? Write(buffer, size) : ret;
+   }
 }
 
 status_t FileDataIO :: Seek(int64 offset, int whence)
 {
-   if (_file == NULL) return EnsureDeferredModeFopenCalled() ? Seek(offset, whence) : B_BAD_OBJECT;
-
-   switch(whence)
+   if (_file)
    {
-      case IO_SEEK_SET:  whence = SEEK_SET;  break;
-      case IO_SEEK_CUR:  whence = SEEK_CUR;  break;
-      case IO_SEEK_END:  whence = SEEK_END;  break;
-      default:           return B_BAD_ARGUMENT;
-   }
+      switch(whence)
+      {
+         case IO_SEEK_SET:  whence = SEEK_SET;  break;
+         case IO_SEEK_CUR:  whence = SEEK_CUR;  break;
+         case IO_SEEK_END:  whence = SEEK_END;  break;
+         default:           return B_BAD_ARGUMENT;
+      }
+
 #ifdef WIN32
-   return (_fseeki64(_file, offset, whence) == 0) ? B_NO_ERROR : B_IO_ERROR;
+      return (_fseeki64(_file, offset, whence) == 0) ? B_NO_ERROR : B_IO_ERROR;
 #else
-   return (   fseeko(_file, offset, whence) == 0) ? B_NO_ERROR : B_IO_ERROR;
+      return (   fseeko(_file, offset, whence) == 0) ? B_NO_ERROR : B_IO_ERROR;
 #endif
+   }
+   else
+   {
+      status_t ret;
+      return EnsureFileOpen().IsOK(ret) ? Seek(offset, whence) : ret;
+   }
 }
 
 int64 FileDataIO :: GetPosition() const
@@ -85,26 +100,32 @@ int64 FileDataIO :: GetPosition() const
 
 status_t FileDataIO :: Truncate()
 {
-   if (_file == NULL) return EnsureDeferredModeFopenCalled() ? Truncate() : B_BAD_OBJECT;
+   if (_file)
+   {
+      const int64 curPos = GetPosition();
+      if (curPos < 0) return B_BAD_OBJECT;
 
-   const int64 curPos = GetPosition();
-   if (curPos < 0) return B_BAD_OBJECT;
-
-   if (fflush(_file) != 0) return B_ERRNO;  // make sure all recently-buffered data gets pushed to disk before we start chopping
+      if (fflush(_file) != 0) return B_ERRNO;  // make sure all recently-buffered data gets pushed to disk before we start chopping
 
 #ifdef WIN32
-   const int fd = _fileno(_file);
-   if (fd < 0) return B_BAD_OBJECT;
+      const int fd = _fileno(_file);
+      if (fd < 0) return B_BAD_OBJECT;
 
-   const int r = _chsize_s(fd, curPos);
-   return (r == 0) ? B_NO_ERROR : B_ERRNUM(r);
+      const int r = _chsize_s(fd, curPos);
+      return (r == 0) ? B_NO_ERROR : B_ERRNUM(r);
 #else
-   const int fd = fileno(_file);
-   if (fd < 0) return B_BAD_OBJECT;
+      const int fd = fileno(_file);
+      if (fd < 0) return B_BAD_OBJECT;
 
-   const int r = ftruncate(fd, curPos);
-   return (r == 0) ? B_NO_ERROR : B_ERRNO;
+      const int r = ftruncate(fd, curPos);
+      return (r == 0) ? B_NO_ERROR : B_ERRNO;
 #endif
+   }
+   else
+   {
+      status_t ret;
+      return EnsureFileOpen().IsOK(ret) ? Truncate() : ret;
+   }
 }
 
 void FileDataIO :: FlushOutput()
@@ -158,14 +179,19 @@ void FileDataIO :: FreePendingFileInfo()
    if (_pendingFileMode) {muscleFree(_pendingFileMode); _pendingFileMode = NULL;}
 }
 
-bool FileDataIO :: EnsureDeferredModeFopenCalled()
+status_t FileDataIO :: EnsureFileOpen()
 {
-   if ((_pendingFilePath)&&(_file == NULL))
+        if (_file)                    return B_NO_ERROR;   // it's open already, we're good
+   else if (_pendingFilePath == NULL) return B_BAD_OBJECT; // can't open a file without any instructions on what to open
+   else
    {
-      SetFile(muscleFopen(_pendingFilePath, _pendingFileMode?_pendingFileMode:"rb"));  // SetFile() will call Shutdown()
-      return (_file != NULL);                                                          // which will call FreePendingFileInfo()
+      FILE * fp = muscleFopen(_pendingFilePath, _pendingFileMode ? _pendingFileMode : "rb");
+
+      const status_t err = fp ? B_NO_ERROR : B_ERRNO;  // save errno's state into (err)
+      SetFile(fp); // SetFile() will call Shutdown(), and Shutdown() which will call FreePendingFileInfo()
+
+      return _file ? B_NO_ERROR : (err|B_IO_ERROR);
    }
-   return false;
 }
 
 } // end namespace muscle

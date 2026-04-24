@@ -90,12 +90,20 @@ public:
     */
    void SetFile(FILE * fp);
 
+   /** Call this to force a pending-file-open to occur (e.g. if you used the two-argument FileDataIO constructor,
+     * and you want to force the file-open to happen now so you can check its result and handle any error)
+     * @returns B_NO_ERROR on success (meaning the the file is now open), or B_BAD_OBJECT if there was no pending
+     *                     file to open and no file was already open), or another error if the file-open operation failed.
+     * @note you aren't required to call this method explicitly since the other methods of this class will call
+     *       it implicitly if necessary.
+     */
+   status_t EnsureFileOpen();
+
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return _selectSocketRef;}
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _selectSocketRef;}
 
 private:
    void SetSocketsFromFile(FILE * optFile);
-   bool EnsureDeferredModeFopenCalled();  // returns true iff fopen() was called and succeeded
    void FreePendingFileInfo();
 
    char * _pendingFilePath;  // used in deferred-mode only
