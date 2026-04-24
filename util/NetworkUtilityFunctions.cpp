@@ -2296,8 +2296,10 @@ void Inet_NtoA(const IPAddress & addr, char * ipbuf, bool preferIPv4, bool expan
    if ((preferIPv4)&&((addr.IsValid() == false)||(addr.IsIPv4()))) Inet4_NtoA((uint32)(addr.GetLowBits()&0xFFFFFFFF), ipbuf);
    else
    {
-      uint8 ip6[16]; addr.WriteToNetworkArray(ip6, NULL);
-      if (Inet_NtoP(AF_INET6, (const in6_addr *) ip6, ipbuf, MIN_IPBUF_LENGTH) != NULL)
+      struct in6_addr in6Addr; memset(&in6Addr, 0, sizeof(in6Addr)); // paranoia
+      addr.WriteToNetworkArray(in6Addr.s6_addr, NULL);
+
+      if (Inet_NtoP(AF_INET6, &in6Addr, ipbuf, MIN_IPBUF_LENGTH) != NULL)
       {
          if (addr.IsInterfaceIndexValid())
          {
