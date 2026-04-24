@@ -6,6 +6,8 @@
 #ifdef __APPLE__
 # include <sys/signal.h>
 # include <sys/types.h>
+# include <CoreFoundation/CoreFoundation.h>
+# include <CoreFoundation/CFURL.h>
 #else
 # include <signal.h>
 #endif
@@ -22,6 +24,7 @@
 #endif
 
 #include "reflector/StorageReflectConstants.h"  // for PR_COMMAND_BATCH, PR_NAME_KEYS
+#include "system/AtomicCounter.h"
 #include "system/StackTrace.h"                  // for MUSCLE_USE_MSVC_STACKWALKER
 #include "util/ByteBuffer.h"
 #include "util/MiscUtilityFunctions.h"
@@ -589,7 +592,7 @@ void HandleStandardDaemonArgs(const Message & args)
 
    if ((args.FindString("maxlogfiles", &value).IsOK())||(args.FindString("maxnumlogfiles", &value).IsOK()))
    {
-      const uint32 maxNumFiles = (uint32) atol(value);
+      const uint32 maxNumFiles = (uint32) Atoull(value);
       if (maxNumFiles > 0) (void) SetMaxNumLogFiles(maxNumFiles);
                       else LogTime(MUSCLE_LOG_ERROR, "Please specify a maxnumlogfiles value that is greater than zero.\n");
    }
@@ -609,7 +612,7 @@ void HandleStandardDaemonArgs(const Message & args)
 
    if (args.FindString("maxlogfilesize", &value).IsOK())
    {
-      const uint32 maxSizeKB = (uint32) atol(value);
+      const uint32 maxSizeKB = (uint32) Atoull(value);
       if (maxSizeKB > 0) (void) SetFileLogMaximumSize(maxSizeKB*1024);
                     else LogTime(MUSCLE_LOG_ERROR, "Please specify a maxlogfilesize in kilobytes, that is greater than zero.\n");
    }
@@ -634,7 +637,7 @@ void HandleStandardDaemonArgs(const Message & args)
       if (micros > 0)
       {
          uint32 maxCacheSize = 1024;
-         if (args.FindString("dnscachesize", &value).IsOK()) maxCacheSize = (uint32) atol(value);
+         if (args.FindString("dnscachesize", &value).IsOK()) maxCacheSize = (uint32) Atoull(value);
          LogTime(MUSCLE_LOG_INFO, "Setting DNS cache parameters to " UINT32_FORMAT_SPEC " entries, expiration period is %s\n", maxCacheSize, GetHumanReadableUnsignedTimeIntervalString(micros)());
          SetHostNameCacheSettings(maxCacheSize, micros);
       }
@@ -1083,7 +1086,7 @@ status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFold
       if (oldFPI.IsDirectory()) return CopyDirectoryRecursive(oldPath, newPath);
    }
 
-   FILE * fpIn = muscleFopen(oldPath, "rb");
+   FILE * fpIn = muscleFopen(ResolveFileSystemAliasesInFilePath(oldPath)(), "rb");
    if (fpIn == NULL) return B_ERRNO;
 
    status_t ret = B_NO_ERROR;  // optimistic default
@@ -1206,9 +1209,9 @@ float GetSystemMemoryUsagePercentage()
 String Base64Encode(const uint8 * inBytes, uint32 numInBytes)
 {
    static uint8 _dtable[256] = {0};
-   static bool _firstTime = true;
 
-   if (_firstTime)
+   static AtomicCounter _dtableInitialized;
+   if (_dtableInitialized.GetCount() == 0)
    {
       for(int i=0;i<9;i++)
       {
@@ -1226,7 +1229,7 @@ String Base64Encode(const uint8 * inBytes, uint32 numInBytes)
       _dtable[62] = '+';
       _dtable[63] = '/';
 
-      _firstTime = false;
+      _dtableInitialized.SetCount(1);
    }
 
    String ret;
@@ -1268,8 +1271,9 @@ String Base64Encode(const uint8 * inBytes, uint32 numInBytes)
 static ByteBufferRef Base64DecodeAux(const char * base64String, uint32 numBytes)
 {
    static uint8 _dtable[256] = {0};
-   static bool _firstTime = true;
-   if (_firstTime)
+
+   static AtomicCounter _dtableInitialized;
+   if (_dtableInitialized.GetCount() == 0)
    {
       memset(_dtable, 0x80, sizeof(_dtable));
       for (int i='A'; i<='I'; i++) _dtable[i] = (uint8) ( 0+(i-'A'));
@@ -1284,9 +1288,8 @@ static ByteBufferRef Base64DecodeAux(const char * base64String, uint32 numBytes)
       _dtable[(int) '/'] = 63;
       _dtable[(int) '='] = 0;
 
-      _firstTime  = false;
+      _dtableInitialized.SetCount(1);
    }
-
 
    uint32 rawBytesCount = (numBytes*3)/4;
    while(rawBytesCount%4) rawBytesCount++;
@@ -1366,6 +1369,50 @@ uint64 ParseBytesSizeString(const String & ss)
    else if ((s.ContainsIgnoreCase("GB"))||(s.EndsWith("G"))) base = b*b*b;
 
    return s.Contains(".") ? ((uint64)(atof(s())*((double)base))) : Atoull(s())*base;  // avoid floating point math if possible
+}
+
+String ResolveFileSystemAliasesInFilePath(const String & filePath)
+{
+#ifdef __APPLE__
+   CFStringRef cfFilePath = filePath.ToCFStringRef();
+   if (cfFilePath)
+   {
+      bool retWasSet = false;
+      String ret;
+
+      CFURLRef origUrl = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, cfFilePath, kCFURLPOSIXPathStyle, false);
+      if (origUrl)
+      {
+         CFErrorRef error = NULL;
+         CFDataRef bookmarkData = CFURLCreateBookmarkDataFromFile(NULL, origUrl, &error);
+
+              if (error) CFRelease(error);  // don't care
+         else if (bookmarkData)
+         {
+            Boolean isStale = false;
+            CFURLRef resolvedURL = CFURLCreateByResolvingBookmarkData(NULL, bookmarkData, kCFURLBookmarkResolutionWithoutUIMask, NULL, NULL, &isStale, &error);
+
+                 if (error) CFRelease(error);  // don't care
+            else if (resolvedURL)
+            {
+               const CFStringRef cfPath = CFURLCopyFileSystemPath(resolvedURL, kCFURLPOSIXPathStyle);
+               if (cfPath)
+               {
+                  retWasSet = ret.SetFromCFStringRef(cfPath).IsOK();
+                  CFRelease(cfPath);
+               }
+               CFRelease(resolvedURL);
+            }
+            CFRelease(bookmarkData);
+         }
+         CFRelease(origUrl);
+      }
+      CFRelease(cfFilePath);
+
+      if (retWasSet) return ret;
+   }
+#endif
+   return filePath;
 }
 
 } // end namespace muscle

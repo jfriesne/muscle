@@ -6,6 +6,7 @@
 #include "util/ByteBuffer.h"
 #include "util/MiscUtilityFunctions.h"
 #include "util/StringTokenizer.h"
+#include "util/MiscUtilityFunctions.h"
 #include "zlib/ZipFileUtilityFunctions.h"
 #include "zlib/zlib/contrib/minizip/zip.h"
 #include "zlib/zlib/contrib/minizip/unzip.h"
@@ -237,7 +238,7 @@ static status_t ReadZipFileAux(zipFile zf, Message & msg, char * nameBuf, uint32
 
 MessageRef ReadZipFile(const char * fileName, bool loadData)
 {
-   FileDataIO fio(muscleFopen(fileName, "rb"));
+   FileDataIO fio(muscleFopen(ResolveFileSystemAliasesInFilePath(fileName)(), "rb"));
    return ReadZipFile(fio, loadData);
 }
 

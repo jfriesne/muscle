@@ -715,6 +715,14 @@ String GetBytesSizeString(uint64 numBytes);
   */
 MUSCLE_NODISCARD uint64 ParseBytesSizeString(const String & s);
 
+/** Given a file path, if it points to a MacOS Alias file, this function will
+  * return the path of the file the MacOS Alias points to.  In all other cases,
+  * this function will return its argument verbatim.
+  * @param filePath a path to a file on the local filesystem.
+  * @note on platforms other than MacOS, this function always just returns its argument verbatim.
+  */
+String ResolveFileSystemAliasesInFilePath(const String & filePath);
+
 /** @} */ // end of miscutilityfunctions doxygen group
 
 } // end namespace muscle
