@@ -796,7 +796,7 @@ uint32 LexerToken :: GetExplicitCastTypeCode() const
 
 String LexerToken :: ToString() const
 {
-   const String tokStr = (_tok < NUM_LTOKENS) ? _tokStrs[_tok] : "???";
+   String tokStr = (_tok < NUM_LTOKENS) ? (_tokStrs[_tok] ? _tokStrs[_tok] : "UserTok") : "???";  // non-const so we can move() out its contents below
    return _valStr.HasChars() ? (tokStr+String(" %1").Arg(_valStr)) : std_move_if_available(tokStr);
 }
 
