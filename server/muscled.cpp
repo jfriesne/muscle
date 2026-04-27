@@ -26,7 +26,7 @@ static status_t LoadCryptoKey(bool isPublic, const String * optKeyFilePath, Refl
    const char * desc = isPublic?"public":"private";
 
 #ifdef MUSCLE_ENABLE_SSL
-   FileDataIO fdio(muscleFopen(optKeyFilePath->Cstr(), "rb"));
+   FileDataIO fdio(muscleFopen(ResolveFileSystemAliasesInFilePath(*optKeyFilePath)(), "rb"));
    if (fdio.GetFile())
    {
       ByteBufferRef fileData = GetByteBufferFromPool((uint32)fdio.GetLength());

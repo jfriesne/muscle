@@ -133,7 +133,7 @@ static status_t WriteZipFileAux(zipFile zf, const String & baseName, const Messa
 
 status_t WriteZipFile(const char * fileName, const Message & msg, int compressionLevel, uint64 fileCreationTime)
 {
-   FileDataIO fio(muscleFopen(fileName, "wb"));
+   FileDataIO fio(muscleFopen(ResolveFileSystemAliasesInFilePath(fileName)(), "wb"));
    return WriteZipFile(fio, msg, compressionLevel, fileCreationTime);
 }
 

@@ -1090,7 +1090,7 @@ status_t CopyFile(const char * oldPath, const char * newPath, bool allowCopyFold
    if (fpIn == NULL) return B_ERRNO;
 
    status_t ret = B_NO_ERROR;  // optimistic default
-   FILE * fpOut = muscleFopen(newPath, "wb");
+   FILE * fpOut = muscleFopen(ResolveFileSystemAliasesInFilePath(newPath)(), "wb");
    if (fpOut)
    {
       while(1)
