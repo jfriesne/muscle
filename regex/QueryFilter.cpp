@@ -796,7 +796,7 @@ uint32 LexerToken :: GetExplicitCastTypeCode() const
 
 String LexerToken :: ToString() const
 {
-   const String tokStr = (_tok < NUM_LTOKENS) ? _tokStrs[_tok] : "???";
+   String tokStr = (_tok < NUM_LTOKENS) ? (_tokStrs[_tok] ? _tokStrs[_tok] : "UserTok") : "???";  // non-const so we can move() out its contents below
    return _valStr.HasChars() ? (tokStr+String(" %1").Arg(_valStr)) : std_move_if_available(tokStr);
 }
 
@@ -987,11 +987,13 @@ static ConstQueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer, con
          break;
 
          case LTOKEN_LPAREN:          // (
+            if ((subRef())||(localToks.HasItems())) return B_ERROR("'(' must be the first token in a subexpression");
             subRef = CreateQueryFilterFromExpressionAux(lexer, sef);
             MRETURN_ON_ERROR(subRef);
          break;
 
          case LTOKEN_RPAREN:          // )
+            if ((subRef())&&(conjunctionRef() == NULL)&&(localToks.IsEmpty())) return B_ERROR("')' must not be the first token in a subexpression");
             keepGoing = false; // our subexpression ends here
          break;
 
@@ -1020,6 +1022,7 @@ static ConstQueryFilterRef CreateQueryFilterFromExpressionAux(Lexer & lexer, con
 
          default:
             if (conjunctionRef()) return B_ERROR("Non-subexpression token not permitted within a conjunction");
+            if (subRef())         return B_ERROR("Non-infix-operator not permitted after a sub-expression");
             MRETURN_ON_ERROR(localToks.AddTail(nextTok));
             if (localToks.GetNumItems() > 4) return B_ERROR("Subexpression cannot contain more than four tokens");
          break;
