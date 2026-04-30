@@ -10,7 +10,7 @@ Holds a pattern-string (ASCII or UTF-8) that represents a bash-shell-style wildc
 * Supported "traditional" wildcard-characters include `*`, `?`, `[`, `]`, `\`, `,`, `(`, `)`
 * Syntax extension:  a glob-pattern starting with `~` will match only strings that *don't* match the rest of the pattern (e.g. `~j*` will match all strings that *don't* start with "j")
 * Syntax extension:  a glob-pattern like `<3-5,10-12,20->` will match strings that represent integers in the specified range(s) (e.g. "3", "4", "5", "10", "11", and "12", plus "20" and higher)
-* [StringMatcher](https://public.msli.com/lcs/muscle/html/classmuscle_1_1StringMatcher.html) can also be used to match against standard regex-patterns, if the simplified bash-shell-style globbing-syntax isn't sufficient.  (pass in `false` as the second constructor-argument to enable full-regex mode)
+* [StringMatcher](https://public.msli.com/lcs/muscle/html/classmuscle_1_1StringMatcher.html) can also be used to match against standard regex-patterns, if the simplified bash-shell-style globbing-syntax isn't sufficient.  (to enable the formal regex syntax, pass in `false` as the second constructor-argument, or prepend a backtick to the pattern-string)
 
 Try compiling and running the mini-example-programs in `muscle/html/muscle-by-example/examples/stringmatcher` (enter `make` to compile example_*, and then run each from Terminal while looking at the corresponding .cpp file)
 

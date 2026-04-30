@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-9.90 - Released
+9.90 - Released 4/30/2026
    - Note: (cc) in the text below means the issue was detected by Claude Code.
    - Added various compiler-warning flags to CMakeLists.txt.
    - Updated Queue::RmoveHeadMulti() and Queue::RemoveTailMulti()
