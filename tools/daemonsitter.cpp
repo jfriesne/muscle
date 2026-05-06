@@ -1,7 +1,7 @@
 /* This file is Copyright 2000-2026 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
 #include <stdio.h>
-#ifndef _WIN32
+#ifndef _WIN32        // yes, the underbar is necessary
 # include <signal.h>  // for SIGINT
 #endif
 

@@ -1,6 +1,6 @@
 /* This file is Copyright 2000-2026 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#ifdef WIN32
+#ifdef _WIN32     // yes, the underbar is necessary here :/
 # include <io.h>  // for _fileno, _chsize_s
 #endif
 
