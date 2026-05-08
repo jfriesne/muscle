@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   o Tweaked ParseConnectArg() to return a "No port number specified"
+     error when a port number was required but no provided, instead of
+     the more generic B_BAD_ARGUMENT.
    * Replaced ifdef WIN32 in FileDataIO.cpp with ifdef _WIN32 as
      WIN32 isn't guaranteed to be defined by the build environment.
 

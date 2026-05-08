@@ -378,6 +378,8 @@ static status_t UnparseFileAux(const Message & readFrom, FILE * optFile, String 
 status_t UnparseFile(const Message & readFrom, FILE * file) {return UnparseFileAux(readFrom, file, NULL, 0);}
 String UnparseFile(const Message & readFrom) {String s; return UnparseFileAux(readFrom, NULL, &s, 0).IsOK() ? std_move_if_available(s) : GetEmptyString();}
 
+static const status_t B_NO_PORT_NUMBER_SPECIFIED("No port number specified");  // not really universal enough to add to the format list of error codes
+
 static status_t ParseConnectArgAux(const String & s, uint32 startIdx, uint16 & retPort, bool portRequired)
 {
    const int32 colIdx = s.IndexOf(':', startIdx);
@@ -388,7 +390,7 @@ static status_t ParseConnectArgAux(const String & s, uint32 startIdx, uint16 & r
       if (p > 0) retPort = p;
       return B_NO_ERROR;
    }
-   else return portRequired ? B_BAD_ARGUMENT : B_NO_ERROR;
+   else return portRequired ? B_NO_PORT_NUMBER_SPECIFIED : B_NO_ERROR;
 }
 
 status_t ParseConnectArg(const Message & args, const String & fn, String & retHost, uint16 & retPort, bool portRequired, uint32 argIdx)
@@ -421,12 +423,12 @@ status_t ParseConnectArg(const String & s, String & retHost, uint16 & retPort, b
             retPort = (uint16)atoi(s()+portIdx);
             return B_NO_ERROR;
          }
-         else return portRequired ? B_BAD_ARGUMENT : B_NO_ERROR;
+         else return portRequired ? B_NO_PORT_NUMBER_SPECIFIED : B_NO_ERROR;
       }
       else if (s.GetNumInstancesOf(':') != 1)  // I assume IPv6-style address strings never have exactly one colon in them
       {
          retHost = s;
-         return portRequired ? B_BAD_ARGUMENT : B_NO_ERROR;
+         return portRequired ? B_NO_PORT_NUMBER_SPECIFIED : B_NO_ERROR;
       }
    }
 #endif
@@ -443,7 +445,7 @@ status_t ParsePortArg(const Message & args, const String & fn, uint16 & retPort,
    MRETURN_ON_ERROR(args.FindString(fn, argIdx, &v));
 
    const uint16 r = (uint16) atoi(v);
-   if (r == 0) return B_BAD_ARGUMENT;
+   if (r == 0) return B_NO_PORT_NUMBER_SPECIFIED;
 
    retPort = r;
    return B_NO_ERROR;
