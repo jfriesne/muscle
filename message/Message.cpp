@@ -2280,7 +2280,7 @@ uint32 MessageField :: SingleFlattenedSize() const
 
          // if we got here, then it's the one uint32 for the object-count, one uint32 for the size-of-object, plus the space for the object itself
          const FlatCountable * fc = dynamic_cast<FlatCountable *>(GetInlineItemAsRefCountableRef()());
-         return fc ? (sizeof(uint32)+sizeof(uint32)+fc->FlattenedSize()) : 0;
+         return sizeof(uint32)+sizeof(uint32)+(fc?fc->FlattenedSize():0);
       }
    }
 }

@@ -300,11 +300,13 @@ private:
             if (nbw > _maxBytes)
             {
                LogTime(MUSCLE_LOG_CRITICALERROR, "DataFlattenerHelper %p:  " UINT32_FORMAT_SPEC " bytes were written into a buffer that only had space for " UINT32_FORMAT_SPEC " bytes!\n", this, nbw, _maxBytes);
+               DebugPrintWrittenBytes(nbw);
                MCRASH("~DataFlattenerHelper(): detected buffer-write overflow");
             }
             else if (_completeWriteRequired)
             {
                LogTime(MUSCLE_LOG_CRITICALERROR, "DataFlattenerHelper %p:  Only " UINT32_FORMAT_SPEC " bytes were written to a buffer that had space for " UINT32_FORMAT_SPEC " bytes, leaving " UINT32_FORMAT_SPEC " bytes uninitialized!\n", this, nbw, _maxBytes, GetNumBytesAvailable());
+               DebugPrintWrittenBytes(nbw);
                MCRASH("~DataFlattenerHelper(): detected incomplete buffer-write");
             }
          }
@@ -312,6 +314,18 @@ private:
          if (_parentFlat) _parentFlat->_writeTo += nbw;
       }
    }
+
+#ifndef MUSCLE_AVOID_ASSERTIONS
+   void DebugPrintWrittenBytes(uint32 nbw) const
+   {
+      const uint32 numBytesToPrint = muscleMin(nbw, (uint32)64);
+      if (numBytesToPrint > 0)
+      {
+         LogTime(MUSCLE_LOG_CRITICALERROR, "DataFlattenerHelper %p:  The first " UINT32_FORMAT_SPEC " bytes written were as follows!\n", this, numBytesToPrint);
+         for (uint32 i=0; i<numBytesToPrint; i++) printf("%02x ", _origWriteTo[i]); printf("\n");  // not calling PrintHexBytes() here just to avoid include-ordering issues
+      }
+   }
+#endif
 
    mutable uint8 * _writeTo; // pointer to our output buffer
    uint8 * _origWriteTo;     // the pointer the user passed in

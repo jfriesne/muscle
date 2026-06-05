@@ -8,8 +8,12 @@ key:  - new feature
    o Tweaked ParseConnectArg() to return a "No port number specified"
      error when a port number was required but no provided, instead of
      the more generic B_BAD_ARGUMENT.
+   o ~DataFlattener() now prints out its written bytes when triggering
+     an assertion failure, to assist with debugging.
    * Replaced ifdef WIN32 in FileDataIO.cpp with ifdef _WIN32 as
      WIN32 isn't guaranteed to be defined by the build environment.
+   * MessageField::SingleFlattenedSize() was returning the wrong
+     value when its FlatCountable pointer was NULL.  Fixed.
 
 9.90 - Released 4/30/2026
    - Note: (cc) in the text below means the issue was detected by Claude Code.
