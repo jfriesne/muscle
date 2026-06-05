@@ -34,7 +34,7 @@ public:
      */
    DataFlattenerHelper(uint8 * writeTo, uint32 maxBytes) : _endianConverter() {Init(); SetBuffer(writeTo, maxBytes);}
 
-   /** Constructs a DataFlattenerHelper to write (parent.GetNumBytsAvailable()) bytes into (parentFlat.GetCurrentWritePointer()).
+   /** Constructs a DataFlattenerHelper to write (parent.GetNumBytesAvailable()) bytes into (parentFlat.GetCurrentWritePointer()).
      * @param parentFlat reference to a parent DataFlattenerHelper object.  Our destructor will call
      *                   parentFlat.SeekRelative(GetNumBytesWritten()).
      * @note failure to write exactly (parentFlat.GetNumBytesAvailable()) of data will trigger an assertion failure!
