@@ -322,7 +322,10 @@ private:
       if (numBytesToPrint > 0)
       {
          LogTime(MUSCLE_LOG_CRITICALERROR, "DataFlattenerHelper %p:  The first " UINT32_FORMAT_SPEC " bytes written were as follows!\n", this, numBytesToPrint);
-         for (uint32 i=0; i<numBytesToPrint; i++) printf("%02x ", _origWriteTo[i]); printf("\n");  // not calling PrintHexBytes() here just to avoid include-ordering issues
+
+         // not calling PrintHexBytes() here just to avoid include-ordering issues
+         for (uint32 i=0; i<numBytesToPrint; i++) printf("%02x ", _origWriteTo[i]);
+         printf("\n");
       }
    }
 #endif
