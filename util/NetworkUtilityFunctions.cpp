@@ -2200,15 +2200,12 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                      unicastIP.SetInterfaceIndex(pCurrAddresses->Ipv6IfIndex);  // so the user can find out; it will be ignore by the TCP stack
 #endif
 
-                     char outBuf[512];
-                     if (WideCharToMultiByte(CP_UTF8, 0, pCurrAddresses->Description, -1, outBuf, sizeof(outBuf), NULL, NULL) <= 0) outBuf[0] = '\0';
-
                      uint64 mac = 0;
                      if (pCurrAddresses->PhysicalAddressLength == 6) for (uint32 i=0; i<6; i++) mac |= (((uint64)(pCurrAddresses->PhysicalAddress[i]))<<(8*(5-i)));
 
                      const bool hasCopper = (pCurrAddresses->OperStatus==IfOperStatusUp);
                      const uint32 hardwareType = ConvertWindowsInterfaceType(pCurrAddresses->IfType);
-                     if (results.AddTail(NetworkInterfaceInfo(pCurrAddresses->AdapterName, outBuf, unicastIP, netmask, broadIP, isEnabled, hasCopper, mac, hardwareType, pCurrAddresses->Mtu)).IsOK(ret))
+                     if (results.AddTail(NetworkInterfaceInfo(pCurrAddresses->AdapterName, String::FromWideChars(pCurrAddresses->Description), unicastIP, netmask, broadIP, isEnabled, hasCopper, mac, hardwareType, pCurrAddresses->Mtu)).IsOK(ret))
                      {
                         DECLARE_MUTEXGUARD(_cachedLocalhostAddressLock);
                         if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;

@@ -9,6 +9,10 @@
 # include <CoreFoundation/CFString.h>
 #endif
 
+#ifdef WIN32
+# include <stringapiset.h>  // for WideCharToMultiByteChar()
+#endif
+
 namespace muscle {
 
 const char * StrcasestrEx(const char * haystack, uint32 haystackLen, const char * needle, uint32 needleLen, bool searchBackwards)
@@ -97,6 +101,14 @@ void String :: ClearAndFlush()
 {
    if (IsArrayDynamicallyAllocated()) _stringData._longStringData.FreeBuffer();
    ClearShortStringBuffer();
+}
+
+// calling this method only necessary if someone has written directly into our internal char-buffer
+void String :: RescanCharBuffer()
+{
+   const uint32 numCharsInBuf = (uint32) strlen(Cstr());
+   MASSERT(numCharsInBuf < GetNumAllocatedBytes(), "String::RescanCharBuffer():  buffer overwrite detected");   // semi-paranoia (note numCharsInBuf doesn't include the NUL but GetNumAllocatedBytes() does)
+   SetLength(numCharsInBuf);
 }
 
 status_t String :: SetFromString(const String & s, uint32 firstChar, uint32 afterLastChar)
@@ -1321,5 +1333,18 @@ static int strnatcasecmp(char const *a, char const *b) {return strnatcmp0(a, b, 
 
 int NumericAwareStrcmp(const char * s1, const char * s2)     {return strnatcmp(    s1, s2);}
 int NumericAwareStrcasecmp(const char * s1, const char * s2) {return strnatcasecmp(s1, s2);}
+
+#ifdef WIN32
+String String :: FromWideChars(const WCHAR * wchar_buffer)
+{
+   const int utf8BufLen = WideCharToMultiByte(CP_UTF8, 0, wchar_buffer, -1, NULL, 0, NULL, NULL);
+   if (utf8BufLen <= 1) return GetEmptyString();  // utf8BufLen includes the NUL terminator byte
+
+   const uint32 numCharBytes = (uint32) (utf8BufLen-1);     // String::Prealloc() will account for the NUL byte separately
+   String ret(PreallocatedItemSlotsCount(numCharBytes), NULL);  // explicit NULL is necessary to avoid most-vexing-parse problems
+   if (ret.GetNumAllocatedBytes() >= (uint32)utf8BufLen) ret.SetLength(WideCharToMultiByte(CP_UTF8, 0, wchar_buffer, -1, ret.GetBuffer(), utf8BufLen, NULL, NULL)-1);
+   return ret;
+}
+#endif
 
 } // end namespace muscle

@@ -949,21 +949,30 @@ String StackWalker :: GetSymbolStringForRelativeVirtualAddress(const char * optM
    const DWORD64 moduleBase = GetModuleBaseAddressByName(process, optModuleName);
    if (moduleBase != 0)
    {
+#ifdef _UNICODE
+      char buffer[sizeof(SYMBOL_INFOW) + STACKWALK_MAX_NAMELEN];
+      SYMBOL_INFOW * pSym = reinterpret_cast<SYMBOL_INFOW *>(buffer);
+      pSym->MaxNameLen = STACKWALK_MAX_NAMELEN;
+#else
       char buffer[sizeof(SYMBOL_INFO) + STACKWALK_MAX_NAMELEN];
-      IMAGEHLP_SYMBOL * sym = reinterpret_cast<IMAGEHLP_SYMBOL *>(buffer);
-      sym->SizeOfStruct     = sizeof(buffer);
-      sym->MaxNameLength    = STACKWALK_MAX_NAMELEN;
+      IMAGEHLP_SYMBOL * pSym = reinterpret_cast<IMAGEHLP_SYMBOL *>(buffer);
+      pSym->MaxNameLength = STACKWALK_MAX_NAMELEN;
+#endif
+      pSym->SizeOfStruct = sizeof(buffer);
 
       DWORD64 displacement = 0;
       const uint64 addr = moduleBase + rva;
 #ifdef _UNICODE
-      if (m_sw->pSFA(  process, addr, &displacement, sym) != FALSE)
+      if (m_sw->pSFA(  process, addr, &displacement, pSym) != FALSE)
 #else
-      if (m_sw->pSGSFA(process, addr, &displacement, sym) != FALSE)
+      if (m_sw->pSGSFA(process, addr, &displacement, pSym) != FALSE)
 #endif
       {
-         char buf[128]; muscleSprintf(buf, " + 0x" XINT64_FORMAT_SPEC, displacement);
-         return String(sym->Name) + buf;
+         TCHAR undecName[STACKWALK_MAX_NAMELEN];
+         m_sw->pUDSN(pSym->Name, undecName, STACKWALK_MAX_NAMELEN, UNDNAME_COMPLETE);
+
+         char buf[64]; muscleSprintf(buf, " + 0x" XINT64_FORMAT_SPEC, displacement);
+         return String::FromTChars(undecName) + buf;
       }
       else return String("SymFromAddr(%1) failed [Error Code %2]").Arg(moduleBase+rva, XINT64_FORMAT_SPEC).Arg(GetLastError());
    }

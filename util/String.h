@@ -1519,6 +1519,32 @@ public:
    /** @copydoc DoxyTemplate::Print(const OutputPrinter &) const */
    void Print(const OutputPrinter & p) const {p.printf("%s", Cstr());}
 
+   /** Updates the Length() of this string by rescanning our held character buffer.
+    *  @note it's only necessary to call this method if you have written directly into the character
+    *        buffer in a way that might have changed the string's length (as indicated by the position
+    *        of the first NUL terminator byte in the buffer)
+    */
+   void RescanCharBuffer();
+
+#ifdef WIN32
+   /** Windows-only helper method.  Forms and returns a String from the given TCHAR buffer.
+    *  @param tchar_buffer pointer to a NULL-terminated array of TCHARs representing the string in Windows' style.
+    */
+   static String FromTChars(const TCHAR * tchar_buffer)
+   {
+# ifdef UNICODE
+      return FromWideChars(tchar_buffer);
+# else
+      return tchar_buffer;
+# endif
+   }
+
+   /** Windows-only helper method.  Forms and returns a UTF8 String from the given WCHAR buffer
+    *  @param wchar_buffer pointer to a NULL-terminated array of TCHARs representing the string in Windows' style.
+    */
+   static String FromWideChars(const WCHAR * wchar_buffer);
+#endif
+
 private:
    status_t InsertCharsAux(uint32 insertAtIdx, const char * str, uint32 numCharsToInsert, uint32 insertCount);
    String WithInsertAux(uint32 insertAtIdx, char c, uint32 numChars) const;
