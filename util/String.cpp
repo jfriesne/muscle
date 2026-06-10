@@ -103,14 +103,6 @@ void String :: ClearAndFlush()
    ClearShortStringBuffer();
 }
 
-// calling this method only necessary if someone has written directly into our internal char-buffer
-void String :: RescanCharBuffer()
-{
-   const uint32 numCharsInBuf = (uint32) strlen(Cstr());
-   MASSERT(numCharsInBuf < GetNumAllocatedBytes(), "String::RescanCharBuffer():  buffer overwrite detected");   // semi-paranoia (note numCharsInBuf doesn't include the NUL but GetNumAllocatedBytes() does)
-   SetLength(numCharsInBuf);
-}
-
 status_t String :: SetFromString(const String & s, uint32 firstChar, uint32 afterLastChar)
 {
    afterLastChar = muscleMin(afterLastChar, s.Length());
@@ -1215,6 +1207,51 @@ CFStringRef String :: ToCFStringRef() const
 }
 #endif
 
+#ifdef WIN32
+status_t String :: SetFromWideChars(const WCHAR * optWChars, uint32 maxNumWChars)
+{
+   // If (optWChars) has got a NUL short before (maxNumWChars), make (maxNumWChars) smaller.
+   // We can't call wcslen(optWChars), because we don't have any guarantee that the NUL
+   // byte even exists!  Without a NUL byte, wcslen() could run off into the weeds...
+   uint32 numWChars = 0;
+   if (optWChars) {while((numWChars<maxNumWChars)&&(optWChars[numWChars] != 0)) numWChars++;}
+   maxNumWChars = muscleMin(maxNumWChars, numWChars);
+   if (maxNumWChars > 0)
+   {
+      const int numNeededUTF8Chars = WideCharToMultiByte(CP_UTF8, 0, optWChars, maxNumWChars, NULL, 0, NULL, NULL);  // not including NUL terminator byte
+      if (numNeededUTF8Chars == 0) return B_ERRNO;
+
+      MRETURN_ON_ERROR(EnsureBufferSize(numNeededUTF8Chars+1, false, false));  // +1 for the NUL terminator byte
+
+      const int numWrittenUTF8Chars = WideCharToMultiByte(CP_UTF8, 0, optWChars, maxNumWChars, GetBuffer(), numNeededUTF8Chars, NULL, NULL);
+      if (numWrittenUTF8Chars != numNeededUTF8Chars)
+      {
+         Clear();
+         return B_LOGIC_ERROR;  // should never happen, but I'm paranoid
+      }
+
+      SetLength(numWrittenUTF8Chars);
+      WriteNULTerminatorByte();
+   }
+   else Clear();
+
+   return B_NO_ERROR;
+}
+
+status_t String :: ToWideChars(WCHAR * outWChars, uint32 numOutWChars, uint32 * optRetNumOutWChars = NULL) const
+{
+   const int numWCharsNeededIncludingZeroShort = MultiByteToWideChar(CP_UTF8, 0, GetBuffer(), Length(), NULL, 0)+1;  // +1 for the NUL terminator short
+   if (optRetNumOutWChars) *optRetNumOutWChars = numWCharsNeededIncludingZeroShort;  // we set this even on failure so the caller can try again with a larger (outWChars) if he wants
+   if (outWChars == NULL) return B_BAD_ARGUMENT;
+   if (numOutWChars < numWCharsNeededIncludingZeroShort) return B_RESOURCE_LIMIT;  // not enough space to hold our output!
+
+   const int numWCharsWrittenIncludingZeroShort = MultiByteToWideChar(CP_UTF8, 0, GetBuffer(), Length(), outWChars, numOutWChars)+1;
+   if (numWCharsWrittenIncludingZeroShort != numWCharsNeededIncludingZeroShort) return B_LOGIC_ERROR;  // should never happen but I'm paranoid
+   outWChars[numWCharsWrittenIncludingZeroShort-1] = 0;  // make sure output array is NUL-terminated
+   return B_NO_ERROR;
+}
+#endif
+
 /* strnatcmp.c -- Perform 'natural order' comparisons of strings in C.
    Copyright (C) 2000, 2004 by Martin Pool <mbp sourcefrog net>
 
@@ -1333,18 +1370,5 @@ static int strnatcasecmp(char const *a, char const *b) {return strnatcmp0(a, b, 
 
 int NumericAwareStrcmp(const char * s1, const char * s2)     {return strnatcmp(    s1, s2);}
 int NumericAwareStrcasecmp(const char * s1, const char * s2) {return strnatcasecmp(s1, s2);}
-
-#ifdef WIN32
-String String :: FromWideChars(const WCHAR * wchar_buffer)
-{
-   const int utf8BufLen = WideCharToMultiByte(CP_UTF8, 0, wchar_buffer, -1, NULL, 0, NULL, NULL);
-   if (utf8BufLen <= 1) return GetEmptyString();  // utf8BufLen includes the NUL terminator byte
-
-   const uint32 numCharBytes = (uint32) (utf8BufLen-1);     // String::Prealloc() will account for the NUL byte separately
-   String ret(PreallocatedItemSlotsCount(numCharBytes), NULL);  // explicit NULL is necessary to avoid most-vexing-parse problems
-   if (ret.GetNumAllocatedBytes() >= (uint32)utf8BufLen) ret.SetLength(WideCharToMultiByte(CP_UTF8, 0, wchar_buffer, -1, ret.GetBuffer(), utf8BufLen, NULL, NULL)-1);
-   return ret;
-}
-#endif
 
 } // end namespace muscle

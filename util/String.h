@@ -35,6 +35,7 @@ enum {
    STRING_OP_PARTIAL_COPY_CTOR,
    STRING_OP_PREALLOC_COPY_CTOR,
    STRING_OP_CFSTR_COPY_CTOR,
+   STRING_OP_WCHAR_COPY_CTOR,
    STRING_OP_SET_FROM_CSTR,
    STRING_OP_SET_FROM_STRING,
    STRING_OP_MOVE_CTOR,
@@ -224,14 +225,14 @@ public:
    /** This constructor sets this String to be a substring of the specified String.
      * @param str String to become a copy of.
      * @param beginIndex Index of the first character in (str) to include.
-     * @param endIndex Index after the last character in (str) to include.
-     *                 Defaults to a very large number, so that by default the entire remainder of the string is included.
+     * @param afterEndIndex Index after the last character in (str) to include.
+     *                      Defaults to a very large number, so that by default the entire remainder of the string is included.
      */
-   String(const String & str, uint32 beginIndex, uint32 endIndex=MUSCLE_NO_LIMIT)
+   String(const String & str, uint32 beginIndex, uint32 afterEndIndex=MUSCLE_NO_LIMIT)
    {
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_PARTIAL_COPY_CTOR);
       ClearShortStringBuffer();
-      (void) SetFromString(str, beginIndex, endIndex);
+      (void) SetFromString(str, beginIndex, afterEndIndex);
    }
 
 #ifdef __APPLE__
@@ -243,6 +244,21 @@ public:
       MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_CFSTR_COPY_CTOR);
       ClearShortStringBuffer();
       (void) SetFromCFStringRef(cfStringRef);
+   }
+#endif
+
+#ifdef WIN32
+   /** Special MACOS/X-only convenience constructor that sets our state from a zero-terminated WCHAR array
+     * @param optWChars pointer to a zero-terminated array of UCS-16 characters (as used in some Windows APIs)
+     * @param maxNumWChars The maximum number of WCHARs to read from (optWChars).  Defaults to MUSCLE_NO_LIMIT.
+     *                     If a zero-WCHAR is found before this many WCHARs are read, the String will be shorter than (maxNumWChars).
+     * @note after construction, this String will contain the UTF-8 characters that are logically equivalent to (optWChars)
+     */
+   String(const WCHAR * optWChars, uint32 maxNumWChars = MUSCLE_NO_LIMIT)
+   {
+      MUSCLE_INCREMENT_STRING_OP_COUNT(STRING_OP_WCHAR_COPY_CTOR);
+      ClearShortStringBuffer();
+      (void) SetFromWideChars(optWChars, maxNumWChars);
    }
 #endif
 
@@ -505,11 +521,11 @@ public:
      * @param str The new string to copy from.
      * @param beginIndex Index of the first character in (str) to include.
      *                   Defaults to zero, so that by default the entire string is included.
-     * @param endIndex Index after the last character in (str) to include.
-     *                 Defaults to a very large number, so that by default the entire remainder of the string is included.
+     * @param afterEndIndex Index after the last character in (str) to include.
+     *                      Defaults to a very large number, so that by default the entire remainder of the string is included.
      * @returns B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
      */
-   status_t SetFromString(const String & str, uint32 beginIndex = 0, uint32 endIndex = MUSCLE_NO_LIMIT);
+   status_t SetFromString(const String & str, uint32 beginIndex = 0, uint32 afterEndIndex = MUSCLE_NO_LIMIT);
 
 #ifdef __APPLE__
    /** MACOS/X-only convenience method:  Sets our string equal to the string pointed to by (cfStringRef).
@@ -523,6 +539,31 @@ public:
      * May return a NULL CFStringRef on failure (eg out of memory)
      */
    CFStringRef ToCFStringRef() const;
+#endif
+
+#ifdef WIN32
+   /** Win32-only convenience method:  Sets our string equal to the string pointed to by (optWChars).
+     * @param optWChars pointer to a zero-terminated array of 16-bit characters in UCS-16 formatted (as used in some Win32 APIs)
+     * @param maxNumWChars The maximum number of WCHARs to read from (optWChars).  Defaults to MUSCLE_NO_LIMIT.
+     *                     If a zero-WCHAR is found before this many WCHARs are read, the String will be shorter than (maxNumWChars).
+     * @returns B_NO_ERROR on success, or an error code on failure.
+     * @note if (optWChars) is NULL, this string will be cleared to empty.
+     */
+   status_t SetFromWideChars(const WCHAR * optWChars, uint32 maxNumWChars = MUSCLE_NO_LIMIT);
+
+   /** Win32-only convenience method:  Writes the contents of this String into (outWChars) in UCS-16 format
+     * (as used in some Win32 APIs).  The written data will include a 0-terminator short at the end.
+     * @param outWChars the array to write output WCHARs into, or NULL if you only want to find out how many WCHARs of space you'd need.
+     * @param numOutWChars the number of WCHARs pointed to by (outWChars).
+     * @param optRetNumOutWChars if non-NULL, then on either success or failure, the uint32 this argument points
+     *                           to will be set to indicate the number of WCHARs we require (outWChars) to hold.
+     *                           On success, this will be the number of WCHARs actually written (including the NUL-terminator short)
+     *                           On failure, it will be the number of WCHARs that this method wanted to write, but couldn't due to insufficient space.
+     * @returns B_NO_ERROR on success, or another value on failure.  (In particular, this method will return
+     *          B_RESOURCE_LIMIT if (outWChars) wasn't big enough to hold the UCS-16 output this method wanted to produce,
+     *          of B_BAD_ARGUMENT if (outChars) was NULL; but in any case (optRetNumOutWChars) will still be written to, if non-NULL)
+     */
+   status_t ToWideChars(WCHAR * outWChars, uint32 numOutWChars, uint32 * optRetNumOutWChars = NULL) const;
 #endif
 
    /** Returns true iff this string is a zero-length string. */
@@ -909,12 +950,12 @@ public:
      */
    String Substring(uint32 beginIndex) const {return String(*this, beginIndex);}
 
-   /** Returns a String that consists of only the characters in this string from range (beginIndex) to (endIndex-1).  Does not modify the string it is called on.
+   /** Returns a String that consists of only the characters in this string from range (beginIndex) to (afterEndIndex-1).  Does not modify the string it is called on.
      * @param beginIndex the index of the first character to include in the returned substring
-     * @param endIndex the index after the final character to include in the returned substring (if set to MUSCLE_NO_LIMIT, or any other too-large-value,
-     *                 returned substring will include thi entire string starting with (beginIndex)
+     * @param afterEndIndex the index after the final character to include in the returned substring (if set to MUSCLE_NO_LIMIT, or any other too-large-value,
+     *                      returned substring will include thi entire string starting with (beginIndex)
      */
-   String Substring(uint32 beginIndex, uint32 endIndex) const {return String(*this, beginIndex, endIndex);}
+   String Substring(uint32 beginIndex, uint32 afterEndIndex) const {return String(*this, beginIndex, afterEndIndex);}
 
    /** Returns a String that consists of only the last part of this string, starting with the first character after the last instance of (markerString).
     *  If (markerString) is not found in the string, then this entire String is returned.
@@ -1518,32 +1559,6 @@ public:
 
    /** @copydoc DoxyTemplate::Print(const OutputPrinter &) const */
    void Print(const OutputPrinter & p) const {p.printf("%s", Cstr());}
-
-   /** Updates the Length() of this string by rescanning our held character buffer.
-    *  @note it's only necessary to call this method if you have written directly into the character
-    *        buffer in a way that might have changed the string's length (as indicated by the position
-    *        of the first NUL terminator byte in the buffer)
-    */
-   void RescanCharBuffer();
-
-#ifdef WIN32
-   /** Windows-only helper method.  Forms and returns a String from the given TCHAR buffer.
-    *  @param tchar_buffer pointer to a NULL-terminated array of TCHARs representing the string in Windows' style.
-    */
-   static String FromTChars(const TCHAR * tchar_buffer)
-   {
-# ifdef UNICODE
-      return FromWideChars(tchar_buffer);
-# else
-      return tchar_buffer;
-# endif
-   }
-
-   /** Windows-only helper method.  Forms and returns a UTF8 String from the given WCHAR buffer
-    *  @param wchar_buffer pointer to a NULL-terminated array of TCHARs representing the string in Windows' style.
-    */
-   static String FromWideChars(const WCHAR * wchar_buffer);
-#endif
 
 private:
    status_t InsertCharsAux(uint32 insertAtIdx, const char * str, uint32 numCharsToInsert, uint32 insertCount);

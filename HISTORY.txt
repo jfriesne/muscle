@@ -11,11 +11,9 @@ key:  - new feature
    - Added a GetSymbolStringForRelativeVirtualAddress() method to the
      Win32 implementation of StackTrace(), so that machines with PDB files
      can call it to convert an RVA value back to a symbol-name plus offset.
-   - Added a Win32-only String::FromTChars() and String::FromWideChars()
-     methods, for more convenient conversion of Windows-native strings
+   - Added a Win32-only WCHAR constructor and String::ToWideChars()
+     method, for more convenient conversion of Windows-native strings
      into muscle::String representation.
-   - Added String::RescanCharBuffer() to force a recalculation of the
-     String's length-field after manually modifying its contents.
    o Tweaked ParseConnectArg() to return a "No port number specified"
      error when a port number was required but no provided, instead of
      the more generic B_BAD_ARGUMENT.
