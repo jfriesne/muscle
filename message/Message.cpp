@@ -3047,7 +3047,12 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
    {
       if (optPayloadField)
       {
-         if (numItemsInPayloadField >= numItemsInTemplateField) optPayloadField->FlattenAux(DataFlattener(buf, optPayloadField->FlattenedSize()), numItemsInTemplateField);
+         if (numItemsInPayloadField >= numItemsInTemplateField)
+         {
+            DataFlattener flat(buf, optPayloadField->FlattenedSize());
+            flat.SetCompleteWriteRequired(false);  // NEB-9536
+            optPayloadField->FlattenAux(flat, numItemsInTemplateField);
+         }
          else
          {
             // In this case the payload-field has fewer values than the template-field, and therefore
@@ -3081,7 +3086,7 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
             }
             else LogTime(MUSCLE_LOG_ERROR, "TemplatedFlatten:  EnsurePrivate() failed! [%s]\n", ret());
 
-            const MessageField * mf = (ret.IsOK() ? &synthField : this);
+            const MessageField * mf = ret.IsOK() ? &synthField : this;
             mf->FlattenAux(DataFlattener(buf, mf->FlattenedSize()), MUSCLE_NO_LIMIT);
          }
       }

@@ -23,6 +23,8 @@ key:  - new feature
      WIN32 isn't guaranteed to be defined by the build environment.
    * MessageField::SingleFlattenedSize() was returning the wrong
      value when its FlatCountable pointer was NULL.  Fixed.
+   * Fixed a potential spurious assertion failure in
+     MessageField::TemplatedFlatten().
 
 9.90 - Released 4/30/2026
    - Note: (cc) in the text below means the issue was detected by Claude Code.
