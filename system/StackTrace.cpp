@@ -114,6 +114,8 @@ public:
 
    void PrintCallstack(const OutputPrinter & p, const StackWalkerState & sws) const;
 
+   String GetSymbolStringForRelativeVirtualAddress(const char * optModuleName, uint64 rva);
+
 private:
    enum {STACKWALK_MAX_NAMELEN = 1024}; // max name length for found symbols
 
@@ -911,6 +913,72 @@ BOOL StackWalker :: LoadModules()
    return bRet;
 }
 
+class ModuleEnumerationCallbackContext
+{
+public:
+   ModuleEnumerationCallbackContext(const String & targetName) : _targetName(targetName) {/* empty */}
+
+   const String & _targetName;
+   DWORD64 _baseAddress;
+};
+
+static BOOL CALLBACK EnumModulesCallback(PCSTR ModuleName, DWORD64 BaseOfDll, PVOID UserContext)
+{
+   ModuleEnumerationCallbackContext* ctx = static_cast<ModuleEnumerationCallbackContext*>(UserContext);
+   if (ctx->_targetName.EqualsIgnoreCase(ModuleName))
+   {
+      ctx->_baseAddress = BaseOfDll;
+      return FALSE; // Stop the enumeration once found
+   }
+
+   return TRUE; // Continue enumeration
+}
+
+static DWORD64 GetModuleBaseAddressByName(HANDLE hProcess, const String & moduleName)
+{
+    ModuleEnumerationCallbackContext ctx(moduleName);
+    SymEnumerateModules64(hProcess, EnumModulesCallback, &ctx);
+    return ctx._baseAddress;
+}
+
+String StackWalker :: GetSymbolStringForRelativeVirtualAddress(const char * optModuleName, uint64 rva)
+{
+   if ((m_modulesLoaded == FALSE)&&(LoadModules() == false)) return "StackWalker::LoadModules() failed";
+
+   HANDLE process = GetCurrentProcess();
+   const DWORD64 moduleBase = GetModuleBaseAddressByName(process, optModuleName);
+   if (moduleBase != 0)
+   {
+      char buffer[sizeof(SYMBOL_INFO) + STACKWALK_MAX_NAMELEN];
+      IMAGEHLP_SYMBOL * sym = reinterpret_cast<IMAGEHLP_SYMBOL *>(buffer);
+      sym->SizeOfStruct     = sizeof(buffer);
+      sym->MaxNameLength    = STACKWALK_MAX_NAMELEN;
+
+      DWORD64 displacement = 0;
+      const uint64 addr = moduleBase + rva;
+#ifdef _UNICODE
+      if (m_sw->pSFA(  process, addr, &displacement, sym) != FALSE)
+#else
+      if (m_sw->pSGSFA(process, addr, &displacement, sym) != FALSE)
+#endif
+      {
+         char buf[128]; muscleSprintf(buf, " + 0x" XINT64_FORMAT_SPEC, displacement);
+         return String(sym->Name) + buf;
+      }
+      else return String("SymFromAddr(%1) failed [Error Code %2]").Arg(moduleBase+rva, XINT64_FORMAT_SPEC).Arg(GetLastError());
+   }
+   else return String("SymLoadModuleEx(%1) failed [Error Code %2]").Arg(optModuleName).Arg(GetLastError());
+}
+
+String StackTrace :: GetSymbolStringForRelativeVirtualAddress(const char * optModuleName, uint64 rva)
+{
+   if (_stackWalkerState() == NULL) _stackWalkerState.SetRef(new StackWalkerState);  // demand-allocate
+
+   StackWalkerRef swr = static_cast<StackWalkerState *>(_stackWalkerState())->GetStackWalkerRef();
+   return swr() ? swr()->GetSymbolStringForRelativeVirtualAddress(optModuleName, rva)
+                : String("No StackWalker present");
+}
+
 static CONTEXT * _saveContextFilterContext = NULL;  // set inside serialized code
 static int SaveContextFilterFunc(struct _EXCEPTION_POINTERS *ep)
 {
@@ -1189,9 +1257,8 @@ void StackWalker :: OnLoadModule(LPTSTR img, LPTSTR mod, DWORD64 baseAddr, DWORD
       const DWORD v1 = (DWORD) (fileVersion>>48) & 0xFFFF;
       _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("%s:%s (%p), size: %d (result: %d), SymType: '%s', PDB: '%s', fileVersion: %d.%d.%d.%d\n"), img, mod, (LPVOID)baseAddr, size, result, symType, pdbName, v1, v2, v3, v4);
    }
-#ifdef REMOVED_BY_JAF_TOO_MUCH_INFORMATION
-   PrintOutput(MUSCLE_LOG_DEBUG, buffer);
-#endif
+
+   PrintOutput(MUSCLE_LOG_TRACE, buffer);
 }
 
 void StackWalker :: PrintCallstackEntry(const OutputPrinter & p, CallstackEntry *entry) const
@@ -1228,40 +1295,32 @@ void StackWalker :: PrintCallstackEntry(const OutputPrinter & p, CallstackEntry 
 
 void StackWalker :: OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr) const
 {
-   TCHAR buffer[STACKWALK_MAX_NAMELEN];
-   _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("ERROR: %s, GetLastError: %d (Address: %p)\n"), szFuncName, gle, (LPVOID)addr);
-#ifdef REMOVED_BY_JAF_TOO_MUCH_INFORMATION
-   PrintOutput(MUSCLE_LOG_ERROR, buffer);
-#elif _UNICODE
-   size_t i;
-   char buffer8[STACKWALK_MAX_NAMELEN];
-   wcstombs_s(&i, buffer8, (size_t)STACKWALK_MAX_NAMELEN, buffer, (size_t)STACKWALK_MAX_NAMELEN );
-   LogTime(MUSCLE_LOG_DEBUG, "%s", buffer8);
+   DWORD64 modBase = 0;
+   DWORD64 rva     = addr;
+
+#ifdef _UNICODE
+   IMAGEHLP_MODULEW64 mod = {}; mod.SizeOfStruct = sizeof(mod);
+   if (m_sw->pSGMI(m_hProcess, addr, &mod) != FALSE)
 #else
-   LogTime(MUSCLE_LOG_DEBUG, "%s", buffer);
+   IMAGEHLP_MODULE64 mod = {}; mod.SizeOfStruct = sizeof(mod);
+   if (m_sw->pSGMI(m_hProcess, addr, &mod) != FALSE)
 #endif
+   {
+      // convert to RVA+offset format so that this info can be used in other ASLR layouts also
+      modBase = mod.BaseOfImage;
+      rva     = addr - modBase;
+   }
+
+   TCHAR buffer[STACKWALK_MAX_NAMELEN];
+   _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("ERROR: %s, GetLastError: %d (module=%s rva=0x" XINT64_FORMAT_SPEC")\n"), szFuncName, gle, mod.ModuleName, rva);
+   PrintOutput(MUSCLE_LOG_ERROR, buffer);
 }
 
 void StackWalker :: OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUserName) const
 {
-#ifdef REMOVED_BY_JAF_TOO_MUCH_INFORMATION
    TCHAR buffer[STACKWALK_MAX_NAMELEN];
    _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("SymInit: Symbol-SearchPath: '%s', symOptions: %d, UserName: '%s'\n"), szSearchPath, symOptions, szUserName);
-   PrintOutput(MUSCLE_LOG_DEBUG, buffer);
-
-   // Also display the OS-version
-   OSVERSIONINFOEX ver; ZeroMemory(&ver, sizeof(OSVERSIONINFOEX));
-   ver.dwOSVersionInfoSize = sizeof(ver);
-   if (GetVersionEx( (OSVERSIONINFO*) &ver) != FALSE)   // Note:  this call is kind of useless under Win8 and higher since Win8 lies to us :(
-   {
-      _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("OS-Version: %d.%d.%d (%s) 0x%x-0x%x\n"), ver.dwMajorVersion, ver.dwMinorVersion, ver.dwBuildNumber, ver.szCSDVersion, ver.wSuiteMask, ver.wProductType);
-      PrintOutput(MUSCLE_LOG_DEBUG, buffer);
-   }
-#else
-   (void) szSearchPath;
-   (void) symOptions;
-   (void) szUserName;
-#endif
+   PrintOutput(MUSCLE_LOG_TRACE, buffer);
 }
 
 #endif  // Windows stack trace code

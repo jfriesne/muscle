@@ -5,6 +5,11 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Under Win32, stack trace errors caused by lack of PDB info now
+     contain usable module-name and RVA values to support remote analysis.
+   - Added a GetSymbolStringForRelativeVirtualAddress() method to the
+     Win32 implementation of StackTrace(), so that machines with PDB files
+     can call it to convert an RVA value back to a symbol-name plus offset.
    o Tweaked ParseConnectArg() to return a "No port number specified"
      error when a port number was required but no provided, instead of
      the more generic B_BAD_ARGUMENT.
