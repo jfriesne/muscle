@@ -1238,16 +1238,20 @@ status_t String :: SetFromWideChars(const WCHAR * optWChars, uint32 maxNumWChars
    return B_NO_ERROR;
 }
 
-status_t String :: ToWideChars(WCHAR * outWChars, uint32 numOutWChars, uint32 * optRetNumOutWChars = NULL) const
+status_t String :: ToWideChars(WCHAR * optOutWChars, uint32 numOutWChars, uint32 * optRetNumOutWChars) const
 {
-   const int numWCharsNeededIncludingZeroShort = MultiByteToWideChar(CP_UTF8, 0, GetBuffer(), Length(), NULL, 0)+1;  // +1 for the NUL terminator short
-   if (optRetNumOutWChars) *optRetNumOutWChars = numWCharsNeededIncludingZeroShort;  // we set this even on failure so the caller can try again with a larger (outWChars) if he wants
-   if (outWChars == NULL) return B_BAD_ARGUMENT;
-   if (numOutWChars < numWCharsNeededIncludingZeroShort) return B_RESOURCE_LIMIT;  // not enough space to hold our output!
+   const char * cstr = Cstr();
+   const uint32 len  = Length();
 
-   const int numWCharsWrittenIncludingZeroShort = MultiByteToWideChar(CP_UTF8, 0, GetBuffer(), Length(), outWChars, numOutWChars)+1;
-   if (numWCharsWrittenIncludingZeroShort != numWCharsNeededIncludingZeroShort) return B_LOGIC_ERROR;  // should never happen but I'm paranoid
-   outWChars[numWCharsWrittenIncludingZeroShort-1] = 0;  // make sure output array is NUL-terminated
+   const uint32 numWCharsNeededNotIncludingZeroShort = MultiByteToWideChar(CP_UTF8, 0, cstr, len, NULL, 0);
+   if (optRetNumOutWChars) *optRetNumOutWChars = numWCharsNeededNotIncludingZeroShort+1;  // we set this even on failure so the caller can try again with a larger (optOutWChars) if he wants
+   if (optOutWChars == NULL) return optRetNumOutWChars ? B_NO_ERROR : B_BAD_ARGUMENT;  // space-query only
+   if (numWCharsNeededNotIncludingZeroShort == 0) return B_ERRNO;
+   if (numOutWChars <= numWCharsNeededNotIncludingZeroShort) return B_RESOURCE_LIMIT;  // not enough space to hold our output!
+
+   const uint32 numWCharsWrittenNotIncludingZeroShort = MultiByteToWideChar(CP_UTF8, 0, cstr, len, optOutWChars, numOutWChars);
+   if (numWCharsWrittenNotIncludingZeroShort != numWCharsNeededNotIncludingZeroShort) return B_LOGIC_ERROR;  // should never happen but I'm paranoid
+   optOutWChars[numWCharsWrittenNotIncludingZeroShort] = 0;  // make sure output array is NUL-terminated
    return B_NO_ERROR;
 }
 #endif

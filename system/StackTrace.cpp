@@ -140,7 +140,7 @@ private:
    void SaveCurrentContext(StackWalkerState & sws) const;
    void OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUserName) const;
    void OnLoadModule(LPTSTR img, LPTSTR mod, DWORD64 baseAddr, DWORD size, DWORD result, LPCTSTR symType, LPTSTR pdbName, ULONGLONG fileVersion) const;
-   void OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr) const;
+   void OnDbgHelpErr(int logLevel, LPCTSTR szFuncName, DWORD gle, DWORD64 addr) const;
    void PrintCallstackEntry(const OutputPrinter & p, CallstackEntry *entry) const;
    void PrintOutput(const OutputPrinter & p, LPTSTR szText) const
    {
@@ -363,7 +363,7 @@ public:
 
       // SymInitialize
       if (szSymPath != NULL) m_szSymPath = _tcsdup(szSymPath);
-      if (pSI(m_hProcess, m_szSymPath, FALSE) == FALSE) m_parent->OnDbgHelpErr(_T("SymInitialize"), GetLastError(), 0);
+      if (pSI(m_hProcess, m_szSymPath, FALSE) == FALSE) m_parent->OnDbgHelpErr(MUSCLE_LOG_ERROR, _T("SymInitialize"), GetLastError(), 0);
 
       DWORD symOptions = pSGO();  // SymGetOptions
       symOptions |= SYMOPT_LOAD_LINES;
@@ -373,7 +373,7 @@ public:
       symOptions = pSSO(symOptions);
 
       TCHAR buf[StackWalker::STACKWALK_MAX_NAMELEN] = {0};
-      if ((pSGSP != NULL)&&(pSGSP(m_hProcess, buf, StackWalker::STACKWALK_MAX_NAMELEN) == FALSE)) m_parent->OnDbgHelpErr(_T("SymGetSearchPath"), GetLastError(), 0);
+      if ((pSGSP != NULL)&&(pSGSP(m_hProcess, buf, StackWalker::STACKWALK_MAX_NAMELEN) == FALSE)) m_parent->OnDbgHelpErr(MUSCLE_LOG_ERROR, _T("SymGetSearchPath"), GetLastError(), 0);
 
       TCHAR szUserName[1024] = {0};
       DWORD dwSize = 1024;
@@ -625,7 +625,7 @@ private:
          pGMBN(hProcess, hMods[i], tt2, TTBUFLEN );
 
          DWORD dwRes = LoadModule(hProcess, tt, tt2, (DWORD64) mi.lpBaseOfDll, mi.SizeOfImage);
-         if (dwRes != ERROR_SUCCESS) m_parent->OnDbgHelpErr(_T("LoadModule"), dwRes, 0);
+         if (dwRes != ERROR_SUCCESS) m_parent->OnDbgHelpErr(MUSCLE_LOG_ERROR, _T("LoadModule"), dwRes, 0);
          cnt++;
       }
 
@@ -903,7 +903,7 @@ BOOL StackWalker :: LoadModules()
 
    if (bRet == FALSE)
    {
-      OnDbgHelpErr(_T("Error while initializing dbghelp.dll"), 0, 0);
+      OnDbgHelpErr(MUSCLE_LOG_ERROR, _T("Error while initializing dbghelp.dll"), 0, 0);
       SetLastError(ERROR_DLL_INIT_FAILED);
       return FALSE;
    }
@@ -972,7 +972,7 @@ String StackWalker :: GetSymbolStringForRelativeVirtualAddress(const char * optM
          m_sw->pUDSN(pSym->Name, undecName, STACKWALK_MAX_NAMELEN, UNDNAME_COMPLETE);
 
          char buf[64]; muscleSprintf(buf, " + 0x" XINT64_FORMAT_SPEC, displacement);
-         return String::FromTChars(undecName) + buf;
+         return String(undecName, STACKWALK_MAX_NAMELEN) + buf;
       }
       else return String("SymFromAddr(%1) failed [Error Code %2]").Arg(moduleBase+rva, XINT64_FORMAT_SPEC).Arg(GetLastError());
    }
@@ -1185,9 +1185,9 @@ void StackWalker :: PrintCallstack(const OutputPrinter & p, const StackWalkerSta
       else
       {
 #ifdef _UNICODE
-         OnDbgHelpErr(_T("SymFromAddrW"),        GetLastError(), offset);
+         OnDbgHelpErr(MUSCLE_LOG_ERROR, _T("SymFromAddrW"),        GetLastError(), offset);
 #else
-         OnDbgHelpErr(_T("SymGetSymFromAddr64"), GetLastError(), offset);
+         OnDbgHelpErr(MUSCLE_LOG_ERROR, _T("SymGetSymFromAddr64"), GetLastError(), offset);
 #endif
       }
 
@@ -1201,7 +1201,7 @@ void StackWalker :: PrintCallstack(const OutputPrinter & p, const StackWalkerSta
             // TODO: Mache dies sicher...!
             _tcscpy_s(csEntry->lineFileName, Line.FileName);
          }
-         else OnDbgHelpErr(_T("SymGetLineFromAddr64"), GetLastError(), offset);
+         else OnDbgHelpErr(MUSCLE_LOG_DEBUG, _T("SymGetLineFromAddr64"), GetLastError(), offset);
       }
 
       // show module info (SymGetModuleInfo64())
@@ -1229,7 +1229,7 @@ void StackWalker :: PrintCallstack(const OutputPrinter & p, const StackWalkerSta
          csEntry->baseOfImage = Module.BaseOfImage;
          _tcscpy_s(csEntry->loadedImageName, Module.LoadedImageName);
       }
-      else OnDbgHelpErr(_T("SymGetModuleInfo64"), GetLastError(), offset);
+      else OnDbgHelpErr(MUSCLE_LOG_ERROR, _T("SymGetModuleInfo64"), GetLastError(), offset);
 
       PrintCallstackEntry(p, csEntry);
    }
@@ -1302,7 +1302,7 @@ void StackWalker :: PrintCallstackEntry(const OutputPrinter & p, CallstackEntry 
    PrintOutput(p, buffer);
 }
 
-void StackWalker :: OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr) const
+void StackWalker :: OnDbgHelpErr(int logLevel, LPCTSTR szFuncName, DWORD gle, DWORD64 addr) const
 {
    DWORD64 modBase = 0;
    DWORD64 rva     = addr;
@@ -1322,7 +1322,7 @@ void StackWalker :: OnDbgHelpErr(LPCTSTR szFuncName, DWORD gle, DWORD64 addr) co
 
    TCHAR buffer[STACKWALK_MAX_NAMELEN];
    _sntprintf_s(buffer, STACKWALK_MAX_NAMELEN, _T("ERROR: %s, GetLastError: %d (module=%s rva=0x" XINT64_FORMAT_SPEC")\n"), szFuncName, gle, mod.ModuleName, rva);
-   PrintOutput(MUSCLE_LOG_ERROR, buffer);
+   PrintOutput(logLevel, buffer);
 }
 
 void StackWalker :: OnSymInit(LPTSTR szSearchPath, DWORD symOptions, LPTSTR szUserName) const

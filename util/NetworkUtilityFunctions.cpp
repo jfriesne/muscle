@@ -2205,7 +2205,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 
                      const bool hasCopper = (pCurrAddresses->OperStatus==IfOperStatusUp);
                      const uint32 hardwareType = ConvertWindowsInterfaceType(pCurrAddresses->IfType);
-                     if (results.AddTail(NetworkInterfaceInfo(pCurrAddresses->AdapterName, String::FromWideChars(pCurrAddresses->Description), unicastIP, netmask, broadIP, isEnabled, hasCopper, mac, hardwareType, pCurrAddresses->Mtu)).IsOK(ret))
+                     if (results.AddTail(NetworkInterfaceInfo(pCurrAddresses->AdapterName, pCurrAddresses->Description, unicastIP, netmask, broadIP, isEnabled, hasCopper, mac, hardwareType, pCurrAddresses->Mtu)).IsOK(ret))
                      {
                         DECLARE_MUTEXGUARD(_cachedLocalhostAddressLock);
                         if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;

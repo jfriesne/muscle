@@ -249,7 +249,7 @@ public:
 
 #ifdef WIN32
    /** Special MACOS/X-only convenience constructor that sets our state from a zero-terminated WCHAR array
-     * @param optWChars pointer to a zero-terminated array of UCS-16 characters (as used in some Windows APIs)
+     * @param optWChars pointer to a zero-terminated array of UTF-16LE characters (as used in some Windows APIs)
      * @param maxNumWChars The maximum number of WCHARs to read from (optWChars).  Defaults to MUSCLE_NO_LIMIT.
      *                     If a zero-WCHAR is found before this many WCHARs are read, the String will be shorter than (maxNumWChars).
      * @note after construction, this String will contain the UTF-8 characters that are logically equivalent to (optWChars)
@@ -543,7 +543,7 @@ public:
 
 #ifdef WIN32
    /** Win32-only convenience method:  Sets our string equal to the string pointed to by (optWChars).
-     * @param optWChars pointer to a zero-terminated array of 16-bit characters in UCS-16 formatted (as used in some Win32 APIs)
+     * @param optWChars pointer to a zero-terminated array of 16-bit characters in UTF-16LE formatted (as used in some Win32 APIs)
      * @param maxNumWChars The maximum number of WCHARs to read from (optWChars).  Defaults to MUSCLE_NO_LIMIT.
      *                     If a zero-WCHAR is found before this many WCHARs are read, the String will be shorter than (maxNumWChars).
      * @returns B_NO_ERROR on success, or an error code on failure.
@@ -551,19 +551,20 @@ public:
      */
    status_t SetFromWideChars(const WCHAR * optWChars, uint32 maxNumWChars = MUSCLE_NO_LIMIT);
 
-   /** Win32-only convenience method:  Writes the contents of this String into (outWChars) in UCS-16 format
+   /** Win32-only convenience method:  Writes the contents of this String into (optOutWChars) in UTF-16LE format
      * (as used in some Win32 APIs).  The written data will include a 0-terminator short at the end.
-     * @param outWChars the array to write output WCHARs into, or NULL if you only want to find out how many WCHARs of space you'd need.
-     * @param numOutWChars the number of WCHARs pointed to by (outWChars).
+     * @param optOutWChars the array to write output WCHARs into, or NULL if you only want to query how many WCHARs
+     *                     of space you'll need to supply.
+     * @param numOutWChars the number of WCHARs pointed to by (optOutWChars).  Ignored if (optOutWChars) is NULL.
      * @param optRetNumOutWChars if non-NULL, then on either success or failure, the uint32 this argument points
-     *                           to will be set to indicate the number of WCHARs we require (outWChars) to hold.
+     *                           to will be set to indicate the number of WCHARs we require (optOutWChars) to hold.
      *                           On success, this will be the number of WCHARs actually written (including the NUL-terminator short)
      *                           On failure, it will be the number of WCHARs that this method wanted to write, but couldn't due to insufficient space.
      * @returns B_NO_ERROR on success, or another value on failure.  (In particular, this method will return
-     *          B_RESOURCE_LIMIT if (outWChars) wasn't big enough to hold the UCS-16 output this method wanted to produce,
-     *          of B_BAD_ARGUMENT if (outChars) was NULL; but in any case (optRetNumOutWChars) will still be written to, if non-NULL)
+     *          B_RESOURCE_LIMIT if (optOutWChars) wasn't big enough to hold the UTF-16LE output this method wanted
+     *          to produce, but in any case (optRetNumOutWChars) will still be written to, if non-NULL)
      */
-   status_t ToWideChars(WCHAR * outWChars, uint32 numOutWChars, uint32 * optRetNumOutWChars = NULL) const;
+   status_t ToWideChars(WCHAR * optOutWChars, uint32 numOutWChars, uint32 * optRetNumOutWChars = NULL) const;
 #endif
 
    /** Returns true iff this string is a zero-length string. */
