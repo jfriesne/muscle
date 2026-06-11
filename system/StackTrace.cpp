@@ -945,6 +945,19 @@ String StackWalker :: GetSymbolStringForRelativeVirtualAddress(const char * optM
 {
    if ((m_modulesLoaded == FALSE)&&(LoadModules() == false)) return "StackWalker::LoadModules() failed";
 
+   IMAGEHLP_MODULE64 moduleInfo;
+   if (optModuleName == NULL)
+   {
+      memset(&moduleInfo, 0, sizeof(moduleInfo));
+      moduleInfo.SizeOfStruct = sizeof(IMAGEHLP_MODULE64);
+
+      if (SymGetModuleInfo64(GetCurrentProcess(), (DWORD64)GetModuleHandle(NULL), &moduleInfo))
+      {
+         optModuleName = moduleInfo.ModuleName;
+      }
+      else return "SymGetModuleInfo64() failed";
+   }
+
    HANDLE process = GetCurrentProcess();
    const DWORD64 moduleBase = GetModuleBaseAddressByName(process, optModuleName);
    if (moduleBase != 0)
@@ -974,9 +987,9 @@ String StackWalker :: GetSymbolStringForRelativeVirtualAddress(const char * optM
          char buf[64]; muscleSprintf(buf, " + 0x" XINT64_FORMAT_SPEC, displacement);
          return String(undecName, STACKWALK_MAX_NAMELEN) + buf;
       }
-      else return String("SymFromAddr(%1) failed [Error Code %2]").Arg(moduleBase+rva, XINT64_FORMAT_SPEC).Arg(GetLastError());
+      else return String("SymFromAddr(%1) failed [Error Code %2]").Arg(moduleBase+rva, XINT64_FORMAT_SPEC).Arg(B_ERRNO());
    }
-   else return String("SymLoadModuleEx(%1) failed [Error Code %2]").Arg(optModuleName).Arg(GetLastError());
+   else return String("SymLoadModuleEx(%1) failed [Error Code %2]").Arg(optModuleName).Arg(B_ERRNO());
 }
 
 String StackTrace :: GetSymbolStringForRelativeVirtualAddress(const char * optModuleName, uint64 rva)
