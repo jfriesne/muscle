@@ -79,6 +79,9 @@ public:
    // Flattenable interface
    MUSCLE_NODISCARD virtual bool IsFixedSize() const {return false;}
 
+   /** @copydoc DoxyTemplate::FlattenedSize() const */
+   MUSCLE_NODISCARD virtual uint32 FlattenedSize() const {return TemplatedFlattenedSize(MUSCLE_NO_LIMIT);}
+
    // returns a separate (deep) copy of this field
    virtual Ref<AbstractDataArray> Clone() const = 0;
 
@@ -106,6 +109,11 @@ public:
 
    /** Used by the regular Flatten() methods */
    virtual void Flatten(DataFlattener flat) const {FlattenAux(flat, MUSCLE_NO_LIMIT);}
+
+   /** Must be overridden by our subclasses to return the number of bytes we'll flatten if TemplatedFlatten(maxItemsToFlatten) is called
+     * @param maxItemsToFlatten the number-of-items count that will be passed to TemplatedFlatten()
+     */
+   MUSCLE_NODISCARD virtual uint32 TemplatedFlattenedSize(uint32 maxItemsToFlatten) const = 0;
 
 protected:
    /** Must be implemented by each subclass to return true iff (rhs) is of the same type
@@ -145,7 +153,12 @@ public:
 
    // Flattenable Pseudo-Interface
    MUSCLE_NODISCARD uint32 TypeCode() const {return _typeCode;}
-   MUSCLE_NODISCARD uint32 FlattenedSize() const {return HasArray() ? GetArray()->FlattenedSize() : SingleFlattenedSize();}
+   MUSCLE_NODISCARD uint32 FlattenedSize() const {return TemplatedFlattenedSize(MUSCLE_NO_LIMIT);}
+   MUSCLE_NODISCARD uint32 TemplatedFlattenedSize(uint32 maxItemsToFlatten) const
+   {
+      MASSERT(maxItemsToFlatten>0, "TemplatedFlattenedSize:  maxItemsToFlatten was zero");                // specifying maxItemsToFlatten==0 would be silly
+      return HasArray() ? GetArray()->TemplatedFlattenedSize(maxItemsToFlatten) : SingleFlattenedSize();  // ... and I'd prefer not to have to implemenent SingleFlattenedSize(uin32 maxItemsToFlatten) just to support it
+   }
    void Flatten(DataFlattener flat) const {FlattenAux(flat, MUSCLE_NO_LIMIT);}
    status_t Unflatten(DataUnflattener & unflat);
 

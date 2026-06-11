@@ -203,7 +203,7 @@ public:
    }
 
    // Flattenable interface
-   virtual uint32 FlattenedSize() const {return 0;}  // tags don't get flattened, so they take up no space
+   virtual uint32 TemplatedFlattenedSize(uint32) const {return 0;}  // tags don't get flattened, so they take up no space
 
    virtual status_t Unflatten(DataUnflattener &)
    {
@@ -256,7 +256,7 @@ public:
    }
 
    // Flattenable interface
-   virtual uint32 FlattenedSize() const {return this->_data.GetNumItems() * FlatItemSize;}
+   virtual uint32 TemplatedFlattenedSize(uint32 maxItemsToFlatten) const {return muscleMin(maxItemsToFlatten, this->_data.GetNumItems()) * FlatItemSize;}
 
    virtual status_t Unflatten(DataUnflattener & unflat)
    {
@@ -331,7 +331,7 @@ public:
    }
 
    // Flattenable interface
-   virtual uint32 FlattenedSize() const {return this->_data.GetNumItems() * sizeof(DataType);}
+   virtual uint32 TemplatedFlattenedSize(uint32 maxItemsToFlatten) const {return muscleMin(maxItemsToFlatten, this->_data.GetNumItems()) * sizeof(DataType);}
 
 protected:
    virtual const char * GetFormatString() const = 0;
@@ -577,7 +577,7 @@ public:
       MCRASH("Message::PointerDataArray:FlattenAux()  This method should never be called!");
    }
 
-   virtual uint32 FlattenedSize() const {return 0;}  // poitners don't get flattened, so they take up no space
+   virtual uint32 TemplatedFlattenedSize(uint32) const {return 0;}  // pointers don't get flattened, so they take up no space
 
    virtual status_t Unflatten(DataUnflattener &)
    {
@@ -620,8 +620,8 @@ public:
 
    virtual uint32 GetItemSize(uint32 index) const
    {
-      const FlatCountable * msg = this->ItemAt(index)();
-      return msg ? msg->FlattenedSize() : 0;
+      const FlatCountable * item = this->ItemAt(index)();
+      return item ? item->FlattenedSize() : 0;
    }
 
    virtual uint32 TypeCode() const {return ItemTypeCode;}
@@ -659,18 +659,17 @@ public:
       if (writeCountToThisLocation) DefaultEndianConverter::Export(numWritten, writeCountToThisLocation);
    }
 
-   // Flattenable interface
-   virtual uint32 FlattenedSize() const
+   virtual uint32 TemplatedFlattenedSize(uint32 maxItemsToFlatten) const
    {
-      uint32 count = ShouldWriteNumItems() ? sizeof(uint32) : 0;
+      uint32 numBytes = ShouldWriteNumItems() ? sizeof(uint32) : 0;
 
-      const uint32 numItems = this->GetNumItems();
+      const uint32 numItems = muscleMin(maxItemsToFlatten, this->GetNumItems());
       for (uint32 i=0; i<numItems; i++)
       {
          const FlatCountable * next = this->ItemAt(i)();
-         if (next) count += (sizeof(uint32) + GetItemSize(i));
+         if (next) numBytes += (sizeof(uint32) + GetItemSize(i));
       }
-      return count;
+      return numBytes;
    }
 
    virtual RefCountableRef GetItemAtAsRefCountableRef(uint32 idx) const {return this->ItemAt(idx).GetRefCountableRef();}
@@ -903,12 +902,12 @@ public:
       for (uint32 i=0; i<numElements; i++) flat.WriteFlatWithLengthPrefix(this->ItemAt(i));
    }
 
-   virtual uint32 FlattenedSize() const
+   virtual uint32 TemplatedFlattenedSize(uint32 maxItemsToFlatten) const
    {
-      const uint32 num = this->GetNumItems();
-      uint32 sum = (num+1)*sizeof(uint32);  // 1 uint32 for the count, plus 1 per entry for entry-size
-      for (uint32 i=0; i<num; i++) sum += this->ItemAt(i).FlattenedSize();
-      return sum;
+      const uint32 numItems = muscleMin(maxItemsToFlatten, this->GetNumItems());
+      uint32 numBytes = (numItems+1)*sizeof(uint32);  // 1 uint32 for the count, plus 1 per entry for entry-size
+      for (uint32 i=0; i<numItems; i++) numBytes += this->ItemAt(i).FlattenedSize();
+      return numBytes;
    }
 
    virtual status_t Unflatten(DataUnflattener & unflat)
@@ -1132,15 +1131,16 @@ status_t Message :: Rename(const String & oldFieldName, const String & newFieldN
 
 uint32 Message :: FlattenedSize() const
 {
-   uint32 sum = 3 * sizeof(uint32);  // For the message header:  4 bytes for the protocol revision #, 4 bytes for the number-of-entries field, 4 bytes for what code
+   uint32 numBytes = 3 * sizeof(uint32);  // For the message header:  4 bytes for the protocol revision #, 4 bytes for the number-of-entries field, 4 bytes for what code
 
    // For each flattenable field: 4 bytes for the name length, name data, 4 bytes for entry type code, 4 bytes for entry data length, entry data
    for (ConstHashtableIterator<String, MessageField> it(_entries, HTIT_FLAG_NOREGISTER); it.HasData(); it++)
    {
       const MessageField & mf = it.GetValue();
-      if (mf.IsFlattenable()) sum += sizeof(uint32) + it.GetKey().FlattenedSize() + sizeof(uint32) + sizeof(uint32) + mf.FlattenedSize();
+      if (mf.IsFlattenable()) numBytes += sizeof(uint32) + it.GetKey().FlattenedSize() + sizeof(uint32) + sizeof(uint32) + mf.FlattenedSize();
    }
-   return sum;
+
+   return numBytes;
 }
 
 uint32 Message :: CalculateChecksum(bool countNonFlattenableFields) const
@@ -2177,13 +2177,13 @@ uint64 Message :: TemplateHashCode64Aux(uint32 & count) const
 
 uint32 Message :: TemplatedFlattenedSize(const Message & templateMsg) const
 {
-   uint32 sum = sizeof(uint32);  // For the what-code
+   uint32 numBytes = sizeof(uint32);  // For the what-code
    for (ConstHashtableIterator<String, MessageField> iter(templateMsg._entries, HTIT_FLAG_NOREGISTER); iter.HasData(); iter++)
    {
       const MessageField & mf = iter.GetValue();
-      if (mf.IsFlattenable()) sum += mf.TemplatedFlattenedSize(_entries.Get(iter.GetKey()));
+      if (mf.IsFlattenable()) numBytes += mf.TemplatedFlattenedSize(_entries.Get(iter.GetKey()));
    }
-   return sum;
+   return numBytes;
 }
 
 void Message :: TemplatedFlatten(const Message & templateMsg, DataFlattener flat) const
@@ -2267,10 +2267,11 @@ uint32 MessageField :: SingleFlattenedSize() const
 {
    MASSERT(_state == FIELD_STATE_INLINE, "SingleFlattenedSize() called on empty field");
 
-   if (_typeCode == B_BOOL_TYPE) return sizeof(uint8);                                // bools are always flattened to one uint8 each
+   if (_typeCode == B_BOOL_TYPE) return sizeof(uint8); // bools are always flattened to one uint8 each
    else
    {
       const uint32 itemSizeBytes = SingleGetItemSize(0);
+
            if (_typeCode == B_MESSAGE_TYPE) return sizeof(uint32)+itemSizeBytes;  // special case: Message fields don't write number-of-items, for historical reasons
       else if (_typeCode == B_STRING_TYPE)  return sizeof(uint32)+sizeof(uint32)+GetInlineItemAsString().FlattenedSize();
       else
@@ -3049,10 +3050,7 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
       {
          if (numItemsInPayloadField >= numItemsInTemplateField)
          {
-            const uint32 numPayloadBytes = optPayloadField->FlattenedSize();
-            DataFlattener flat(buf, numPayloadBytes);
-            flat.SetCompleteWriteRequired(false);  // NEB-9536 -- we may write fewer than (numPayloadBytes) here, and that's okay
-            optPayloadField->FlattenAux(flat, numItemsInTemplateField);
+            optPayloadField->FlattenAux(DataFlattener(buf, optPayloadField->TemplatedFlattenedSize(numItemsInTemplateField)), numItemsInTemplateField);
          }
          else
          {
@@ -3152,7 +3150,6 @@ status_t MessageField :: TemplatedUnflatten(Message & unflattenTo, const String 
             MRETURN_ON_ERROR(mf->AddDataItem(&subMsg, sizeof(subMsg)));
          }
          else MRETURN_ON_ERROR(calcSizeUnflat.SeekRelative(itemSize));
-
       }
 
       return doCustomMessageUnflatten ? B_NO_ERROR : unflat.ReadFlat(*mf, calcSizeUnflat.GetNumBytesRead());
