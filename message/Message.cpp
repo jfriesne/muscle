@@ -3049,8 +3049,9 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
       {
          if (numItemsInPayloadField >= numItemsInTemplateField)
          {
-            DataFlattener flat(buf, optPayloadField->FlattenedSize());
-            flat.SetCompleteWriteRequired(false);  // NEB-9536
+            const uint32 numPayloadBytes = optPayloadField->FlattenedSize();
+            DataFlattener flat(buf, numPayloadBytes);
+            flat.SetCompleteWriteRequired(false);  // NEB-9536 -- we may write fewer than (numPayloadBytes) here, and that's okay
             optPayloadField->FlattenAux(flat, numItemsInTemplateField);
          }
          else

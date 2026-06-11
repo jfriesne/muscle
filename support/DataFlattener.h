@@ -201,7 +201,7 @@ public:
       for (uint32 i=0; i<numVals; i++)
       {
          _endianConverter.Export(vals[i], _writeTo);
-         _writeTo += sizeof(T);
+         Advance(sizeof(T));
       }
    }
 
@@ -214,12 +214,14 @@ public:
    void WritePaddingBytesToAlignTo(uint32 alignmentSize)
    {
       const uint32 modBytes = (alignmentSize > 0) ? (GetNumBytesWritten() % alignmentSize) : 0;
-      if (modBytes > 0)
-      {
-         const uint32 padBytes = alignmentSize-modBytes;
-         memset(_writeTo, 0, padBytes);
-         WriteBytes(NULL, padBytes);
-      }
+      if (modBytes > 0) WriteZeroedBytes(alignmentSize-modBytes);
+   }
+
+   /** Convenience method:  Writes the specified number of zero-bytes into our buffer. */
+   void WriteZeroedBytes(uint32 numBytesToWrite)
+   {
+      memset(_writeTo, 0, numBytesToWrite);
+      Advance(numBytesToWrite);
    }
 
    /** Returns a pointer into our buffer at the location we will next write to */
@@ -311,7 +313,7 @@ private:
             }
          }
 #endif
-         if (_parentFlat) _parentFlat->_writeTo += nbw;
+         if (_parentFlat) _parentFlat->_writeTo += nbw;  // can't just call Advance() here because (_parentFlat) is const
       }
    }
 

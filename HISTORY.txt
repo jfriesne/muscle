@@ -14,6 +14,7 @@ key:  - new feature
    - Added a Win32-only WCHAR constructor and String::ToWideChars()
      method, for more convenient conversion of Windows-native strings
      into muscle::String representation.
+   - Added convenience method DataFlattener::WriteZeroedBytes().
    o Tweaked ParseConnectArg() to return a "No port number specified"
      error when a port number was required but no provided, instead of
      the more generic B_BAD_ARGUMENT.
