@@ -5,7 +5,7 @@ key:  - new feature
       * bug fixed
       o other
 
-9.91 -
+9.91 - Released 6/13/2026
    - Under Win32, stack trace errors caused by lack of PDB info now
      contain usable module-name and RVA values to support remote analysis.
    - Added a GetSymbolStringForRelativeVirtualAddress() method to the
