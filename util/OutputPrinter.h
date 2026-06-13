@@ -10,7 +10,7 @@ namespace muscle {
 class String;
 
 /** This is a convenience class for code that wants to output text to either to a (FILE *) (like stdout or stderr), or to the Log (via LogTime()), or to a String.
-  * By using this class, you only have to write your text-output routine once, rather than three times, and have it take an OutputPointer as an argument.
+  * By using this class, you only have to write your text-output routine once, rather than three times, and have it take an OutputPrinter as an argument.
   * Then your function's caller can decide where your function's output should go, based on what kind of OutputPrinter he passes in.
   */
 class OutputPrinter
