@@ -5,9 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
-   - Added a Win32GetLastErrorString(int errno) function for easier handling
-     of Win32-specific error strings inside muscleStrError()
-   - Updated muscleStrError() to call Win32GetLastErrorString() when appropriate.
+   - Updated the Win32 implementation of muscleStrError() to call
+     FormatMessage() when necessary to get an error-string.
 
 9.91 - Released 6/13/2026
    - Under Win32, stack trace errors caused by lack of PDB info now

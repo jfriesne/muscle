@@ -2942,18 +2942,31 @@ String GetUnmangledSymbolName(const char * mangled_name)
    return (doubleColonIdx >= 0) ? ret.Substring(doubleColonIdx+2) : std_move_if_available(ret);   // remove namespace prefix
 }
 
-#ifdef WIN32
-const char * Win32GetLastErrorString(int e)
+const char * muscleStrError(int e)
 {
-   MUSCLE_THREAD_LOCAL_OR_STATIC char buf[256];
-   if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, e, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), buf, sizeof(buf), NULL) == 0) return NULL;
-   else
-   {
-      char * cr = strchr(buf, '\r');
-      if (cr) *cr = NULL;  // we don't want our returned string to include the carriage-return or newline char
-      return buf;
-   }
-}
+#ifdef _MSC_VER
+# pragma warning( push )
+# pragma warning( disable: 4996 )
 #endif
+   const char * ret = strerror(e);
+#ifdef _MSC_VER
+# pragma warning( pop )
+#endif
+
+#ifdef WIN32
+   if ((ret==NULL)||(strcmp(ret, "Unknown error") == 0))
+   {
+      MUSCLE_THREAD_LOCAL_OR_STATIC char _buf[256];
+      if (FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, NULL, e, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), _buf, sizeof(_buf), NULL) > 0)
+      {
+         char * cr = strchr(_buf, '\r');
+         if (cr) *cr = NULL;  // we don't want our returned string to include the carriage-return or newline char
+         return _buf;
+      }
+   }
+#endif
+
+   return ret ? ret : "No error string returned";
+}
 
 } // end namespace muscle

@@ -588,40 +588,11 @@ enum {
            const char * _desc;  // If non-NULL, we represent an error
         };
 
-#ifdef WIN32
-        /** For Windows only:  this function calls FormatMessageA() to get a human-readable
-          * error-string corresponding to error code (e), and stores it into a thread-local
-          * buffer, and returns a pointer to that buffer.
-          * @param e a Win32 error code (e.g. as returned by GetLastError())
-          * @returns a pointer to a human-readable error string, or NULL if no error-string could be supplied.
-          */
-        MUSCLE_NODISCARD const char * Win32GetLastErrorString(int e);
-#endif
-
         /** Synonym for strerror()
          *  @param e the errno value to return a statically-allocated human-readable-string for
          *  @returns a pointer to a human-readable string describing the error
          */
-        MUSCLE_NODISCARD static inline const char * muscleStrError(int e)
-        {
-#ifdef _MSC_VER
-# pragma warning( push )
-# pragma warning( disable: 4996 )
-#endif
-           const char * ret = strerror(e);
-#ifdef _MSC_VER
-# pragma warning( pop )
-#endif
-
-#ifdef WIN32
-           if ((ret)&&(strcmp(ret, "Unknown error") == 0))
-           {
-              const char * r = Win32GetLastErrorString(e);
-              if (r) ret = r;
-           }
-#endif
-           return ret;
-        }
+        MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * muscleStrError(int e);
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
         // forward declarations (so that we can call these methods from this file, without having to include MiscUtilityFunctions.h from this file)
