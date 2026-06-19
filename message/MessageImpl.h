@@ -11,6 +11,7 @@
 #endif
 
 #include "support/Point.h"
+#include "support/PseudoFlattenable.h"
 #include "support/Rect.h"
 #include "util/ByteBuffer.h"
 #include "util/String.h"
@@ -30,7 +31,7 @@ namespace muscle_private {
 /** This class is a private part of the Message class's implementation.  User code should not access this class directly.
   * It is used to hold the values of a Message field that contains multiple values.
   */
-class AbstractDataArray : public FlatCountable
+class AbstractDataArray : public RefCountable, public PseudoFlattenable<AbstractDataArray>
 {
 public:
    // Should add the given item to our internal field.
@@ -76,11 +77,12 @@ public:
    // Returns true iff all elements in the field have the same size
    MUSCLE_NODISCARD virtual bool ElementsAreFixedSize() const = 0;
 
-   // Flattenable interface
-   MUSCLE_NODISCARD virtual bool IsFixedSize() const {return false;}
-
-   /** @copydoc DoxyTemplate::FlattenedSize() const */
-   MUSCLE_NODISCARD virtual uint32 FlattenedSize() const {return TemplatedFlattenedSize(MUSCLE_NO_LIMIT);}
+   // PseudoFlattenable interface -- just an inline trampoline into our internal TemplatedFlatten()/TemplatedUnflatten() API
+   MUSCLE_NODISCARD bool IsFixedSize()      const {return false;}
+   MUSCLE_NODISCARD uint32 FlattenedSize()  const {return TemplatedFlattenedSize(MUSCLE_NO_LIMIT);}
+   void Flatten(DataFlattener flat)         const {TemplatedFlatten(flat, MUSCLE_NO_LIMIT);}
+   uint32 TypeCode()                        const {return TemplatedTypeCode();}
+   status_t Unflatten(DataUnflattener & unflat) {return TemplatedUnflatten(unflat);}
 
    // returns a separate (deep) copy of this field
    virtual Ref<AbstractDataArray> Clone() const = 0;
@@ -104,16 +106,19 @@ public:
      */
    virtual RefCountableRef GetItemAtAsRefCountableRef(uint32 idx) const {(void) idx; return GetDefaultObjectForType<RefCountableRef>();}
 
-   /** Used by the TemplatedFlatten() methods */
-   virtual void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const = 0;
+   // Called by Flatten() and the MessageField::TemplatedFlatten() methods
+   virtual void TemplatedFlatten(DataFlattener flat, uint32 maxItemsToFlatten) const = 0;
 
-   /** Used by the regular Flatten() methods */
-   virtual void Flatten(DataFlattener flat) const {FlattenAux(flat, MUSCLE_NO_LIMIT);}
+   // Called by Unflatten()
+   virtual status_t TemplatedUnflatten(DataUnflattener & unflat) = 0;
 
    /** Must be overridden by our subclasses to return the number of bytes we'll flatten if TemplatedFlatten(maxItemsToFlatten) is called
      * @param maxItemsToFlatten the number-of-items count that will be passed to TemplatedFlatten()
      */
    MUSCLE_NODISCARD virtual uint32 TemplatedFlattenedSize(uint32 maxItemsToFlatten) const = 0;
+
+   /** To be implemented by each subclass */
+   MUSCLE_NODISCARD virtual uint32 TemplatedTypeCode() const = 0;
 
 protected:
    /** Must be implemented by each subclass to return true iff (rhs) is of the same type
@@ -159,7 +164,7 @@ public:
       MASSERT(maxItemsToFlatten>0, "TemplatedFlattenedSize:  maxItemsToFlatten was zero");                // specifying maxItemsToFlatten==0 would be silly
       return HasArray() ? GetArray()->TemplatedFlattenedSize(maxItemsToFlatten) : SingleFlattenedSize();  // ... and I'd prefer not to have to implemenent SingleFlattenedSize(uin32 maxItemsToFlatten) just to support it
    }
-   void Flatten(DataFlattener flat) const {FlattenAux(flat, MUSCLE_NO_LIMIT);}
+   void Flatten(DataFlattener flat) const {TemplatedFlatten(flat, MUSCLE_NO_LIMIT);}
    status_t Unflatten(DataUnflattener & unflat);
 
    // Pseudo-AbstractDataArray interface
@@ -199,7 +204,7 @@ public:
    status_t TemplatedUnflatten(Message & unflattenTo, const String & fieldName, DataUnflattener & unflat) const;
 
 protected:
-   void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const {if (HasArray()) GetArray()->FlattenAux(flat, maxItemsToFlatten); else SingleFlatten(flat);}
+   void TemplatedFlatten(DataFlattener flat, uint32 maxItemsToFlatten) const {if (HasArray()) GetArray()->TemplatedFlatten(flat, maxItemsToFlatten); else SingleFlatten(flat);}
 
 private:
    MUSCLE_NODISCARD const AbstractDataArray * GetArray() const {return static_cast<AbstractDataArray *>(GetInlineItemAsRefCountableRef()());}

@@ -20,6 +20,8 @@ key:  - new feature
      the more generic B_BAD_ARGUMENT.
    o ~DataFlattener() now prints out its written bytes when triggering
      an assertion failure, to assist with debugging.
+   o Changed AbstractDataArray to derive from PseudoFlattenable instead
+     of FlatCountable, to avoid unnecessary virtual-method calls.
    * Replaced ifdef WIN32 in FileDataIO.cpp with ifdef _WIN32 as
      WIN32 isn't guaranteed to be defined by the build environment.
    * MessageField::SingleFlattenedSize() was returning the wrong

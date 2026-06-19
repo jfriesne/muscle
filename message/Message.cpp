@@ -197,21 +197,21 @@ class TagDataArray : public FixedSizeDataArray<RefCountableRef>
 public:
    TagDataArray() {/* empty */}
 
-   virtual void FlattenAux(DataFlattener, uint32) const
+   virtual void TemplatedFlatten(DataFlattener, uint32) const
    {
-      MCRASH("Message::TagDataArray:FlattenAux()  This method should never be called!");
+      MCRASH("Message::TagDataArray:TemplatedFlatten()  This method should never be called!");
    }
 
    // Flattenable interface
    virtual uint32 TemplatedFlattenedSize(uint32) const {return 0;}  // tags don't get flattened, so they take up no space
 
-   virtual status_t Unflatten(DataUnflattener &)
+   virtual status_t TemplatedUnflatten(DataUnflattener &)
    {
       MCRASH("Message::TagDataArray:Unflatten()  This method should never be called!");
       return B_UNIMPLEMENTED;  // just to keep the compiler happy
    }
 
-   virtual uint32 TypeCode() const {return B_TAG_TYPE;}
+   virtual uint32 TemplatedTypeCode() const {return B_TAG_TYPE;}
 
    virtual AbstractDataArrayRef Clone() const;
 
@@ -249,7 +249,7 @@ public:
       // empty
    }
 
-   virtual void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const
+   virtual void TemplatedFlatten(DataFlattener flat, uint32 maxItemsToFlatten) const
    {
       const uint32 numItems = muscleMin(this->_data.GetNumItems(), maxItemsToFlatten);
       for (uint32 i=0; i<numItems; i++) flat.WriteFlat(this->_data[i]);
@@ -258,7 +258,7 @@ public:
    // Flattenable interface
    virtual uint32 TemplatedFlattenedSize(uint32 maxItemsToFlatten) const {return muscleMin(maxItemsToFlatten, this->_data.GetNumItems()) * FlatItemSize;}
 
-   virtual status_t Unflatten(DataUnflattener & unflat)
+   virtual status_t TemplatedUnflatten(DataUnflattener & unflat)
    {
       const uint32 numBytes = unflat.GetNumBytesAvailable();
       if ((numBytes % FlatItemSize) != 0)
@@ -280,7 +280,7 @@ public:
       return unflat.GetStatus();
    }
 
-   virtual uint32 TypeCode() const {return ItemTypeCode;}
+   virtual uint32 TemplatedTypeCode() const {return ItemTypeCode;}
 
 protected:
    virtual void Print(const OutputPrinter & p, uint32) const
@@ -303,13 +303,13 @@ template <class DataType> class PrimitiveTypeDataArray : public FixedSizeDataArr
 public:
    PrimitiveTypeDataArray() {/* empty */}
 
-   virtual void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const
+   virtual void TemplatedFlatten(DataFlattener flat, uint32 maxItemsToFlatten) const
    {
       const uint32 numItems = muscleMin(this->_data.GetNumItems(), maxItemsToFlatten);
       for (uint32 i=0; i<numItems; i++) flat.WritePrimitive(this->_data[i]);
    }
 
-   virtual status_t Unflatten(DataUnflattener & unflat)
+   virtual status_t TemplatedUnflatten(DataUnflattener & unflat)
    {
       const uint32 numBytes = unflat.GetNumBytesAvailable();
       if (numBytes % sizeof(DataType))
@@ -405,7 +405,7 @@ class Int8DataArray : public PrimitiveTypeDataArray<int8>
 public:
    Int8DataArray() {/* empty */}
 
-   virtual uint32 TypeCode() const {return B_INT8_TYPE;}
+   virtual uint32 TemplatedTypeCode() const {return B_INT8_TYPE;}
 
    virtual const char * GetFormatString() const {return "%i";}
 
@@ -428,7 +428,7 @@ class BoolDataArray : public PrimitiveTypeDataArray<bool>
 public:
    BoolDataArray() {/* empty */}
 
-   virtual uint32 TypeCode() const {return B_BOOL_TYPE;}
+   virtual uint32 TemplatedTypeCode() const {return B_BOOL_TYPE;}
 
    virtual const char * GetFormatString() const {return "%i";}
 
@@ -451,7 +451,7 @@ class Int16DataArray : public PrimitiveTypeDataArray<int16>
 public:
    Int16DataArray() {/* empty */}
 
-   virtual uint32 TypeCode() const {return B_INT16_TYPE;}
+   virtual uint32 TemplatedTypeCode() const {return B_INT16_TYPE;}
 
    virtual const char * GetFormatString() const {return "%i";}
 
@@ -474,7 +474,7 @@ class Int32DataArray : public PrimitiveTypeDataArray<int32>
 public:
    Int32DataArray() {/* empty */}
 
-   virtual uint32 TypeCode() const {return B_INT32_TYPE;}
+   virtual uint32 TemplatedTypeCode() const {return B_INT32_TYPE;}
 
    virtual const char * GetFormatString() const {return INT32_FORMAT_SPEC;}
 
@@ -497,7 +497,7 @@ class Int64DataArray : public PrimitiveTypeDataArray<int64>
 public:
    Int64DataArray() {/* empty */}
 
-   virtual uint32 TypeCode() const {return B_INT64_TYPE;}
+   virtual uint32 TemplatedTypeCode() const {return B_INT64_TYPE;}
 
    virtual const char * GetFormatString() const {return INT64_FORMAT_SPEC;}
 
@@ -520,7 +520,7 @@ class FloatDataArray : public PrimitiveTypeDataArray<float>
 public:
    FloatDataArray() {/* empty */}
 
-   virtual uint32 TypeCode() const {return B_FLOAT_TYPE;}
+   virtual uint32 TemplatedTypeCode() const {return B_FLOAT_TYPE;}
 
    virtual const char * GetFormatString() const {return "%f";}
 
@@ -543,7 +543,7 @@ class DoubleDataArray : public PrimitiveTypeDataArray<double>
 public:
    DoubleDataArray() {/* empty */}
 
-   virtual uint32 TypeCode() const {return B_DOUBLE_TYPE;}
+   virtual uint32 TemplatedTypeCode() const {return B_DOUBLE_TYPE;}
 
    virtual const char * GetFormatString() const {return "%lf";}
 
@@ -566,20 +566,20 @@ class PointerDataArray : public FixedSizeDataArray<void *>
 public:
    PointerDataArray() {/* empty */}
 
-   virtual uint32 TypeCode() const {return B_POINTER_TYPE;}
+   virtual uint32 TemplatedTypeCode() const {return B_POINTER_TYPE;}
 
    virtual const char * GetFormatString() const {return "%p";}
 
    virtual bool IsFlattenable() const {return false;}
 
-   virtual void FlattenAux(DataFlattener, uint32) const
+   virtual void TemplatedFlatten(DataFlattener, uint32) const
    {
-      MCRASH("Message::PointerDataArray:FlattenAux()  This method should never be called!");
+      MCRASH("Message::PointerDataArray:TemplatedFlatten()  This method should never be called!");
    }
 
    virtual uint32 TemplatedFlattenedSize(uint32) const {return 0;}  // pointers don't get flattened, so they take up no space
 
-   virtual status_t Unflatten(DataUnflattener &)
+   virtual status_t TemplatedUnflatten(DataUnflattener &)
    {
       MCRASH("Message::PointerDataArray:Unflatten()  This method should never be called!");
       return B_UNIMPLEMENTED;  // just to keep the compiler happy
@@ -624,7 +624,7 @@ public:
       return item ? item->FlattenedSize() : 0;
    }
 
-   virtual uint32 TypeCode() const {return ItemTypeCode;}
+   virtual uint32 TemplatedTypeCode() const {return ItemTypeCode;}
 
    virtual bool ElementsAreFixedSize() const {return false;}
 
@@ -634,7 +634,7 @@ public:
      */
    virtual bool ShouldWriteNumItems() const {return true;}
 
-   virtual void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const
+   virtual void TemplatedFlatten(DataFlattener flat, uint32 maxItemsToFlatten) const
    {
       const uint32 numItems = muscleMin(this->_data.GetNumItems(), maxItemsToFlatten);
 
@@ -642,7 +642,7 @@ public:
       if (ShouldWriteNumItems())
       {
          writeCountToThisLocation = flat.GetCurrentWritePointer();  // we'll write to this location at the end, once we know the exact count
-         MPRINT_ON_ERROR("FlattenAux::SeekRelative()", flat.SeekRelative(sizeof(uint32)));
+         MPRINT_ON_ERROR("TemplatedFlatten::SeekRelative()", flat.SeekRelative(sizeof(uint32)));
       }
       else writeCountToThisLocation = NULL;
 
@@ -693,9 +693,9 @@ public:
    /** Sets our type code.  Typically called after using the default ctor. */
    void SetTypeCode(uint32 tc) {_typeCode = tc;}
 
-   virtual uint32 TypeCode() const {return _typeCode;}
+   virtual uint32 TemplatedTypeCode() const {return _typeCode;}
 
-   virtual status_t Unflatten(DataUnflattener & unflat)
+   virtual status_t TemplatedUnflatten(DataUnflattener & unflat)
    {
       Clear(false);
 
@@ -804,7 +804,7 @@ public:
    /** For backwards compatibility with older muscle streams */
    virtual bool ShouldWriteNumItems() const {return false;}
 
-   virtual status_t Unflatten(DataUnflattener & unflat)
+   virtual status_t TemplatedUnflatten(DataUnflattener & unflat)
    {
       Clear(false);
 
@@ -891,7 +891,7 @@ public:
    virtual uint32 GetItemSize(uint32 index) const {return this->ItemAt(index).FlattenedSize();}
    virtual bool ElementsAreFixedSize() const {return false;}
 
-   virtual void FlattenAux(DataFlattener flat, uint32 maxItemsToFlatten) const
+   virtual void TemplatedFlatten(DataFlattener flat, uint32 maxItemsToFlatten) const
    {
       // Format:  0. number of entries (4 bytes)
       //          1. entry size in bytes (4 bytes)
@@ -910,7 +910,7 @@ public:
       return numBytes;
    }
 
-   virtual status_t Unflatten(DataUnflattener & unflat)
+   virtual status_t TemplatedUnflatten(DataUnflattener & unflat)
    {
       const uint32 numElements = unflat.ReadInt32();
       MRETURN_ON_ERROR(unflat.GetStatus());
@@ -926,7 +926,7 @@ class StringDataArray : public VariableSizeFlatObjectArray<String>
 public:
    StringDataArray() {/* empty */}
 
-   virtual uint32 TypeCode() const {return B_STRING_TYPE;}
+   virtual uint32 TemplatedTypeCode() const {return B_STRING_TYPE;}
 
    virtual AbstractDataArrayRef Clone() const;
 
@@ -3050,7 +3050,7 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
       {
          if (numItemsInPayloadField >= numItemsInTemplateField)
          {
-            optPayloadField->FlattenAux(DataFlattener(buf, optPayloadField->TemplatedFlattenedSize(numItemsInTemplateField)), numItemsInTemplateField);
+            optPayloadField->TemplatedFlatten(DataFlattener(buf, optPayloadField->TemplatedFlattenedSize(numItemsInTemplateField)), numItemsInTemplateField);
          }
          else
          {
@@ -3086,10 +3086,10 @@ void MessageField :: TemplatedFlatten(const MessageField * optPayloadField, uint
             else LogTime(MUSCLE_LOG_ERROR, "TemplatedFlatten:  EnsurePrivate() failed! [%s]\n", ret());
 
             const MessageField * mf = ret.IsOK() ? &synthField : this;
-            mf->FlattenAux(DataFlattener(buf, mf->FlattenedSize()), MUSCLE_NO_LIMIT);
+            mf->TemplatedFlatten(DataFlattener(buf, mf->FlattenedSize()), MUSCLE_NO_LIMIT);
          }
       }
-      else FlattenAux(DataFlattener(buf, FlattenedSize()), MUSCLE_NO_LIMIT);  // no payload field means we'll be flattening entirely from the template-Message's field-data
+      else TemplatedFlatten(DataFlattener(buf, FlattenedSize()), MUSCLE_NO_LIMIT);  // no payload field means we'll be flattening entirely from the template-Message's field-data
 
       buf += TemplatedFlattenedSize(optPayloadField);  // advance the pointer for the next call
    }
