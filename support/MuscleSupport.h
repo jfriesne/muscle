@@ -1717,7 +1717,9 @@ static inline void MakePrettyTypeCodeString(uint32 typecode, char *buf)
 }
 
 #ifdef WIN32
+# define NOMINMAX
 # include <winsock2.h>  // this will bring in windows.h for us
+# undef NOMINMAX
 #endif
 
 #ifdef MUSCLE_AVOID_STDINT

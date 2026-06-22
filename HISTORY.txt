@@ -25,6 +25,8 @@ key:  - new feature
      an assertion failure, to assist with debugging.
    o Changed AbstractDataArray to derive from PseudoFlattenable instead
      of FlatCountable, to avoid unnecessary virtual-method calls.
+   o MuscleSupport.h now defines NOMINMAX before including winsock2.h
+     to avoid conflicts with std::min() and std::max() under Win32.
    * Replaced ifdef WIN32 in FileDataIO.cpp with ifdef _WIN32 as
      WIN32 isn't guaranteed to be defined by the build environment.
    * MessageField::SingleFlattenedSize() was returning the wrong
