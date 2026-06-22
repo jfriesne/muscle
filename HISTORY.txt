@@ -7,6 +7,8 @@ key:  - new feature
 
    - Updated the Win32 implementation of muscleStrError() to call
      FormatMessage() when necessary to get an error-string.
+   o MuscleSupport.h now defines NOMINMAX before including winsock2.h
+     to avoid conflicts with std::min() and std::max() under Win32.
 
 9.91 - Released 6/13/2026
    - Under Win32, stack trace errors caused by lack of PDB info now
@@ -25,8 +27,6 @@ key:  - new feature
      an assertion failure, to assist with debugging.
    o Changed AbstractDataArray to derive from PseudoFlattenable instead
      of FlatCountable, to avoid unnecessary virtual-method calls.
-   o MuscleSupport.h now defines NOMINMAX before including winsock2.h
-     to avoid conflicts with std::min() and std::max() under Win32.
    * Replaced ifdef WIN32 in FileDataIO.cpp with ifdef _WIN32 as
      WIN32 isn't guaranteed to be defined by the build environment.
    * MessageField::SingleFlattenedSize() was returning the wrong
