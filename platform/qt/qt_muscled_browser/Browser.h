@@ -20,7 +20,7 @@ class BrowserWindow : public QWidget
 Q_OBJECT
 
 public:
-   BrowserWindow();
+   BrowserWindow(const QString& serverName);
 
 private slots:
    void ConnectButtonClicked();

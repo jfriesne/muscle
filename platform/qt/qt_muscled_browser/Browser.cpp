@@ -8,6 +8,7 @@
 #include <QTreeWidgetItem>
 #include <QLayout>
 #include <QLabel>
+#include <QCommandLineParser>
 #include "Browser.h"
 #include "system/SetupSystem.h"
 #include "util/MiscUtilityFunctions.h"  // for ParseConnectArg()
@@ -54,7 +55,7 @@ private:
    String _name;
 };
 
-BrowserWindow :: BrowserWindow()
+BrowserWindow :: BrowserWindow(const QString& serverName)
    : _isConnecting(false)
    , _isConnected(false)
 {
@@ -82,7 +83,11 @@ BrowserWindow :: BrowserWindow()
       topRowLayout->addWidget(_stateLabel);
 
       _serverName = new QLineEdit;
-      _serverName->setText("localhost:2960");
+      connect(_serverName, SIGNAL(returnPressed()), this, SLOT(ConnectButtonClicked()));
+      if (!serverName.isEmpty())
+         _serverName->setText(serverName);
+      else
+         _serverName->setText("localhost:2960");
       topRowLayout->addWidget(_serverName, 1);
 
       _connectButton = new QPushButton("Connect to Server");
@@ -322,8 +327,7 @@ void BrowserWindow :: DisconnectedFromServer()
 
 void BrowserWindow :: CloneWindow()
 {
-   BrowserWindow * clone = new BrowserWindow();
-   clone->_serverName->setText(_serverName->text());
+   BrowserWindow * clone = new BrowserWindow(_serverName->text());
    clone->show();
 }
 
@@ -372,7 +376,20 @@ int main(int argc, char ** argv)
    CompleteSetupSystem css;
    QApplication app(argc, argv);
 
-   BrowserWindow * bw = new BrowserWindow;  // must be on the heap since we call setAttribute(Qt::WA_DeleteOnClose) in the BrowserWindow constructor
+   QCommandLineParser parser;
+   parser.addHelpOption();
+
+   // An option with a value
+   const QCommandLineOption serverNameOption(QStringList() << "s" << "server-name",
+           QCoreApplication::translate("main", "Specify a server name to connect to."),
+           QCoreApplication::translate("main", "localhost:2960"));
+   parser.addOption(serverNameOption);
+
+   parser.process(app);
+
+   const QString serverName = parser.value(serverNameOption);
+
+   BrowserWindow * bw = new BrowserWindow(serverName);  // must be on the heap since we call setAttribute(Qt::WA_DeleteOnClose) in the BrowserWindow constructor
    bw->show();
    return app.exec();
 }
