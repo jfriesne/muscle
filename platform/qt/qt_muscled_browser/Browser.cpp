@@ -382,7 +382,7 @@ int main(int argc, char ** argv)
    // An option with a value
    const QCommandLineOption serverNameOption(QStringList() << "s" << "server-name",
            QCoreApplication::translate("main", "Specify a server name to connect to."),
-           QCoreApplication::translate("main", "localhost:1234"));
+           QCoreApplication::translate("main", "localhost:2960"));
    parser.addOption(serverNameOption);
 
    parser.process(app);
