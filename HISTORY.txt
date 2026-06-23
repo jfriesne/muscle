@@ -7,6 +7,8 @@ key:  - new feature
 
    - Updated the Win32 implementation of muscleStrError() to call
      FormatMessage() when necessary to get an error-string.
+   - qt_muscled_browser now takes an optional argument to specify
+     the server hostname-and-port to connect to.
    o MuscleSupport.h now defines NOMINMAX before including winsock2.h
      to avoid conflicts with std::min() and std::max() under Win32.
 
