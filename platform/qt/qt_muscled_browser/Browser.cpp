@@ -82,6 +82,7 @@ BrowserWindow :: BrowserWindow()
       topRowLayout->addWidget(_stateLabel);
 
       _serverName = new QLineEdit;
+      connect(_serverName, SIGNAL(returnPressed()), this, SLOT(ConnectButtonClicked()));
       _serverName->setText("localhost:2960");
       topRowLayout->addWidget(_serverName, 1);
 
