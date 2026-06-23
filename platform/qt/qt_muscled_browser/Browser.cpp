@@ -23,10 +23,15 @@ using namespace muscle;
 class NodeTreeWidgetItem : public QTreeWidgetItem
 {
 public:
-   explicit NodeTreeWidgetItem(QTreeWidget * parent)
-      : QTreeWidgetItem(parent, QStringList("/"))
-{setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);}
-   NodeTreeWidgetItem(NodeTreeWidgetItem * parent, const String & name) : QTreeWidgetItem(parent, QStringList(name())), _name(name) {setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);}
+   explicit NodeTreeWidgetItem(QTreeWidget * parent) : QTreeWidgetItem(parent, QStringList("/"))
+   {
+      setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
+   }
+
+   NodeTreeWidgetItem(NodeTreeWidgetItem * parent, const String & name) : QTreeWidgetItem(parent, QStringList(name())), _name(name)
+   {
+      setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
+   }
 
    NodeTreeWidgetItem * GetChildByName(const String & name)
    {
@@ -55,7 +60,7 @@ private:
    String _name;
 };
 
-BrowserWindow :: BrowserWindow(const QString& serverName)
+BrowserWindow :: BrowserWindow(const QString & serverName)
    : _isConnecting(false)
    , _isConnected(false)
 {
@@ -84,10 +89,7 @@ BrowserWindow :: BrowserWindow(const QString& serverName)
 
       _serverName = new QLineEdit;
       connect(_serverName, SIGNAL(returnPressed()), this, SLOT(ConnectButtonClicked()));
-      if (!serverName.isEmpty())
-         _serverName->setText(serverName);
-      else
-         _serverName->setText("localhost:2960");
+      _serverName->setText(serverName.isEmpty() ? "localhost:2960" : serverName);
       topRowLayout->addWidget(_serverName, 1);
 
       _connectButton = new QPushButton("Connect to Server");
