@@ -13,6 +13,7 @@ key:  - new feature
      to avoid conflicts with std::min() and std::max() under Win32.
    o Tweaked muscleArrayIndexIsValid() implementation to avoid a
      compiler warning.
+   * Suppressed a false-positive dangling-pointer warning under g++.
 
 9.91 - Released 6/13/2026
    - Under Win32, stack trace errors caused by lack of PDB info now

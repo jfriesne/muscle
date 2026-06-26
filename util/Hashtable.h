@@ -1293,7 +1293,14 @@ private:
          iter->_prevIter = NULL;
          iter->_nextIter = _iterList;
          if (_iterList) _iterList->_prevIter = iter;
-         _iterList = iter;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
+#if defined(__clang__)
+# pragma clang diagnostic ignored "-Wdangling-pointer"
+#endif
+         _iterList = iter;  // this is safe, because (iter)'s dtor will set _iterList to NULL to prevent a dangling-pointer issue
+#pragma GCC diagnostic pop
       }
    }
 
