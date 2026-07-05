@@ -61,7 +61,8 @@ DataNodeRef DataNode :: InsertOrderedChild(const ConstMessageRef & data, const S
 {
    TCHECKPOINT;
 
-   if (_orderedIndex == NULL) _orderedIndex = new Queue<DataNodeRef>;
+   const bool isRemoveFromIndex = (optInsertBefore == PR_NAME_REMOVE_FROM_INDEX);
+   if ((_orderedIndex == NULL)&&(isRemoveFromIndex == false)) _orderedIndex = new Queue<DataNodeRef>;
 
    // Find a unique ID string for our new kid
    String temp;  // must be declared out here!
@@ -80,10 +81,10 @@ DataNodeRef DataNode :: InsertOrderedChild(const ConstMessageRef & data, const S
    DataNodeRef newNode = StorageReflectSession::GetNewDataNode(*nodeName, data);
    MRETURN_ON_ERROR(newNode);
 
-   int32 insertIndex = _orderedIndex->GetNumItems();  // default to end of index
-   if (optInsertBefore.HasChars())
+   int32 insertIndex = -1;
+   if ((_orderedIndex)&&(isRemoveFromIndex == false))
    {
-      insertIndex = -1;  // if the user specified an explicit/non-empty name, default to no-insertion unless we find it
+      insertIndex = _orderedIndex->GetNumItems();  // default to end of index
       for (int32 i=_orderedIndex->GetLastValidIndex(); i>=0; i--)
       {
          if ((*_orderedIndex)[i]()->GetNodeName() == optInsertBefore)
@@ -97,17 +98,13 @@ DataNodeRef DataNode :: InsertOrderedChild(const ConstMessageRef & data, const S
    MRETURN_ON_ERROR(PutChild(newNode, optNotifyWithOnSetParent, optNotifyChangedData));
 
    status_t ret;
-   if (insertIndex >= 0)
+   if ((insertIndex >= 0)&&(_orderedIndex)&&(_orderedIndex->InsertItemAt(insertIndex, newNode).IsOK(ret)))
    {
-      // Update the index
-      if (_orderedIndex->InsertItemAt(insertIndex, newNode).IsOK(ret))
-      {
-         String np;
-         if ((optRetAdded)&&(newNode()->GetNodePath(np).IsOK(ret))&&(optRetAdded->Put(np, newNode).IsError(ret))) (void) _orderedIndex->RemoveItemAt(insertIndex);  // roll back!
+      String np;
+      if ((optRetAdded)&&(newNode()->GetNodePath(np).IsOK(ret))&&(optRetAdded->Put(np, newNode).IsError(ret))) (void) _orderedIndex->RemoveItemAt(insertIndex);  // roll back!
 
-         // Notify anyone monitoring this node that the ordered-index has been updated
-         if ((ret.IsOK())&&(optNotifyWithOnSetParent)) optNotifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, newNode()->GetNodeName());
-      }
+      // Notify anyone monitoring this node that the ordered-index has been updated
+      if ((ret.IsOK())&&(optNotifyWithOnSetParent)) optNotifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, newNode()->GetNodeName());
    }
 
    if (ret.IsError()) (void) RemoveChild(newNode()->GetNodeName(), optNotifyWithOnSetParent, false, NULL);  // roll back!
@@ -147,21 +144,24 @@ status_t DataNode :: ReorderChild(const DataNodeRef & child, const String & optM
    TCHECKPOINT;
 
    if (child() == NULL) return B_BAD_ARGUMENT;
+
+   const bool isBeforeSelf = (optMoveToBeforeThis == child()->GetNodeName());
    if (_orderedIndex == NULL)
    {
       // ... then the only possible option is appending (child) to the end of a demand-allocated index, so
-      if (optMoveToBeforeThis.HasChars()) return B_NO_ERROR;  // move-to-before (unindexed/unknown-child) means remove-from-index, and (child) is already not-in-the-index, so that's accomplished
-      _orderedIndex = new Queue<DataNodeRef>;  // demand-allocate
+      if (optMoveToBeforeThis == PR_NAME_REMOVE_FROM_INDEX) return B_NO_ERROR;  // if the user specified remove-from-index, and (child) is already not-in-the-index, then we're done
+      if (isBeforeSelf == false) _orderedIndex = new Queue<DataNodeRef>;  // demand-allocate
    }
-   if (optMoveToBeforeThis == child()->GetNodeName()) return B_NO_ERROR;  // moving a child to before his own position is a no-op, but it's ok
+   if (isBeforeSelf) return B_NO_ERROR;  // moving a child to before his own position is a no-op, but it's ok
 
    (void) RemoveIndexEntry(child()->GetNodeName(), optNotifyWith);  // it's okay if this fails (e.g. because (child) wasn't present in the _orderedIndex yet)
 
    // Then re-add him to the index at the appropriate point
-   int32 targetIndex = (int32) _orderedIndex->GetNumItems();  // default to end-of-index
-   if (optMoveToBeforeThis.HasChars())
+   int32 targetIndex;
+   if (optMoveToBeforeThis == PR_NAME_REMOVE_FROM_INDEX) targetIndex = -1;
+   else
    {
-      targetIndex = -1;  // new functionality:  remove (child) from index if (optMoveToBeforeThis) isn't found
+      targetIndex = (int32) _orderedIndex->GetNumItems();  // default to end-of-index
       if (HasChild(optMoveToBeforeThis))
       {
          for (int32 i=_orderedIndex->GetLastValidIndex(); i>=0; i--)

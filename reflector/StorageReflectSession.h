@@ -125,9 +125,10 @@ protected:
     * @param nodePath Should be the path relative to the home dir (eg "MyNode/Child1/Grandchild2")
     * @param dataMsgRef The value to set the node to
     * @param flags a bit-chord of SETDATANODE_FLAG_* bits that can be used to modify this call's behavior.  Defaults to no-flags-set.
-    * @param optInsertBefore If (flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)) returns true, this may be the name of the node to insert this new node before in the index.
-    *                        If it's an empty String, the new node will be appended to the end of the index.  If (flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)) returns false,
-    *                        or no node with the name specified by (optInsertBefore) is in the index currently, this argument is ignored.  Defaults to an empty String.
+    * @param optInsertBefore If (flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)) returns true, this may be the name of an existing child node to insert this new node before, in the index.
+    *                        If no node with that name exists, the new node will be appended to the end of the index.  If (flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)) returns false,
+    *                        the node will not be added to the index.  As a special case, if (optInsertBefore) is passed as PR_NAME_REMOVE_FROM_INDEX, that will cause the node to be
+    *                        removed from the index.  Defaults to an empty String.
     * @return B_NO_ERROR on success, or an error code on failure.
     */
    virtual status_t SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetDataNodeFlags flags = SetDataNodeFlags(), const String & optInsertBefore = GetEmptyString());
@@ -143,7 +144,8 @@ protected:
 
    /** Moves the node(s) specified in (nodePath) to a new location within their parent nodes' node-index.
     *  @param nodePath A relative path indicating node(s) that we want to move within their parents' node-index.  Wildcarding is okay.
-    *  @param optBefore if non-empty, the moved nodes in the index will be moved to just before the node with this name.  If empty, they'll be moved to the end of the index.
+    *  @param optBefore The moved nodes in the index will be moved to just before the node with this name.  If no such node exists, they'll be moved to the end of the index.
+    *                   As a special case, if PR_NAME_REMOVE_FROM_INDEX is passed to this argument, then the matching nodes will be removed from the index entirely.
     *  @param filterRef If non-NULL, we'll use the given QueryFilter object to filter out our result set.
     *                   Only nodes whose Messages match the QueryFilter will have their parent-nodes' index modified.  Default is a NULL reference.
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
@@ -197,8 +199,9 @@ protected:
      * This method calls through to parentNode.InsertOrderedChild(), but also updates the StorageReflectSession's own internal state as necessary.
      * @param parentNode The node to add the new child node to.
      * @param data Reference to a message to create a new child node for.
-     * @param optInsertBefore if non-empty, the name of the child to put the new child before in our index.  If empty, the new child will be appended to the end of the index.
-     *                        if a child named (optInsertBefore) isn't found, the new child will not be added to the index.
+     * @param optInsertBefore This may be the name of a node in our ordered-node-index that we want to insert the new child node before.
+     *                        If a node with the given name doesn't exist, the new child node will be inserted at the end of the ordered-node index.
+     *                        If (optInsertBefore) is equal to PR_NAME_REMOVE_FROM_INDEX, the new node will not be inserted into the index.
      * @param optAddNewChildren If non-NULL, any newly formed nodes will be added to this hashtable, keyed on their absolute node path.
      * @return B_NO_ERROR on success, an error code on failure.
      */
@@ -365,8 +368,7 @@ protected:
     * @param sourceNode Reference to a DataNode to clone.
     * @param destPath Path of where the newly created node subtree will appear.  Should be relative to our home node.
     * @param flags optional bit-chord of SETDATANODE_FLAG_* flags to modify our behavior.  Defaults to no-flags-set.
-    * @param optInsertBefore If the SETDATANODE_FLAG_ADDTOINDEX flag is set, this argument will be passed on to
-    *                        InsertOrderedChild().  Otherwise, this argument is ignored.
+    * @param optInsertBefore If the SETDATANODE_FLAG_ADDTOINDEX flag is set, this argument will be passed on to InsertOrderedChild().  Otherwise, this argument is ignored.
     * @param optPruner If non-NULL, this object can be used as a callback to prune the traversal or filter the MessageRefs cloned.
     * @return B_NO_ERROR on success, or an error code on failure (may leave a partially cloned subtree on failure)
     */

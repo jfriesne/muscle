@@ -48,8 +48,9 @@ public:
    /**
     * Create and add a new child node for (data), and put it into the ordering index
     * @param data Reference to a message to create a new child node for.
-    * @param optInsertBefore if non-empty, the name of the child to put the new child before in our index.  If empty, the new child will be appended to the end of the index.
-    *                        if this string specifies the name of a node that is no present in our ordered-nodes index, then the new child will not be added to the index.
+    * @param optInsertBefore if this string specifies the name of a node that is present in our ordered-nodes index, then the new child will be inserted into the index just before that node.
+    *                        Otherwise the new child will be appended to the end of the index.  As a special case, if PR_NAME_REMOVE_FROM_INDEX is passed here,
+    *                        the new child won't be placed into the index at all, and this method will be equivalent to a call to PutChild().
     * @param optNodeName If non-empty, the newly-inserted node will be given the specified name.  Otherwise, a name will be algorithmically generated for the new node.
     * @param optNotifyWithOnSetParent If non-NULL, a StorageReflectSession to use to notify subscribers that the new node has been added
     * @param optNotifyWithOnChangedData If non-NULL, a StorageReflectSession to use to notify subscribers when the node's data has been alterered
@@ -59,16 +60,10 @@ public:
    DataNodeRef InsertOrderedChild(const ConstMessageRef & data, const String & optInsertBefore, const String & optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyWithOnChangedData, Hashtable<String, DataNodeRef> * optAddNewChildren);
 
    /**
-    * Moves/places/removes the given node (which must be a child of ours) to be just before the node named
-    * (*optMoveToBeforeThis) in our index.  If (optMoveToBeforeThis) is NULL, then (child) will
-    * be moved the very end of the index.  If (optMoveToBeforeThis) is non-NULL but not the
-    * name of a node in our index, then (child) will be removed from our index.
-    * @param child Reference to a child node of ours, to be moved in the node ordering index.
-    * @param optMoveToBeforeThis optional name of another child node of ours.  If this argument is an empty
-    *                            String, then (child) will be moved to the end of our ordered-nodes-index.
-    *                            If this argument is the name of another node in the index, then (child) will
-    *                            be moved to be just before that node in the index.  Otherwise, (child) will
-    *                            be removed from the ordered-nodes-index entirely.
+    * Places or moves the given node (which must be a child of ours) to be just-before a specified node in our ordered-node index.
+    * @param child Reference to a child node of ours, to be moved in the ordered-nodes index.
+    * @param optMoveToBeforeThis Name of another child node of ours.  If no node with this name is found, then (child) will be moved to the end of the ordered-nodes index.
+    *                            As a special case, if (optMoveToBeforeThis) is set to PR_NAME_REMOVE_FROM_INDEX, then (child) will be removed from the index entirely.
     * @param optNotifyWith If non-NULL, this will be used to sent INDEXUPDATE message to the
     *                      interested clients, notifying them of the change.
     * @return B_NO_ERROR on success, another error code on failure (child not found, or out of memory?)

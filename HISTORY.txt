@@ -9,6 +9,8 @@ key:  - new feature
      FormatMessage() when necessary to get an error-string.
    - qt_muscled_browser now takes an optional argument to specify
      the server hostname-and-port to connect to.
+   - Added PR_NAME_REMOVE_FROM_INDEX, to support removing a node
+     from its parent's ordered-node-index without deleting the node.
    o MuscleSupport.h now defines NOMINMAX before including winsock2.h
      to avoid conflicts with std::min() and std::max() under Win32.
    o Tweaked muscleArrayIndexIsValid() implementation to avoid a
@@ -16,11 +18,9 @@ key:  - new feature
    o Updated DataNode::ReorderChild()'s semantics to also support
      adding and removing a child node to/from its parent's
      ordered-nodes-index.
-   o Updated DataNode::InsertOrderedChild(), StorageReflectSession::SetDataNode(),
-     and StorageReflectSession::CloneDataNodeSubtree() to take their
-     (optInsertBefore) argument by-reference instead of by-pointer,
-     with an empty String now serving as the sentinel-value meaning
-     "append", rather than a NULL pointer.
+   o Updated StorageReflectSession::CloneDataNodeSubtree(),
+     DataNode::InsertOrderedChild() and StorageReflectSession::SetDataNode()
+     to take their (optInsertBefore) argument by-reference.
    * Suppressed a false-positive dangling-pointer warning under g++.
 
 9.91 - Released 6/13/2026

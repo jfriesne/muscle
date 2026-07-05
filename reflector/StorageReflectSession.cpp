@@ -501,13 +501,21 @@ SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetData
          node = childNodeRef();
          if ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX) == false))
          {
-            if ((node == NULL)||(flags.IsBitSet(SETDATANODE_FLAG_DONTOVERWRITEDATA)&&(node != allocedNode()))) return B_ACCESS_DENIED;
+            if (node == NULL) return B_ACCESS_DENIED;
+
+            if (optInsertBefore == PR_NAME_REMOVE_FROM_INDEX)
+            {
+               DataNode * parentNode = node->GetParent();
+               if (parentNode) (void) parentNode->RemoveIndexEntry(node->GetNodeName(), flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this);
+            }
+            if ((flags.IsBitSet(SETDATANODE_FLAG_DONTOVERWRITEDATA)&&(node != allocedNode()))) return (optInsertBefore == PR_NAME_REMOVE_FROM_INDEX) ? B_NO_ERROR : B_ACCESS_DENIED;
 
             DataNode::SetDataFlags setDataFlags;
             if (node == allocedNode()) setDataFlags.SetBit(DataNode::SET_DATA_FLAG_ISBEINGCREATED);
             if (flags.IsBitSet(SETDATANODE_FLAG_ENABLESUPERCEDE)) setDataFlags.SetBit(DataNode::SET_DATA_FLAG_ENABLESUPERCEDE);
             node->SetData(dataMsgRef, flags.IsBitSet(SETDATANODE_FLAG_QUIET) ? NULL : this, setDataFlags);  // do this to trigger the changed-notification
          }
+
          prevSlashPos = slashPos;
       }
    }
@@ -1196,7 +1204,7 @@ status_t StorageReflectSession :: MoveIndexEntries(const String & nodePath, cons
    NodePathMatcher matcher;
    MRETURN_ON_ERROR(matcher.PutPathString(nodePath, filterRef));
 
-   (void) matcher.DoTraversal((PathMatchCallback)ReorderDataCallbackFunc, this, *_sessionDir(), true, (void *)&optBefore);
+   (void) matcher.DoTraversal((PathMatchCallback)ReorderDataCallbackFunc, this, *_sessionDir(), true, reinterpret_cast<void *>(const_cast<String *>((&optBefore))));
    return B_NO_ERROR;
 }
 
