@@ -48,27 +48,32 @@ public:
    /**
     * Create and add a new child node for (data), and put it into the ordering index
     * @param data Reference to a message to create a new child node for.
-    * @param optInsertBefore if non-NULL, the name of the child to put the new child before in our index.  If NULL, (or the specified child cannot be found) the new child will be appended to the end of the index.
-    * @param optNodeName If non-NULL, the inserted node will have the specified name.  Otherwise, a name will be generated for the node.
+    * @param optInsertBefore if non-empty, the name of the child to put the new child before in our index.  If empty, the new child will be appended to the end of the index.
+    *                        if this string specifies the name of a node that is no present in our ordered-nodes index, then the new child will not be added to the index.
+    * @param optNodeName If non-empty, the newly-inserted node will be given the specified name.  Otherwise, a name will be algorithmically generated for the new node.
     * @param optNotifyWithOnSetParent If non-NULL, a StorageReflectSession to use to notify subscribers that the new node has been added
     * @param optNotifyWithOnChangedData If non-NULL, a StorageReflectSession to use to notify subscribers when the node's data has been alterered
     * @param optAddNewChildren If non-NULL, any newly formed nodes will be added to this hashtable, keyed on their absolute node path.
     * @return a reference to the just-created-and-inserted child DataNode on success, or a NULL Ref on failure.
     */
-   DataNodeRef InsertOrderedChild(const ConstMessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyWithOnChangedData, Hashtable<String, DataNodeRef> * optAddNewChildren);
+   DataNodeRef InsertOrderedChild(const ConstMessageRef & data, const String & optInsertBefore, const String & optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyWithOnChangedData, Hashtable<String, DataNodeRef> * optAddNewChildren);
 
    /**
-    * Moves the given node (which must be a child of ours) to be just before the node named
-    * (optMoveToBeforeThis) in our index.  If (optMoveToBeforeThis) is NULL, or not a node in our index,
-    * then (child) will be moved back to the end of the index.
+    * Moves/places/removes the given node (which must be a child of ours) to be just before the node named
+    * (*optMoveToBeforeThis) in our index.  If (optMoveToBeforeThis) is NULL, then (child) will
+    * be moved the very end of the index.  If (optMoveToBeforeThis) is non-NULL but not the
+    * name of a node in our index, then (child) will be removed from our index.
     * @param child Reference to a child node of ours, to be moved in the node ordering index.
-    * @param optMoveToBeforeThis name of another child node of ours.  If this name is NULL or
-    *                         not found in our index, we'll move (child) to the end of the index.
+    * @param optMoveToBeforeThis optional name of another child node of ours.  If this argument is an empty
+    *                            String, then (child) will be moved to the end of our ordered-nodes-index.
+    *                            If this argument is the name of another node in the index, then (child) will
+    *                            be moved to be just before that node in the index.  Otherwise, (child) will
+    *                            be removed from the ordered-nodes-index entirely.
     * @param optNotifyWith If non-NULL, this will be used to sent INDEXUPDATE message to the
     *                      interested clients, notifying them of the change.
     * @return B_NO_ERROR on success, another error code on failure (child not found, or out of memory?)
     */
-   status_t ReorderChild(const DataNodeRef & child, const String * optMoveToBeforeThis, StorageReflectSession * optNotifyWith);
+   status_t ReorderChild(const DataNodeRef & child, const String & optMoveToBeforeThis, StorageReflectSession * optNotifyWith);
 
    /** Returns true iff we have a child with the given name
      * @param key node-name that we should check our child-nodes-table for (it's an O(1) lookup)

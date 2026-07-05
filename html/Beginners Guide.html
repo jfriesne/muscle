@@ -491,20 +491,18 @@ specify the parent node that the new child node is to be added to, and the data/
 child node will contain--but muscled will be the one to assign the new child node an (algorithmically
 generated) name.  Generated names are guaranteed to start with a capital 'I'.  Muscled will add the
 child node in front of a previously added indexed child whose name you specify, or will add it to the
-end of the index if you specify sibling name that is not found in the index.
+end of the index if you specify an empty sibling-name.
 <p>
-Here is an example PR_COMMAND_INSERTORDEREDDATA message that will add an indexed child node to the
+Here is an example PR_COMMAND_INSERTORDEREDDATA message that will add an indexed child-node to the
 node "myNode":
 <p><pre>
 	Message imsg(PR_COMMAND_INSERTDATA);
-	imsg.AddString(PR_NAME_KEYS, "myNode");     // specify node(s) to add insert the child node(s) under
-	Message childData('Chld');   // any data you want to store can be placed in this message....
-	imsg.AddMessage("I4", childData);    // add the new node before I4, if I4 exists.  Else append to the end.
+	imsg.AddString(PR_NAME_KEYS, "myNode");          // specify node(s) to add insert the child node(s) under
+	Message dataToAppend;                            // any data you want to store can be placed in this message....
+	imsg.AddMessage(GetEmptyString(), dataToAppend); // add the new node to the end of the index
+        Message dataToInsertBeforeMyNode;                // some other data could go here
+
 </pre><p>
-If myNode already contains an indexed child with the name I4, the new node will be inserted into
-the index just before I4.  If I4 is not found in the index, the new node will be appended to the
-end of the index.  If you want to be sure that your new child is always added to the end of the
-index, you can just AddMessage() using a field name that doesn't start with a capital I.
 <p>
 You are allowed to specify more than one parent node in PR_NAME_KEYS (either via wildcarding,
 or via multiple PR_NAME_KEYS values)--this will cause the same child nodes to be added to all matching

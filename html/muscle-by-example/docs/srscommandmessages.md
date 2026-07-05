@@ -119,8 +119,8 @@ myMessageTransceiverThread.SendMessageToSessions(insertMsg);
     - Here is an example invocation:
 <pre>
 MessageRef reorderMsg = GetMessageFromPool(PR_COMMAND_REORDERDATA);
-reorderMsg()->AddString("blah/I8", "I5");  // move blah's child "I8" to before "I5"
-reorderMsg()->AddString("blah/I9", "append");  // move blah's child "I9" to the end of the index
+reorderMsg()->AddString("blah/I8", "I5");              // move blah's child "I8" to before "I5"
+reorderMsg()->AddString("blah/I9", GetEmptyString());  // move blah's child "I9" to the end of the index
 myMessageTransceiverThread.SendMessageToSessions(reorderMsg);
 </pre>
 * `PR_COMMAND_GETDATATREES` - *Returns an entire subtree of data as a single `PR_RESULT_DATATREES` Message*

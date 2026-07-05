@@ -57,7 +57,7 @@ void DataNode :: Reset()
    _cachedDataChecksum = 0;
 }
 
-DataNodeRef DataNode :: InsertOrderedChild(const ConstMessageRef & data, const String * optInsertBefore, const String * optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyChangedData, Hashtable<String, DataNodeRef> * optRetAdded)
+DataNodeRef DataNode :: InsertOrderedChild(const ConstMessageRef & data, const String & optInsertBefore, const String & optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyChangedData, Hashtable<String, DataNodeRef> * optRetAdded)
 {
    TCHECKPOINT;
 
@@ -65,8 +65,8 @@ DataNodeRef DataNode :: InsertOrderedChild(const ConstMessageRef & data, const S
 
    // Find a unique ID string for our new kid
    String temp;  // must be declared out here!
-   const String * nodeName = optNodeName;
-   if (nodeName == NULL)
+   const String * nodeName = &optNodeName;
+   if (nodeName->IsEmpty())
    {
       while(true)
       {
@@ -80,12 +80,13 @@ DataNodeRef DataNode :: InsertOrderedChild(const ConstMessageRef & data, const S
    DataNodeRef newNode = StorageReflectSession::GetNewDataNode(*nodeName, data);
    MRETURN_ON_ERROR(newNode);
 
-   uint32 insertIndex = _orderedIndex->GetNumItems();  // default to end of index
-   if (optInsertBefore)
+   int32 insertIndex = _orderedIndex->GetNumItems();  // default to end of index
+   if (optInsertBefore.HasChars())
    {
+      insertIndex = -1;  // if the user specified an explicit/non-empty name, default to no-insertion unless we find it
       for (int32 i=_orderedIndex->GetLastValidIndex(); i>=0; i--)
       {
-         if ((*_orderedIndex)[i]()->GetNodeName() == *optInsertBefore)
+         if ((*_orderedIndex)[i]()->GetNodeName() == optInsertBefore)
          {
             insertIndex = i;
             break;
@@ -95,15 +96,18 @@ DataNodeRef DataNode :: InsertOrderedChild(const ConstMessageRef & data, const S
 
    MRETURN_ON_ERROR(PutChild(newNode, optNotifyWithOnSetParent, optNotifyChangedData));
 
-   // Update the index
    status_t ret;
-   if (_orderedIndex->InsertItemAt(insertIndex, newNode).IsOK(ret))
+   if (insertIndex >= 0)
    {
-      String np;
-      if ((optRetAdded)&&(newNode()->GetNodePath(np).IsOK(ret))&&(optRetAdded->Put(np, newNode).IsError(ret))) (void) _orderedIndex->RemoveItemAt(insertIndex);  // roll back!
+      // Update the index
+      if (_orderedIndex->InsertItemAt(insertIndex, newNode).IsOK(ret))
+      {
+         String np;
+         if ((optRetAdded)&&(newNode()->GetNodePath(np).IsOK(ret))&&(optRetAdded->Put(np, newNode).IsError(ret))) (void) _orderedIndex->RemoveItemAt(insertIndex);  // roll back!
 
-      // Notify anyone monitoring this node that the ordered-index has been updated
-      if ((ret.IsOK())&&(optNotifyWithOnSetParent)) optNotifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, newNode()->GetNodeName());
+         // Notify anyone monitoring this node that the ordered-index has been updated
+         if ((ret.IsOK())&&(optNotifyWithOnSetParent)) optNotifyWithOnSetParent->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, insertIndex, newNode()->GetNodeName());
+      }
    }
 
    if (ret.IsError()) (void) RemoveChild(newNode()->GetNodeName(), optNotifyWithOnSetParent, false, NULL);  // roll back!
@@ -138,35 +142,48 @@ status_t DataNode :: InsertIndexEntryAt(uint32 insertIndex, StorageReflectSessio
    return B_NO_ERROR;
 }
 
-status_t DataNode :: ReorderChild(const DataNodeRef & child, const String * optMoveToBeforeThis, StorageReflectSession * optNotifyWith)
+status_t DataNode :: ReorderChild(const DataNodeRef & child, const String & optMoveToBeforeThis, StorageReflectSession * optNotifyWith)
 {
    TCHECKPOINT;
 
    if (child() == NULL) return B_BAD_ARGUMENT;
-   if (_orderedIndex == NULL) return B_DATA_NOT_FOUND;
-   if ((optMoveToBeforeThis)&&(*optMoveToBeforeThis == child()->GetNodeName())) return B_NO_ERROR;  // moving a child to before his own position is a no-op, but it's ok
+   if (_orderedIndex == NULL)
+   {
+      // ... then the only possible option is appending (child) to the end of a demand-allocated index, so
+      if (optMoveToBeforeThis.HasChars()) return B_NO_ERROR;  // move-to-before (unindexed/unknown-child) means remove-from-index, and (child) is already not-in-the-index, so that's accomplished
+      _orderedIndex = new Queue<DataNodeRef>;  // demand-allocate
+   }
+   if (optMoveToBeforeThis == child()->GetNodeName()) return B_NO_ERROR;  // moving a child to before his own position is a no-op, but it's ok
 
-   MRETURN_ON_ERROR(RemoveIndexEntry(child()->GetNodeName(), optNotifyWith));
+   (void) RemoveIndexEntry(child()->GetNodeName(), optNotifyWith);  // it's okay if this fails (e.g. because (child) wasn't present in the _orderedIndex yet)
 
    // Then re-add him to the index at the appropriate point
-   uint32 targetIndex = _orderedIndex->GetNumItems();  // default to end of index
-   if ((optMoveToBeforeThis)&&(HasChild(*optMoveToBeforeThis)))
+   int32 targetIndex = (int32) _orderedIndex->GetNumItems();  // default to end-of-index
+   if (optMoveToBeforeThis.HasChars())
    {
-      for (int32 i=_orderedIndex->GetLastValidIndex(); i>=0; i--)
+      targetIndex = -1;  // new functionality:  remove (child) from index if (optMoveToBeforeThis) isn't found
+      if (HasChild(optMoveToBeforeThis))
       {
-         if (*optMoveToBeforeThis == (*_orderedIndex)[i]()->GetNodeName())
+         for (int32 i=_orderedIndex->GetLastValidIndex(); i>=0; i--)
          {
-            targetIndex = i;
-            break;
+            if (optMoveToBeforeThis == (*_orderedIndex)[i]()->GetNodeName())
+            {
+               targetIndex = i;
+               break;
+            }
          }
       }
    }
 
-   // Now add the child back into the index at his new position
-   (void) _orderedIndex->InsertItemAt(targetIndex, child);  // guaranteed not to fail because we already removed this child from the index earlier (in RemoveIndexEntry()), so there is definitely a spot allocated for it now
+   if (targetIndex >= 0)
+   {
+      // Now add the child into the index at his new position
+      MRETURN_ON_ERROR(_orderedIndex->InsertItemAt(targetIndex, child));
 
-   // Notify anyone monitoring this node that the ordered-index has been updated
-   if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, targetIndex, child()->GetNodeName());
+      // Notify anyone monitoring this node that the ordered-index has been updated
+      if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeIndexChanged(*this, INDEX_OP_ENTRYINSERTED, targetIndex, child()->GetNodeName());
+   }
+
    return B_NO_ERROR;
 }
 

@@ -125,11 +125,12 @@ protected:
     * @param nodePath Should be the path relative to the home dir (eg "MyNode/Child1/Grandchild2")
     * @param dataMsgRef The value to set the node to
     * @param flags a bit-chord of SETDATANODE_FLAG_* bits that can be used to modify this call's behavior.  Defaults to no-flags-set.
-    * @param optInsertBefore If (addToIndex) is true, this may be the name of the node to insert this new node before in the index.
-    *                        If NULL, the new node will be appended to the end of the index.  If (addToIndex) is false, this argument is ignored.
+    * @param optInsertBefore If (flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)) returns true, this may be the name of the node to insert this new node before in the index.
+    *                        If it's an empty String, the new node will be appended to the end of the index.  If (flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)) returns false,
+    *                        or no node with the name specified by (optInsertBefore) is in the index currently, this argument is ignored.  Defaults to an empty String.
     * @return B_NO_ERROR on success, or an error code on failure.
     */
-   virtual status_t SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetDataNodeFlags flags = SetDataNodeFlags(), const String *optInsertBefore=NULL);
+   virtual status_t SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetDataNodeFlags flags = SetDataNodeFlags(), const String & optInsertBefore = GetEmptyString());
 
    /** Remove all nodes that match (nodePath).
     *  @param nodePath A relative path indicating node(s) to remove.  Wildcarding is okay.
@@ -142,12 +143,12 @@ protected:
 
    /** Moves the node(s) specified in (nodePath) to a new location within their parent nodes' node-index.
     *  @param nodePath A relative path indicating node(s) that we want to move within their parents' node-index.  Wildcarding is okay.
-    *  @param optBefore if non-NULL, the moved nodes in the index will be moved to just before the node with this name.  If NULL, they'll be moved to the end of the index.
+    *  @param optBefore if non-empty, the moved nodes in the index will be moved to just before the node with this name.  If empty, they'll be moved to the end of the index.
     *  @param filterRef If non-NULL, we'll use the given QueryFilter object to filter out our result set.
     *                   Only nodes whose Messages match the QueryFilter will have their parent-nodes' index modified.  Default is a NULL reference.
     *  @return B_NO_ERROR on success, or B_OUT_OF_MEMORY on failure.
     */
-    virtual status_t MoveIndexEntries(const String & nodePath, const String * optBefore, const ConstQueryFilterRef & filterRef = ConstQueryFilterRef());
+   virtual status_t MoveIndexEntries(const String & nodePath, const String & optBefore, const ConstQueryFilterRef & filterRef = ConstQueryFilterRef());
 
    /**
     * Recursively saves a given subtree of the node database into the given Message object, for safe-keeping.
@@ -196,11 +197,12 @@ protected:
      * This method calls through to parentNode.InsertOrderedChild(), but also updates the StorageReflectSession's own internal state as necessary.
      * @param parentNode The node to add the new child node to.
      * @param data Reference to a message to create a new child node for.
-     * @param optInsertBefore if non-NULL, the name of the child to put the new child before in our index.  If NULL, (or the specified child cannot be found) the new child will be appended to the end of the index.
+     * @param optInsertBefore if non-empty, the name of the child to put the new child before in our index.  If empty, the new child will be appended to the end of the index.
+     *                        if a child named (optInsertBefore) isn't found, the new child will not be added to the index.
      * @param optAddNewChildren If non-NULL, any newly formed nodes will be added to this hashtable, keyed on their absolute node path.
      * @return B_NO_ERROR on success, an error code on failure.
      */
-   status_t InsertOrderedChildNode(DataNode & parentNode, const String * optInsertBefore, const ConstMessageRef & data, Hashtable<String, DataNodeRef> * optAddNewChildren);
+   status_t InsertOrderedChildNode(DataNode & parentNode, const String & optInsertBefore, const ConstMessageRef & data, Hashtable<String, DataNodeRef> * optAddNewChildren);
 
    /**
     * This typedef represents the proper signature of a node-tree traversal callback function.
@@ -368,7 +370,7 @@ protected:
     * @param optPruner If non-NULL, this object can be used as a callback to prune the traversal or filter the MessageRefs cloned.
     * @return B_NO_ERROR on success, or an error code on failure (may leave a partially cloned subtree on failure)
     */
-   status_t CloneDataNodeSubtree(const DataNode & sourceNode, const String & destPath, SetDataNodeFlags flags = SetDataNodeFlags(), const String * optInsertBefore = NULL, const ITraversalPruner * optPruner = NULL);
+   status_t CloneDataNodeSubtree(const DataNode & sourceNode, const String & destPath, SetDataNodeFlags flags = SetDataNodeFlags(), const String & optInsertBefore = GetEmptyString(), const ITraversalPruner * optPruner = NULL);
 
    /** Tells other sessions that we have modified (node) in our node subtree.
     *  @param node The node that has been modfied.

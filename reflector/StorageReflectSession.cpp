@@ -458,7 +458,7 @@ NodeIndexChanged(DataNode & modifiedNode, char op, uint32 index, const String & 
 
 status_t
 StorageReflectSession ::
-SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetDataNodeFlags flags, const String *optInsertBefore)
+SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetDataNodeFlags flags, const String & optInsertBefore)
 {
    TCHECKPOINT;
 
@@ -483,7 +483,7 @@ SetDataNode(const String & nodePath, const ConstMessageRef & dataMsgRef, SetData
 
             if ((slashPos < 0)&&(flags.IsBitSet(SETDATANODE_FLAG_ADDTOINDEX)))
             {
-               allocedNode = node->InsertOrderedChild(dataMsgRef, optInsertBefore, (nextClause.HasChars())?&nextClause:NULL, this, flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this, NULL);
+               allocedNode = node->InsertOrderedChild(dataMsgRef, optInsertBefore, nextClause, this, flags.IsBitSet(SETDATANODE_FLAG_QUIET)?NULL:this, NULL);
                MRETURN_ON_ERROR(allocedNode);
                _indexingPresent = true;
             }
@@ -1187,7 +1187,7 @@ status_t StorageReflectSession :: RemoveDataNodes(const String & nodePath, const
    return B_NO_ERROR;
 }
 
-status_t StorageReflectSession :: MoveIndexEntries(const String & nodePath, const String * optBefore, const ConstQueryFilterRef & filterRef)
+status_t StorageReflectSession :: MoveIndexEntries(const String & nodePath, const String & optBefore, const ConstQueryFilterRef & filterRef)
 {
    TCHECKPOINT;
 
@@ -1196,7 +1196,7 @@ status_t StorageReflectSession :: MoveIndexEntries(const String & nodePath, cons
    NodePathMatcher matcher;
    MRETURN_ON_ERROR(matcher.PutPathString(nodePath, filterRef));
 
-   (void) matcher.DoTraversal((PathMatchCallback)ReorderDataCallbackFunc, this, *_sessionDir(), true, (void *)optBefore);
+   (void) matcher.DoTraversal((PathMatchCallback)ReorderDataCallbackFunc, this, *_sessionDir(), true, (void *)&optBefore);
    return B_NO_ERROR;
 }
 
@@ -1417,18 +1417,18 @@ InsertOrderedDataCallback(DataNode & node, void * userData)
    for (MessageFieldNameIterator iter = insertMsg->GetFieldNameIterator(B_MESSAGE_TYPE); iter.HasData(); iter++)
    {
       MessageRef nextRef;
-      for (int32 i=0; (insertMsg->FindMessage(iter.GetFieldName(), i, nextRef).IsOK()); i++) (void) InsertOrderedChildNode(node, &iter.GetFieldName(), nextRef, optRetResults);
+      for (int32 i=0; (insertMsg->FindMessage(iter.GetFieldName(), i, nextRef).IsOK()); i++) (void) InsertOrderedChildNode(node, iter.GetFieldName(), nextRef, optRetResults);
    }
    return node.GetDepth();
 }
 
 status_t
 StorageReflectSession ::
-InsertOrderedChildNode(DataNode & node, const String * optInsertBefore, const ConstMessageRef & childNodeMsg, Hashtable<String, DataNodeRef> * optAddNewChildren)
+InsertOrderedChildNode(DataNode & node, const String & optInsertBefore, const ConstMessageRef & childNodeMsg, Hashtable<String, DataNodeRef> * optAddNewChildren)
 {
    if (_currentNodeCount >= _maxNodeCount) return B_RESOURCE_LIMIT;
 
-   MRETURN_ON_ERROR(node.InsertOrderedChild(childNodeMsg, optInsertBefore, NULL, this, this, optAddNewChildren));
+   MRETURN_ON_ERROR(node.InsertOrderedChild(childNodeMsg, optInsertBefore, GetEmptyString(), this, this, optAddNewChildren));
    _indexingPresent = true;  // disable optimization in GetDataCallback()
    _currentNodeCount++;
    return B_NO_ERROR;
@@ -1442,7 +1442,7 @@ ReorderDataCallback(DataNode & node, void * userData)
    if (indexNode)
    {
       DataNodeRef childNodeRef;
-      if (indexNode->GetChild(node.GetNodeName(), childNodeRef).IsOK()) (void) indexNode->ReorderChild(childNodeRef, static_cast<const String *>(userData), this);
+      if (indexNode->GetChild(node.GetNodeName(), childNodeRef).IsOK()) (void) indexNode->ReorderChild(childNodeRef, *static_cast<const String *>(userData), this);
    }
    return node.GetDepth();
 }
@@ -1802,7 +1802,7 @@ JettisonOutgoingResults(const NodePathMatcher * matcher)
 }
 
 status_t
-StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const String & destPath, SetDataNodeFlags flags, const String * optInsertBefore, const ITraversalPruner * optPruner)
+StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const String & destPath, SetDataNodeFlags flags, const String & optInsertBefore, const ITraversalPruner * optPruner)
 {
    TCHECKPOINT;
 
@@ -1819,7 +1819,7 @@ StorageReflectSession :: CloneDataNodeSubtree(const DataNode & node, const Strin
       // Note that we don't deal with the index-cloning here; we do it separately (below) instead, for efficiency
       SetDataNodeFlags subFlags = flags;
       subFlags.ClearBits(SETDATANODE_FLAG_DONTCREATENODE, SETDATANODE_FLAG_ADDTOINDEX);
-      if (iter.GetValue()()) MRETURN_ON_ERROR(CloneDataNodeSubtree(*iter.GetValue()(), destPath+'/'+(*iter.GetKey()), subFlags, NULL, optPruner));
+      if (iter.GetValue()()) MRETURN_ON_ERROR(CloneDataNodeSubtree(*iter.GetValue()(), destPath+'/'+(*iter.GetKey()), subFlags, GetEmptyString(), optPruner));
    }
 
    // Lastly, if he has an index, make sure the clone ends up with an equivalent index

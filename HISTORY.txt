@@ -13,6 +13,14 @@ key:  - new feature
      to avoid conflicts with std::min() and std::max() under Win32.
    o Tweaked muscleArrayIndexIsValid() implementation to avoid a
      compiler warning.
+   o Updated DataNode::ReorderChild()'s semantics to also support
+     adding and removing a child node to/from its parent's
+     ordered-nodes-index.
+   o Updated DataNode::InsertOrderedChild(), StorageReflectSession::SetDataNode(),
+     and StorageReflectSession::CloneDataNodeSubtree() to take their
+     (optInsertBefore) argument by-reference instead of by-pointer,
+     with an empty String now serving as the sentinel-value meaning
+     "append", rather than a NULL pointer.
    * Suppressed a false-positive dangling-pointer warning under g++.
 
 9.91 - Released 6/13/2026
