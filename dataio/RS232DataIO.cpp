@@ -284,14 +284,16 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
    }
 #else
 # if defined(__APPLE__)
-#  if !(TARGET_OS_IPHONE)
+#  if TARGET_OS_IPHONE
+   (void) retList;
+#  else
    mach_port_t masterPort;
 
-#if (__MAC_OS_X_VERSION_MIN_REQUIRED < 120000)
+#   if (__MAC_OS_X_VERSION_MIN_REQUIRED < 120000)
    if (IOMasterPort(MACH_PORT_NULL, &masterPort) == KERN_SUCCESS)
-#else
+#   else
    if (IOMainPort(  MACH_PORT_NULL, &masterPort) == KERN_SUCCESS)
-#endif
+#   endif
    {
       CFMutableDictionaryRef classesToMatch = IOServiceMatching(kIOSerialBSDServiceValue);
       if (classesToMatch)
@@ -318,7 +320,7 @@ status_t RS232DataIO :: GetAvailableSerialPortNames(Queue<String> & retList)
          }
       }
    }
-#  endif
+#  endif  // !TARGET_OS_IPHONE
    return B_ERROR;  // if we got here, it didn't work
 # else
    for (int i=0; /*empty*/; i++)
