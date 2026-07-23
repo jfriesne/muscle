@@ -464,4 +464,16 @@ DataNodeRef DataNode :: GetDescendantAux(const char * subPath) const
    else return GetChild(subPath);
 }
 
+status_t DataNode :: UpdateRunningChecksumToReflectOrderedIndexUpdate(char opCode, uint32 index, const String & key, uint32 & runningChecksum) const
+{
+   switch(opCode)
+   {
+      case INDEX_OP_ENTRYINSERTED: runningChecksum += key.CalculateChecksum(); break;  // TODO:  MAKE THIS ORDER-AWARE
+      case INDEX_OP_ENTRYREMOVED:  runningChecksum -= key.CalculateChecksum(); break;  // TODO:  MAKE THIS ORDER-AWARE
+      case INDEX_OP_CLEARED:       return B_UNIMPLEMENTED;  // dunno how to handle this; the information we'd need to properly update the checksum is gone already
+      default:                     return B_BAD_ARGUMENT;
+   }
+   return B_NO_ERROR;
+}
+
 } // end namespace muscle

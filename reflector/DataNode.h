@@ -295,6 +295,17 @@ public:
      */
    void Print(const OutputPrinter & p, uint32 maxRecursionDepth = MUSCLE_NO_LIMIT, int indentLevel = 0) const;
 
+   /** Convenience method:  Given an already-completed modification to this DataNode's ordered-children list, updates the supplied
+     * running-checksum value appropriately to reflect the change (in a way that keeps the running-checksum consistent with the
+     * checksum that would be computed via a more expensive CalculateChecksum() call)
+     * @param opCode an INDEX_OP_* value.  Note that only INDEX_OP_ENTRYINSERTED and INDEX_OP_ENTRYREMOVED are currently supported
+     * @param index The index at which the new entry was inserted (or the old entry removed)
+     * @param key the node name of the new entry the was inserted (or of the old entry that was removed)
+     * @param runningChecksum the running-checksum value to update
+     * @returns B_NO_ERROR on success, or an error on failure (likely B_UNIMPLEMENTED or B_BAD_ARGUMENT, indicating an unsupported or unknown opCode)
+     */
+   status_t UpdateRunningChecksumToReflectOrderedIndexUpdate(char opCode, uint32 index, const String & key, uint32 & runningChecksum) const;
+
 private:
    friend class StorageReflectSession;
    friend class ObjectPool<DataNode>;

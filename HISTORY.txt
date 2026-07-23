@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Added new convenience method
+     DataNode::UpdateRunningChecksumToReflectOrderedIndexUpdate()
    * Rolled back the inclusion of (index+1) multipliers in
      DataNode::CalculateChecksum(), as including that makes
      maintaining a running database-checksum inefficient.
