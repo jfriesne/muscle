@@ -367,6 +367,10 @@ void DataNode :: SetData(const ConstMessageRef & data, StorageReflectSession * o
    if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeChanged(*this, oldData, setDataFlags.IsBitSet(SET_DATA_FLAG_ENABLESUPERCEDE)?StorageReflectSession::NodeChangeFlags(StorageReflectSession::NODE_CHANGE_FLAG_ENABLESUPERCEDE):StorageReflectSession::NodeChangeFlags());
 }
 
+static uint32 CalculateOrderedPairChecksum(uint32 leftChk, uint32 rightChk)             {return leftChk + (~rightChk);}   // The ~ is just so that checksum will change if the ordering gets somehow swapped
+static uint32 CalculateOptStringChecksum(const String * optKey, bool nullIsLeft)        {return optKey ? optKey->CalculateChecksum() : (nullIsLeft ? 1 : 0);}  // the (nullIsLeft) stuff is just so that an empty list sums to zero
+static uint32 CalculateOptNodeChecksum(const DataNodeRef * optNodeRef, bool nullIsLeft) {return CalculateOptStringChecksum(optNodeRef ? &optNodeRef->GetItemPointer()->GetNodeName() : NULL, nullIsLeft);}
+
 uint32 DataNode :: CalculateChecksum(uint32 maxRecursionDepth) const
 {
    // demand-calculate the local checksum and cache the result, since it can be expensive if the Message is big
@@ -380,15 +384,61 @@ uint32 DataNode :: CalculateChecksum(uint32 maxRecursionDepth) const
    else
    {
       uint32 ret = _cachedDataChecksum;
-      if (_orderedIndex)
+      if ((_orderedIndex)&&(_orderedIndex->HasItems()))
       {
-         const Queue<DataNodeRef> & nq = *_orderedIndex;
-         const uint32 idxLen = nq.GetNumItems();
-         for (uint32 i=0; i<idxLen; i++) ret += nq[i]()->GetNodeName().CalculateChecksum();  // deliberately NOT multiplying by (i+1) here, because that would make running-database-checksums O(N) instead of O(1)
+         uint32 prevChk = CalculateOptStringChecksum(NULL, true);   // (start-of-list, firstItem) counts as a pair
+
+         const Queue<DataNodeRef> & oi = *_orderedIndex;
+         for (uint32 i=0; i<oi.GetNumItems(); i++)
+         {
+            const uint32 curChk = CalculateOptStringChecksum(&oi[i]()->GetNodeName(), false);
+            ret += CalculateOrderedPairChecksum(prevChk, curChk);
+            prevChk = curChk;
+         }
+
+         ret += CalculateOrderedPairChecksum(prevChk, CalculateOptStringChecksum(NULL, false));   // (lastItem, end-of-list) counts as a pair
       }
+
       if (_children) for (ConstHashtableIterator<const String *, DataNodeRef> iter(*_children); iter.HasData(); iter++) ret += iter.GetValue()()->CalculateChecksum(maxRecursionDepth-1);
       return ret;
    }
+}
+
+status_t DataNode :: UpdateRunningChecksumToReflectOrderedIndexUpdate(char opCode, uint32 index, const String & key, uint32 & runningChecksum) const
+{
+   if (_orderedIndex == NULL) return B_BAD_OBJECT;  // can't update an index that doesn't exist
+   const Queue<DataNodeRef> & oi = *_orderedIndex;
+
+   switch(opCode)
+   {
+      case INDEX_OP_ENTRYINSERTED:
+      {
+         const uint32 beforeInsertedNodeChk = CalculateOptNodeChecksum(oi.GetItemAt(index-1), true);     // it's okay if (index-1) underflows here
+         const uint32 insertedNodeChk       = CalculateOptStringChecksum(&key, false);
+         const uint32 afterInsertedNodeChk  = CalculateOptNodeChecksum(oi.GetItemAt(index+1), false);    // it's okay if (index+1) is out-of-range here
+
+         runningChecksum -= CalculateOrderedPairChecksum(beforeInsertedNodeChk, afterInsertedNodeChk);   // the node before the inserted node is no longer linked to the node after the inserted node
+         runningChecksum += CalculateOrderedPairChecksum(beforeInsertedNodeChk, insertedNodeChk);        // the node before the inserted node is now linked to the new node
+         runningChecksum += CalculateOrderedPairChecksum(insertedNodeChk,       afterInsertedNodeChk);   // the inserted node is now linked to the node after it
+      }
+      break;
+
+      case INDEX_OP_ENTRYREMOVED:
+      {
+         const uint32 beforeDeletedNodeChk = CalculateOptNodeChecksum(oi.GetItemAt(index-1), true);  // it's okay if (index) underflows here
+         const uint32 deletedNodeChk       = CalculateOptStringChecksum(&key, false);
+         const uint32 afterDeletedNodeChk  = CalculateOptNodeChecksum(oi.GetItemAt(index), false);   // no +1 because (key) has already been removed from the index, so everything got shifted back by one.
+
+         runningChecksum -= CalculateOrderedPairChecksum(beforeDeletedNodeChk, deletedNodeChk);      // the node before the deleted node is no longer linked to it
+         runningChecksum -= CalculateOrderedPairChecksum(deletedNodeChk,       afterDeletedNodeChk); // the deleted node is no longer linked to the node after it
+         runningChecksum += CalculateOrderedPairChecksum(beforeDeletedNodeChk, afterDeletedNodeChk); // the node before and the deleted node is now linked directly to the node after the deleted node
+      }
+      break;
+
+      case INDEX_OP_CLEARED: return B_UNIMPLEMENTED;  // dunno how to handle this; the information we'd need to properly update the checksum is gone already
+      default:               return B_BAD_ARGUMENT;
+   }
+   return B_NO_ERROR;
 }
 
 void DataNode :: Print(const OutputPrinter & p, uint32 maxRecursionDepth, int indentLevel) const
@@ -462,18 +512,6 @@ DataNodeRef DataNode :: GetDescendantAux(const char * subPath) const
       return child() ? child()->GetDescendantAux(slash+1) : DataNodeRef();
    }
    else return GetChild(subPath);
-}
-
-status_t DataNode :: UpdateRunningChecksumToReflectOrderedIndexUpdate(char opCode, uint32 index, const String & key, uint32 & runningChecksum) const
-{
-   switch(opCode)
-   {
-      case INDEX_OP_ENTRYINSERTED: runningChecksum += key.CalculateChecksum(); break;  // TODO:  MAKE THIS ORDER-AWARE
-      case INDEX_OP_ENTRYREMOVED:  runningChecksum -= key.CalculateChecksum(); break;  // TODO:  MAKE THIS ORDER-AWARE
-      case INDEX_OP_CLEARED:       return B_UNIMPLEMENTED;  // dunno how to handle this; the information we'd need to properly update the checksum is gone already
-      default:                     return B_BAD_ARGUMENT;
-   }
-   return B_NO_ERROR;
 }
 
 } // end namespace muscle

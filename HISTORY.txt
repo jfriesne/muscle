@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+   - Updated DataNode's ordered-index checksum to a method that
+     calculates pairwise checksums, so that the ordering of the
+     index can be accounted for in the checksums while still keeping
+     O(1) performance during incremental index updates.
    - Added new convenience method
      DataNode::UpdateRunningChecksumToReflectOrderedIndexUpdate()
    * Rolled back the inclusion of (index+1) multipliers in
