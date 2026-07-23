@@ -413,25 +413,25 @@ status_t DataNode :: UpdateRunningChecksumToReflectOrderedIndexUpdate(char opCod
    {
       case INDEX_OP_ENTRYINSERTED:
       {
-         const uint32 beforeInsertedNodeChk = CalculateOptNodeChecksum(oi.GetItemAt(index-1), true);     // it's okay if (index-1) underflows here
+         const uint32 beforeInsertedNodeChk = CalculateOptNodeChecksum(oi.GetItemAt(index-1), true);   // it's okay if (index-1) underflows here
          const uint32 insertedNodeChk       = CalculateOptStringChecksum(&key, false);
-         const uint32 afterInsertedNodeChk  = CalculateOptNodeChecksum(oi.GetItemAt(index+1), false);    // it's okay if (index+1) is out-of-range here
+         const uint32 afterInsertedNodeChk  = CalculateOptNodeChecksum(oi.GetItemAt(index+1), false);  // it's okay if (index+1) is out-of-range here
 
-         runningChecksum -= CalculateOrderedPairChecksum(beforeInsertedNodeChk, afterInsertedNodeChk);   // the node before the inserted node is no longer linked to the node after the inserted node
-         runningChecksum += CalculateOrderedPairChecksum(beforeInsertedNodeChk, insertedNodeChk);        // the node before the inserted node is now linked to the new node
-         runningChecksum += CalculateOrderedPairChecksum(insertedNodeChk,       afterInsertedNodeChk);   // the inserted node is now linked to the node after it
+         runningChecksum -= CalculateOrderedPairChecksum(beforeInsertedNodeChk, afterInsertedNodeChk); // the node before the inserted node is no longer linked to the node after the inserted node
+         runningChecksum += CalculateOrderedPairChecksum(beforeInsertedNodeChk, insertedNodeChk);      // the node before the inserted node is now linked to the inserted node
+         runningChecksum += CalculateOrderedPairChecksum(insertedNodeChk,       afterInsertedNodeChk); // the inserted node is now linked to the node after it
       }
       break;
 
       case INDEX_OP_ENTRYREMOVED:
       {
-         const uint32 beforeDeletedNodeChk = CalculateOptNodeChecksum(oi.GetItemAt(index-1), true);  // it's okay if (index) underflows here
+         const uint32 beforeDeletedNodeChk = CalculateOptNodeChecksum(oi.GetItemAt(index-1), true);  // it's okay if (index-1) underflows here
          const uint32 deletedNodeChk       = CalculateOptStringChecksum(&key, false);
-         const uint32 afterDeletedNodeChk  = CalculateOptNodeChecksum(oi.GetItemAt(index), false);   // no +1 because (key) has already been removed from the index, so everything got shifted back by one.
+         const uint32 afterDeletedNodeChk  = CalculateOptNodeChecksum(oi.GetItemAt(index), false);   // I don't add 1 because (key) has already been removed from the index, so subsequent entries already got shifted back by one.
 
-         runningChecksum -= CalculateOrderedPairChecksum(beforeDeletedNodeChk, deletedNodeChk);      // the node before the deleted node is no longer linked to it
-         runningChecksum -= CalculateOrderedPairChecksum(deletedNodeChk,       afterDeletedNodeChk); // the deleted node is no longer linked to the node after it
-         runningChecksum += CalculateOrderedPairChecksum(beforeDeletedNodeChk, afterDeletedNodeChk); // the node before and the deleted node is now linked directly to the node after the deleted node
+         runningChecksum -= CalculateOrderedPairChecksum(beforeDeletedNodeChk, deletedNodeChk);      // the node before the deleted node is no longer linked to the deleted node
+         runningChecksum -= CalculateOrderedPairChecksum(deletedNodeChk,       afterDeletedNodeChk); // the deleted node is no longer linked to the node after the deleted node
+         runningChecksum += CalculateOrderedPairChecksum(beforeDeletedNodeChk, afterDeletedNodeChk); // the node before the deleted node is now linked directly to the node after the deleted node
       }
       break;
 
