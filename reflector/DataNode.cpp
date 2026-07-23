@@ -367,9 +367,16 @@ void DataNode :: SetData(const ConstMessageRef & data, StorageReflectSession * o
    if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeChanged(*this, oldData, setDataFlags.IsBitSet(SET_DATA_FLAG_ENABLESUPERCEDE)?StorageReflectSession::NodeChangeFlags(StorageReflectSession::NODE_CHANGE_FLAG_ENABLESUPERCEDE):StorageReflectSession::NodeChangeFlags());
 }
 
-static uint32 CalculateOrderedPairChecksum(uint32 leftChk, uint32 rightChk)             {return leftChk ^ (~rightChk);}   // The ~ is just so that checksum will change if the ordering gets somehow swapped
-static uint32 CalculateOptStringChecksum(const String * optKey, bool nullIsLeft)        {return optKey ? optKey->CalculateChecksum() : (nullIsLeft ? 1 : ~1);}  // the (nullIsLeft) stuff is just so that an empty list sums to zero
-static uint32 CalculateOptNodeChecksum(const DataNodeRef * optNodeRef, bool nullIsLeft) {return CalculateOptStringChecksum(optNodeRef ? &optNodeRef->GetItemPointer()->GetNodeName() : NULL, nullIsLeft);}
+static uint32 CalculateOrderedPairChecksumAux(uint32 leftChk, uint32 rightChk) {return CalculateHashCode((((uint64)leftChk)<<32) | ((uint64)rightChk));}
+static uint32 GetNullChecksumOffset()
+{
+   static const uint32 _trimVal = CalculateOrderedPairChecksumAux(0,0);
+   return _trimVal;
+}
+
+static uint32 CalculateOrderedPairChecksum(uint32 leftChk, uint32 rightChk) {return CalculateOrderedPairChecksumAux(leftChk, rightChk)-GetNullChecksumOffset();}  // the offset is just so that an empty index will have checksum zero
+static uint32 CalculateOptStringChecksum(const String * optKey)             {return optKey ? optKey->CalculateChecksum() : 0;}
+static uint32 CalculateOptNodeChecksum(const DataNodeRef * optNodeRef)      {return CalculateOptStringChecksum(optNodeRef ? &optNodeRef->GetItemPointer()->GetNodeName() : NULL);}
 
 uint32 DataNode :: CalculateChecksum(uint32 maxRecursionDepth) const
 {
@@ -386,17 +393,17 @@ uint32 DataNode :: CalculateChecksum(uint32 maxRecursionDepth) const
       uint32 ret = _cachedDataChecksum;
       if ((_orderedIndex)&&(_orderedIndex->HasItems()))
       {
-         uint32 prevChk = CalculateOptStringChecksum(NULL, true);   // (start-of-list, firstItem) counts as a pair
+         uint32 prevChk = CalculateOptStringChecksum(NULL);   // (start-of-list, firstItem) counts as a pair
 
          const Queue<DataNodeRef> & oi = *_orderedIndex;
          for (uint32 i=0; i<oi.GetNumItems(); i++)
          {
-            const uint32 curChk = CalculateOptStringChecksum(&oi[i]()->GetNodeName(), false);
+            const uint32 curChk = CalculateOptStringChecksum(&oi[i]()->GetNodeName());
             ret += CalculateOrderedPairChecksum(prevChk, curChk);
             prevChk = curChk;
          }
 
-         ret += CalculateOrderedPairChecksum(prevChk, CalculateOptStringChecksum(NULL, false));   // (lastItem, end-of-list) counts as a pair
+         ret += CalculateOrderedPairChecksum(prevChk, CalculateOptStringChecksum(NULL));   // (lastItem, end-of-list) counts as a pair
       }
 
       if (_children) for (ConstHashtableIterator<const String *, DataNodeRef> iter(*_children); iter.HasData(); iter++) ret += iter.GetValue()()->CalculateChecksum(maxRecursionDepth-1);
@@ -413,9 +420,9 @@ status_t DataNode :: UpdateRunningChecksumToReflectOrderedIndexUpdate(char opCod
    {
       case INDEX_OP_ENTRYINSERTED:
       {
-         const uint32 beforeInsertedNodeChk = CalculateOptNodeChecksum(oi.GetItemAt(index-1), true);   // it's okay if (index-1) underflows here
-         const uint32 insertedNodeChk       = CalculateOptStringChecksum(&key, false);
-         const uint32 afterInsertedNodeChk  = CalculateOptNodeChecksum(oi.GetItemAt(index+1), false);  // it's okay if (index+1) is out-of-range here
+         const uint32 beforeInsertedNodeChk = CalculateOptNodeChecksum(oi.GetItemAt(index-1));   // it's okay if (index-1) underflows here
+         const uint32 insertedNodeChk       = CalculateOptStringChecksum(&key);
+         const uint32 afterInsertedNodeChk  = CalculateOptNodeChecksum(oi.GetItemAt(index+1));  // it's okay if (index+1) is out-of-range here
 
          runningChecksum -= CalculateOrderedPairChecksum(beforeInsertedNodeChk, afterInsertedNodeChk); // the node before the inserted node is no longer linked to the node after the inserted node
          runningChecksum += CalculateOrderedPairChecksum(beforeInsertedNodeChk, insertedNodeChk);      // the node before the inserted node is now linked to the inserted node
@@ -425,9 +432,9 @@ status_t DataNode :: UpdateRunningChecksumToReflectOrderedIndexUpdate(char opCod
 
       case INDEX_OP_ENTRYREMOVED:
       {
-         const uint32 beforeDeletedNodeChk = CalculateOptNodeChecksum(oi.GetItemAt(index-1), true);  // it's okay if (index-1) underflows here
-         const uint32 deletedNodeChk       = CalculateOptStringChecksum(&key, false);
-         const uint32 afterDeletedNodeChk  = CalculateOptNodeChecksum(oi.GetItemAt(index), false);   // I don't add 1 because (key) has already been removed from the index, so subsequent entries already got shifted back by one.
+         const uint32 beforeDeletedNodeChk = CalculateOptNodeChecksum(oi.GetItemAt(index-1));  // it's okay if (index-1) underflows here
+         const uint32 deletedNodeChk       = CalculateOptStringChecksum(&key);
+         const uint32 afterDeletedNodeChk  = CalculateOptNodeChecksum(oi.GetItemAt(index));   // I don't add 1 because (key) has already been removed from the index, so subsequent entries already got shifted back by one.
 
          runningChecksum -= CalculateOrderedPairChecksum(beforeDeletedNodeChk, deletedNodeChk);      // the node before the deleted node is no longer linked to the deleted node
          runningChecksum -= CalculateOrderedPairChecksum(deletedNodeChk,       afterDeletedNodeChk); // the deleted node is no longer linked to the node after the deleted node
