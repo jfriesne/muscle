@@ -367,8 +367,8 @@ void DataNode :: SetData(const ConstMessageRef & data, StorageReflectSession * o
    if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeChanged(*this, oldData, setDataFlags.IsBitSet(SET_DATA_FLAG_ENABLESUPERCEDE)?StorageReflectSession::NodeChangeFlags(StorageReflectSession::NODE_CHANGE_FLAG_ENABLESUPERCEDE):StorageReflectSession::NodeChangeFlags());
 }
 
-static uint32 CalculateOrderedPairChecksum(uint32 leftChk, uint32 rightChk)             {return leftChk + (~rightChk);}   // The ~ is just so that checksum will change if the ordering gets somehow swapped
-static uint32 CalculateOptStringChecksum(const String * optKey, bool nullIsLeft)        {return optKey ? optKey->CalculateChecksum() : (nullIsLeft ? 1 : 0);}  // the (nullIsLeft) stuff is just so that an empty list sums to zero
+static uint32 CalculateOrderedPairChecksum(uint32 leftChk, uint32 rightChk)             {return leftChk ^ (~rightChk);}   // The ~ is just so that checksum will change if the ordering gets somehow swapped
+static uint32 CalculateOptStringChecksum(const String * optKey, bool nullIsLeft)        {return optKey ? optKey->CalculateChecksum() : (nullIsLeft ? 1 : ~1);}  // the (nullIsLeft) stuff is just so that an empty list sums to zero
 static uint32 CalculateOptNodeChecksum(const DataNodeRef * optNodeRef, bool nullIsLeft) {return CalculateOptStringChecksum(optNodeRef ? &optNodeRef->GetItemPointer()->GetNodeName() : NULL, nullIsLeft);}
 
 uint32 DataNode :: CalculateChecksum(uint32 maxRecursionDepth) const
