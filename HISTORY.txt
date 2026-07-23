@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Rolled back the inclusion of (index+1) multipliers in
+     DataNode::CalculateChecksum(), as including that makes
+     maintaining a running database-checksum inefficient.
+
 9.92 - Released 7/15/2026
    - Updated the Win32 implementation of muscleStrError() to call
      FormatMessage() when necessary to get an error-string.

@@ -384,7 +384,7 @@ uint32 DataNode :: CalculateChecksum(uint32 maxRecursionDepth) const
       {
          const Queue<DataNodeRef> & nq = *_orderedIndex;
          const uint32 idxLen = nq.GetNumItems();
-         for (uint32 i=0; i<idxLen; i++) ret += ((i+1) * nq[i]()->GetNodeName().CalculateChecksum());
+         for (uint32 i=0; i<idxLen; i++) ret += nq[i]()->GetNodeName().CalculateChecksum();  // deliberately NOT multiplying by (i+1) here, because that would make running-database-checksums O(N) instead of O(1)
       }
       if (_children) for (ConstHashtableIterator<const String *, DataNodeRef> iter(*_children); iter.HasData(); iter++) ret += iter.GetValue()()->CalculateChecksum(maxRecursionDepth-1);
       return ret;
