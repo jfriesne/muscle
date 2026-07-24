@@ -227,7 +227,8 @@ static void DoSession(DataIORef io, bool allowRead = true)
             }
             else if (ret.IsError())
             {
-               LogTime(MUSCLE_LOG_ERROR, "Read() returned [%s], aborting!\n", ret.GetStatus()());
+               if (ret == B_END_OF_STREAM) LogTime(MUSCLE_LOG_INFO, "End of input stream detected.\n");
+                                      else LogTime(MUSCLE_LOG_ERROR, "Read() returned [%s], aborting!\n", ret.GetStatus()());
                break;
             }
          }
@@ -574,7 +575,7 @@ int hextermmain(const char * argv0, const Message & args)
       {
          LogTime(MUSCLE_LOG_INFO, "Communicating with child process (%s), childArgs=[%s]\n", childProgName(), childArgs());
          DoSession(args, DummyDataIORef(cpdio));
-         LogTime(MUSCLE_LOG_INFO, "Child process session aborted, exiting.\n");
+         LogTime(MUSCLE_LOG_INFO, "Child process session ended, exiting.\n");
       }
       else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open child process (%s) with childArgs (%s) [%s]\n", childProgName(), childArgs(), ret());
    }
@@ -604,7 +605,7 @@ int hextermmain(const char * argv0, const Message & args)
             {
                LogTime(MUSCLE_LOG_INFO, "Communicating with serial port %s (baud rate " UINT32_FORMAT_SPEC ")\n", serName(), baudRate);
                DoSession(args, DummyDataIORef(io));
-               LogTime(MUSCLE_LOG_INFO, "Serial session aborted, exiting.\n");
+               LogTime(MUSCLE_LOG_INFO, "Serial session ended, exiting.\n");
             }
             else LogTime(MUSCLE_LOG_CRITICALERROR, "Unable to open serial device %s (baud rate " UINT32_FORMAT_SPEC ").\n", serName(), baudRate);
          }
