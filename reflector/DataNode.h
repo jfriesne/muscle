@@ -122,7 +122,7 @@ public:
      * @param newNodeName the new name to use
      * @note Don't call this unless you know what you are doing -- most of the MUSCLE codebase expects node-names to be constant.
      */
-   void SetNodeName(const String & newNodeName) {_nodeName = newNodeName;}
+   void SetNodeName(const String & newNodeName);
 
    /** Generates and returns the full node path of this node (eg "/12.18.240.15/1234/beshare/files/joe").
      * @param retPath On success, this String will contain this node's absolute path.
@@ -324,7 +324,7 @@ private:
 
    DataNode * _parent;
    ConstMessageRef _data;
-   mutable uint32 _cachedDataChecksum;
+   mutable uint32 _cachedDataChecksum;  // if not set to INVALID_CACHED_CHECKSUM, contains checksum(_nodeName)+checksum(_data)
    Hashtable<const String *, DataNodeRef> * _children;  // lazy-allocated
    Queue<DataNodeRef> * _orderedIndex;  // only used when tracking the ordering of our children (lazy-allocated)
    uint32 _orderedCounter;

@@ -5,6 +5,8 @@
 
 namespace muscle {
 
+static const uint32 INVALID_CACHED_CHECKSUM = 0;  // just to avoid magic-numberism
+
 const char * DataNode :: _setDataFlagsLabels[] = {
    "IsBeingCreated",
    "EnableSupercede"
@@ -12,7 +14,7 @@ const char * DataNode :: _setDataFlagsLabels[] = {
 
 DataNode :: DataNode()
    : _parent(NULL)
-   , _cachedDataChecksum(0)
+   , _cachedDataChecksum(INVALID_CACHED_CHECKSUM)
    , _children(NULL)
    , _orderedIndex(NULL)
    , _orderedCounter(0)
@@ -35,7 +37,7 @@ void DataNode :: Init(const String & name, const ConstMessageRef & initData)
    _depth              = 0;
    _maxChildIDHint     = 0;
    _data               = initData;
-   _cachedDataChecksum = 0;
+   _cachedDataChecksum = INVALID_CACHED_CHECKSUM;
 }
 
 void DataNode :: Reset()
@@ -54,7 +56,7 @@ void DataNode :: Reset()
    _depth              = 0;
    _maxChildIDHint     = 0;
    _data.Reset();
-   _cachedDataChecksum = 0;
+   _cachedDataChecksum = INVALID_CACHED_CHECKSUM;
 }
 
 DataNodeRef DataNode :: InsertOrderedChild(const ConstMessageRef & data, const String & optInsertBefore, const String & optNodeName, StorageReflectSession * optNotifyWithOnSetParent, StorageReflectSession * optNotifyChangedData, Hashtable<String, DataNodeRef> * optRetAdded)
@@ -363,7 +365,7 @@ void DataNode :: SetData(const ConstMessageRef & data, StorageReflectSession * o
    ConstMessageRef oldData;
    if (setDataFlags.IsBitSet(SET_DATA_FLAG_ISBEINGCREATED) == false) oldData = _data;
    _data = data;
-   _cachedDataChecksum = 0;
+   _cachedDataChecksum = INVALID_CACHED_CHECKSUM;
    if (optNotifyWith) optNotifyWith->NotifySubscribersThatNodeChanged(*this, oldData, setDataFlags.IsBitSet(SET_DATA_FLAG_ENABLESUPERCEDE)?StorageReflectSession::NodeChangeFlags(StorageReflectSession::NODE_CHANGE_FLAG_ENABLESUPERCEDE):StorageReflectSession::NodeChangeFlags());
 }
 
@@ -381,10 +383,10 @@ static uint32 CalculateOptNodeChecksum(const DataNodeRef * optNodeRef)      {ret
 uint32 DataNode :: CalculateChecksum(uint32 maxRecursionDepth) const
 {
    // demand-calculate the local checksum and cache the result, since it can be expensive if the Message is big
-   if (_cachedDataChecksum == 0)
+   if (_cachedDataChecksum == INVALID_CACHED_CHECKSUM)
    {
       _cachedDataChecksum = _nodeName.CalculateChecksum()+(_data()?_data()->CalculateChecksum():0);
-      if (_cachedDataChecksum == 0) _cachedDataChecksum = 1;  // so we won't keep recomputing the checksum, in the rare occasions where it naturally was computed as 0
+      if (_cachedDataChecksum == INVALID_CACHED_CHECKSUM) _cachedDataChecksum++;  // so we won't keep recomputing the checksum, in the rare occasions where it naturally was computed as 0
    }
 
    if (maxRecursionDepth == 0) return _cachedDataChecksum;
@@ -519,6 +521,15 @@ DataNodeRef DataNode :: GetDescendantAux(const char * subPath) const
       return child() ? child()->GetDescendantAux(slash+1) : DataNodeRef();
    }
    else return GetChild(subPath);
+}
+
+void DataNode :: SetNodeName(const String & newNodeName)
+{
+   if (newNodeName != _nodeName)
+   {
+      _nodeName = newNodeName;
+      _cachedDataChecksum = INVALID_CACHED_CHECKSUM;
+   }
 }
 
 } // end namespace muscle
