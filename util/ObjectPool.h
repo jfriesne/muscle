@@ -157,10 +157,21 @@ public:
       {
          if (_firstSlab->IsInUse())
          {
-            LogTime(MUSCLE_LOG_CRITICALERROR, "~ObjectPool %p (%s):  slab %p is still in use when we destroy it!\n", this, _firstSlab->GetObjectClassName(), _firstSlab);
+            const uint32 numNodesInUse = this->GetNumNodesInUse();
+
+            LogTime(MUSCLE_LOG_CRITICALERROR, "~ObjectPool %p (%s):  slab %p is still in use when we destroy it! (" UINT32_FORMAT_SPEC " total nodes still in use)\n", this, _firstSlab->GetObjectClassName(), _firstSlab, numNodesInUse);
             _firstSlab->Print(stdout);
-            MCRASH("ObjectPool destroyed while its objects were still in use (CompleteSetupSystem object not declared at the top of main(), or Ref objects were leaked?)");
+            LogTime(MUSCLE_LOG_CRITICALERROR, "ObjectPool destroyed while its objects were still in use (CompleteSetupSystem object not declared at the top of main(), or Ref objects were leaked?)");
+
+            const char * objClassName = _firstSlab->GetObjectClassName();
+            const char * namespaceStr = objClassName ? strstr(objClassName, "muscle") : NULL;
+            if (namespaceStr) objClassName = namespaceStr+6;  // no point printing out the namespace, it's too obvious and space is limited
+            if (objClassName) {while(isdigit(*objClassName)) objClassName++;}
+
+            char buf[128]; muscleSprintf(buf, "Leaked %u %s from Pool", numNodesInUse, objClassName);
+            muscle::Crash(__FILE__, __LINE__, buf);
          }
+
          ObjectSlab * nextSlab = _firstSlab->GetNext();
          delete _firstSlab;
          _firstSlab = nextSlab;
@@ -428,6 +439,20 @@ public:
       return UnsafeGetNumAllocatedItemSlotsAux();
    }
 
+   /** For debugging -- returns the number of nodes currently in use in this ObjectPool */
+   MUSCLE_NODISCARD uint32 GetNumNodesInUse() const
+   {
+      uint32 ret = 0;
+
+      ObjectSlab * slab = _firstSlab;
+      while(slab)
+      {
+         ret += slab->GetNumNodesInUse();
+         slab = slab->GetNext();
+      }
+      return ret;
+   }
+
    /** Turns the Mutex guarding this ObjectPool into a no-op by calling Mutex::Neuter() on it.
      * Be careful with this, it will make using this ObjectPool permanently non-thread-safe!
      */
@@ -649,8 +674,9 @@ private:
 
       MUSCLE_NODISCARD MUSCLE_NEVER_RETURNS_NULL const char * GetObjectClassName() const {return _nodes[0].GetObjectClassName();}
 
-      MUSCLE_NODISCARD bool HasAvailableNodes() const {return _data.HasAvailableNodes();}
-      MUSCLE_NODISCARD bool IsInUse() const           {return _data.IsInUse();}
+      MUSCLE_NODISCARD bool HasAvailableNodes()  const {return _data.HasAvailableNodes();}
+      MUSCLE_NODISCARD bool IsInUse()            const {return _data.IsInUse();}
+      MUSCLE_NODISCARD uint16 GetNumNodesInUse() const {return _data.GetNumNodesInUse();}
 
       void RemoveFromSlabList() {_data.RemoveFromSlabList();}
       void AppendToSlabList()   {_data.AppendToSlabList(this);}

@@ -279,10 +279,13 @@ MUSCLE_NORETURN void ExitWithoutCleanup(int exitCode);
   * Under all other OS's, this is implemented by calling abort().
   * @param fileName name of the source file to report in the crash (e.g. pass in __FILE__ here)
   * @param lineNumber line number to report in the crash (e.g. pass in __LINE__ here)
+  * @param optCrashMessage an optional diagnostic message to include in the crash report instead
+  *                        of the file name and line number.  Note that the number of characters
+  *                        included in the crash report may be limited (e.g. to 64 under MacOS or 16 under Linux)
   * @note this function will not return!
   */
 //coverity[+kill]
-MUSCLE_NORETURN void Crash(const char * fileName, uint32 lineNumber);
+MUSCLE_NORETURN void Crash(const char * fileName, uint32 lineNumber, const char * optCrashMessage = NULL);
 
 /** Calls fork(), setsid(), chdir(), umask(), etc, to fork an independent daemon process.
  *  Also closes all open file descriptors.

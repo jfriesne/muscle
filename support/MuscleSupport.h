@@ -596,7 +596,7 @@ enum {
 
 #ifndef DOXYGEN_SHOULD_IGNORE_THIS
         // forward declarations (so that we can call these methods from this file, without having to include MiscUtilityFunctions.h from this file)
-        MUSCLE_NORETURN extern void Crash(const char * fileName, int lineNumber);
+        MUSCLE_NORETURN extern void Crash(const char * fileName, int lineNumber, const char * optCrashMessage = NULL);
         MUSCLE_NORETURN extern void ExitWithoutCleanup(int);
 #endif
 

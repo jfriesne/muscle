@@ -11,6 +11,12 @@ key:  - new feature
      O(1) performance during incremental index updates.
    - Added new convenience method
      DataNode::UpdateRunningChecksumToReflectOrderedIndexUpdate()
+   - Added an optional third argument to the Crash() function
+     in case you want to include a specific string in the crash-report.
+   - Added a GetNumNodesInUse() method to the ObjectPool class.
+   o ObjectPool leaked-object crashes now include the name of
+     the ObjectPool and the number of leaked objects in the generated
+     crash-report.
    * Rolled back the inclusion of (index+1) multipliers in
      DataNode::CalculateChecksum(), as including that makes
      maintaining a running database-checksum inefficient.
