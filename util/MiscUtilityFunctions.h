@@ -322,8 +322,8 @@ status_t SpawnDaemonProcess(bool & returningAsParent, const char * optNewDir = N
   */
 void RemoveANSISequences(String & s);
 
-/** Given a string, returns that same string except with any symbols that are not illegal
-  * in a DNS label removed.  (According to DNS rules, only letters, digits, and the '-'
+/** Given a string, returns that same string except with any character that is not legal
+  * in a DNS label replaced with a dash.  (According to DNS rules, only letters, digits, and the '-'
   * character are legal in a DNS label, and the label must be less than 64 characters long).
   * Note that this string cleans up just a single part of a DNS hostname path.
   * If you want to clean up a path string (eg "www.foo.com"), call CleanupDNSPath() instead.
