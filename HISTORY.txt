@@ -20,9 +20,6 @@ key:  - new feature
    o Modified PulseNode::ReschedulePulseChild() to append unsorted
      items to the linked list rather than prepend them, to get FIFO
      behavior for PulseChildren returning identical GetPulseTime() values.
-   * Rolled back the inclusion of (index+1) multipliers in
-     DataNode::CalculateChecksum(), as including that makes
-     maintaining a running database-checksum inefficient.
 
 9.92 - Released 7/15/2026
    - Updated the Win32 implementation of muscleStrError() to call
