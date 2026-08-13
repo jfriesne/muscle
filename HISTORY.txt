@@ -17,6 +17,9 @@ key:  - new feature
    o ObjectPool leaked-object crashes now include the name of
      the ObjectPool and the number of leaked objects in the generated
      crash-report.
+   o Modified PulseNode::ReschedulePulseChild() to append unsorted
+     items to the linked list rather than prepend them, to get FIFO
+     behavior for PulseChildren returning identical GetPulseTime() values.
    * Rolled back the inclusion of (index+1) multipliers in
      DataNode::CalculateChecksum(), as including that makes
      maintaining a running database-checksum inefficient.

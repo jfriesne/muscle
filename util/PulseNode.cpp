@@ -166,12 +166,12 @@ void PulseNode :: ReschedulePulseChild(PulseNode * child, int whichList)
          // fall through!
          case LINKED_LIST_UNSCHEDULED:
          {
-            // These lists are unsorted, so we can just quickly prepend the child to the head of the list
-            if (_firstChild[whichList])
+            // These lists are unsorted, so we just append the child to the tail of the list
+            if (_lastChild[whichList])
             {
-               child->_nextSibling = _firstChild[whichList];
-               _firstChild[whichList]->_prevSibling = child;
-               _firstChild[whichList] = child;
+               child->_prevSibling = _lastChild[whichList];
+               _lastChild[whichList]->_nextSibling = child;
+               _lastChild[whichList] = child;
             }
             else _firstChild[whichList] = _lastChild[whichList] = child;
          }
