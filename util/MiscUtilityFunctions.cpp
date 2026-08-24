@@ -736,6 +736,18 @@ void HandleStandardDaemonArgs(const Message & args)
          printf("--- (end of list) ---\n");
       }
    }
+
+   const String * tcpBindIP = args.GetStringPointer("defaulttcpbindip");
+   if (tcpBindIP)
+   {
+      const IPAddress ip(*tcpBindIP);
+      if (ip.IsValid())
+      {
+         LogTime(MUSCLE_LOG_INFO, "Setting [%s] as the default binding address for all accepting TCP sockets.\n", tcpBindIP->Cstr());
+         SetDefaultAcceptInterfaceIP(ip);
+      }
+      else LogTime(MUSCLE_LOG_ERROR, "defaulttcpbindip specified [%s] which couldn't be parsed as an IP address!\n", tcpBindIP->Cstr());
+   }
 }
 
 static bool _isDaemonProcess = false;

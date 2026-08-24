@@ -260,6 +260,7 @@ MUSCLE_NODISCARD bool ParseBool(const String & word, bool defaultValue=true);
  *   - dontcatchsignals       -- Disable the default signal-handling code (if it was enabled by default)
  *   - catchsignals           -- Enable the default signal-handling code (if it was disabled by default)
  *   - printnetworkinterfaces -- Print all the detected network interface adaptors on startup
+ *   - defaulttcpbindip       -- Specify the IP address of the local NIC that accepting TCP sockets should bind to if none was explicitly specified
  *  @param args an arguments Message with String fields, as produced by ParseArgs() or ParseFile() or etc.
  */
 void HandleStandardDaemonArgs(const Message & args);

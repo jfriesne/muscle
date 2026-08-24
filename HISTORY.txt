@@ -14,6 +14,8 @@ key:  - new feature
    - Added an optional third argument to the Crash() function
      in case you want to include a specific string in the crash-report.
    - Added a GetNumNodesInUse() method to the ObjectPool class.
+   - Added a "defaulttcpbindip" argument to HandleStandardDaemonArgs(),
+     to support restricting incoming TCP connections to a given NIC.
    o ObjectPool leaked-object crashes now include the name of
      the ObjectPool and the number of leaked objects in the generated
      crash-report.
