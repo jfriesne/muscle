@@ -22,6 +22,9 @@ key:  - new feature
    o Modified PulseNode::ReschedulePulseChild() to append unsorted
      items to the linked list rather than prepend them, to get FIFO
      behavior for PulseChildren returning identical GetPulseTime() values.
+   * GetHostByNameNative() was inappropriately adding in IPv4-mapped-IPv6
+     bits into the IPAddress objects it returned, which could mess up
+     Hashtables that were keyed by IPAddress.  Fixed.
 
 9.92 - Released 7/15/2026
    - Updated the Win32 implementation of muscleStrError() to call

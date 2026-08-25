@@ -1084,13 +1084,7 @@ IPAddress GetHostByNameNative(const char * name, bool expandLocalhost, bool pref
          switch(next->ai_family)
          {
             case AF_INET:
-               if (ret.IsValid() == false)
-               {
-                  ret.SetIPv4AddressFromUint32(ntohl(DowncastFromSockAddr<const struct sockaddr_in>(next->ai_addr)->sin_addr.s_addr)); // read IPv4 address into low bits of IPv6 address structure
-#ifndef MUSCLE_AVOID_IPV6
-                  ret.SetLowBits(ret.GetLowBits() | ((uint64)0xFFFF)<<32);                                                             // and make it IPv6-mapped (why doesn't AI_V4MAPPED do this?)
-#endif
-               }
+               if (ret.IsValid() == false) ret.SetIPv4AddressFromUint32(ntohl(DowncastFromSockAddr<const struct sockaddr_in>(next->ai_addr)->sin_addr.s_addr)); // read IPv4 address into low bits of IPv6 address structure
             break;
 
 #ifndef MUSCLE_AVOID_IPV6
