@@ -361,6 +361,7 @@ endif()
 
 if (WIN32)
    target_include_directories(muscle PRIVATE "./regex/regex" "./zlib/zlib")
+   target_link_libraries(muscle PRIVATE Dbghelp)
 else (NOT WIN32)
    if (NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
       target_link_libraries(muscle PUBLIC util)  # for forkpty()

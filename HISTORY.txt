@@ -25,6 +25,7 @@ key:  - new feature
    * GetHostByNameNative() was inappropriately adding in IPv4-mapped-IPv6
      bits into the IPAddress objects it returned, which could mess up
      Hashtables that were keyed by IPAddress.  Fixed.
+   * Updated CMakeLists.txt to link to Dbghelp library under Windows.
 
 9.92 - Released 7/15/2026
    - Updated the Win32 implementation of muscleStrError() to call
