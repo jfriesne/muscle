@@ -1666,7 +1666,7 @@ CheckChildForTraversal(TraversalContext & data, DataNode * nextChild, int32 optK
                            // to make sure there is a NodePathMatcher for this node.
                            ConstMessageRef constDataRef;
                            if (data.IsUseFiltersOkay()) constDataRef = nextChild->GetData();
-                           if (((GetEntries().GetNumItems() == 1)&&((data.IsUseFiltersOkay() == false)||(subIter.GetValue().GetFilter()() == NULL)))||(MatchesNode(*nextChild, constDataRef, data.GetRootDepth())))
+                           if (MatchesNode(*nextChild, constDataRef, data.GetRootDepth()))
                            {
                               int nextDepth;
                               if ((constDataRef() == NULL)||(constDataRef() == nextChild->GetData()())) nextDepth = data.CallCallbackMethod(*nextChild);  // the usual/simple case

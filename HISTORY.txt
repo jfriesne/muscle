@@ -5,6 +5,10 @@ key:  - new feature
       * bug fixed
       o other
 
+9.94 -
+   * Removed an optimization in NodePathMatcher::CheckChildForTraversal()
+     that could cause a false-positive match on a DataNode in some cases.
+
 9.93 - Released 9/3/2026
    - Updated DataNode's ordered-index checksum to a method that
      calculates pairwise checksums, so that the ordering of the
