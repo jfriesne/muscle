@@ -517,7 +517,11 @@ class Message:
       """Convenience method; Unflattens the the (index)'th Flattenable item under (fieldName) into (flattenableObject) and then returns it, or (defaultValue/None) if the requested object isn't present."""
       blob = self.GetFieldItem(fieldName, flattenableObject.TypeCode(), defaultValue, index)
       if (blob is not None):
-         flattenableObject.Unflatten(io.BytesIO(blob))
+         try:
+            bio = io.BytesIO(blob)
+         except TypeError:
+            return blob   # since it's probably the flattened object, already restored
+         flattenableObject.Unflatten(bio)
          return flattenableObject
       return defaultValue
 

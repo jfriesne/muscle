@@ -8,6 +8,8 @@ key:  - new feature
 9.94 -
    * Removed an optimization in NodePathMatcher::CheckChildForTraversal()
      that could cause a false-positive match on a DataNode in some cases.
+   * message.GetFlat() Python method now handles it correctly when the
+     object in the Message is already an object and not a byte-array.
 
 9.93 - Released 9/3/2026
    - Updated DataNode's ordered-index checksum to a method that
