@@ -111,7 +111,7 @@
 # define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ "new" include file isn't available (eg because we're on an ancient platform) */
 #endif
 
-#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
+#ifndef MUSCLE_AVOID_CPLUSPLUS11
 # if !defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD) && defined(_MSC_VER) && (_MSC_VER < 1900)
 #  define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD  // MSVC2013 and earlier don't support thread_local, sigh
 # endif
