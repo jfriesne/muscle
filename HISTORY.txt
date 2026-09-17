@@ -10,6 +10,9 @@ key:  - new feature
      that could cause a false-positive match on a DataNode in some cases.
    * message.GetFlat() Python method now handles it correctly when the
      object in the Message is already an object and not a byte-array.
+   * Updated the ifdefs in MuscleSupport.h so that they no longer
+     define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD as a side
+     effect of MUSCLE_USE_CPLUSPLUS11_THREADS not being defined.
 
 9.93 - Released 9/3/2026
    - Updated DataNode's ordered-index checksum to a method that
