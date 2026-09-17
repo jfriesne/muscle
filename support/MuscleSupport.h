@@ -111,15 +111,14 @@
 # define NEW_H_NOT_AVAILABLE          /**< Defined iff C++ "new" include file isn't available (eg because we're on an ancient platform) */
 #endif
 
-#if defined(MUSCLE_USE_CPLUSPLUS11_THREADS)
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD) && defined(_MSC_VER) && (_MSC_VER < 1900)
+#if !defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD)
+# if defined(MUSCLE_AVOID_CPLUSPLUS11)
+#  define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
+# elif defined(_MSC_VER) && (_MSC_VER < 1900)
 #  define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD  // MSVC2013 and earlier don't support thread_local, sigh
-# endif
-# if !defined(MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD) && defined(__apple_build_version__) && (__apple_build_version__ < 8000042)
+# elif defined(__apple_build_version__) && (__apple_build_version__ < 8000042)
 #  define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD  // XCode before 8.0 doesn't support thread_local, sigh
 # endif
-#else
-# define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
 #endif
 
 #ifdef MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD
