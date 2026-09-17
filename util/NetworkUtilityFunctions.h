@@ -379,7 +379,8 @@ ConstSocketRef CreateAcceptingSocket(uint16 port, int maxbacklog = 20, uint16 * 
  *                         will result in a string with the multicast-scope annotation returned as its interface-name
  *                         (e.g. "fe80::123%en0") instead of just the scope ID integer.  Enabling this option does make this
  *                         call significantly more expensive (since it may need to iterate through the local NICs listing)
- *                         so this argument defaults to false.
+ *                         so this argument defaults to false.  (Note:  On Windows, setting this argument to true just
+ *                         replaces the @ character with %, as that is the format that windows shell utilities expect to see)
  */
 void Inet_NtoA(const IPAddress & address, char * outBuf, bool preferIPv4Style = false, bool expandScopeIndicesToNetworkInterfaceNames = false);
 

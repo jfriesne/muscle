@@ -2294,17 +2294,22 @@ void Inet_NtoA(const IPAddress & addr, char * ipbuf, bool preferIPv4, bool expan
       {
          if (addr.IsInterfaceIndexValid())
          {
+            char sepChar = '@';  // MUSCLE convention (e.g. ::fe80:666@11)
             if (expandScopes)
             {
+# if defined(WIN32)
+               sepChar = '%';  // Windows convention (e.g. ::fe80:666%11)
+# else
                bool didGNII = false;
                const uint32 iidx = addr.GetInterfaceIndex();
                if (AddNamedInterfaceScopeSuffix(iidx, ipbuf, false, didGNII).IsOK()) return;  // try it first using cached GNII info
                if ((didGNII==false)&&(AddNamedInterfaceScopeSuffix(iidx, ipbuf,  true, didGNII).IsOK())) return;  // if that didn't work, try again without cached GNII info
+#endif
             }
 
             // If all else fails, just add the numeric-index-suffix (e.g. @5 for multicast scope 5)
             const size_t ipbuflen = strlen(ipbuf);
-            muscleSnprintf(ipbuf+ipbuflen, (MIN_IPBUF_LENGTH > ipbuflen) ? (MIN_IPBUF_LENGTH-ipbuflen) : 0, "@" UINT32_FORMAT_SPEC, addr.GetInterfaceIndex());
+            muscleSnprintf(ipbuf+ipbuflen, (MIN_IPBUF_LENGTH > ipbuflen) ? (MIN_IPBUF_LENGTH-ipbuflen) : 0, "%c" UINT32_FORMAT_SPEC, sepChar, addr.GetInterfaceIndex());
          }
       }
       else ipbuf[0] = '\0';
@@ -2386,7 +2391,8 @@ status_t IPAddress :: SetFromString(const String & ipAddressString)
 #ifdef MUSCLE_AVOID_IPV6
    return Inet4_AtoN(ipAddressString(), *this);
 #else
-   const int32 atIdx = ipAddressString.IndexOf('@');
+   int32 atIdx = ipAddressString.IndexOf('@');
+   if (atIdx < 0) atIdx = ipAddressString.IndexOf('%');
    if (atIdx >= 0)
    {
       // Gah... Inet_PtoN() won't accept the @idx suffix, so

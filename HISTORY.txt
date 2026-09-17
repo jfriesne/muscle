@@ -6,6 +6,9 @@ key:  - new feature
       o other
 
 9.94 -
+   o Under Windows, Inet_NtoA()'s expandScopes argument now only replaces
+     the @ character with %, as a numeric suffix is what Windows utilities
+     expect to see in scoped IPv6 addresses.
    * Removed an optimization in NodePathMatcher::CheckChildForTraversal()
      that could cause a false-positive match on a DataNode in some cases.
    * message.GetFlat() Python method now handles it correctly when the
