@@ -1,5 +1,5 @@
 #include "dataio/FileDataIO.h"
-#include "dataio/SSLSocketDataIO.h"
+#include "ssl/SSLSocketDataIO.h"
 
 // keep these AFTER the MUSCLE includes, or Windows throws a fit
 #include <openssl/bio.h>

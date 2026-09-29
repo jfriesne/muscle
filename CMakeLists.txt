@@ -119,6 +119,10 @@ file(GLOB MUSCLE_SRCS
 option(WITH_SSL "Enable OpenSSL Support" OFF)
 if (WITH_SSL)
    message("Note:  -DWITH_SSL=ON argument was specified:  enabling OpenSSL support in MUSCLE.")
+      file(GLOB MUSCLE_ADD_THESE
+      "./ssl/*.cpp"
+   )
+   list(APPEND MUSCLE_SRCS ${MUSCLE_ADD_THESE})
    find_package(OpenSSL REQUIRED)
    add_definitions(-DMUSCLE_ENABLE_SSL)
 else ()

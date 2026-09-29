@@ -1111,7 +1111,7 @@ NetworkSetupSystem :: NetworkSetupSystem()
 #ifdef MUSCLE_ENABLE_SSL
       SSL_load_error_strings();
       SSLeay_add_ssl_algorithms();
-# if (OPENSSL_VERSION_MAJOR < 3)
+# if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR < 3)
       ERR_load_BIO_strings();
 # endif
       SSL_library_init();

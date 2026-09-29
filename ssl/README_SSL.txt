@@ -19,13 +19,13 @@ following:
         CXXFLAGS += -DMUSCLE_ENABLE_SSL
    - Compile muscled: cd muscle/server; make clean; make
    - Run muscled:  
-        ./muscled displaylevel=trace privatekey=../ssl_data/muscle_test_private_key.pem
+        ./muscled displaylevel=trace privatekey=../ssl/muscle_test_private_key.pem
 
  - In a second Terminal window:
    - Edit muscle/test/Makefile and uncomment the line
         CXXFLAGS += -DMUSCLE_ENABLE_SSL line
    - cd ../test; make clean; make
-   - Run portablereflectclient:  ./portablereflectclient localhost publickey=../ssl_data/muscle_test_public_key.pem
+   - Run portablereflectclient:  ./portablereflectclient localhost publickey=../ssl/muscle_test_public_key.pem
    - portablereflectclient should connect to muscled and stay connected.  
      It should mention on stdout that it is using the specified public key 
      file to connect to the server.
@@ -36,8 +36,8 @@ following:
    - Make sure a Qt 4.x or Qt 5.x development environment is installed on your system.
    - cd ../platform/qt/qt_example ; touch ./muscle_enable_ssl
    - qmake; make clean; make
-   - ./qt_example.app/Contents/MacOS/qt_example publickey=../../ssl_data/muscle_test_public_key.pem
-     (or under Linux, it's:  ./qt_example publickey=../../ssl_data/muscle_test_public_key.pem )
+   - ./qt_example.app/Contents/MacOS/qt_example publickey=../../ssl/muscle_test_public_key.pem
+     (or under Linux, it's:  ./qt_example publickey=../../ssl/muscle_test_public_key.pem )
    - In the window that appears, click the "Connect to Server" button if 
      necessary
    - Click the "Clone" button to  create a second window

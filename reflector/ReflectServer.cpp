@@ -17,8 +17,8 @@
 #endif
 
 #ifdef MUSCLE_ENABLE_SSL
-# include "dataio/SSLSocketDataIO.h"
-# include "iogateway/SSLSocketAdapterGateway.h"
+# include "ssl/SSLSocketDataIO.h"
+# include "ssl/SSLSocketAdapterGateway.h"
 #endif
 
 namespace muscle {

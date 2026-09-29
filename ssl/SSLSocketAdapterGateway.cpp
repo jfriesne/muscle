@@ -1,7 +1,7 @@
 /* This file is Copyright 2000-2026 Meyer Sound Laboratories Inc.  See the included LICENSE.txt file for details. */
 
-#include "dataio/SSLSocketDataIO.h"
-#include "iogateway/SSLSocketAdapterGateway.h"
+#include "ssl/SSLSocketDataIO.h"
+#include "ssl/SSLSocketAdapterGateway.h"
 
 namespace muscle {
 

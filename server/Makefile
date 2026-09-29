@@ -48,7 +48,7 @@ ifeq (,$(findstring MUSCLE_SINGLE_THREAD_ONLY,$(CXXFLAGS)))
 endif
 
 # Where to find .cpp files
-VPATH = ../message ../besupport ../dataio ../iogateway ../reflector ../regex ../util ../syslog ../system ../zlib ../zlib/zlib ../zlib/zlib/contrib/minizip ../regex/regex
+VPATH = ../message ../besupport ../dataio ../iogateway ../reflector ../regex ../ssl ../util ../syslog ../system ../zlib ../zlib/zlib ../zlib/zlib/contrib/minizip ../regex/regex
 
 # if the OS type variable is unset, try to set it using the uname shell command
 ifeq ($(OSTYPE),)
