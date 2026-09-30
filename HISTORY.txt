@@ -13,6 +13,8 @@ key:  - new feature
      a new ssl folder.
    - Moved the SSL-specific data files out of ssl_data and into a new
      ssl folder.
+   - Added a SSLSignedPacketProxyDataIO class to the ssl folder, for
+     transparent signing and/or authentication of UDP packets.
    * Removed an optimization in NodePathMatcher::CheckChildForTraversal()
      that could cause a false-positive match on a DataNode in some cases.
    * message.GetFlat() Python method now handles it correctly when the

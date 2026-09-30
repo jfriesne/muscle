@@ -216,21 +216,21 @@ ByteBufferRef GetByteBufferFromPool(SeekableDataIO & dio) {return GetByteBufferF
 ByteBufferRef GetByteBufferFromPool(ObjectPool<ByteBuffer> & pool, SeekableDataIO & dio)
 {
    const int64 dioLen = dio.GetLength();
-   if (dioLen < 0) return ByteBufferRef();  // we don't support reading in unknown lengths of data (for now)
+   if (dioLen < 0) return B_BAD_ARGUMENT;  // we don't support reading in unknown lengths of data (for now)
 
    const int64 pos = muscleMax(dio.GetPosition(), (int64) 0);
 
    const int64 numBytesToRead = dioLen-pos;
-   if (numBytesToRead < 0) return ByteBufferRef();  // wtf?
+   if (numBytesToRead < 0) return B_LOGIC_ERROR;  // wtf?
 
    const int64 maxBBSize = (int64) ((uint32)-1);  // no point trying to read more data than a ByteBuffer will support anyway
-   if (numBytesToRead > maxBBSize) return ByteBufferRef();
+   if (numBytesToRead > maxBBSize) return B_RESOURCE_LIMIT;
 
    ByteBufferRef ret = GetByteBufferFromPool(pool, (uint32)numBytesToRead);
-   if (ret() == NULL) return ByteBufferRef();
+   MRETURN_ON_ERROR(ret);
 
    const io_status_t rfRet = dio.ReadFullyUpTo(ret()->GetBuffer(), ret()->GetNumBytes());
-   if (rfRet.IsError()) return ByteBufferRef();  // I/O error?
+   MRETURN_ON_ERROR(rfRet);  // I/O error?
 
    (void) ret()->SetNumBytes(rfRet.GetByteCount(), true);  // truncate to the size we actually read.  Guaranteed not to fail.
    return ret;

@@ -88,7 +88,7 @@ public:
    status_t SetPrivateKey(const uint8 * bytes, uint32 numBytes);
 
    /** Same as above, except instead of reading from a raw array we read from a ConstByteBufferRef.
-     * @param privateKeyFile The bytes to read from.  We will retain a reference to this buffer.
+     * @param privateKeyFile The bytes to read from.
      * @returns B_NO_ERROR on success, or an error code on failure.
      */
    status_t SetPrivateKey(const ConstByteBufferRef & privateKeyFile);
