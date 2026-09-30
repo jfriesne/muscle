@@ -6,15 +6,21 @@ key:  - new feature
       o other
 
 9.94 -
-   o Under Windows, Inet_NtoA()'s expandScopes argument now only replaces
-     the @ character with %, as a numeric suffix is what Windows utilities
-     expect to see in scoped IPv6 addresses.
    - Moved the SSL-specific classes out of dataio and iogateway and into
      a new ssl folder.
    - Moved the SSL-specific data files out of ssl_data and into a new
      ssl folder.
    - Added a SSLSignedPacketProxyDataIO class to the ssl folder, for
      transparent signing and/or authentication of UDP packets.
+   - Added SetOversizedPacketsLogSeverity() and GetOversizedPacketsLogSeverity()
+     methods to the UDPSocketDataIO class, to make unwanted UDP-packet
+     fragmentation more apparent if/when it happens.
+   o Removed the (maxTransferUnit) argument from the PacketTunnelIOGateway
+     and MiniPacketTunnelIOGateway constructors, as the proper value can be
+     queried from the held DataIO object instead.
+   o Under Windows, Inet_NtoA()'s expandScopes argument now only replaces
+     the @ character with %, as a numeric suffix is what Windows utilities
+     expect to see in scoped IPv6 addresses.
    * Removed an optimization in NodePathMatcher::CheckChildForTraversal()
      that could cause a false-positive match on a DataNode in some cases.
    * message.GetFlat() Python method now handles it correctly when the

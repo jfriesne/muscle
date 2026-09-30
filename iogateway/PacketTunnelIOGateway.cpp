@@ -17,10 +17,9 @@ static const uint32 FRAGMENT_HEADER_SIZE = 6*(sizeof(uint32));
 // The maximum number of bytes of memory to keep in a ByteBuffer to avoid reallocations
 static const uint32 MAX_CACHE_SIZE = 20*1024;
 
-PacketTunnelIOGateway :: PacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway, uint32 maxTransferUnit, uint32 magic)
+PacketTunnelIOGateway :: PacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway, uint32 magic)
    : ProxyIOGateway(slaveGateway)
    , _magic(magic)
-   , _maxTransferUnit(muscleMax(maxTransferUnit, FRAGMENT_HEADER_SIZE+1))
    , _allowMiscData(false)
    , _sexID(0)
    , _outputPacketSize(0)
@@ -31,9 +30,15 @@ PacketTunnelIOGateway :: PacketTunnelIOGateway(const AbstractMessageIOGatewayRef
    // empty
 }
 
+uint32 PacketTunnelIOGateway :: GetMaximumPacketSize() const
+{
+   const PacketDataIO * packetIO = dynamic_cast<const PacketDataIO *>(GetDataIO()());
+   return muscleMax(packetIO ? packetIO->GetMaximumPacketSize() : 0, FRAGMENT_HEADER_SIZE+1);
+}
+
 io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
-   MRETURN_ON_ERROR(_inputPacketBuffer.SetNumBytes(_maxTransferUnit, false));
+   MRETURN_ON_ERROR(_inputPacketBuffer.SetNumBytes(GetMaximumPacketSize(), false));
 
    bool firstTime = true;
    io_status_t totalBytesRead;
@@ -128,7 +133,8 @@ io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessag
 
 io_status_t PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 {
-   MRETURN_ON_ERROR(_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false));
+   const uint32 maxPacketSize = GetMaximumPacketSize();
+   MRETURN_ON_ERROR(_outputPacketBuffer.SetNumBytes(maxPacketSize, false));
 
    io_status_t totalBytesWritten;
    bool firstTime = true;
@@ -137,7 +143,7 @@ io_status_t PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
       firstTime = false;
 
       // Step 1:  Add as much data to our output packet buffer as we can fit into it
-      while((_outputPacketSize+FRAGMENT_HEADER_SIZE < _maxTransferUnit)&&(HasBytesToOutput()))
+      while((_outputPacketSize+FRAGMENT_HEADER_SIZE < maxPacketSize)&&(HasBytesToOutput()))
       {
          // Demand-create the next set of send-buffers
          if (_currentOutputBuffers.IsEmpty())
@@ -149,7 +155,7 @@ io_status_t PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          if (_currentOutputBuffers.IsEmpty()) break;   // nothing more to send?
 
          const uint32 sbSize          = _currentOutputBuffers.Head().GetByteBufferRef()()->GetNumBytes();
-         const uint32 dataBytesToSend = muscleMin(_maxTransferUnit-(_outputPacketSize+FRAGMENT_HEADER_SIZE), sbSize-_currentOutputBufferOffset);
+         const uint32 dataBytesToSend = muscleMin(maxPacketSize-(_outputPacketSize+FRAGMENT_HEADER_SIZE), sbSize-_currentOutputBufferOffset);
 
          DataFlattener flat(_outputPacketBuffer.GetBuffer()+_outputPacketSize, _outputPacketBuffer.GetNumBytes()-_outputPacketSize);
          flat.SetCompleteWriteRequired(false);

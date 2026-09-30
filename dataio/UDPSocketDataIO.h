@@ -93,12 +93,28 @@ public:
     */
    MUSCLE_NODISCARD bool IsBlockingIOEnabled() const {return _blocking;}
 
+   /** Sets the log-level at which we should generate a log-message (via LogTime()) whenever
+     * we send or receive an oversized packet (i.e. a packet with more bytes than the number returned
+     * by our GetMaximumPacketSize() method).  Packets larger than the maximum packets size may be
+     * fragmented and later reassembled by the network stack, or in some cases simply dropped.
+     * @param logLevel a MUSCLE_LOG_* value.  Default state is MUSCLE_LOG_WARNING.  You can pass
+     *                 MUSCLE_LOG_NONE if you want to disable this logging altogether.
+     */
+   void SetOversizedPacketsLogSeverity(int logLevel) {_oversizedPacketsLogLevel = logLevel;}
+
+   /** Returns a MUSCLE_LOG_* value indicating what the severity of the log message this UDPSocketDataIO
+     * will emit when it encounters an oversized packet, or MUSCLE_LOG_NONE if it won't generate any log
+     * message.  Default state is MUSCLE_LOG_WARNING.
+     */
+   int GetOversizedPacketsLogSeverity() const {return _oversizedPacketsLogLevel;}
+
 private:
    ConstSocketRef _sock;
    bool _blocking;
 
    Queue<IPAddressAndPort> _sendTo;
    uint32 _maxPacketSize;
+   int _oversizedPacketsLogLevel;
 
    DECLARE_COUNTED_OBJECT(UDPSocketDataIO);
 };

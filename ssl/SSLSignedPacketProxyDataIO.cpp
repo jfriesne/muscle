@@ -163,7 +163,7 @@ uint32 SSLSignedPacketProxyDataIO :: GetExpectedPacketSigningOverheadBytesCount(
 
 uint32 SSLSignedPacketProxyDataIO :: GetMaximumPacketSize() const
 {
-   return ProxyDataIO::GetMaximumPacketSize() + GetExpectedPacketSigningOverheadBytesCount();
+   return ProxyDataIO::GetMaximumPacketSize() - GetExpectedPacketSigningOverheadBytesCount();  // since we'll be adding trailing bytes, the available payload size gets reduced
 }
 
 io_status_t SSLSignedPacketProxyDataIO :: ReadAux(void * buffer, uint32 size, IPAddressAndPort * optRetPacketSource)

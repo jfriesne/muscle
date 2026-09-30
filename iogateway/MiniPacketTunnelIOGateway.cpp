@@ -17,10 +17,9 @@ static const uint32 PACKET_HEADER_SIZE = 3*(sizeof(uint32));
 //    uint32 chunk_size_bytes
 static const uint32 CHUNK_HEADER_SIZE = 1*(sizeof(uint32));
 
-MiniPacketTunnelIOGateway :: MiniPacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway, uint32 maxTransferUnit, uint32 magic)
+MiniPacketTunnelIOGateway :: MiniPacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway, uint32 magic)
    : ProxyIOGateway(slaveGateway)
    , _magic(magic)
-   , _maxTransferUnit(muscleMax(maxTransferUnit, PACKET_HEADER_SIZE+CHUNK_HEADER_SIZE+1))
    , _sendCompressionLevel(0)
    , _allowMiscData(false)
    , _sexID(0)
@@ -30,9 +29,15 @@ MiniPacketTunnelIOGateway :: MiniPacketTunnelIOGateway(const AbstractMessageIOGa
    // empty
 }
 
+uint32 MiniPacketTunnelIOGateway :: GetMaximumPacketSize() const
+{
+   const PacketDataIO * packetIO = dynamic_cast<const PacketDataIO *>(GetDataIO()());
+   return muscleMax(packetIO ? packetIO->GetMaximumPacketSize() : 0, PACKET_HEADER_SIZE+CHUNK_HEADER_SIZE+1);
+}
+
 io_status_t MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessageReceiver & receiver, uint32 maxBytes)
 {
-   MRETURN_ON_ERROR(_inputPacketBuffer.SetNumBytes(_maxTransferUnit, false));
+   MRETURN_ON_ERROR(_inputPacketBuffer.SetNumBytes(GetMaximumPacketSize(), false));
 
 #ifdef MUSCLE_ENABLE_ZLIB_ENCODING
    ByteBufferRef infBuf;
@@ -114,7 +119,8 @@ io_status_t MiniPacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMe
 
 io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
 {
-   MRETURN_ON_ERROR(_outputPacketBuffer.SetNumBytes(_maxTransferUnit, false));  // _outputPacketBuffer.GetNumBytes() should be _maxTransferUnit at all times
+   const uint32 maxPacketSize = GetMaximumPacketSize();
+   MRETURN_ON_ERROR(_outputPacketBuffer.SetNumBytes(maxPacketSize, false));  // _outputPacketBuffer.GetNumBytes() should be equal to (maxPacketSize) at all times
 
    DataFlattener flat(_outputPacketBuffer.GetBuffer(), _outputPacketBuffer.GetNumBytes());
    flat.SetCompleteWriteRequired(false);         // NEB-5099 -- since we're just using it as scratch-space anyway
@@ -138,12 +144,12 @@ io_status_t MiniPacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          if (_currentOutputBuffers.IsEmpty()) break;
 
          const uint32 sbSize = _currentOutputBuffers.Head().GetByteBufferRef()()->GetNumBytes();
-         if ((PACKET_HEADER_SIZE+CHUNK_HEADER_SIZE+sbSize) > _maxTransferUnit)
+         if ((PACKET_HEADER_SIZE+CHUNK_HEADER_SIZE+sbSize) > maxPacketSize)
          {
-            LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutputImplementation():  Outgoing payload is " UINT32_FORMAT_SPEC " bytes, it can't fit into a packet with MTU=" UINT32_FORMAT_SPEC "!  Dropping it\n", sbSize, _maxTransferUnit);
+            LogTime(MUSCLE_LOG_ERROR, "MiniPacketTunnelIOGateway::DoOutputImplementation():  Outgoing payload is " UINT32_FORMAT_SPEC " bytes, it can't fit into a packet with MTU=" UINT32_FORMAT_SPEC "!  Dropping it\n", sbSize, maxPacketSize);
             (void) _currentOutputBuffers.RemoveHead();
          }
-         else if ((flat.GetNumBytesWritten()+((flat.GetNumBytesWritten()==0)?PACKET_HEADER_SIZE:0)+CHUNK_HEADER_SIZE+sbSize) <= _maxTransferUnit)
+         else if ((flat.GetNumBytesWritten()+((flat.GetNumBytesWritten()==0)?PACKET_HEADER_SIZE:0)+CHUNK_HEADER_SIZE+sbSize) <= maxPacketSize)
          {
             if (flat.GetNumBytesWritten() == 0)
             {

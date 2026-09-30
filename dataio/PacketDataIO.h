@@ -20,7 +20,8 @@ public:
    /**
     * Should be implemented to return the maximum number of bytes that
     * can fit into a single packet.  Used by the I/O gateways eg to
-    * determine how much memory to allocate before Read()-ing a packet of data in.
+    * determine how much memory to allocate before Read()-ing a packet of data in,
+    * and how much memory they should try to pass to a Write() call.
     */
    MUSCLE_NODISCARD virtual uint32 GetMaximumPacketSize() const = 0;
 

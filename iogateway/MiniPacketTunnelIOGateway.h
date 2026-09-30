@@ -11,7 +11,7 @@ namespace muscle {
 #define DEFAULT_MINI_TUNNEL_IOGATEWAY_MAGIC 1836345197 /**< 'mtgm' - default magic value used in MiniPacketTunnelIOGateway packet headers.  See PacketTunnelIOGateway ctor for details. */
 
 /** This class is similar to the PacketTunnelIOGateway class, but simplified so that it only handles
-  * Messages smaller than (maxTransferUnit) bytes in size.  In particular, too-large Messages will
+  * Messages smaller than our DataIO's GetMaximumPacketSize() bytes in size.  In particular, too-large Messages will
   * be dropped, rather than split across multiple packets.
   * That simplification allows the Message-header overhead to be significantly reduced (compared
   * to the logic used by PacketTunnelIOGateway), so that we can pack more Messages into each packet.
@@ -22,17 +22,12 @@ public:
    /** @param slaveGateway This is the gateway we will call to generate data to send, etc.
      *                     If you leave this argument unset (or pass in a NULL reference),
      *                     a general-purpose default algorithm will be used.
-     * @param maxTransferUnit The largest packet size this I/O gateway will be allowed to send.
-     *                        Default value is MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET (aka
-     *                        1388 if MUSCLE_AVOID_IPV6 is defined, 1168 otherwise).  If the number
-     *                        passed in here is less than (PACKET_HEADER_SIZE+CHUNK_HEADER_SIZE+1), it will be
-     *                        interpreted as (PACKET_HEADER_SIZE+CHUNK_HEADER_SIZE+1).  (aka 17 bytes)
      * @param magic The "magic number" that is expected to be at the beginning of each packet
      *              sent and received.  You can usually leave this as the default, unless you
      *              are doing several separate instances of this class with different protocols,
      *              and you want to make sure they don't interfere with each other.
      */
-   MiniPacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway = AbstractMessageIOGatewayRef(), uint32 maxTransferUnit = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET, uint32 magic = DEFAULT_MINI_TUNNEL_IOGATEWAY_MAGIC);
+   MiniPacketTunnelIOGateway(const AbstractMessageIOGatewayRef & slaveGateway = AbstractMessageIOGatewayRef(), uint32 magic = DEFAULT_MINI_TUNNEL_IOGATEWAY_MAGIC);
 
    MUSCLE_NODISCARD virtual bool HasBytesToOutput() const {return ((_currentOutputBuffers.HasItems())||(GetOutgoingMessageQueue().HasItems()));}
 
@@ -84,9 +79,10 @@ protected:
    virtual io_status_t DoOutputImplementation(uint32 maxBytes = MUSCLE_NO_LIMIT);
 
 private:
-   const uint32 _magic;                 // our magic number, used to sanity check packets
-   const uint32 _maxTransferUnit;       // max number of bytes to try to fit in a packet
-   uint8 _sendCompressionLevel;         // 0-9 (no zlib-deflate up to maximum-zlib-deflate)
+   uint32 GetMaximumPacketSize() const;
+
+   const uint32 _magic;         // our magic number, used to sanity check packets
+   uint8 _sendCompressionLevel; // 0-9 (no zlib-deflate up to maximum-zlib-deflate)
 
    bool _allowMiscData;  // If true, we'll pass on non-magic UDP packets also, as if they were fragments
    uint32 _sexID;

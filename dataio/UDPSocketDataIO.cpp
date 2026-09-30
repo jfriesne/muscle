@@ -8,6 +8,7 @@ UDPSocketDataIO :: UDPSocketDataIO(const ConstSocketRef & sock, bool blocking)
    : _sock(sock)
    , _blocking(true)   // just to keep the static analyzers happy
    , _maxPacketSize(MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET)
+   , _oversizedPacketsLogLevel(MUSCLE_LOG_WARNING)
 {
    (void) SetBlockingIOEnabled(blocking);
    (void) _sendTo.AddTail();  // so that by default, Write() will just call send() on our socket
@@ -27,6 +28,8 @@ io_status_t UDPSocketDataIO :: ReadFrom(void * buffer, uint32 size, IPAddressAnd
    {
       retSource.Set(tmpAddr, tmpPort);
       SetSourceOfLastReadPacket(retSource);  // in case this is a direct call e.g. from the gateway code
+
+      if ((_oversizedPacketsLogLevel != MUSCLE_LOG_NONE)&&((uint32)ret.GetByteCount() > _maxPacketSize)) LogTime(_oversizedPacketsLogLevel, "UDPSocketDataIO %p:  Received oversized packet (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes) from [%s]\n", this, ret.GetByteCount(), _maxPacketSize, retSource.ToString()());
    }
    return ret;
 }
@@ -54,7 +57,9 @@ io_status_t UDPSocketDataIO :: Write(const void * buffer, uint32 size)
 
 io_status_t UDPSocketDataIO :: WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest)
 {
-   return SendDataUDP(_sock, buffer, size, _blocking, packetDest.GetIPAddress(), packetDest.GetPort());
+   const io_status_t ret = SendDataUDP(_sock, buffer, size, _blocking, packetDest.GetIPAddress(), packetDest.GetPort());
+   if ((_oversizedPacketsLogLevel != MUSCLE_LOG_NONE)&&(size > _maxPacketSize)) LogTime(_oversizedPacketsLogLevel, "UDPSocketDataIO %p:  Sent oversized packet (" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes) to [%s] [%s]\n", this, size, _maxPacketSize, packetDest.ToString()(), ret());
+   return ret;
 }
 
 status_t UDPSocketDataIO :: SetBlockingIOEnabled(bool blocking)
