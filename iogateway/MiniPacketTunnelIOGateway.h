@@ -4,7 +4,6 @@
 #define MuscleMiniPacketTunnelIOGateway_h
 
 #include "iogateway/ProxyIOGateway.h"
-#include "util/NetworkUtilityFunctions.h"  // for MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET
 
 namespace muscle {
 
