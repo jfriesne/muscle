@@ -258,7 +258,7 @@ status_t SSLSignedPacketProxyDataIO :: GenerateSignedOutputData(const uint8 * pa
       size_t numSigBytes = 0;
       if (EVP_DigestSign(ctx, NULL, &numSigBytes, payloadBytes, numPayloadBytes) > 0)  // this will populate (numSigBytes), it should always be 64 but for form's sake
       {
-         MRETURN_ON_ERROR(_scratchBuf.SetNumBytes(numPayloadBytes+numSigBytes+SSL_PACKET_PROXY_TRAILER_SIZE, false));
+         MRETURN_ON_ERROR(_scratchBuf.SetNumBytes(numPayloadBytes+(uint32)numSigBytes+SSL_PACKET_PROXY_TRAILER_SIZE, false));
 
          uint8 * scratchPayload = _scratchBuf.GetBuffer();
          if (EVP_DigestSign(ctx, scratchPayload+numPayloadBytes, &numSigBytes, payloadBytes, numPayloadBytes) > 0)  // writes out the signature into our scratch-buffer
