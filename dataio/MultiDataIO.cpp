@@ -85,14 +85,25 @@ void MultiDataIO :: FlushOutput()
    for (int32 i=_childIOs.GetLastValidIndex(); i>=0; i--) _childIOs[i]()->FlushOutput();
 }
 
-void MultiDataIO :: WriteBufferedOutput()
+void MultiDataIO :: OnReadReady()
 {
-   for (int32 i=_childIOs.GetLastValidIndex(); i>=0; i--) _childIOs[i]()->WriteBufferedOutput();
+   for (int32 i=_childIOs.GetLastValidIndex(); i>=0; i--) _childIOs[i]()->OnReadReady();
 }
 
-bool MultiDataIO :: HasBufferedOutput() const
+void MultiDataIO :: OnWriteReady()
 {
-   for (int32 i=_childIOs.GetLastValidIndex(); i>=0; i--) if (_childIOs[i]()->HasBufferedOutput()) return true;
+   for (int32 i=_childIOs.GetLastValidIndex(); i>=0; i--) _childIOs[i]()->OnWriteReady();
+}
+
+bool MultiDataIO :: WantsOnReadReadyCallback() const
+{
+   for (int32 i=_childIOs.GetLastValidIndex(); i>=0; i--) if (_childIOs[i]()->WantsOnReadReadyCallback()) return true;
+   return false;
+}
+
+bool MultiDataIO :: WantsOnWriteReadyCallback() const
+{
+   for (int32 i=_childIOs.GetLastValidIndex(); i>=0; i--) if (_childIOs[i]()->WantsOnWriteReadyCallback()) return true;
    return false;
 }
 

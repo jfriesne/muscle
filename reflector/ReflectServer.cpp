@@ -18,7 +18,6 @@
 
 #ifdef MUSCLE_ENABLE_SSL
 # include "ssl/SSLSocketDataIO.h"
-# include "ssl/SSLSocketAdapterGateway.h"
 #endif
 
 namespace muscle {
@@ -84,7 +83,6 @@ AddNewSession(const AbstractReflectSessionRef & ref, const ConstSocketRef & ss)
                   if (_pskUserName.HasChars()) sslIORef()->SetPreSharedKeyLoginInfo(_pskUserName, _pskPassword);
 
                   io = sslIORef;
-                  gatewayRef.SetRef(new SSLSocketAdapterGateway(gatewayRef));
 #else
                   const char * errDesc = NULL;
                   if (_publicKey())            errDesc = "SetPublicKeyCertificate()";
@@ -407,14 +405,16 @@ uint64 ReflectServer :: PrepareToWaitForEvents()
          if (session)
          {
             session->_maxInputChunk = session->_maxOutputChunk = 0;
-            AbstractMessageIOGateway * g = session->GetGateway()();
-            if (g)
+            AbstractMessageIOGateway * gw = session->GetGateway()();
+            if (gw)
             {
+               DataIO * dio = gw ? gw->GetDataIO()() : NULL;
+
                const int sessionReadFD = session->GetSessionReadSelectSocket().GetFileDescriptor();
                if ((sessionReadFD >= 0)&&(session->IsConnectingAsync() == false))
                {
                   session->_maxInputChunk = CheckPolicy(_preparedPolicies, session->GetInputPolicy(), PolicyHolder(session->IsReadyForInput() ? session : NULL, true), now);
-                  if (session->_maxInputChunk > 0) (void) _multiplexer.RegisterSocketForReadReady(sessionReadFD);
+                  if ((session->_maxInputChunk > 0)||((dio)&&(dio->WantsOnReadReadyCallback()))) (void) _multiplexer.RegisterSocketForReadReady(sessionReadFD);
                }
 
                const int sessionWriteFD = session->GetSessionWriteSelectSocket().GetFileDescriptor();
@@ -432,7 +432,7 @@ uint64 ReflectServer :: PrepareToWaitForEvents()
                   else
                   {
                      session->_maxOutputChunk = CheckPolicy(_preparedPolicies, session->GetOutputPolicy(), PolicyHolder(session->HasBytesToOutput() ? session : NULL, false), now);
-                     out = ((session->_maxOutputChunk > 0)||((g->GetDataIO()())&&(g->GetDataIO()()->HasBufferedOutput())));
+                     out = ((session->_maxOutputChunk > 0)||((dio)&&(dio->WantsOnWriteReadyCallback())));
                   }
 
                   if (out)
@@ -445,7 +445,7 @@ uint64 ReflectServer :: PrepareToWaitForEvents()
                }
 
                TCHECKPOINT;
-               CallGetPulseTimeAux(*g, now, nextPulseAt);
+               CallGetPulseTimeAux(*gw, now, nextPulseAt);
                TCHECKPOINT;
             }
             TCHECKPOINT;
@@ -582,7 +582,7 @@ void ReflectServer :: HandleEvents()
                      if (g)
                      {
                         DataIO * io = g->GetDataIO()();
-                        if (io) io->WriteBufferedOutput();
+                        if (io) io->OnWriteReady();
                      }
 
                      wroteBytes = session->DoOutput(muscleMin(_maxOutputChunkSize, session->_maxOutputChunk));

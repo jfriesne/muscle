@@ -40,11 +40,11 @@ public:
    virtual io_status_t Write(const void * buffer, uint32 size);
    virtual void Shutdown();
 
-   MUSCLE_NODISCARD virtual bool HasBufferedOutput() const {return (_outputBufferBytesSent < _outputBuffer.GetNumBytes());}
-   virtual void WriteBufferedOutput() {(void) WriteBufferedOutputAux();}
+   MUSCLE_NODISCARD virtual bool WantsOnWriteReadyCallback() const {return (_outputBufferBytesSent < _outputBuffer.GetNumBytes());}
+   virtual void OnWriteReady() {(void) OnWriteReadyAux();}
 
 private:
-   status_t WriteBufferedOutputAux();
+   status_t OnWriteReadyAux();
 
    uint32 _maxTransferUnit;
 

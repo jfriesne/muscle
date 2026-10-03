@@ -150,8 +150,8 @@ public:
    const ConstSocketRef & GetReadSelectSocket() const {return GetChildDataIO()() ? GetChildDataIO()()->GetReadSelectSocket()  : GetDefaultObjectForType<ConstSocketRef>();}
    const ConstSocketRef & GetWriteSelectSocket() const {return GetChildDataIO()() ? GetChildDataIO()()->GetWriteSelectSocket() : GetDefaultObjectForType<ConstSocketRef>();}
 
-   bool HasBufferedOutput() const {return ((_sendToChild < _writeDeflater.next_out)||(_writeDeflater.avail_in > 0));}
-   void WriteBufferedOutput() {(void) WriteAux(NULL, 0, false, NULL);}
+   bool WantsOnWriteReadyCallback() const {return ((_sendToChild < _writeDeflater.next_out)||(_writeDeflater.avail_in > 0));}
+   void OnWriteReady() {(void) WriteAux(NULL, 0, false, NULL);}
    const DataIORef & GetChildDataIO() const {return _childDataIO;}
 
 private:
@@ -307,14 +307,14 @@ const ConstSocketRef & ZLibDataIO :: GetWriteSelectSocket() const
    return _imp ? _imp->GetWriteSelectSocket() : GetDefaultObjectForType<ConstSocketRef>();
 }
 
-bool ZLibDataIO :: HasBufferedOutput() const
+bool ZLibDataIO :: WantsOnWriteReadyCallback() const
 {
-   return _imp ? _imp->HasBufferedOutput() : false;
+   return _imp ? _imp->WantsOnWriteReadyCallback() : false;
 }
 
-void ZLibDataIO :: WriteBufferedOutput()
+void ZLibDataIO :: OnWriteReady()
 {
-   if (_imp) _imp->WriteBufferedOutput();
+   if (_imp) _imp->OnWriteReady();
 }
 
 status_t ZLibDataIO :: SetChildDataIO(const DataIORef & childDataIO)

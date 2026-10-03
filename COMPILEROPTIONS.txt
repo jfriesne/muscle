@@ -365,14 +365,6 @@ of your Makefile to alter muscle's behaviour:
    functionality for launching a root-enabled child process under
    MacOS/X.
 
--DMUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
-   If specified, the AbstractReflectSession class will use a
-   TemplatingMessageIOGateway by default rather than a
-   MessageIOGateway.  Note that this will break compatibility
-   with other MUSCLE code that does not use the
-   TemplatingMessageIOGateway class, so this flag should be used
-   with caution.
-
 -DMUSCLE_ENABLE_LOCKING_VIOLATIONS_CHECKER
    If specified, the Mutex class will call the user-provided
    global function IsOkayToAccessMuscleMutex() any time Lock(),

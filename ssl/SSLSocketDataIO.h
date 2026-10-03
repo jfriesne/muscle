@@ -13,20 +13,14 @@ typedef struct ssl_st     SSL;
 
 namespace muscle {
 
-class SSLSocketAdapterGateway;
-
 /** This class lets you communicate over a TCP socket with SSL encryption enabled on it.
-  * @note In most cases when using this class you will want to wrap your MessageIOGateway
-  *       in a SSLSocketAdapterGateway object; otherwise OpenSSL's internal state machine
-  *       will not be able to work properly!
   * @note If you simply want to enable SSL on all your TCP connections, the easiest way
   *       to do that is to recompile MUSCLE with the -DMUSCLE_ENABLE_SSL compiler argument,
   *       and then call either SetSSLPublicKeyCertificate() or SetSSLPrivateKey() on your
-  *       ReflectServer or MessageTransceiverThread object.  Then the MUSCLE event loop
+  *       ReflectServer and/or MessageTransceiverThread object(s).  Then the MUSCLE event loop
   *       will transparently insert the SSL layer for you.  Alternatively, creating the
-  *       SSLSocketDataIO objects and SSLSocketAdapterGateway objects explicitly in your
-  *       own code will also work and may be necessary in cases where only certain sessions
-  *       should use SSL.
+  *       SSLSocketDataIO objects objects explicitly in your own code will also work
+  *       and may be necessary in cases where only certain sessions should use SSL.
   */
 class SSLSocketDataIO : public TCPSocketDataIO
 {
@@ -110,20 +104,18 @@ public:
      */
    MUSCLE_NODISCARD const String & GetPreSharedKeyPassword() const {return _pskPassword;}
 
-   /** Overridden to return a dummy (always-ready-for-read) socket when necessary,
-     * as there are times when we need gateway->DoInput() to be called when even when there
-     * aren't any actual bytes present to be read from our TCP socket.
-     * See http://www.rtfm.com/openssl-examples/part2.pdf (Figure 8) for details.
-     */
+   // Our implementation of the DataIO API
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const;
-
+   MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const;
    virtual io_status_t Read(void *buffer, uint32 size);
    virtual io_status_t Write(const void *buffer, uint32 size);
    virtual void Shutdown();
+   MUSCLE_NODISCARD virtual bool WantsOnReadReadyCallback() const;
+   MUSCLE_NODISCARD virtual bool WantsOnWriteReadyCallback() const;
+   virtual void OnReadReady();
+   virtual void OnWriteReady();
 
 private:
-   friend class SSLSocketAdapterGateway;
-
    static unsigned int pskClientCallbackFunc(SSL * ssl, const char *hint, char * identity, unsigned int maxIdentityLen, unsigned char * psk, unsigned int maxPSKLen);
    static unsigned int pskServerCallbackFunc(SSL * ssl, const char *identity, unsigned char *outPSKBuf, unsigned int outPSKBufLen);
 
@@ -140,8 +132,10 @@ private:
    };
    uint32 _sslState;
 
-   bool _forceReadReady;
-   ConstSocketRef _alwaysReadableSocket;  // this dummy socket will ALWAYS select as ready-for-read!
+   bool _forceReadReadyFlag;
+   bool _forceWriteReadyFlag;
+
+   ConstSocketRef _alwaysReadWriteableSocket;  // this dummy socket will ALWAYS select as ready-for-read and ready-for-write!
 
    ConstByteBufferRef _publicKey;
 

@@ -4,16 +4,11 @@
 
 #ifdef MUSCLE_ENABLE_SSL
 # include "ssl/SSLSocketDataIO.h"
-# include "ssl/SSLSocketAdapterGateway.h"
 #endif
 
 #include "dataio/StdinDataIO.h"
 #include "dataio/TCPSocketDataIO.h"
-#ifdef MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
-# include "iogateway/TemplatingMessageIOGateway.h"
-#else
-# include "iogateway/MessageIOGateway.h"
-#endif
+#include "iogateway/MessageIOGateway.h"
 #include "iogateway/PlainTextMessageIOGateway.h"
 #include "reflector/StorageReflectConstants.h"
 #include "regex/QueryFilter.h"
@@ -48,11 +43,7 @@ int main(int argc, char ** argv)
 
    // And send and receive flattened Message objects over our TCP socket
    TCPSocketDataIO tcpIO(sock, false);
-#ifdef MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
-   TemplatingMessageIOGateway tcpGateway;
-#else
    MessageIOGateway tcpGateway;
-#endif
    tcpGateway.SetDataIO(DummyDataIORef(tcpIO));
 
    DummyDataIORef networkIORef(tcpIO);
@@ -101,7 +92,6 @@ int main(int argc, char ** argv)
       }
 
       networkIORef = sslIORef;
-      gatewayRef.SetRef(new SSLSocketAdapterGateway(gatewayRef));
       gatewayRef()->SetDataIO(networkIORef);
    }
 #endif

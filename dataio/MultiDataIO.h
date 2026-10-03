@@ -77,8 +77,11 @@ public:
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return HasChildren() ? GetFirstChild()->GetReadSelectSocket()  : GetNullSocket();}
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return HasChildren() ? GetFirstChild()->GetWriteSelectSocket() : GetNullSocket();}
 
-   MUSCLE_NODISCARD virtual bool HasBufferedOutput() const;
-   virtual void WriteBufferedOutput();
+   MUSCLE_NODISCARD virtual bool WantsOnReadReadyCallback() const;
+   virtual void OnReadReady();
+
+   MUSCLE_NODISCARD virtual bool WantsOnWriteReadyCallback() const;
+   virtual void OnWriteReady();
 
    /** Returns a read-only reference to our list of child DataIO objects. */
    MUSCLE_NODISCARD const Queue<DataIORef> & GetChildDataIOs() const {return _childIOs;}

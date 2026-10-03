@@ -15,12 +15,22 @@ key:  - new feature
    - Added SetOversizedPacketsLogSeverity() and GetOversizedPacketsLogSeverity()
      methods to the UDPSocketDataIO class, to make unwanted UDP-packet
      fragmentation more apparent if/when it happens.
+   - Added DataIO::WantsOnReadReadyCallback()
+   - Added DataIO::OnReadReady()
+   - Added a no-op DummyMemoryAllocationStrategy class to ByteBuffer.h
+   - SSLSocketDataIO is now self-contained and no longer needs to be
+     paired with a SocketAdapterGateway in order to function properly.
+   o Removed the SocketAdapterGateway class as it is no longer necessary.
    o Removed the (maxTransferUnit) argument from the PacketTunnelIOGateway
      and MiniPacketTunnelIOGateway constructors, as the proper value can be
      queried from the held DataIO object instead.
    o Under Windows, Inet_NtoA()'s expandScopes argument now only replaces
      the @ character with %, as a numeric suffix is what Windows utilities
      expect to see in scoped IPv6 addresses.
+   o Removed the MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT ifdefs
+     as they were more trouble than they were worth.
+   o Renamed DataIO::HasBufferedOutput() to DataIO::WantsOnWriteReadyCallback()
+   o Renamed DataIO::WriteBufferedOutput() to DataIO::OnWriteReady()
    * Removed an optimization in NodePathMatcher::CheckChildForTraversal()
      that could cause a false-positive match on a DataNode in some cases.
    * message.GetFlat() Python method now handles it correctly when the

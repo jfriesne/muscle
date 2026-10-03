@@ -39,8 +39,11 @@ public:
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket()  const {return _childIO() ? _childIO()->GetReadSelectSocket()  : GetNullSocket();}
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const {return _childIO() ? _childIO()->GetWriteSelectSocket() : GetNullSocket();}
 
-   MUSCLE_NODISCARD virtual bool HasBufferedOutput() const {return _childIO() ? _childIO()->HasBufferedOutput() : false;}
-   virtual void WriteBufferedOutput() {if (_childIO()) _childIO()->WriteBufferedOutput();}
+   MUSCLE_NODISCARD virtual bool WantsOnReadReadyCallback() const {return _childIO() ? _childIO()->WantsOnReadReadyCallback() : false;}
+   virtual void OnReadReady() {if (_childIO()) _childIO()->OnReadReady();}
+
+   MUSCLE_NODISCARD virtual bool WantsOnWriteReadyCallback() const {return _childIO() ? _childIO()->WantsOnWriteReadyCallback() : false;}
+   virtual void OnWriteReady() {if (_childIO()) _childIO()->OnWriteReady();}
 
    virtual status_t Seek(int64 offset, int whence) {return _seekableChildIO ? _seekableChildIO->Seek(offset, whence) : B_BAD_OBJECT;}
    MUSCLE_NODISCARD virtual int64 GetPosition() const {return _seekableChildIO ? _seekableChildIO->GetPosition() : -1;}

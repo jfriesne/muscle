@@ -25,11 +25,6 @@ exists($$FLAGSDIR/muscle_enable_ssl) {
    mac:QMAKE_LFLAGS  += -L/usr/local/lib     # For openssl, if it's installed there
 }
 
-exists($$FLAGSDIR/muscle_enable_templating_message_io_gateway) {
-   warning("muscle_enable_templating_message_io_gateway file detected:  forcing the use of TemplatingMessageIOGateway!");
-   DEFINES += MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
-}
-
 win32:DEFINES += _WIN32_WINNT=0x0501
 
 INCLUDEPATH += $$MUSCLE_DIR
@@ -86,5 +81,4 @@ HEADERS = qt_example.h $$MUSCLE_INCLUDES
 
 exists($$FLAGSDIR/muscle_enable_ssl) {
    SOURCES += $$MUSCLE_DIR/dataio/SSLSocketDataIO.cpp
-   SOURCES += $$MUSCLE_DIR/iogateway/SSLSocketAdapterGateway.cpp
 }

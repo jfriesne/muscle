@@ -12,14 +12,15 @@ SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking,
    : TCPSocketDataIO(sockfd, blocking)
    , _isServer(accept)
    , _sslState(0)
-   , _forceReadReady(false)
+   , _forceReadReadyFlag(0)
+   , _forceWriteReadyFlag(0)
    , _ctx(NULL)
    , _ssl(NULL)
 {
    status_t ret;
    bool ok = false;
    ConstSocketRef tempSocket;  // yes, it's intentional that this socket will be closed as soon as we exit this scope
-   if (CreateConnectedSocketPair(tempSocket, _alwaysReadableSocket).IsOK(ret))  // always readable because the TCP connection will be closed and that causes select-ready-for-read
+   if (CreateConnectedSocketPair(tempSocket, _alwaysReadWriteableSocket).IsOK(ret))  // always readable because the TCP connection will be closed and that causes select-ready-for-read
    {
       char errBuf[256];  // ERR_error_string() docs require this buffer to be at least 256 bytes long
 
@@ -223,8 +224,10 @@ void SSLSocketDataIO :: SetPreSharedKeyLoginInfo(const String & userName, const 
    }
 }
 
-io_status_t SSLSocketDataIO :: Read(void *buffer, uint32 size)
+io_status_t SSLSocketDataIO :: Read(void * buffer, uint32 size)
 {
+   _forceReadReadyFlag = false;
+
    if (_ssl == NULL) return B_BAD_OBJECT;
 
    const int32 bytes = SSL_read(_ssl, buffer, size);
@@ -261,8 +264,10 @@ io_status_t SSLSocketDataIO :: Read(void *buffer, uint32 size)
    }
 }
 
-io_status_t SSLSocketDataIO :: Write(const void *buffer, uint32 size)
+io_status_t SSLSocketDataIO :: Write(const void * buffer, uint32 size)
 {
+   _forceWriteReadyFlag = false;
+
    if (_ssl == NULL) return B_BAD_OBJECT;
 
    const int32 bytes = SSL_write(_ssl, buffer, size);
@@ -303,7 +308,40 @@ io_status_t SSLSocketDataIO :: Write(const void *buffer, uint32 size)
 
 const ConstSocketRef & SSLSocketDataIO :: GetReadSelectSocket() const
 {
-   return ((_forceReadReady)||((_ssl)&&(SSL_pending(_ssl)>0))) ? _alwaysReadableSocket : TCPSocketDataIO::GetReadSelectSocket();
+   return ((_forceReadReadyFlag)||((_ssl)&&(SSL_has_pending(_ssl)))) ? _alwaysReadWriteableSocket : TCPSocketDataIO::GetReadSelectSocket();
+}
+
+const ConstSocketRef & SSLSocketDataIO :: GetWriteSelectSocket() const
+{
+   return _forceWriteReadyFlag ? _alwaysReadWriteableSocket : TCPSocketDataIO::GetWriteSelectSocket();
+}
+
+bool SSLSocketDataIO :: WantsOnReadReadyCallback() const
+{
+   return ((_sslState & (SSL_STATE_READ_WANTS_READABLE_SOCKET | SSL_STATE_WRITE_WANTS_READABLE_SOCKET)) != 0);
+}
+
+bool SSLSocketDataIO :: WantsOnWriteReadyCallback() const
+{
+   return ((_sslState & (SSL_STATE_READ_WANTS_WRITEABLE_SOCKET | SSL_STATE_WRITE_WANTS_WRITEABLE_SOCKET)) != 0);
+}
+
+void SSLSocketDataIO :: OnReadReady()
+{
+   if ((_sslState & SSL_STATE_WRITE_WANTS_READABLE_SOCKET) != 0)
+   {
+      // so that DoOutput() (and therefore SSL_write()) will be called again, even if the TCP socket's not currently writable
+      _forceWriteReadyFlag = true;
+   }
+}
+
+void SSLSocketDataIO :: OnWriteReady()
+{
+   if ((_sslState & SSL_STATE_READ_WANTS_WRITEABLE_SOCKET) != 0)
+   {
+      // so that DoInput() (and therefore SSL_read()) will be called again, even if the TCP socket's not currently readable
+      _forceReadReadyFlag = true;
+   }
 }
 
 } // end namespace muscle

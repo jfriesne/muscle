@@ -4,17 +4,12 @@
 #include "reflector/AbstractSessionIOPolicy.h"
 #include "reflector/ReflectServer.h"
 #include "dataio/TCPSocketDataIO.h"
-#ifdef MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
-# include "iogateway/TemplatingMessageIOGateway.h"
-#else
-# include "iogateway/MessageIOGateway.h"
-#endif
+#include "iogateway/MessageIOGateway.h"
 #include "system/Mutex.h"
 #include "system/SetupSystem.h"
 
 #ifdef MUSCLE_ENABLE_SSL
 # include "ssl/SSLSocketDataIO.h"
-# include "ssl/SSLSocketAdapterGateway.h"
 #endif
 
 namespace muscle {
@@ -182,10 +177,9 @@ Reconnect()
    // auto-wrap the user's gateway and socket in the necessary SSL adapters!
    if ((publicKey())&&(optSock())&&(dynamic_cast<TCPSocketDataIO *>(io()) != NULL))
    {
-      SSLSocketDataIO * ssio = new SSLSocketDataIO(optSock, false, false);
-      io.SetRef(ssio);
-      MRETURN_ON_ERROR(ssio->SetPublicKeyCertificate(publicKey));
-      if (dynamic_cast<SSLSocketAdapterGateway *>(_gateway()) == NULL) _gateway.SetRef(new SSLSocketAdapterGateway(_gateway));
+      SSLSocketDataIORef ssioRef(new SSLSocketDataIO(optSock, false, false));
+      MRETURN_ON_ERROR(ssioRef()->SetPublicKeyCertificate(publicKey));
+      io = ssioRef;
    }
 #endif
 
@@ -222,11 +216,7 @@ AbstractMessageIOGatewayRef
 AbstractReflectSession ::
 CreateGateway()
 {
-#ifdef MUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
-   return MessageIOGatewayRef(new TemplatingMessageIOGateway());
-#else
    return MessageIOGatewayRef(new MessageIOGateway());
-#endif
 }
 
 bool

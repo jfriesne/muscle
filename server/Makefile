@@ -14,7 +14,6 @@ CXXFLAGS  += -W -Wall -Wunused-result
 #CXXFLAGS += -DMUSCLE_AVOID_CPLUSPLUS11
 #CXXFLAGS += -DMUSCLE_ENABLE_MEMORY_TRACKING
 #CXXFLAGS += -DMUSCLE_AVOID_STDINT
-#CXXFLAGS += -DMUSCLE_USE_TEMPLATING_MESSAGE_IO_GATEWAY_BY_DEFAULT
 
 # run "ENABLECATALYST=1 make -j4 libmuscle.a" if you want to build libmuscle.a for Catalyst
 ifneq ($(ENABLECATALYST),)
@@ -96,7 +95,7 @@ ifeq ($(OSTYPE),DragonFly)
 endif
 
 ifneq (,$(findstring MUSCLE_ENABLE_SSL,$(CXXFLAGS))) # Add OpenSSL-specific files only if OpenSSL is enabled
-	OBJFILES += SSLSocketDataIO.o SSLSocketAdapterGateway.o
+	OBJFILES += SSLSocketDataIO.o
 	LIBS += -lssl -lcrypto
 endif
 

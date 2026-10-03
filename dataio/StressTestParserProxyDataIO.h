@@ -53,9 +53,9 @@ public:
    virtual io_status_t Write(const void * buffer, uint32 size);
    virtual void Shutdown() {ProxyDataIO::Shutdown(); _outputBuffer.Clear(true);}
 
-   MUSCLE_NODISCARD virtual bool HasBufferedOutput() const {return (_outputBufferBytesSent < _outputBuffer.GetNumBytes());}
-   virtual void WriteBufferedOutput() {(void) DrainOutputBuffer(true);}
-   virtual void FlushOutput()         {(void) DrainOutputBuffer(true);}
+   MUSCLE_NODISCARD virtual bool WantsOnWriteReadyCallback() const {return (_outputBufferBytesSent < _outputBuffer.GetNumBytes());}
+   virtual void OnWriteReady() {(void) DrainOutputBuffer(true);}
+   virtual void FlushOutput()  {(void) DrainOutputBuffer(true);}
 
 private:
    io_status_t DrainOutputBuffer(bool forceSendAllPendingBytes);

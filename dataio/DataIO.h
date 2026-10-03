@@ -92,20 +92,32 @@ public:
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const = 0;
 
    /**
-    * Optional:  If your DataIO subclass is holding buffered data that it wants
-    *            to output as soon as possible but hasn't been able to yet,
-    *            then override this method to return true, and that will cause
-    *            WriteBufferedOutput() to be called ASAP.  Default implementation
-    *            always returns false.
+    * If your DataIO subclass wants to have its OnReadReady() method as soon as its
+    * held socket is ready-for-read, you can override this method to return true.
+    * Default implementation always returns false.
     */
-   MUSCLE_NODISCARD virtual bool HasBufferedOutput() const {return false;}
+   MUSCLE_NODISCARD virtual bool WantsOnReadReadyCallback() const {return false;}
 
    /**
-    * Optional:  If this DataIO is holding any buffered output data, this method should
-    *            be implemented to Write() as much of that data as possible.  Default
-    *            implementation is a no-op.
+    * If your DataIO subclass wants to have its OnWriteReady() method as soon as its
+    * held socket is ready-for-write, you can override this method to return true.
+    * Default implementation always returns false.
     */
-   virtual void WriteBufferedOutput() {/* empty */}
+   MUSCLE_NODISCARD virtual bool WantsOnWriteReadyCallback() const {return false;}
+
+   /**
+    * Called when our socket is ready-for-read, if WantsOnReadReadyCallback() returned
+    * true in the most recent iteration of the event loop.
+    * Default implementation is a no-op.
+    */
+   virtual void OnReadReady() {/* empty */}
+
+   /**
+    * Called when our socket is ready-for-write, if WantsOnWriteReadyCallback() returned
+    * true in the most recent iteration of the event loop.
+    * Default implementation is a no-op.
+    */
+   virtual void OnWriteReady() {/* empty */}
 
    /** Convenience method:  Calls Write() in a loop until the entire buffer is written, or
      * until an error occurs.  This method should only be used in conjunction with

@@ -78,7 +78,7 @@ io_status_t PacketizedProxyDataIO :: Write(const void * buffer, uint32 size)
    // Only accept more data if we are done sending the data we already have buffered up
    bool tryAgainAfter = false;
    uint32 ret = 0;
-   if (HasBufferedOutput()) tryAgainAfter = true;
+   if (WantsOnWriteReadyCallback()) tryAgainAfter = true;
    else
    {
       // No data buffered?
@@ -92,12 +92,12 @@ io_status_t PacketizedProxyDataIO :: Write(const void * buffer, uint32 size)
       ret = size;
    }
 
-   MRETURN_ON_ERROR(WriteBufferedOutputAux());
+   MRETURN_ON_ERROR(OnWriteReadyAux());
 
-   return ((tryAgainAfter)&&(HasBufferedOutput() == false)) ? Write(buffer, size) : io_status_t(ret);
+   return ((tryAgainAfter)&&(WantsOnWriteReadyCallback() == false)) ? Write(buffer, size) : io_status_t(ret);
 }
 
-status_t PacketizedProxyDataIO :: WriteBufferedOutputAux()
+status_t PacketizedProxyDataIO :: OnWriteReadyAux()
 {
    // Now try to send as much of our buffered output data as we can
    const uint32 bufSize = _outputBuffer.GetNumBytes();

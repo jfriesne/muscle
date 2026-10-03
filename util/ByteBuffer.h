@@ -377,6 +377,18 @@ public:
    virtual void Free(void * ptr, size_t size) = 0;
 };
 
+/** In this implementation of IMemoryAllocationStrategy, all methods are no-ops. */
+class DummyMemoryAllocationStrategy : public IMemoryAllocationStrategy
+{
+public:
+   /** Default constructor */
+   DummyMemoryAllocationStrategy() {/* empty */}
+
+   MUSCLE_NODISCARD virtual void * Malloc(size_t) {return NULL;}
+   MUSCLE_NODISCARD virtual void * Realloc(void *, size_t, size_t, bool) {return NULL;}
+   virtual void Free(void *, size_t) {/* empty */}
+};
+
 // The methods below have been implemented here (instead of inside DataFlattener.h or DataUnflattener.h)
 // to avoid chicken-and-egg programs with include-ordering.  At this location we are guaranteed that the compiler
 // knows everything it needs to know about both the DataFlattener/DataUnflattener classes and the ByteBuffer class.

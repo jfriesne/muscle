@@ -42,8 +42,8 @@ public:
    virtual const ConstSocketRef & GetReadSelectSocket() const;
    virtual const ConstSocketRef & GetWriteSelectSocket() const;
 
-   MUSCLE_NODISCARD virtual bool HasBufferedOutput() const;
-   virtual void WriteBufferedOutput();
+   MUSCLE_NODISCARD virtual bool WantsOnWriteReadyCallback() const;
+   virtual void OnWriteReady();
 
    /** Sets the child-data-IO we should use as our back-end for writing zlib-deflated bytes
      * or reading zlib-inflated bytes.
