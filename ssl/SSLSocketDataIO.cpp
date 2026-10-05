@@ -257,8 +257,11 @@ io_status_t SSLSocketDataIO :: Read(void * buffer, uint32 size)
             return B_END_OF_STREAM;
 
          default:
-            LogTime(MUSCLE_LOG_DEBUG, "SSL_read() returned error code %i\n", err);
-            if (GetMaxLogLevel() >= MUSCLE_LOG_DEBUG) ERR_print_errors_fp(stderr);
+         {
+            const status_t en = B_ERRNO;  // this can get set by SSL_read() as a side effect, and may be informative
+            LogTime(MUSCLE_LOG_DEBUG, "SSL_read() returned error code %i (ERROR_get_error()=%i B_ERRNO=[%s])\n", err, (int) ERR_get_error(), en());
+            if (GetMaxLogLevel() >= MUSCLE_LOG_DEBUG) ERR_print_errors_fp(stdout);
+         }
          return B_SSL_ERROR;
       }
    }
@@ -299,8 +302,9 @@ io_status_t SSLSocketDataIO :: Write(const void * buffer, uint32 size)
       }
       else
       {
-         LogTime(MUSCLE_LOG_DEBUG, "SSL_write() returned error code %i!\n", err);
-         if (GetMaxLogLevel() >= MUSCLE_LOG_DEBUG) ERR_print_errors_fp(stderr);
+         const status_t en = B_ERRNO;  // this can get set by SSL_write() as a side effect, and may be informative
+         LogTime(MUSCLE_LOG_DEBUG, "SSL_write() returned error code %i (ERROR_get_error()=%i B_ERRNO=[%s])\n", err, (int) ERR_get_error(), en());
+         if (GetMaxLogLevel() >= MUSCLE_LOG_DEBUG) ERR_print_errors_fp(stdout);
          return B_SSL_ERROR;
       }
    }
