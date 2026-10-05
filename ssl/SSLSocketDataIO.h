@@ -122,6 +122,8 @@ private:
    unsigned int PSKServerCallback(const char *identity, unsigned char * psk, unsigned int pskLen) const;
    unsigned int PSKClientCallback(const char * hint, char * identity, unsigned int maxIdentityLen, unsigned char * psk, unsigned int pskLen) const;
 
+   void CheckForFatalError(int err);
+
    const bool _isServer;  // true iff accept was passed in as true in our ctor
 
    enum {
@@ -144,6 +146,8 @@ private:
 
    SSL_CTX * _ctx;
    SSL     * _ssl;
+
+   bool _shutdownCallAllowed;
 
    DECLARE_COUNTED_OBJECT(SSLSocketDataIO);
 };

@@ -16,6 +16,7 @@ SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking,
    , _forceWriteReadyFlag(0)
    , _ctx(NULL)
    , _ssl(NULL)
+   , _shutdownCallAllowed(true)
 {
    status_t ret;
    bool ok = false;
@@ -65,8 +66,27 @@ SSLSocketDataIO :: ~SSLSocketDataIO()
 
 void SSLSocketDataIO :: Shutdown()
 {
-   if (_ssl)  {SSL_shutdown(_ssl); SSL_free(_ssl); _ssl = NULL;}
-   if (_ctx)  {SSL_CTX_free(_ctx); _ctx = NULL;}
+   if (_ssl)
+   {
+      if (_shutdownCallAllowed)
+      {
+         if (IsBlockingIOEnabled())
+         {
+            while((SSL_shutdown(_ssl)) == 0) {/* empty */} // Keep calling until we get either an error (-1) or a shutdown-completed value (1)
+         }
+         else (void) SSL_shutdown(_ssl);  // for non-blocking I/O, we aren't allowed to block, so we'll just call it once
+      }
+
+      SSL_free(_ssl);
+      _ssl = NULL;
+   }
+
+   if (_ctx)
+   {
+      SSL_CTX_free(_ctx);
+      _ctx = NULL;
+   }
+
    TCPSocketDataIO::Shutdown();
 }
 
@@ -258,6 +278,8 @@ io_status_t SSLSocketDataIO :: Read(void * buffer, uint32 size)
 
          default:
          {
+            CheckForFatalError(err);
+
             const status_t en = B_ERRNO;  // this can get set by SSL_read() as a side effect, and may be informative
             LogTime(MUSCLE_LOG_DEBUG, "SSL_read() returned error code %i (ERROR_get_error()=%i B_ERRNO=[%s])\n", err, (int) ERR_get_error(), en());
             if (GetMaxLogLevel() >= MUSCLE_LOG_DEBUG) ERR_print_errors_fp(stdout);
@@ -302,6 +324,8 @@ io_status_t SSLSocketDataIO :: Write(const void * buffer, uint32 size)
       }
       else
       {
+         CheckForFatalError(err);
+
          const status_t en = B_ERRNO;  // this can get set by SSL_write() as a side effect, and may be informative
          LogTime(MUSCLE_LOG_DEBUG, "SSL_write() returned error code %i (ERROR_get_error()=%i B_ERRNO=[%s])\n", err, (int) ERR_get_error(), en());
          if (GetMaxLogLevel() >= MUSCLE_LOG_DEBUG) ERR_print_errors_fp(stdout);
@@ -345,6 +369,21 @@ void SSLSocketDataIO :: OnWriteReady()
    {
       // so that DoInput() (and therefore SSL_read()) will be called again, even if the TCP socket's not currently readable
       _forceReadReadyFlag = true;
+   }
+}
+
+void SSLSocketDataIO :: CheckForFatalError(int err)
+{
+   switch(err)
+   {
+      case SSL_ERROR_SYSCALL:
+      case SSL_ERROR_SSL:
+         _shutdownCallAllowed = false;  // per SSL_shutdown() man page
+      break;
+
+      default:
+         // empty
+      break;
    }
 }
 

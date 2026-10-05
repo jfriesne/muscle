@@ -39,6 +39,7 @@ key:  - new feature
    * Updated the ifdefs in MuscleSupport.h so that they no longer
      define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD as a side
      effect of MUSCLE_USE_CPLUSPLUS11_THREADS not being defined.
+   * SSLSocketDataIO wasn't calling SSL_shutdown() correctly.  Fixed.
 
 9.93 - Released 9/3/2026
    - Updated DataNode's ordered-index checksum to a method that
