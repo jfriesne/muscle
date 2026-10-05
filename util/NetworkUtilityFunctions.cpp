@@ -1546,8 +1546,9 @@ NetworkInterfaceInfo :: NetworkInterfaceInfo()
    // empty
 }
 
-NetworkInterfaceInfo :: NetworkInterfaceInfo(const String &name, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType, uint32 mtu)
+NetworkInterfaceInfo :: NetworkInterfaceInfo(const String & name, const String & userFriendlyName, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType, uint32 mtu)
    : _name(name)
+   , _userFriendlyName(userFriendlyName)
    , _desc(desc)
    , _ip(ip)
    , _netmask(netmask)
@@ -1605,28 +1606,29 @@ const char * NetworkInterfaceInfo :: GetNetworkHardwareTypeString(uint32 hardwar
 
 bool NetworkInterfaceInfo :: operator == (const NetworkInterfaceInfo & rhs) const
 {
-   return ((_name         == rhs._name)
-         &&(_desc         == rhs._desc)
-         &&(_ip           == rhs._ip)
-         &&(_netmask      == rhs._netmask)
-         &&(_broadcastIP  == rhs._broadcastIP)
-         &&(_enabled      == rhs._enabled)
-         &&(_copper       == rhs._copper)
-         &&(_macAddress   == rhs._macAddress)
-         &&(_hardwareType == rhs._hardwareType)
-         &&(_mtu          == rhs._mtu));
+   return ((_name             == rhs._name)
+         &&(_userFriendlyName == rhs._userFriendlyName)
+         &&(_desc             == rhs._desc)
+         &&(_ip               == rhs._ip)
+         &&(_netmask          == rhs._netmask)
+         &&(_broadcastIP      == rhs._broadcastIP)
+         &&(_enabled          == rhs._enabled)
+         &&(_copper           == rhs._copper)
+         &&(_macAddress       == rhs._macAddress)
+         &&(_hardwareType     == rhs._hardwareType)
+         &&(_mtu              == rhs._mtu));
 }
 
 String NetworkInterfaceInfo :: ToString() const
 {
-   String ret = String("Name=[%1] Description=[%2] Type=[%3] IP=[%4] Netmask=[%5]").Arg(_name).Arg(_desc).Arg(GetNetworkHardwareTypeString(_hardwareType)).Arg(Inet_NtoA(_ip)).Arg(Inet_NtoA(_netmask));
+   String ret = String("Name=[%1] UserFriendlyName=[%2] Description=[%3] Type=[%4] IP=[%5] Netmask=[%6]").Arg(_name).Arg(_userFriendlyName).Arg(_desc).Arg(GetNetworkHardwareTypeString(_hardwareType)).Arg(Inet_NtoA(_ip)).Arg(Inet_NtoA(_netmask));
    ret += String(" Broadcast=[%1] MAC=[%2] Enabled=%3 Copper=%4 MTU=%5").Arg(Inet_NtoA(_broadcastIP)).Arg(MACAddressToString(_macAddress)).Arg(_enabled).Arg(_copper).Arg(_mtu);
    return ret;
 }
 
 uint32 NetworkInterfaceInfo :: HashCode() const
 {
-   return _name.HashCode() + _desc.HashCode() + _hardwareType + _ip.HashCode() + _netmask.HashCode() + _broadcastIP.HashCode() + CalculateHashCode(_macAddress) +_enabled + _copper + _mtu;
+   return _name.HashCode() + _userFriendlyName.HashCode() + _desc.HashCode() + _hardwareType + _ip.HashCode() + _netmask.HashCode() + _broadcastIP.HashCode() + CalculateHashCode(_macAddress) +_enabled + _copper + _mtu;
 }
 
 const char * _gniiFlagLabels[] = {
@@ -2068,7 +2070,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 #endif
 
                // coverity[dead_error_line] - it's okay, ifDesc does get modified in the MacOS case
-               if (results.AddTail(NetworkInterfaceInfo(iname, ifDesc?*ifDesc:GetEmptyString(), unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType, GetNetworkInterfaceMTU(dummySocket, iname))).IsOK(ret))  // MAC address will be set later
+               if (results.AddTail(NetworkInterfaceInfo(iname, iname, ifDesc?*ifDesc:GetEmptyString(), unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType, GetNetworkInterfaceMTU(dummySocket, iname))).IsOK(ret))  // MAC address will be set later
                {
                   DECLARE_MUTEXGUARD(_cachedLocalhostAddressLock);
                   if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;
@@ -2199,7 +2201,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 
                      const bool hasCopper = (pCurrAddresses->OperStatus==IfOperStatusUp);
                      const uint32 hardwareType = ConvertWindowsInterfaceType(pCurrAddresses->IfType);
-                     if (results.AddTail(NetworkInterfaceInfo(pCurrAddresses->AdapterName, pCurrAddresses->Description, unicastIP, netmask, broadIP, isEnabled, hasCopper, mac, hardwareType, pCurrAddresses->Mtu)).IsOK(ret))
+                     if (results.AddTail(NetworkInterfaceInfo(pCurrAddresses->AdapterName, pCurrAddresses->UserFriendlyName, pCurrAddresses->Description, unicastIP, netmask, broadIP, isEnabled, hasCopper, mac, hardwareType, pCurrAddresses->Mtu)).IsOK(ret))
                      {
                         DECLARE_MUTEXGUARD(_cachedLocalhostAddressLock);
                         if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;

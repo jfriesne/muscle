@@ -72,6 +72,7 @@ public:
 
    /** Constructor.  Sets all member variables to the values specified in the argument list.
      * @param name The name of the interface, as it is known to the computer (eg "/dev/eth0").
+     * @param userFriendlyName optional user-friendly name for the interface.  Defaults to an empty String.
      * @param desc A human-readable description string describing the interface (eg "Ethernet Jack 0", or somesuch).
      * @param ip The local IP address associated with the interface.
      * @param netmask The netmask being used by this interface.
@@ -82,10 +83,15 @@ public:
      * @param hardwareType a NETWORK_INTERFACE_HARDWARE_TYPE_* value (NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN if the hardware type isn't known)
      * @param mtu Max Transfer unit size of this network interface, in bytes
      */
-   NetworkInterfaceInfo(const String & name, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadcastIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType, uint32 mtu);
+   NetworkInterfaceInfo(const String & name, const String & userFriendlyName, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadcastIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType, uint32 mtu);
 
    /** Returns the name of this interface, or "" if the name is not known. */
    MUSCLE_NODISCARD const String & GetName() const {return _name;}
+
+   /** Returns a more user-friendly name for this interface.  May return the same avlue as GetName() if
+     * no more user-friendly form is known.
+     */
+   MUSCLE_NODISCARD const String & GetUserFriendlyName() const {return _userFriendlyName;}
 
    /** Returns a (human-readable) description of this interface, or "" if a description is unavailable. */
    MUSCLE_NODISCARD const String & GetDescription() const {return _desc;}
@@ -156,6 +162,7 @@ private:
    friend status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFlags includeFlags);  // so it can set the _macAddress field
 
    String _name;
+   String _userFriendlyName;
    String _desc;
    IPAddress _ip;
    IPAddress _netmask;

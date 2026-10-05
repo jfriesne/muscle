@@ -93,10 +93,6 @@ int main(int argc, char ** argv)
    if (args.FindString("port", &temp).IsOK()) port = (uint16) atoi(temp);
    if (port == 0) port = 9999;
 
-   uint32 mtu = 0;
-   if (args.FindString("mtu", &temp).IsOK()) mtu = (int32) atol(temp);
-   if (mtu == 0) mtu = MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET;
-
    uint32 magic = 0;
    if (args.FindString("magic", &temp).IsOK()) magic = (uint32) atol(temp);
    if (magic == 0) magic = 666;
@@ -138,7 +134,7 @@ int main(int argc, char ** argv)
             return 10;
          }
       }
-      dio.SetRef(new PacketizedProxyDataIO(DataIORef(new TCPSocketDataIO(s, false)), mtu));
+      dio.SetRef(new PacketizedProxyDataIO(DataIORef(new TCPSocketDataIO(s, false))));
    }
    else
    {
@@ -154,7 +150,7 @@ int main(int argc, char ** argv)
       dio.SetRef(udpDio);
    }
 
-   LogTime(MUSCLE_LOG_INFO, "Packet test running on port %u, mtu=" UINT32_FORMAT_SPEC " magic=" UINT32_FORMAT_SPEC "\n", port, mtu, magic);
+   LogTime(MUSCLE_LOG_INFO, "Packet test running on port %u, magic=" UINT32_FORMAT_SPEC "\n", port, magic);
 
    AbstractMessageIOGatewayRef slaveGatewayRef;
    if (args.HasName("usegw"))
@@ -168,8 +164,8 @@ int main(int argc, char ** argv)
 
    const bool testMini = args.HasName("mini");
    LogTime(MUSCLE_LOG_INFO, "Using the %s class for I/O\n", testMini?"MiniPacketTunnelIOGateway":"PacketTunnelIOGateway");
-   PacketTunnelIOGateway         gw(slaveGatewayRef, mtu, magic); if (!testMini) gw.SetDataIO(dio);
-   MiniPacketTunnelIOGateway minigw(slaveGatewayRef, mtu, magic); if  (testMini) minigw.SetDataIO(dio);
+   PacketTunnelIOGateway         gw(slaveGatewayRef, magic); if (!testMini) gw.SetDataIO(dio);
+   MiniPacketTunnelIOGateway minigw(slaveGatewayRef, magic); if  (testMini) minigw.SetDataIO(dio);
    TestPacketGatewayMessageReceiver receiver;
 
    // Just so our event loop can keep going, so we can still print status messages if we're getting 100% spammed
@@ -214,6 +210,8 @@ int main(int argc, char ** argv)
             const uint32 numMessages = GetInsecurePseudoRandomNumber32(10);
 
             LogTime(MUSCLE_LOG_TRACE, "Spam! (" UINT32_FORMAT_SPEC " messages, counter=" UINT32_FORMAT_SPEC ")\n", numMessages, _sendWhatCounter);
+
+            const uint32 mtu = dynamic_cast<const PacketDataIO *>(gateway->GetDataIO()())->GetMaximumPacketSize();
 
             uint32 byteCount = 0;
             while((gateway->GetOutgoingMessageQueue().GetNumItems() < 100)&&(byteCount < mtu*5))
