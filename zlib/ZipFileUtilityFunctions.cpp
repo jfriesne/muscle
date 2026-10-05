@@ -43,7 +43,7 @@ static long ZCALLBACK ftell_dataio_func (voidpf /*opaque*/, voidpf stream)
    {
       return ((ret < 0)||(ret > (int64)LONG_MAX)) ? (long)-1 : (long)ret;  // error out cleanly on overflow
    }
-   else return ret;
+   else return (long) ret;
 }
 
 static long ZCALLBACK fseek_dataio_func (voidpf /*opaque*/, voidpf stream, uLong offset, int origin)
