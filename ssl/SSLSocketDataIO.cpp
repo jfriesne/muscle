@@ -17,6 +17,7 @@ SSLSocketDataIO :: SSLSocketDataIO(const ConstSocketRef & sockfd, bool blocking,
    , _ctx(NULL)
    , _ssl(NULL)
    , _shutdownCallAllowed(true)
+   , _authenticationFailed(false)
 {
    status_t ret;
    bool ok = false;
@@ -193,11 +194,48 @@ unsigned int SSLSocketDataIO :: pskServerCallbackFunc(SSL * ssl, const char *ide
    return ssdio->PSKServerCallback(identity, outPSKBuf, outPSKBufLen);
 }
 
-unsigned int SSLSocketDataIO :: PSKServerCallback(const char *identity, unsigned char * psk, unsigned int pskLen) const
+// Callback function to intercept TLS records
+void SSLSocketDataIO :: msgCallbackFunc(int write_p, int version, int content_type, const void * buf, size_t len, SSL * ssl, void *)
+{
+   SSLSocketDataIO * ssdio = (SSLSocketDataIO *) SSL_get_ex_data(ssl, 0);
+   if (ssdio) ssdio->MsgCallback(write_p, version, content_type, buf, len);
+         else LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO::msgCallback:  no SSLSocketDataIO object found!\n");
+}
+
+void SSLSocketDataIO :: MsgCallback(int write_p, int /*version*/, int content_type, const void *buf, size_t len)
+{
+   if ((write_p == 0)&&(content_type == SSL3_RT_ALERT)&&(len >= 2)) // Content type 21 signifies an Alert protocol message
+   {
+      const unsigned char * alert_msg       = (const unsigned char *)buf;
+      const unsigned char alert_level       = alert_msg[0]; // 1 = warning, 2 = fatal
+      const unsigned char alert_description = alert_msg[1];
+      LogTime(MUSCLE_LOG_DEBUG, "SSLSocketDataIO %p received TLS Alert from Server:  Level=%u, Description=%u\n", this, alert_level, alert_description);
+
+      if (alert_level == 2)
+      {
+         // 20 is bad_record_mac; 115 is unknown_psk_identity
+         switch(alert_description)
+         {
+            case SSL3_AD_BAD_RECORD_MAC:
+            case TLS1_AD_UNKNOWN_PSK_IDENTITY:
+            case TLS1_AD_DECRYPT_ERROR:
+               _authenticationFailed = true;
+            break;
+
+            default:
+               // empty
+            break;
+         }
+      }
+   }
+}
+
+unsigned int SSLSocketDataIO :: PSKServerCallback(const char *identity, unsigned char * psk, unsigned int pskLen)
 {
    if (_pskUserName != identity)
    {
       LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO::pskServerCallback:  unrecognized user name [%s]\n", identity);
+      _authenticationFailed = true;
       return 0;
    }
 
@@ -205,6 +243,7 @@ unsigned int SSLSocketDataIO :: PSKServerCallback(const char *identity, unsigned
    if (flatSize > pskLen)
    {
       LogTime(MUSCLE_LOG_ERROR, "SSLSocketDataIO::pskServerCallback:  output buffer not long enough to hold password!\n");
+      _authenticationFailed = true;
       return 0;  // failure
    }
 
@@ -241,6 +280,8 @@ void SSLSocketDataIO :: SetPreSharedKeyLoginInfo(const String & userName, const 
    {
       if (_isServer) SSL_set_psk_server_callback(_ssl, pskServerCallbackFunc);
                 else SSL_set_psk_client_callback(_ssl, pskClientCallbackFunc);
+
+      SSL_set_msg_callback(_ssl, msgCallbackFunc);
    }
 }
 
@@ -284,7 +325,7 @@ io_status_t SSLSocketDataIO :: Read(void * buffer, uint32 size)
             LogTime(MUSCLE_LOG_DEBUG, "SSL_read() returned error code %i (ERROR_get_error()=%i B_ERRNO=[%s])\n", err, (int) ERR_get_error(), en());
             if (GetMaxLogLevel() >= MUSCLE_LOG_DEBUG) ERR_print_errors_fp(stdout);
          }
-         return B_SSL_ERROR;
+         return _authenticationFailed ? B_ACCESS_DENIED : B_SSL_ERROR;
       }
    }
 }
@@ -329,7 +370,7 @@ io_status_t SSLSocketDataIO :: Write(const void * buffer, uint32 size)
          const status_t en = B_ERRNO;  // this can get set by SSL_write() as a side effect, and may be informative
          LogTime(MUSCLE_LOG_DEBUG, "SSL_write() returned error code %i (ERROR_get_error()=%i B_ERRNO=[%s])\n", err, (int) ERR_get_error(), en());
          if (GetMaxLogLevel() >= MUSCLE_LOG_DEBUG) ERR_print_errors_fp(stdout);
-         return B_SSL_ERROR;
+         return _authenticationFailed ? B_ACCESS_DENIED : B_SSL_ERROR;
       }
    }
 }
@@ -376,8 +417,10 @@ void SSLSocketDataIO :: CheckForFatalError(int err)
 {
    switch(err)
    {
-      case SSL_ERROR_SYSCALL:
       case SSL_ERROR_SSL:
+         if (SSL_get_verify_result(_ssl) != X509_V_OK) _authenticationFailed = true;
+      // fall through!
+      case SSL_ERROR_SYSCALL:
          _shutdownCallAllowed = false;  // per SSL_shutdown() man page
       break;
 

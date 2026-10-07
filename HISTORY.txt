@@ -21,6 +21,7 @@ key:  - new feature
    - SSLSocketDataIO is now self-contained and no longer needs to be
      paired with a SocketAdapterGateway in order to function properly.
    - Added a GetUserFriendlyName() field to the NetworkInterfaceInfo class.
+   - Added a DidAuthenticationFail() accessor method to the SSLSocketDataIO class.
    o Removed the SocketAdapterGateway class as it is no longer necessary.
    o Removed the (maxTransferUnit) argument from the PacketTunnelIOGateway
      and MiniPacketTunnelIOGateway constructors, as the proper value can be

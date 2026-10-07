@@ -104,6 +104,9 @@ public:
      */
    MUSCLE_NODISCARD const String & GetPreSharedKeyPassword() const {return _pskPassword;}
 
+   /** Returns true if an authentication failure was detected. */
+   MUSCLE_NODISCARD bool DidAuthenticationFail() const {return _authenticationFailed;}
+
    // Our implementation of the DataIO API
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetReadSelectSocket() const;
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const;
@@ -118,9 +121,11 @@ public:
 private:
    static unsigned int pskClientCallbackFunc(SSL * ssl, const char *hint, char * identity, unsigned int maxIdentityLen, unsigned char * psk, unsigned int maxPSKLen);
    static unsigned int pskServerCallbackFunc(SSL * ssl, const char *identity, unsigned char *outPSKBuf, unsigned int outPSKBufLen);
+   static void msgCallbackFunc(int write_p, int version, int content_type, const void *buf, size_t len, SSL *ssl, void *arg);
 
-   unsigned int PSKServerCallback(const char *identity, unsigned char * psk, unsigned int pskLen) const;
+   unsigned int PSKServerCallback(const char *identity, unsigned char * psk, unsigned int pskLen);
    unsigned int PSKClientCallback(const char * hint, char * identity, unsigned int maxIdentityLen, unsigned char * psk, unsigned int pskLen) const;
+   void MsgCallback(int write_p, int version, int content_type, const void *buf, size_t len);
 
    void CheckForFatalError(int err);
 
@@ -148,6 +153,7 @@ private:
    SSL     * _ssl;
 
    bool _shutdownCallAllowed;
+   bool _authenticationFailed;
 
    DECLARE_COUNTED_OBJECT(SSLSocketDataIO);
 };
