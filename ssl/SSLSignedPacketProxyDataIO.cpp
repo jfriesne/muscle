@@ -111,7 +111,7 @@ status_t SSLSignedPacketProxyDataIO :: SetPublicKey(const char * publicKeyFilePa
    FileDataIO fdio(publicKeyFilePath, "rb");
    ConstByteBufferRef bufRef = GetByteBufferFromPool(fdio);
    MRETURN_ON_ERROR(bufRef);
-   return (bufRef()->GetNumBytes() > 0) ? SetPublicKey(GetByteBufferFromPool(fdio)) : B_FILE_NOT_FOUND;
+   return (bufRef()->GetNumBytes() > 0) ? SetPublicKey(bufRef) : B_FILE_NOT_FOUND;
 }
 
 status_t SSLSignedPacketProxyDataIO :: SetPublicKey(const uint8 * bytes, uint32 numBytes)
@@ -163,7 +163,9 @@ uint32 SSLSignedPacketProxyDataIO :: GetExpectedPacketSigningOverheadBytesCount(
 
 uint32 SSLSignedPacketProxyDataIO :: GetMaximumPacketSize() const
 {
-   return ProxyDataIO::GetMaximumPacketSize() - GetExpectedPacketSigningOverheadBytesCount();  // since we'll be adding trailing bytes, the available payload size gets reduced
+   const uint32 superSize    = ProxyDataIO::GetMaximumPacketSize();
+   const uint32 overheadSize = GetExpectedPacketSigningOverheadBytesCount();
+   return (superSize > overheadSize) ? (superSize-overheadSize) : 0;  // since we'll be adding trailing bytes, the available payload size gets reduced
 }
 
 io_status_t SSLSignedPacketProxyDataIO :: ReadAux(void * buffer, uint32 size, IPAddressAndPort * optRetPacketSource)
@@ -225,7 +227,7 @@ io_status_t SSLSignedPacketProxyDataIO :: ValidateIncomingSignedPacket(const uin
    const uint32 numPayloadBytes = unflat.ReadInt32();
    const uint32 magicWord       = unflat.ReadInt32();
    if (magicWord != SSL_PACKET_PROXY_MAGIC_WORD) return B_BAD_DATA;
-   if (numBytes < (numPayloadBytes+(uint32)SSL_PACKET_PROXY_TRAILER_SIZE)) return B_BAD_DATA;  // signature-size can't be negative!
+   if (numBytes < SaturatingUnsignedAdd(numPayloadBytes, (uint32)SSL_PACKET_PROXY_TRAILER_SIZE)) return B_BAD_DATA;  // signature-size can't be negative!
 
    const uint8 * sigBytes   = buffer+numPayloadBytes;
    const uint32 numSigBytes = numBytes-(numPayloadBytes+SSL_PACKET_PROXY_TRAILER_SIZE);
@@ -269,6 +271,7 @@ status_t SSLSignedPacketProxyDataIO :: GenerateSignedOutputData(const uint8 * pa
             tailWriter.WriteInt32(numPayloadBytes);
             tailWriter.WriteInt32(SSL_PACKET_PROXY_MAGIC_WORD);  // just to make it obvious that the trailer exists
 
+            _scratchBuf.TruncateToLength(numPayloadBytes+(uint32)numSigBytes+SSL_PACKET_PROXY_TRAILER_SIZE);  // just in case (numSigBytes) was set smaller by the second call to EVP_DigestSign()
             return B_NO_ERROR;
          }
          else LogTime(MUSCLE_LOG_ERROR, "GenerateSignedOutputData(): EVP_DigestSignFinal failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
