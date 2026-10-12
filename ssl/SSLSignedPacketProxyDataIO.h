@@ -10,7 +10,7 @@
 namespace muscle {
 
 #ifndef MUSCLE_DEFAULT_SSL_SIGNED_PACKET_PROXY_WINDOW_SIZE
-# define MUSCLE_DEFAULT_SSL_SIGNED_PACKET_PROXY_WINDOW_SIZE 8192
+# define MUSCLE_DEFAULT_SSL_SIGNED_PACKET_PROXY_WINDOW_SIZE 1024
 #endif
 
 /** This is a proxy DataIO that can use a private key to add signature bytes to the end of

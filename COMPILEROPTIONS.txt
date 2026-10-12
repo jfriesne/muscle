@@ -407,4 +407,4 @@ of your Makefile to alter muscle's behaviour:
    If specified, this is the default number of recent
    packet IDs that the SSLSignedPacketProxyDataIO will
    track in its sliding window of incoming packets.
-   Default value is 8192.
+   Default value is 1024.
