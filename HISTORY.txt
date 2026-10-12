@@ -33,6 +33,9 @@ key:  - new feature
      as they were more trouble than they were worth.
    o Renamed DataIO::HasBufferedOutput() to DataIO::WantsOnWriteReadyCallback()
    o Renamed DataIO::WriteBufferedOutput() to DataIO::OnWriteReady()
+   o Changed the default value of MUSCLE_POTENTIAL_EXTRA_HEADERS_SIZE_BYTES
+     macro from 64 to 0, since in most cases it isn't necessary because
+     layer-2 Ethernet headers don't count against the layer-3 MTU.
    * Removed an optimization in NodePathMatcher::CheckChildForTraversal()
      that could cause a false-positive match on a DataNode in some cases.
    * message.GetFlat() Python method now handles it correctly when the

@@ -408,3 +408,9 @@ of your Makefile to alter muscle's behaviour:
    packet IDs that the SSLSignedPacketProxyDataIO will
    track in its sliding window of incoming packets.
    Default value is 1024.
+
+-DMUSCLE_POTENTIAL_EXTRA_HEADERS_SIZE_BYTES=64
+   If specified, the value of MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET
+   will be reduced by this amount.  Potentially useful if
+   you are using IPSec or something else that will fragment
+   normal-sized UDP packets otherwise.

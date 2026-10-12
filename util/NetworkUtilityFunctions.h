@@ -47,7 +47,7 @@ namespace muscle {
 #endif
 
 #ifndef MUSCLE_POTENTIAL_EXTRA_HEADERS_SIZE_BYTES
-# define MUSCLE_POTENTIAL_EXTRA_HEADERS_SIZE_BYTES 64 /**< Some extra room, just in case some router or VLAN headers need to be added also */
+# define MUSCLE_POTENTIAL_EXTRA_HEADERS_SIZE_BYTES 0 /**< Can be set to a positive value to reduce MUSCLE_MAX_PAYLOAD_BYTES_PER_UDP_ETHERNET_PACKET by that amount, e.g. for IPSec without fragmentation */
 #endif
 
 #ifdef MUSCLE_AVOID_IPV6
