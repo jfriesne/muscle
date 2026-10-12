@@ -402,3 +402,9 @@ of your Makefile to alter muscle's behaviour:
    If specified, then the librt implementation of
    GetRunTim64() will use CLOCK_MONOTONIC_RAW instead of
    CLOCK_MONOTONIC.
+
+-DMUSCLE_DEFAULT_SSL_SIGNED_PACKET_PROXY_WINDOW_SIZE=8192
+   If specified, this is the default number of recent
+   packet IDs that the SSLSignedPacketProxyDataIO will
+   track in its sliding window of incoming packets.
+   Default value is 8192.

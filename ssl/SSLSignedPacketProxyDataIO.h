@@ -4,9 +4,14 @@
 #define MuscleSSLSignedPacketProxyDataIO_h
 
 #include "dataio/ProxyDataIO.h"
+#include "util/Hashtable.h"
 #include "util/ByteBuffer.h"
 
 namespace muscle {
+
+#ifndef MUSCLE_DEFAULT_SSL_SIGNED_PACKET_PROXY_WINDOW_SIZE
+# define MUSCLE_DEFAULT_SSL_SIGNED_PACKET_PROXY_WINDOW_SIZE 8192
+#endif
 
 /** This is a proxy DataIO that can use a private key to add signature bytes to the end of
   * outgoing packets, and/or use a public key to verify the signature bytes at the end of
@@ -19,17 +24,25 @@ class SSLSignedPacketProxyDataIO : public ProxyDataIO
 public:
    /**
     * Default Constructor.
+    * @param receivedPacketIDWindowSize the size of our receive-window for de-duplication and replay-attack-defense of incoming UDP packets.
+    *                                   Defaults to MUSCLE_DEFAULT_SSL_SIGNED_PACKET_PROXY_WINDOW_SIZE (e.g. incoming packet IDs that are within (receivedPacketIDWindowSize) of the largest received packet ID, and
+    *                                   haven't already been received, will be accepted).  As a special case, you can pass zero for this argument
+    *                                   to disable the packet-ID-filtering logic entirely.
     * @note be sure to call SetChildDataIO(), and SetPrivateKey() and/or SetPublicKey() before using this object, or it won't do anything useful.
     */
-   SSLSignedPacketProxyDataIO();
+   SSLSignedPacketProxyDataIO(uint32 receivedPacketIDWindowSize = MUSCLE_DEFAULT_SSL_SIGNED_PACKET_PROXY_WINDOW_SIZE);
 
    /**
     * Constructor.
     * @param childRef reference to the PacketDataIO object this SSLSignedPacketProxyDataIO should use to do its sending and/or recieving
     *                 of raw packet data.  (Usually this should be a UDPSocketDataIO, unless you're doing something particularly creative)
+    * @param receivedPacketIDWindowSize the size of our receive-window for de-duplication and replay-attack-defense of incoming UDP packets.
+    *                                   Defaults to MUSCLE_DEFAULT_SSL_SIGNED_PACKET_PROXY_WINDOW_SIZE (e.g. incoming packet IDs that are within (receivedPacketIDWindowSize) of the largest received packet ID, and
+    *                                   haven't already been received, will be accepted).  As a special case, you can pass zero for this argument
+    *                                   to disable the packet-ID-filtering logic entirely.
     * @note be sure to call SetPrivateKey() and/or SetPublicKey() before using this object, or it won't do anything useful.
     */
-   SSLSignedPacketProxyDataIO(const PacketDataIORef & childRef);
+   SSLSignedPacketProxyDataIO(const PacketDataIORef & childRef, uint32 receivedPacketIDWindowSize = MUSCLE_DEFAULT_SSL_SIGNED_PACKET_PROXY_WINDOW_SIZE);
 
    /** Destructor. */
    virtual ~SSLSignedPacketProxyDataIO();
@@ -101,6 +114,72 @@ public:
    static uint32 GetExpectedPacketSigningOverheadBytesCount();
 
 private:
+   class ReceivedPacketIDsWindow : public RefCountable
+   {
+   public:
+      /** Constructor
+        * @param bitmap should be a ByteBuffer that we will use as a running bitmap to determine which packet IDs we have seen recently
+        * @param firstReceivedPacketID the ID of the received packet that caused this ReceivedPacketIDsWindow object to be created
+        */
+      ReceivedPacketIDsWindow(const ByteBufferRef & bitmap, uint64 firstReceivedPacketID);
+
+      /** Call this when a new, validated packet is received.
+        * @param newPacketID the packet ID of the new packet
+        * @returns true (and updates our internal state) if the packet is acceptable.  Return false if the packet was rejected.
+        */
+      bool MaybeAcceptPacket(uint64 newPacketID);
+
+   private:
+      void SetBit(uint32 bitIndex, bool newBitValue)
+      {
+         MASSERT(bitIndex < GetWindowSize(), "SetBit(): bad bitIndex");
+
+         const uint8 theMask = (1<<(bitIndex%8));
+         uint8 & theByte     = _bitmap()->GetBuffer()[bitIndex/8];
+
+         if (newBitValue) theByte |=  theMask;
+                     else theByte &= ~theMask;
+      }
+
+      bool IsBitSet(uint32 bitIndex) const
+      {
+         MASSERT(bitIndex < GetWindowSize(), "IsBitSet(): bad bitIndex");
+
+         const uint8 theMask   = (1<<(bitIndex%8));
+         const uint8 & theByte = _bitmap()->GetBuffer()[bitIndex/8];
+
+         return ((theByte & theMask) != 0);
+      }
+
+      // Note that (packetID) MUST be within our current window, or else we'll trigger an assertion failure
+      uint32 GetBitIndexForPacketID(uint64 packetID) const
+      {
+         MASSERT(muscleInRange(packetID, GetSmallestPacketIDInWindow(), _largestReceivedPacketID), "GetBitIndexForPacketID():  packetID wasn't in the window");
+
+         const uint32 windowSize = GetWindowSize();
+         return ((packetID-_largestReceivedPacketID)+_largestPacketIDBitIndex+windowSize)%windowSize;
+      }
+
+      uint32 GetWindowSize() const {return (_bitmap()->GetNumBytes()*8);}
+
+      uint64 GetSmallestPacketIDInWindow() const
+      {
+         const uint64 ws = GetWindowSize();
+         return (_largestReceivedPacketID > ws) ? (_largestReceivedPacketID-(ws-1)) : 0;
+      }
+
+      void ClearBitmap() {memset(_bitmap()->GetBuffer(), 0, _bitmap()->GetNumBytes());}
+
+      ByteBufferRef _bitmap;
+      uint64 _largestReceivedPacketID;  // the largest Packet ID represented in our window
+      uint32 _largestPacketIDBitIndex;  // index of the bit in our bitmap that represents the state of (_largestReceivedPacketID)
+   };
+   DECLARE_REFTYPES(ReceivedPacketIDsWindow);
+
+   Hashtable<uint64, ReceivedPacketIDsWindowRef> _receivedPacketWindowBySenderID;
+
+   ReceivedPacketIDsWindow * GetOrPutReceivedPacketIDsWindow(uint64 senderSessionID, uint64 senderPacketID);
+
    io_status_t ReadAux(void * buffer, uint32 size, IPAddressAndPort * optRetPacketSource);
    io_status_t ValidateIncomingSignedPacket(const uint8 * buffer, uint32 numBytes);
    status_t GenerateSignedOutputData(const uint8 * dataBytes, uint32 numDataBytes);
@@ -108,8 +187,13 @@ private:
    void ResetIncomingContext();
    void ResetOutgoingContext();
 
+   const uint32 _receivedPacketIDWindowSize;
+
    void * _incomingContext; // actually of type EVP_MD_CTX, but I don't want to include OpenSSL headers from here, so
    void * _publicKey;       // actually of type EVP_PKEY
+
+   const uint64 _outgoingSessionID;
+   uint64 _outgoingPacketIDCounter;
 
    void * _outgoingContext; // actually of type EVP_MD_CTX, but I don't want to include OpenSSL headers from here, so
    void * _privateKey;      // actually of type EVP_PKEY

@@ -47,7 +47,7 @@ io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessag
       firstTime = false;
 
       const io_status_t bytesRead = GetDataIO()() ? GetDataIO()()->Read(_inputPacketBuffer.GetBuffer(), _inputPacketBuffer.GetNumBytes()) : -1;
-//printf("   READ " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes\n", bytesRead.GetByteCount(), _inputPacketBuffer.GetNumBytes());
+//printf("PT %p:   READ " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes\n", this, bytesRead.GetByteCount(), _inputPacketBuffer.GetNumBytes());
       MTALLY_BYTES_OR_RETURN_ON_ERROR_OR_BREAK(totalBytesRead, bytesRead);
 
       IPAddressAndPort fromIAP;
@@ -70,7 +70,7 @@ io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessag
             const uint32 offset    = unflat.ReadInt32();
             const uint32 chunkSize = unflat.ReadInt32();
             const uint32 totalSize = unflat.ReadInt32();
-//printf("   PARSE magic=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " sex=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " messageID=" UINT32_FORMAT_SPEC " offset=" UINT32_FORMAT_SPEC " chunkSize=" UINT32_FORMAT_SPEC " totalSize=" UINT32_FORMAT_SPEC "\n", magic, _magic, sexID, _sexID, messageID, offset, chunkSize, totalSize);
+//printf("PT %p:   PARSE magic=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " sex=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " messageID=" UINT32_FORMAT_SPEC " offset=" UINT32_FORMAT_SPEC " chunkSize=" UINT32_FORMAT_SPEC " totalSize=" UINT32_FORMAT_SPEC "\n", this, magic, _magic, sexID, _sexID, messageID, offset, chunkSize, totalSize);
 
             if ((magic == _magic)&&((_sexID == 0)||(_sexID != sexID))&&((unflat.GetNumBytesAvailable() >= chunkSize)&&(totalSize <= _maxIncomingMessageSize)))
             {
@@ -103,13 +103,14 @@ io_status_t PacketTunnelIOGateway :: DoInputImplementation(AbstractGatewayMessag
                   }
 
                   const uint32 rsSize = rs->_buf()->GetNumBytes();
-//printf("  CHECK:  offset=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " %s\n", offset, rs->_offset, (offset==rs->_offset)?"":"DISCONTINUITY!!!");
+//printf("PT %p:  CHECK:  offset=" UINT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " %s\n", this, offset, rs->_offset, (offset==rs->_offset)?"":"DISCONTINUITY!!!");
                   if ((messageID == rs->_messageID)&&(totalSize == rsSize)&&(offset == rs->_offset)&&(WillUnsignedAddOverflow(offset, chunkSize)==false)&&(offset+chunkSize <= rsSize))
                   {
                      memcpy(rs->_buf()->GetBuffer()+offset, unflat.GetCurrentReadPointer(), chunkSize);
                      rs->_offset += chunkSize;
                      if (rs->_offset == rsSize)
                      {
+//printf("PT %p:  HANDLE " UINT32_FORMAT_SPEC " bytes from [%s]\n", this, rs->_buf()->GetNumBytes(), fromIAP.ToString()());
                         HandleIncomingByteBuffer(receiver, rs->_buf, fromIAP);
                         rs->_offset = 0;
                         rs->_buf()->Clear(rsSize > MAX_CACHE_SIZE);
@@ -165,7 +166,7 @@ io_status_t PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
          flat.WriteInt32(_currentOutputBufferOffset);  // start offset (within its message) for this sub-chunk
          flat.WriteInt32(dataBytesToSend);             // size of this sub-chunk
          flat.WriteInt32(sbSize);                      // total size of this message
-//printf("CREATING PACKET magic=" UINT32_FORMAT_SPEC " msgID=" UINT32_FORMAT_SPEC " offset=" UINT32_FORMAT_SPEC " chunkSize=" UINT32_FORMAT_SPEC " totalSize=" UINT32_FORMAT_SPEC "\n", _magic, _sendMessageIDCounter, _currentOutputBufferOffset, dataBytesToSend, sbSize);
+//printf("PT %p: CREATING PACKET magic=" UINT32_FORMAT_SPEC " msgID=" UINT32_FORMAT_SPEC " offset=" UINT32_FORMAT_SPEC " chunkSize=" UINT32_FORMAT_SPEC " totalSize=" UINT32_FORMAT_SPEC "\n", this, _magic, _sendMessageIDCounter, _currentOutputBufferOffset, dataBytesToSend, sbSize);
          flat.WriteBytes(_currentOutputBuffers.Head().GetByteBufferRef()()->GetBuffer()+_currentOutputBufferOffset, dataBytesToSend);
 
          _outputPacketSize += flat.GetNumBytesWritten();
@@ -184,7 +185,7 @@ io_status_t PacketTunnelIOGateway :: DoOutputImplementation(uint32 maxBytes)
       {
          // If bytesWritten is set to zero, we just hold this buffer until our next call.
          const io_status_t bytesWritten = GetDataIO()() ? GetDataIO()()->Write(_outputPacketBuffer.GetBuffer(), _outputPacketSize) : io_status_t(B_BAD_OBJECT);
-//printf("WROTE " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes %s\n", bytesWritten.GetByteCount(), _outputPacketSize, (bytesWritten.GetByteCount()==(int32)_outputPacketSize)?"":"******** SHORT ***********");
+//printf("PT %p: WROTE " INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes %s\n", this, bytesWritten.GetByteCount(), _outputPacketSize, (bytesWritten.GetByteCount()==(int32)_outputPacketSize)?"":"******** SHORT ***********");
          MTALLY_BYTES_OR_RETURN_ON_ERROR_OR_BREAK(totalBytesWritten, bytesWritten);
 
          if (bytesWritten.GetByteCount() != (int32)_outputPacketSize) LogTime(MUSCLE_LOG_ERROR, "PacketTunnelIOGateway::DoOutput():  Short write!  (" INT32_FORMAT_SPEC "/" UINT32_FORMAT_SPEC " bytes)\n", bytesWritten.GetByteCount(), _outputPacketSize);
