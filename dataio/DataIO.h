@@ -92,14 +92,14 @@ public:
    MUSCLE_NODISCARD virtual const ConstSocketRef & GetWriteSelectSocket() const = 0;
 
    /**
-    * If your DataIO subclass wants to have its OnReadReady() method as soon as its
+    * If your DataIO subclass wants to have its OnReadReady() method called as soon as its
     * held socket is ready-for-read, you can override this method to return true.
     * Default implementation always returns false.
     */
    MUSCLE_NODISCARD virtual bool WantsOnReadReadyCallback() const {return false;}
 
    /**
-    * If your DataIO subclass wants to have its OnWriteReady() method as soon as its
+    * If your DataIO subclass wants to have its OnWriteReady() method called as soon as its
     * held socket is ready-for-write, you can override this method to return true.
     * Default implementation always returns false.
     */
