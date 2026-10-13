@@ -686,6 +686,13 @@ status_t GetEnvironmentVariableValue(const String & envVarName, String & retValu
   */
 String GetEnvironmentVariableValueWithDefault(const String & envVarName, const String & defaultValue = GetEmptyString());
 
+/** Convenience method for setting an environment variable.
+  * @param envVarName the name of the environment variable to set in our own environment.
+  * @param envVal the value to set the environment variable to
+  * @returns B_NO_ERROR on success, or another value on failure.
+  */
+status_t SetEnvironmentVariableValue(const String & envVarName, const String & envVal);
+
 /** Returns a cheap-and-cheerful 32-bit pseudo-random number between 0 and (maxVal-1)
   * @param maxVal If set, the number returned will be less than this value.  Defaults to MUSCLE_NO_LIMIT.
   * @note this function is not at all cryptographically secure; it should only be used when you
