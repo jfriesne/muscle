@@ -300,7 +300,7 @@ io_status_t SSLSignedPacketProxyDataIO :: ValidateIncomingSignedPacket(const uin
             ReceivedPacketIDsWindow * rpw = GetOrPutReceivedPacketIDsWindow(senderSessionID, senderPacketID);
             if (rpw == NULL) return B_OUT_OF_MEMORY;
 
-            if (rpw->MaybeAcceptPacket(senderPacketID) == false) return B_ACCESS_DENIED;  // mitigation against duplicate packet IDs and replay attacks
+            if (rpw->MaybeAcceptPacket(senderPacketID) == false) return (int32)0;  // mitigation against duplicate packet IDs and replay attacks
          }
 
          return (int32) numPayloadBytes;  // success!
