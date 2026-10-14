@@ -7,6 +7,7 @@
 #include "util/SocketMultiplexer.h"
 #include "util/Hashtable.h"
 #include "util/ICallbackSubscriber.h"
+#include "util/MiscUtilityFunctions.h"  // for GetBytesSizeString()
 #include "util/SocketCallbackMechanism.h"
 #include "util/TimeUnitConversionFunctions.h"
 
@@ -1542,11 +1543,13 @@ NetworkInterfaceInfo :: NetworkInterfaceInfo()
    , _macAddress(0)
    , _hardwareType(NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN)
    , _mtu(0)
+   , _linkReceiveSpeed((uint64)-1)
+   , _linkTransmitSpeed((uint64)-1)
 {
    // empty
 }
 
-NetworkInterfaceInfo :: NetworkInterfaceInfo(const String & name, const String & userFriendlyName, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType, uint32 mtu)
+NetworkInterfaceInfo :: NetworkInterfaceInfo(const String & name, const String & userFriendlyName, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType, uint32 mtu, uint64 linkReceiveSpeed, uint64 linkTransmitSpeed)
    : _name(name)
    , _userFriendlyName(userFriendlyName)
    , _desc(desc)
@@ -1558,6 +1561,8 @@ NetworkInterfaceInfo :: NetworkInterfaceInfo(const String & name, const String &
    , _macAddress(macAddress)
    , _hardwareType(hardwareType)
    , _mtu(mtu)
+   , _linkReceiveSpeed(linkReceiveSpeed)
+   , _linkTransmitSpeed(linkTransmitSpeed)
 {
    // empty
 }
@@ -1606,29 +1611,33 @@ const char * NetworkInterfaceInfo :: GetNetworkHardwareTypeString(uint32 hardwar
 
 bool NetworkInterfaceInfo :: operator == (const NetworkInterfaceInfo & rhs) const
 {
-   return ((_name             == rhs._name)
-         &&(_userFriendlyName == rhs._userFriendlyName)
-         &&(_desc             == rhs._desc)
-         &&(_ip               == rhs._ip)
-         &&(_netmask          == rhs._netmask)
-         &&(_broadcastIP      == rhs._broadcastIP)
-         &&(_enabled          == rhs._enabled)
-         &&(_copper           == rhs._copper)
-         &&(_macAddress       == rhs._macAddress)
-         &&(_hardwareType     == rhs._hardwareType)
-         &&(_mtu              == rhs._mtu));
+   return ((_name              == rhs._name)
+         &&(_userFriendlyName  == rhs._userFriendlyName)
+         &&(_desc              == rhs._desc)
+         &&(_ip                == rhs._ip)
+         &&(_netmask           == rhs._netmask)
+         &&(_broadcastIP       == rhs._broadcastIP)
+         &&(_enabled           == rhs._enabled)
+         &&(_copper            == rhs._copper)
+         &&(_macAddress        == rhs._macAddress)
+         &&(_hardwareType      == rhs._hardwareType)
+         &&(_mtu               == rhs._mtu)
+         &&(_linkReceiveSpeed  == rhs._linkReceiveSpeed)
+         &&(_linkTransmitSpeed == rhs._linkTransmitSpeed));
 }
+
+static String GetSpeedString(uint64 bps) {return (bps == ((uint64)-1)) ? String("N/A") : GetBytesSizeString(bps);}
 
 String NetworkInterfaceInfo :: ToString() const
 {
    String ret = String("Name=[%1] UserFriendlyName=[%2] Description=[%3] Type=[%4] IP=[%5] Netmask=[%6]").Arg(_name).Arg(_userFriendlyName).Arg(_desc).Arg(GetNetworkHardwareTypeString(_hardwareType)).Arg(Inet_NtoA(_ip)).Arg(Inet_NtoA(_netmask));
-   ret += String(" Broadcast=[%1] MAC=[%2] Enabled=%3 Copper=%4 MTU=%5").Arg(Inet_NtoA(_broadcastIP)).Arg(MACAddressToString(_macAddress)).Arg(_enabled).Arg(_copper).Arg(_mtu);
+   ret += String(" Broadcast=[%1] MAC=[%2] Enabled=%3 Copper=%4 MTU=%5 RXSpeed=%6 TXSpeed=%7").Arg(Inet_NtoA(_broadcastIP)).Arg(MACAddressToString(_macAddress)).Arg(_enabled).Arg(_copper).Arg(_mtu).Arg(GetSpeedString(_linkReceiveSpeed)).Arg(GetSpeedString(_linkTransmitSpeed));
    return ret;
 }
 
 uint32 NetworkInterfaceInfo :: HashCode() const
 {
-   return _name.HashCode() + _userFriendlyName.HashCode() + _desc.HashCode() + _hardwareType + _ip.HashCode() + _netmask.HashCode() + _broadcastIP.HashCode() + CalculateHashCode(_macAddress) +_enabled + _copper + _mtu;
+   return _name.HashCode() + _userFriendlyName.HashCode() + _desc.HashCode() + _hardwareType + _ip.HashCode() + _netmask.HashCode() + _broadcastIP.HashCode() + CalculateHashCode(_macAddress) +_enabled + _copper + _mtu + CalculateHashCode(_linkReceiveSpeed) + CalculateHashCode(_linkTransmitSpeed);
 }
 
 const char * _gniiFlagLabels[] = {
@@ -1956,6 +1965,7 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
 #endif
 
       Hashtable<String, uint64> inameToMAC;
+      Hashtable<String, uint64> inameToLinkSpeed;
       {
          ConstSocketRef dummySocket = GetConstSocketRefFromPool(socket(AF_UNIX, SOCK_DGRAM, 0));  // just for doing ioctl()s on
 
@@ -1963,6 +1973,16 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
          while(p)
          {
             const String iname = p->ifa_name;
+
+#if defined(__FreeBSD__) || defined(BSD) || defined(__APPLE__)
+            const struct if_data * ifd = reinterpret_cast<const struct if_data *>(p->ifa_data);
+            if ((ifd)&&(p->ifa_flags & IFF_LOOPBACK) == 0)
+            {
+               const uint64 linkSpeed = ifd->ifi_baudrate;
+               if (linkSpeed != (uint64)-1) (void) inameToLinkSpeed.Put(iname, linkSpeed);
+            }
+#endif
+
             if (p->ifa_addr)
             {
 #if defined(__FreeBSD__) || defined(BSD) || defined(__APPLE__)
@@ -1972,10 +1992,10 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                   uint64 mac = 0; for (uint32 i=0; i<6; i++) mac |= (((uint64)ptr[i])<<(8*(5-i)));
                   (void) inameToMAC.Put(iname, mac);
 
+
                   if (inameToType.ContainsKey(iname) == false)
                   {
                      // fall back to trying to get network-interface-type info from the BSD interface
-                     const struct if_data * ifd = (const struct if_data *) p->ifa_data;
                      if (ifd)
                      {
                         uint32 devType = NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN;
@@ -2069,14 +2089,17 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                if (unicastIP.IsIPv4() == false) unicastIP.SetInterfaceIndex(if_nametoindex(iname()));  // so the user can find out; it will be ignored by the TCP stack
 #endif
 
+               const uint64 linkSpeed = inameToLinkSpeed.GetWithDefault(iname, (uint64)-1);
+
                // coverity[dead_error_line] - it's okay, ifDesc does get modified in the MacOS case
-               if (results.AddTail(NetworkInterfaceInfo(iname, iname, ifDesc?*ifDesc:GetEmptyString(), unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType, GetNetworkInterfaceMTU(dummySocket, iname))).IsOK(ret))  // MAC address will be set later
+               if (results.AddTail(NetworkInterfaceInfo(iname, iname, ifDesc?*ifDesc:GetEmptyString(), unicastIP, netmask, broadIP, isEnabled, hasCopper, 0, hardwareType, GetNetworkInterfaceMTU(dummySocket, iname), linkSpeed, linkSpeed)).IsOK(ret))  // MAC address will be set later
                {
                   DECLARE_MUTEXGUARD(_cachedLocalhostAddressLock);
                   if (_cachedLocalhostAddress == invalidIP) _cachedLocalhostAddress = unicastIP;
                }
                else break;
             }
+
             p = p->ifa_next;
          }
       }

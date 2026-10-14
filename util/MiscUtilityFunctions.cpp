@@ -1359,18 +1359,6 @@ ByteBufferRef Base64Decode(const String & base64String)
    return Base64DecodeAux(base64String(), base64String.Length());
 }
 
-String GetBytesSizeString(uint64 val)
-{
-   const uint64 b  = 1000;  // note that we defined 1KB=1000 bytes, not 1024 bytes!
-   const double db = (double) b;
-   const double dv = (double) val;
-
-        if (val < b)     return String("%1 bytes").Arg(val);
-   else if (val < b*b)   return String("%1kB").Arg(dv/(db),       "%.1f");
-   else if (val < b*b*b) return String("%1MB").Arg(dv/(db*db),    "%.1f");
-   else                  return String("%1GB").Arg(dv/(db*db*db), "%.2f");
-}
-
 uint64 ParseBytesSizeString(const String & ss)
 {
    const String s = ss.Trimmed();

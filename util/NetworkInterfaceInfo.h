@@ -82,8 +82,10 @@ public:
      * @param macAddress 48-bit MAC address value, or 0 if MAC address is unknown.
      * @param hardwareType a NETWORK_INTERFACE_HARDWARE_TYPE_* value (NETWORK_INTERFACE_HARDWARE_TYPE_UNKNOWN if the hardware type isn't known)
      * @param mtu Max Transfer unit size of this network interface, in bytes
+     * @param linkReceiveSpeed Receive-speed (in bytes per second) of this NIC, or ((uint64)-1) if the receive-speed isn't known
+     * @param linkTransmitSpeed Transmit-speed (in bytes per second) of this NIC, or ((uint64)-1) if the transmit-speed isn't known
      */
-   NetworkInterfaceInfo(const String & name, const String & userFriendlyName, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadcastIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType, uint32 mtu);
+   NetworkInterfaceInfo(const String & name, const String & userFriendlyName, const String & desc, const IPAddress & ip, const IPAddress & netmask, const IPAddress & broadcastIP, bool enabled, bool copper, uint64 macAddress, uint32 hardwareType, uint32 mtu, uint64 linkReceiveSpeed, uint64 linkTransmitSpeed);
 
    /** Returns the name of this interface, or "" if the name is not known. */
    MUSCLE_NODISCARD const String & GetName() const {return _name;}
@@ -129,6 +131,12 @@ public:
      */
    MUSCLE_NODISCARD uint32 GetMTU() const {return _mtu;}
 
+   /** Returns the NIC's receive-speed, in bytes-per-second, or ((uint64)-1) if the receive-speed is unknown. */
+   MUSCLE_NODISCARD uint64 GetLinkReceiveSpeed() const {return _linkReceiveSpeed;}
+
+   /** Returns the NIC's transmit-speed, in bytes-per-second, or ((uint64)-1) if the transmit-speed is unknown. */
+   MUSCLE_NODISCARD uint64 GetLinkTransmitSpeed() const {return _linkTransmitSpeed;}
+
    /** Returns true iff this interface is currently enabled ("up"). */
    MUSCLE_NODISCARD bool IsEnabled() const {return _enabled;}
 
@@ -172,6 +180,8 @@ private:
    uint64 _macAddress;
    uint32 _hardwareType;
    uint32 _mtu;
+   uint64 _linkReceiveSpeed;
+   uint64 _linkTransmitSpeed;;
 };
 
 /** This function queries the local OS for information about all available network

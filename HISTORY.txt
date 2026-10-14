@@ -21,6 +21,8 @@ key:  - new feature
    - SSLSocketDataIO is now self-contained and no longer needs to be
      paired with a SocketAdapterGateway in order to function properly.
    - Added a GetUserFriendlyName() field to the NetworkInterfaceInfo class.
+   - Added GetLinkReceiveSpeed() and GetLinkTransmitSpeed() fields to the
+     NetworkInterfaceInfo class.
    - Added a DidAuthenticationFail() accessor method to the SSLSocketDataIO class.
    - Added a SetEnvironmentVariableValue() function to MiscUtilityFunctions.h.
    o Removed the SocketAdapterGateway class as it is no longer necessary.
