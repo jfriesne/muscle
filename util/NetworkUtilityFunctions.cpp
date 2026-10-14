@@ -2054,6 +2054,18 @@ status_t GetNetworkInterfaceInfos(Queue<NetworkInterfaceInfo> & results, GNIIFla
                   uint64 mac = 0; for (uint32 i=0; i<6; i++) mac |= (((uint64)s->sll_addr[i])<<(8*(5-i)));
                   (void) inameToMAC.Put(iname, mac);
                }
+
+               if (((p->ifa_flags & IFF_LOOPBACK) == 0) && ((p->ifa_flags & IFF_RUNNING) != 0))
+               {
+                  const String speedPath = iname.WithPrepend("/sys/class/net/").WithAppend("/speed");
+                  FILE * fpIn = fopen(speedPath(), "r");
+                  if (fpIn)
+                  {
+                     char buf[64] = "";
+                     if ((fgets(buf, sizeof(buf), fpIn))&&(muscleInRange(buf[0], '0', '9'))) (void) inameToLinkSpeed.Put(iname, Atoll(buf)*1000000);  // file specifies speed in Mb/spec
+                     fclose(fpIn);
+                  }
+               }
 #endif
             }
 
