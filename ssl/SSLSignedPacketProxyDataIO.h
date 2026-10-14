@@ -104,14 +104,39 @@ public:
      */
    status_t SetPrivateKey(const ConstByteBufferRef & privateKeyData);
 
+   /** Call this instead of SetPrivateKey()/SetPublicKey() if you prefer to use a pre-shared key for signing and verification.
+     * @param password a NULL-terminated password string to use as the pre-shared key.
+     * @param enableTransmit true iff this object should be able to sign and transmit outgoing packets.  Defaults to true.
+     * @param enableReceive true iff this object should be able to validate and receive incoming signed packets.  Defaults to true.
+     * @returns B_NO_ERROR on success, or another value on failure.
+     * @note Calling this method will undo the effects of any previous call to SetPrivateKey()/SetPublicKey()/SetPreSharedKey().
+     */
+   status_t SetPreSharedKey(const char * password, bool enableTransmit=true, bool enableReceive=true);
+
+   /** Call this instead of SetPrivateKey()/SetPublicKey() if you prefer to use a pre-shared key for signing and verification.
+     * @param preSharedKeyBytes pointer to the bytes to use for the pre-shared key
+     * @param numPreSharedKeyBytes the number of bytes (preSharedKeyBytes) points to.
+     * @param enableTransmit true iff this object should be able to sign and transmit outgoing packets.  Defaults to true.
+     * @param enableReceive true iff this object should be able to validate and receive incoming signed packets.  Defaults to true.
+     * @returns B_NO_ERROR on success, or another value on failure.
+     * @note Calling this method will undo the effects of any previous call to SetPrivateKey()/SetPublicKey()/SetPreSharedKey().
+     */
+   status_t SetPreSharedKey(const uint8 * preSharedKeyBytes, uint32 numPreSharedKeyBytes, bool enableTransmit=true, bool enableReceive=true);
+
+   /** Same as above, except instead of reading from a raw byte-array we read from a ConstByteBufferRef.
+     * @param preSharedKeyData Buffer containing the data to use for the pre-shared key
+     * @param enableTransmit true iff this object should be able to sign and transmit outgoing packets.  Defaults to true.
+     * @param enableReceive true iff this object should be able to validate and receive incoming signed packets.  Defaults to true.
+     * @returns B_NO_ERROR on success, or an error code on failure.
+     */
+   status_t SetPreSharedKey(const ConstByteBufferRef & preSharedKeyData, bool enableTransmit=true, bool enableReceive=true);
+
    MUSCLE_NODISCARD virtual uint32 GetMaximumPacketSize() const;
    virtual io_status_t Read(void * buffer, uint32 size) {return ReadAux(buffer, size, NULL);}
    virtual io_status_t Write(const void * buffer, uint32 size);
    virtual io_status_t ReadFrom(void * buffer, uint32 size, IPAddressAndPort & retPacketSource) {return ReadAux(buffer, size, &retPacketSource);}
    virtual io_status_t WriteTo(const void * buffer, uint32 size, const IPAddressAndPort & packetDest);
-
-   /** Returns the number of bytes of data that signing an outgoing packet is expected to add to its wire-size */
-   static uint32 GetExpectedPacketSigningOverheadBytesCount();
+   virtual void Shutdown() {ShutdownAux();}
 
 private:
    class ReceivedPacketIDsWindow : public RefCountable
@@ -180,23 +205,34 @@ private:
 
    ReceivedPacketIDsWindow * GetOrPutReceivedPacketIDsWindow(uint64 senderSessionID, uint64 senderPacketID);
 
+   uint32 GetExpectedPacketSigningOverheadBytesCount(bool forOutput) const;
+
    io_status_t ReadAux(void * buffer, uint32 size, IPAddressAndPort * optRetPacketSource);
    io_status_t ValidateIncomingSignedPacket(const uint8 * buffer, uint32 numBytes);
+   io_status_t ValidateIncomingSignedPacketAux(const uint8 * buffer, uint32 numPayloadBytes);
+
    status_t GenerateSignedOutputData(const uint8 * dataBytes, uint32 numDataBytes);
+   status_t GenerateSignedOutputDataAux(const uint8 * payloadBytes, uint32 numPayloadBytes, uint32 numBytesToSign, size_t numSigBytes, char * errBuf);
 
    void ResetIncomingContext();
    void ResetOutgoingContext();
 
+   void ShutdownAux();
+
    const uint32 _receivedPacketIDWindowSize;
 
-   void * _incomingContext; // actually of type EVP_MD_CTX, but I don't want to include OpenSSL headers from here, so
+   bool _incomingContextIsHMAC;
+   void * _incomingContext; // actually either of type EVP_MD_CTX or EVP_MAC_CTX, but I don't want to include OpenSSL headers from here, so
    void * _publicKey;       // actually of type EVP_PKEY
 
    const uint64 _outgoingSessionID;
    uint64 _outgoingPacketIDCounter;
 
-   void * _outgoingContext; // actually of type EVP_MD_CTX, but I don't want to include OpenSSL headers from here, so
+   bool _outgoingContextIsHMAC;
+   void * _outgoingContext; // actually either of type EVP_MD_CTX, or EVP_MAC_CTX, but I don't want to include OpenSSL headers from here, so
    void * _privateKey;      // actually of type EVP_PKEY
+
+   ConstByteBufferRef _preSharedKey;
 
    ByteBuffer _scratchBuf;  // scratch space used to combine outgoing data with its signature (maybe we could use writev() instead, someday?)
 

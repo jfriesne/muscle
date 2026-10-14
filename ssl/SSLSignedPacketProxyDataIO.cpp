@@ -5,6 +5,7 @@
 
 // keep these AFTER the MUSCLE includes, or Windows throws a fit
 #include <openssl/bio.h>
+#include <openssl/core_names.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -35,10 +36,12 @@ static uint32 RoundUpToMultipleOfEight(uint32 val) {return ((val+7)/8)*8;}
 
 SSLSignedPacketProxyDataIO :: SSLSignedPacketProxyDataIO(uint32 receivedPacketIDWindowSize)
    : _receivedPacketIDWindowSize(RoundUpToMultipleOfEight(receivedPacketIDWindowSize))
+   , _incomingContextIsHMAC(false)
    , _incomingContext(NULL)
    , _publicKey(NULL)
    , _outgoingSessionID(GetSecurePseudoRandomNumber64())
    , _outgoingPacketIDCounter(GetSecurePseudoRandomNumber64() >> 24)  // the >>24 is just to avoid any realistic chance of ever reaching ((uint64)-1)
+   , _outgoingContextIsHMAC(false)
    , _outgoingContext(NULL)
    , _privateKey(NULL)
 {
@@ -48,10 +51,12 @@ SSLSignedPacketProxyDataIO :: SSLSignedPacketProxyDataIO(uint32 receivedPacketID
 SSLSignedPacketProxyDataIO :: SSLSignedPacketProxyDataIO(const PacketDataIORef & childRef, uint32 receivedPacketIDWindowSize)
    : ProxyDataIO(childRef)
    , _receivedPacketIDWindowSize(RoundUpToMultipleOfEight(receivedPacketIDWindowSize))
+   , _incomingContextIsHMAC(false)
    , _incomingContext(NULL)
    , _publicKey(NULL)
    , _outgoingSessionID(GetSecurePseudoRandomNumber64())
    , _outgoingPacketIDCounter(GetSecurePseudoRandomNumber64() >> 24)  // the >>24 is just to avoid any realistic chance of ever reaching ((uint64)-1)
+   , _outgoingContextIsHMAC(false)
    , _outgoingContext(NULL)
    , _privateKey(NULL)
 {
@@ -60,8 +65,14 @@ SSLSignedPacketProxyDataIO :: SSLSignedPacketProxyDataIO(const PacketDataIORef &
 
 SSLSignedPacketProxyDataIO :: ~SSLSignedPacketProxyDataIO()
 {
-   ResetIncomingContext();
-   ResetOutgoingContext();
+   ShutdownAux();  // make sure public and private keys are freed
+}
+
+static void FreeContext(void * context, bool & isHMAC)
+{
+   if (isHMAC) EVP_MAC_CTX_free(reinterpret_cast<EVP_MAC_CTX *>(context));
+          else EVP_MD_CTX_free( reinterpret_cast<EVP_MD_CTX  *>(context));
+   isHMAC = false;
 }
 
 void SSLSignedPacketProxyDataIO :: ResetOutgoingContext()
@@ -74,7 +85,7 @@ void SSLSignedPacketProxyDataIO :: ResetOutgoingContext()
 
    if (_outgoingContext)
    {
-      EVP_MD_CTX_free(reinterpret_cast<EVP_MD_CTX *>(_outgoingContext));
+      FreeContext(_outgoingContext, _outgoingContextIsHMAC);
       _outgoingContext = NULL;
    }
 }
@@ -89,7 +100,7 @@ void SSLSignedPacketProxyDataIO :: ResetIncomingContext()
 
    if (_incomingContext)
    {
-      EVP_MD_CTX_free(reinterpret_cast<EVP_MD_CTX *>(_incomingContext));
+      FreeContext(_incomingContext, _incomingContextIsHMAC);
       _incomingContext = NULL;
    }
 }
@@ -181,16 +192,91 @@ status_t SSLSignedPacketProxyDataIO :: SetPublicKey(const ConstByteBufferRef & p
    return SetPublicKey(pk()?pk()->GetBuffer():NULL, pk()?pk()->GetNumBytes():0);
 }
 
-uint32 SSLSignedPacketProxyDataIO :: GetExpectedPacketSigningOverheadBytesCount()
+status_t SSLSignedPacketProxyDataIO :: SetPreSharedKey(const ConstByteBufferRef & pskBuf, bool enableTransmit, bool enableReceive)
 {
-   const uint32 ED25119_SIGNATURE_SIZE = 64;
-   return ED25119_SIGNATURE_SIZE + SIGNED_TRAILER_SIZE + UNSIGNED_TRAILER_SIZE;  // so the caller will allocate enough space that we can receive the signature and trailer bytes too
+   if (pskBuf() == NULL) return B_BAD_ARGUMENT;
+
+   EVP_MAC * mac = EVP_MAC_fetch(NULL, "HMAC", NULL);
+   if (mac == NULL) return B_SSL_ERROR;
+
+   ResetIncomingContext();
+   ResetOutgoingContext();
+   _preSharedKey.Reset();
+
+   bool ok = true;
+
+   if ((ok)&&(enableReceive))
+   {
+      _incomingContext = EVP_MAC_CTX_new(mac);
+      if (_incomingContext) _incomingContextIsHMAC = true;
+                       else ok = false;
+   }
+
+   if ((ok)&&(enableTransmit))
+   {
+      _outgoingContext = EVP_MAC_CTX_new(mac);
+      if (_outgoingContext) _outgoingContextIsHMAC = true;
+                       else ok = false;
+   }
+
+   EVP_MAC_free(mac);
+
+   if (ok)
+   {
+      _preSharedKey = pskBuf;
+      return B_NO_ERROR;
+   }
+   else
+   {
+      ResetIncomingContext();
+      ResetOutgoingContext();
+      return B_SSL_ERROR;
+   }
+}
+
+status_t SSLSignedPacketProxyDataIO :: SetPreSharedKey(const uint8 * preSharedKeyBytes, uint32 numPreSharedKeyBytes, bool enableTransmit, bool enableReceive)
+{
+   ConstByteBufferRef pskRef = GetByteBufferFromPool(numPreSharedKeyBytes, preSharedKeyBytes);
+   MRETURN_ON_ERROR(pskRef);
+
+   return SetPreSharedKey(pskRef, enableTransmit, enableReceive);
+}
+
+status_t SSLSignedPacketProxyDataIO :: SetPreSharedKey(const char * preSharedKeyString, bool enableTransmit, bool enableReceive)
+{
+   if (preSharedKeyString == NULL) return B_BAD_ARGUMENT;
+
+   // Convert the ASCII password into some suitably pseudorandom bytes
+   unsigned int size = 0;
+   unsigned char digest[EVP_MAX_MD_SIZE];
+   if (EVP_Digest(preSharedKeyString, strlen(preSharedKeyString), digest, &size, EVP_sha256(), NULL) != 1) return B_SSL_ERROR;
+
+   return SetPreSharedKey(digest, (uint32)size, enableTransmit, enableReceive);
+}
+
+static const EVP_MD * GetMessageDigestType(EVP_PKEY * key)
+{
+   return EVP_PKEY_is_a(key, "HMAC") ? EVP_sha256() : NULL;
+}
+
+uint32 SSLSignedPacketProxyDataIO :: GetExpectedPacketSigningOverheadBytesCount(bool forOutput) const
+{
+   const uint32 SHA256_HMAC_SIGNATURE_SIZE = 32;  // hard-coded because EVP_MAC_CTX_get_mac_size() won't return the correct result if EVP_MAC_init() hasn't been called on it yet
+   const uint32 DEFAULT_SIGNATURE_SIZE     = 64;  // conservative fallback to use when no key is installed yet
+
+   uint32 pkeySize = 0;
+   if (forOutput ? _outgoingContextIsHMAC : _incomingContextIsHMAC) pkeySize = muscleMax(pkeySize, SHA256_HMAC_SIGNATURE_SIZE);
+
+   EVP_PKEY * key = reinterpret_cast<EVP_PKEY *>(forOutput ? _privateKey : _publicKey);
+   if (key) pkeySize = muscleMax(pkeySize, (uint32)EVP_PKEY_get_size(key));
+
+   return ((pkeySize != 0) ? pkeySize : DEFAULT_SIGNATURE_SIZE) + SIGNED_TRAILER_SIZE + UNSIGNED_TRAILER_SIZE;  // so the caller will allocate enough space that we can receive the signature and trailer bytes too
 }
 
 uint32 SSLSignedPacketProxyDataIO :: GetMaximumPacketSize() const
 {
    const uint32 superSize    = ProxyDataIO::GetMaximumPacketSize();
-   const uint32 overheadSize = GetExpectedPacketSigningOverheadBytesCount();
+   const uint32 overheadSize = muscleMax(GetExpectedPacketSigningOverheadBytesCount(false), GetExpectedPacketSigningOverheadBytesCount(true));
    return (superSize > overheadSize) ? (superSize-overheadSize) : 0;  // since we'll be adding trailing bytes, the available payload size gets reduced
 }
 
@@ -198,7 +284,7 @@ io_status_t SSLSignedPacketProxyDataIO :: ReadAux(void * buffer, uint32 size, IP
 {
    if (_incomingContext)
    {
-      const uint32 scratchBufSize = size+GetExpectedPacketSigningOverheadBytesCount();
+      const uint32 scratchBufSize = size+GetExpectedPacketSigningOverheadBytesCount(false);
       MRETURN_ON_ERROR(_scratchBuf.SetNumBytes(scratchBufSize, false));
 
       uint8 * scratchBuf = _scratchBuf.GetBuffer();
@@ -269,9 +355,20 @@ SSLSignedPacketProxyDataIO::ReceivedPacketIDsWindow * SSLSignedPacketProxyDataIO
    }
 }
 
+static status_t InitMACAux(EVP_MAC_CTX * ctx, const ConstByteBufferRef & preSharedKey, char * errBuf)
+{
+   if ((ctx == NULL)||(preSharedKey() == NULL)) return B_BAD_ARGUMENT;  // semi-paranoia
+
+   const OSSL_PARAM params[] = {
+      OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_DIGEST, (char *)"SHA256", 0),
+      OSSL_PARAM_construct_end()
+   };
+   return (EVP_MAC_init(ctx, preSharedKey()->GetBuffer(), preSharedKey()->GetNumBytes(), params) > 0) ? B_NO_ERROR : B_ERROR(ERR_error_string(ERR_get_error(), errBuf));
+}
+
 io_status_t SSLSignedPacketProxyDataIO :: ValidateIncomingSignedPacket(const uint8 * buffer, uint32 numBytes)
 {
-   if ((_incomingContext == NULL)||(_publicKey == NULL))       return B_BAD_OBJECT;
+   if (_incomingContext == NULL) return B_BAD_OBJECT;
    if (numBytes < (SIGNED_TRAILER_SIZE+UNSIGNED_TRAILER_SIZE)) return B_BAD_DATA;
 
    // First check that the unsigned-trailer is valid, and if so we can use it to calculate the payload-size and the signature-size
@@ -284,71 +381,155 @@ io_status_t SSLSignedPacketProxyDataIO :: ValidateIncomingSignedPacket(const uin
    const uint8 * sigBytes   = buffer+numPayloadBytes+SIGNED_TRAILER_SIZE;
    const uint32 numSigBytes = numBytes-(numPayloadBytes+(SIGNED_TRAILER_SIZE+UNSIGNED_TRAILER_SIZE));
 
-   EVP_MD_CTX * ctx = reinterpret_cast<EVP_MD_CTX *>(_incomingContext);
+   const uint32 numBytesToVerify = numPayloadBytes+SIGNED_TRAILER_SIZE;
 
    char errBuf[256];  // ERR_error_string() docs require this buffer to be at least 256 bytes long
-   if (EVP_DigestVerifyInit(ctx, NULL, NULL, NULL, reinterpret_cast<EVP_PKEY *>(_publicKey)) > 0)
+   if (_incomingContextIsHMAC)
    {
-      if (EVP_DigestVerify(ctx, sigBytes, numSigBytes, buffer, numPayloadBytes+SIGNED_TRAILER_SIZE) > 0)
+      if (_preSharedKey() == NULL) return B_BAD_OBJECT;
+
+      EVP_MAC_CTX * ctx = reinterpret_cast<EVP_MAC_CTX *>(_incomingContext);
+      const status_t r = InitMACAux(ctx, _preSharedKey, errBuf);
+      if (r.IsOK())
       {
-         if (_receivedPacketIDWindowSize > 0)
+         if (EVP_MAC_update(ctx, buffer, numBytesToVerify) > 0)
          {
-            DataUnflattener signedUnflat(buffer+numPayloadBytes, SIGNED_TRAILER_SIZE);
-            const uint64 senderSessionID = signedUnflat.ReadInt64();
-            const uint64 senderPacketID  = signedUnflat.ReadInt64();
-
-            ReceivedPacketIDsWindow * rpw = GetOrPutReceivedPacketIDsWindow(senderSessionID, senderPacketID);
-            if (rpw == NULL) return B_OUT_OF_MEMORY;
-
-            if (rpw->MaybeAcceptPacket(senderPacketID) == false) return (int32)0;  // mitigation against duplicate packet IDs and replay attacks
+            uint8 tempSigBytes[256];
+            if (numSigBytes <= sizeof(tempSigBytes))
+            {
+               size_t numTempSigBytesWritten = 0;
+               if (EVP_MAC_final(ctx, tempSigBytes, &numTempSigBytesWritten, sizeof(tempSigBytes)) > 0)
+               {
+                  if (numTempSigBytesWritten == (size_t)numSigBytes)
+                  {
+                     if (CRYPTO_memcmp(sigBytes, tempSigBytes, numTempSigBytesWritten) == 0)  // don't call vanilla memcmp() here, it's vulnerable to timing attacks
+                     {
+                        return ValidateIncomingSignedPacketAux(buffer, numPayloadBytes);
+                     }
+                     else LogTime(MUSCLE_LOG_DEBUG, "ValidateIncomingSignedPacket(): CRYPTO_memcmp() didn't match!\n"); // DEBUG to avoid log noise if we're receiving random packets
+                  }
+                  else LogTime(MUSCLE_LOG_ERROR, "ValidateIncomingSignedPacket(): numTempSigBytesWritten was %zu but numSigBytes was " UINT32_FORMAT_SPEC "\n", numTempSigBytesWritten, numSigBytes);
+               }
+               else LogTime(MUSCLE_LOG_ERROR, "ValidateIncomingSignedPacket(): EVP_MAC_final() failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
+            }
+            else LogTime(MUSCLE_LOG_ERROR, "ValidateIncomingSignedPacket(): numSigBytes (" UINT32_FORMAT_SPEC ") was too large!\n", numSigBytes);
          }
-
-         return (int32) numPayloadBytes;  // success!
+         else LogTime(MUSCLE_LOG_ERROR, "ValidateIncomingSignedPacket(): EVP_MAC_update() failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
       }
-      else LogTime(MUSCLE_LOG_DEBUG, "ValidateIncomingSignedPacket(): EVP_DigestVerify() failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf)); // DEBUG to avoid log noise if we're receiving random packets
+      else LogTime(MUSCLE_LOG_ERROR, "ValidateIncomingSignedPacket(): EVP_MAC_init() failed! [%s]\n", r());  // don't return r(), it will dangle if you do
    }
-   else LogTime(MUSCLE_LOG_ERROR, "ValidateIncomingSignedPacket(): EVP_DigestVerifyInit() failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
+   else
+   {
+      if (_publicKey == NULL) return B_BAD_OBJECT;
+
+      EVP_MD_CTX * ctx = reinterpret_cast<EVP_MD_CTX *>(_incomingContext);
+
+      EVP_PKEY * publicKey = reinterpret_cast<EVP_PKEY *>(_publicKey);
+      if (EVP_DigestVerifyInit(ctx, NULL, GetMessageDigestType(publicKey), NULL, publicKey) > 0)
+      {
+         if (EVP_DigestVerify(ctx, sigBytes, numSigBytes, buffer, numBytesToVerify) > 0)
+         {
+            return ValidateIncomingSignedPacketAux(buffer, numPayloadBytes);
+         }
+         else LogTime(MUSCLE_LOG_DEBUG, "ValidateIncomingSignedPacket(): EVP_DigestVerify() failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf)); // DEBUG to avoid log noise if we're receiving random packets
+      }
+      else LogTime(MUSCLE_LOG_ERROR, "ValidateIncomingSignedPacket(): EVP_DigestVerifyInit() failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
+   }
 
    return B_SSL_ERROR;  // SSL error is non-fatal (it just means the packet wasn't properly signed, so we want the calling code to ignore its contents)
 }
 
+io_status_t SSLSignedPacketProxyDataIO :: ValidateIncomingSignedPacketAux(const uint8 * buffer, uint32 numPayloadBytes)
+{
+   if (_receivedPacketIDWindowSize > 0)
+   {
+      DataUnflattener signedUnflat(buffer+numPayloadBytes, SIGNED_TRAILER_SIZE);
+      const uint64 senderSessionID = signedUnflat.ReadInt64();
+      const uint64 senderPacketID  = signedUnflat.ReadInt64();
+
+      ReceivedPacketIDsWindow * rpw = GetOrPutReceivedPacketIDsWindow(senderSessionID, senderPacketID);
+      if (rpw == NULL) return B_OUT_OF_MEMORY;
+
+      if (rpw->MaybeAcceptPacket(senderPacketID) == false) return (int32)0;  // mitigation against duplicate packet IDs and replay attacks
+   }
+
+   return (int32) numPayloadBytes;  // success!
+}
+
 status_t SSLSignedPacketProxyDataIO :: GenerateSignedOutputData(const uint8 * payloadBytes, uint32 numPayloadBytes)
 {
-   if ((_outgoingContext == NULL)||(_privateKey == NULL)) return B_BAD_OBJECT;
+   if (_outgoingContext == NULL) return B_BAD_OBJECT;
 
-   EVP_MD_CTX * ctx = reinterpret_cast<EVP_MD_CTX *>(_outgoingContext);
+   const uint32 numBytesToSign = numPayloadBytes+SIGNED_TRAILER_SIZE;
 
    char errBuf[256];  // ERR_error_string() docs require this buffer to be at least 256 bytes long
-   if (EVP_DigestSignInit(ctx, NULL, NULL, NULL, reinterpret_cast<EVP_PKEY *>(_privateKey)) > 0)
+   if (_outgoingContextIsHMAC)
    {
-      const uint32 numBytesToSign = numPayloadBytes+SIGNED_TRAILER_SIZE;
+      if (_preSharedKey() == NULL) return B_BAD_OBJECT;
 
-      size_t numSigBytes = 0;
-      if (EVP_DigestSign(ctx, NULL, &numSigBytes, payloadBytes, numBytesToSign) > 0)  // this justs populates (numSigBytes); it will generally always set it to 64, but just for form's sake
+      EVP_MAC_CTX * ctx = reinterpret_cast<EVP_MAC_CTX *>(_outgoingContext);
+      const status_t r = InitMACAux(ctx, _preSharedKey, errBuf);
+      if (r.IsOK())
       {
-         MRETURN_ON_ERROR(_scratchBuf.SetNumBytes(numBytesToSign+((uint32)numSigBytes)+UNSIGNED_TRAILER_SIZE, false));
-
-         uint8 * scratchPayload = _scratchBuf.GetBuffer();
-
-         DataFlattener signedFlat(scratchPayload, numBytesToSign);
-         signedFlat.WriteBytes(payloadBytes, numPayloadBytes);
-         signedFlat.WriteInt64(_outgoingSessionID);
-         signedFlat.WriteInt64(_outgoingPacketIDCounter);
-
-         if (EVP_DigestSign(ctx, scratchPayload+numBytesToSign, &numSigBytes, scratchPayload, numBytesToSign) > 0)  // writes out the signature into our scratch-buffer
-         {
-            DataFlattener unsignedFlat(scratchPayload+numBytesToSign+numSigBytes, UNSIGNED_TRAILER_SIZE);
-            unsignedFlat.WriteInt32(numPayloadBytes);
-            unsignedFlat.WriteInt32(MAGIC_WORD);  // just to make it easy to sanity-check that the unsigned-trailer exists
-
-            _scratchBuf.TruncateToLength(numPayloadBytes+(uint32)numSigBytes+SIGNED_TRAILER_SIZE+UNSIGNED_TRAILER_SIZE);  // just in case (numSigBytes) was set smaller by the second call to EVP_DigestSign()
-            return B_NO_ERROR;
-         }
-         else LogTime(MUSCLE_LOG_ERROR, "GenerateSignedOutputData(): EVP_DigestSignFinal failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
+         return GenerateSignedOutputDataAux(payloadBytes, numPayloadBytes, numBytesToSign, EVP_MAC_CTX_get_mac_size(ctx), errBuf);
       }
-      else LogTime(MUSCLE_LOG_ERROR, "GenerateSignedOutputData(): EVP_DigestSignUpdate() failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
+      else LogTime(MUSCLE_LOG_ERROR, "GenerateSignedOutputData(): EVP_MAC_init() failed! [%s]\n", r());  // don't return r, it will dangle if you do
    }
-   else LogTime(MUSCLE_LOG_ERROR, "GenerateSignedOutputData(): EVP_DigestSignInit() failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
+   else
+   {
+      if (_privateKey == NULL) return B_BAD_OBJECT;
+
+      EVP_MD_CTX * ctx = reinterpret_cast<EVP_MD_CTX *>(_outgoingContext);
+
+      EVP_PKEY * privateKey = reinterpret_cast<EVP_PKEY *>(_privateKey);
+      if (EVP_DigestSignInit(ctx, NULL, GetMessageDigestType(privateKey), NULL, privateKey) > 0)
+      {
+         size_t numSigBytes = 0;
+         if (EVP_DigestSign(ctx, NULL, &numSigBytes, payloadBytes, numBytesToSign) > 0)  // this just populates (numSigBytes); it will generally always set it to 64, but just for form's sake
+         {
+            return GenerateSignedOutputDataAux(payloadBytes, numPayloadBytes, numBytesToSign, numSigBytes, errBuf);
+         }
+         else LogTime(MUSCLE_LOG_ERROR, "GenerateSignedOutputData(): EVP_DigestSignUpdate() failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
+      }
+      else LogTime(MUSCLE_LOG_ERROR, "GenerateSignedOutputData(): EVP_DigestSignInit() failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
+   }
+
+   return B_SSL_ERROR;
+}
+
+status_t SSLSignedPacketProxyDataIO :: GenerateSignedOutputDataAux(const uint8 * payloadBytes, uint32 numPayloadBytes, uint32 numBytesToSign, size_t numSigBytes, char * errBuf)
+{
+   MRETURN_ON_ERROR(_scratchBuf.SetNumBytes(numBytesToSign+((uint32)numSigBytes)+UNSIGNED_TRAILER_SIZE, false));
+
+   uint8 * scratchPayload = _scratchBuf.GetBuffer();
+
+   DataFlattener signedFlat(scratchPayload, numBytesToSign);
+   signedFlat.WriteBytes(payloadBytes, numPayloadBytes);
+   signedFlat.WriteInt64(_outgoingSessionID);
+   signedFlat.WriteInt64(_outgoingPacketIDCounter);
+
+   EVP_MAC_CTX * optMacCtx = _outgoingContextIsHMAC ? reinterpret_cast<EVP_MAC_CTX *>(_outgoingContext) : NULL;
+
+   if ((optMacCtx)&&(EVP_MAC_update(optMacCtx, scratchPayload, numBytesToSign) <= 0))
+   {
+      LogTime(MUSCLE_LOG_ERROR, "GenerateSignedOutputData(): EVP_MAC_update() failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
+      return B_SSL_ERROR;
+   }
+
+   uint8 * sigPtr = scratchPayload+numBytesToSign;
+
+   if ((optMacCtx
+        ? EVP_MAC_final(optMacCtx, sigPtr, NULL, numSigBytes)
+        : EVP_DigestSign(reinterpret_cast<EVP_MD_CTX *>(_outgoingContext), sigPtr, &numSigBytes, scratchPayload, numBytesToSign)) > 0)  // writes out the signature into our scratch-buffer
+   {
+      DataFlattener unsignedFlat(sigPtr+numSigBytes, UNSIGNED_TRAILER_SIZE);
+      unsignedFlat.WriteInt32(numPayloadBytes);
+      unsignedFlat.WriteInt32(MAGIC_WORD);  // just to make it easy to sanity-check that the unsigned-trailer exists
+
+      _scratchBuf.TruncateToLength(numPayloadBytes+(uint32)numSigBytes+SIGNED_TRAILER_SIZE+UNSIGNED_TRAILER_SIZE);  // just in case (numSigBytes) was set smaller by the second call to EVP_DigestSign()
+      return B_NO_ERROR;
+   }
+   else LogTime(MUSCLE_LOG_ERROR, "GenerateSignedOutputDataAux(): EVP_DigestSignFinal failed! [%s]\n", ERR_error_string(ERR_get_error(), errBuf));
 
    return B_SSL_ERROR;
 }
@@ -394,5 +575,14 @@ bool SSLSignedPacketProxyDataIO :: ReceivedPacketIDsWindow :: MaybeAcceptPacket(
    return true;
 }
 
+void SSLSignedPacketProxyDataIO :: ShutdownAux()
+{
+   ResetIncomingContext();
+   ResetOutgoingContext();
+
+   _preSharedKey.Reset();
+
+   ProxyDataIO::Shutdown();
+}
 
 } // end namespace muscle
