@@ -2714,7 +2714,7 @@ uint64 GetProcessMemoryUsage()
 status_t SetEnvironmentVariableValue(const String & envVarName, const String & envVal)
 {
 #ifdef WIN32
-   return SetEnvironmentVariable(envVarName(), envVal()) ? B_NO_ERROR : B_ERRNO;
+   return SetEnvironmentVariableA(envVarName(), envVal()) ? B_NO_ERROR : B_ERRNO;
 #else
    const int ret = setenv(envVarName(), envVal(), 1);
    return (ret == 0) ? B_NO_ERROR : B_ERRNO;
