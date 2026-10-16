@@ -159,7 +159,7 @@ private:
       {
          MASSERT(bitIndex < GetWindowSize(), "SetBit(): bad bitIndex");
 
-         const uint8 theMask = (1<<(bitIndex%8));
+         const uint8 theMask = (uint8) (1<<(bitIndex%8));
          uint8 & theByte     = _bitmap()->GetBuffer()[bitIndex/8];
 
          if (newBitValue) theByte |=  theMask;
@@ -170,7 +170,7 @@ private:
       {
          MASSERT(bitIndex < GetWindowSize(), "IsBitSet(): bad bitIndex");
 
-         const uint8 theMask   = (1<<(bitIndex%8));
+         const uint8 theMask   = (uint8) (1<<(bitIndex%8));
          const uint8 & theByte = _bitmap()->GetBuffer()[bitIndex/8];
 
          return ((theByte & theMask) != 0);
