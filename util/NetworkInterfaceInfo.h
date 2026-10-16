@@ -181,7 +181,7 @@ private:
    uint32 _hardwareType;
    uint32 _mtu;
    uint64 _linkReceiveSpeed;
-   uint64 _linkTransmitSpeed;;
+   uint64 _linkTransmitSpeed;
 };
 
 /** This function queries the local OS for information about all available network
