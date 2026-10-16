@@ -2429,7 +2429,11 @@ status_t IPAddress :: SetFromString(const String & ipAddressString)
    return Inet4_AtoN(ipAddressString(), *this);
 #else
    int32 atIdx = ipAddressString.IndexOf('@');
-   if (atIdx < 0) atIdx = ipAddressString.IndexOf('%');
+   if (atIdx < 0)
+   {
+      const int32 pctIdx = ipAddressString.IndexOf('%');
+      if ((pctIdx >0)&&(muscleInRange(ipAddressString()[pctIdx+1], '0', '9'))) atIdx = pctIdx;
+   }
    if (atIdx >= 0)
    {
       // Gah... Inet_PtoN() won't accept the @idx suffix, so

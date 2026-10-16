@@ -47,6 +47,8 @@ key:  - new feature
      define MUSCLE_AVOID_CPLUSPLUS11_THREAD_LOCAL_KEYWORD as a side
      effect of MUSCLE_USE_CPLUSPLUS11_THREADS not being defined.
    * SSLSocketDataIO wasn't calling SSL_shutdown() correctly.  Fixed.
+   * GetHostByNameNative() was broken for IPv6 addresses ending in
+     e.g. "%en0".  Fixed.
 
 9.93 - Released 9/3/2026
    - Updated DataNode's ordered-index checksum to a method that
