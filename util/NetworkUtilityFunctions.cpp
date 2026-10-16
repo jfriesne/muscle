@@ -2283,7 +2283,7 @@ static void Inet4_NtoA(uint32 addr, char * buf)
 
 static const int MIN_IPBUF_LENGTH = 64;
 
-#ifndef MUSCLE_AVOID_IPV6
+#if !defined(MUSCLE_AVOID_IPV6) && !defined(WIN32)
 static status_t AddNamedInterfaceScopeSuffix(uint32 iidx, char * ipbuf, bool forceGNII, bool & retDidGNII)
 {
    static Mutex _mutex;
