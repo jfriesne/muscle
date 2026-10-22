@@ -2,11 +2,10 @@
 
 <H2>
 MUSCLE:  Crossbar Server, Portable Messaging and Support Classes<p>
-9/3/2026 v9.93 jaf@meyersound.com<p>
+10/22/2026 v9.94 jaf@meyersound.com<p>
 Jeremy Friesner / Meyer Sound Laboratories Inc.<p>
 Win32 compatibility contributions by Vitaliy Mikitchenko<p>
 C# client code by Wilson Yeung<p>
-SSL support code contributed by Nathan Whitehorn
 </H2>
 <p>
 Note:  The easiest way to compile is via cmake, e.g.:
@@ -76,11 +75,13 @@ Directory contents descriptions follow:
     <tr><td><a href="dataio/ByteBufferDataIO.h">ByteBufferDataIO</a></td><td>For file-style reading/writing to a ByteBuffer held in memory</td></tr>
     <tr><td><a href="dataio/ByteBufferPacketDataIO.h">ByteBufferPacketDataIO</a></td><td>Like ByteBufferDataIO, but implements a PacketDataIO interface instead</td></tr>
     <tr><td><a href="dataio/ChildProcessDataIO.h">ChildProcessDataIO</a></td><td>For launching a child process and communicating with it via its stdout/stdin</td></tr>
+    <tr><td><a href="dataio/DataIO.h">DataIO</a></td><td>Abstract base class, defines the interface for all DataIO-objects.</td></tr>
     <tr><td><a href="dataio/DataIOFlattener.h">DataIOFlattener</a></td><td>Utility class for serializing and writing typed data to a DataIO object.</td></tr>
     <tr><td><a href="dataio/DataIOUnflattener.h">DataIOUnflattener</a></td><td>Utility class for reading and deserializing typed data from a DataIO object.</td></tr>
     <tr><td><a href="dataio/ErrorDataIO.h">ErrorDataIO</a></td><td>Dummy class whose methods just always return an error code</td></tr>
     <tr><td><a href="dataio/FileDataIO.h">FileDataIO</a></td><td>For reading/writing via a C (FILE *) file handle</td></tr>
     <tr><td><a href="dataio/FileDescriptorDataIO.h">FileDescriptorDataIO</a></td><td>For reading/writing via a Unix file descriptor</td></tr>
+    <tr><td><a href="dataio/FlipBitsProxyDataIO.h">FlipBitsProxyDataIO</a></td><td>Wrapper class that applies bit-negation obfuscation to all data that flows through it</td></tr>
     <tr><td><a href="dataio/MultiDataIO.h">MultiDataIO</a></td><td>Multiplexer wrapper class for writing to multiple outputs at once</td></tr>
     <tr><td><a href="dataio/NullDataIO.h">NullDataIO</a></td><td>Dummy class for directing data to the bit-bucket</td></tr>
     <tr><td><a href="dataio/PacketDataIO.h">PacketDataIO</a></td><td>Extended DataIO interface for UDP-like semantics</td></tr>
@@ -88,13 +89,11 @@ Directory contents descriptions follow:
     <tr><td><a href="dataio/ProxyDataIO.h">ProxyDataIO</a></td><td>Passes all method-calls through to a "child" DataIO object.</td></tr>
     <tr><td><a href="dataio/RS232DataIO.h">RS232DataIO</a></td><td>For communicating via an RS-232 serial port</td></tr>
     <tr><td><a href="dataio/SeekableDataIO.h">SeekableDataIO</a></td><td>Extended DataIO interface for file-like semantics</td></tr>
-    <tr><td><a href="dataio/SSLSocketDataIO.h">SSLSocketDataIO</a></td><td>For communicating over SSL over TCP</td></tr>
     <tr><td><a href="dataio/SimulatedMulticastDataIO.h">SimulatedMulticastDataIO</a></td><td>For Wi-Fi; simulates multicast semantics using mostly unicast packets</td></tr>
-    <tr><td><a href="dataio/StdinDataIO.h">StdinDataIO</a></td><td>For reading from stdin</td></tr>
+    <tr><td><a href="dataio/StdinDataIO.h">StdinDataIO</a></td><td>For reading from stdin (and optionally writing to stdout also)</td></tr>
     <tr><td><a href="dataio/StressTestParserProxyDataIO.h">StressTestParserProxyDataIO</a></td><td>Proxy to force data to be sent in specified bursts, for parser robustness testing</td></tr>
     <tr><td><a href="dataio/TCPSocketDataIO.h">TCPSocketDataIO</a></td><td>For communicating using a TCP socket</td></tr>
     <tr><td><a href="dataio/UDPSocketDataIO.h">UDPSocketDataIO</a></td><td>For communicating using a UDP socket</td></tr>
-    <tr><td><a href="dataio/XorProxyDataIO.h">XorProxyDataIO</a></td><td>Wrapper class that applies XOR-"encryption" to all data that flows through it</td></tr>
    </table>
 <p>
 </li>
@@ -131,7 +130,7 @@ Directory contents descriptions follow:
     <tr><td><a href="iogateway/RawDataMessageIOGateway.h">RawDataMessageIOGateway</a></td><td>Converts arbitrary raw data into <a href="message/Message.h">Messages</a>, and vice versa</td></tr>
     <tr><td><a href="iogateway/SLIPFramedDataMessageIOGateway.h">SLIPFramedDataMessageIOGateway</a></td><td>Similar to the RawDataMessageIOGateway class, except it uses SLIP framing conventions</td></tr>
     <tr><td><a href="iogateway/SignalMessageIOGateway.h">SignalMessageIOGateway</a></td><td>Dummy gateway that doesn't send actual data, only indicates when data is available</td></tr>
-    <tr><td><a href="iogateway/TemplatingMessageIOGateway.h">TemplatingMessageIOGateway</a></td><td>A specialized MessgeIOGateway class that sends <a href="message/Message.h">Messages</a>' metadata separately from their payload data, to reduce bandwidth</td></tr>
+    <tr><td><a href="iogateway/TemplatingMessageIOGateway.h">TemplatingMessageIOGateway</a></td><td>A specialized MessageIOGateway class that sends <a href="message/Message.h">Messages</a>' metadata separately from their payload data, to reduce bandwidth</td></tr>
     <tr><td><a href="iogateway/PacketTunnelIOGateway.h">PacketTunnelIOGateway</a></td><td>Flattens <a href="message/Message.h">Messages</a> into a series of fixed-size packets suitable for UDP transmission</td></tr>
     <tr><td><a href="iogateway/MiniPacketTunnelIOGateway.h">MiniPacketTunnelIOGateway</a></td><td>A lightweight version of PacketTunnelIOGateway that supports small <a href="message/Message.h">Messages</a> only</td></tr>
     <tr><td><a href="iogateway/ProxyIOGateway.h">ProxyIOGateway</a></td><td>A semi-abstract class with routines to implement calling out to a "child" I/O gateway</td></tr>
@@ -275,6 +274,20 @@ Directory contents descriptions follow:
 <p>
    This contains the Makefile and main entry point for the "muscled"
    server executable, and the "admin" muscled-server-administration utility.
+<p>
+</li>
+<li>
+<b>ssl/</b>
+<p>
+   This directory contains support for authentication and encryption, using the OpenSSL library.
+<p>
+<p>
+   Classes implemented in this directory include:
+   <p>
+   <table>
+    <tr><td><a href="ssl/SSLSocketDataIO.h">SSLSocketDataIO</a></td><td>For communicating via SSL/TLS over a TCP connection</td></tr>
+    <tr><td><a href="ssl/SSLSignedPacketProxyDataIO.h">SSLSignedPacketProxyDataIO</a></td><td>Wrapper class for signing and authenticating UDP packets</td></tr>
+   </table>
 <p>
 </li>
 <li>
