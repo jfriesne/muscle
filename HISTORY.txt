@@ -5,6 +5,9 @@ key:  - new feature
       * bug fixed
       o other
 
+   * Tweaked Connect() and ConnectAsync() to handle non-canonical
+     loopback IP addresses (e.g. fe80::1@1) more gracefully.
+
 9.94 - Released 10/22/2026
    - Moved the SSL-specific classes out of dataio and iogateway and into
      a new ssl folder.

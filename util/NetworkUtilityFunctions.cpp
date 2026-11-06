@@ -742,8 +742,17 @@ ConstSocketRef Connect(const char * hostName, uint16 port, const char * debugTit
    }
 }
 
-ConstSocketRef Connect(const IPAddressAndPort & hostIAP, const char * optDebugHostName, const char * debugTitle, bool errorsOnly, uint64 maxConnectTime)
+// Convenience function:  Returns (iap) verbatim, unless the IPAddress portion is a weird loopback-address
+// variant (like fe80::1%1) that some OS's don't like to connect() to, in which case it returns the canonical loopback IP address instead.
+static IPAddressAndPort SanitizeConnectDestinationAddressAndPort(const IPAddressAndPort & iap)
 {
+   const IPAddress & ip = iap.GetIPAddress();
+   return ip.IsStandardLoopbackDeviceAddress() ? IPAddressAndPort(ip.IsIPv4() ? localhostIP_IPv4 : localhostIP_IPv6, iap.GetPort()) : iap;
+}
+
+ConstSocketRef Connect(const IPAddressAndPort & rawHostIAP, const char * optDebugHostName, const char * debugTitle, bool errorsOnly, uint64 maxConnectTime)
+{
+   const IPAddressAndPort hostIAP = SanitizeConnectDestinationAddressAndPort(rawHostIAP);
    char ipbuf[64]; Inet_NtoA(hostIAP.GetIPAddress(), ipbuf);
 
    if ((debugTitle)&&(errorsOnly == false))
@@ -1187,7 +1196,7 @@ IPAddress GetHostByName(const char * name, bool expandLocalhost, bool preferIPv6
    return ret;
 }
 
-ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
+ConstSocketRef ConnectAsync(const IPAddressAndPort & rawHostIAP, bool & retIsReady)
 {
    ConstSocketRef s = CreateMuscleSocket(SOCK_STREAM, GlobalSocketCallback::SOCKET_CALLBACK_CONNECT, SOCKET_FAMILY_PREFERRED);
    MRETURN_ON_ERROR(s);
@@ -1196,6 +1205,8 @@ ConstSocketRef ConnectAsync(const IPAddressAndPort & hostIAP, bool & retIsReady)
 
    const int fd = s.GetFileDescriptor();
    if (fd < 0) return ConstSocketRef();  // just to keep Coverity happy
+
+   const IPAddressAndPort hostIAP = SanitizeConnectDestinationAddressAndPort(rawHostIAP);
 
    int result = -1;
    switch(s() ? s()->GetFamily() : NUM_SOCKET_FAMILIES)  // s() will never return NULL, but Coverity needs reassurance
