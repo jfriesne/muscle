@@ -676,8 +676,13 @@ static io_status_t GetExitCodeFromWaitPIDStatus(int status)
 {
    if (WIFSIGNALED(status))
    {
-      if (WCOREDUMP(status)) return io_status_t("core dumped");
-                        else return io_status_t(strsignal(WTERMSIG(status)));
+      if (WCOREDUMP(status))
+      {
+         MUSCLE_THREAD_LOCAL_OR_STATIC char _buf[64];
+         muscleSprintf(_buf, "%s (core dumped)", strsignal(WTERMSIG(status)));
+         return io_status_t(_buf);
+      }
+      else return io_status_t(strsignal(WTERMSIG(status)));
    }
    if (WIFSTOPPED(status)) return io_status_t(strsignal(WSTOPSIG(status)));
    if (WIFEXITED(status))

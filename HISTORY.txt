@@ -5,6 +5,8 @@ key:  - new feature
       * bug fixed
       o other
 
+   - ChildProcessDataIO::GetChildProcessExitCode()'s error-status now
+     contains the process-killing signal's name even when core was dumped.
    * Tweaked Connect() and ConnectAsync() to handle non-canonical
      loopback IP addresses (e.g. fe80::1@1) more gracefully.
 
