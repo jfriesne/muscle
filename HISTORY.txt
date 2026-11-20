@@ -7,6 +7,8 @@ key:  - new feature
 
    - ChildProcessDataIO::GetChildProcessExitCode()'s error-status now
      contains the process-killing signal's name even when core was dumped.
+   * Win32 implementation of ChildProcessDataIO didn't deliver the child
+     process's last stdout bytes before indicating EOF from Read().  Fixed.
    * Tweaked Connect() and ConnectAsync() to handle non-canonical
      loopback IP addresses (e.g. fe80::1@1) more gracefully.
 

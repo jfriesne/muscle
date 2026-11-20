@@ -905,7 +905,7 @@ void ChildProcessDataIO :: IOThreadAbort()
 
 void ChildProcessDataIO :: IOThreadEntry()
 {
-   bool childProcessExited = false;
+   bool childProcessExited = false, childProcessEOFRead = false;
 
    ChildProcessBuffer inBuf;  // bytes from the child process's stdout, waiting to go to the _slaveNotifySocket
    ChildProcessBuffer outBuf; // bytes from the _slaveNotifySocket, waiting to go to the child process's stdin
@@ -952,7 +952,7 @@ void ChildProcessDataIO :: IOThreadEntry()
 
       // IOThread <-> ChildProcess i/o handling (and blocking) here
       {
-         if ((childProcessExited)&&(inBuf._index == inBuf._length)) break;
+         if ((childProcessExited)&&(childProcessEOFRead)&&(inBuf._index == inBuf._length)) break;
 
          // block here until an event happens... gotta poll because
          // the Window anonymous pipes system doesn't allow me to
@@ -962,55 +962,64 @@ void ChildProcessDataIO :: IOThreadEntry()
          if (evt == 1) childProcessExited = true;
 
          int32 totalNumBytesRead = 0;
-         int32 numBytesToRead;
-         while((numBytesToRead = sizeof(inBuf._buf)-inBuf._length) > 0)
+         if (childProcessEOFRead == false)
          {
-            // See if there is actually any data available for reading first
-            DWORD pipeSize;
-            if (PeekNamedPipe(_readFromStdout, NULL, 0, NULL, &pipeSize, NULL))
+            int32 numBytesToRead;
+            while((numBytesToRead = sizeof(inBuf._buf)-inBuf._length) > 0)
             {
-               if (pipeSize > 0)
+               // See if there is actually any data available for reading first
+               DWORD pipeSize;
+               if (PeekNamedPipe(_readFromStdout, NULL, 0, NULL, &pipeSize, NULL))
                {
-                  DWORD numBytesRead;
-                  if (ReadFile(_readFromStdout, &inBuf._buf[inBuf._length], numBytesToRead, &numBytesRead, NULL))
+                  if (pipeSize > 0)
                   {
-                     inBuf._length += numBytesRead;
-                     totalNumBytesRead += numBytesRead;
+                     DWORD numBytesRead;
+                     if (ReadFile(_readFromStdout, &inBuf._buf[inBuf._length], numBytesToRead, &numBytesRead, NULL))
+                     {
+                        inBuf._length     += numBytesRead;
+                        totalNumBytesRead += numBytesRead;
+                     }
+                     else
+                     {
+                        childProcessEOFRead = true;
+                        break;
+                     }
                   }
                   else
                   {
-                     IOThreadAbort();  // child process exited?
+                     if (childProcessExited) childProcessEOFRead = true;
                      break;
                   }
                }
-               else break;
-            }
-            else
-            {
-               IOThreadAbort();  // child process exited?
-               break;
+               else
+               {
+                  childProcessEOFRead = true;
+                  break;
+               }
             }
          }
 
          int32 totalNumBytesWritten = 0;
-         int32 numBytesToWrite;
-         while((numBytesToWrite = outBuf._length-outBuf._index) > 0)
          {
-            DWORD bytesWritten;
-            if (WriteFile(_writeToStdin, &outBuf._buf[outBuf._index], numBytesToWrite, &bytesWritten, 0))
+            int32 numBytesToWrite;
+            while((numBytesToWrite = outBuf._length-outBuf._index) > 0)
             {
-               if (bytesWritten > 0)
+               DWORD bytesWritten;
+               if (WriteFile(_writeToStdin, &outBuf._buf[outBuf._index], numBytesToWrite, &bytesWritten, 0))
                {
-                  totalNumBytesWritten += bytesWritten;
-                  outBuf._index += bytesWritten;
-                  if (outBuf._index == outBuf._length) outBuf._index = outBuf._length = 0;
+                  if (bytesWritten > 0)
+                  {
+                     totalNumBytesWritten += bytesWritten;
+                     outBuf._index        += bytesWritten;
+                     if (outBuf._index == outBuf._length) outBuf._index = outBuf._length = 0;
+                  }
+                  else break;  // no more space to write to, for now
                }
-               else break;  // no more space to write to, for now
-            }
-            else
-            {
-               IOThreadAbort();  // wtf?
-               break;
+               else
+               {
+                  IOThreadAbort();  // wtf?
+                  break;
+               }
             }
          }
 
